@@ -8,7 +8,7 @@ SDF2IMP    = ../org.strategoxt.imp.metatooling/sdf2imp
 all : eclipse-deps
 
 clean :
-	rm -f src/parser/$(SYNTAX)ParseController.java
+	rm -f src/parser/$(SYNTAX)ParseController.java plugin.xml
 	rm -rf src/parser/ast
 	# ...
 
