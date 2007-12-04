@@ -1,6 +1,6 @@
 SYNTAX     = Stratego
 EXTENSIONS = str
-PACKAGE    = org.stratetegoxt.imp.editors.stratego
+PACKAGE    = org.strategoxt.imp.editors.stratego
 SOURCE     = ~/.nix-profile/share/sdf/stratego-front/Stratego.def
 START      = Module
 
