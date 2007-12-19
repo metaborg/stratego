@@ -5,6 +5,7 @@ SOURCE     = ~/.nix-profile/share/sdf/stratego-front/Stratego.def
 START      = Module
 
 SDF2IMP    = ../org.strategoxt.imp.metatooling/sdf2imp
+ESVS       = ${wildcard *.esv}
 
 all : eclipse-deps
 
@@ -15,7 +16,7 @@ clean :
 
 eclipse-deps : plugin.xml # and others
 
-plugin.xml : $(SYNTAX).def $(SYNTAX).tbl $(SDF2IMP) Makefile
+plugin.xml : $(SYNTAX).def $(SYNTAX).tbl $(SDF2IMP) Makefile $(ESVS)
 	$(SDF2IMP) -i $< -p $(SYNTAX).tbl -e $(EXTENSIONS) -m $(SYNTAX) -s $(START) -n $(PACKAGE) -r --verbose 2
 
 $(SYNTAX).def : $(SOURCE)
