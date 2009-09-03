@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?eclipse version="3.0"?>
+
+<plugin>
+       <extension point="org.eclipse.imp.runtime.languageDescription">
+          <language extensions="str" description="Stratego" language="Stratego" derivedFrom="DynamicRoot"></language>
+       </extension>
+       <extension id="org.strategoxt.imp.stratego_editor.parser" name="Stratego Parser" point="org.eclipse.imp.runtime.parser">
+          <parser class="org.strategoxt.imp.stratego_editor.StrategoParseController" language="Stratego">
+          </parser>
+       </extension>    
+    </plugin>
