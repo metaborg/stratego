@@ -2,10 +2,6 @@
 
 <project name="Stratego" default="standalone">
     
-        <property name="externaldef" location="syntax/Stratego-Sugar.def"/>
-    
-        <!-- (standard build.xml below this line) -->
-    
         <!-- Project directories -->
         <property name="trans" location="trans"/>
         <property name="syntax" location="syntax"/>
