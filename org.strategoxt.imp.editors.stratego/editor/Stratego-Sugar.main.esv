@@ -5,7 +5,7 @@ imports Stratego-Sugar-Analysis Stratego-Sugar-Colorer Stratego-Sugar-Folding St
 language General properties
                   
   name          : Stratego-Sugar
-  id            : org.strategoxt.imp.stratego_editor
+  id            : org.strategoxt.imp.editors.stratego
   extends       : Root
                   
   description   : "Spoofax/IMP-generated editor for the Stratego-Sugar language"

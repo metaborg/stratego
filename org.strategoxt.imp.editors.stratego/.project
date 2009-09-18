@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <projectDescription>
-      <name>org.strategoxt.imp.stratego_editor</name>
+      <name>org.strategoxt.imp.editors.stratego</name>
       <comment></comment>
       <buildSpec>
 		<buildCommand>

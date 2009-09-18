@@ -1,4 +1,4 @@
-package org.strategoxt.imp.stratego_editor;
+package org.strategoxt.imp.editors.stratego;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.imp.preferences.PreferencesService;

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.stratego_editor;
+package org.strategoxt.imp.editors.stratego;
 
 import java.io.InputStream;
 import java.io.IOException;
