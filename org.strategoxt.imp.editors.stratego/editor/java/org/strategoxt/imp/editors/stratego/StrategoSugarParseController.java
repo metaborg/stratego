@@ -2,6 +2,7 @@ package org.strategoxt.imp.editors.stratego;
 
 import java.io.InputStream;
 import java.io.IOException;
+
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -9,9 +10,9 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 
-public class StrategoParseController extends DynamicParseController 
+public class StrategoSugarParseController extends DynamicParseController 
 { 
-  private static final String LANGUAGE = "Stratego";
+  private static final String LANGUAGE = "Stratego-Sugar";
 
   private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 
@@ -34,14 +35,14 @@ public class StrategoParseController extends DynamicParseController
   { 
     try
     { 
-      InputStream descriptorStream = StrategoParseController.class.getResourceAsStream(DESCRIPTOR);
-      InputStream table = StrategoParseController.class.getResourceAsStream(TABLE);
+      InputStream descriptorStream = StrategoSugarParseController.class.getResourceAsStream(DESCRIPTOR);
+      InputStream table = StrategoSugarParseController.class.getResourceAsStream(TABLE);
       if(descriptorStream == null)
-        throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR + " (not found in plugin)");
+        throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR + " (not found in plugin: " + getPluginLocation() + ")");
       if(table == null)
-        throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin)");
+        throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin: " + getPluginLocation() + ")");
       descriptor = DescriptorFactory.load(descriptorStream, table, null);
-      descriptor.setAttachmentProvider(StrategoParseController.class);
+      descriptor.setAttachmentProvider(StrategoSugarParseController.class);
     }
     catch(BadDescriptorException exc)
     { 
@@ -55,6 +56,10 @@ public class StrategoParseController extends DynamicParseController
       Environment.logException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
       throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
     }
+  }
+  
+  private static String getPluginLocation() {
+	  return StrategoSugarParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
   }
 
   @Override public IParseController getWrapped()
