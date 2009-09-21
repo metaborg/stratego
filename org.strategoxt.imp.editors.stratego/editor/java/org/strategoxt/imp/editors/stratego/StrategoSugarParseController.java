@@ -2,7 +2,6 @@ package org.strategoxt.imp.editors.stratego;
 
 import java.io.InputStream;
 import java.io.IOException;
-
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -57,9 +56,10 @@ public class StrategoSugarParseController extends DynamicParseController
       throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
     }
   }
-  
-  private static String getPluginLocation() {
-	  return StrategoSugarParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+
+  private static String getPluginLocation()
+  { 
+    return StrategoSugarParseController.class.getProtectionDomain().getCodeSource().getLocation().getFile();
   }
 
   @Override public IParseController getWrapped()
