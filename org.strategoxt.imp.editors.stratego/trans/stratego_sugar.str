@@ -25,6 +25,9 @@ rules
       + RDefT(?x, length => s-length, length => t-length, id)
       + RDef(?x, length => s-length, id)
       + RDefNoArgs(?x, id)
+      + RDecT(?x, length => s-length, length => t-length)
+      + RDec(?x, length => s-length)
+      + RDecNoArgs(?x)
       )> ast;
       one(?target)
 
