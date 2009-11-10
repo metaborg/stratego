@@ -1,0 +1,40 @@
+module stratego_sugar
+
+imports
+  libstratego-lib
+  libstratego-gpp
+  libstratego-aterm
+  libstrc
+
+rules
+
+  editor-resolve:
+    (selected, position, ast, path, project-path) -> target
+    where
+      CallT(SVar(x), s*, t*) := <try(Desugar)> selected
+    <+
+      CallT(SVar(x), s*, t*) := <try(Desugar)> <position-to-parent> (position, ast)
+    with
+      s-length := <length> s*;
+      t-length := <length> t* 
+    where
+      <collect-one(
+        SDefT(?x, length => s-length, length => t-length, id)
+      + SDef(?x, length => s-length, id)
+      + SDefNoArgs(?x, id)
+      + RDefT(?x, length => s-length, length => t-length, id)
+      + RDef(?x, length => s-length, id)
+      + RDefNoArgs(?x, id)
+      )> ast;
+      one(?target)
+
+  position-to-parent:
+    ([position, _], _#(t*)) -> parent
+    with
+      parent := <index(|<inc> position)> t*
+  
+  position-to-parent:
+    ([position, _, _ | _], _#(t*)) -> <position-to-parent> (position', ancestor)
+    where
+      [_ | position'] := <Fst>;
+      ancestor        := <index(|<inc> position)> t*

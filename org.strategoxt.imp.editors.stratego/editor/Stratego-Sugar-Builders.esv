@@ -1,0 +1,11 @@
+
+module Stratego-Sugar-Builders
+
+imports Stratego-Sugar-Builders.generated
+
+analysis
+                                                                                      
+  // This file can be used for custom analysis rules.                                 
+  // See the imported file for a brief introduction and examples.                     
+                                                                                      
+  provider : include/stratego_sugar.ctree
