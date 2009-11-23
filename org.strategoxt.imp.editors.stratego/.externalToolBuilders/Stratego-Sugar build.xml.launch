@@ -22,6 +22,8 @@
 <mapAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_PROPERTIES">
 <mapEntry key="eclipse.running" value="true"/>
 <mapEntry key="externaldef" value="syntax/Stratego-Sugar.def"/>
+<mapEntry key="eclipse.spoofaximp.strategojar" value="${env_var:HOME}/.nix-profile/share/strc-java/strategoxt.jar"/>
+<mapEntry key="eclipse.spoofaximp.jars" value="${workspace_loc:/org.strategoxt.imp.generator/lib/}"/>
 </mapAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${project}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/org.strategoxt.imp.editors.stratego/build.xml}"/>
