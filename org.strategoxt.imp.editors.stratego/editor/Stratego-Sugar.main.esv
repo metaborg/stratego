@@ -14,3 +14,4 @@ language General properties
   extensions    : str
   table         : include/Stratego-Sugar.tbl
   start symbols : Module
+  unmanaged table : Stratego*
