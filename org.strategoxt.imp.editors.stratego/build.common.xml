@@ -1,47 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<project name="Stratego-Sugar" default="all">
-        
-        <!-- Key input modules -->
-        <property name="sdfmodule" value="Stratego-Sugar"/>
-        <property name="esvmodule" value="Stratego-Sugar"/>
-        <property name="strmodule" value="stratego_sugar"/>
-        
-        <!-- Standard build file without ppgen dependency follows -->
+<project name="common">
     
-        <!-- Project directories -->
-        <property name="trans" location="trans"/>
-        <property name="src-gen" location="editor/java"/>
-        <property name="syntax" location="syntax"/>
-        <property name="include" location="include"/>
-        <property name="lib" location="lib"/>
-        <property name="build" location="bin"/>
-        <property name="dist" location="bin/dist"/>
-        
-        <!-- External .def and .jar locations
-        <property name="externaldef" location="syntax/${sdfmodule}.def"/>
-        <property name="externaljar" value="../lib.jar"/>
-        <property name="externaljarflags" value="-la org.lib"/>
-        -->
+        <target name="spoofaximp" depends="stratego.ctree,sdf2table,sdf2imp"/>
     
-        <!--
-            Environment configuration:
-            Spoofax/IMP includes native versions of the SDF executables (build.strategoxt.sdf),
-            and Java alternatives for the Stratego alternatives (build.strategoxt.stratego)
-        -->
-        <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
-            <isset property="eclipse.spoofaximp.nativeprefix"/>
-        </condition>
-        <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
-        <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="--library
-                        -I &quot;${trans}&quot;
-                        -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr
-                        -la stratego-gpp -la stratego-xtc
-                        -la stratego-aterm"/>
-        <property name="build.jvmargs" value="-client -Xverify:none -Xss4m -Xmx512m"/>
-        
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
         <dirname property="externaldefdir" file="${externaldef}"/>
@@ -60,20 +22,17 @@
         <mkdir dir="${dist}"/>
         <mkdir dir="${include}"/>
         <mkdir dir="${lib}"/>
-    
-        <target name="all" depends="stratego.ctree,sdf2table,sdf2imp"/>
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="sdf2imp.eclipse" if="eclipse.running">
-            <!-- In Eclipse, we trigger the Eclipse builder rather than build it here -->
-            <touch file="${include}/${esvmodule}.packed.esv"/>
-            <eclipse.refreshLocal resource="${include}/${esvmodule}.packed.esv"/>
+            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
+                <arg value="${include}/${esvmodule}.packed.esv"/>
+            </java>
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
-            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="utils/sdf2imp.jar:utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
                 <arg value="-p"/>
@@ -105,8 +64,7 @@
         </target>
     
         <target name="make-permissive.helper" unless="permissive-grammar.available" depends="utils-files">
-            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="utils/make_permissive.jar:utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.permissivegrammars.make_permissive" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
@@ -117,9 +75,9 @@
 
         <target name="utils-files">
             <mkdir dir="utils"/>
-            <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils"/>
-            <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar"         todir="utils"/>
-            <copy file="${eclipse.spoofaximp.strategojar}"              todir="utils"/>
+            <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false"/>
+            <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false"/>
+            <copy file="${eclipse.spoofaximp.strategojar}" todir="utils" failonerror="false"/>
         </target>
     
         <target name="pack-sdf" unless="externaldef">
@@ -134,15 +92,14 @@
         </target>
     
         <target name="pack-sdf.helper" unless="pack-sdf.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
                 <arg value="${syntax}/${sdfmodule}.sdf"/>
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-I"/>
-                <arg value="${trans}"/>
+                <arg value="${syntax}"/>
                 <arg value="-I"/>
                 <arg value="${lib}"/>
                 <arg line="${build.sdf.imports}"/>
@@ -167,8 +124,7 @@
         </target>
     
         <target name="rtg2sig.helper" unless="rtg2sig.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.rtg"/>
@@ -189,8 +145,7 @@
         </target>
     
         <target name="sdf2rtg.helper" unless="sdf2rtg.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -208,24 +163,33 @@
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.pp"/>
+                <targetfileset file="${include}/${sdfmodule}.pp.af"/>
             </dependset>
             <available file="${include}/${sdfmodule}.pp" property="ppgen.available"/>
             <antcall target="ppgen.helper"/>
         </target>
     
         <target name="ppgen.helper" unless="ppgen.available" depends="utils-files">
-            <java classname="start" dir="${include}" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <!-- Any failures here are ignored; they are only a problem when imported from Stratego -->
+            <java classname="start" failonerror="false">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
-                <arg value="${sdfmodule}.def"/>
+                <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
-                <arg value="${sdfmodule}.pp"/>
+                <arg value="${include}/${sdfmodule}.pp.af"/>
+                <arg value="-t"/>
+            </java>
+            <java classname="start" failonerror="false">
+                <arg value="org.strategoxt.tools.pp-pp-table"/>
+                <arg value="-i"/>
+                <arg value="${include}/${sdfmodule}.pp.af"/>
+                <arg value="-o"/>
+                <arg value="${include}/${sdfmodule}.pp"/>
             </java>
         </target>
     
         <!-- Stratego to Java interpreter -->
-        <target name="stratego.ctree" depends="rtg2sig">
+        <target name="stratego.ctree" depends="rtg2sig,ppgen">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -243,7 +207,7 @@
         </target>
     
         <!-- Stratego to Java compiler -->
-        <target name="stratego.jar" depends="rtg2sig">
+        <target name="stratego.jar" depends="rtg2sig,ppgen">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -262,8 +226,7 @@
         </target>
             
         <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled" depends="utils-files">
-            <java classname="org.strategoxt.strj.Main" classpath="utils/strategoxt.jar:utils/sdf2imp.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.strj.Main" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>
@@ -290,7 +253,7 @@
         </target>
         
         <!-- Helper target for calling the stratego compiler -->
-        <target name="stratego.c.helper" depends="rtg2sig" if="build.stratego.enabled">
+        <target name="stratego.c.helper" depends="rtg2sig,ppgen" if="build.stratego.enabled">
             <apply executable="${build.strategoxt.stratego}/${build.stratego.compiler}" dest="${build.stratego.outputpath}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
