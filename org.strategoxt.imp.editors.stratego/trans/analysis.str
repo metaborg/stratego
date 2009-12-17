@@ -1,0 +1,12 @@
+module analysis
+
+imports
+  desugar
+
+rules
+
+  rename-all = id
+
+  constraint-error = id
+
+  constraint-warning = id

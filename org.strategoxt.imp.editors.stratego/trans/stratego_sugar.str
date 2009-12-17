@@ -6,7 +6,30 @@ imports
   libstratego-aterm
   libstrc
 
+strategies
+
+  ANALYSIS_ENABLED = fail
+
 rules
+
+  editor-analyze:
+    (ast, path, project-path) -> ([], [], [])
+    where
+       not(ANALYIS_ENABLED)
+
+  editor-analyze:
+    (ast, path, project-path) -> (errors, warnings, notes)
+    where
+       not(ANALYIS_ENABLED)
+    with
+      // Ensure all dynamic rules are properly scoped
+      try(dr-scope-all-end);
+      dr-scope-all-start
+    with
+      rename-all;
+      errors   := <collect-all(constraint-error, conc)> ast;
+      warnings := <collect-all(constraint-warning, conc)> ast;
+      notes    := [(ast, "Experimental Stratego analysis enabled")] 
 
   editor-resolve:
     (selected, position, ast, path, project-path) -> target
