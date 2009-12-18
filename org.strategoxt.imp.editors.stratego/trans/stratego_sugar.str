@@ -5,6 +5,7 @@ imports
   libstratego-gpp
   libstratego-aterm
   libstrc
+  analysis
 
 strategies
 
@@ -15,12 +16,12 @@ rules
   editor-analyze:
     (ast, path, project-path) -> ([], [], [])
     where
-       not(ANALYIS_ENABLED)
+       not(ANALYSIS_ENABLED)
 
   editor-analyze:
     (ast, path, project-path) -> (errors, warnings, notes)
     where
-       not(ANALYIS_ENABLED)
+       not(ANALYSIS_ENABLED)
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);

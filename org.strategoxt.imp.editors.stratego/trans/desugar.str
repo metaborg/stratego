@@ -9,7 +9,7 @@ rules
     RDef(x, a*, s) -> SDefT(x, a*, [], s)
 
   basic-desugar:
-    SDefNoArgs(x) -> SDefT(x, [], [], s)
+    SDefNoArgs(x, s) -> SDefT(x, [], [], s)
 
   basic-desugar:
     RDefNoArgs(x, s) -> SDefT(x, [], [], s)
