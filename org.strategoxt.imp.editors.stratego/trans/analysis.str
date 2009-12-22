@@ -385,7 +385,7 @@ rules // Declarations inside definition bodies
     dec @ VarDec(x, t) -> VarDec(x', t)
     with
       cookie := <new-cookie>;
-      x'   := x{cookie};
+      x'     := x{cookie};
       rules(
         DeclareCookie: (x, _, _) -> cookie
         Declaration: cookie -> dec
@@ -481,7 +481,7 @@ rules // Constraints
   // FIXME: name sdefs after constructors to fix constructor conflict errors 
   constraint-error:
     OpDecl(x{cookie}, s*) -> [(x, $[Conflicts with strategy '[y_name]']),
-                            (y, $[Conflicts with constructor [x]/[<length> s*]])]
+                              (y, $[Conflicts with constructor [x]/[<length> s*]])]
     where
       require(not(<Declaration> cookie => y @ SDefT(y_name, _, _, _)))
 

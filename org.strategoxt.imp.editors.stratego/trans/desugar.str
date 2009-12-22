@@ -68,6 +68,9 @@ rules
     CondChoice(c, s1, s2) -> GuardedLChoice(Where(c), s1, s2)
 
   basic-desugar:
+    IfThen(c, s1) -> GuardedLChoice(Where(c), s1, Id())
+
+  basic-desugar:
     ToMetaExpr(t) -> ToMetaExpr(t')
     with
       // HACK: eliminate embedded languages
