@@ -1,6 +1,20 @@
 module desugar
 
+imports
+  libstratego-lib
+  libstrc
+
+signature constructors
+
+  ToMetaExpr   : Term -> Term
+  FromMetaExpr : Term -> Term
+  meta-var     : String -> Term
+  meta-listvar : String -> Term
+
 rules
+
+  basic-desugar-top =
+    topdown(try(basic-desugar))
 
   basic-desugar:
     SDef(x, a*, s) -> SDefT(x, a*, [], s)
@@ -9,8 +23,54 @@ rules
     RDef(x, a*, s) -> SDefT(x, a*, [], s)
 
   basic-desugar:
+    RDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s)
+
+  basic-desugar:
+    RDec(x, a*) -> RDecT(x, a*, [])
+
+  basic-desugar:
     SDefNoArgs(x, s) -> SDefT(x, [], [], s)
 
   basic-desugar:
     RDefNoArgs(x, s) -> SDefT(x, [], [], s)
 
+  basic-desugar:
+    OverlayNoArgs(x, o) -> Overlay(x, [], o)
+
+  basic-desugar:
+    RDecNoArgs(x) -> RDecT(x, [], [])
+
+  basic-desugar:
+    Call(x, s*) -> CallT(x, s*, [])
+
+  basic-desugar:
+    CallNoArgs(x) -> CallT(x, [], [])
+
+  basic-desugar:
+    ListVar(x) -> x
+
+  basic-desugar:
+    DefaultVarDec(x) -> VarDec(x, ConstType(SortNoArgs("ATerm")))
+
+  basic-desugar:
+    RuleNoCond(t1, t2) -> Rule(t1, t2, [])
+
+  basic-desugar:
+    Choice(s1, s2) -> GuardedLChoice(s1, Id(), s2)
+
+  basic-desugar:
+    LChoice(s1, s2) -> GuardedLChoice(s1, Id(), s2)
+
+  basic-desugar:
+    RChoice(s1, s2) -> GuardedLChoice(s2, Id(), s1)
+
+  basic-desugar:
+    CondChoice(c, s1, s2) -> GuardedLChoice(Where(c), s1, s2)
+
+  basic-desugar:
+    ToMetaExpr(t) -> ToMetaExpr(t')
+    with
+      // HACK: eliminate embedded languages
+      t' := <collect-om(?FromMetaExpr(_)
+                      + \meta-var(x) -> Var(x)\
+                      + \meta-listvar(x) -> Var(x)\, conc)> t

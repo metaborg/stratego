@@ -3,9 +3,18 @@ module Stratego-Sugar-Builders
 
 imports Stratego-Sugar-Builders.generated
 
-analysis
+builders
                                                                                       
   // This file can be used for custom analysis rules.                                 
   // See the imported file for a brief introduction and examples.                     
                                                                                       
-  provider : include/stratego_sugar.ctree
+  provider : include/stratego_sugar.jar
+
+  observer : editor-analyze
+
+  builder : "Show desugared AST (selection)" =
+    generate-desugared-aterm (realtime) (meta) (openeditor)
+
+  builder : "Show AST (selection)" =
+    generate-aterm (realtime) (meta) (openeditor) 
+ 

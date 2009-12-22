@@ -13,6 +13,9 @@
         <condition property="externaljarimport" value=":${externaljar}" else="">
             <isset property="externaljar"/>
         </condition>
+        <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
+            <isset property="eclipse.running"/>
+        </condition>
         <fail if="externaljar" unless="externaljarflags"/>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
@@ -218,10 +221,10 @@
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
-                <param name="build.stratego.extraargs" value="-la java-front"/>
+                <param name="build.stratego.extraargs" value="-la java-front --library"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             

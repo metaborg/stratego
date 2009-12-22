@@ -9,28 +9,25 @@ imports
 
 strategies
 
-  ANALYSIS_ENABLED = fail
-
 rules
 
   editor-analyze:
     (ast, path, project-path) -> ([], [], [])
     where
-       not(ANALYSIS_ENABLED)
+       fail // not(<file-exists> $[[project-path]/.analyze])
 
   editor-analyze:
-    (ast, path, project-path) -> (errors, warnings, notes)
-    where
-       not(ANALYSIS_ENABLED)
+    (ast, path, project-path) -> (errors, warnings, [])
+    //where
+    //  <file-exists> $[[project-path]/.analyze]
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
       dr-scope-all-start
     with
-      rename-all;
-      errors   := <collect-all(constraint-error, conc)> ast;
-      warnings := <collect-all(constraint-warning, conc)> ast;
-      notes    := [(ast, "Experimental Stratego analysis enabled")] 
+      ast'     := <analyze-ast> (ast, path, project-path);
+      errors   := <collect-all(constraint-error, conc)> ast';
+      warnings := <collect-all(constraint-warning, conc)> ast'
 
   editor-resolve:
     (selected, position, ast, path, project-path) -> target
@@ -54,6 +51,18 @@ rules
       + RDecNoArgs(?x)
       )> ast;
       one(?target)
+
+  generate-aterm:
+    (selected, position, ast, path, project-path) -> (filename, result-string)
+    with
+      filename      := <guarantee-extension(|"aterm")> path;
+      result-string := <pp-aterm-box; box2text-string(|120)> selected
+
+  generate-desugared-aterm:
+    (selected, position, ast, path, project-path) -> (filename, result-string)
+    with
+      filename      := <guarantee-extension(|"aterm")> path;
+      result-string := <basic-desugar-top; pp-aterm-box; box2text-string(|120)> selected
 
   position-to-parent:
     ([position, _], _#(t*)) -> parent
