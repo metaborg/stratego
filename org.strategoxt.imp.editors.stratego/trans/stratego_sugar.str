@@ -6,71 +6,66 @@ imports
   libstratego-aterm
   libstrc
   analysis
+  lib/editor-common
 
 strategies
 
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> ([], [], [])
-    where
-       fail // not(<file-exists> $[[project-path]/.analyze])
-
-  editor-analyze:
     (ast, path, project-path) -> (errors, warnings, [])
-    //where
-    //  <file-exists> $[[project-path]/.analyze]
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
       dr-scope-all-start
     with
-      ast'     := <analyze-ast> (ast, path, project-path);
-      errors   := <collect-all(constraint-error, conc)> ast';
-      warnings := <collect-all(constraint-warning, conc)> ast'
+      ast' := <analyze-ast> (ast, path, project-path);
+      if NoAnalysis then
+        errors   := <collect-all(constraint-error, conc)> ast';
+        warnings := <collect-all(constraint-warning, conc)> ast'
+      else
+        if WarnAnalysis then
+          errors   := <collect-all(constraint-error, conc)> ast';
+          warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast'
+        else
+          errors   := <collect-all(global-constraint-error + constraint-error, conc)> ast';
+          warnings := <collect-all(constraint-warning, conc)> ast'
+        end
+      end
 
+  editor-complete:
+    (node, position, ast, path, project-path) -> proposals
+    with
+      // Ensure all dynamic rules are properly scoped
+      try(dr-scope-all-end);
+      dr-scope-all-start
+    with
+      <analyze-ast> (ast, path, project-path);
+      proposals := <ContentProposals>
+ 
   editor-resolve:
     (selected, position, ast, path, project-path) -> target
     where
-      CallT(SVar(x), s*, t*) := <try(Desugar)> selected
-    <+
-      CallT(SVar(x), s*, t*) := <try(Desugar)> <position-to-parent> (position, ast)
-    with
-      s-length := <length> s*;
-      t-length := <length> t* 
+      position' := <desugar-position(basic-desugar|ast)> position
     where
-      <collect-one(
-        SDefT(?x, length => s-length, length => t-length, id)
-      + SDef(?x, length => s-length, id)
-      + SDefNoArgs(?x, id)
-      + RDefT(?x, length => s-length, length => t-length, id)
-      + RDef(?x, length => s-length, id)
-      + RDefNoArgs(?x, id)
-      + RDecT(?x, length => s-length, length => t-length)
-      + RDec(?x, length => s-length)
-      + RDecNoArgs(?x)
-      )> ast;
-      one(?target)
+      target := <declaration-of> <term-at-position(|position')> <DecoratedAst>
+    <+
+      target := <declaration-of> <parent-at-position(|position')> <DecoratedAst>
+
+  editor-hover:
+    (node, position, ast, path, project-path) -> text
+    where
+      <signature-of> node; // only show definitions
+      text := <pp-stratego-string> node
 
   generate-aterm:
-    (selected, position, ast, path, project-path) -> (filename, result-string)
+    (selected, position, ast, path, project-path) -> (filename, result)
     with
-      filename      := <guarantee-extension(|"aterm")> path;
-      result-string := <pp-aterm-box; box2text-string(|120)> selected
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := selected
 
   generate-desugared-aterm:
-    (selected, position, ast, path, project-path) -> (filename, result-string)
+    (selected, position, ast, path, project-path) -> (filename, result)
     with
-      filename      := <guarantee-extension(|"aterm")> path;
-      result-string := <basic-desugar-top; pp-aterm-box; box2text-string(|120)> selected
-
-  position-to-parent:
-    ([position, _], _#(t*)) -> parent
-    with
-      parent := <index(|<inc> position)> t*
-  
-  position-to-parent:
-    ([position, _, _ | _], _#(t*)) -> <position-to-parent> (position', ancestor)
-    where
-      [_ | position'] := <Fst>;
-      ancestor        := <index(|<inc> position)> t*
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := <basic-desugar-top> selected

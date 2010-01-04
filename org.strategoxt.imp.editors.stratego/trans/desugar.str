@@ -6,10 +6,18 @@ imports
 
 signature constructors
 
-  ToMetaExpr   : Term -> Term
-  FromMetaExpr : Term -> Term
-  meta-var     : String -> Term
-  meta-listvar : String -> Term
+  FromMetaExpr     : Term -> Term
+  ToMetaExpr       : Term -> Term
+  FromTerm         : Term -> Term
+  ToTerm           : Term -> Term
+  FromMetaListExpr : Term -> Term
+  ToMetaListExpr   : Term -> Term
+  FromBuild        : Term -> Term
+  ToBuild          : Term -> Term
+  FromStrategy     : Term -> Term
+  ToStrategy       : Term -> Term
+  meta-var         : String -> Term
+  meta-listvar     : String -> Term
 
 rules
 
@@ -71,9 +79,25 @@ rules
     IfThen(c, s1) -> GuardedLChoice(Where(c), s1, Id())
 
   basic-desugar:
-    ToMetaExpr(t) -> ToMetaExpr(t')
+    ToMetaExpr(t) -> ToMetaExpr(<extract-meta-expr-escapes> t)
+
+  basic-desugar:
+    ToBuild(t) -> ToBuild(<extract-meta-expr-escapes> t)
+
+  basic-desugar:
+    ToTerm(t) -> ToTerm(<extract-meta-expr-escapes> t)
+
+  basic-desugar:
+    ToMetaListExpr(t) -> ToMetaListExpr(<extract-meta-expr-escapes> t)
+
+  basic-desugar:
+    ToStrategy(t) -> ToStrategy(<extract-meta-expr-escapes> t)
+
+  // HACK: eliminate embedded languages
+  extract-meta-expr-escapes:
+    t -> t'
     with
-      // HACK: eliminate embedded languages
-      t' := <collect-om(?FromMetaExpr(_)
+      t' := <collect-om(?FromTerm(_) + ?FromMetaExpr(_) + ?FromBuild(_)
+                      + ?FromMetaListExpr(_) + ?FromStrategy(_)
                       + \meta-var(x) -> Var(x)\
                       + \meta-listvar(x) -> Var(x)\, conc)> t

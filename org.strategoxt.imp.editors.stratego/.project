@@ -3,7 +3,6 @@
 	<name>org.strategoxt.imp.editors.stratego</name>
 	<comment></comment>
 	<projects>
-		<project>org.strategoxt.imp.generator</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

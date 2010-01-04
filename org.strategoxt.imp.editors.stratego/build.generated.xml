@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<project name="common">
+<project name="build.generated">
     
-        <target name="spoofaximp" depends="stratego.ctree,sdf2table,sdf2imp"/>
+        <target name="spoofaximp.default" depends="sdf2table,ppgen,stratego.ctree,sdf2imp"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -16,7 +16,6 @@
         <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
             <isset property="eclipse.running"/>
         </condition>
-        <fail if="externaljar" unless="externaljarflags"/>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
         </condition>
@@ -28,13 +27,14 @@
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
-        <target name="sdf2imp.eclipse" if="eclipse.running">
+        <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
             <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>
         
-        <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
+        <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg,utils-files">
+            <echo message="Property eclipse.running is not set; assuming Eclipse is not running"/>
             <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
@@ -110,7 +110,7 @@
         </target>
     
         <target name="copy-sdf" if="externaldef">
-            <copy file="${externaldef}" todir="${include}" preservelastmodified="true"/>
+            <copy file="${externaldef}" tofile="${include}/${sdfmodule}.def" preservelastmodified="true"/>
         </target>
     
         <target name="copy-jar" if="externaljar">
@@ -138,7 +138,7 @@
             </java>
         </target>
         
-        <target name="sdf2rtg" if="build.stratego.enabled" depends="pack-sdf,copy-sdf">
+        <target name="sdf2rtg" depends="pack-sdf,copy-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.rtg"/>
@@ -192,7 +192,7 @@
         </target>
     
         <!-- Stratego to Java interpreter -->
-        <target name="stratego.ctree" depends="rtg2sig,ppgen">
+        <target name="stratego.ctree" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -203,14 +203,14 @@
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${include}"/>
-                <param name="build.stratego.extraargs" value="-F --library"/>
+                <param name="build.stratego.extraargs" value="-F"/>
                 <param name="build.stratego.extension" value="ctree"/>
                 <param name="build.stratego.compiler" value="strc"/>
             </antcall>
         </target>
     
         <!-- Stratego to Java compiler -->
-        <target name="stratego.jar" depends="rtg2sig,ppgen">
+        <target name="stratego.jar" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -221,10 +221,10 @@
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
-                <param name="build.stratego.extraargs" value="-la java-front --library"/>
+                <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
@@ -236,7 +236,8 @@
                 <arg value="${build.stratego.outputpath}/${strmodule}.${build.stratego.extension}"/>
                 <arg value="-p"/>
                 <arg value="trans"/>
-                <arg value="-clean"/>
+                <arg value="--library"/>
+                <arg value="--clean"/>
                 <arg line="${build.stratego.args}"/>
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
@@ -256,7 +257,7 @@
         </target>
         
         <!-- Helper target for calling the stratego compiler -->
-        <target name="stratego.c.helper" depends="rtg2sig,ppgen" if="build.stratego.enabled">
+        <target name="stratego.c.helper" depends="rtg2sig" if="build.stratego.enabled">
             <apply executable="${build.strategoxt.stratego}/${build.stratego.compiler}" dest="${build.stratego.outputpath}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>

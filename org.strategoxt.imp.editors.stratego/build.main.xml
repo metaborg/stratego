@@ -22,8 +22,8 @@
                         -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc"/>
         
+        <property name="externaldef" location="syntax/Stratego-Sugar.def"/>
         <!-- External .def and .jar locations
-        <property name="externaldef" location="syntax/${sdfmodule}.def"/>
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
@@ -34,8 +34,8 @@
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
     
-        <import file="build.common.xml"/>
+        <import file="build.generated.xml"/>
     
         <!-- Main target -->
-        <target name="all" depends="stratego.jar,sdf2table,sdf2imp"/>
+        <target name="all" depends="sdf2table,stratego.jar,sdf2imp"/>
     </project>

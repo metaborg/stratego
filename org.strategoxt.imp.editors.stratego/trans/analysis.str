@@ -4,6 +4,7 @@ imports
   libstratego-lib
   libstrc
   desugar
+  lib/editor-common
 
 strategies
 
@@ -11,15 +12,27 @@ strategies
     (ast, path, project-path) -> ast'
     with
       rules(
-        CurrentDir := <dirname> $[[project-path]/[path]]
-        ProjectDir := project-path
-      )
+        CurrentDir  := <dirname> $[[project-path]/[path]]
+        CurrentFile := <base-filename> path
+        ProjectDir  := project-path
+      );
+      if <file-exists> $[[project-path]/.disable-global-analysis] then
+        rules(NoAnalysis: _)
+      end;
+      if <file-exists> $[[project-path]/.warn-global-analysis] then
+        rules(WarnAnalysis: _)
+      end
     with
       {| DeclareCookie:
-        basic-desugar-top;
+        <basic-desugar-top> ast;
         with(<declare-globals> Import("libstratego-lib"));
-        declare-globals-top;
-        declare-bodies-top => ast'
+        if not(NoAnalysis) then
+          declare-globals-top
+        end;
+        declare-bodies-top => ast';
+        rules(
+          DecoratedAst := ast'
+        )
       |}
 
 rules // Projections and lookup
@@ -36,9 +49,6 @@ rules // Projections and lookup
   signature-of:
     CallT(SVar(x), s*, t*) -> (x, <length> s*, <length> t*)
 
-  signature-of-nullary-constructor:
-    Var(x) -> (x, 0)
-
   signature-of-congruence:
     CallT(SVar(x), s*, []) -> (x, <length> s*) 
 
@@ -46,10 +56,10 @@ rules // Projections and lookup
     SDefT(x, s*, t*, []) -> (x, <length> s*) 
 
   signature-of:
-    Var(x) -> x
+    Var(x) -> (x, 0)
 
   signature-of:
-    VarDec(x, t) -> x
+    VarDec(x, t) -> (x, 0)
 
   signature-of:
     Op(x, t*) -> (x, <length> t*)
@@ -59,20 +69,30 @@ rules // Projections and lookup
 
   signature-of:
     ExtOpDecl(x, t) -> (x, <dec> <occurrences(?ConstType(_))> t)
+    
+  signature-of:
+    Overlay(x, t*, _) -> (x, <length> t*)
 
   signature-of:
     Rec(x, s) -> (x, 0, 0)
 
+  signature-of:
+    LabeledDynRuleScopeId(x, _) -> x
+
+  signature-of:
+    DynRuleScopeId(x) -> x
+
+  is-congruence-signature:
+    (x, s, 0) -> (x, s, [])
+    where
+      <DeclareCookie> (x, s)
+
   declare-cookie-of =
-    signature-of-nullary-constructor; DeclareCookie
-  <+
     signature-of; DeclareCookie
   <+
     signature-of-congruence; DeclareCookie
 
   declaration-of =
-    signature-of-nullary-constructor => (_{<Declaration>}, _)
-  <+
     signature-of; (?_{<Declaration>} <+ ?(_{<Declaration>}, _) <+ ?(_{<Declaration>}, _, _))
   <+
     signature-of-congruence => (_{<Declaration>}, _)
@@ -82,21 +102,19 @@ rules // Helpers
   declare-definition:
     def -> cookie
     with
-      sig := <signature-of>
-    with
-      cookie := <DeclareCookie>
-    <+
-      cookie := <new-cookie>;
-      rules(
-        DeclareCookie: sig -> cookie
-        Declaration: cookie -> def // FIXME: we only record 1 definition
-      )
+      sig := <signature-of>;
+      if not(cookie := <DeclareCookie> sig) then
+        cookie := <new-cookie>;
+        rules(
+          DeclareCookie: sig -> cookie
+          Declaration: cookie -> def
+        )
+      end
 
   redeclare-definition:
     def -> cookie
     with
-      sig := <signature-of>
-    with
+      sig := <signature-of>;
       cookie := <new-cookie>;
       rules(
         DeclareCookie: sig -> cookie
@@ -107,8 +125,6 @@ rules // Helpers
     not(s)
 
   is-declared =
-    //signature-of;
-    // (?_{_} + ?(_{_}, _) + ?(_{_}, _, _))
     one(?_{cookie} + ?SVar(_{cookie}))
 
   new-cookie =
@@ -131,26 +147,27 @@ rules // Declare globals
   declare-globals:
     ExtSDef(x, s*, t*) -> <id>
     with
-      // declare-definition
-      sig  := <signature-of>;
-      cookie := <new-cookie>;
-      rules(DeclareCookie: sig -> cookie)
+      redeclare-definition
 
   declare-globals:
     OpDecl(x, t) -> OpDecl(x', t)
     with
-      x' := x{<declare-definition>}
+      x' := x{<redeclare-definition>}
 
   declare-globals:
     ExtOpDecl(x, t) -> <id>
     with
-      // declare-definition
-      sig  := <signature-of>;
-      cookie := <new-cookie>;
-      rules(DeclareCookie: sig -> cookie)
+     redeclare-definition
+  
+  declare-globals:
+    Overlay(x, t, d) -> Overlay(x', t, d)
+    with
+      x' := x{<declare-definition>}
 
   declare-globals:
     Import(x) -> Import(x)
+    where
+      not(!x => COMPLETION(_))
     where
       <IsImported> x
     <+
@@ -165,15 +182,29 @@ rules // Declare globals
     <+
       rules(IsImportMissing := x); fail
 
-   import-library =
-     <pack-stratego-parse-stratego> (IncludeFromPath(<id>), [])
+  declare-globals:
+    ImportWildcard(x) -> ImportWildcard(x)
+    where
+      IsImported
+    <+
+      rules(IsImported: ImportWildcard(x));
+      path := <resolve-import-path> x;
+      readdir;
+      list-loop(
+        if has-extension(|"str") then
+          try(<declare-globals> Import($[[path]/[<remove-extension>]]))
+        end
+      )
+
+  import-library =
+    <pack-stratego-parse-stratego> (IncludeFromPath(<id>), [])
 
    import-from-cache:
      str -> signatures
      where
        cached := <import-cache-path>;
        <is-newer> (cached, str);
-       signatures := <ReadFromFile> cached
+       signatures := <file-exists; ReadFromFile> cached
 
    import-rtree:
      str -> signatures
@@ -194,26 +225,35 @@ rules // Declare globals
        <WriteToBinaryFile> (<import-cache-path>, signatures)        
 
    to-signatures =
-     basic-desugar-top // TODO
+     basic-desugar-top;
+     topdown(try(remove-strategy-body))
+
+   remove-strategy-body:
+     SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
+     with
+       s' := <collect-all(?RDecT(_, _, _))> s
 
    resolve-import-path:
      x -> full-path
      where
-       // FIXME: fetch true import paths from someplace
-       full-path := <file-exists> $[[<CurrentDir>]/[x]]
-     <+
-       full-path := <file-exists> $[[<ProjectDir>]/[x]]
-     <+
-       full-path := <file-exists> $[[<ProjectDir>]/src/[x]]
-     <+
-       full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
+        // FIXME: fetch true import paths from someplace
+        full-path := <file-exists> $[[<CurrentDir>]/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../[x]]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../[x]]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../[x]]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../../[x]]
 
    import-cache-path:
      full-path -> cache-path
      with
        cache-dir  := <file-exists <+ mkdir> $[[<ProjectDir>]/.cache];
        full-path' := <string-replace(|"/", "+"); string-replace(|"\\", "+"); string-replace(|":", "+")> full-path;
-       cache-path := $[[cache-dir]/[full-path']]
+       cache-path := $[[cache-dir]/[full-path'].sig]
 
   is-newer:
     (file1, file2) -> <id>
@@ -232,11 +272,12 @@ rules // Declare globals
       sig := (x, s'*, t'*);
       rules(
         DeclareCookie: sig -> cookie
+        DeclareCookie: x -> cookie
         Declaration: cookie -> dec
       );
       ![ "new", "undefine", "aux", "once", "bagof", "reversebagof", "all-keys"
        , "innermost-scope", "break", "continue", "continue-to-label", "throw"];
-      list-loop({prefix, sig:
+      list-loop({prefix, sig, cookie':
         ?prefix;
         sig := ($[[prefix]-[x]], s'*, t'*);
         rules(DeclareCookie: sig -> cookie)
@@ -260,7 +301,7 @@ rules // Declare globals
 rules // Declarations inside definition bodies
 
   declare-bodies-top =
-    alltd(declare-bodies)
+    alltd(propose-completion <+ declare-bodies)
 
   declare-bodies:
     SDefT(x, s*, t*, s) -> SDefT(x, s'*, t'*, s')
@@ -317,7 +358,9 @@ rules // Declarations inside definition bodies
       {| DeclareCookie:
         with(
           tvars;
-          list-loop({?x; rules(DeclareCookie :- x)})
+          list-loop({
+            sig := (<id>, 0); rules(DeclareCookie :- sig)
+          })
         );
         s' := <declare-bodies-top> s
       |}
@@ -350,11 +393,23 @@ rules // Declarations inside definition bodies
       |}
 
   declare-bodies:
-    SetDynRule(x, r) -> SetDynRule(x, r')
+    SetDynRule(x, r) -> SetDynRule(x', r')
     with
       {| DeclareCookie: // acts as a non-blanking scope
+        x' := <declare-bodies-top> x;
         r' := <declare-bodies-top> r
       |}
+
+  declare-bodies:
+    DynRuleScopeId(x) -> DynRuleScopeId(x')
+    where
+      x' := x{<declare-cookie-of>} 
+
+  declare-bodies:
+    LabeledDynRuleScopeId(x, t) -> LabeledDynRuleScopeId(x', t')
+    where
+      x' := x{<declare-cookie-of>}; 
+      t' := <declare-bodies-top> t 
 
   declare-bodies:
     Assign(t1, t2) -> Assign(t1', t2')
@@ -396,24 +451,24 @@ rules // Declarations inside definition bodies
     where
       <is-string> x
     with
-      x' := x{<redeclare-definition> Var(x)}
+      x' := x{<declare-definition> Var(x)}
 
   declare-tvar:
     VarDec(x, t) -> VarDec(x', t)
     with
-      x' := x{<redeclare-definition>}
+      x' := x{<declare-definition>}
 
   declare-var:
     Var(x) -> Var(x')
     with
-      x' := x{<redeclare-definition>}
-
-rules // Uses inside definition bodies
+      x' := x{<declare-definition>}
 
   declare-bodies:
     Var(x{}) -> Var(x')
     where
       x' := x{<declare-cookie-of>}
+
+rules // Uses inside definition bodies
 
   declare-bodies:
     CallT(SVar(x), s*, t*) -> CallT(SVar(x'), s'*, t'*)
@@ -432,30 +487,84 @@ rules // Uses inside definition bodies
     with
       t'* := <declare-bodies-top> t*
 
+rules // Content completion
+
+  propose-completion:
+    completion -> proposals
+    where
+      signature-of; one(?COMPLETION(prefix)) <+ one(?COMPLETION(prefix))
+    with
+      all-signatures := <all-keys-DeclareCookie>;
+      switch !completion
+        case ?Var(_):
+          all-signatures' := <filter(?(_, _))> all-signatures
+        case ?SVar(_):
+          all-signatures' := <filter(?(_, _, _))> all-signatures
+        case ?DynRuleScopeId(_):
+          all-signatures' := <filter(?(_, _, _); not(is-congruence-signature))> all-signatures
+        case ?Import(_):
+          all-signatures' := []
+        otherwise: // unknown context
+          all-signatures' := <filter(not(is-congruence-signature))> all-signatures
+      end;
+      all-signatures'' := <filter(one(string-starts-with(|prefix); not("")))> all-signatures';
+      proposals := <map(signature-to-proposal)> all-signatures'';
+      rules(
+        ContentProposals := proposals
+      )
+  
+  signature-to-proposal:
+    (x, 0) -> ([x], "")
+
+  signature-to-proposal:
+    (x, n) -> ([x, "(", t*, ")"], "")
+    where
+      <gt> (n, 0)
+    with
+      t* := <separate-by(|", ")> <copy> (n, "t")
+
+  signature-to-proposal:
+    (x, 0, 0) -> <signature-to-proposal> (x, 0)
+
+  signature-to-proposal:
+    (x, n, 0) -> ([x, "(", t*, ")"], "")
+    where
+      <gt> (n, 0)
+    with
+      t* := <separate-by(|", ")> <copy> (n, "s")
+
+  signature-to-proposal:
+    (x, n, m) -> ([x, "(", s*, "|", t*, ")"], "")
+    where
+      <gt> (m, 0)
+    with
+      s* := <separate-by(|", ")> <copy> (n, "s");
+      t* := <separate-by(|", ")> <copy> (m, "t")
+
 rules // Constraints
 
-  constraint-error:
-    CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' is not declared])
+  global-constraint-error:
+    CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
     where
       require(is-declared)
     where
       not(IsImportMissing)
 
-  constraint-error:
+  global-constraint-error:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
     where
       not(IsImportMissing)
 
-  constraint-warning:
-    CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' is not declared])
+  global-constraint-warning:
+    CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
     where
       require(is-declared)
     where
       IsImportMissing
 
-  constraint-warning:
+  global-constraint-warning:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
@@ -467,16 +576,43 @@ rules // Constraints
     where
       require(is-declared)
 
-  constraint-error:
+  global-constraint-error:
     Import(x) -> (x, $[Unable to import '[x]'])
     where
       require(<IsImported> x)
 
-  // TODO: support override/extends 
-  constraint-error:
-    SDefT(x{cookie}, s*, t*, s) -> (x, $[Conflicts with external definition])
+  global-constraint-error:
+    DynRuleScopeId(x) -> (x, $[Dynamic rule '[x]' not defined])
     where
-      require(<Declaration> cookie => SDefT(_, _, _, _))
+      require(is-declared)
+
+  global-constraint-error:
+    LabeledDynRuleId(x, _) -> (x, $[Dynamic rule '[x]' not defined])
+    where
+      require(is-declared)
+
+  constraint-error:
+    AnnoDef(a*, sdef @ SDefT(x, _, _, _)) -> (a*, $[No external strategy or rule '[x]'])
+    with
+      if not(!a* => []) then
+        sig := <signature-of> sdef;
+        rules(IsNoConflict: sdef)
+      end
+    where
+      require(
+        !a* => []
+      + !a* => [Internal()]
+      + <declaration-of> sdef => ExtSDef(_, _, _)
+      )
+
+  global-constraint-error:
+    SDefT(x{cookie}, s*, t*, s) -> (x, $[Conflicts with external definition of '[x]'])
+    where
+      require(
+        <Declaration> cookie => SDefT(_, _, _, _)
+      <+
+        IsNoConflict
+      )
 
   // FIXME: name sdefs after constructors to fix constructor conflict errors 
   constraint-error:
@@ -529,9 +665,23 @@ rules // Constraints
       require(not(?OpDecl(_, _) + ?ExtOpDecl(_, _)))
 
   constraint-warning:
-    CallT(SVar(<"debug" + "say">), [StrCong(s)], []) -> (s, $[Should be '![s]'])
+    CallT(SVar(<"debug" + "say">), [t], []) -> (s, $[Should be '![s]'])
+    where
+      !t => StrCong(s) + !t => IntCong(s)
 
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")
+
+  constraint-warning:
+    Module(x, _) -> (x, $[Module name should be qualified with a path relative to the import path])
+    where
+      not(NoAnalysis);
+      <eq> (<base-filename> x, <remove-extension> <CurrentFile>);
+      require(<resolve-import-path> $[[x].str])
+
+  constraint-warning:
+    Module(x, _) -> (x, $[Module name does not correspond to file name])
+    where
+      require(<eq> (<base-filename> x, <remove-extension> <CurrentFile>))
 
   // TODO: overlapping signatures
