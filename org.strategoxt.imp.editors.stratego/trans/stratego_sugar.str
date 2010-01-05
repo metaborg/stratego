@@ -36,6 +36,7 @@ rules
   editor-complete:
     (node, position, ast, path, project-path) -> proposals
     with
+      // TODO: Optimize - only a local analysis is needed for editor-complete
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
       dr-scope-all-start
