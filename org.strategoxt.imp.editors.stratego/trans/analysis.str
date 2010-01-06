@@ -82,12 +82,10 @@ rules // Projections and lookup
 
   signature-of:
     DynRuleScopeId(x) -> x
-  
-  signature-of = is-tuple // already a signature
 
   is-constructor =
-    declaration-of;
-    not(?OpDecl(_, _) + ?ExtOpDecl(_, _))
+    (?(_, _); DeclareCookie; Declaration <+ declaration-of);
+    (?OpDecl(_, _) + ?ExtOpDecl(_, _))
 
   is-congruence-signature:
     (x, s, 0) -> (x, s, [])
@@ -96,8 +94,6 @@ rules // Projections and lookup
 
   declare-cookie-of =
     signature-of; DeclareCookie
-  <+
-    signature-of-congruence; DeclareCookie
 
   declaration-of =
     signature-of; (?_{<Declaration>} <+ ?(_{<Declaration>}, _) <+ ?(_{<Declaration>}, _, _))
@@ -176,18 +172,31 @@ rules // Declare globals
     where
       not(!x => COMPLETION(_))
     where
-      <IsImported> x
+      <IsImported + IsImportedFailed> x
     <+
-      <import-library> x;
-      declare-globals-top;
-      rules(IsImported: x)
+      dr-ignore-state(
+        <import-library> x;
+        declare-globals-top;
+        rules(
+          IsImported: x
+          MissingIndirectImports: x -> <bagof-MissingImport>
+        )
+      <+
+        <try(resolve-import-path)> $[[x].str];
+        (import-from-cache <+ import-rtree <+ import-str);
+        declare-globals-top;
+        rules(
+          IsImported: x
+          MissingIndirectImports: x -> <bagof-MissingImport>
+        )
+      | "MissingImport"
+      )
     <+
-      <try(resolve-import-path)> $[[x].str];
-      (import-from-cache <+ import-rtree <+ import-str);
-      declare-globals-top;
-      rules(IsImported: x)
-    <+
-      rules(IsImportMissing := x); fail
+      rules(
+        MissingImport :+= x
+        IsImportedFailed: x
+      );
+      fail
 
   declare-globals:
     ImportWildcard(x) -> ImportWildcard(x)
@@ -247,6 +256,7 @@ rules // Declare globals
         full-path := <file-exists> $[[<CurrentDir>]/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
@@ -561,28 +571,28 @@ rules // Constraints
     where
       require(is-declared)
     where
-      not(IsImportMissing)
+      not(MissingImport)
 
   global-constraint-error:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
     where
-      not(IsImportMissing)
+      not(MissingImport)
 
   global-constraint-warning:
     CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
     where
       require(is-declared)
     where
-      IsImportMissing
+      MissingImport
 
   global-constraint-warning:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
     where
-      IsImportMissing
+      MissingImport
 
   constraint-error:
     Var(x) -> (x, $[Variable '[x]' is not declared])
@@ -593,6 +603,13 @@ rules // Constraints
     Import(x) -> (x, $[Unable to import '[x]'])
     where
       require(<IsImported> x)
+
+  global-constraint-error:
+    Import(x) -> (x, $[Unable to import indirect imports: [missing-indirect']])
+    where
+      missing-indirect := <MissingIndirectImports> x;
+      require(!missing-indirect => []);
+      missing-indirect' := <separate-by(|", ")> missing-indirect
 
   global-constraint-error:
     DynRuleScopeId(x) -> (x, $[Dynamic rule '[x]' not defined])
@@ -674,7 +691,7 @@ rules // Constraints
   constraint-warning:
     Var(x) -> (x, $[Conflicts with nullary constructor: use '[x]()' instead])
     where
-      require(is-constructor)
+      require(not(is-constructor))
 
   constraint-warning:
     CallT(SVar(<"debug" + "say">), [t], []) -> (s, $[Should be '![s]'])
