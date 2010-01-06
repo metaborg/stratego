@@ -174,11 +174,11 @@ rules // Declare globals
     where
       <IsImported + IsImportedFailed> x
     <+
+      rules(IsImported: x);
       dr-ignore-state(
         <import-library> x;
         declare-globals-top;
         rules(
-          IsImported: x
           MissingIndirectImports: x -> <bagof-MissingImport>
         )
       <+
@@ -186,7 +186,6 @@ rules // Declare globals
         (import-from-cache <+ import-rtree <+ import-str);
         declare-globals-top;
         rules(
-          IsImported: x
           MissingIndirectImports: x -> <bagof-MissingImport>
         )
       | "MissingImport"
