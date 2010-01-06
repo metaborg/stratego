@@ -10,6 +10,13 @@ references
   completion proposer : editor-complete
   
   completion lexical : [a-zA-Z0-9\'\-\_]+
+
+  completion trigger : "-> [A-Za-z]"
+  completion trigger : "([^A-Za-z0-9_]) <" // trigger for '-> <' but not for 'a < b'
+  completion trigger : "\n ?<"
+  completion trigger : "!"
+  completion trigger : "\?"
+  // completion trigger : ":= [A-Za-z]" // may not always work
                                                                                    
   reference _ : editor-resolve
 

@@ -23,17 +23,18 @@ strategies
         rules(WarnAnalysis: _)
       end
     with
-      {| DeclareCookie:
-        <basic-desugar-top> ast;
-        with(<declare-globals> Import("libstratego-lib"));
-        if not(NoAnalysis) then
-          declare-globals-top
-        end;
-        declare-bodies-top => ast';
-        rules(
-          DecoratedAst := ast'
-        )
-      |}
+      <basic-desugar-top> ast;
+      with(<declare-globals> Import("libstratego-lib"));
+      ast' := <analyze-ast-local>
+ 
+  analyze-ast-local =
+    if not(NoAnalysis) then
+      declare-globals-top
+    end;
+    declare-bodies-top => ast';
+    rules(
+      DecoratedAst := ast'
+    )
 
 rules // Projections and lookup
 
@@ -81,6 +82,12 @@ rules // Projections and lookup
 
   signature-of:
     DynRuleScopeId(x) -> x
+  
+  signature-of = is-tuple // already a signature
+
+  is-constructor =
+    declaration-of;
+    not(?OpDecl(_, _) + ?ExtOpDecl(_, _))
 
   is-congruence-signature:
     (x, s, 0) -> (x, s, [])
@@ -514,7 +521,13 @@ rules // Content completion
       )
   
   signature-to-proposal:
-    (x, 0) -> ([x], "")
+    (x, 0) -> ([x | parentheses], "")
+    with
+      if is-constructor then
+        parentheses := ["()"]
+      else
+        parentheses := []
+      end
 
   signature-to-proposal:
     (x, n) -> ([x, "(", t*, ")"], "")
@@ -661,8 +674,7 @@ rules // Constraints
   constraint-warning:
     Var(x) -> (x, $[Conflicts with nullary constructor: use '[x]()' instead])
     where
-      declaration-of;
-      require(not(?OpDecl(_, _) + ?ExtOpDecl(_, _)))
+      require(is-constructor)
 
   constraint-warning:
     CallT(SVar(<"debug" + "say">), [t], []) -> (s, $[Should be '![s]'])
