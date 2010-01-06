@@ -172,27 +172,29 @@ rules // Declare globals
     where
       not(!x => COMPLETION(_))
     where
-      <IsImported + IsImportedFailed> x
+      <IsImported> x
     <+
       rules(IsImported: x);
       dr-ignore-state(
         <import-library> x;
         declare-globals-top;
+        with(<debug> ("missing1:", x, <bagof-MissingImports>));
         rules(
-          MissingIndirectImports: x -> <bagof-MissingImport>
+          MissingIndirectImports: x -> <bagof-MissingImports>
         )
       <+
         <try(resolve-import-path)> $[[x].str];
         (import-from-cache <+ import-rtree <+ import-str);
         declare-globals-top;
+        with(<debug> ("missing2:", x, <bagof-MissingImports>));
         rules(
-          MissingIndirectImports: x -> <bagof-MissingImport>
+          MissingIndirectImports: x -> <bagof-MissingImports>
         )
-      | "MissingImport"
+      | "MissingImports"
       )
     <+
       rules(
-        MissingImport :+= x
+        MissingImports :+= x
         IsImportedFailed: x
       );
       fail
@@ -205,10 +207,16 @@ rules // Declare globals
       rules(IsImported: ImportWildcard(x));
       path := <resolve-import-path> x;
       readdir;
-      list-loop(
-        if has-extension(|"str") then
-          try(<declare-globals> Import($[[path]/[<remove-extension>]]))
-        end
+      dr-ignore-state(
+        list-loop(
+          if has-extension(|"str") then
+            try(<declare-globals> Import($[[path]/[<remove-extension>]]))
+          end
+        );
+        rules(
+          MissingIndirectImports: ImportWildcard(x) -> <bagof-MissingImports>
+        )
+      | "MissingImports"
       )
 
   import-library =
@@ -278,6 +286,8 @@ rules // Declare globals
 
   declare-dynrule:
     dec @ RDecT(x, s*, t*) -> RDecT(x', s*, t*)
+    where
+      not(!x => COMPLETION(_))
     with
       x' := x{<declare-cookie-of>}
     <+
@@ -494,7 +504,12 @@ rules // Uses inside definition bodies
       x' := x
     with
       t'* := <declare-bodies-top> t*;
-      s'* := <declare-bodies-top> s*
+      s'* := <map(declare-bodies-svar <+ declare-bodies-top)> s*
+
+  declare-bodies-svar:
+    CallT(SVar(x), [], []) -> CallT(SVar(x'), [], [])
+    with
+      x' := x{<declare-cookie-of <+ !"unknown">} // always allow in case of higher-order args
 
   declare-bodies:
     Op(x, t*) -> Op(x', t'*)
@@ -570,28 +585,28 @@ rules // Constraints
     where
       require(is-declared)
     where
-      not(MissingImport)
+      not(MissingImports)
 
   global-constraint-error:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
     where
-      not(MissingImport)
+      not(MissingImports)
 
   global-constraint-warning:
     CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
     where
       require(is-declared)
     where
-      MissingImport
+      MissingImports
 
   global-constraint-warning:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
     where
-      MissingImport
+      MissingImports
 
   constraint-error:
     Var(x) -> (x, $[Variable '[x]' is not declared])
@@ -601,13 +616,22 @@ rules // Constraints
   global-constraint-error:
     Import(x) -> (x, $[Unable to import '[x]'])
     where
-      require(<IsImported> x)
+      require(not(<IsImportedFailed> x))
 
   global-constraint-error:
-    Import(x) -> (x, $[Unable to import indirect imports: [missing-indirect']])
+    Import(x) -> (x, $[Indirect import failure: [x] -> [<write-to-string> <MissingIndirectImports>] [missing-indirect']])
     where
       missing-indirect := <MissingIndirectImports> x;
-      require(!missing-indirect => []);
+      require(!missing-indirect => [])
+    with
+      missing-indirect' := <separate-by(|", ")> missing-indirect
+
+  global-constraint-error:
+    ImportWildcard(x) -> (x, $[Indirect import failure: [missing-indirect']])
+    where
+      missing-indirect := <MissingIndirectImports> ImportWildcard(x);
+      require(!missing-indirect => [])
+    with
       missing-indirect' := <separate-by(|", ")> missing-indirect
 
   global-constraint-error:
