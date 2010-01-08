@@ -24,7 +24,7 @@ rules
         errors   := <collect-all(constraint-error, conc)> ast';
         warnings := <collect-all(constraint-warning, conc)> ast'
       else
-        if WarnAnalysis then
+        if WarnAnalysis + MissingImports then
           errors   := <collect-all(constraint-error, conc)> ast';
           warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast'
         else

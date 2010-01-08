@@ -17,9 +17,11 @@ strategies
         ProjectDir  := project-path
       );
       if <file-exists> $[[project-path]/.disable-global-analysis] then
+        <debug(!"analysis disabled: ")> project-path;
         rules(NoAnalysis: _)
       end;
       if <file-exists> $[[project-path]/.warn-global-analysis] then
+        <debug(!"analysis limited to warnings only: ")> project-path;
         rules(WarnAnalysis: _)
       end
     with
@@ -28,7 +30,7 @@ strategies
       ast' := <analyze-ast-local>
  
   analyze-ast-local =
-    if not(NoAnalysis) then
+    if not(NoAnalysis) then // TODO: only do this if no analysis done before
       declare-globals-top
     end;
     declare-bodies-top => ast';
@@ -178,7 +180,6 @@ rules // Declare globals
       dr-ignore-state(
         <import-library> x;
         declare-globals-top;
-        with(<debug> ("missing1:", x, <bagof-MissingImports>));
         rules(
           MissingIndirectImports: x -> <bagof-MissingImports>
         )
@@ -186,7 +187,6 @@ rules // Declare globals
         <try(resolve-import-path)> $[[x].str];
         (import-from-cache <+ import-rtree <+ import-str);
         declare-globals-top;
-        with(<debug> ("missing2:", x, <bagof-MissingImports>));
         rules(
           MissingIndirectImports: x -> <bagof-MissingImports>
         )
@@ -508,8 +508,10 @@ rules // Uses inside definition bodies
 
   declare-bodies-svar:
     CallT(SVar(x), [], []) -> CallT(SVar(x'), [], [])
-    with
-      x' := x{<declare-cookie-of <+ !"unknown">} // always allow in case of higher-order args
+    where
+      x' := x{<declare-cookie-of>}
+    <+
+      fail // TODO: special exception for higher-order args
 
   declare-bodies:
     Op(x, t*) -> Op(x', t'*)
@@ -584,29 +586,11 @@ rules // Constraints
     CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
     where
       require(is-declared)
-    where
-      not(MissingImports)
 
   global-constraint-error:
     Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
     where
       require(is-declared)
-    where
-      not(MissingImports)
-
-  global-constraint-warning:
-    CallT(SVar(x), s*, t*) -> (x, $[Strategy or rule '[x]' not defined])
-    where
-      require(is-declared)
-    where
-      MissingImports
-
-  global-constraint-warning:
-    Op(x, t*) -> (x, $[Constructor [x]/[<length> t*] not declared])
-    where
-      require(is-declared)
-    where
-      MissingImports
 
   constraint-error:
     Var(x) -> (x, $[Variable '[x]' is not declared])
