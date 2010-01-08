@@ -17,6 +17,7 @@ references
   completion trigger : "\n ?<"
   completion trigger : "!"
   completion trigger : "\?"
+  completion trigger : "\{\| "
   // completion trigger : ":= [A-Za-z]" // may not always work
 */
                                                                                    

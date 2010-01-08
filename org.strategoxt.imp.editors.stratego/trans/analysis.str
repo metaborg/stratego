@@ -96,6 +96,8 @@ rules // Projections and lookup
 
   declare-cookie-of =
     signature-of; DeclareCookie
+  <+
+    signature-of-congruence; DeclareCookie
 
   declaration-of =
     signature-of; (?_{<Declaration>} <+ ?(_{<Declaration>}, _) <+ ?(_{<Declaration>}, _, _))
@@ -434,8 +436,8 @@ rules // Declarations inside definition bodies
   declare-bodies:
     LabeledDynRuleScopeId(x, t) -> LabeledDynRuleScopeId(x', t')
     where
-      x' := x{<declare-cookie-of>}; 
-      t' := <declare-bodies-top> t 
+      x' := x{<signature-of; DeclareCookie>}; 
+      t' := <declare-bodies-top> t
 
   declare-bodies:
     Assign(t1, t2) -> Assign(t1', t2')
