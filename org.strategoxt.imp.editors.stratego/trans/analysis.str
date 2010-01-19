@@ -560,11 +560,6 @@ rules // Content completion
         ContentProposals := proposals
       )
   
-  /*do-something:
-    Some(Some(a @ _)) -> <id> 1
-    where
-      <*/
-  
   filter-by-prefix(|prefix) =
     filter(one(string-starts-with(|prefix); not(?"")))
   
@@ -585,7 +580,7 @@ rules // Content completion
       t* := <separate-by(|", ")> <copy> (n, "t")
 
   signature-to-proposal:
-    (x, 0, 0) -> <signature-to-proposal> (x, 0)
+    (x, 0, 0) -> ([x, ""], "")
 
   signature-to-proposal:
     (x, n, 0) -> ([x, "(", t*, ")"], "")
