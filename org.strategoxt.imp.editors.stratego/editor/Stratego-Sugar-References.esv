@@ -11,15 +11,18 @@ references
   
   completion lexical : [a-zA-Z0-9\'\-\_]+
 
-/* TODO: re-enable completion triggers in a later release
-  completion trigger : "-> [A-Za-z]"
-  completion trigger : "([^A-Za-z0-9_]) <" // trigger for '-> <' but not for 'a < b'
+// TODO: enable completion triggers in a later release?
+  completion trigger : "->[ \n\t]*[A-Za-z]"
+  completion trigger : "([^A-Za-z0-9_ ]) ?<" // trigger for ':= <' but not for 'a < b'
+  completion trigger : "(where|with)[ \n\t]*<"
+  completion trigger : "\[<"
   completion trigger : "\n ?<"
   completion trigger : "!"
   completion trigger : "\?"
   completion trigger : "\{\| "
-  // completion trigger : ":= [A-Za-z]" // may not always work
-*/
+  completion trigger : ":[ \n\t]*[A-Za-z]"
+  completion trigger : ":= [A-Za-z]"
+
                                                                                    
   reference _ : editor-resolve
 

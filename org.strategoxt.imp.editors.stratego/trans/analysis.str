@@ -26,17 +26,17 @@ strategies
       end
     with
       <basic-desugar-top> ast;
-      with(<declare-globals> Import("libstratego-lib"));
-      ast' := <analyze-ast-local>
- 
+      declare-globals-top;
+      ast' := <declare-bodies-top>;
+      rules(
+        DecoratedAst := ast'
+      )
+
   analyze-ast-local =
-    if not(NoAnalysis) then // TODO: only do this if no analysis done before
+    if not(bagof-Declaration => [_ | _]) then // TODO: nicer "has done global analysis" check
       declare-globals-top
     end;
-    declare-bodies-top => ast';
-    rules(
-      DecoratedAst := ast'
-    )
+    declare-bodies-top
 
 rules // Projections and lookup
 
@@ -143,7 +143,10 @@ rules // Helpers
 rules // Declare globals
 
   declare-globals-top =
-    alltd(declare-globals)
+    if not(NoAnalysis) then
+      with(<declare-globals> Import("libstratego-lib"));
+      alltd(declare-globals)
+    end
 
   declare-globals:
     SDefT(x, s*, t*, s) -> SDefT(x', s*, t*, s')
@@ -179,7 +182,7 @@ rules // Declare globals
       <IsImported> x
     <+
       rules(IsImported: x);
-      dr-ignore-state(
+      {| MissingImports:
         <import-library> x;
         declare-globals-top;
         rules(
@@ -192,8 +195,7 @@ rules // Declare globals
         rules(
           MissingIndirectImports: x -> <bagof-MissingImports>
         )
-      | "MissingImports"
-      )
+      |}
     <+
       rules(
         MissingImports :+= x
@@ -529,10 +531,10 @@ rules // Content completion
     where
       signature-of; one(?COMPLETION(prefix)) <+ one(?COMPLETION(prefix))
     with
-      all-signatures := <all-keys-DeclareCookie>;
+      all-signatures := <filter-by-prefix(|prefix)> <all-keys-DeclareCookie>;
       switch !completion
         case ?Var(_):
-          all-signatures' := <filter(?(_, _))> all-signatures
+          all-signatures' := <try(filter(?(_, _)); not([]))> all-signatures
         case ?SVar(_):
           all-signatures' := <filter(?(_, _, _))> all-signatures
         case ?DynRuleScopeId(_):
@@ -542,11 +544,29 @@ rules // Content completion
         otherwise: // unknown context
           all-signatures' := <filter(not(is-congruence-signature))> all-signatures
       end;
-      all-signatures'' := <filter(one(string-starts-with(|prefix); not("")))> all-signatures';
-      proposals := <map(signature-to-proposal)> all-signatures'';
+      proposals := <map(signature-to-proposal)> all-signatures';
       rules(
         ContentProposals := proposals
       )
+  
+  propose-completion:
+    Rule(lhs, rhs @ Var(COMPLETION(_)), _) -> proposals
+    where
+      <not(oncetd(?RootApp(_) + ?App(_, _)))> lhs
+    with
+      lhs'      := <topdown(try(\As(_, e) -> e\))> lhs;
+      proposals := [([<pp-stratego-string> lhs'], "") | <propose-completion> rhs];
+      rules(
+        ContentProposals := proposals
+      )
+  
+  /*do-something:
+    Some(Some(a @ _)) -> <id> 1
+    where
+      <*/
+  
+  filter-by-prefix(|prefix) =
+    filter(one(string-starts-with(|prefix); not(?"")))
   
   signature-to-proposal:
     (x, 0) -> ([x | parentheses], "")
