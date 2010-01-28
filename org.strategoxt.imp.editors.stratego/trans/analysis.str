@@ -189,12 +189,14 @@ rules // Declare globals
           MissingIndirectImports: x -> <bagof-MissingImports>
         )
       <+
-        <try(resolve-import-path)> $[[x].str];
-        (import-from-cache <+ import-rtree <+ import-str);
-        declare-globals-top;
-        rules(
-          MissingIndirectImports: x -> <bagof-MissingImports>
-        )
+        path := <try(resolve-import-path)> $[[x].str];
+        if not(!$[[<CurrentDir>]/[<CurrentFile>]] => path) then
+          (import-from-cache <+ import-rtree <+ import-str);
+          declare-globals-top;
+          rules(
+            MissingIndirectImports: x -> <bagof-MissingImports>
+          )
+        end
       |}
     <+
       rules(
