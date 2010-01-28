@@ -307,7 +307,7 @@ rules // Declare globals
         DeclareCookie: x -> cookie
         Declaration: cookie -> dec
       );
-      ![ "new", "undefine", "aux", "once", "bagof", "reversebagof", "all-keys"
+      ![ "new", "undefine", "aux", "once", "bagof", "bigbagof", "reversebagof", "all-keys"
        , "innermost-scope", "break", "continue", "continue-to-label", "throw"];
       list-loop({prefix, sig, cookie':
         ?prefix;
