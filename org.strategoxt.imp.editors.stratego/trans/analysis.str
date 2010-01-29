@@ -182,28 +182,19 @@ rules // Declare globals
       <IsImported> x
     <+
       rules(IsImported: x);
-      {| MissingImports:
-        <import-library> x;
-        declare-globals-top;
-        rules(
-          MissingIndirectImports: x -> <bagof-MissingImports>
-        )
-      <+
-        path := <try(resolve-import-path)> $[[x].str];
-        if not(!$[[<CurrentDir>]/[<CurrentFile>]] => path) then
-          (import-from-cache <+ import-rtree <+ import-str);
-          declare-globals-top;
-          rules(
-            MissingIndirectImports: x -> <bagof-MissingImports>
-          )
-        end
-      |}
+      <import-library> x;
+      declare-globals-top
+    <+
+      path := <try(resolve-import-path)> $[[x].str];
+      if not(!$[[<CurrentDir>]/[<CurrentFile>]] => path) then
+        (import-from-cache <+ debug(!"not cached:"); import-rtree <+ import-str);
+        declare-globals-top
+      end
     <+
       rules(
         MissingImports :+= x
         IsImportedFailed: x
-      );
-      fail
+      )
 
   declare-globals:
     ImportWildcard(x) -> ImportWildcard(x)
@@ -218,11 +209,13 @@ rules // Declare globals
           if has-extension(|"str") then
             try(<declare-globals> Import($[[path]/[<remove-extension>]]))
           end
-        );
-        rules(
-          MissingIndirectImports: ImportWildcard(x) -> <bagof-MissingImports>
         )
       | "MissingImports"
+      )
+    <+
+      rules(
+        MissingImports :+= x
+        IsImportedFailed: x
       )
 
   import-library =
@@ -240,7 +233,7 @@ rules // Declare globals
      where
        rtree := <try(resolve-import-path)> <guarantee-extension(|"rtree")>;
        (<is-newer> (rtree, str) + not(<file-exists> str));
-       signatures := <ReadFromFile; to-signatures> rtree
+       signatures := <file-exists; ReadFromFile; to-signatures> rtree
      with
        <WriteToBinaryFile> (<import-cache-path>, signatures)        
 
@@ -626,22 +619,6 @@ rules // Constraints
     Import(x) -> (x, $[Unable to import '[x]'])
     where
       require(not(<IsImportedFailed> x))
-
-  global-constraint-error:
-    Import(x) -> (x, $[Indirect import failure: [x] -> [<write-to-string> <MissingIndirectImports>] [missing-indirect']])
-    where
-      missing-indirect := <MissingIndirectImports> x;
-      require(!missing-indirect => [])
-    with
-      missing-indirect' := <separate-by(|", ")> missing-indirect
-
-  global-constraint-error:
-    ImportWildcard(x) -> (x, $[Indirect import failure: [missing-indirect']])
-    where
-      missing-indirect := <MissingIndirectImports> ImportWildcard(x);
-      require(!missing-indirect => [])
-    with
-      missing-indirect' := <separate-by(|", ")> missing-indirect
 
   global-constraint-error:
     DynRuleScopeId(x) -> (x, $[Dynamic rule '[x]' not defined])
