@@ -1,0 +1,19 @@
+module Stratego-Sugar-Outliner
+
+// imports Stratego-Sugar-Outliner.generated
+
+outliner
+  
+  // This file can be used for custom outliner rules.
+  // See the imported file for a brief introduction and examples.
+  
+  Module
+  _.Rules
+  _.Strategies
+  _.Overlays
+  _.SDefNoArgs
+  _.SDefT
+  _.SDef
+  _.RDefNoArgs
+  _.RDefT
+  _.RDef
