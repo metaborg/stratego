@@ -255,12 +255,18 @@ rules // Declare globals
 
    to-signatures =
      basic-desugar-top;
-     topdown(try(remove-strategy-body))
+     topdown(try(remove-stratego-bodies))
 
-   remove-strategy-body:
+   remove-stratego-bodies:
      SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
      with
        s' := <collect-all(?RDecT(_, _, _))> s
+   
+   remove-stratego-bodies:
+     Import(_) -> ()
+   
+   remove-stratego-bodies:
+     ImportWildcard(_) -> ()
 
    resolve-import-path:
      x -> full-path
