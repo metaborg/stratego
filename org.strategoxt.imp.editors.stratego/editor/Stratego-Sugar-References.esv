@@ -9,7 +9,7 @@ references
 
   completion proposer : editor-complete
   
-  completion lexical : [a-zA-Z0-9\'\-\_]+
+  completion lexical : [a-zA-Z\_][a-zA-Z0-9\'\-\_]*\*?
 
 /* TODO: enable completion triggers in a later release?
   completion trigger : "->[ \n\t]*[A-Za-z]"
