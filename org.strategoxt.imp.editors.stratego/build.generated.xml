@@ -2,7 +2,7 @@
 
 <project name="build.generated">
     
-        <target name="spoofaximp.default" depends="sdf2table,ppgen,stratego.ctree,sdf2imp"/>
+        <target name="spoofaximp.default" depends="sdf2table,ppgen,stratego.aster,stratego.ctree,sdf2imp"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -189,6 +189,35 @@
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.pp"/>
             </java>
+        </target>
+    
+        <!-- Aster to Stratego -->
+        <target name="stratego.aster">
+            <available file="${trans}/${strmodule}.rtree" property="aster-output.available"/>
+            <dependset>
+                <srcfileset dir="${basedir}">
+                    <include name="**/*.astr"/>
+                </srcfileset>
+                <targetfileset file="${trans}/${strmodule}.rtree"/>
+            </dependset>
+            <condition property="aster-output.uptodate">
+                <and>
+                    <isset property="aster-output.available"/>
+                    <available file="${trans}/${strmodule}.rtree"/>
+                </and>
+            </condition>
+            <available file="${trans}/${strmodule}.rtree" property="aster-output.uptodate"/>
+            <antcall target="stratego.aster.helper"/>
+        </target>
+    
+        <target name="stratego.aster.helper" unless="aster-output.uptodate">
+            <apply executable="java">
+                <arg line="-jar utils/aster.jar"/>
+                <arg value="-i"/>
+                <fileset dir="${basedir}">
+                    <include name="**/*.astr"/>
+                </fileset>
+            </apply>
         </target>
     
         <!-- Stratego to Java interpreter -->

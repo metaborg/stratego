@@ -8,9 +8,9 @@ outliner
   // See the imported file for a brief introduction and examples.
   
   Module
-  _.Rules
-  _.Strategies
-  _.Overlays
+  // _.Rules
+  // _.Strategies
+  // _.Overlays
   _.SDefNoArgs
   _.SDefT
   _.SDef
