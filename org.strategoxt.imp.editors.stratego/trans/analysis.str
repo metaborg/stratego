@@ -306,8 +306,10 @@ rules // Declare globals
         DeclareCookie: x -> cookie
         Declaration: cookie -> dec
       );
-      ![ "new", "undefine", "aux", "once", "bagof", "bigbagof", "reversebagof", "all-keys"
-       , "innermost-scope", "break", "continue", "continue-to-label", "throw"];
+      // See https://svn.strategoxt.org/repos/StrategoXT/strategoxt/trunk/strc-core/lib/stratego/strc/front/lift-dynamic-rules.str
+      ![ "new", "undefine", "aux", "once", "bagof", "reversebagof", "bigbagof", "all-keys"
+       , "innermost-scope", "break", "break-to-label", "break-bp", "continue", "continue-to-label"
+       , "throw", "chain", "bigchain", "fold", "bigfold" ];
       list-loop({prefix, sig, cookie':
         ?prefix;
         sig := ($[[prefix]-[x]], s'*, t'*);
