@@ -225,7 +225,8 @@
         <target name="stratego.ctree" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
-                    <include name="**/*.str"/>
+                    <include name="**/*.str"/>>
+                    <include name="**/*.rtree"/>
                 </srcfileset>
                 <targetfileset file="${include}/${strmodule}.ctree"/>
             </dependset>
@@ -244,6 +245,7 @@
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
+                    <include name="**/*.rtree"/>
                 </srcfileset>
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
