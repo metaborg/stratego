@@ -139,7 +139,7 @@ rules // Helpers
     if-c-platform(new)
 
   external SRTS-EXT-newint(|)
-    
+  
 rules // Declare globals
 
   declare-globals-top =
@@ -219,7 +219,7 @@ rules // Declare globals
       )
 
   import-library =
-    <pack-stratego-parse-stratego> (IncludeFromPath(<id>), [])
+    <pack-stratego-parse-stratego; to-signatures> (IncludeFromPath(<id>), [])
 
    import-from-cache:
      str -> signatures
