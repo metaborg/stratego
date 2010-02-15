@@ -2,7 +2,7 @@
 
 <project name="build.generated">
     
-        <target name="spoofaximp.default" depends="utils-files,sdf2table,ppgen,stratego.aster,stratego.ctree,sdf2imp"/>
+        <target name="spoofaximp.default" depends="sdf2table,ppgen,stratego.ctree,sdf2imp"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -33,7 +33,7 @@
             </java>
         </target>
         
-        <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
+        <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg,utils-files">
             <echo message="Property eclipse.running is not set; assuming Eclipse is not running"/>
             <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
@@ -66,7 +66,7 @@
             <antcall target="make-permissive.helper"/>
         </target>
     
-        <target name="make-permissive.helper" unless="permissive-grammar.available">
+        <target name="make-permissive.helper" unless="permissive-grammar.available" depends="utils-files">
             <java classname="org.strategoxt.permissivegrammars.make_permissive" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -80,7 +80,6 @@
             <mkdir dir="utils"/>
             <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false"/>
-            <copy file="${eclipse.spoofaximp.jars}/aster.jar" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.strategojar}" todir="utils" failonerror="false"/>
         </target>
     
@@ -95,7 +94,7 @@
             <antcall target="pack-sdf.helper"/>
         </target>
     
-        <target name="pack-sdf.helper" unless="pack-sdf.available">
+        <target name="pack-sdf.helper" unless="pack-sdf.available" depends="utils-files">
             <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
@@ -127,7 +126,7 @@
             <antcall target="rtg2sig.helper"/>
         </target>
     
-        <target name="rtg2sig.helper" unless="rtg2sig.available">
+        <target name="rtg2sig.helper" unless="rtg2sig.available" depends="utils-files">
             <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
                 <arg value="-i"/>
@@ -148,7 +147,7 @@
             <antcall target="sdf2rtg.helper"/>
         </target>
     
-        <target name="sdf2rtg.helper" unless="sdf2rtg.available">
+        <target name="sdf2rtg.helper" unless="sdf2rtg.available" depends="utils-files">
             <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
                 <arg value="-i"/>
@@ -173,7 +172,7 @@
             <antcall target="ppgen.helper"/>
         </target>
     
-        <target name="ppgen.helper" unless="ppgen.available">
+        <target name="ppgen.helper" unless="ppgen.available" depends="utils-files">
             <!-- Any failures here are ignored; they are only a problem when imported from Stratego -->
             <java classname="start" failonerror="false">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
@@ -192,41 +191,11 @@
             </java>
         </target>
     
-        <!-- Aster to Stratego -->
-        <target name="stratego.aster">
-            <available file="${trans}/${strmodule}.rtree" property="aster-output.available"/>
-            <dependset>
-                <srcfileset dir="${basedir}">
-                    <include name="**/*.astr"/>
-                </srcfileset>
-                <targetfileset file="${trans}/${strmodule}.rtree"/>
-            </dependset>
-            <condition property="aster-output.uptodate">
-                <and>
-                    <isset property="aster-output.available"/>
-                    <available file="${trans}/${strmodule}.rtree"/>
-                </and>
-            </condition>
-            <available file="${trans}/${strmodule}.rtree" property="aster-output.uptodate"/>
-            <antcall target="stratego.aster.helper"/>
-        </target>
-    
-        <target name="stratego.aster.helper" unless="aster-output.uptodate">
-            <apply executable="java">
-                <arg line="-jar utils/aster.jar"/>
-                <arg value="-i"/>
-                <fileset dir="${basedir}">
-                    <include name="**/*.astr"/>
-                </fileset>
-            </apply>
-        </target>
-    
         <!-- Stratego to Java interpreter -->
         <target name="stratego.ctree" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
-                    <include name="**/*.rtree"/>
                 </srcfileset>
                 <targetfileset file="${include}/${strmodule}.ctree"/>
             </dependset>
@@ -245,7 +214,6 @@
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
-                    <include name="**/*.rtree"/>
                 </srcfileset>
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
@@ -260,7 +228,7 @@
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
-        <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled">
+        <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled" depends="utils-files">
             <java classname="org.strategoxt.strj.Main" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
