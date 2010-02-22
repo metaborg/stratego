@@ -6,7 +6,8 @@ imports
   libstratego-aterm
   libstrc
   analysis
-  lib/editor-common
+  desugar
+  lib/editor-common.generated
 
 strategies
 
@@ -24,7 +25,7 @@ rules
         errors   := <collect-all(constraint-error, conc)> ast';
         warnings := <collect-all(constraint-warning, conc)> ast'
       else
-        if WarnAnalysis + MissingImports then
+        if WarnAnalysis then
           errors   := <collect-all(constraint-error, conc)> ast';
           warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast'
         else

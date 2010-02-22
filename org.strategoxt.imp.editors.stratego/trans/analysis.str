@@ -4,7 +4,7 @@ imports
   libstratego-lib
   libstrc
   desugar
-  lib/editor-common
+  lib/editor-common.generated
 
 strategies
 
@@ -12,8 +12,8 @@ strategies
     (ast, path, project-path) -> ast'
     with
       rules(
+        CurrentFile := $[[project-path]/[path]]
         CurrentDir  := <dirname> $[[project-path]/[path]]
-        CurrentFile := <base-filename> path
         ProjectDir  := project-path
       );
       if <file-exists> $[[project-path]/.disable-global-analysis] then
@@ -41,49 +41,58 @@ strategies
 rules // Projections and lookup
 
   signature-of:
-    SDefT(x, s*, t*, s) -> (x, <length> s*, <length> t*)
+    SDefT(x, s*, t*, s) -> (<remove-quote> x, <length> s*, <length> t*)
 
   signature-of:
-    RDecT(x, s*, t*) -> (x, <length> s*, <length> t*)
+    RDecT(x, s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
 
   signature-of:
-    ExtSDef(x, s*, t*) -> (x, <length> s*, <length> t*) 
+    ExtSDef(x, s*, t*) -> (<remove-quote> x, <length> s*, <length> t*) 
 
   signature-of:
-    CallT(SVar(x), s*, t*) -> (x, <length> s*, <length> t*)
+    CallT(SVar(x), s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
 
   signature-of-congruence:
-    CallT(SVar(x), s*, []) -> (x, <length> s*) 
+    CallT(SVar(x), s*, []) -> (<remove-quote> x, <length> s*) 
 
   signature-of-congruence:
-    SDefT(x, s*, t*, []) -> (x, <length> s*) 
+    SDefT(x, s*, t*, []) -> (<remove-quote> x, <length> s*) 
 
   signature-of:
-    Var(x) -> (x, 0)
+    Var(x) -> (<remove-quote> x, 0)
 
   signature-of:
-    VarDec(x, t) -> (x, 0)
+    VarDec(x, t) -> (<remove-quote> x, 0)
 
   signature-of:
-    Op(x, t*) -> (x, <length> t*)
+    Op(x, t*) -> (<remove-quote> x, <length> t*)
 
   signature-of:
-    OpDecl(x, t) -> (x, <dec> <occurrences(?ConstType(_))> t) 
+    OpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t) 
 
   signature-of:
-    ExtOpDecl(x, t) -> (x, <dec> <occurrences(?ConstType(_))> t)
+    ExtOpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
     
   signature-of:
-    Overlay(x, t*, _) -> (x, <length> t*)
+    Overlay(x, t*, _) -> (<remove-quote> x, <length> t*)
 
   signature-of:
-    Rec(x, s) -> (x, 0, 0)
+    Rec(x, s) -> (<remove-quote> x, 0, 0)
 
   signature-of:
-    LabeledDynRuleScopeId(x, _) -> x
+    LabeledDynRuleScopeId(x, _) -> <remove-quote> x
 
   signature-of:
-    DynRuleScopeId(x) -> x
+    DynRuleScopeId(x) -> <remove-quote> x
+  
+  remove-quote: 
+    s -> s'
+    with
+      if explode-string => ['\'' | s_tail] then
+        s' := <implode-string> s_tail
+      else
+        s' := s
+      end
 
   is-constructor =
     (?(_, _); DeclareCookie; Declaration <+ declaration-of);
@@ -111,7 +120,7 @@ rules // Helpers
     with
       sig := <signature-of>;
       if not(cookie := <DeclareCookie> sig) then
-        cookie := <new-cookie>;
+        cookie := <newterm>;
         rules(
           DeclareCookie: sig -> cookie
           Declaration: cookie -> def
@@ -122,7 +131,7 @@ rules // Helpers
     def -> cookie
     with
       sig := <signature-of>;
-      cookie := <new-cookie>;
+      cookie := <newterm>;
       rules(
         DeclareCookie: sig -> cookie
         Declaration: cookie -> def
@@ -133,10 +142,6 @@ rules // Helpers
 
   is-declared =
     one(?_{cookie} + ?SVar(_{cookie}))
-
-  new-cookie =
-    if-java-platform(SRTS-EXT-newint);
-    if-c-platform(new)
 
   external SRTS-EXT-newint(|)
   
@@ -174,120 +179,72 @@ rules // Declare globals
     with
       x' := x{<declare-definition>}
 
+  open-import(to-signatures):
+    full-path -> ast
+    with
+      ast := <id>
+  
   declare-globals:
     Import(x) -> Import(x)
-    where
-      not(!x => COMPLETION(_))
-    where
-      <IsImported> x
+    with
+      <open-import(resolve-import-path, read-stratego-signatures, declare-globals-top)> x
     <+
-      rules(IsImported: x);
-      <import-library> x;
-      declare-globals-top
-    <+
-      path := <try(resolve-import-path)> $[[x].str];
-      if not(!$[[<CurrentDir>]/[<CurrentFile>]] => path) then
-        (import-from-cache <+ debug(!"not cached:"); import-rtree <+ import-str);
-        declare-globals-top
-      end
-    <+
-      rules(
-        MissingImports :+= x
-        IsImportedFailed: x
-      )
+      rules(IsImportedFailed: x)
 
   declare-globals:
     ImportWildcard(x) -> ImportWildcard(x)
-    where
-      IsImported
+    with
+      <open-wildcard-import(resolve-import-path, read-stratego-signatures, declare-globals-top, has-extension(|"str") + has-extension(|"rtree"))> x
     <+
-      rules(IsImported: ImportWildcard(x));
-      path := <resolve-import-path> x;
-      readdir;
-      dr-ignore-state(
-        list-loop(
-          if has-extension(|"str") then
-            try(<declare-globals> Import($[[path]/[<remove-extension>]]))
-          end
-        )
-      | "MissingImports"
-      )
-    <+
-      rules(
-        MissingImports :+= x
-        IsImportedFailed: x
-      )
-
-  import-library =
-    <pack-stratego-parse-stratego; to-signatures> (IncludeFromPath(<id>), [])
-
-   import-from-cache:
-     str -> signatures
-     where
-       cached := <import-cache-path>;
-       <is-newer> (cached, str);
-       signatures := <file-exists; ReadFromFile> cached
-
-   import-rtree:
-     str -> signatures
-     where
-       rtree := <try(resolve-import-path)> <guarantee-extension(|"rtree")>;
-       (<is-newer> (rtree, str) + not(<file-exists> str));
-       signatures := <file-exists; ReadFromFile; to-signatures> rtree
-     with
-       <WriteToBinaryFile> (<import-cache-path>, signatures)        
-
-   import-str:
-     str -> signatures
-     where
-       file-exists;
-       parse-stratego-file; // uses Spoofax/IMP override for .meta support
-       signatures := <to-signatures>
-     with
-       <WriteToBinaryFile> (<import-cache-path>, signatures)        
-
-   to-signatures =
-     basic-desugar-top;
-     topdown(try(remove-stratego-bodies))
-
-   remove-stratego-bodies:
-     SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
-     with
-       s' := <collect-all(?RDecT(_, _, _))> s
-   
-   remove-stratego-bodies:
-     Import(_) -> ()
-   
-   remove-stratego-bodies:
-     ImportWildcard(_) -> ()
+      rules(IsImportedFailed: x)
 
    resolve-import-path:
      x -> full-path
      where
         // FIXME: fetch true import paths from someplace
-        full-path := <file-exists> $[[<CurrentDir>]/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../[x]]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../[x]]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../[x]]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../../[x]]
-
-   import-cache-path:
-     full-path -> cache-path
-     with
-       cache-dir  := <file-exists <+ mkdir> $[[<ProjectDir>]/.cache];
-       full-path' := <string-replace(|"/", "+"); string-replace(|"\\", "+"); string-replace(|":", "+")> full-path;
-       cache-path := $[[cache-dir]/[full-path'].sig]
-
-  is-newer:
-    (file1, file2) -> <id>
+        fetch-library-ast; full-path := x
+     <+ full-path := <file-exists> $[[<ProjectDir>]/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].rtree]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x].str]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/[x].str]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../[x].str]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../[x].str]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../[x].str]
+     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../../[x].str]
+  
+  read-stratego-signatures:
+    str -> <to-signatures> file
     where
-      <gt> (<file-exists; modification-time> file1, <file-exists; modification-time> file2) 
+      file := <fetch-library-ast>
+    <+
+      rtree := <guarantee-extension(|"rtree")>;
+      if <is-newer> (rtree, str) + not(<file-exists> str) then
+        file := <file-exists; ReadFromFile> rtree
+      else
+        file := <parse-stratego-file> str
+      end
+  
+  fetch-library-ast:
+    x -> <pack-stratego-parse-stratego> (IncludeFromPath(x), [])
+
+  to-signatures =
+    basic-desugar-top;
+    topdown(try(remove-stratego-bodies))
+
+  remove-stratego-bodies:
+    SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
+    with
+      s' := <collect-all(?RDecT(_, _, _))> s
+   
+  remove-stratego-bodies:
+    Import(_) -> ()
+   
+  remove-stratego-bodies:
+    ImportWildcard(_) -> ()
 
   declare-dynrule:
     dec @ RDecT(x, s*, t*) -> RDecT(x', s*, t*)
@@ -296,7 +253,7 @@ rules // Declare globals
     with
       x' := x{<declare-cookie-of>}
     <+
-      cookie := <new-cookie>;
+      cookie := <newterm>;
       x'  := x{cookie};
       s'* := <length> s*;
       t'* := <length> t*;
@@ -472,7 +429,7 @@ rules // Declarations inside definition bodies
   declare-svar:
     dec @ VarDec(x, t) -> VarDec(x', t)
     with
-      cookie := <new-cookie>;
+      cookie := <newterm>;
       x'     := x{cookie};
       rules(
         DeclareCookie: (x, _, _) -> cookie
@@ -547,7 +504,7 @@ rules // Content completion
         otherwise: // unknown context
           all-signatures' := <filter(not(is-congruence-signature))> all-signatures
       end;
-      proposals := <map(signature-to-proposal)> all-signatures';
+      proposals := <map(signature-to-proposal)> all-signatures'; // DEBUG
       rules(
         ContentProposals := proposals
       )
@@ -567,7 +524,7 @@ rules // Content completion
     filter(one(string-starts-with(|prefix); not(?"")))
   
   signature-to-proposal:
-    (x, 0) -> ([x | parentheses], "")
+    (x, 0) -> [x | parentheses]
     with
       if is-constructor then
         parentheses := ["()"]
@@ -576,29 +533,32 @@ rules // Content completion
       end
 
   signature-to-proposal:
-    (x, n) -> ([x, "(", t*, ")"], "")
+    (x, n) -> [x, "(", t*, ")"]
     where
       <gt> (n, 0)
     with
       t* := <separate-by(|", ")> <copy> (n, "t")
 
   signature-to-proposal:
-    (x, 0, 0) -> ([x, ""], "")
+    (x, 0, 0) -> [x, ""]
 
   signature-to-proposal:
-    (x, n, 0) -> ([x, "(", t*, ")"], "")
+    (x, n, 0) -> [x, "(", t*, ")"]
     where
       <gt> (n, 0)
     with
       t* := <separate-by(|", ")> <copy> (n, "s")
 
   signature-to-proposal:
-    (x, n, m) -> ([x, "(", s*, "|", t*, ")"], "")
+    (x, n, m) -> [x, "(", s*, "|", t*, ")"]
     where
       <gt> (m, 0)
     with
       s* := <separate-by(|", ")> <copy> (n, "s");
       t* := <separate-by(|", ")> <copy> (m, "t")
+
+  signature-to-proposal:
+    (x, [DR_DUMMY()], [DR_DUMMY()]) -> x // strategy param (wildcard arity)
 
 rules // Constraints
 
@@ -716,12 +676,12 @@ rules // Constraints
     Module(x, _) -> (x, $[Module name should be qualified with a path relative to the import path])
     where
       not(NoAnalysis);
-      <eq> (<base-filename> x, <remove-extension> <CurrentFile>);
-      require(<resolve-import-path> $[[x].str])
+      <eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>);
+      require(<resolve-import-path> x)
 
   constraint-warning:
     Module(x, _) -> (x, $[Module name does not correspond to file name])
     where
-      require(<eq> (<base-filename> x, <remove-extension> <CurrentFile>))
+      require(<eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>))
 
   // TODO: overlapping signatures
