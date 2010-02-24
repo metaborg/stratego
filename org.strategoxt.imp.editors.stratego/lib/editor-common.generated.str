@@ -1,12 +1,16 @@
 module lib/editor-common.generated
 
 imports
-  libstrc
+  libstratego-lib
+  libstratego-sglr
 
 strategies
 
   parse-file =
-    parse-stratego-file
+    parse-file(|<import-term(include/Stratego-Sugar.tbl)>)
+
+  parse-string =
+    parse-string(|<import-term(include/Stratego-Sugar.tbl)>)
   
 strategies
   
@@ -143,8 +147,8 @@ signature constructors
   MARKER     : Term
 
   // Below are copies of the signatures of the terms used in example
-  // trans/{name}.str file. These definitions should also be automatically 
-  // generated in the imported include/{sdf-name}.str module. However,
+  // trans/stratego_sugar.str file. These definitions should also be automatically 
+  // generated in the imported include/Stratego-Sugar.str module. However,
   // to ensure that the example transformation doesn't break when the
   // syntax is changed, we also hard-coded them here.
           
