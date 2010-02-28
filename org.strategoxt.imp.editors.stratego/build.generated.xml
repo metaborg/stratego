@@ -226,7 +226,7 @@
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
-                    <include name="**/*.rtree"/>
+                    <include name="**/*.astr"/>
                 </srcfileset>
                 <targetfileset file="${include}/${strmodule}.ctree"/>
             </dependset>
@@ -245,7 +245,7 @@
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
-                    <include name="**/*.rtree"/>
+                    <include name="**/*.astr"/>
                 </srcfileset>
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
