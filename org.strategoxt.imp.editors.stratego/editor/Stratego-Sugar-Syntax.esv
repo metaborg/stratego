@@ -1,8 +1,29 @@
 module Stratego-Sugar-Syntax
 
-imports Stratego-Sugar-Syntax.generated
-
 language
-                                                                   
-  // This file can be used for custom syntax rules.                
-  // See the imported file for a brief introduction and examples.  
+                  
+  line comment  : "//"
+  block comment : "/*" * "*/"
+  fences        : [ ]
+                  ( )
+                  { }
+                  {| |}
+                  |[ ]|
+                  $[ ]
+                  ${ }
+                  $< >
+                  $( )
+  
+  indent after:
+    then
+    in
+    else
+    ":"
+    "="
+    <
+    >
+    rules
+    strategies
+    overlays
+    constructors
+    imports

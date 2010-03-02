@@ -1,6 +1,9 @@
 module Stratego-Sugar.main
 
-imports Stratego-Sugar-Builders Stratego-Sugar-Colorer Stratego-Sugar-Folding Stratego-Sugar-Outliner Stratego-Sugar-References Stratego-Sugar-Syntax
+imports
+  Stratego-Sugar-Builders Stratego-Sugar-Colorer Stratego-Sugar-Folding
+  Stratego-Sugar-Outliner Stratego-Sugar-References Stratego-Sugar-Syntax
+  Stratego-Sugar-Completions
 
 language General properties
                   

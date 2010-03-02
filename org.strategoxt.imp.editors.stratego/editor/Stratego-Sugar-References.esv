@@ -3,26 +3,6 @@ module Stratego-Sugar-References
 imports Stratego-Sugar-References.generated
 
 references
-                                                                   
-  // This file can be used for custom reference resolving rules.   
-  // See the imported file for a brief introduction and examples.
-
-  completion proposer : editor-complete
-  
-  completion lexical : [a-zA-Z\_][a-zA-Z0-9\'\-\_]*\*?
-
-/* TODO: enable completion triggers in a later release?
-  completion trigger : "->[ \n\t]*[A-Za-z]"
-  completion trigger : "([^A-Za-z0-9_ ]) ?<" // trigger for ':= <' but not for 'a < b'
-  completion trigger : "(where|with)[ \n\t]*<"
-  completion trigger : "\[<"
-  completion trigger : "\n ?<"
-  completion trigger : "!"
-  completion trigger : "\?"
-  completion trigger : "\{\| "
-  completion trigger : ":[ \n\t]*[A-Za-z]"
-  completion trigger : ":= [A-Za-z]"
-*/
                                                                                  
   reference _ : editor-resolve
 

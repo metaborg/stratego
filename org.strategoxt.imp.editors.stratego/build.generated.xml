@@ -227,6 +227,7 @@
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
                     <include name="**/*.astr"/>
+                    <exclude name="lib/editor-common.generated.str"/>
                 </srcfileset>
                 <targetfileset file="${include}/${strmodule}.ctree"/>
             </dependset>
@@ -246,6 +247,7 @@
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
                     <include name="**/*.astr"/>
+                    <exclude name="lib/editor-common.generated.str"/>
                 </srcfileset>
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
@@ -261,6 +263,7 @@
         </target>
             
         <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled">
+            <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <java classname="org.strategoxt.strj.Main" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
