@@ -1,6 +1,6 @@
-module Stratego-Sugar-References
+module Stratego-Sugar-Completions
 
-imports Stratego-Sugar-References.generated
+imports Stratego-Sugar-Completions.generated
 
 references
                                                                    
