@@ -29,16 +29,29 @@ references
   hover _ : editor-hover
   
   completion template:
-    "if" " " "e" " then\n\ts\nend"
+    "if" " " <e> " then\n\t" <s> "\nend"
       
   completion template:
-    "switch" " " "s" "\n\tcase " "c" ":" " " "s" "\n\totherwise: " "id" "\nend"
+    "switch" " " <s> "\n\tcase " <c> ":" " " <s> "\n\totherwise: " <id> "\nend"
 
   completion template:
-  	"let" "\n\t" "x" " = " "s" "\nin\n\t" "s" "\nend"
+  	"let" "\n\t" <x> " = " <s> "\nin\n\t" <s> "\nend"
 
-  completion keyword:
-  	"where"
+  completion template:
+  	"where" "\n\t" (blank)
   	
-  completion keyword:
-  	"with"
+  completion template:
+  	"with" "\n\t" (blank)
+  
+  completion template:
+    "strategies" "\n\t" (blank)
+  
+  completion template:
+    "rules" "\n\t" (blank)
+  
+  completion template:
+    "signature constructors" "\n\t" (blank)
+  
+  completion template:
+    "signature sorts" "\n\t" (blank)
+

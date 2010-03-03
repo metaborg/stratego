@@ -7,10 +7,16 @@ imports
 strategies
 
   parse-file =
-    parse-file(|<import-term(include/Stratego-Sugar.tbl)>)
+    parse-file(
+      strsglr-perror, strsglr-report-parse-error
+    | <import-term(include/Stratego-Sugar.tbl)>
+    )
 
   parse-string =
-    parse-string(|<import-term(include/Stratego-Sugar.tbl)>)
+    parse-string(
+      strsglr-perror, strsglr-report-parse-error
+    | <import-term(include/Stratego-Sugar.tbl)>
+    )
   
 strategies
   
