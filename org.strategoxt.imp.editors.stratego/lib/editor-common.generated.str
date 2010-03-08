@@ -90,7 +90,7 @@ strategies
 strategies
   
   refresh-workspace-file:
-    f -> <prim("SSL_EXT_refreshresource", f)>
+    path -> <prim("SSL_EXT_refreshresource", path)>
 
 strategies
 
