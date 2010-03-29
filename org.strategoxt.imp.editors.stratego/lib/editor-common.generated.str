@@ -18,12 +18,6 @@ strategies
     | <import-term(include/Stratego-Sugar.tbl)>
     )
   
-  parse-stream =
-    parse-stream(
-      strsglr-report-parse-error
-    | <import-term(include/Stratego-Sugar.tbl)>
-    )
-
 strategies
   
   /**
