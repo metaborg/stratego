@@ -18,6 +18,12 @@ strategies
     | <import-term(include/Stratego-Sugar.tbl)>
     )
   
+  parse-stream =
+    parse-stream(
+      strsglr-report-parse-error
+    | <import-term(include/Stratego-Sugar.tbl)>
+    )
+
 strategies
   
   /**
@@ -77,10 +83,12 @@ strategies
   import-cache-path:
     full-path -> cache-path
     with
-      project-path := <prim("SSL_EXT_projectpath")>;
+      project-path := <project-path>;
       cache-dir    := <file-exists <+ mkdir> $[[project-path]/.cache];
       full-path'   := <string-replace(|"/", "+"); string-replace(|"\\", "+"); string-replace(|":", "+")> full-path;
       cache-path   := $[[cache-dir]/[full-path'].sig]
+
+  project-path = prim("SSL_EXT_projectpath")
 
   is-newer:
     (file1, file2) -> <id>
