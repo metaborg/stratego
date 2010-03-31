@@ -44,7 +44,7 @@ rules
   editor-resolve:
     (selected, position, ast, path, project-path) -> target
     where
-      target := <declaration-of> <term-at-position(|position)> ast
+      target := <declaration-of> selected
     <+
       target := <declaration-of> <parent-at-position(|position)> ast
   */
@@ -57,7 +57,6 @@ rules
       target := <declaration-of> <term-at-position(|position')> <DecoratedAst>
     <+
       target := <declaration-of> <parent-at-position(|position')> <DecoratedAst>
-
 
   editor-hover:
     (node, position, ast, path, project-path) -> text
