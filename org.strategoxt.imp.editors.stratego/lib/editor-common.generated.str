@@ -97,6 +97,11 @@ strategies
 
 strategies
   
+  editor-init =
+    // Ensure all dynamic rules are properly scoped
+    try(dr-scope-all-end);
+    dr-scope-all-start
+  
   refresh-workspace-file:
     path -> <prim("SSL_EXT_refreshresource", path)>
 

@@ -13,8 +13,8 @@ builders
   observer : editor-analyze
 
   builder : "Show desugared AST (selection)" =
-    generate-desugared-aterm (realtime) (meta) (openeditor)
+    generate-desugared-aterm (realtime) (meta) (openeditor) (source)
 
   builder : "Show AST (selection)" =
-    generate-aterm (realtime) (meta) (openeditor) 
+    generate-aterm (realtime) (meta) (openeditor) (source) 
  

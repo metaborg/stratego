@@ -14,7 +14,7 @@ strategies
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (errors, warnings, [])
+    (ast, path, project-path) -> (/*ast',*/ errors, warnings, [])
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
@@ -40,6 +40,15 @@ rules
       <basic-desugar-top; analyze-ast-local> ast;
       proposals := <ContentProposals>
  
+  /* TODO: return ast' from analysis and use this rule based on the decorated ast
+  editor-resolve:
+    (selected, position, ast, path, project-path) -> target
+    where
+      target := <declaration-of> <term-at-position(|position)> ast
+    <+
+      target := <declaration-of> <parent-at-position(|position)> ast
+  */
+  
   editor-resolve:
     (selected, position, ast, path, project-path) -> target
     where
@@ -48,6 +57,7 @@ rules
       target := <declaration-of> <term-at-position(|position')> <DecoratedAst>
     <+
       target := <declaration-of> <parent-at-position(|position')> <DecoratedAst>
+
 
   editor-hover:
     (node, position, ast, path, project-path) -> text
