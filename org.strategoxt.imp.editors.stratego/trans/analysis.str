@@ -359,7 +359,7 @@ rules // Declarations inside definition bodies
     Scope(v*, s) -> Scope(v*, s')
     with
       {| DeclareCookie:
-        <list-loop({?x; rules(DeclareCookie :- x)})> v*;
+        <list-loop({ sig := (<id>, 0); rules(DeclareCookie :- sig)})> v*;
         s' := <declare-bodies-top> s
       |}
 
@@ -420,9 +420,8 @@ rules // Declarations inside definition bodies
   declare-bodies:
     GuardedLChoice(c, s1, s2) -> GuardedLChoice(c', s1', s2')
     with
-      c' := <declare-bodies-top> c
-    with
-      s1' := <declare-bodies-top> s1
+      ( c' := <declare-bodies-top> c;
+        s1' := <declare-bodies-top> s1)
     \DeclareCookie/
       s2' := <declare-bodies-top> s2
 
@@ -494,7 +493,7 @@ rules // Content completion
       all-signatures := <filter-by-prefix(|prefix)> <all-keys-DeclareCookie>;
       switch !completion
         case ?Var(_):
-          all-signatures' := <try(filter(?(_, _)); not([]))> all-signatures
+          all-signatures2' := <try(filter(?(_, _)); not([]))> all-signatures
         case ?SVar(_):
           all-signatures' := <filter(?(_, _, _))> all-signatures
         case ?DynRuleScopeId(_):
@@ -504,7 +503,7 @@ rules // Content completion
         otherwise: // unknown context
           all-signatures' := <filter(not(is-congruence-signature))> all-signatures
       end;
-      proposals := <map(signature-to-proposal)> all-signatures'; // DEBUG
+      proposals := <map(signature-to-proposal)> all-signatures';
       rules(
         ContentProposals := proposals
       )
@@ -658,6 +657,12 @@ rules // Constraints
       filter(not(?RootApp(_) + ?App(_, _)));
       map(!(<id>, "Build symbol in match pattern")) => builds;
       require([])
+  
+  constraint-warning:
+    Assign(v @ Var(x), _) -> (x, $[Variable '[x]' may be bound already])
+    where
+      Var(x') := <declaration-of> v;
+      require(<origin-equal(|x)> x')
 
   constraint-warning:
     Var(x) -> (x, $[Conflicts with nullary constructor: use '[x]()' instead])

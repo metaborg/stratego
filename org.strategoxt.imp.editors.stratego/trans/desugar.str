@@ -64,19 +64,25 @@ rules
     RuleNoCond(t1, t2) -> Rule(t1, t2, [])
 
   basic-desugar:
-    Choice(s1, s2) -> GuardedLChoice(s1, Id(), s2)
+    Choice(s1, s2) -> <try(basic-desugar)> GuardedLChoice(s1, Id(), s2)
 
   basic-desugar:
-    LChoice(s1, s2) -> GuardedLChoice(s1, Id(), s2)
+    LChoice(s1, s2) -> <try(basic-desugar)> GuardedLChoice(s1, Id(), s2)
 
   basic-desugar:
-    RChoice(s1, s2) -> GuardedLChoice(s2, Id(), s1)
+    RChoice(s1, s2) -> <try(basic-desugar)> GuardedLChoice(s2, Id(), s1)
 
   basic-desugar:
-    CondChoice(c, s1, s2) -> GuardedLChoice(Where(c), s1, s2)
+    CondChoice(c, s1, s2) -> <try(basic-desugar)> GuardedLChoice(Where(c), s1, s2)
 
   basic-desugar:
-    IfThen(c, s1) -> GuardedLChoice(Where(c), s1, Id())
+    IfThen(c, s1) -> <try(basic-desugar)> GuardedLChoice(Where(c), s1, Id())
+
+  basic-desugar:
+    GuardedLChoice(Where(Not(c)), s1, s2) -> GuardedLChoice(Where(c), s2, s1)
+
+  basic-desugar:
+    GuardedLChoice(Not(c), s1, s2) -> GuardedLChoice(Where(c), s2, s1)
 
   basic-desugar:
     ToMetaExpr(t) -> ToMetaExpr(<extract-meta-expr-escapes> t)
@@ -92,6 +98,17 @@ rules
 
   basic-desugar:
     ToStrategy(t) -> ToStrategy(<extract-meta-expr-escapes> t)
+  
+  basic-desugar:
+    SwitchChoiceNoOtherwise(init, c*) ->
+    <basic-desugar> SwitchChoice(init, c*, Fail())
+
+  basic-desugar:
+    SwitchChoice(init, [SwitchCase(c, s) | c*], o) ->
+    Seq(init, GuardedLChoice(c, s, SwitchChoice(Id(), c*, o)))
+
+  basic-desugar:
+    SwitchChoice(init, [], o) -> Seq(init, o)
 
   // HACK: eliminate embedded languages
   extract-meta-expr-escapes:
