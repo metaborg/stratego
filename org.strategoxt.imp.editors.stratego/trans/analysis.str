@@ -23,7 +23,7 @@ strategies
       if <file-exists> $[[project-path]/.warn-global-analysis] then
         <debug(!"analysis limited to warnings only: ")> project-path;
         rules(WarnAnalysis: _)
-      end
+    end
     with
       <basic-desugar-top> ast;
       declare-globals-top;
@@ -665,7 +665,7 @@ rules // Constraints
       require(<origin-equal(|x)> x')
 
   constraint-warning:
-    Var(x) -> (x, $[Conflicts with nullary constructor: use '[x]()' instead])
+    Var(x) -> (x, $[Unparenthesized constructor: use '[x]()' instead])
     where
       require(not(is-constructor))
 
