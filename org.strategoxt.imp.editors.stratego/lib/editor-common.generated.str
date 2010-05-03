@@ -3,26 +3,35 @@ module lib/editor-common.generated
 imports
   libstratego-lib
   libstratego-sglr
+  libstratego-gpp
 
 strategies
 
-  parse-file =
+  parse-file = parse-stratego_sugar-file
+  parse-stratego_sugar-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
     | <import-term(include/Stratego-Sugar.tbl)>
     )
 
-  parse-string =
+  parse-string = parse-stratego_sugar-string
+  parse-stratego_sugar-string =
     parse-string(
       strsglr-report-parse-error
     | <import-term(include/Stratego-Sugar.tbl)>
     )
   
-  parse-stream =
+  parse-stream = parse-stratego_sugar-stream
+  parse-stratego_sugar-stream =
     parse-stream(
       strsglr-report-parse-error
     | <import-term(include/Stratego-Sugar.tbl)>
     )
+
+  pp-stratego_sugar-string =
+    ast2abox(|[<import-term(include/Stratego-Sugar.generated.pp.af)>,
+               <import-term(include/Stratego-Sugar.pp.af)>]);
+    box2text-string(|100)
 
 strategies
   

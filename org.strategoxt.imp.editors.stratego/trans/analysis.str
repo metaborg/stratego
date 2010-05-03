@@ -85,6 +85,9 @@ rules // Projections and lookup
   signature-of:
     DynRuleScopeId(x) -> <remove-quote> x
   
+  remove-quote:
+    COMPLETION(s) -> COMPLETION(<remove-quote> s)
+  
   remove-quote: 
     s -> s'
     with
