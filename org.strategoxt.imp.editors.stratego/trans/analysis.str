@@ -207,6 +207,7 @@ rules // Declare globals
         // FIXME: fetch true import paths from someplace
         fetch-library-ast; full-path := x
      <+ full-path := <file-exists> $[[<ProjectDir>]/[x].str]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/[x].rtree]
      <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x].str]
      <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].str]
      <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].rtree]
@@ -225,7 +226,7 @@ rules // Declare globals
       file := <fetch-library-ast>
     <+
       rtree := <guarantee-extension(|"rtree")>;
-      if <is-newer> (rtree, str) + not(<file-exists> str) then
+      if <is-newer> (rtree, str) + not(<file-exists> str) + <has-extension(|"rtree")> str then
         file := <file-exists; ReadFromFile> rtree
       else
         file := <parse-stratego-file> str
