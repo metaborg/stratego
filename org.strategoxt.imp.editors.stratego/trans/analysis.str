@@ -496,7 +496,7 @@ rules // Content completion
       all-signatures := <filter-by-prefix(|prefix)> <all-keys-DeclareCookie>;
       switch !completion
         case ?Var(_):
-          all-signatures2' := <try(filter(?(_, _)); not([]))> all-signatures
+          all-signatures' := <try(filter(?(_, _)); not([]))> all-signatures
         case ?SVar(_):
           all-signatures' := <filter(?(_, _, _))> all-signatures
         case ?DynRuleScopeId(_):
@@ -691,5 +691,10 @@ rules // Constraints
     Module(x, _) -> (x, $[Module name does not correspond to file name])
     where
       require(<eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>))
+
+  constraint-warning:
+    Import(f) -> (f, $[Relative path in import])
+    where
+      <string-starts-with(|"../")> f
 
   // TODO: overlapping signatures
