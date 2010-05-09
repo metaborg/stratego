@@ -268,7 +268,7 @@ rules // Declare globals
         Declaration: cookie -> dec
       );
       // See https://svn.strategoxt.org/repos/StrategoXT/strategoxt/trunk/strc-core/lib/stratego/strc/front/lift-dynamic-rules.str
-      ![ "new", "undefine", "aux", "once", "bagof", "reversebagof", "bigbagof", "all-keys"
+      ![ "new", "undefine", "aux", "once", "bagof", "reverse-bagof", "bigbagof", "all-keys"
        , "innermost-scope", "break", "break-to-label", "break-bp", "continue", "continue-to-label"
        , "throw", "chain", "bigchain", "fold", "bigfold" ];
       list-loop({prefix, sig, cookie':
