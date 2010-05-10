@@ -24,6 +24,7 @@
         <mkdir dir="${dist}"/>
         <mkdir dir="${include}"/>
         <mkdir dir="${lib}"/>
+        <mkdir dir="${syntax}"/>
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
