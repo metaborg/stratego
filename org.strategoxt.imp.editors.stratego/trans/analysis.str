@@ -638,6 +638,12 @@ rules // Constraints
 
   constraint-error:
     Rule(_, t, _) -> <constraint-error-bad-build> t
+  
+  constraint-error:
+    BA(_, t) -> <constraint-error-bad-build> t
+  
+  constraint-error:
+    App(_, t) -> <constraint-error-bad-build> t
 
   constraint-error:
     Match(t) -> <constraint-error-bad-match> t
