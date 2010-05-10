@@ -5,6 +5,7 @@ imports
   libstrc
   desugar
   lib/editor-common.generated
+  sourcedir
 
 strategies
 
@@ -16,6 +17,7 @@ strategies
         CurrentDir  := <dirname> $[[project-path]/[path]]
         ProjectDir  := project-path
       );
+      try(get-source-base-dir);
       if <file-exists> $[[project-path]/.disable-global-analysis] then
         <debug(!"analysis disabled: ")> project-path;
         rules(NoAnalysis: _)
@@ -190,35 +192,38 @@ rules // Declare globals
   declare-globals:
     Import(x) -> Import(x)
     with
-      <open-import(resolve-import-path, read-stratego-signatures, declare-globals-top)> x
+      <open-import(resolve-import-decl, read-stratego-signatures, declare-globals-top)> x
     <+
       rules(IsImportedFailed: x)
 
   declare-globals:
     ImportWildcard(x) -> ImportWildcard(x)
     with
-      <open-wildcard-import(resolve-import-path, read-stratego-signatures, declare-globals-top, has-extension(|"str") + has-extension(|"rtree"))> x
+      <open-wildcard-import(resolve-import-path <+ file-exists, read-stratego-signatures, declare-globals-top, has-extension(|"str") + has-extension(|"rtree"))> x
     <+
       rules(IsImportedFailed: x)
+
+   resolve-import-decl:
+     x -> full-path
+     where
+       fetch-library-ast; full-path := x
+     <+
+       full-path := <resolve-import-path> $[[x].str]
+     <+
+       full-path := <resolve-import-path> $[[x].rtree]
 
    resolve-import-path:
      x -> full-path
      where
         // FIXME: fetch true import paths from someplace
-        fetch-library-ast; full-path := x
-     <+ full-path := <file-exists> $[[<ProjectDir>]/[x].str]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/[x].rtree]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x].str]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].str]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x].rtree]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x].str]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x].str]
-     <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x].str]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/[x].str]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../[x].str]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../[x].str]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../[x].str]
-     <+ full-path := <file-exists> $[[<CurrentDir>]/../../../../[x].str]
+        full-path := <file-exists> $[[<SourceDir>]/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/syn/[x]]
+     <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
   
   read-stratego-signatures:
     str -> <to-signatures> file
@@ -685,8 +690,11 @@ rules // Constraints
     Module(x, _) -> (x, $[Module name should be qualified with a path relative to the import path])
     where
       not(NoAnalysis);
-      <eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>);
-      require(<resolve-import-path> x)
+      {| SourceDir:
+        rules(SourceDir :- _);
+        <eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>);
+        require(<resolve-import-path> $[[x].str] + <resolve-import-path> $[[x].rtree])
+      |}
 
   constraint-warning:
     Module(x, _) -> (x, $[Module name does not correspond to file name])

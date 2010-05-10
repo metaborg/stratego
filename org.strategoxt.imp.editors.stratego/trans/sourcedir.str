@@ -1,0 +1,38 @@
+module sourcedir
+
+imports
+  analysis
+  libstrc
+
+rules
+  
+  get-source-base-dir: mod@Module(x, _) -> mod
+    where <explode-string> x
+        ; filter(?'/')
+        ; length => ndirs
+        ; CurrentDir
+          // remove the last ndirs of directories
+        ; explode-string(|'/')
+        ; take(|<subt> (<length>, ndirs))
+        ; implode-string(|'/') => basedir
+        ; rules(SourceDir := basedir)
+        
+  get-soure-base-dir = ProjectDir
+          
+rules  // string utils
+  
+  explode-string'(|sep) =
+      split-at(?sep); \(a,b) -> [ a | <explode-string'(|sep)> b]\
+    <+ ![<id>]
+  
+  // Sep is a character
+  explode-string(|sep) = 
+        explode-string 
+      ; explode-string'(|sep)
+      ; map(implode-string)
+
+  // Sep can be a character or a string
+  implode-string(|sep) =
+      where(sep' := <is-string <+ ![<id>]; implode-string> sep)
+    ; separate-by(|sep'); concat-strings
+      
