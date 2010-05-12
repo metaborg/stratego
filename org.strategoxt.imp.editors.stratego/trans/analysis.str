@@ -54,12 +54,6 @@ rules // Projections and lookup
   signature-of:
     CallT(SVar(x), s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
 
-  signature-of-congruence:
-    CallT(SVar(x), s*, []) -> (<remove-quote> x, <length> s*) 
-
-  signature-of-congruence:
-    SDefT(x, s*, t*, []) -> (<remove-quote> x, <length> s*) 
-
   signature-of:
     Var(x) -> (<remove-quote> x, 0)
 
@@ -110,13 +104,9 @@ rules // Projections and lookup
 
   declare-cookie-of =
     signature-of; DeclareCookie
-  <+
-    signature-of-congruence; DeclareCookie
 
   declaration-of =
     signature-of; (?_{<Declaration>} <+ ?(_{<Declaration>}, _) <+ ?(_{<Declaration>}, _, _))
-  <+
-    signature-of-congruence => (_{<Declaration>}, _)
 
 rules // Helpers
   
@@ -172,7 +162,15 @@ rules // Declare globals
   declare-globals:
     OpDecl(x, t) -> OpDecl(x', t)
     with
-      x' := x{<redeclare-definition>}
+      cookie := <redeclare-definition>;
+      x'     := x{cookie}
+    with
+      // Declare congruence
+      (x, n) := <signature-of>;
+      sig'   := (x, n, 0);
+      rules(
+        DeclareCookie: sig' -> cookie
+      )
 
   declare-globals:
     ExtOpDecl(x, t) -> <id>
