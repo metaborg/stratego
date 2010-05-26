@@ -19,11 +19,9 @@ strategies
       );
       try(get-source-base-dir);
       if <file-exists> $[[project-path]/.disable-global-analysis] then
-        <debug(!"analysis disabled: ")> project-path;
         rules(NoAnalysis: _)
       end;
       if <file-exists> $[[project-path]/.warn-global-analysis] then
-        <debug(!"analysis limited to warnings only: ")> project-path;
         rules(WarnAnalysis: _)
     end
     with
@@ -690,6 +688,7 @@ rules // Constraints
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")
 
+  /*
   constraint-warning:
     Module(x, _) -> (x, $[Module name should be qualified with a path relative to the import path])
     where
@@ -699,6 +698,7 @@ rules // Constraints
         <eq> (<base-filename> x, <remove-extension> <base-filename> <CurrentFile>);
         require(<resolve-import-path> $[[x].str] + <resolve-import-path> $[[x].rtree])
       |}
+  */
 
   constraint-warning:
     Module(x, _) -> (x, $[Module name does not correspond to file name])
