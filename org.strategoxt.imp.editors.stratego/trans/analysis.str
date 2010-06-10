@@ -178,7 +178,15 @@ rules // Declare globals
   declare-globals:
     Overlay(x, t, d) -> Overlay(x', t, d)
     with
-      x' := x{<declare-definition>}
+      cookie := <redeclare-definition>;
+      x'     := x{cookie}
+    with
+      // Declare congruence
+      (x, n) := <signature-of>;
+      sig'   := (x, n, 0);
+      rules(
+        DeclareCookie: sig' -> cookie
+      )
 
   open-import(to-signatures):
     full-path -> ast
