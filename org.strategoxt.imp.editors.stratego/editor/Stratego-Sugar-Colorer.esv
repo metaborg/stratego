@@ -27,6 +27,7 @@ colorer Extension
   _.StringEscape4 : gray
   
   _.Str     : blue
+  _.StrCong : blue
   _.QStr    : blue
   _.QDollar : blue
   _.QBr     : gray
