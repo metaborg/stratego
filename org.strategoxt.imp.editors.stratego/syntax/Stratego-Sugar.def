@@ -4,6 +4,10 @@ imports
   Stratego-Core-Identifiers
   Stratego-Sugar-Terms
 
+exports %% RECOVERY RULES START HERE
+  lexical syntax
+      -> ";" {recover, cons("INSERTION")}
+
 exports
   sorts Overlay
   context-free syntax
