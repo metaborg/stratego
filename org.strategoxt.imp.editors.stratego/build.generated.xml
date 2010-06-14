@@ -31,14 +31,13 @@
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
-            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
+            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder" failonerror="true">
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>
         
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir"/>
-            <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/lib" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/syntax/${sdfmodule}.pp.generated" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/lib/editor-common.generated.str" depth="infinite"/>
@@ -53,6 +52,7 @@
             <eclipse.refreshLocal resource="${eclipse.path.src-gen}" depth="infinite"/>
             <eclipse.convertPath fileSystemPath="${build}" property="eclipse.path.build"/>
             <eclipse.refreshLocal resource="${eclipse.path.build}" depth="infinite"/>
+            <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite"/>
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
@@ -307,7 +307,7 @@
         </target>
     
         <!-- Stratego to Java compiler -->
-        <target name="stratego.jar" depends="rtg2sig">
+        <target name="stratego.jar" depends="rtg2sig,utils-files">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
