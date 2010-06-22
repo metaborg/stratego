@@ -113,6 +113,9 @@ strategies
   
   refresh-workspace-file:
     path -> <prim("SSL_EXT_refreshresource", path)>
+  
+  string-starts-with-capital =
+    explode-string; Hd; is-upper
 
 strategies
   
