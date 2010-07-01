@@ -549,7 +549,7 @@ rules // Content completion
     where
       <gt> (n, 0)
     with
-      t* := <separate-by(|", ")> <copy> (n, "t")
+      t* := <separate-by(|", ")> <copy> (n, "t") // TODO: number
 
   signature-to-proposal:
     (x, 0, 0) -> [x, ""]
