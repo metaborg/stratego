@@ -57,6 +57,11 @@ rules
       target := <declaration-of> <term-at-position(|position')> <DecoratedAst>
     <+
       target := <declaration-of> <parent-at-position(|position')> <DecoratedAst>
+  
+  editor-resolve:
+    (Import(x), position, ast, path, project-path) -> target
+    where
+      target := <parse-stratego-file> <resolve-import-decl> x
 
   editor-hover:
     (node, position, ast, path, project-path) -> text
