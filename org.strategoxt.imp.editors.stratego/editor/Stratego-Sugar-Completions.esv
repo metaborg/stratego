@@ -28,19 +28,19 @@ references
 
   hover _ : editor-hover
   
-  completion template:
+  completion template : Strategy =
     "if" " " <e> " then\n\t" <s> "\nend"
       
-  completion template:
+  completion template : Strategy = 
     "switch" " " <s> "\n\tcase " <c> ":" " " <s> "\n\totherwise: " <id> "\nend"
 
-  completion template:
+  completion template : Strategy =
   	"let" "\n\t" <x> " = " <s> "\nin\n\t" <s> "\nend"
 
-  completion template:
+  completion template : Decl = // Actually: Def
   	"where" "\n\t" (blank)
   	
-  completion template:
+  completion template : Decl = // Actually: Def
   	"with" "\n\t" (blank)
   
   completion template:
@@ -48,6 +48,9 @@ references
   
   completion template:
     "rules" "\n\t" (blank)
+  
+  completion template : Decl =
+    "imports" "\n\t" <Module> (blank)
   
   completion template:
     "signature constructors" "\n\t" (blank)
