@@ -58,3 +58,5 @@ references
   completion template:
     "signature sorts" "\n\t" (blank)
 
+  completion template : Module = 
+    "module " <name> "\n\nstrategies\n\n\t" 
