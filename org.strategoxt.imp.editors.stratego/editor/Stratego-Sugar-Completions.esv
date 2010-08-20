@@ -37,10 +37,10 @@ references
   completion template : Strategy =
   	"let" "\n\t" <x> " = " <s> "\nin\n\t" <s> "\nend"
 
-  completion template : Decl = // Actually: Def
+  completion template : Def =
   	"where" "\n\t" (blank)
   	
-  completion template : Decl = // Actually: Def
+  completion template : Def =
   	"with" "\n\t" (blank)
   
   completion template:
