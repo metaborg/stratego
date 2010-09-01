@@ -10,6 +10,7 @@ language
                   {| | // hack: interacts with { }
                   <% %>
                   |[ ]|
+                  (|[ "" // hack: interacts with |[ ]| 
                   $[ ]
                   ${ }
                   $< >

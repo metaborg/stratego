@@ -7,6 +7,13 @@
         <target name="spoofaximp.default.jar" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
     
         <!-- Initialization -->
+        <available file="${src-gen}/org/strategoxt/imp/editors/stratego/Main.java" property="java.jar.enabled"/>
+        <condition property="java.jar.import" value="-la org.strategoxt.imp.editors.stratego" else="">
+            <isset property="java.jar.enabled"/>
+        </condition>
+        <condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
+            <isset property="java.jar.enabled"/>
+        </condition>
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
         <dirname property="externaldefdir" file="${externaldef}"/>
         <condition property="externaldefimport" value="-I ${externaldefdir}" else="">
@@ -24,6 +31,8 @@
         <condition property="metasdfmodule.available" value="1">
             <available file="${syntax}/${metasdfmodule}.sdf"/>
         </condition>
+        
+        <fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually"/>
         <mkdir dir="${build}"/>
         <mkdir dir="${src-gen}"/>
         <mkdir dir="${dist}"/>
@@ -315,7 +324,7 @@
             </java>
         </target>
         
-        <target name="java.jar">
+        <target name="java.jar" if="java.jar.enabled">
             <jar basedir="${build}" excludes="trans/**" update="true" destfile="${include}/${strmodule}-java.jar"/>
         </target>
     
@@ -354,10 +363,10 @@
             <antcall target="stratego.jar.deletehelper"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
-                <param name="build.stratego.extraargs" value="-la java-front"/>
+                <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <!-- copy imported terms -->
             <copy todir="${build}/trans">
                 <fileset dir="${src-gen}/trans" excludes="**/*.java"/>

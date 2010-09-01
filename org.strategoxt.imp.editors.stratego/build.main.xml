@@ -4,6 +4,7 @@
         
         <!-- Key input modules -->
         <property name="sdfmodule" value="Stratego-Sugar"/>
+        <property name="metasdfmodule" value="Stratego-Stratego-Sugar"/>
         <property name="esvmodule" value="Stratego-Sugar"/>
         <property name="strmodule" value="stratego_sugar"/>
     
@@ -18,12 +19,14 @@
         
         <!-- Imports -->
         <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="--library
-                        -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc"/>
+        <property name="build.stratego.args" value="
+                        --library
+                        -I &quot;${trans}&quot;
+                        -I &quot;${basedir}&quot;
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm"/>
         
-        <property name="externaldef" location="syntax/Stratego-Sugar.def"/>
         <!-- External .def and .jar locations
+        <property name="externaldef" location="syntax/${sdfmodule}.def"/>
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
@@ -37,5 +40,5 @@
         <import file="build.generated.xml"/>
     
         <!-- Main target -->
-        <target name="all" depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,stratego.jar,sdf2imp"/>
+        <target name="all" depends="spoofaximp.default.ctree"/>
     </project>
