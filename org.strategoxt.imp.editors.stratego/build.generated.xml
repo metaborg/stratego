@@ -7,8 +7,8 @@
         <target name="spoofaximp.default.jar" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
     
         <!-- Initialization -->
-        <available file="${src-gen}/org/strategoxt/imp/editors/stratego/Main.java" property="java.jar.enabled"/>
-        <condition property="java.jar.import" value="-la org.strategoxt.imp.editors.stratego" else="">
+        <available file="${build}/org/strategoxt/imp/editors/stratego/strategies/Main.class" property="java.jar.enabled"/>
+        <condition property="java.jar.import" value="-la org.strategoxt.imp.editors.stratego.strategies" else="">
             <isset property="java.jar.enabled"/>
         </condition>
         <condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
@@ -341,10 +341,8 @@
             <available file="${include}/${strmodule}.ctree" property="strc-java.available"/>
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${include}"/>
+                <param name="build.stratego.outputfile" value="${include}/${strmodule}.ctree"/>
                 <param name="build.stratego.extraargs" value="-F"/>
-                <param name="build.stratego.extension" value="ctree"/>
-                <param name="build.stratego.compiler" value="strc"/>
             </antcall>
         </target>
     
@@ -362,9 +360,8 @@
             <antcall target="copy-jar"/>
             <antcall target="stratego.jar.deletehelper"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
+                <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
                 <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
-                <param name="build.stratego.extension" value="java"/>
             </antcall>
             <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <!-- copy imported terms -->
@@ -389,7 +386,7 @@
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>
-                <arg value="${build.stratego.outputpath}/${strmodule}.${build.stratego.extension}"/>
+                <arg value="${build.stratego.outputfile}"/>
                 <arg value="-p"/>
                 <arg value="trans"/>
                 <arg value="--library"/>
@@ -398,7 +395,7 @@
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
-                <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot;  --cache-dir &quot;${basedir}/.cache&quot;"/>
+                <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
             </java>
             <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
