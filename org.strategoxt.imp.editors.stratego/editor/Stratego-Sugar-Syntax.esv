@@ -15,6 +15,10 @@ language
                   ${ }
                   $< >
                   $( )
+                  " <" > // hack: interacts with ->
+                  "=<" > // hack: interacts with ->
+                  "(<" > // hack: interacts with ->
+                  "|<" > // hack: interacts with ->
   
   indent after:
     then
