@@ -50,11 +50,9 @@
         
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir"/>
-            <eclipse.convertPath fileSystemPath="${syntax}" property="syntaxdir"/>
-            <eclipse.convertPath fileSystemPath="${lib}" property="libdir"/>
-            <eclipse.refreshLocal resource="${libdir}" depth="infinite"/>
-            <eclipse.refreshLocal resource="${syntaxdir}/${sdfmodule}.pp.generated" depth="infinite"/>
-            <eclipse.refreshLocal resource="${libdir}/editor-common.generated.str" depth="infinite"/>
+            <eclipse.refreshLocal resource="${projectdir}/lib" depth="infinite"/>
+            <eclipse.refreshLocal resource="${projectdir}/syntax/${sdfmodule}.pp.generated" depth="infinite"/>
+            <eclipse.refreshLocal resource="${projectdir}/lib/editor-common.generated.str" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/build.generated.xml" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Builders.generated.esv" depth="infinite"/>
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Colorer.generated.esv" depth="infinite"/>
@@ -153,11 +151,8 @@
     
         <target name="pack-sdf" unless="externaldef">
             <dependset>
-                <srcfileset dir="${basedir}">
+                <srcfileset dir="${syntax}">
                     <include name="**/*.sdf"/>
-                </srcfileset>
-                <srcfileset dir="${lib}">
-                    <include name="**/*.def"/>
                 </srcfileset>
                 <targetfileset file="${include}/${sdfmodule}.def"/>
             </dependset>

@@ -23,7 +23,7 @@ strategies
       end;
       if <file-exists> $[[project-path]/.warn-global-analysis] then
         rules(WarnAnalysis: _)
-    end
+      end
     with
       <basic-desugar-top> ast;
       declare-globals-top;
@@ -164,8 +164,8 @@ rules // Declare globals
       x'     := x{cookie}
     with
       // Declare congruence
-      (x, n) := <signature-of>;
-      sig'   := (x, n, 0);
+      (x'', n) := <signature-of>;
+      sig'     := (x'', n, 0);
       rules(
         DeclareCookie: sig' -> cookie
       )
@@ -182,8 +182,8 @@ rules // Declare globals
       x'     := x{cookie}
     with
       // Declare congruence
-      (x, n) := <signature-of>;
-      sig'   := (x, n, 0);
+      (x'', n) := <signature-of>;
+      sig'     := (x'', n, 0);
       rules(
         DeclareCookie: sig' -> cookie
       )
