@@ -15,6 +15,7 @@ Require-Bundle: org.eclipse.core.runtime,
   org.eclipse.ui.workbench.texteditor,
   org.strategoxt.imp.runtime,
   org.spoofax.aterm,
-  org.spoofax.jsglr
+  org.spoofax.jsglr,
+  org.strategoxt.strj
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: org.strategoxt.imp.editors.stratego
