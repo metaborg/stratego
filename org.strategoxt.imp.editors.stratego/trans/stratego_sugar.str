@@ -72,7 +72,7 @@ rules
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text
     where
-      str := <meta-explode(false)>node 
+      str := <meta-explode(false) ; Stratego-Ensugar>node 
     ; text := <concat-strings>["<pre>", <pp-stratego-string>str ,"</pre>"]
 
   generate-aterm:
