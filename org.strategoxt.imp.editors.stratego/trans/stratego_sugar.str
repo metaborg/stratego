@@ -69,6 +69,12 @@ rules
       <signature-of> node; // only show definitions
       text := <pp-stratego-string> node
 
+  editor-hover:
+    (node@ToMetaExpr(_), position, ast, path, project-path) -> text
+    where
+      str := <meta-explode(false)>node 
+    ; text := <concat-strings>["<pre>", <pp-stratego-string>str ,"</pre>"]
+
   generate-aterm:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
