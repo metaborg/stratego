@@ -277,14 +277,23 @@ rules // Declare globals
         Declaration: cookie -> dec
       );
       // See https://svn.strategoxt.org/repos/StrategoXT/strategoxt/trunk/strc-core/lib/stratego/strc/front/lift-dynamic-rules.str
-      ![ "new", "undefine", "aux", "once", "bagof", "reverse-bagof", "bigbagof", "all-keys"
-       , "innermost-scope", "break", "break-to-label", "break-bp", "continue", "continue-to-label"
-       , "throw", "chain", "bigchain", "fold", "bigfold" ];
-      list-loop({prefix, sig, cookie':
-        ?prefix;
-        sig := ($[[prefix]-[x]], s'*, t'*);
-        rules(DeclareCookie: sig -> cookie)
-      })
+      <declare-dr-rule(|x, cookie, 0, 2)> "new";
+      <declare-dr-rule(|x, cookie, 0, 1)> "undefine";
+      <declare-dr-rule(|x, cookie, s'*, <inc> t'*)> "aux";   // FIXME: dependent on number of free variables in lhs
+      <declare-dr-rule(|x, cookie, <inc> s'*, t'*)> "reverse-bagof";
+      <declare-dr-rule(|x, cookie, 1, 0)> "innermost-scope";
+      <map(declare-dr-rule(|x, cookie, s'*, <inc> t'*))>
+        ["break-to-label","continue-to-label"];
+      <declare-dr-rule(|x, cookie, <inc> s'*, <inc> t'*)> "throw";
+      <map(declare-dr-rule(|x, cookie, <inc> s'*, t'*))>
+        ["fold", "bigfold"];
+      <map(declare-dr-rule(|x, cookie, s'*, t'*))>
+        ["once", "bagof", "bigbagof", "all-keys", "innermost-scope", "break", "break-bp", "continue", "chain", "bigchain"]
+      
+  declare-dr-rule(|x,cookie,s,t) =
+    ?prefix;
+    sig := ($[[prefix]-[x]], s, t);
+    rules(DeclareCookie: sig -> cookie)
 
   dr-scope-declare-cookies(defs, s):
     t -> t'
