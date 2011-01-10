@@ -3,7 +3,9 @@ module Stratego-Sugar-Colorer
 imports Stratego-Sugar-Colorer.generated
 
 colorer Extension
-  
+
+  layout     : 63 127 95    italic
+
   environment var:
     0 128 64
     255 255 255
