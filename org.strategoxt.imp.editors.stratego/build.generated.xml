@@ -262,8 +262,9 @@
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
-                <arg value="-b"/>
                 <arg value="-t"/>
+                <arg value="-b"/>
+                <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.generated.pp.af"/>
             </java>
             <java classname="run" failonerror="false">
