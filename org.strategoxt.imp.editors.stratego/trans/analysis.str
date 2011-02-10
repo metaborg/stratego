@@ -203,7 +203,7 @@ rules // Declare globals
   declare-globals:
     ImportWildcard(x) -> ImportWildcard(x)
     with
-      <open-wildcard-import(file-exists <+ resolve-import-path, read-stratego-signatures, declare-globals-top, has-extension(|"str") + has-extension(|"rtree"))> x
+      <open-wildcard-import(resolve-import-path, read-stratego-signatures, declare-globals-top, (has-extension(|"str") + has-extension(|"rtree")))> x
     <+
       rules(IsImportedFailed: x)
 
