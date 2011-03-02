@@ -4,9 +4,13 @@ imports
   Stratego-Core-Identifiers
   Stratego-Sugar-Terms
 
-exports %% RECOVERY RULES START HERE
+exports %% RECOVERY RULES AND TWEAKS START HERE
+  context-free syntax
+    RuleDef     -> Def {incremental}
+    StrategyDef -> Def {incremental}
+    
   lexical syntax
-      -> ";" {recover, cons("INSERTION")}
+    -> ";" {recover, cons("INSERTION")}
 
 exports
   sorts Overlay
