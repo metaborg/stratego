@@ -47,7 +47,7 @@ rules // Projections and lookup
     RDecT(x, s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
 
   signature-of:
-    ExtSDef(x, s*, t*) -> (<remove-quote> x, <length> s*, <length> t*) 
+    ExtSDef(x, s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
 
   signature-of:
     CallT(SVar(x), s*, t*) -> (<remove-quote> x, <length> s*, <length> t*)
@@ -62,11 +62,11 @@ rules // Projections and lookup
     Op(x, t*) -> (<remove-quote> x, <length> t*)
 
   signature-of:
-    OpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t) 
+    OpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
 
   signature-of:
     ExtOpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
-    
+
   signature-of:
     Overlay(x, t*, _) -> (<remove-quote> x, <length> t*)
 
@@ -78,11 +78,11 @@ rules // Projections and lookup
 
   signature-of:
     DynRuleScopeId(x) -> <remove-quote> x
-  
+
   remove-quote:
     COMPLETION(s) -> COMPLETION(<remove-quote> s)
-  
-  remove-quote: 
+
+  remove-quote:
     s -> s'
     with
       if explode-string => ['\'' | s_tail] then
@@ -107,7 +107,7 @@ rules // Projections and lookup
     signature-of; (?_{<Declaration>} <+ ?(_{<Declaration>}, _) <+ ?(_{<Declaration>}, _, _))
 
 rules // Helpers
-  
+
   declare-definition:
     def -> cookie
     with
@@ -137,7 +137,7 @@ rules // Helpers
     one(?_{cookie} + ?SVar(_{cookie}))
 
   external SRTS-EXT-newint(|)
-  
+
 rules // Declare globals
 
   declare-globals-top =
@@ -174,7 +174,7 @@ rules // Declare globals
     ExtOpDecl(x, t) -> <id>
     with
      redeclare-definition
-  
+
   declare-globals:
     Overlay(x, t, d) -> Overlay(x', t, d)
     with
@@ -192,7 +192,7 @@ rules // Declare globals
     full-path -> ast
     with
       ast := <id>
-  
+
   declare-globals:
     Import(x) -> Import(x)
     with
@@ -228,7 +228,7 @@ rules // Declare globals
      <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/syn/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
-  
+
   read-stratego-signatures:
     str -> <to-signatures> file
     where
@@ -240,7 +240,7 @@ rules // Declare globals
       else
         file := <parse-stratego-file> str
       end
-  
+
   fetch-library-ast:
     x -> <pack-stratego-parse-stratego> (IncludeFromPath(x), [])
 
@@ -252,10 +252,10 @@ rules // Declare globals
     SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
     with
       s' := <collect-all(?RDecT(_, _, _))> s
-   
+
   remove-stratego-bodies:
     Import(_) -> ()
-   
+
   remove-stratego-bodies:
     ImportWildcard(_) -> ()
 
@@ -289,7 +289,7 @@ rules // Declare globals
         ["fold", "bigfold"];
       <map(declare-dr-rule(|x, cookie, s'*, t'*))>
         ["once", "bagof", "bigbagof", "all-keys", "innermost-scope", "break", "break-bp", "continue", "chain", "bigchain"]
-      
+
   declare-dr-rule(|x,cookie,s,t) =
     ?prefix;
     sig := ($[[prefix]-[x]], s, t);
@@ -361,7 +361,7 @@ rules // Declarations inside definition bodies
     with
       {| DeclareCookie:
         t'* := <map(declare-tvar)> t*;
-        d'  := <declare-bodies-top> d 
+        d'  := <declare-bodies-top> d
       |}
 
   declare-bodies:
@@ -395,7 +395,7 @@ rules // Declarations inside definition bodies
     with
       t1' := <declare-match> t1;
       w'  := <declare-bodies-top> w;
-      t2' := <declare-bodies-top> t2 
+      t2' := <declare-bodies-top> t2
 
   declare-bodies:
     LRule(r) -> LRule(r')
@@ -415,12 +415,12 @@ rules // Declarations inside definition bodies
   declare-bodies:
     DynRuleScopeId(x) -> DynRuleScopeId(x')
     where
-      x' := x{<declare-cookie-of>} 
+      x' := x{<declare-cookie-of>}
 
   declare-bodies:
     LabeledDynRuleScopeId(x, t) -> LabeledDynRuleScopeId(x', t')
     where
-      x' := x{<signature-of; DeclareCookie>}; 
+      x' := x{<signature-of; DeclareCookie>};
       t' := <declare-bodies-top> t
 
   declare-bodies:
@@ -529,7 +529,7 @@ rules // Content completion
       rules(
         ContentProposals := proposals
       )
-  
+
   propose-completion:
     Rule(lhs, rhs @ Var(COMPLETION(_)), _) -> proposals
     where
@@ -540,10 +540,20 @@ rules // Content completion
       rules(
         ContentProposals := proposals
       )
-  
+
   filter-by-prefix(|prefix) =
     filter(one(string-starts-with(|prefix); not(?"")))
-  
+
+  numbered-arguments =
+    ?(n, prefix);
+    if <gt> (n, 1) then
+      <range> (1, <inc> n);
+      map(\t -> <conc-strings> (prefix, <int-to-string> t)\);
+      separate-by(|", ")
+    else
+      ![prefix]
+    end
+
   signature-to-proposal:
     (x, 0) -> [x | parentheses]
     with
@@ -558,7 +568,7 @@ rules // Content completion
     where
       <gt> (n, 0)
     with
-      t* := <separate-by(|", ")> <copy> (n, "t") // TODO: number (Spoofax/231)
+      t* := <numbered-arguments> (n, "t")
 
   signature-to-proposal:
     (x, 0, 0) -> [x, ""]
@@ -568,15 +578,15 @@ rules // Content completion
     where
       <gt> (n, 0)
     with
-      t* := <separate-by(|", ")> <copy> (n, "s")
+      t* := <numbered-arguments> (n, "s")
 
   signature-to-proposal:
     (x, n, m) -> [x, "(", s*, "|", t*, ")"]
     where
       <gt> (m, 0)
     with
-      s* := <separate-by(|", ")> <copy> (n, "s");
-      t* := <separate-by(|", ")> <copy> (m, "t")
+      s* := <numbered-arguments> (n, "s");
+      t* := <numbered-arguments> (m, "t")
 
   signature-to-proposal:
     (x, [DR_DUMMY()], [DR_DUMMY()]) -> x // strategy param (wildcard arity)
@@ -636,7 +646,7 @@ rules // Constraints
         IsNoConflict
       )
 
-  // FIXME: name sdefs after constructors to fix constructor conflict errors 
+  // FIXME: name sdefs after constructors to fix constructor conflict errors
   constraint-error:
     OpDecl(x{cookie}, s*) -> [(x, $[Conflicts with strategy '[y_name]']),
                               (y, $[Conflicts with constructor [x]/[<length> s*]])]
@@ -651,10 +661,10 @@ rules // Constraints
 
   constraint-error:
     Rule(_, t, _) -> <constraint-error-bad-build> t
-  
+
   constraint-error:
     BA(_, t) -> <constraint-error-bad-build> t
-  
+
   constraint-error:
     App(_, t) -> <constraint-error-bad-build> t
 
@@ -685,7 +695,7 @@ rules // Constraints
       filter(not(?RootApp(_) + ?App(_, _)));
       map(!(<id>, "Build symbol in match pattern")) => builds;
       require([])
-  
+
   constraint-warning:
     Assign(v @ Var(x), _) -> (x, $[Variable '[x]' may be bound already])
     where
