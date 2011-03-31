@@ -11,6 +11,7 @@ exports %% RECOVERY RULES AND TWEAKS START HERE
     
   lexical syntax
     -> ";" {recover, cons("INSERTION")}
+    -> "|" {recover, cons("INSERTION")}
 
 exports
   sorts Overlay
