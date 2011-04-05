@@ -1,0 +1,12 @@
+module lib-refactoring/language-description
+
+rules //offers access to language properties 
+	
+get-language-description :
+	fpath -> <prim("SSL_EXT_languagedescription", fpath)>
+
+get-language-name:
+	fpath -> <get-language-description; Fst>
+
+get-language-extensions:
+	fpath -> <get-language-description; Snd>

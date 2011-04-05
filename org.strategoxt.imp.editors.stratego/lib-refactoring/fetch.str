@@ -1,0 +1,56 @@
+module lib-refactoring/fetch
+
+imports
+  lib/editor-common.generated
+  
+rules //strategies for fetching subterms in an ast
+  
+  fetch-annotated-term(|selected):
+  	analysed-ast -> selected-ref
+  	where
+      selected-ref := <
+      	fetch-by-origin(
+      		has-annos; 
+      		strip-annos; 
+      		equal(|selected)|selected)
+      > analysed-ast
+  
+  fetch-by-origin(|original-term) =
+    fetch-by-origin(not(fail)|original-term)
+ 
+  fetch-by-origin(is-term|original-term):
+    ast -> selected'
+    where
+      selected' := <collect-one(
+        where(is-term);
+        where(origin-equal(|original-term)) 
+      )> ast
+ 
+  fetch-up-with-position(match|ast) =
+    fetch-up-with-position(match, fail|ast)
+ 
+  fetch-up-with-position(match, stop|ast):
+    (term, position) -> (term', position')
+    where
+      <not(match)> term;
+      <not(stop)> term;
+      parent-tuple := (<parent-at-position(|term)> ast, <init> position);
+      (term', position') := <fetch-up-with-position(match, stop|ast)> parent-tuple
+
+  fetch-up-with-position(match, stop|ast) =
+    where(
+      ?(term, position);
+      <match> term
+    )
+     
+  fetch-down(match) =
+    !(<id>, []);
+    fetch-down-with-position(match);
+    Fst
+  
+  fetch-down-with-position(match) =
+    ?(term, position); 
+    if <not(match)> term then
+      <get-arguments; ?[e]> term; 
+      <fetch-down-with-position(match)> (e, <conc>(position,[0]))
+    end

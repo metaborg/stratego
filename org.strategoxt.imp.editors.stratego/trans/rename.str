@@ -1,0 +1,100 @@
+module rename
+
+imports
+  analysis
+  libstrc
+  desugar
+  sourcedir
+  lib/editor-common.generated
+  lib-refactoring/rename-generic
+  lib-refactoring/files
+  lib-refactoring/fetch 
+  lib-refactoring/language-description
+
+
+rules //rename refactoring, builder
+  
+  rename-builder:
+  (selected, position, ast, path, project-path) -> (filename, resulting-asts)
+  where
+  	resulting-asts := <rename-refactoring; map(Snd)>;
+    filename := <guarantee-extension(|"aterm")> path  
+
+  rename-refactoring:
+    (selected, position, ast, path, project-path) -> ast-change-tuples
+    where
+      asts := <analyse-names> [ast|<collect-other-asts(|path)>];
+      ref-name := <Hd; fetch-annotated-term(|<fetch-down(is-string)> selected)> asts;
+      ast-change-tuples := <apply-rename-refactoring(
+      	constraint-error-external-def,
+      	re-analyse-names, 
+      	collect-sem-errors
+      )> (ref-name, asts, <get-language-name> path)
+    
+    
+rules //check for semantic errors
+ 		
+  collect-sem-errors = 
+    where (errors :=<collect-all(global-constraint-error + constraint-error, conc)>);
+    where (warnings :=<collect-all(constraint-warning, conc)>);
+    <conc>(errors, warnings);
+    flatten-list
+
+  constraint-error-external-def :
+  	x{c} -> (x, $[External definitions can not be renamed])
+  	where
+  	  <Declaration> c => ExtSDef(_, _, _) <+
+  	  <Declaration> c => ExtOpDecl(_, _)
+ 	
+rules //collecting ASTs
+
+  /**
+   * Collects all ASTs from trans directory (except the excluded file)
+   */
+  collect-other-asts(|excluded-file) =
+    !$[[<project-path>]/trans];
+    get-source-asts(
+      parse-file, 
+      has-extension(|"str"); not(equal(|$[[<project-path>]/[excluded-file]])), 
+      not(fail)
+    )
+
+rules //name analysis
+  
+  re-analyse-names =
+    editor-init;
+    topdown(strip-annos);
+    topdown(try(resugar-Let)); //TODO: better solution?
+    analyse-names
+  
+  resugar-Let:
+  	Rec(x, y) -> Let(x,y)
+  	where 
+  	  origin-term; 
+  	  ?Let(_, _)
+  	
+  
+  analyse-names:
+    asts -> asts'
+    where
+       rules(
+          CurrentFile := "" //TODO: primitive for file path?
+          ProjectDir  := <project-path>
+       );
+       try(get-source-base-dir);
+       <declare-globals> Import("libstratego-lib");
+       asts' := <
+         map(basic-desugar-top);
+         map(alltd(where(not(?Import(_) <+ ?ImportWildcard(_))); declare-globals)); //use asts in list instead of file system
+         map(
+           alltd(
+           	 is-not-imported(|asts);
+             declare-globals //TODO: Imports should be handled as external definitions (otherwise extname -> extname' leads to unnoticed behaviour change)
+           );
+           declare-bodies-top
+         )
+       > asts
+
+  is-not-imported(|asts) =
+    where(?Import(mod) <+ ?ImportWildcard(mod)); 
+    where(not(<fetch(?Module(mod, _))> asts)) //Do not overwrite with old information (from files)

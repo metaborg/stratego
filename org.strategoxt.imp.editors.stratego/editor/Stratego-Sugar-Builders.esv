@@ -12,9 +12,18 @@ builders
 
   observer : editor-analyze
 
+  builder     : "Rename (builder)" = 
+  	rename-builder (source)(meta)
+  
+  refactoring Id: "Rename (refactoring)" = 
+  	rename-refactoring (source)
+
+  builder : "Show analysed AST" =
+    generate-analysed-aterm (realtime) (meta) (openeditor) (source)
+
   builder : "Show desugared AST (selection)" =
     generate-desugared-aterm (realtime) (meta) (openeditor) (source)
 
   builder : "Show AST (selection)" =
-    generate-aterm (realtime) (meta) (openeditor) (source) 
+    generate-aterm (realtime) (meta)(openeditor) (source) 
  

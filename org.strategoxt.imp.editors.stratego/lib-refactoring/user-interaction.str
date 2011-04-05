@@ -1,0 +1,124 @@
+module lib-refactoring/user-interaction
+
+imports
+  editor-common.generated
+    
+rules //dialog primitives
+
+  /**
+   * Opens an input dialog for a single string value
+   * @type (String, String, String) -> String
+   */
+  newname-dialog:
+    (language, title, label, default-value) -> <prim("SSL_EXT_newnamedialog", language, title, label, default-value)>
+
+  newname-dialog:
+    (title, label, default-value) -> <newname-dialog> ("", title, label, default-value)  
+
+  /**
+   * Opens a message dialog, type can be ERROR, WARNING, INFO or NONE 
+   * ERROR, INFO and NONE only have an OK button and always succeed
+   * WARNING has an OK button and a CANCEL button and succeeds if OK is pressed 
+   * @type (String, String, String) -> _
+   */
+  message-dialog:
+    (title, label, mtype) -> <prim("SSL_EXT_openmessagedialog", title, label, mtype)>
+
+  message-dialog:
+    (title, label) -> (title, label, "NONE")
+    
+
+rules //dialogs used in refactoring workflow
+
+  dialog-newname(|language) =
+    <newname-dialog> (language, "rename", "new name: ", "")
+
+  message-unexpected-failure =
+    <message-errors> "Refactoring fails unexpectedly, no changes are made"
+      
+  message-invalid-selection =
+    <message-errors> "Refactoring is not applicable to the selected fragment"
+  
+  message-invalid-input =
+    <message-errors> "Refactoring is not applicable with this input"
+
+  message-canceled-by-user =
+    <message-errors> "Refactoring is canceled by the user"
+
+rules //helper rules 
+	
+  message-errors =
+    !("errors", <id>, "ERROR");
+    message-dialog;
+    fail
+
+  message-warnings =
+    !("warnings", <id>, "WARNING");
+    message-dialog
+  
+  report-semantic-problems =
+    ?(behavioural-changes, consistency-errors-introduced, consistency-errors-solved);
+    if <concat; not(?[])> [behavioural-changes, consistency-errors-introduced, consistency-errors-solved] then
+      header      := "Applying this refactoring may change the behaviour of the program, continue?";
+      behavioural := <?[] <+ !["\nBehavioural changes: "|<map(make-error-string)> ]> behavioural-changes;
+      consistency := <?[] <+ !["\nConsistency errors: "|<map(make-error-string)> ]> consistency-errors-introduced;
+      cons-solved := <?[] <+ !["\nConsistency errors solved: "|<map(make-error-string)>]> consistency-errors-solved;
+      messages    := <filter(not(?[])); concat> [behavioural, consistency, cons-solved];
+      <mk-message-from-list; message-warnings> (header, messages)
+    end
+    
+  report-parse-failures =
+  	?unparsed-files;
+    <report-warnings> (
+      "The files listed below could not be parsed due to syntax errors.\nClick 'OK' to continue or 'Cancel' to stop the operation.", 
+      <map(<conc-strings>("  - ", <id>))> unparsed-files
+    )
+
+  report-errors-warnings =
+    ?(header, errors, warnings);
+    if <not(?[])> errors then
+      <report-errors> (header, <conc> (errors, warnings))
+    else
+      <report-warnings> (header, warnings)
+    end
+  
+  report-errors =
+    ?(header, errors);
+    if <not(?[])> errors then
+      <mk-message-from-list; message-errors> (header, <map(make-error-string)> errors)
+    end
+  
+  report-errors =
+  	not(?(_, _));
+  	<report-errors> ("", <id>)
+  
+  report-warnings =
+    ?(header, warnings);
+    if <not(?[])> warnings then
+      <mk-message-from-list; message-warnings> (header, <map(make-error-string)> warnings)
+    end
+
+  report-warnings =
+  	not(?(_, _));
+  	<report-warnings> ("", <id>)
+
+  make-error-string =
+    is-string
+  
+  make-error-string :
+    (term, message) -> error-string
+    where debug(!"1: ");
+      if (txt, line, column):= <origin-source-info> then  //TODO: filename
+        error-string := $[ ([line],[column]): [message]] 
+      else 
+        error-string := message
+      end 
+  
+  origin-source-info =
+    !(<origin-text>, <origin-line>, <origin-column>)  //TODO: filename
+  
+  mk-message-from-list:
+  	(header, strings) -> <separate-by(|"\n"); concat-strings> [header|strings]
+
+  mk-message-from-list:
+  	strings -> <separate-by(|"\n"); concat-strings> strings

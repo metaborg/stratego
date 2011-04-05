@@ -1,0 +1,167 @@
+module lib-refactoring/rename-generic
+
+imports
+  lib-refactoring/user-interaction
+  
+	
+rules //Strategies that can be implemented in the language specific part
+
+  // _ -> String
+  dialog-newname-custom = fail
+
+  //(ref-name, new-name, asts) -> (errors, warnings)
+  check-preconditions-rename = fail
+
+  		
+rules //workflow
+  
+  /**
+   * Handles rename refactoring workflow.
+   * Input: string annotated with unique reference name, asts annotated with unique names, language name
+   * REMARK: save all resources before collecting ASTs and applying the refactoring 
+   * - Checks if selected term is indeed a reference or declaration name
+   * - Checks if input name is a an identifier (matches ID pattern while excluding keywords)
+   * - Checks if the semantic errors before and after the transformation are the same
+   * - Checks if the name bindings are preserved
+   * @type (String, List(T), String) -> List((T, T'))
+   * @param String -> ERROR checks whether the reference can be renamed (for example: exclude lib declarations)
+   * @param List(T) -> List(T) strategy that annotates all names with a unique reference name. 
+   * REMARK: old analysis result stored in name tables should be cleared
+   * @param List(T) -> List(ERROR), with ERROR either a string or a tuple (term, String)   
+   */
+  apply-rename-refactoring(constraint-error-refname, re-analyse, collect-sem-errors) =
+  	?(ref-name, analyzed-asts, language-name);
+    where(<report-invalid-refname(constraint-error-refname)> ref-name);
+    apply-rename-refactoring(re-analyse, collect-sem-errors)
+
+  /**
+   * Handles rename refactoring workflow.
+   * Input: string annotated with unique reference name, asts annotated with unique names, language name
+   * REMARK: save all resources before collecting ASTs and applying the refactoring 
+   * - Checks if selected term is indeed a reference or declaration name
+   * - Checks if input name is a an identifier (matches ID pattern while excluding keywords)
+   * - Checks if the semantic errors before and after the transformation are the same
+   * - Checks if the name bindings are preserved
+   * @type (String, List(T), String) -> List((T, T'))
+   * @param List(T) -> List(T) strategy that annotates all names with a unique reference name. 
+   * REMARK: old analysis result stored in name tables should be cleared
+   * @param List(T) -> List(ERROR), with ERROR either a string or a tuple (term, String)   
+   */
+  apply-rename-refactoring(re-analyse, collect-sem-errors):
+    (ref-name, analyzed-asts, language-name) -> changed-asts
+    where
+      <report-invalid-selection> ref-name;
+      new-name     := <get-user-input(|language-name)>;
+      <report-precondition-issues> (ref-name, new-name, analyzed-asts);
+      renamed-asts := <apply-renaming(|ref-name, new-name)> analyzed-asts;
+      <report-semantic-issues(re-analyse, collect-sem-errors|ref-name, new-name)> (analyzed-asts, renamed-asts);
+      changed-asts := <get-changed-asts> (analyzed-asts, renamed-asts)
+  
+  get-changed-asts:
+    (asts-before, asts-after) -> changed-asts
+    where
+      changed-asts := <zip; filter(not(equal))> (
+      	<topdown(try(strip-annos))> asts-before, 
+      	<topdown(try(strip-annos))> asts-after
+      )
+
+  get-user-input(|language-name) =
+  	dialog-newname-custom <+
+    dialog-newname(|language-name)	
+    
+  report-invalid-selection = 
+    if not(is-string; has-annos) then 
+      message-invalid-selection
+    end
+    
+  report-invalid-refname(constraint-error-refname) =
+  	if err := <constraint-error-refname> then
+  	  <is-list <+ ![<id>]> err;
+      report-errors
+    end
+
+  report-precondition-issues =
+    if (errors, warnings) := <check-preconditions-rename> then
+      <report-errors-warnings> ("The following problems are found: ", errors, warnings)
+    end
+
+  report-semantic-issues(analyse, collect-sem-errors|ref-name, new-name) =
+    check-semantics(analyse, collect-sem-errors|ref-name, new-name);
+    (
+    	report-semantic-problems <+
+    	(try(dr-scope-all-end);dr-scope-all-start; fail) //do not store analysis results in name tables after rollback
+    )
+    
+  check-semantics(analyse, collect-sem-errors|ref-name, new-name) :
+    (analyzed-asts, asts-after) -> (var-capture-warnings, <make-set> introduced-errors, <make-set> solved-errors)
+    where    	
+      errors-before        := <get-sem-errors(collect-sem-errors)> analyzed-asts; //debug(!"errors before: ");
+      analyzed-asts-after  := <analyse> asts-after;
+      errors-after         := <get-sem-errors(collect-sem-errors)> analyzed-asts-after; //debug(!"errors after: ");
+      (introduced-errors, solved-errors) := <check-consistency-changes> (errors-before, errors-after); 
+      var-capture-warnings := <check-var-captures(|ref-name, new-name)> (analyzed-asts, analyzed-asts-after)
+    	   	
+    	
+rules // transformation: renaming
+    
+  apply-renaming (|ref-name, new-name) =
+    topdown(try(?ref-name; !new-name)); 
+    topdown(try(strip-annos))
+    
+    
+rules // consistency preservation
+  
+  check-consistency-changes:
+    (errors-before, errors-after) -> (introduced-errors, solved-errors)
+    where 
+      introduced-errors := <diff> (errors-after, errors-before); 
+      solved-errors     := <diff> (errors-before, errors-after) 
+  
+  get-sem-errors(collect-sem-errors) =
+  	(
+  		collect-sem-errors <+ 
+  		map(collect-sem-errors); 
+  		flatten-list
+  	); topdown(strip-annos)
+  	  
+rules // behaviour preservation: invariant check for variabele capture
+
+  check-var-captures(|ref-name, new-name):
+    (analyzed-asts, analyzed-asts-after) -> errors
+    where
+      old-name := <strip-annos> ref-name; 
+      errors   := <
+        get-var-captures(|old-name, new-name);
+        map(!(<id>, <!$[Variabele captures detected for '[<strip-annos>]']>))
+      > (analyzed-asts, analyzed-asts-after)
+  
+  get-var-captures(|old-name, new-name):
+    (analyzed-asts, analyzed-asts-after) -> var-captures
+    where 
+      paired-asts     := <zip> (analyzed-asts, analyzed-asts-after); //external definitions of transformed asts should not be obtained from cache
+      reference-pairs := <map(get-paired-references(|old-name, new-name)); flatten-list> paired-asts;
+      var-captures    := <check-invariant; map(Fst)> reference-pairs
+    
+  //compares the references of analysed ast before- and after- rename transformation     
+  get-paired-references(|old-name, new-name):
+    (ast-before, ast-after) -> ref-pairs
+    where
+      invariant_before := <get-listed-refnames(|old-name, new-name)> ast-before; //debug(!"invariant before: ");
+      invariant_after  := <get-listed-refnames(|old-name, new-name)> ast-after; //debug(!"invariant after: ");
+      ref-pairs     := <zip> (invariant_before, invariant_after)
+          
+  get-listed-refnames(|old-name, new-name) =
+    collect-om(
+      where(
+      	strip-annos;
+      	(equal(|old-name) <+ equal(|new-name))
+      ),
+      conc
+    )
+    
+  //The pattern of declarations and variabele accesses should be the same before and after
+  check-invariant = 
+    ?[(x,y)|tail];
+    filter(not(?(x,y)));
+    (errors, remaining) := <partition(?(_,y) <+ ?(x,_))>;
+    <conc>(errors, <check-invariant <+ ?[]> remaining)
