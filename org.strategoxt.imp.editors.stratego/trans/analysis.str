@@ -581,8 +581,16 @@ rules // Content completion
       t* := <numbered-arguments> (n, "s")
 
   signature-to-proposal:
+    (x, 0, m) -> [x, "(|", t*, ")"]
+    where
+      <gt> (m, 0)
+    with
+      t* := <numbered-arguments> (m, "t")
+
+  signature-to-proposal:
     (x, n, m) -> [x, "(", s*, "|", t*, ")"]
     where
+      <gt> (n, 0);
       <gt> (m, 0)
     with
       s* := <numbered-arguments> (n, "s");
