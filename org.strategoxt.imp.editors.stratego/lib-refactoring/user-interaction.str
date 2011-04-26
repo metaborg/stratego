@@ -30,9 +30,6 @@ rules //dialog primitives
 
 rules //dialogs used in refactoring workflow
 
-  dialog-newname(|language) =
-    <newname-dialog> (language, "rename", "new name: ", "")
-
   message-unexpected-failure =
     <message-errors> "Refactoring fails unexpectedly, no changes are made"
       
@@ -107,7 +104,7 @@ rules //helper rules
   
   make-error-string :
     (term, message) -> error-string
-    where debug(!"1: ");
+    where 
       if (txt, line, column):= <origin-source-info> then  //TODO: filename
         error-string := $[ ([line],[column]): [message]] 
       else 

@@ -11,16 +11,20 @@ rules //strategies for collecting files
   get-source-asts(parse, is-source-file, is-source-dir) =
   	save-all-resources;
     get-source-files(is-source-file, is-source-dir);
-    (asts, parse-failures) := <partition(parse)>;
-    <report-parse-failures> parse-failures;
-    !asts
-    
+    parse-source-files(parse)
+  
+  parse-source-files(parse) :
+  	filenames -> asts
+  	where
+      (asts, parse-failures) := <partition(parse)> filenames;
+      <report-parse-failures> parse-failures
+  	
   get-source-files(|extensions, source-dirs) =
     get-source-files(check-extension(|extensions), elem-of(|source-dirs))
   
   get-source-files(is-source-file, is-source-dir) =
     ?dir-path; 
-    if <is-source-dir; isdir> dir-path then
+    if <where(is-source-dir); isdir> dir-path then
       readdir; 
       map(!$[[dir-path]/[<id>]]);  
       map(
@@ -32,7 +36,7 @@ rules //strategies for collecting files
       ![]
     end
 	
-  save-all-resources = prim("SSL_EXT_saveresources", "")
+  save-all-resources = where(prim("SSL_EXT_saveresources", ""))
   
   check-extension(|ext) =
   	has-extension(|ext)

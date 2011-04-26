@@ -2,61 +2,89 @@ module lib-refactoring/rename-generic
 
 imports
   lib-refactoring/user-interaction
+  lib-refactoring/fetch 
+
+rules //helper functions for refactoring input terms
+
+	/**
+	 * Annotates AST with reference names (analyse),
+	 * and fetches the annotated selection in the result AST 
+	 * @type (String, T) -> (String{T}, T)
+	 * @param T -> T (or: List(T) -> T)
+	 */
+	get-analysed-terms(analyse):
+		(selected, ast) -> (ref-name, ast')
+		where
+			ast' := <analyse <+ (![<id>]; analyse; Hd)> ast;
+			ref-name := <fetch-annotated-term(|<fetch-down(is-string)> selected)> ast'
   
-	
-rules //Strategies that can be implemented in the language specific part
+  /*
+   * Opens an input dialog for specifying a new name
+   * Checks if input name is a an identifier (matches ID pattern, excluding keywords)
+   * @type _ -> String 
+   * @param String name of the language (@See editor/myLanguage.main.esv)
+   */ 
+  dialog-newname(|language) =
+    <newname-dialog> (language, "rename", "new name: ", "")
+  
+  //TODO: dialog-newname(s|language) applies s while user types new name 
 
-  // _ -> String
-  dialog-newname-custom = fail
-
-  //(ref-name, new-name, asts) -> (errors, warnings)
-  check-preconditions-rename = fail
-
+  /**
+   * Reports precondition issues
+   * @param _ -> (List(ERROR), List(WARNING)) with ERROR, WARNING String or (T, String)
+   */
+  report-precondition-issues(check-preconditions) =
+    if (errors, warnings) := <check-preconditions> then
+      <report-errors-warnings> ("The following problems are found: ", errors, warnings)
+    end
+    
+  
   		
-rules //workflow
-  
-  /**
-   * Handles rename refactoring workflow.
-   * Input: string annotated with unique reference name, asts annotated with unique names, language name
-   * REMARK: save all resources before collecting ASTs and applying the refactoring 
-   * - Checks if selected term is indeed a reference or declaration name
-   * - Checks if input name is a an identifier (matches ID pattern while excluding keywords)
-   * - Checks if the semantic errors before and after the transformation are the same
-   * - Checks if the name bindings are preserved
-   * @type (String, List(T), String) -> List((T, T'))
-   * @param String -> ERROR checks whether the reference can be renamed (for example: exclude lib declarations)
-   * @param List(T) -> List(T) strategy that annotates all names with a unique reference name. 
-   * REMARK: old analysis result stored in name tables should be cleared
-   * @param List(T) -> List(ERROR), with ERROR either a string or a tuple (term, String)   
-   */
-  apply-rename-refactoring(constraint-error-refname, re-analyse, collect-sem-errors) =
-  	?(ref-name, analyzed-asts, language-name);
-    where(<report-invalid-refname(constraint-error-refname)> ref-name);
-    apply-rename-refactoring(re-analyse, collect-sem-errors)
+rules //refactoring transformation and semantic checks
 
   /**
    * Handles rename refactoring workflow.
-   * Input: string annotated with unique reference name, asts annotated with unique names, language name
+   * Input: asts annotated with unique names
    * REMARK: save all resources before collecting ASTs and applying the refactoring 
    * - Checks if selected term is indeed a reference or declaration name
-   * - Checks if input name is a an identifier (matches ID pattern while excluding keywords)
    * - Checks if the semantic errors before and after the transformation are the same
    * - Checks if the name bindings are preserved
-   * @type (String, List(T), String) -> List((T, T'))
+   * @type (List(T)) -> List((T, T'))
    * @param List(T) -> List(T) strategy that annotates all names with a unique reference name. 
-   * REMARK: old analysis result stored in name tables should be cleared
    * @param List(T) -> List(ERROR), with ERROR either a string or a tuple (term, String)   
+   * @param String selected identifier annotated with unique reference name 
+   * @param String new name   
    */
-  apply-rename-refactoring(re-analyse, collect-sem-errors):
-    (ref-name, analyzed-asts, language-name) -> changed-asts
+  apply-rename-refactoring(re-analyse, collect-sem-errors|ref-name, new-name):
+    analyzed-asts -> changed-asts
     where
       <report-invalid-selection> ref-name;
-      new-name     := <get-user-input(|language-name)>;
-      <report-precondition-issues> (ref-name, new-name, analyzed-asts);
       renamed-asts := <apply-renaming(|ref-name, new-name)> analyzed-asts;
       <report-semantic-issues(re-analyse, collect-sem-errors|ref-name, new-name)> (analyzed-asts, renamed-asts);
       changed-asts := <get-changed-asts> (analyzed-asts, renamed-asts)
-  
+            
+  report-invalid-selection = 
+    if not(is-string; has-annos) then 
+      message-invalid-selection
+    end
+    
+  report-semantic-issues(analyse, collect-sem-errors|ref-name, new-name) =
+    check-semantics(analyse, collect-sem-errors|ref-name, new-name);
+    (
+    	report-semantic-problems <+
+    	(try(dr-scope-all-end); dr-scope-all-start; fail) //do not store analysis results in name tables after rollback
+    	//TODO: better solution
+    )
+    
+  check-semantics(analyse, collect-sem-errors|ref-name, new-name) :
+    (analyzed-asts, asts-after) -> (var-capture-warnings, <make-set> introduced-errors, <make-set> solved-errors)
+    where    	
+      errors-before        := <get-sem-errors(collect-sem-errors)> analyzed-asts; //debug(!"errors before: ");
+      analyzed-asts-after  := <analyse> asts-after; //debug(!"asts-after: ");
+      errors-after         := <get-sem-errors(collect-sem-errors)> analyzed-asts-after; //debug(!"errors after: ");
+      (introduced-errors, solved-errors) := <check-consistency-changes> (errors-before, errors-after); 
+      var-capture-warnings := <check-var-captures(|ref-name, new-name)> (analyzed-asts, analyzed-asts-after)
+    	   	
   get-changed-asts:
     (asts-before, asts-after) -> changed-asts
     where
@@ -64,43 +92,6 @@ rules //workflow
       	<topdown(try(strip-annos))> asts-before, 
       	<topdown(try(strip-annos))> asts-after
       )
-
-  get-user-input(|language-name) =
-  	dialog-newname-custom <+
-    dialog-newname(|language-name)	
-    
-  report-invalid-selection = 
-    if not(is-string; has-annos) then 
-      message-invalid-selection
-    end
-    
-  report-invalid-refname(constraint-error-refname) =
-  	if err := <constraint-error-refname> then
-  	  <is-list <+ ![<id>]> err;
-      report-errors
-    end
-
-  report-precondition-issues =
-    if (errors, warnings) := <check-preconditions-rename> then
-      <report-errors-warnings> ("The following problems are found: ", errors, warnings)
-    end
-
-  report-semantic-issues(analyse, collect-sem-errors|ref-name, new-name) =
-    check-semantics(analyse, collect-sem-errors|ref-name, new-name);
-    (
-    	report-semantic-problems <+
-    	(try(dr-scope-all-end);dr-scope-all-start; fail) //do not store analysis results in name tables after rollback
-    )
-    
-  check-semantics(analyse, collect-sem-errors|ref-name, new-name) :
-    (analyzed-asts, asts-after) -> (var-capture-warnings, <make-set> introduced-errors, <make-set> solved-errors)
-    where    	
-      errors-before        := <get-sem-errors(collect-sem-errors)> analyzed-asts; //debug(!"errors before: ");
-      analyzed-asts-after  := <analyse> asts-after;
-      errors-after         := <get-sem-errors(collect-sem-errors)> analyzed-asts-after; //debug(!"errors after: ");
-      (introduced-errors, solved-errors) := <check-consistency-changes> (errors-before, errors-after); 
-      var-capture-warnings := <check-var-captures(|ref-name, new-name)> (analyzed-asts, analyzed-asts-after)
-    	   	
     	
 rules // transformation: renaming
     
