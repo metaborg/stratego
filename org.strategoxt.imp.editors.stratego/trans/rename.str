@@ -8,9 +8,8 @@ imports
   lib/editor-common.generated
   lib-refactoring/rename-generic
   lib-refactoring/files
-  lib-refactoring/fetch 
   lib-refactoring/language-description
-
+  testing/cached_old //TODO: mag weg
 
 rules //rename refactoring, builder
   
@@ -23,78 +22,135 @@ rules //rename refactoring, builder
   rename-refactoring:
     (selected, position, ast, path, project-path) -> ast-change-tuples
     where
-      asts := <analyse-names> [ast|<collect-other-asts(|path)>];
-      ref-name := <Hd; fetch-annotated-term(|<fetch-down(is-string)> selected)> asts;
+      init-analysis;
+      save-all-resources;
+      (ref-name, ast') := <get-analysed-terms(analyse-names)> (selected, ast);
+      newname := <dialog-newname(|<get-language-name> path)>;
+      asts := <collect-affected-asts>(ref-name, newname, ast', $[[<project-path>]/[path]]);
+      report-precondition-issues(!asts; precondition-error(|ref-name));
       ast-change-tuples := <apply-rename-refactoring(
-      	constraint-error-external-def,
       	re-analyse-names, 
-      	collect-sem-errors
-      )> (ref-name, asts, <get-language-name> path)
-    
-    
-rules //check for semantic errors
- 		
-  collect-sem-errors = 
-    where (errors :=<collect-all(global-constraint-error + constraint-error, conc)>);
-    where (warnings :=<collect-all(constraint-warning, conc)>);
-    <conc>(errors, warnings);
-    flatten-list
+      	collect-sem-errors |
+      	ref-name,
+      	newname
+      )> asts
+ 
+rules //precondition checks
 
-  constraint-error-external-def :
-  	x{c} -> (x, $[External definitions can not be renamed])
-  	where
-  	  <Declaration> c => ExtSDef(_, _, _) <+
-  	  <Declaration> c => ExtOpDecl(_, _)
- 	
-rules //collecting ASTs
-
-  /**
-   * Collects all ASTs from trans directory (except the excluded file)
-   */
-  collect-other-asts(|excluded-file) =
-    !$[[<project-path>]/trans];
-    get-source-asts(
-      parse-file, 
-      has-extension(|"str"); not(equal(|$[[<project-path>]/[excluded-file]])), 
-      not(fail)
-    )
+//TODO: better solution?	
+//FIXME: no declaration outside asts (lib or generated), since these files are not changed
+//NOW: a declaration in asts exists
+precondition-error(|ref-name):
+	asts -> ([$[Declaration can not be found in [<project-path>]/trans]],[])
+	where
+	  <?_{ref}> ref-name;
+	  <is-global-ref> ref;
+	  dec_sig := <Declaration; signature-of> ref;
+	  <not(oncetd(where(declare-globals); topdown(strip-annos); signature-of; equal(|dec_sig)))> asts
 
 rules //name analysis
+    
+  analyse-names:
+  	asts -> <analyse-names-asts> desugared-asts
+    where
+       desugared-asts := <map(basic-desugar-top)> asts;
+       <declare-globals> Import("libstratego-lib"); //Import external strategy definitions
+       <map( //Import strategy definitions from files that are not in the list
+           alltd(
+           	 is-not-imported-from-list(|asts);
+             declare-globals
+           )
+       )> desugared-asts
+  
+  is-not-imported-from-list(|asts) =
+    where(?Import(mod) <+ ?ImportWildcard(mod)); 
+    where(not(<fetch(?Module(mod, _))> asts))
   
   re-analyse-names =
-    editor-init;
     topdown(strip-annos);
     topdown(try(resugar-Let)); //TODO: better solution?
-    analyse-names
+    analyse-names-asts
   
+  analyse-names-asts:
+    asts -> asts'
+    where
+       asts' := < //re-analyze affected asts
+         map(alltd(where(not(?Import(_) <+ ?ImportWildcard(_))); declare-globals)); //external imports already done 
+         map(declare-bodies-top)
+       > asts
+
   resugar-Let:
   	Rec(x, y) -> Let(x,y)
   	where 
   	  origin-term; 
   	  ?Let(_, _)
-  	
-  
-  analyse-names:
-    asts -> asts'
-    where
+
+  init-analysis =
        rules(
           CurrentFile := "" //TODO: primitive for file path?
           ProjectDir  := <project-path>
        );
-       try(get-source-base-dir);
-       <declare-globals> Import("libstratego-lib");
-       asts' := <
-         map(basic-desugar-top);
-         map(alltd(where(not(?Import(_) <+ ?ImportWildcard(_))); declare-globals)); //use asts in list instead of file system
-         map(
-           alltd(
-           	 is-not-imported(|asts);
-             declare-globals //TODO: Imports should be handled as external definitions (otherwise extname -> extname' leads to unnoticed behaviour change)
-           );
-           declare-bodies-top
-         )
-       > asts
+       try(get-source-base-dir)
 
-  is-not-imported(|asts) =
-    where(?Import(mod) <+ ?ImportWildcard(mod)); 
-    where(not(<fetch(?Module(mod, _))> asts)) //Do not overwrite with old information (from files)
+rules //semantic constraint check
+
+  collect-sem-errors = 
+    where (errors :=<collect-all(global-constraint-error + constraint-error, conc)>);
+    where (warnings :=<collect-all(constraint-warning, conc)>);
+    <conc>(errors, warnings);
+    flatten-list
+	
+rules //collect asts that are possibly affected by renaming, efficient implementation using cache
+
+//1. do not collect files when selected var is local ##
+//2. for global vars: 
+//2a. keep editor ast to be more robust in case of syntax errors ##
+//2b. collect only the files that are relevant ## 
+//2c. use cache to reject files before analyzing ##
+//2d. parallel with user input dialog
+//2e. (?) collect files in loop instead of by map(parse)?
+//3. re-analyzes: keep lookup tables, no normalization, no external import ##
+ 
+collect-affected-asts:
+	(oldname{ref}, newname, ast, path-to-ast) -> [ast|<analyse-names> affected-asts]
+	where
+  	  if <is-global-ref> ref then //files are only collected if the selected var is global 
+  	  	//save-all-resources;
+	    fnames := <get-source-files(
+		  has-extension(|"str"); not(equal(|path-to-ast)), //exclude current ast which is obtained from the editor (allowing parse errors) 
+		  not(fail)
+	    )> $[[<project-path>]/trans]; 
+	    (fnames-cache, fnames-no-cache) := <partition-by-cache(|oldname)> fnames;
+	    asts-no-cache := <parse-source-files(parse-file)> fnames-no-cache; //TODO: parallel with rename dialog?!
+	    asts-filtered-no-cache := <filter(
+	    	oncetd(equal(|newname) <+ equal(|<strip-annos> oldname))
+	    )> asts-no-cache;
+	    asts-filtered-cache := <filter(ReadFromFile; oncetd(equal(|newname)))> fnames-cache; 
+	    affected-asts := <conc>(asts-filtered-no-cache, asts-filtered-cache)
+      else
+      	affected-asts := []
+      end
+
+is-global-ref =
+	where(
+		?ref;
+		<Declaration; signature-of; DeclareCookie; equal(|ref)> ref
+	)
+
+partition-by-cache(|refname):
+	fnames -> 
+		<partition(
+			get-cache-path;
+			where(
+				ReadFromFile; 
+				not(oncetd(equal(|<strip-annos> refname))) //exclude files that will change
+			)
+		)> fnames
+		
+	
+get-cache-path: //asts without endangered names can be ignored
+	path -> cache-path
+	where(
+  	  cache-path := <import-cache-path; string-replace(|".str.sig", ".rtree")> path; 
+  	  <is-newer> (cache-path, path)
+  	)
