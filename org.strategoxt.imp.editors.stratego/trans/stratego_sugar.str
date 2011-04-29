@@ -9,19 +9,26 @@ imports
   desugar
   lib/editor-common.generated
   rename
+  
+imports
+  signatures/pp
+  signatures/project
+  signatures/map
+  signatures/check
 
 strategies
 
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (/*ast',*/ errors, warnings, [])
+    (ast, path, project-path) -> (ast', errors, warnings, [])
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
       dr-scope-all-start
     with
       ast' := <analyze-ast> (ast, path, project-path);
+      
       if NoAnalysis then
         errors   := <collect-all(constraint-error, conc)> ast';
         warnings := <collect-all(constraint-warning, conc)> ast'
@@ -64,12 +71,22 @@ rules
     where
       target := <parse-stratego-file> <resolve-import-decl> x
 
+  // hover info for constructors
   editor-hover:
     (node, position, ast, path, project-path) -> text
     where
-      <signature-of> node; // only show definitions
-      text := <pp-stratego-string> node
-
+			<signature-of> node; // only show definitions
+			text := <pp-stratego-string> node
+			// sig := <poly-sort-signature-of> node;
+			// text := <pp-sort-signature-top> sig
+ 	
+ 	editor-hover:
+    (node, position, ast, path, project-path) -> text
+    where
+    	<sort-signature-of> node;
+    	get-sort-decl;
+    	pp-list(pp-sort-signature-top|"<br/>") => text
+  
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text
     where
@@ -87,3 +104,16 @@ rules
     with
       filename := <guarantee-extension(|"aterm")> path;
       result   := <basic-desugar-top> selected
+  
+  generate-analysed-aterm:
+  	(selected, position, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"a.aterm")> path;
+      result   := <DecoratedAst> selected
+  
+  // FIXME: for debugging
+  generate-sort-signatures:
+  	(selected, position, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"sig.aterm")> path;
+      result   := <all-keys-DeclaredSort; mapconcat(bagof-DeclaredSort)>

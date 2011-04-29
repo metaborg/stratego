@@ -1,0 +1,92 @@
+module constructors/project
+
+imports
+	signatures/constructors
+	signatures/map
+	libstrc
+	
+rules // accessors for Signatures
+	
+	signature-constructor:
+		ConstSig(c,_,_,_) -> c
+	
+	signature-arguments:
+		ConstSig(_,a,_,_) -> a
+
+	signature-sort:
+		ConstSig(_,_,c,_) -> c
+	
+	signature-freevars:
+		ConstSig(_,_,_,v) -> v
+	
+	is-freevar(|var-name):
+		sig@ConstSig(_,_,_,freevars) -> <elem> (var-name,freevars)
+
+rules // primitive test helper rules
+		
+		is-prim:
+			c -> c
+			where
+				?Int() + ?Double() + ?String() + ?List(_) + ?List() + ?Option(_) + ?Option() + ?Term() +?ATerm()
+
+rules // Stage 1
+	
+	poly-sort-signature-of =
+		sort-signature-of;
+		to-poly-signature
+
+	// normal signature with name and function	
+	sort-signature-of: 
+		OpDecl(name, FunType(args,srt)) -> ConstSig(name,args',srt',[])
+		with
+			args' := <map(sort-signature-of)> args;
+			srt' := <sort-signature-of> srt
+	
+	// signature with no arguments	
+	sort-signature-of:
+		OpDecl(name, ConstType(srt)) -> ConstSig(name,[],srt',[])
+		with
+			srt' := <sort-signature-of> srt			
+			
+	
+	// signature with no name
+	sort-signature-of:
+		OpDeclInj(FunType(args,srt)) -> ConstSig("",args',srt',[])
+		with
+			args' := <map(sort-signature-of)> args;
+			srt' := <sort-signature-of> srt
+	
+	sort-signature-of:
+		OpDeclInj(ConstType(srt)) -> ConstSig("",[],srt',[])
+		with
+			srt' := <sort-signature-of> srt
+	
+	sort-signature-of:
+		ConstType(s) -> <sort-signature-of> s
+	
+	sort-signature-of:
+		SortVar(v) -> Var(v)
+		where
+			<is-string> v
+	
+	sort-signature-of:
+		SortNoArgs(s) -> sort
+		with
+			srt := s#([]);
+			sort := srt{<get-sort-cookie> srt}
+	
+	sort-signature-of:
+		Sort(s,a) -> sort
+		with
+			srt := s#(<sort-signature-of> a);
+			sort := srt{<get-sort-cookie> srt}
+		
+	sort-signature-of:
+		t -> <map(sort-signature-of)> t
+		where is-list
+	
+	// get all the variables from the LHS of constructor
+	to-poly-signature:
+		ConstSig(n,args,srt,_) -> ConstSig(n,args,srt,freevars)
+		with
+			freevars := <collect-all(\ Var(a) -> a \,union)> args

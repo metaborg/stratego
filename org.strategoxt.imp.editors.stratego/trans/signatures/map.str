@@ -1,0 +1,130 @@
+module signatures/map
+
+imports
+	signatures/constructors
+	signatures/project
+
+rules // store & retrieve sorts
+			
+		store-sort-decl:
+			sig -> cookie
+			where
+				signature-sort;
+				not(is-prim)
+			with
+				signature-sort => sort;
+				get-sort-cookie => cookie;
+				not(
+					<elem> (sig,<bagof-DeclaredSort> cookie)
+				) <
+					// where(!sig; debug(!"STORE  "));
+					rules (
+						DeclaredSort:+ cookie -> sig
+					)
+					+
+					id
+		
+		get-sort-decl:
+			sort -> decls
+			// where debug(!"GET ")
+			where
+				?_{cookie};
+				decls := <bagof-DeclaredSort> cookie
+
+		// already has a cookie
+		get-sort-cookie:
+			sort -> cookie
+			where
+				?_{cookie} +
+				?s#(l@_);
+				all-keys-SortCookie;
+				filter(\
+				s'#(l'@_) -> <and(<eq> (s',s), <eq> (<length> l',<length> l))>
+				\);
+				mapconcat(bagof-SortCookie);
+				?[cookie|_]
+
+		// no cookie yet		
+		get-sort-cookie:
+			sort -> cookie
+			where not(is-prim)
+			where not(
+				?_{_} +
+				?s#(l@_);
+				all-keys-SortCookie;
+				filter(\
+				s'#(l'@_) -> <and(<eq> (s',s), <eq> (<length> l',<length> l))>
+				\);
+				?[_|_]
+			)
+			with
+				cookie := <newterm>;
+				rules (
+					SortCookie:+ sort -> cookie
+				)
+				
+rules // transparent auto-declarations for the primitive sorts
+	/* when a primitive sort is used we automatically declare it */
+	// get-sort-decl: List(_) -> <declare-me;get-declaration>
+	
+	/* there are two types:
+		1. sort usage:
+			- is cookie-stored during signature-of (probably not the best time)
+		2. sort declaration:
+			- is stored after signature-of from declare-globals
+
+		For non-primitives:
+			1. stores (if not already stored) a cookie for that Sort and returns it [get-sort-cookie]
+			2. if it is not already declared stores the constructor declaration as a sort declaration
+				and returns the cookie [store-sort-decl]
+			
+		For primitives:
+			1. allocate a cookie (if not already allocated) for that primitive and return it. also store the built-in declaration
+				for that sort so that we have it for later [get-sort-cookie].
+			2. basically a dummy. all primitives should have been declared already (including parameterized ones hopefully). Just
+				returns the cookie
+					
+	*/
+		
+		store-sort-decl:
+			sig -> cookie
+			where
+				signature-sort;
+				is-prim;
+				get-sort-cookie => cookie
+		
+		//normal sort
+		get-sort-cookie:
+			sort -> cookie
+			where
+				is-prim;
+				?srt#([])
+			where not(
+				?_{_} + SortCookie
+			)
+			with
+				cookie := <newterm>;
+				sig := ConstSig(srt,[],srt#([]){cookie},[]);
+				// debug(!"STOREP ");
+				rules (
+					SortCookie:+ sort -> cookie
+					DeclaredSort:+ cookie -> sig
+				)
+		
+		//parameterized sort
+		get-sort-cookie:
+			sort -> cookie
+			where
+				is-prim;
+				?srt#([_|_])
+			where not(
+				?_{_} + SortCookie
+			)
+			with
+				cookie := <newterm>;
+				sig := ConstSig(srt,[Var("a")],srt#([Var("a")]),["a"]);
+				// debug(!"STOREP ");
+				rules (
+					SortCookie:+ sort -> cookie
+					DeclaredSort:+ cookie -> sig
+				)

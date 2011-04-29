@@ -1,0 +1,53 @@
+module signatures/check
+
+imports
+	libstrc
+	signatures/constructors
+	signatures/map
+	signatures/project
+	signatures/pp
+
+rules // sort constraints
+	// not declared SortNoArgs
+	global-constraint-error:
+		s@SortNoArgs(_) -> (s, $[The sort [<pp-sort-signature-top> s'] is not declared])
+		where
+			sort-signature-of => s';
+			get-sort-decl;
+			?[]
+	
+	// not declared Sort(s,t)
+	global-constraint-error:
+		s@Sort(_,_) -> (s,$[The sort [<pp-sort-signature-top> s'] is not declared])
+		where
+			sort-signature-of => s';
+			get-sort-decl;
+			?[]
+
+	// unknown generic sorts on RHS of signature
+	global-constraint-error:
+		d@OpDecl(_,_) -> msgs 
+		where
+			poly-sort-signature-of => sig@ConstSig(_,_,sort,_);
+			srtVars := <collect-all(?Var(_),union)> sort;
+			<filter(\
+				Var(v) -> v
+				where not( <is-freevar(|v)> sig )
+			\)> srtVars;
+			map(\
+				v -> (v, $[Unknown sort variable [v]. It should be declared in left-hand-side])
+			\) => msgs
+	
+	// incompatible sort application
+	global-constraint-error:
+		s@Sort(_,_) -> (s,$[The sort [<pp-sort-signature-top> s'] is not compatible with any of its declarations:
+			 [<pp-list(pp-sort-signature-top|", ")> decl]])
+		where
+			sort-signature-of => s';
+			get-sort-decl;
+			map(signature-sort) => decl;
+			<sort-apply> (s',decl);
+			?[]
+
+
+

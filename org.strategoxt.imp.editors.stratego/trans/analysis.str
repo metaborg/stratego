@@ -6,7 +6,9 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
-
+	signatures/project
+	signatures/map
+	
 strategies
 
   analyze-ast:
@@ -63,6 +65,10 @@ rules // Projections and lookup
 
   signature-of:
     OpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
+    
+  
+  	
+  	
 
   signature-of:
     ExtOpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
@@ -158,7 +164,7 @@ rules // Declare globals
       redeclare-definition
 
   declare-globals:
-    OpDecl(x, t) -> OpDecl(x', t)
+    w@OpDecl(x, t) -> OpDecl(x', t)
     with
       cookie := <redeclare-definition>;
       x'     := x{cookie}
@@ -166,10 +172,22 @@ rules // Declare globals
       // Declare congruence
       (x'', n) := <signature-of>;
       sig'     := (x'', n, 0);
+      type-sig := <poly-sort-signature-of> w;
+      <store-sort-decl> type-sig;
       rules(
         DeclareCookie: sig' -> cookie
       )
-
+  
+  declare-globals:
+  	w@OpDeclInj(_) -> w
+  	with
+  		type-sig :=  <poly-sort-signature-of> w;
+  		sort := <signature-sort> type-sig;
+  		<store-sort-decl> type-sig;
+			rules(
+				SortDeclare: sort -> type-sig
+			)
+			
   declare-globals:
     ExtOpDecl(x, t) -> <id>
     with
@@ -581,16 +599,8 @@ rules // Content completion
       t* := <numbered-arguments> (n, "s")
 
   signature-to-proposal:
-    (x, 0, m) -> [x, "(|", t*, ")"]
-    where
-      <gt> (m, 0)
-    with
-      t* := <numbered-arguments> (m, "t")
-
-  signature-to-proposal:
     (x, n, m) -> [x, "(", s*, "|", t*, ")"]
     where
-      <gt> (n, 0);
       <gt> (m, 0)
     with
       s* := <numbered-arguments> (n, "s");
@@ -598,6 +608,7 @@ rules // Content completion
 
   signature-to-proposal:
     (x, [DR_DUMMY()], [DR_DUMMY()]) -> x // strategy param (wildcard arity)
+    
 
 rules // Constraints
 

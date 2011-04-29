@@ -1,0 +1,48 @@
+module signatures/pp
+
+imports
+	signatures/constructors
+
+
+rules // pretty print for constructor signatures
+
+	pp-sort-signature-top =
+		pp-sort-signature
+	
+	pp-sort-signature:
+		ConstSig(name,args,srt,[]) -> $[[name] : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
+	
+	pp-sort-signature:
+		ConstSig(name,args,srt,fvars@[_|_]) -> $[[name]([<pp-list(|", ")> fvars]) : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
+	
+	pp-sort-signature:
+		x -> x
+		where is-string
+		
+	pp-sort-signature:
+		Var(a) -> <pp-sort-signature-top> a
+	
+	pp-sort-signature:
+		c#([]) -> $[[c]]
+		where
+			not(
+				is-string + ?Var(_) + ?ConstSig(_,_,_,_)
+			)
+	
+	pp-sort-signature:
+		e@c#(l) -> $[[c]([<pp-list(pp-sort-signature-top|", ")> l])]
+		where
+			not(
+				is-string + ?Var(_) + ?ConstSig(_,_,_,_)
+			)
+	
+	pp-list(|sep) = pp-list(id|sep)
+	
+	pp-list(s|sep):
+		[] -> ""
+	
+	pp-list(s|sep):
+		[x] -> <s> x
+	
+	pp-list(s|sep):
+		[x|xs] -> $[[<s> x][sep][<pp-list(s|sep)> xs]]
