@@ -42,10 +42,10 @@ rules //precondition checks
 precondition-error(|ref-name):
 	asts -> ([$[Declaration can not be found in [<project-path>]/trans]],[])
 	where
-	  <?_{ref}> ref-name;
-	  <is-global-ref> ref;
-	  dec_sig := <Declaration; signature-of> ref;
-	  <not(oncetd(where(declare-globals); topdown(strip-annos); signature-of; equal(|dec_sig)))> asts
+	  <?_{ref}> ref-name; 
+	  <is-global-ref> ref; 
+	  decl := <Declaration> ref; 
+	  <not(topdown(strip-annos); oncetd(equal(|decl)))> asts
 
 rules //name analysis
     
