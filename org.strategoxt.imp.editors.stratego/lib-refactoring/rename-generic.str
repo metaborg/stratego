@@ -60,7 +60,29 @@ rules //refactoring transformation and semantic checks
     where
       <report-invalid-selection> ref-name;
       renamed-asts := <apply-renaming(|ref-name, new-name)> analyzed-asts;
-      <report-semantic-issues(re-analyse, collect-sem-errors|ref-name, new-name)> (analyzed-asts, renamed-asts);
+      endangered-names := [<rm-annotations> ref-name, new-name];
+      <report-semantic-issues(re-analyse, collect-sem-errors|endangered-names)> (analyzed-asts, renamed-asts);
+      changed-asts := <get-changed-asts> (analyzed-asts, renamed-asts)
+
+  /**
+   * Handles rename refactoring workflow.
+   * Input: asts annotated with unique names
+   * REMARK: save all resources before collecting ASTs and applying the refactoring 
+   * - Checks if selected term is indeed a reference or declaration name
+   * - Checks if the semantic errors before and after the transformation are the same
+   * - Checks if the name bindings are preserved
+   * @type (List(T)) -> List((T, T'))
+   * @param List(T) -> List(T) strategy that annotates all names with a unique reference name. 
+   * @param List(T) -> List(ERROR), with ERROR either a string or a tuple (term, String)   
+   * @param List(String, String) list with changes that should be applied (s{ref}, s') renames s{ref} to s'
+   */
+  apply-rename-refactoring(re-analyse, collect-sem-errors|renamings):
+    analyzed-asts -> changed-asts
+    where
+      <map(Fst; report-invalid-selection)> renamings;
+      renamed-asts := <apply-renaming(|renamings)> analyzed-asts;
+      endangered-names := <unzip; conc; make-set; map(rm-annotations)> renamings;
+      <report-semantic-issues(re-analyse, collect-sem-errors|endangered-names)> (analyzed-asts, renamed-asts);
       changed-asts := <get-changed-asts> (analyzed-asts, renamed-asts)
             
   report-invalid-selection = 
@@ -68,22 +90,22 @@ rules //refactoring transformation and semantic checks
       message-invalid-selection
     end
     
-  report-semantic-issues(analyse, collect-sem-errors|ref-name, new-name) =
-    check-semantics(analyse, collect-sem-errors|ref-name, new-name);
+  report-semantic-issues(analyse, collect-sem-errors|endangered-names) =
+    check-semantics(analyse, collect-sem-errors|endangered-names);
     (
     	report-semantic-problems <+
     	(try(dr-scope-all-end); dr-scope-all-start; fail) //do not store analysis results in name tables after rollback
     	//TODO: better solution
     )
     
-  check-semantics(analyse, collect-sem-errors|ref-name, new-name) :
+  check-semantics(analyse, collect-sem-errors|endangered-names) :
     (analyzed-asts, asts-after) -> (var-capture-warnings, <make-set> introduced-errors, <make-set> solved-errors)
     where    	
       errors-before        := <get-sem-errors(collect-sem-errors)> analyzed-asts; //debug(!"errors before: ");
       analyzed-asts-after  := <analyse> asts-after; //debug(!"asts-after: ");
       errors-after         := <get-sem-errors(collect-sem-errors)> analyzed-asts-after; //debug(!"errors after: ");
       (introduced-errors, solved-errors) := <check-consistency-changes> (errors-before, errors-after); 
-      var-capture-warnings := <check-var-captures(|ref-name, new-name)> (analyzed-asts, analyzed-asts-after)
+      var-capture-warnings := <check-var-captures(|endangered-names)> (analyzed-asts, analyzed-asts-after)
     	   	
   get-changed-asts:
     (asts-before, asts-after) -> changed-asts
@@ -99,6 +121,15 @@ rules // transformation: renaming
     topdown(try(?ref-name; !new-name)); 
     topdown(try(strip-annos))
     
+  apply-renaming (|renamings) =
+    topdown(try(rename-identifier(|renamings))); 
+    topdown(try(strip-annos))
+  
+  rename-identifier(|renamings):
+  	refname -> newname{ref}
+  	where
+  	<?_{ref}> refname;
+  	<fetch-elem(?(refname, newname))> renamings
     
 rules // consistency preservation
   
@@ -117,35 +148,34 @@ rules // consistency preservation
   	  
 rules // behaviour preservation: invariant check for variabele capture
 
-  check-var-captures(|ref-name, new-name):
+  check-var-captures(|endangered-names):
     (analyzed-asts, analyzed-asts-after) -> errors
     where
-      old-name := <strip-annos> ref-name; 
       errors   := <
-        get-var-captures(|old-name, new-name);
+        get-var-captures(|endangered-names);
         map(!(<id>, <!$[Variabele captures detected for '[<strip-annos>]']>))
       > (analyzed-asts, analyzed-asts-after)
   
-  get-var-captures(|old-name, new-name):
+  get-var-captures(|endangered-names):
     (analyzed-asts, analyzed-asts-after) -> var-captures
     where 
       paired-asts     := <zip> (analyzed-asts, analyzed-asts-after); //external definitions of transformed asts should not be obtained from cache
-      reference-pairs := <map(get-paired-references(|old-name, new-name)); flatten-list> paired-asts;
+      reference-pairs := <map(get-paired-references(|endangered-names)); flatten-list> paired-asts;
       var-captures    := <check-invariant; map(Fst)> reference-pairs
     
   //compares the references of analysed ast before- and after- rename transformation     
-  get-paired-references(|old-name, new-name):
+  get-paired-references(|endangered-names):
     (ast-before, ast-after) -> ref-pairs
     where
-      invariant_before := <get-listed-refnames(|old-name, new-name)> ast-before; //debug(!"invariant before: ");
-      invariant_after  := <get-listed-refnames(|old-name, new-name)> ast-after; //debug(!"invariant after: ");
+      invariant_before := <get-listed-refnames(|endangered-names)> ast-before; //debug(!"invariant before: ");
+      invariant_after  := <get-listed-refnames(|endangered-names)> ast-after; //debug(!"invariant after: ");
       ref-pairs     := <zip> (invariant_before, invariant_after)
           
-  get-listed-refnames(|old-name, new-name) =
+  get-listed-refnames(|endangered-names) =
     collect-om(
       where(
       	strip-annos;
-      	(equal(|old-name) <+ equal(|new-name))
+      	<elem> (<id>, endangered-names)
       ),
       conc
     )

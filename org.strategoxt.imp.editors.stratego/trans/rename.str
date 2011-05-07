@@ -30,13 +30,29 @@ rules //rename refactoring, builder
       ast-change-tuples := <apply-rename-refactoring(
       	re-analyse-names, 
       	collect-sem-errors |
-      	ref-name,
-      	newname
+      	<get-renamings> (ref-name, newname)
       )> asts
- 
+  
+  get-renamings:
+  	r@(refname, newname) -> renamings
+  	where
+  	  <?_{ref}> refname;
+      if <Declaration; ?RDecT(oldname, _, _)> ref then 
+      	old-names := <prefixes-dynrules; map(!$[[<id>]-[oldname]]{ref})>;
+      	new-names := <prefixes-dynrules; map(!$[[<id>]-[newname]])>;
+      	renamings := [(oldname{ref}, newname)|<zip>(old-names, new-names)]
+      else
+      	renamings := [r]
+      end
+
+  prefixes-dynrules =
+  	!["once", "bagof", "bigbagof", "all-keys", "innermost-scope", "break", "break-bp", 
+  	  "continue", "chain", "bigchain", "new", "undefine", "aux", "reverse-bagof", "innermost-scope",
+  	  "break-to-label","continue-to-label", "throw", "fold", "bigfold"]
+
 rules //precondition checks
 
-//TODO: better solution?	
+//TODO: better solution
 //FIXME: no declaration outside asts (lib or generated), since these files are not changed
 //NOW: a declaration in asts exists
 precondition-error(|ref-name):
@@ -44,8 +60,13 @@ precondition-error(|ref-name):
 	where
 	  <?_{ref}> ref-name; 
 	  <is-global-ref> ref; 
-	  decl := <Declaration> ref; 
-	  <not(topdown(strip-annos); oncetd(equal(|decl)))> asts
+	  decl := <Declaration> ref;
+	  decl-cons := <get-constructor> decl;
+	  <not(oncetd(
+	  	if <equal> (<get-constructor>, decl-cons) then 
+	  		topdown(strip-annos) 
+	  	end; 
+	  	equal(|decl)))> asts
 
 rules //name analysis
     
