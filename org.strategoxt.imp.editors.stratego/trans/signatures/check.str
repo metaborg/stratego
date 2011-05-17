@@ -8,46 +8,68 @@ imports
 	signatures/pp
 
 rules // sort constraints
-	// not declared SortNoArgs
-	global-constraint-error:
-		s@SortNoArgs(_) -> (s, $[The sort [<pp-sort-signature-top> s'] is not declared])
-		where
-			sort-signature-of => s';
-			get-sort-decl;
-			?[]
 	
-	// not declared Sort(s,t)
+	// not declared SortNoArgs or Sort
 	global-constraint-error:
-		s@Sort(_,_) -> (s,$[The sort [<pp-sort-signature-top> s'] is not declared])
+		_ -> (s, $[The sort [<pp-sort-signature-top> s'] is not declared])
+		where
+			?s@SortNoArgs(_) + ?s@Sort(_,_)
 		where
 			sort-signature-of => s';
-			get-sort-decl;
+			get-sort-decls;
 			?[]
 
-	// unknown generic sorts on RHS of signature
+	// unknown generic sort vars on RHS of signature
 	global-constraint-error:
 		d@OpDecl(_,_) -> msgs 
 		where
-			poly-sort-signature-of => sig@ConstSig(_,_,sort,_);
+			poly-sort-signature-of => sig@ConstSig(_,[_|_],sort,_);
 			srtVars := <collect-all(?Var(_),union)> sort;
 			<filter(\
 				Var(v) -> v
 				where not( <is-freevar(|v)> sig )
 			\)> srtVars;
 			map(\
-				v -> (v, $[Unknown sort variable [v]. It should be declared in left-hand-side])
+				v -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. It should be declared in left-hand-side])
+			\) => msgs@[_|_] // force fail if no errors
+	
+	constraint-warning:
+		d@OpDecl(_,_) -> msgs
+		where
+			poly-sort-signature-of => sig@ConstSig(_,[],sort,_);
+			srtVars := <collect-all(?Var(_),union)> sort;
+			map(\
+				Var(v) -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. Either declare in left-hand-side or remove it from right-hand-side])
 			\) => msgs
 	
 	// incompatible sort application
 	global-constraint-error:
-		s@Sort(_,_) -> (s,$[The sort [<pp-sort-signature-top> s'] is not compatible with any of its declarations:
+		s@Sort(_,_) -> (s,$[The sort application [<pp-sort-signature-top> s'] is not compatible with any of its declarations:
 			 [<pp-list(pp-sort-signature-top|", ")> decl]])
+		where debug(!"Checking: ")
 		where
 			sort-signature-of => s';
-			get-sort-decl;
+			get-sort-decls;
 			map(signature-sort) => decl;
-			<sort-apply> (s',decl);
-			?[]
-
-
-
+			<not(sort-apply)> (s',decl);
+			<innermost(\ Var(v) -> <get-var-sorts;not(?[])> v \);collect-all(?Var(_));?[]> decl
+			
+			
+	// Warn about sort variables that are constrained to a single Sort which is not Term or List or Option
+	constraint-warning:
+		d@OpDecl(_,_) -> messages
+		where
+			poly-sort-signature-of => ConstSig(_,_,_,freevars);
+			// for each variable get their possible sorts
+			// for all the variables that have only a single possible sort which is not Term, give a warning
+			<map(\
+				var -> (Var(var),$[Sort variable [<RenamedVarCookie> var] is not polymorphic ([<pp-sort-signature> srt])])
+				where
+					<get-var-sorts> var;
+					?[srt];
+					not(?[Term()])
+			\)> freevars => messages
+			
+			
+	
+	

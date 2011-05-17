@@ -1,0 +1,150 @@
+module test
+
+imports
+	utils/utils
+	signatures/constructors
+	signatures/map
+	signatures/project
+
+rules // tests
+	
+	test-all =
+		test-elem-at-index-1
+		;debug(!"---------")
+		;test-elem-at-index-2
+		;debug(!"---------")
+		;test-elem-at-index-3
+		;debug(!"---------")
+		;test-at-indices
+		;debug(!"---------")
+		;test-get-indices
+		;debug(!"---------")
+		;test-sort-apply-1
+		;debug(!"---------")
+		;test-sort-apply-2
+		;debug(!"---------")
+		;test-chain-proxy-varsort-1
+		;debug(!"---------")
+		;test-chain-proxy-varsort-2
+		;debug(!"---------")
+ 		;test-chain-proxy-varsort-3
+		;debug(!"---------")
+		;test-chain-proxy-varsort-4
+		;debug(!"---------")
+		;test-chain-proxy-varsort-5
+		;debug(!"---------")
+		// ;test-dr-higher-order
+		// ;debug(!"---------")
+		;debug(!"All tests succeeded")
+ 	
+ 	test-elem-at-index-1 =
+ 		<elem-at-index(|2)> [1,2,3,4,5] => out;
+ 		(?3 <+ <fatal-err(|"Test elem-at-index failed \n Expected 3 but got: ")> out)
+ 	
+ 	test-elem-at-index-2 =
+ 		<elem-at-index(|4)> [1,2,3,4,5] => out;
+ 		(?5 <+ <fatal-err(|"Test elem-at-index failed \n Expected 5 but got: ")> out)
+ 	
+ 	test-elem-at-index-3 = not(<elem-at-index(|6)> [1,2,3,4,5])
+ 	
+ 	test-at-indices =
+ 		list := [5,4,3,2,1];
+ 		pos := [0,2];
+ 		<at-indices(|pos)> list => out;
+ 		(?[5,3] <+ <fatal-err(|"Test test-list-at-indices failed \n Expected [5,3] but got: ")> out)
+ 	
+ 	test-get-indices = 
+ 		list := ["foo","bar","is", "foo", "and", "bar"];
+ 		<get-indices(?"foo")> list => out;
+ 		(?[0,3] <+ <fatal-err(|"Test test-get-indices failed \n Expected [0,3] but got: ")> out);
+ 		<get-indices(?"foo" + ?"bar")> list => out2;
+ 		(?[0,1,3,5] <+ <fatal-err(|"Test test-get-indices failed \n Expected [0,1,3,5] but got: ")> out2)
+ 	
+ 	test-sort-apply-1 =
+ 		if(<sort-apply> ([Int(),Double(),String()],[Int()]) => out) then
+ 			!out;
+ 			?[Int()] <+ <fatal-err(|"Test sort-apply failed \n Expected [Int()] but got: ")> out
+ 		else
+ 			fatal-err(|"Test sort-apply failed ")
+		end
+	
+	test-sort-apply-2 =	
+		!([Int(),Double()],[String()]);
+		sort-apply <+ fatal-err(|"Test test-sort-apply-2 failed ")
+		 	
+ 	test-chain-proxy-varsort-1 = 
+ 		use1 := "T"#([Var(123)]);
+ 		decl1 := "T"#([Int()]);
+ 		sig1 := ConstSig("", [], decl1, []);
+ 		{|DeclaredSort,SortCookie,VarToProxy,SortVar,DeferredApplication:
+ 			<store-sort-decl> sig1 => sort-cookie;
+ 			<chain-proxy-varsort(|123,0)> use1{sort-cookie};
+ 			// check that we get Int as the var sort
+ 			<get-var-sorts> 123 => out;
+ 			(?[Int()] <+ <fatal-err(|"Test chain-proxy-varsort-1 failed \n Expected [Int()] but got: ")> out)
+ 		|}
+ 	
+ 	test-chain-proxy-varsort-2 = 
+ 		use1 := "T"#([Var(123)]);
+ 		decl1 := "T"#([Int()]);
+ 		sig1 := ConstSig("", [], decl1, []);
+ 		{|DeclaredSort,SortCookie,VarToProxy,SortVar,DeferredApplication:
+ 			<store-sort-decl> sig1 => sort-cookie;
+ 			<chain-proxy-varsort(|123,0)> use1{sort-cookie};
+ 			<chain-proxy-varsort(|123,0)> use1{sort-cookie};
+ 			// check that we get Int as the var sort
+ 			<get-var-sorts> 123 => out;
+ 			(?[Int()] <+ <fatal-err(|"Test chain-proxy-varsort-1 failed \n Expected [Int()] but got: ")> out)
+ 		|}
+ 		
+ 	test-chain-proxy-varsort-3 = 
+ 		use1 := "T"#([Var(123),Var(123)]);
+ 		decl1 := "T"#([Int(),Int()]);
+ 		sig1 := ConstSig("", [], decl1, []);
+ 		{|DeclaredSort,SortCookie,VarToProxy,SortVar,DeferredApplication:
+ 			<store-sort-decl> sig1 => sort-cookie;
+ 			<chain-proxy-varsort(|123)> use1{sort-cookie};
+ 			<get-var-sorts> 123 => out;
+ 			(?[Int()] <+ <fatal-err(|"Test chain-proxy-varsort-1 failed \n Expected [Int()] but got: ")> out)
+ 		|}
+ 		
+ 	test-chain-proxy-varsort-4 = 
+ 		use1 := "T"#([Var(123)]);
+ 		decl1a := "T"#([String()]);
+ 		decl1b := "T"#([Int()]);
+ 		decl1c := "T"#([Double()]);
+ 		sig1a := ConstSig("", [], decl1a, []);
+ 		sig1b := ConstSig("", [], decl1b, []);
+ 		sig1c := ConstSig("", [], decl1c, []);
+ 		use2 := "T2"#([Var(123)]);
+ 		decl2a := "T2"#([Int()]);
+ 		decl2b := "T2"#([Double()]);
+ 		sig2a := ConstSig("",[],decl2a,[]);
+ 		sig2b := ConstSig("",[],decl2b,[]);
+ 		{|DeclaredSort,SortCookie,VarToProxy,SortVar,DeferredApplication:
+ 			<store-sort-decl> sig1a => c1a;
+ 			<store-sort-decl> sig1b => c1a;
+ 			<store-sort-decl> sig1c => c1a;
+ 			<store-sort-decl> sig2a => c2;
+ 			<store-sort-decl> sig2b => c2;
+ 			<chain-proxy-varsort(|123)> use1{c1a};
+ 			<chain-proxy-varsort(|123)> use2{c2};
+ 			<get-var-sorts> 123 => out;
+ 			(?[Double(),Int()] <+ <fatal-err(|"Test chain-proxy-varsort-1 failed \n Expected [Int(),Double()] but got: ")> out)
+ 		|}
+	
+	test-chain-proxy-varsort-5 = 
+ 		use1 := "T"#([Var(123)]);
+ 		decl1 := "T"#([String()]);
+ 		sig1 := ConstSig("", [], decl1, []);
+ 		use2 := "T2"#([Var(123)]);
+ 		decl2 := "T2"#([Int()]);
+ 		sig2 := ConstSig("",[],decl2,[]);
+ 		{|DeclaredSort,SortCookie,VarToProxy,SortVar,DeferredApplication:
+ 			<store-sort-decl> sig1 => c1;
+ 			<store-sort-decl> sig2 => c2;
+ 			<chain-proxy-varsort(|123)> use1{c1};
+ 			<chain-proxy-varsort(|123)> use2{c2};
+ 			<get-var-sorts> 123 => out;
+ 			(?[] <+ <fatal-err(|"Test chain-proxy-varsort-1 failed \n Expected [] but got: ")> out)
+ 		|}

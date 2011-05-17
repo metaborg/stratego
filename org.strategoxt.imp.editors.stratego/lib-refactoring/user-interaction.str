@@ -33,8 +33,10 @@ rules //dialogs used in refactoring workflow
   message-unexpected-failure =
     <message-errors> "Refactoring fails unexpectedly, no changes are made"
       
-  message-invalid-selection =
-    <message-errors> "Refactoring is not applicable to the selected fragment"
+  message-invalid-selection :
+  	selection -> <message-errors> 
+  	$[Refactoring is not applicable to the selected fragment: 
+  	'[<write-to-string; string-as-chars(take(|100))> selection]']
   
   message-invalid-input =
     <message-errors> "Refactoring is not applicable with this input"
@@ -105,7 +107,7 @@ rules //helper rules
   make-error-string :
     (term, message) -> error-string
     where 
-      if (txt, line, column):= <origin-source-info> then  //TODO: filename
+      if (txt, line, column):= <origin-source-info> term then  //TODO: filename
         error-string := $[ ([line],[column]): [message]] 
       else 
         error-string := message

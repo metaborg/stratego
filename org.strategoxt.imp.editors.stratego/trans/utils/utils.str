@@ -1,0 +1,49 @@
+module utils
+
+rules // utilities
+
+
+	/**
+	* returns a list containing the indices at which the given strategy succeeds
+	* List(a) -> List(Int)
+	*/
+	get-indices(s) = get-indices(s|0)
+	// 
+	get-indices(s|index):
+		[x|xs] -> [index|<get-indices(s|<inc> index)> xs]
+		where <s> x
+	// 
+	get-indices(s|index):
+		[x|xs] -> <get-indices(s|<inc> index)> xs
+		where <not(s)> x
+	// 
+	get-indices(s|index): [] -> []
+	
+ 			
+ 	/**
+ 	* returns a sublist consisting of the elements at the given indices
+ 	* List(a) -> List(a)
+ 	*/
+	at-indices(|indices) = at-indices(|indices,0)
+	
+	at-indices(|indices,curindex):
+		[x|xs] -> [x|<at-indices(|indices,<inc> curindex)> xs]
+		where <elem> (curindex,indices)
+	
+	at-indices(|indices,curindex):
+		[x|xs] -> <at-indices(|indices,<inc> curindex)> xs
+		where <not(elem)> (curindex,indices)
+	
+	at-indices(|indices,curindex):
+		[] -> []
+ 	
+ 	elem-at-index(|index) = elem-at-index(|index,0)
+ 	
+ 	elem-at-index(|index,pos)=
+ 		?[x|xs];
+ 		if(<eq> (pos,index)) then
+ 			!x
+ 		else
+ 			<elem-at-index(|index,<inc> pos)> xs
+ 		end
+ 	

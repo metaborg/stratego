@@ -15,7 +15,8 @@ imports
   signatures/project
   signatures/map
   signatures/check
-
+	utils/test
+	
 strategies
 
 rules
@@ -77,15 +78,21 @@ rules
     where
 			<signature-of> node; // only show definitions
 			text := <pp-stratego-string> node
-			// sig := <poly-sort-signature-of> node;
-			// text := <pp-sort-signature-top> sig
  	
  	editor-hover:
-    (node, position, ast, path, project-path) -> text
+    (node, _, _, _, _) -> text
     where
     	<sort-signature-of> node;
-    	get-sort-decl;
+    	get-sort-decls;
     	pp-list(pp-sort-signature-top|"<br/>") => text
+  
+  editor-hover:
+    (node@SortVar(v){cookie}, _, _, _, _) -> text
+    where
+    	// dr-debug-rule-set(|"SortVar");
+    	// dr-debug-rule-set(|"DeferredApplication");
+    	text := $[[v]: [<get-var-sorts;pp-list(pp-sort-signature-top|", ")> cookie]]
+    	
   
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text
@@ -111,9 +118,17 @@ rules
       filename := <guarantee-extension(|"a.aterm")> path;
       result   := <DecoratedAst> selected
   
-  // FIXME: for debugging
+  // FIXME: for debugging only
   generate-sort-signatures:
   	(selected, position, ast, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"sig.aterm")> path;
-      result   := <all-keys-DeclaredSort; mapconcat(bagof-DeclaredSort)>
+      all-keys-DeclaredSort;
+      mapconcat(bagof-DeclaredSort) => signs;
+      collect-all(?Var(_)); make-set;
+      map(\ Var(x) -> $[Var([<RenamedVarCookie> x]) => [<get-var-sorts;pp-sort-signature-top> x]] \) => vars;
+      result := [signs,vars]
+	
+	run-tests = test-all
+
+

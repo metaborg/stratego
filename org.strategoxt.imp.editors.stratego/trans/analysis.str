@@ -65,10 +65,6 @@ rules // Projections and lookup
 
   signature-of:
     OpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
-    
-  
-  	
-  	
 
   signature-of:
     ExtOpDecl(x, t) -> (<remove-quote> x, <dec> <occurrences(?ConstType(_))> t)
@@ -164,7 +160,7 @@ rules // Declare globals
       redeclare-definition
 
   declare-globals:
-    w@OpDecl(x, t) -> OpDecl(x', t)
+    OpDecl(x, t) -> OpDecl(x', t')
     with
       cookie := <redeclare-definition>;
       x'     := x{cookie}
@@ -172,11 +168,16 @@ rules // Declare globals
       // Declare congruence
       (x'', n) := <signature-of>;
       sig'     := (x'', n, 0);
-      type-sig := <poly-sort-signature-of> w;
-      <store-sort-decl> type-sig;
       rules(
         DeclareCookie: sig' -> cookie
       )
+    with try(
+    	rename-sort-vars => t';
+      poly-sort-signature-of;
+      infer-var-sorts;
+      where (debug(!"> "));
+     	store-sort-decl
+    )
   
   declare-globals:
   	w@OpDeclInj(_) -> w

@@ -25,5 +25,10 @@ builders
     generate-desugared-aterm (realtime) (meta) (openeditor) (source)
 
   builder : "Show AST (selection)" =
-    generate-aterm (realtime) (meta)(openeditor) (source) 
+    generate-aterm (realtime) (meta)(openeditor) (source)
+    
+ builder : "Show signatures & constraints" =
+     generate-sort-signatures (realtime) (meta)(openeditor) (source)
+ 
+ builder : "Run tests" = run-tests
  

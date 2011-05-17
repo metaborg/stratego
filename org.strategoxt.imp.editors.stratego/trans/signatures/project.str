@@ -32,8 +32,8 @@ rules // primitive test helper rules
 rules // Stage 1
 	
 	poly-sort-signature-of =
-		sort-signature-of;
-		to-poly-signature
+			sort-signature-of;
+			to-poly-signature
 
 	// normal signature with name and function	
 	sort-signature-of: 
@@ -65,9 +65,7 @@ rules // Stage 1
 		ConstType(s) -> <sort-signature-of> s
 	
 	sort-signature-of:
-		SortVar(v) -> Var(v)
-		where
-			<is-string> v
+		SortVar(v){vnum} -> Var(vnum)
 	
 	sort-signature-of:
 		SortNoArgs(s) -> sort
@@ -90,3 +88,136 @@ rules // Stage 1
 		ConstSig(n,args,srt,_) -> ConstSig(n,args,srt,freevars)
 		with
 			freevars := <collect-all(\ Var(a) -> a \,union)> args
+
+rules // sort applications
+	
+	/*
+	* rules to implement application of sort signatures
+	* sort-apply: (sig, applyTo) -> resulting sort signature OR fail
+	*/
+	
+	sort-apply:
+		(s,l@[_|_]) -> <filter(\ l' -> <sort-apply> (s,l') \);not(?[]);flatten-list;make-set> l
+		where <not(is-list)> s
+	
+	sort-apply:
+		(s@[_|_],l) -> <filter(\ s' -> <sort-apply> (s',l) \);not(?[]);flatten-list;make-set> s
+	
+	/* rules for primitive applications */
+	
+	sort-apply:
+		(s,Term()) -> s
+		where <not(is-list + ?Var(_))> s
+		
+	sort-apply:
+		(Term(),s) -> s
+		where 
+			<not(is-list + ?Var(_))> s
+	
+	sort-apply:
+		(Int(), Int()) -> Int()
+	
+	sort-apply:
+		(Double(),Double()) -> Double()
+	
+	sort-apply:
+		(Int(), Double()) -> []
+	
+	sort-apply:
+		(String(), String()) -> String()
+	
+	// the sort application for collections propagates inside the sorts collected
+	sort-apply:
+		(List(s),List(k)) -> List(<sort-apply> (s,k))
+	
+	// empty lists collect the Nothing sort (which doesn't exist). On application to a List of sort a, the result is a list of sort a
+	sort-apply:
+		(List(),List()) -> List()
+	
+	sort-apply:
+		(List(),List(_)) -> List()
+	
+	// TODO: is this true always?
+	sort-apply:
+		(List(_),List()) -> <fail>
+		
+	sort-apply:
+		(Option(s),Option(k)) -> Option(<sort-apply> (s,k))
+	
+	sort-apply:
+		(Option(),Option()) -> Option()
+	
+	sort-apply:
+		(Option(),Option(k)) -> Option()
+	
+	// TODO: is this true always?
+	sort-apply:
+		(Option(_),Option()) -> <fail>
+	
+	/* rules for sort variables */
+
+	sort-apply:
+		(s,Var(v)) -> <sort-apply> (s, <get-var-sorts> v)
+		where <not(?Var(_))> s
+	
+	sort-apply:
+		(Var(v),s) -> <sort-apply> (<get-var-sorts> v, s)
+		where not(<is-list> s)
+			
+	/* rules for user-declared sorts */
+	
+	sort-apply:
+		(a,a) -> a
+		where not(<is-list> a)
+		
+	sort-apply:
+		(s,t) -> c#(<zip(sort-apply)> (p,p'))
+		where not(
+			<is-prim> s +
+			<is-prim> t +
+			<is-list> t
+		)
+		where
+			!s;
+			?c#(p);
+			!t;
+			?c#(p')
+			
+			
+rules // variable inference
+	infer-var-sorts:
+		sig@ConstSig(_,_,_,[]) -> sig
+	
+	infer-var-sorts:
+		sig@ConstSig(_, args, _, f) -> sig
+		where
+			<map(\
+				var -> <map(innermost(infer-proxies(|Var(var))))> args
+			\)> f
+	
+	infer-proxies(|var):
+		sig@(c#(args@[_|_])) -> <fail> // always fail so that can eventually get out of this loop
+		where
+			// only if there are actually uses of the variable at this level
+			<elem> (var,args)
+		with
+			Var(v) := var;
+			<debug(!"DEFERRING: ")> (var,sig);
+			<chain-proxy-varsort(|v)> sig
+				
+
+	
+		
+		
+
+
+	
+		
+		
+				
+			
+			
+	
+	
+	
+		

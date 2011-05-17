@@ -2,7 +2,7 @@ module signatures/pp
 
 imports
 	signatures/constructors
-
+	signatures/map
 
 rules // pretty print for constructor signatures
 
@@ -13,14 +13,14 @@ rules // pretty print for constructor signatures
 		ConstSig(name,args,srt,[]) -> $[[name] : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
 	
 	pp-sort-signature:
-		ConstSig(name,args,srt,fvars@[_|_]) -> $[[name]([<pp-list(|", ")> fvars]) : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
+		ConstSig(name,args,srt,fvars@[_|_]) -> $[[name]([<pp-list(RenamedVarCookie|", ")> fvars]) : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
 	
 	pp-sort-signature:
 		x -> x
 		where is-string
 		
 	pp-sort-signature:
-		Var(a) -> <pp-sort-signature-top> a
+		Var(a) -> <RenamedVarCookie;pp-sort-signature-top> a
 	
 	pp-sort-signature:
 		c#([]) -> $[[c]]

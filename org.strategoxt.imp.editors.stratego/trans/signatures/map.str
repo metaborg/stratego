@@ -3,7 +3,9 @@ module signatures/map
 imports
 	signatures/constructors
 	signatures/project
-
+	libstrc
+	utils/utils
+	
 rules // store & retrieve sorts
 			
 		store-sort-decl:
@@ -17,16 +19,14 @@ rules // store & retrieve sorts
 				not(
 					<elem> (sig,<bagof-DeclaredSort> cookie)
 				) <
-					// where(!sig; debug(!"STORE  "));
 					rules (
 						DeclaredSort:+ cookie -> sig
 					)
 					+
 					id
 		
-		get-sort-decl:
+		get-sort-decls:
 			sort -> decls
-			// where debug(!"GET ")
 			where
 				?_{cookie};
 				decls := <bagof-DeclaredSort> cookie
@@ -105,7 +105,6 @@ rules // transparent auto-declarations for the primitive sorts
 			with
 				cookie := <newterm>;
 				sig := ConstSig(srt,[],srt#([]){cookie},[]);
-				// debug(!"STOREP ");
 				rules (
 					SortCookie:+ sort -> cookie
 					DeclaredSort:+ cookie -> sig
@@ -123,8 +122,113 @@ rules // transparent auto-declarations for the primitive sorts
 			with
 				cookie := <newterm>;
 				sig := ConstSig(srt,[Var("a")],srt#([Var("a")]),["a"]);
-				// debug(!"STOREP ");
 				rules (
 					SortCookie:+ sort -> cookie
 					DeclaredSort:+ cookie -> sig
 				)
+
+rules // rename variables
+	
+	rename-sort-vars = {| RenamedVar: alltd(rename-sort-var) |}
+	
+	rename-sort-var:
+		SortVar(v) -> SortVar(v){<rename> v}
+		where debug(!$[Renamed variable [v] to [<rename> v] ])
+		
+	rename:
+		v -> v'
+		where
+			is-string;
+			RenamedVar => v'
+	
+	rename:
+		v -> v'
+		where
+			is-string;
+			not(RenamedVar)
+		with
+			v' := <newterm>;
+			rules (
+				RenamedVar : v -> v'
+				RenamedVarCookie: v' -> v
+			)
+	
+
+rules // variable sort storage
+	
+	chain-proxy-varsort(|var,pos):
+		sig@(_#(use-args)) -> var
+		with
+			if(not(<VarToProxy> var => old_cookie)) then
+				old_cookie := -42
+			end;
+			cookie := <newterm>;
+			// verify that a var actually exists at the given position
+			var-positions := <get-indices(?Var(var))> use-args;
+			<elem> (pos,var-positions);
+			num_args := <length> use-args
+		with
+			if(<gt> (old_cookie,0)) then
+				// a rule already exists, cleanup
+				rules (
+					VarToProxy:- var
+					SortVar:- var
+				)
+			end;
+			rules (
+				VarToProxy: var -> cookie
+				DeferredApplication: cookie -> result
+					with
+						<get-sort-decls> sig;
+						// keep from the decls only those that have the right number of arguments
+						map(signature-sort);
+						filter(\
+							_#(decl-args) -> decl-args
+							where <eq> (<length> decl-args, num_args)
+							\);
+						// FIXME: keep from the remaining decls only those that apply in non-variable positions
+						// FIXME: this is loss of strictness
+						// keep only the positions at POS
+						map(elem-at-index(|pos)) => elems;
+						if(<gt> (old_cookie,0)) then
+							<sort-apply <+ ![]> (<DeferredApplication> old_cookie, elems) => result
+						else
+							<sort-apply <+ ![]> (Term(), elems) => result
+						end
+				SortVar: var -> <DeferredApplication> cookie
+			)
+	
+	
+	chain-proxy-varsort(|var):
+		sig@(_#(use-args)) -> var
+		with
+			var-positions := <get-indices(?Var(var))> use-args;
+			<map(\ 
+				pos -> <chain-proxy-varsort(|var,pos)> sig
+			\)> var-positions
+			
+	get-var-sorts:
+		var -> srts
+		where all-keys-SortVar;fetch(?var)
+		with {|Strace:
+			if(<Strace> var) then
+				<debug(!"Cyclic lookup detected on ")> Var(<RenamedVarCookie> var);
+				srts := [Term()]
+			else
+				rules (
+					Strace: var
+				);
+				<SortVar> var => srts
+			end
+		|}
+	
+	get-var-sorts:
+		var -> [Term()]
+		where all-keys-SortVar;not(fetch(?var))
+	
+	store-var-sorts(|var):
+		srts -> srts
+		where <is-list> srts
+		with rules (
+			SortVar: var -> srts
+		)

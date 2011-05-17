@@ -1,5 +1,6 @@
 module signatures/constructors
 
+
 imports 
 	signatures/project
 /*
@@ -11,7 +12,6 @@ imports
 signature
 	constructors
 		/* built-in primitive Sorts + Types */
-		// Sort: Sort
 		Term: Sort
 		ATerm: Sort
 		Int: Sort
@@ -25,137 +25,22 @@ signature
 			
 signature
 	constructors // helpers
-		Var: String -> Var 
-		
+		Var: String -> Var
+				
 signature
 	constructors
 		/* signature type signatures */
 		
 		/*
-		* Signature constructor for signature signatures
-		* args:
-		* 1. String -> the name of the constructor
-		* 2. List(Sort) -> the sorts of the constructor arguments
-		* 3. Sort -> the output sort of the constructor
-		*/
-		/*
-		* Representation for a parametric polymorphic signature
-		* arguments:
-			1. constructor name
+		 * Representation for a parametric polymorphic signature
+		 * arguments:
+			*1. constructor name
 			2. argument sorts
 			3. output sort
 			4. for All variables list
 		*/
 		ConstSig: String * List(Sort) * Sort * List(Var) -> ConstSig
 
-rules //constructor signatures
-		/* Steps
-		* 1. pass through all the signatures:
-				a. store the constructor signatures -> as constructor declaration
-				b. store the constructor signatures -> as sort declaration
-				- we have to be able to look-up possible constructors for the given Sort!!! 
-					because we use constructors in rules, but sorts in declarations
-			2. pass through all the signatures:
-				a. check that all the sorts used in the signatures are declared
-		*/
-		
-	
-rules // sort applications
-	
-	/*
-	* rules to implement application of sort signatures
-	* sort-apply: (sig, applyTo) -> resulting sort signature OR fail
-	*/
-	
-	
-	// dispatch for lists
-	sort-apply:
-		(s,l) -> <filter(\ l' -> <sort-apply> (s,l') \)> l
-		where
-			<is-list> l
-	
-	/* rules for primitive applications */
-	
-	sort-apply:
-		(s,Term()) -> s
-	
-	sort-apply:
-		(s,ATerm()) -> s
-	
-	sort-apply:
-		(Int(), Int()) -> Int()
-	
-	sort-apply:
-		(Double(),Double()) -> Double()
-	
-	sort-apply:
-		(Int(), Double()) -> Double()
-	
-	sort-apply:
-		(String(), String()) -> String()
-	
-	// the sort application for collections propagates inside the sorts collected
-	sort-apply:
-		(List(s),List(k)) -> List(<sort-apply> (s,k))
-	
-	// empty lists collect the Nothing sort (which doesn't exist). On application to a List of sort a, the result is a list of sort a
-	sort-apply:
-		(List(),List()) -> List()
-	
-	sort-apply:
-		(List(),List(_)) -> List()
-	
-	// TODO: is this true always?
-	sort-apply:
-		(List(_),List()) -> <fail>
-		
-	sort-apply:
-		(Option(s),Option(k)) -> Option(<sort-apply> (s,k))
-	
-	sort-apply:
-		(Option(),Option()) -> Option()
-	
-	sort-apply:
-		(Option(),Option(k)) -> Option()
-	
-	// TODO: is this true always?
-	sort-apply:
-		(Option(_),Option()) -> <fail>
-	
-	/* rules for sort variables */
-	
-	// FIXME: this should result in a condition placed on the sort of the actual variable
-	/**
-	* Sort application to a sort variable
-	* A variable has conditions enforced on it
-	* If the application is possible, the variable should be refined
-	*/
-	sort-apply:
-		(s,Var(_)) -> s 
-	
-	// FIXME: we should look-up what the sort variable conditions are and check whether we can do this without violating them
-	sort-apply:
-		(Var(_),s) -> s
-		where not(<is-list> s)
-	
-	/* rules for user-declared sorts */
-	
-	sort-apply:
-		(a,a) -> a
-		where not(<is-list> a)
-		
-	sort-apply:
-		(s,t) -> c#(<zip(sort-apply)> (p,p'))
-		where not(
-			<is-prim> s +
-			<is-prim> t +
-			<is-list> t
-		)
-		where
-			!s;
-			?c#(p);
-			!t;
-			?c#(p')
 			
 
 		
