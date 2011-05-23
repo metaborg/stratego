@@ -704,12 +704,15 @@ rules // Constraints
       map(!(<id>, "Build symbol in match pattern")) => builds;
       require([])
 
-  constraint-warning:
-    Assign(v @ Var(x), _) -> (x, $[Variable '[x]' may be bound already])
-    where
-      Var(x') := <declaration-of> v;
-      require(<origin-equal(|x)> x')
-
+  constraint-warning: elem -> (x, $[Variable '[x]' may be bound already]) 
+    where v@Var(x) := <get-assign-var> elem; 
+          Var(x') := <declaration-of> v;
+          require(<origin-equal(|x)> x')
+        
+  get-assign-var =
+    ?Assign(<id>, _)
+    <+ ?AM(_, <id>)
+        
   constraint-warning:
     Var(x) -> (x, $[Unparenthesized constructor: use '[x]()' instead])
     where
