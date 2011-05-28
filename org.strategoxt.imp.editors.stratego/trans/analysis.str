@@ -496,8 +496,15 @@ rules // Uses inside definition bodies
     where
       x' := x{<declare-cookie-of>}
     <+
-      fail // TODO: special exception for higher-order args
-
+      // HACK: a higher-order strategy can be passed as an argument, 
+      // as in s1(s2), where s2 has arguments. We can only check if there
+      // is a strategy called s2, independent of the number of
+      // (strategy/term) arguments to s2.
+      signature-of => sig;
+      all-keys-DeclareCookie;
+      fetch-elem(\key@(x, s*, t*) -> <?sig; !key; DeclareCookie> (x, 0, 0)\);
+      x' := x{<id>}
+  
   declare-bodies:
     Op(x, t*) -> Op(x', t'*)
     where
