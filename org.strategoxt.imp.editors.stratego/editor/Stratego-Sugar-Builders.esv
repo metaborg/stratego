@@ -16,7 +16,7 @@ builders
   	rename-builder (source)(meta)
   
   refactoring Id: "Rename (refactoring)" = 
-  	rename-refactoring (source)
+  	rename-refactoring (source)(meta) 
 
   builder : "Show analysed AST" =
     generate-analysed-aterm (realtime) (meta) (openeditor) (source)
