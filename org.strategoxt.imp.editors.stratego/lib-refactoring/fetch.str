@@ -3,7 +3,20 @@ module lib-refactoring/fetch
 imports
   lib/editor-common.generated
   
-rules //strategies for fetching subterms in an ast
+rules //strategies for fetching terms in the ast
+
+    /**
+	 * Annotates AST with reference names (analyse),
+	 * and fetches the annotated selected string in the result AST 
+	 * @type (String, T) -> (String{T}, T)
+	 * @param T -> T (or: List(T) -> T)
+	 */
+  annotated-terms(analyse):
+    (selected, ast) -> (ref-name, ast')
+    where
+      ast' := <analyse <+ (![<id>]; analyse; Hd)> ast;
+      ref-name := <fetch-annotated-term(|<fetch-down(is-string)> selected)> ast'
+
   
   fetch-annotated-term(|selected):
   	analysed-ast -> selected-ref
