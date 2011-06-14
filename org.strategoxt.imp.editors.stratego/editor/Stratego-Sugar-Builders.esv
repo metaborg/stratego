@@ -12,7 +12,7 @@ builders
 
   observer : editor-analyze
   
-  refactoring Id: "Rename (refactoring)" = 
+  refactoring Id: "Rename" = 
   	rename-refactoring (source)
 
   builder : "Show analysed AST" =
