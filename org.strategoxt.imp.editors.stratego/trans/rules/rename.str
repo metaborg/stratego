@@ -1,0 +1,39 @@
+module rename
+
+imports libstrc
+imports signatures/map
+
+rules
+	// the renaming is already handled in the analysis, we just add our own wrapper on top
+
+	rename-rule-vars:
+		dec@SDefT(name, s-vars, t-vars, rule) -> dec
+		with
+			<alltd(rename-var)> s-vars;
+			<alltd(rename-var)> t-vars;
+			<alltd(rename-var)> rule
+	
+	rename-var:
+		dec@VarDec(v{cookie},t) -> dec
+		with <redeclare-cookie(|cookie)> v
+			
+	
+	rename-var:
+		call@SVar(v{cookie}) -> call
+		with <redeclare-cookie(|cookie)> v
+	
+	rename-var:
+		use@Var(v{cookie}) -> use
+		with <redeclare-cookie(|cookie)> v
+	
+	redeclare-cookie(|cookie):
+		target -> target
+		with
+			if(<not(RenamedVarCookie)> cookie) then
+				rules(
+					RenamedVarCookie: cookie -> target
+				)
+			end
+			
+			
+			

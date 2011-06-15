@@ -1,0 +1,267 @@
+module constraints
+
+imports
+	signatures/constructors
+	signatures/project
+	utils/utils
+	
+signature constructors
+	
+	
+	Constraint: String * Sort -> Constraint
+	CSet: List(Constraint) -> ConstraintSet
+	CSetProxy : String -> ConstraintProxy
+	FAIL: ConstraintSet
+	Union: ConstraintSet * ConstraintSet -> ConstraintSet
+	ISection: ConstraintSet * ConstraintSet -> ConstraintSet
+	
+rules
+	
+	solve-top = 
+		alltd(clean-constraint-set);
+		innermost(solve);
+		alltd(clean-constraint-set);
+		where (
+			if(collect-all(?ISection(_,_),conc);?[_|_]) then
+				fatal-err(|"Solved constraints still contain Intersections. ")
+			end
+		)
+	
+	/* identities */
+	
+	solve:
+		Union(l,l) -> l
+	
+	solve:
+		ISection(l,l) -> l
+	
+	/* FAILure cases */
+	
+	solve:
+		Union(l,FAIL()) -> l
+	
+	solve:
+		Union(FAIL(),r) -> r
+	
+	solve:
+		ISection(FAIL(),_) -> FAIL()
+	
+	solve:
+		ISection(_,FAIL()) -> FAIL()
+	
+	/* if we can unify the constraint sets do so */
+	solve:
+		Union(l@CSet(l-constraints),r@CSet(r-constraints)) -> unified
+		// this can fail and it's not a problem
+		where <constraint-unify> (l,r) => unified
+	
+	
+	/* intersect two constraint sets */
+	solve:
+		ISection(l@CSet(l-constraints),r@CSet(r-constraints)) -> intersected
+		// this should always succeed
+		// where debug(!"TRYING isect 1 ")
+		with <constraint-intersect> (l,r) => intersected
+		// where debug(!"TRYING isect 1 worked ")
+	
+	/* (a + b) * c = a * c + b * c */
+	solve:
+		ISection(Union(l1,l2),r@CSet(_)) -> Union(ISection(l1,r),ISection(l2,r))
+		// where debug(!"(a + b) * c = a * c + b * c ")
+	
+	/* c * (a + b) = a * c + b * c */
+	solve:
+		ISection(l@CSet(_),Union(r1,r2)) -> Union(ISection(r1,l),ISection(r2,l))
+		// where debug(!"c * (a + b) = a * c + b * c ")
+	
+	/* (a + b) * (c + d) = a * (c + d) + b * (c + d) */ 
+	solve:
+		ISection(Union(l1,l2),r@Union(_,_)) -> Union(ISection(l1,r),ISection(l2,r))
+		// where debug(!"(a + b) * (c + d) = a * (c + d) + b * (c + d) ")
+		
+	
+	/**
+	* Attempt to perform the unification of two constraint sets.
+	* This can only succeed in one of the following situations:
+	*	1. the constraint sets are disjoint
+	* 2. the conditions for all the variables in the intersection are equal
+	*
+	* In other words, unification of constraint sets can only succeed if the two 
+	* constraint-sets do not represent disjoint variable configurations
+	* @type: (ConstraintSet, ConstraintSet) ->? ConstraintSet
+	*/
+	constraint-unify:
+		(l@CSet(l-cset),r@CSet(r-cset)) -> unified 
+		where
+			<clean-constraint-set> l => l';
+			<clean-constraint-set> r => r';
+			unified := <constraint-intersect;clean-constraint-set> (l',r');
+			<not(?FAIL())> unified
+			
+	
+	/**
+	* Perform the intersection of two constraint sets. This will either suceeds and the result will be:
+	*	- a constraint-set, if the two sets are disjoint or the constraints in the intersection are equal
+	* - FAIL, if the two sets are not disjoint and the constraints in the intersection are not equal
+	* @type: ConstraintSet * ConstraintSet -> ConstraintSet | FAIL
+	*/
+	// if the sets are disjoint 
+	constraint-intersect:
+		(CSet(l-cset),CSet(r-cset)) -> <clean-constraint-set> CSet(<conc> (l-cset,r-cset))
+		where
+			// only succeed if the sets are disjoint
+			<filter(\ constraint -> <elem(eq-constraint-vars)> (constraint,r-cset) \)> l-cset;
+			?[]
+	
+	// if the sets are not disjoint but the intersections are equal
+	constraint-intersect:
+		(l-cset'@CSet(_),r-cset'@CSet(_)) -> result //<clean-constraint-set> CSet(<conc> (l-cset,r-cset))
+		where
+			// debug(!"1 ");
+			CSet(l-cset) := <clean-constraint-set> l-cset';
+			// debug(!"2 ");
+			CSet(r-cset) := <clean-constraint-set> r-cset';
+			// debug(!"3 ");
+			// only succeed if all the constraints in intersection are equal
+			in-l := <filter(\ constraint -> <elem(eq-constraint-vars)> (constraint,r-cset) \);length> l-cset;
+			// debug(!"4 ");
+			// but the intersection constraints are not equal
+			compatible-l := <filter(\ constraint -> <elem(compatible-constraints)> (constraint,r-cset) \);length> l-cset;
+			// debug(!"5 ");
+			<eq> (in-l,compatible-l)
+			// debug(!"6 ")
+		with
+			// the distinct parts are easy
+			diff-l := <diff(compatible-constraints)> (l-cset,r-cset);
+			diff-r := <diff(compatible-constraints)> (r-cset,l-cset);
+			// debug(!"7 ");
+			l-isection := <isect(compatible-constraints)> (l-cset,r-cset);
+			// debug(!"8 ");
+			r-isection := <isect(compatible-constraints)> (r-cset,l-cset);
+			// debug(!"9 ");
+			isect := <zip(\ (Constraint(a,sl),Constraint(a,sr)) -> Constraint(a,<sort-apply> (sl,sr)) \)> (l-isection,r-isection);
+			// debug(!"10 ");
+			cset := <conc> (diff-l,diff-r,isect);
+			// debug(!"11 ");
+			result := <clean-constraint-set> CSet(cset)
+			// debug(!"12 ")
+			
+	
+	// if something is in the intersection but they are not equal
+	constraint-intersect:
+		(CSet(l-cset),CSet(r-cset)) -> FAIL()
+		where
+			// only FAIL if the sets are not disjoint and the constraints in the intersection are not equal
+			in-l := <filter(\ constraint -> <elem(eq-constraint-vars)> (constraint,r-cset) \);length> l-cset;
+			// but the intersection constraints are not equal
+			eq-l := <filter(\ constraint -> <elem(compatible-constraints)> (constraint,r-cset) \);length> l-cset;
+			<not(eq)> (in-l,eq-l)
+	
+	/**
+	* Cleanup & sort a constraint set. Orders all constraints in the set in ascending alphabetic order of the name variable names.
+	* Removes all duplicate constraints.
+	* @type : ConstraintSet -> ConstraintSet
+	*/
+	clean-constraint-set:
+		CSet(constraints) -> CSet(sorted-constraints)
+		where <?[_,_|_]> constraints
+		with
+			<make-set> constraints;
+			qsort(\ (Constraint(v1,_), Constraint(v2,_)) -> <string-lt> (<int-to-string <+ id> v1, <int-to-string <+ id> v2) \) => sorted-constraints
+			// if we have two adjacent constraints to the same variable, it is likely that one is ATerm() and the other is something else.
+			// we should compact that stuff
+			
+	clean-constraint-set:
+		t@CSet(constraints) -> t
+		where <?[] <+ ?[_]> constraints
+		
+	/**
+	* Succeeds if the given constraint set is valid. A constraint set is not valid if either is true:
+	*	1. is empty
+	*	2. a variable appear more than once and the constrained sorts are not equal
+	* In case of success, the resulting term is in the unchanged initial constraint-set
+	* @typeL ConstraintSet ->? ConstraintSet
+	*/
+	is-valid-constraint-set:
+		c@CSet(constraints) -> c
+		where
+			<?[]> constraints +
+			<?[_]> constraints +
+			clean-constraint-set => CSet(clean);
+			remove-duplicate-constraints(eq-constraint-vars) => CSet(nodups);
+			<diff> (clean,nodups);
+			?[]
+			
+	/**
+	* Remove duplicate constraints from the constraint set, using the given argument strategy to determine equality
+	* @param: (Constraint,Constraint) ->?
+	* @type: ConstraintSet -> ConstraintSet
+	*/
+	remove-duplicate-constraints(eq-s) = ?CSet(constraints);!CSet(<remove-duplicate-constraints(eq-s|[])> constraints)
+	
+	remove-duplicate-constraints(eq-s|acc): [] -> acc
+	
+	remove-duplicate-constraints(eq-s|acc):
+		[x|xs] -> <remove-duplicate-constraints(eq-s|acc')> xs 
+		with
+			if(<elem(eq-s)> (x,acc)) then
+				// duplicate found
+				acc' := acc
+			else
+				// not a duplicate
+				acc' := <conc> (acc,[x])
+			end
+			
+	
+	eq-constraint-vars:
+		(l,r) -> <eq> (<constraint-var> l, <constraint-var> r) 
+	
+	eq-constraint-sorts:
+		(l,r) -> <eq> (<constraint-sort> l, <constraint-sort> r)
+	
+	compatible-constraints:
+		t@(l,r) -> t 
+		where
+			<eq> (<constraint-var> l, <constraint-var> r);
+			<sort-apply> (<constraint-sort> l, <constraint-sort> r)
+	
+	eq-constraints:
+		t@(l,l) -> t 
+
+rules /* some builders */
+	to-constraint-intersection = foldll(!CSet([]),\ (a,b) -> ISection(a,b) \)
+	// to-constraint-intersection = reducel(\ (a,b) -> ISection(a,b) \)
+	
+	to-constraint-union = foldll(!FAIL(), \ (a,b) -> Union(a,b) \)
+
+rules /* some accessors */
+
+	/**
+	* Retrieves the constraint pertaining to the given variable from the given constraintset
+	* @param String
+	* @type ConstraintSet ->? Constraint
+	*/
+	get-var-constraint(|var):
+		CSet(constraints) -> <fetch-elem(?Constraint(var,_))> constraints
+	
+	/**
+	* Given a constraint returns the sort that the variable is constrained to
+	* @type Constraint(String,Sort) -> Sort
+	*/
+	get-constrained-var-sort:
+		Constraint(_,s) -> s
+		
+	constraint-var:
+		Constraint(var,_) -> var
+	
+	constraint-sort:
+		Constraint(_,sort) -> sort
+		
+	constraint-contains-var(|var) =
+		(?CSet(_) + ?Union(_,_) + ?ISection(_,_));
+		collect-all(?var,conc);
+		?[_|_]
+		
+
+
+		

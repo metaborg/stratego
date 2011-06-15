@@ -15,14 +15,19 @@ imports
   signatures/project
   signatures/map
   signatures/check
-	utils/test
+  signatures/constructors
+	solver/constraints
+	rules/map
+	rules/check
+	utils/utils
+	tests/test-all
 	
 strategies
 
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (ast', errors, warnings, [])
+    (ast, path, project-path) -> (ast', errors, warnings, notes)
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
@@ -36,10 +41,12 @@ rules
       else
         if WarnAnalysis then
           errors   := <collect-all(constraint-error, conc)> ast';
-          warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast'
+          warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast';
+          notes := <collect-all(constraint-note,conc)> ast'
         else
           errors   := <collect-all(global-constraint-error + constraint-error, conc)> ast';
-          warnings := <collect-all(constraint-warning, conc)> ast'
+          warnings := <collect-all(constraint-warning, conc)> ast';
+          notes := <collect-all(constraint-note,conc)> ast'
         end
       end
 
@@ -73,26 +80,41 @@ rules
       target := <parse-stratego-file> <resolve-import-decl> x
 
   // hover info for constructors
-  editor-hover:
-    (node, position, ast, path, project-path) -> text
-    where
-			<signature-of> node; // only show definitions
-			text := <pp-stratego-string> node
+  // editor-hover:
+  //   (node, position, ast, path, project-path) -> text
+  //   where
+		// 	<signature-of> node; // only show definitions
+		// 	text := <pp-stratego-string> node
  	
- 	editor-hover:
-    (node, _, _, _, _) -> text
-    where
-    	<sort-signature-of> node;
-    	get-sort-decls;
-    	pp-list(pp-sort-signature-top|"<br/>") => text
+  editor-hover:
+  	(node,_,_,_,_) -> text
+  	where
+  		not(DisableSortAnalysis);
+  		<?OpDecl(_,_){decl-id} + ?OpDeclInj(_){decl-id}> node;
+  		srt@ConstSig(_,_,_,conf,decl-id) := <get-sort-declaration> decl-id;
+  		<collect-all(?CSet(_),conc);map(\ cset -> <substitute(|cset)> srt \)> conf;
+  		text := <pp-list(pp-sort-signature-top|"<br/>")>
   
   editor-hover:
-    (node@SortVar(v){cookie}, _, _, _, _) -> text
-    where
-    	// dr-debug-rule-set(|"SortVar");
-    	// dr-debug-rule-set(|"DeferredApplication");
-    	text := $[[v]: [<get-var-sorts;pp-list(pp-sort-signature-top|", ")> cookie]]
-    	
+  	(SortVar(_){cookie},position,ast,_,_) -> text
+  	where
+  		not(DisableSortAnalysis);
+  		position' := <desugar-position(basic-desugar|ast)> position;
+  		ast' := <DecoratedAst>;
+  		parent := <parent-at-position(?ConstType(_);has-annos + ?OpDecl(_,_) + ?OpDeclInj(_)|position')> ast'
+  	where
+  		!parent;
+  		(?OpDecl(_,_){decl-id} + ?OpDeclInj(_){decl-id}
+  		< 
+  			<get-sort-declaration> decl-id;
+  			?ConstSig(_,_,_,config,_)
+  		+
+  			?ConstType(_){config}
+  		);
+  		<not(?FAIL())> config;
+  		<collect-all(?Constraint(cookie,_);get-constrained-var-sort,union)> config;
+  		text := <pp-list(pp-sort-signature|" + ")>
+  	
   
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text
@@ -119,16 +141,24 @@ rules
       result   := <DecoratedAst> selected
   
   // FIXME: for debugging only
-  generate-sort-signatures:
+  generate-signatures:
   	(selected, position, ast, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"sig.aterm")> path;
-      all-keys-DeclaredSort;
-      mapconcat(bagof-DeclaredSort) => signs;
-      collect-all(?Var(_)); make-set;
-      map(\ Var(x) -> $[Var([<RenamedVarCookie> x]) => [<get-var-sorts;pp-sort-signature-top> x]] \) => vars;
-      result := [signs,vars]
-	
-	run-tests = test-all
+      if(not(DisableSortAnalysis)) then
+	      all-keys-DeclaredSort;
+	      mapconcat(bagof-DeclaredSort);
+	      mapconcat(bagof-SortSig) => signatures;
+	      all-keys-SortCookie => cookies;
+	      all-keys-DeclaredRule;
+	      mapconcat(bagof-DeclaredRule);
+	      mapconcat(bagof-RuleSig) => rulez;
+	      result := [signatures,cookies,rulez]
+	  	else
+	  		result := "Sort analysis is disabled for this project (.disable-sort-analysis)"
+	  	end
+      
+  run-tests = test-all
+  	
 
 

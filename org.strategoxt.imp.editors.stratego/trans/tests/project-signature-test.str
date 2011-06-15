@@ -1,0 +1,67 @@
+module project-signature-test
+
+imports
+	signatures/project
+	solver/constraints
+	signatures/constructors
+	signatures/map
+
+rules /* Tests for signatures/project */
+
+	test-signature-project =
+		test-new-configuration;
+		test-substitute;
+		test-sort-apply;
+		debug(!"Tests project passed. ")
+
+	test-new-configuration =
+		test-new-config-1;
+		test-new-config-2;
+		debug(!"Tests new-configuration passed. ")
+		
+	test-new-config-1 = 
+		!["a"];
+		new-configuration;
+		?CSet([Constraint("a",<sort-any>)])
+	
+	test-new-config-2 =
+		!["a","b","c"];
+		new-configuration;
+		?CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>),Constraint("c",<sort-any>)])
+	
+	
+	test-substitute = 
+		test-substitute-1;
+		debug(!"Tests substitute passed. ")
+	
+	test-substitute-1 = 
+		<substitute(|CSet([Constraint("a",Int()),Constraint("c",Double())]))> (Var("a"),Var("b"),Var("c"),Var("d"));
+		?(Int(),<sort-any>,Double(),<sort-any>)
+		
+	
+	test-sort-apply = 
+		test-sort-apply-1;
+		test-sort-apply-2;
+		test-sort-apply-3;
+		debug(!"Tests sort-apply passed. ")
+	
+	test-sort-apply-1 = 
+		<sort-apply> ("A"#([]),"A"#([]))
+	
+	test-sort-apply-2 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("A",[String(),Int()],"A"#([]),CSet([]),1234);
+			<store-sort-decl> sig1;
+			<sort-apply> ("A"#([]),"A"#([String(),Int()]));
+			<sort-apply> ("A"#([String(),Int()]),"A"#([]));
+			<sort-apply> ("A"#([]),"A"#([]))
+		|}
+	
+	test-sort-apply-3 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("A",[String(),Int()],"A"#([]),CSet([]),1234);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("A",[],"A"#([]),CSet([]),1235);
+			<store-sort-decl> sig2;
+			<not(sort-apply)> ("A"#([]),"A"#([String(),Int()]))
+		|}

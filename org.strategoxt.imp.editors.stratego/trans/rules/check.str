@@ -1,0 +1,29 @@
+module check
+
+imports
+	libstrc
+	rules/map
+	rules/constructors
+	solver/constraints
+	analysis
+rules
+	
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[This rule never matches valid signatures])
+		where not(DisableSortAnalysis)
+		where
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, _, in-s, _, _, _);
+			<filter(not(?(_,FAIL())))> in-s;
+			?[]
+	
+	
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[This rule can never succeed because of an invalid match.])
+		where not(DisableSortAnalysis)
+		where
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, _, [], _, _, _)
+			
+			
+			

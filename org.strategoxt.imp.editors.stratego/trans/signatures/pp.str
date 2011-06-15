@@ -3,17 +3,18 @@ module signatures/pp
 imports
 	signatures/constructors
 	signatures/map
-
+	signatures/project
+	
 rules // pretty print for constructor signatures
 
 	pp-sort-signature-top =
 		pp-sort-signature
 	
 	pp-sort-signature:
-		ConstSig(name,args,srt,[]) -> $[[name] : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
+		ConstSig(name,args,srt,_,_) -> $[[name] : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
 	
-	pp-sort-signature:
-		ConstSig(name,args,srt,fvars@[_|_]) -> $[[name]([<pp-list(RenamedVarCookie|", ")> fvars]) : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
+	// pp-sort-signature:
+	// 	ConstSig(name,args,srt,fvars@[_|_],_) -> $[[name]([<pp-list(RenamedVarCookie|", ")> fvars]) : [<pp-list(pp-sort-signature-top|" * ")> args] => [<pp-sort-signature-top> srt]]
 	
 	pp-sort-signature:
 		x -> x
@@ -23,17 +24,22 @@ rules // pretty print for constructor signatures
 		Var(a) -> <RenamedVarCookie;pp-sort-signature-top> a
 	
 	pp-sort-signature:
+		_#(t-args) -> $[([<pp-list(pp-sort-signature|", ")> t-args])]
+		where
+			is-sort-tuple
+	
+	pp-sort-signature:
 		c#([]) -> $[[c]]
 		where
 			not(
-				is-string + ?Var(_) + ?ConstSig(_,_,_,_)
+				is-string + ?Var(_) + ?ConstSig(_,_,_,_,_)
 			)
 	
 	pp-sort-signature:
 		e@c#(l) -> $[[c]([<pp-list(pp-sort-signature-top|", ")> l])]
 		where
 			not(
-				is-string + ?Var(_) + ?ConstSig(_,_,_,_)
+				is-string + ?Var(_) + ?ConstSig(_,_,_,_,_)
 			)
 	
 	pp-list(|sep) = pp-list(id|sep)

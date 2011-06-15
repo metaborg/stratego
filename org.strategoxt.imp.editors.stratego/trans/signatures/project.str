@@ -3,91 +3,49 @@ module constructors/project
 imports
 	signatures/constructors
 	signatures/map
+	solver/constraints
+	utils/annotations
+	utils/utils
+	lib/editor-common.generated
 	libstrc
 	
-rules // accessors for Signatures
-	
-	signature-constructor:
-		ConstSig(c,_,_,_) -> c
-	
-	signature-arguments:
-		ConstSig(_,a,_,_) -> a
-
-	signature-sort:
-		ConstSig(_,_,c,_) -> c
-	
-	signature-freevars:
-		ConstSig(_,_,_,v) -> v
-	
-	is-freevar(|var-name):
-		sig@ConstSig(_,_,_,freevars) -> <elem> (var-name,freevars)
-
 rules // primitive test helper rules
 		
-		is-prim:
+		is-sort-prim:
 			c -> c
-			where
-				?Int() + ?Double() + ?String() + ?List(_) + ?List() + ?Option(_) + ?Option() + ?Term() +?ATerm()
-
-rules // Stage 1
-	
-	poly-sort-signature-of =
-			sort-signature-of;
-			to-poly-signature
-
-	// normal signature with name and function	
-	sort-signature-of: 
-		OpDecl(name, FunType(args,srt)) -> ConstSig(name,args',srt',[])
-		with
-			args' := <map(sort-signature-of)> args;
-			srt' := <sort-signature-of> srt
-	
-	// signature with no arguments	
-	sort-signature-of:
-		OpDecl(name, ConstType(srt)) -> ConstSig(name,[],srt',[])
-		with
-			srt' := <sort-signature-of> srt			
-			
-	
-	// signature with no name
-	sort-signature-of:
-		OpDeclInj(FunType(args,srt)) -> ConstSig("",args',srt',[])
-		with
-			args' := <map(sort-signature-of)> args;
-			srt' := <sort-signature-of> srt
-	
-	sort-signature-of:
-		OpDeclInj(ConstType(srt)) -> ConstSig("",[],srt',[])
-		with
-			srt' := <sort-signature-of> srt
-	
-	sort-signature-of:
-		ConstType(s) -> <sort-signature-of> s
-	
-	sort-signature-of:
-		SortVar(v){vnum} -> Var(vnum)
-	
-	sort-signature-of:
-		SortNoArgs(s) -> sort
-		with
-			srt := s#([]);
-			sort := srt{<get-sort-cookie> srt}
-	
-	sort-signature-of:
-		Sort(s,a) -> sort
-		with
-			srt := s#(<sort-signature-of> a);
-			sort := srt{<get-sort-cookie> srt}
+			// where ?Int() + ?Double() + ?String() + ?List(_) + ?List() + ?Option(_) + ?Option() + is-sort-any + is-sort-tuple
+			where ?Int() + ?Double() + ?String() + ?List(_) + ?List() + is-sort-any + is-sort-tuple
 		
-	sort-signature-of:
-		t -> <map(sort-signature-of)> t
-		where is-list
+		is-sort-tuple:
+			s@c#(_) -> s
+			where
+				
+				// where it starts with 'Tuple'
+				<string-starts-with(|"Tuple-")> c;
+				// and the last characters are integer
+				req-arity := <string-tokenize(|['-']);last;string-to-int> c;
+				<is-int> req-arity;
+				// and the declared arity is the same as the actual
+				<eq> (req-arity,<arity> s)
+				
+		// util to construct a tuple of arbitrary arity with the given sorts as arguments
+		new-tuple-sort:
+			(arity, arg-list) -> new-tup
+			where
+				<is-int> arity;
+				<?[_|_]> arg-list;
+				<eq> (arity, <length> arg-list);
+				s-name := <conc-strings> ("Tuple-",$[[arity]]);
+				new-tup := s-name#(arg-list)
+				
+		// util to construct a tuple sort with arity deduced from the length of the arguments
+		new-tuple-sort:
+			args -> new-tup
+			where ?[_|_];
+			<new-tuple-sort> (<length> args, args) => new-tup
 	
-	// get all the variables from the LHS of constructor
-	to-poly-signature:
-		ConstSig(n,args,srt,_) -> ConstSig(n,args,srt,freevars)
-		with
-			freevars := <collect-all(\ Var(a) -> a \,union)> args
+				
+
 
 rules // sort applications
 	
@@ -96,85 +54,183 @@ rules // sort applications
 	* sort-apply: (sig, applyTo) -> resulting sort signature OR fail
 	*/
 	
-	sort-apply:
-		(s,l@[_|_]) -> <filter(\ l' -> <sort-apply> (s,l') \);not(?[]);flatten-list;make-set> l
-		where <not(is-list)> s
+	// sort-apply:
+	// 	(s,l@[_|_]) -> <filter(\ l' -> <sort-apply> (s,l') \);not(?[]);flatten-list;make-set> l
+	// 	where <not(is-list)> s
+	// 
+	// sort-apply:
+	// 	(s@[_|_],l) -> <filter(\ s' -> <sort-apply> (s',l) \);not(?[]);flatten-list;make-set> s
 	
 	sort-apply:
-		(s@[_|_],l) -> <filter(\ s' -> <sort-apply> (s',l) \);not(?[]);flatten-list;make-set> s
+		(s,l@[_|_]) -> <sort-apply> (s',l)
+		where
+			<not(?[_|_])> s;
+			s' := [s]
+	
+	sort-apply:
+		(l@[_|_],s) -> <sort-apply> (l,s')
+		where
+			<not(?[_|_])> s;
+			s' := [s]
+	
+	sort-apply:
+		(s@[_|_],r@[_|_]) -> res
+		where
+			cart(id);
+			res := <filter(sort-apply-helper);make-set>;
+			if(<?[]> res) then
+				fail
+			end
+
+	sort-apply-helper:
+		(s,t) -> res
+		where
+				// current constraints
+				cur-constraints := <ExtraConstraints <+ !CSet([])>; // we could use once instead
+				// wipe all of the constraints
+				rules (
+					ExtraConstraints:- _ 
+				);
+				if(<not(?[])> <bagof-ExtraConstraints>) then
+					fatal-err(|"Failed to remove all ExtraConstraints dynamic rules")
+				end;
+				{|ExtraConstraints:
+						if(res := <sort-apply> (s,t)) then
+							new-constraints := <ExtraConstraints <+ !CSet([])>
+						else
+							res := []
+							// new-constraints := cur-constraints
+						end
+				|};
+				if(<?[]> res) then
+					// <map(\
+					// 	ex -> ex
+					// 	with rules(
+					// 		ExtraConstraints:+ _ -> ex
+					// 	) 
+					// \)> cur-constraints;
+					rules(
+						ExtraConstraints: _ -> cur-constraints
+					);
+					fail
+				else
+					// <conc> (cur-constraints,new-constraints);
+					// map(\
+					// 	ex -> ex
+					// 	with rules(
+					// 		ExtraConstraints:+ _ -> ex
+					// 	) 
+					// \)
+					rules (
+						ExtraConstraints: _ -> Union(cur-constraints,new-constraints)
+					)
+				end
+				
+
+	sort-apply:
+		([l],r) -> <sort-apply> (l,r)
+	
+	sort-apply:
+		(l,[r]) -> <sort-apply> (l,r)
 	
 	/* rules for primitive applications */
 	
 	sort-apply:
-		(s,Term()) -> s
+		(s,a) -> s
+		where <is-sort-any> a
 		where <not(is-list + ?Var(_))> s
 		
 	sort-apply:
-		(Term(),s) -> s
-		where 
-			<not(is-list + ?Var(_))> s
+		(a,s) -> s
+		where <is-sort-any> a
+		where <not(is-list + ?Var(_))> s
 	
+	// Simple identity
 	sort-apply:
-		(Int(), Int()) -> Int()
+		(a,a) -> a
 	
+	// Forced identity
 	sort-apply:
-		(Double(),Double()) -> Double()
+		(a,b) -> a
+		where
+			a' := <remove-all-annos> a;
+			b' := <remove-all-annos> b;
+			<?a'> b'
 	
-	sort-apply:
-		(Int(), Double()) -> []
-	
-	sort-apply:
-		(String(), String()) -> String()
+	// sort-apply:
+	// 	(Int(), Int()) -> Int()
+	// 
+	// sort-apply:
+	// 	(Double(),Double()) -> Double()
+	// 
+	// // sort-apply:
+	// // 	(Int(), Double()) -> <fail>
+	// 
+	// sort-apply:
+	// 	(String(), String()) -> String()
 	
 	// the sort application for collections propagates inside the sorts collected
 	sort-apply:
 		(List(s),List(k)) -> List(<sort-apply> (s,k))
 	
-	// empty lists collect the Nothing sort (which doesn't exist). On application to a List of sort a, the result is a list of sort a
-	sort-apply:
-		(List(),List()) -> List()
+	// // empty lists collect the Nothing sort (which doesn't exist). On application to a List of sort a, the result is a list of sort a
+	// sort-apply:
+	// 	(List(),List()) -> List()
 	
 	sort-apply:
-		(List(),List(_)) -> List()
+		(List(),List(s)) -> List(s)
 	
 	// TODO: is this true always?
 	sort-apply:
-		(List(_),List()) -> <fail>
+		(List(_),List()) -> List()
 		
-	sort-apply:
-		(Option(s),Option(k)) -> Option(<sort-apply> (s,k))
+	// sort-apply:
+	// 	(Option(s),Option(k)) -> Option(<sort-apply> (s,k))
 	
-	sort-apply:
-		(Option(),Option()) -> Option()
-	
-	sort-apply:
-		(Option(),Option(k)) -> Option()
+	// sort-apply:
+	// 	(Option(),Option(k)) -> Option()
 	
 	// TODO: is this true always?
-	sort-apply:
-		(Option(_),Option()) -> <fail>
+	// sort-apply:
+	// 	(Option(_),Option()) -> <fail>
 	
-	/* rules for sort variables */
-
+	/* tuples */	
 	sort-apply:
-		(s,Var(v)) -> <sort-apply> (s, <get-var-sorts> v)
-		where <not(?Var(_))> s
+		(l,r) -> <zip(sort-apply);new-tuple-sort> (args-l,args-r)
+		where
+			<is-sort-tuple> l;
+			<is-sort-tuple> r;
+			<eq> (<arity> l, <arity> r)
+		where
+			?(_#(args-l),_#(args-r))
+	
+	
+	/* variable target */
+	// FIXME: this is a total whack hack.
+	// sort-apply:
+	// 	(_,v@Var(_)) -> v
 	
 	sort-apply:
-		(Var(v),s) -> <sort-apply> (<get-var-sorts> v, s)
-		where not(<is-list> s)
-			
+		(s,t@Var(v)) -> t
+		where
+			res := <sort-apply> (s,<sort-any>);
+			if(constraints := <ExtraConstraints> ) then
+				rules (
+					ExtraConstraints: _ -> ISection(constraints,CSet([Constraint(v,s)]))
+				)
+			else
+				rules (
+					ExtraConstraints: _ -> CSet([Constraint(v,s)])
+				)
+			end
+	
 	/* rules for user-declared sorts */
 	
 	sort-apply:
-		(a,a) -> a
-		where not(<is-list> a)
-		
-	sort-apply:
 		(s,t) -> c#(<zip(sort-apply)> (p,p'))
 		where not(
-			<is-prim> s +
-			<is-prim> t +
+			<is-sort-prim> s +
+			<is-sort-prim> t +
 			<is-list> t
 		)
 		where
@@ -182,42 +238,394 @@ rules // sort applications
 			?c#(p);
 			!t;
 			?c#(p')
-			
-			
-rules // variable inference
-	infer-var-sorts:
-		sig@ConstSig(_,_,_,[]) -> sig
 	
-	infer-var-sorts:
-		sig@ConstSig(_, args, _, f) -> sig
+	sort-apply:
+		(l@s#(la),r@s#(ra)) -> <sort-apply> (l',r')
+		where not(
+			<is-sort-prim> l +
+			<is-sort-prim> r +
+			<is-list> r
+		)
 		where
-			<map(\
-				var -> <map(innermost(infer-proxies(|Var(var))))> args
-			\)> f
+			debug(!"GENERAL APPLY? ");
+			// if at least one of them doesn't have any arguments and there's not argumentless declarations for it
+			(	<?[]> la;
+				<get-sort-declarations> l;
+				filter(?ConstSig(_,[],_,_,_));
+				?[]
+			+
+				<?[]> ra;
+				<get-sort-declarations> r;
+				filter(?ConstSig(_,[],_,_,_));
+				?[]
+			)
+		where
+			// expand those where the argument list is empty. unless the declaration actually contains zero arguments
+			if(<?[]> la ) then
+				decs-l := <get-sort-declarations> l;
+				filter(?ConstSig(_,[],_,_,_));
+				if(?[]) then
+		  		l' := <mapconcat(\ sig@ConstSig(_,_,_,c,_) -> <explode-sort(|c)> <signature-sort> sig \)> decs-l
+				else
+					l' := l
+				end
+			else
+				l' := l
+			end;
+			if(<?[]> ra ) then
+				decs-r := <get-sort-declarations> r;
+				filter(?ConstSig(_,[],_,_,_));
+				if(?[]) then
+		  		r' := <mapconcat(\ sig@ConstSig(_,_,_,c,_) -> <explode-sort(|c)> <signature-sort> sig \)> decs-r
+				else
+					r' := r
+				end
+			else
+				r' := r
+			end
 	
-	infer-proxies(|var):
-		sig@(c#(args@[_|_])) -> <fail> // always fail so that can eventually get out of this loop
+	// sort-apply:
+	// 	(l@s#(la),r@s#(ra)) -> <sort-apply> (l',r')
+	// 	where not(
+	// 		<is-sort-prim> l +
+	// 		<is-sort-prim> r +
+	// 		<is-list> r
+	// 	)
+	// 	where
+	// 		// if at least one of them doesn't have any arguments
+	// 		(<?[]> la + <?[]> ra);
+	// 		<get-sort-declarations> l;
+	// 		srts := <map(signature-sort)>;
+	// 		filter(\ srt -> <eq> (<arity> srt,0) \);
+	// 		?[]
+	// 	where
+	// 		// expand those where the argument list is empty. unless the declaration actually contains zero arguments (OpDeclInj(ConstType))
+	// 		if(<?[]> la ) then
+	// 			l' := srts
+	// 		else
+	// 			l' := l
+	// 		end;
+	// 		if(<?[]> ra) then
+	// 			r' := srts
+	// 		else
+	// 			r' := r
+	// 		end
+	
+rules /* inferring the variable configurations */
+	
+	declare-var-constraints:
+		all-sigs -> all-sigs'
+		/*
+			for all the declarations, for each sort add an annotation that is
+			a placeholder for the constraint set
+		*/
+		with {| ConstraintQueue:
+			// debug(!"BUILDING QUEUE: ");
+			all-sigs' := <alltd(add-constraint-placeholder)> all-sigs;
+			queue := <bagof-ConstraintQueue>
+			|}
+			// ;log(|Error(),"Processing constraints resolution queue")
+			;<repeat(not(?[]);proc-q)> queue
+			// ;log(|Error(),"Queue processing completed")
+	
+	/**
+	* Add CSetProxy(cookie) (placeholder for the variable constraints) for each of the arguments of each signature declarations that contains freevars
+	*/
+	add-constraint-placeholder:
+		OpDecl(c-name, FunType(s-args,s-out)){decl-id} -> OpDecl(c-name,FunType(s-args',s-out')){decl-id}
 		where
-			// only if there are actually uses of the variable at this level
-			<elem> (var,args)
+			//only if the constructor actually has free variables
+			sig := <get-sort-declaration> decl-id;
+			?ConstSig(_,_,_,conf,_);
+			not(<?CSet([])> conf)
 		with
-			Var(v) := var;
-			<debug(!"DEFERRING: ")> (var,sig);
-			<chain-proxy-varsort(|v)> sig
-				
-
+			s-args' := <map(\ c -> <add-anno(|CSetProxy(<newterm>))> c \)> s-args;
+			s-out' := <add-anno(|CSetProxy(<newterm>))> s-out;
+			proxies := <conc> (<collect-all(get-anno(?CSetProxy(_)), conc)> s-args', [<get-anno(?CSetProxy(_))> s-out']);
+			rules (
+				ConstraintQueue :+ _ -> (sig, proxies)
+			)
 	
-		
-		
-
-
+	add-constraint-placeholder:
+		OpDeclInj(FunType(s-args,s-out)){decl-id} -> OpDeclInj(FunType(s-args',s-out')){decl-id}
+		where
+			//only if the constructor actually has free variables
+			sig := <get-sort-declaration> decl-id;
+			?ConstSig(_,_,_,conf,_);
+			not(<?CSet([])> conf) 
+		with
+			s-args' := <map(\ c -> <add-anno(|CSetProxy(<newterm>))> c \)> s-args;
+			s-out' := <add-anno(|CSetProxy(<newterm>))> s-out;
+			// collect the CSetProxies so that we can use them later
+			proxies := <conc> (<collect-all(get-anno(?CSetProxy(_)), conc)> s-args', [<get-anno(?CSetProxy(_))> s-out']);
+			rules (
+				ConstraintQueue :+ _ -> (sig,proxies)
+			)
 	
-		
-		
-				
+	proc-q :
+		queue -> queue'
+		with
+			// debug(!"A ");
+			// queue' := <map(dependencies-satisfied(|queue);proc-queued-item;![] <+ id);flatten-list> queue;
+			queue' := <map(dependencies-satisfied(|queue);proc-queued-item <+ id);flatten-list> queue;
+			// debug(!"B ");
+			if (<eq> (queue,queue')) then
+				fatal-err(|"DEADLOCK processing queue")
+			end
+			// debug(!"C ")
+	
+	/**
+	* Wrapper for infer sort variable constraints in the declaration.
+	* dispatches inference on each of the arguments
+	*
+	* @type: (ConstSig,List(CSetProxy)) ->? _
+	*/
+	
+	proc-queued-item:
+		(ConstSig(cons,args@[x|_],out,configuration,decl-id),proxies) -> []
+		with
+			arg-proxies := <take(|<length;dec> proxies)> proxies;
+			CSetProxy(out-proxy) := <last> proxies;
+			if (not(<eq> (<length> args,<length> arg-proxies))) then
+				fatal-err(|$[Length of proxies does not match number of arguments: |args| = [<length> args] |arg-proxies| = [<length> arg-proxies] ])
+			end
+		with {| LastCSet:
+			<map(do-something-3(|configuration))> args => configurations;
+			// debug(!"proc-queue 3 ");
+			// zip with the proxies
+			<zip> (configurations,arg-proxies);
+			// debug(!"proc-queue 4 ");
+			map(\
+				(config,CSetProxy(proxy)) -> (config,proxy)
+				with
+					// log(|Error(),$[Setting configuration for proxy [proxy] ]);
+					rules (
+						CSetProxy: proxy -> config
+				)
+			\);
+			// debug(!"proc-queue 5 ");
+			// set the out proxy
+			// log(|Error(),$[Setting configuration for last proxy [out-proxy] ]);
+			rules (
+				CSetProxy: out-proxy -> <last> configurations
+			);
+			<replace-sort-decl> ConstSig(cons,args,out,<last> configurations,decl-id)
+			// debug(!"proc-queue 6 ")
+		|}
+	
+	do-something-3(|configuration):
+		arg -> result
+	 	where
+	 		// debug(!"proc-queue 2A ");
+	 		solved := <proc-arg> arg;
+	 		// debug(!"proc-queue 2B ");
+	 		if(LastCSet) then
+	 			// debug(!"proc-queue 2BA ");
+	 			last := <LastCSet>
+	 		else
+	 			// debug(!"proc-queue 2BB ");
+	 			// log(|Error(),"LastCSet was not defined. Using supplied configuration ");
+	 			last := configuration
+	 		end;
+	 		// debug(!"proc-queue 2C ");
+	 		isection := ISection(last,solved);
+	 		// debug(!"proc-queue 2D ");
+	 		result := <solve-top> isection;
+	 		// result := <solve-top> ISection(<LastCSet>,<proc-arg> arg);
+	 		// debug(!"proc-queue 2E ");
+	 		rules (
+	 			LastCSet: _ -> result
+	 		)
+	 		// debug(!"proc-queue 2F ")
+	/**
+	* Process of an argument that contains no variables at all.
+	* This also applies to variables themselves
+	*/
+	proc-arg:
+		a -> CSet([])
+		where
+			// debug(!"proc-arg A1 ");
+			<collect-all(?Var(_),conc)> a;
+			?[]
+			// debug(!"proc-arg A2 ")
 			
+	/**
+	* 
+	* Process of an argument that contains no variables at the first level
+	*/
+	proc-arg:
+		a#(args) -> res
+		where
+			// debug(!"proc-arg B1 ");
+			<not(fetch(?Var(_)))> args
+			// debug(!"proc-arg B2 ")
+		with
+			res := <map(proc-arg);to-constraint-intersection> args
+			// debug(!"proc-arg B3 ")
 			
+	/**
+	* process of an argument that contains variables at the current level
+	* The argument may also contain variables at deeper levels, will do that first
+	*/
+	
+	proc-arg:
+		s@(a#(args)) -> result
+		with
+			arity := <length> args;
+			<get-sort-declarations> s;
+			map(\ sig@ConstSig(_,_,_,configuration,_) -> (<signature-sort> sig,configuration)\);
+			// keep only the ones that have the same number of arguments
+			filter(\
+					t@(s,_) -> t
+					where <eq> (<arity> s, arity)
+			\);
+			// replace the FAIL() configurations with a configuration of ATerms()
+			map(try(\
+				(sig,FAIL()) -> (sig, <collect-all(\ Var(x) -> x\,union);new-configuration> sig)
+			\));
+			// debug(!"VALID DECLS ARE: ");
+			// explode the declaration for each of the possible configurations
+			// mapconcat(\
+			// 	(srt,constraints) -> <collect-all(?CSet(_),conc);map(\ cset -> <substitute(|cset)> srt \)> constraints
+			// \);
+			mapconcat(explode-sort);
+			// TODO: this replacement may not be necessary, because substitute already replaces free variables with ATerm 
+			where (s' := <alltd(\ Var(_) -> <sort-any> \)> s);
+			filter(\ srt -> <sort-apply> (s',srt) \);
+			// now we have a list of sorts: [Sort(params),Sort(params)] that are possible
+			// take the types that correspond to variable positions as constraints for those variables
+			map(do-something-2(|s));
+			to-constraint-union;
+			solve-top => result
+				
+	do-something-2(|s):
+		srt -> result
+		with
+			// <debug(!"proc-arg C6A ")> s;
+			var-positions := <positions-of-term(?Var(_))> s;
+			// debug(!"proc-arg C6B ");
+			sources := <map(\ p -> <term-at-position(|p)> s \)> var-positions;
+			// debug(!"proc-arg C6C ");
+			// try to get all the sources that are in the target var positions (there won't be all of them)
+			<map(\ p -> <term-at-position(|p) <+ sort-any> srt \)> var-positions => targets;
+			// debug(!"proc-arg C6D ");
+			// check that the number of positions are equal to the number of variables
+			if (not(<eq> (<length> var-positions, <length> targets))) then
+				fatal-err(|"Inequal number of variables to the declaration")
+			end;
+			// <debug(!"proc-arg C6E ")> (sources, targets);
+			<zip(\ (Var(source),target) -> CSet([Constraint(source,target)]) \)> (sources,targets);
+			// debug(!"proc-arg C6F ");
+			// intersect them
+			to-constraint-intersection => result
+			// debug(!"proc-arg C6G ")
+			
+	/**
+	* Replace the CSetProxy annotations on the arguments and declared sort to the actual inferred constraints
+	*/
+	resolve-var-constraints:
+		arg{CSetProxy(proxy)} -> out
+		with
+			if(not(out := arg{<CSetProxy> proxy})) then
+				fatal-err(|$[Failed to resolve CSetProxy for [proxy]])
+			end
+	
+	/**
+	* Succeeds if there is a sort with this name and same number of arguments still in the queue.
+	* @param: List((ConstSig,List(CSetProxy)))
+	* @type: Sort ->? Sort
+	*/
+	in-queue(|queue):
+		t@(s#(a)) -> t
+		// where
+		// 	debug(!"in-queue: ")
+		where
+			l-a := <length> a;
+			<filter(\
+				t@(ConstSig(_,a',s'#(_),_,_),_) -> t 
+				// where debug(!"in-queue check: ")
+				where
+					<eq> (s,s');
+					<eq> (<length> a', l-a)
+			\)> queue;
+			?[_|_]
+	
+	/**
+	* Succeeds if none of the terms used in the arguments are still in the queue
+	* @param: List((ConstSig,List(CSetProxy)))
+	* @type: ConstSig ->? ConstSig
+	*/
+	dependencies-satisfied(|queue):
+		t@(ConstSig(_,args,_,_,_),_) -> t
+		where
+			// collect all the sorts (except for vars & primitives) used in the args
+			<collect-all(not(is-sort-prim + ?Var(_)),conc);flatten-list> args;
+			// where (debug(!"depends on: "));
+			// keep only the ones that are in the queue
+			filter(in-queue(|queue));
+			// where (debug(!"dependencies still queued: "));
+			?[]
+	
+	/**
+	* Constructs a new configuration for the variables that are given setting them to ATerm()
+	* @type: List(String) -> CSet()
+	*/
+	
+	new-configuration = map(\ var -> CSet([Constraint(var,<sort-any>)]) \);to-constraint-intersection;solve-top;clean-constraint-set
+
+
+rules /* extra projection rules to explode signatures against variable constraints */
+	
+	/**
+	* Given a sort (parameterized or not) computes the set of plausible sorts by checking the given sort against the declarations of that sort
+	*
+	* @type: Sort -> List(Sort)
+	*/
+	get-compatible-sorts:
+		srt -> res
+		with
+			// debug(!"COMPAT1 ");
+			// srt' := <sort-signature-of> srt;
+			// debug(!"COMPAT2 ");
+			// get all the declarations of this sort
+			get-sort-declarations;
+			// debug(!"COMPAT3 ");
+			// replace all the FAIL() configurations with new ATerm constraints
+			map(\ sig@ConstSig(n,a,o,FAIL(),did) -> ConstSig(n,a,o,<collect-all(\ Var(x) -> x\,union);new-configuration> a,did) \ + id);
+			// debug(!"COMPAT4 ");
+			// explode all the sorts for each of the variable constraint sets
+			mapconcat(\ sig@ConstSig(_,_,_,cs,_) -> <explode-sort(|cs)> <signature-sort> sig \);
+			// debug(!"COMPAT5 ");
+			// keep only the plausible declarations by filtering on sort-apply
+			res := <filter(\ candidate -> <sort-apply> (srt,candidate) \);flatten-list>
+			// debug(!"COMPAT6 ")
+	
+	/**
+	* Explodes the given Sort containing variables (or not) against the constraint sets given in the argument. A sort with variables substituted results for each of 
+	* constraint sets
+	* @param ConstraintSet
+	* @type Sort -> List(Sort)
+	*/	
+	explode-sort(|constraints) = ?srt;<collect-all(?CSet(_),conc);map(\ cset -> <substitute(|cset)> srt \)> constraints
 	
 	
+	explode-sort:
+		(srt,constraints) -> <explode-sort(|constraints)> srt
 	
+	/**
+	* Substitute each of the variable with the given values in the constraint set
+	* @param: ConstraintSet
+	* @type: (Sort,ConstraintSet) -> Sort
+	*/
+	substitute(|cset):
+		s -> <innermost(substitute-vars(|cset))> s
 		
+	substitute-vars(|cset):
+		Var(v) -> t 
+		with
+			if (not(t := <get-var-constraint(|v);get-constrained-var-sort> cset)) then
+				log(|Notice(),"Substitution failed for a free variable. Falling back to [<sort-any>]");
+				t := <sort-any>
+			end
+	
+

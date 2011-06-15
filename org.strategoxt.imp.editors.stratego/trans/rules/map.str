@@ -1,0 +1,150 @@
+module map
+
+imports
+	libstrc
+	signatures/constructors
+	solver/constraints
+	signatures/project
+	signatures/map
+	rules/constructors
+	rules/project
+	
+rules /* store our own version of rule declarations */
+	
+	/*
+	* the analysis already maps rules to cookies based on the number of arguments. which is very nice,
+	*	we will reuse.
+	*/
+	
+	declare-rule:
+		def@SDefT(name{cookie}, s-vars, t-vars, rule){decl-id} -> def
+		where
+			log(|Error()," Declaring ");
+			debug(!"D1 ");
+			// get the signatures of all of the strategy parameters
+			s-vars' := <map(declare-argument-s)> s-vars;
+			debug(!"D2 ");
+			// the strategy Var(cookie)'s
+			s-vars'' := <map(\ (c,_) -> c\)> s-vars';
+			debug(!"D3 ");
+			// the strategy declarations
+			s-vars-constraints := <map(\ (Var(c),sig) -> CSet([Constraint(c,sig)]) \);to-constraint-intersection> s-vars';
+			debug(!"D4 ");
+			// get the signatures of all the term parameters
+			t-vars' := <map(declare-argument-t)> t-vars;
+			debug(!"D5 ");
+			// the term Var(cookie)'s
+			t-vars'' := <map(\ (c,_) -> c \)> t-vars';
+			debug(!"D6 ");
+			// the sort constraints
+			t-vars-constraints := <map(\ (Var(c),sig) -> CSet([Constraint(c,sig)]) \);to-constraint-intersection> t-vars';
+			debug(!"D7 ");
+			(in-t,out-t,rule-constraints) := <declare-rule> rule;
+			// (in-t,out-t,rule-constraints) := (Var("xxx"),[<sort-any>],CSet([]));
+			debug(!"D8 ");
+			// build the signature
+			sig := RuleSig(name,s-vars'',t-vars'',in-t,out-t, <solve-top>  ISection(s-vars-constraints,ISection(t-vars-constraints,rule-constraints)),decl-id);
+			debug(!"D9 ");
+			// store the signature
+			<store-rule-signature(|cookie)> sig;
+			debug(!"D10 ")
+	
+	/**
+	* Processes a rule definition and returns information inferred to the caller in the form of a tuple. Used to build the RuleSig of rules
+	* @type Rule(..) -> (Sort,[Sort],ConstraintSet)
+	*/
+	declare-rule:
+		Rule(match, build, _) -> (in-sorts,[],CSet([]))
+		where
+			debug(!"DR 1");
+			in-sorts := <sort-of> match;
+			debug(!"DR 2")
+	
+		
+	/**
+	* Converts a match op into a variable and constraints
+	* @type: match -> (Var(v),ConstraintSet)
+	*/
+	// match-to-sort:
+	// 	match -> <fail>
+	// 
+	// match-to-sort:
+	// 	As(var,t) -> (in-sorts,out-sorts,constraints)
+	// 	with
+	// 		// we need to make constraints
+	
+	/**
+	* Produce a rule signature (RuleSig) for argument strategies.
+	* If the strategy does not provide any type information we will infer the default:
+	* ATerm -> ATerm
+	*
+	* @type VarDec(_{cookie},FunType(Sort,Sort)) -> (Var(cookie),RuleSig("",[],[],in-t,out-ts,constraints,_))
+	*/
+	declare-argument-s:
+		VarDec(_{cookie},FunType(s,t)) -> (Var(cookie),RuleSig("",[],[],in-ts,out-ts,in-ts-constraints,<newterm>))
+		with
+			/* --> input term processing  --> */
+			debug(!"S1 ");
+			// s is a list but we don't care because that doesn't actually mean anything in rule signatures
+			<sort-signature-of> s;
+			debug(!"S2 ");
+			last;
+			debug(!"S3 ");
+			// get all compatible declarations
+			get-compatible-sorts;
+			debug(!"S4 ");
+			// new variable for input term
+			where ( in-ts@Var(in-varname) := <new-var>);
+			debug(!"S5 ");
+			// unify to constraints
+			in-ts-constraints := <map(\ candidate -> CSet([Constraint(in-varname,candidate)]) \);to-constraint-union>;
+			debug(!"S6 ");
+			/* <-- input term processing <-- */
+			/* --> output term processing --> */
+			// get all compatible declarations
+			out-ts := <get-compatible-sorts> <sort-signature-of> t;
+			debug(!"S7 ")
+			/* <-- output term processing <-- */
+	
+	declare-argument-s:
+		VarDec(_{cookie},ConstType(s)) -> (Var(cookie),RuleSig("",[],[],in-var,outs,CSet([Constraint(in-var,<sort-any>)]),<newterm>))
+		with
+			<sort-signature-of> s;
+			outs := <get-compatible-sorts>;
+			in-var@Var(in-varname) := <new-var>
+	
+	/**
+	* Produce a sort signature for argument terms. If the term does not provide any information
+	* we will infer the default: ATerm
+	*
+	* @type VarDec(_{cookie},ConstType(Sort)) -> (Var(cookie),List(Sort))
+	*/
+	declare-argument-t:
+		VarDec(_{cookie},ConstType(s)) -> (Var(cookie),outs)
+		with
+			<sort-signature-of> s;
+			outs := <get-compatible-sorts>
+	
+rules /* rule signature storage */
+
+	store-rule-signature(|cookie):
+		sig@RuleSig(name{cookie},_,_,_,_,_,decl-id) -> sig
+		where <not(get-rule-signature)> decl-id
+		with
+			rules (
+				DeclaredRule:+ cookie -> decl-id
+				RuleSig: decl-id -> sig
+			)
+	
+	replace-rule-signature:
+		sig@RuleSig(_,_,_,_,_,_,decl-id) -> sig
+		where <get-rule-signature> decl-id
+		with rules (
+			RuleSig: decl-id -> sig
+		)
+		
+	get-rule-signatures:
+		_{cookie} -> <bagof-DeclaredRule;map(get-rule-signature)> cookie
+		
+	get-rule-signature:
+		decl-id -> <RuleSig> decl-id

@@ -1,0 +1,70 @@
+/*
+| $LastChangedBy: vlad $
+| $LastChangedDate: 2010-11-23 15:19:12 +0100 (Tue, 23 Nov 2010) $
+| $LastChangedRevision: 4401 $
+*/
+/* Based on copy from WebDSL revision 4115. 
+Modified version from revision 4115.
+*/
+module lib/annotations
+
+imports
+  libstrategolib
+	utils/utils
+	
+rules // annotation utilities
+    
+	// Add annotation to term
+	add-anno(|new-anno):
+		elem -> elem{new-anno, anno*}
+		where anno* := <get-annos> elem
+
+	add-annos(|new-annos):
+		elem -> out
+		where <is-list> new-annos
+		where <gt> (<length> new-annos,0)
+		with (
+			if <?[i]> new-annos
+			then 
+				// we are at the last item
+				out := <add-anno(|<last> new-annos)> elem
+			else
+				// we still have items to go
+				<?[i,ii*]> new-annos;
+				out := <add-annos(|ii*)> <add-anno(|i)> elem
+			end
+		)
+	
+	copy-annos(|copyFrom) =
+		?elem;
+		<get-annos> copyFrom => srcAnnos;
+		if <?[]> srcAnnos
+		then
+			!elem
+		else
+			 !<add-annos(|srcAnnos)> elem
+		end
+			
+	
+	copy-add-annos(|copyFrom,new-annos) :
+		elem -> <copy-annos(|copyFrom); (add-annos(|new-annos) <+ add-anno(|new-annos))> elem
+	
+	// Return given anno if found, fail otherwise
+	get-anno(|anno):
+		elem -> anno
+		where (?_{anno*}; !anno*; fetch-elem(?anno))
+
+	// Return anno for which the strategy succeeds, fail otherwise
+	get-anno(s) = ?_{anno*}; !anno*; fetch-elem(s)
+  
+	// Succeed if no anno matches
+	has-no-anno(s) = not(get-anno(s))
+  
+	// Add annotation if not present, fail otherwise
+	add-new-anno(|anno) =
+		where(has-no-anno(?anno)); add-anno(|anno)
+  
+  remove-all-annos = 
+  	topdown(try(has-annos;rm-annotations))
+  	
+  

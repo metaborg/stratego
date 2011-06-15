@@ -3,25 +3,22 @@ module signatures/constructors
 
 imports 
 	signatures/project
-/*
-* We might need the following annotations preceding a constructor declaration:
-*	@suppress -> don't display errors
-* @declare -> use the constructor as declaration. all sorts inside that have not been declared will be declared
-*/
+	solver/constraints
+
 
 signature
 	constructors
 		/* built-in primitive Sorts + Types */
-		Term: Sort
+		// Term: Sort
 		ATerm: Sort
 		Int: Sort
 		Double: Sort
 		String: Sort
 		List: a -> Sort
 		List: Sort
-		Option: a -> Sort
-		Option: Sort
-		// Tuple??
+		// Option: a -> Sort
+		// Option: Sort
+		// Tuple : List(Sort) -> Sort
 			
 signature
 	constructors // helpers
@@ -29,24 +26,28 @@ signature
 				
 signature
 	constructors
-		/* signature type signatures */
-		
-		/*
-		 * Representation for a parametric polymorphic signature
-		 * arguments:
-			*1. constructor name
-			2. argument sorts
-			3. output sort
-			4. for All variables list
-		*/
-		ConstSig: String * List(Sort) * Sort * List(Var) -> ConstSig
 
+		ConstSig: String * List(Sort) * Sort * ConstraintSet * String -> ConstSig
+
+
+rules // accessors for Signatures
+	
+	sort-any = !ATerm()
+	
+	is-sort-any = ?ATerm()
+	
+	signature-constructor:
+		ConstSig(c,_,_,_,_) -> c
+	
+	signature-arguments:
+		ConstSig(_,a,_,_,_) -> a
+
+	signature-sort:
+		ConstSig(_,args,s#(_),_,_) -> s#(args)
+	
+	signature-freevars:
+		ConstSig(_,_,_,v,_) -> v
+	
+	is-freevar(|var-name):
+		ConstSig(_,_,_,configurations,_) -> <constraint-contains-var(|var-name)> configurations
 			
-
-		
-	
-	
-		
-	
-	
-	

@@ -1,0 +1,18 @@
+module test-all
+
+imports
+	tests/constraints-test
+	tests/map-signature-test
+	tests/project-rule-test
+	tests/project-signature-test
+	tests/utils-test
+	
+rules
+	
+	test-all = 
+		test-utils;
+  	test-map;
+  	test-constraints-all;
+  	test-signature-project;
+  	test-rule-project;
+  	debug(!"All tests passed. ")

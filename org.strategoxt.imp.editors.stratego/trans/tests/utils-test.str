@@ -1,0 +1,160 @@
+module utils-test
+
+
+imports
+	utils/utils
+	solver/constraints
+	signatures/constructors
+	lib/editor-common.generated
+	signatures/project
+
+
+signature
+	constructors
+		Test : a -> Test
+
+rules /* Test for utils/utils */
+
+	test-utils =
+		test-elem-at-index-1
+		;test-elem-at-index-2
+		;test-elem-at-index-3
+		;test-at-indices
+		;test-get-indices
+		;test-positions-of-term-1
+		;test-positions-of-term-2
+		;test-positions-of-term-3
+		;test-positions-of-term-4
+		;test-parent-at-position-1
+		;test-parent-at-position-2
+		;test-long-cart
+		;test-reducel
+		;debug(!"All utils tests succeeded")
+ 	
+ 	test-elem-at-index-1 =
+ 		<elem-at-index(|2)> [1,2,3,4,5] => out;
+ 		(?3 <+ <fatal-err(|"Test elem-at-index failed \n Expected 3 but got: ")> out)
+ 	
+ 	test-elem-at-index-2 =
+ 		<elem-at-index(|4)> [1,2,3,4,5] => out;
+ 		(?5 <+ <fatal-err(|"Test elem-at-index failed \n Expected 5 but got: ")> out)
+ 	
+ 	test-elem-at-index-3 = not(<elem-at-index(|6)> [1,2,3,4,5])
+ 	
+ 	test-at-indices =
+ 		list := [5,4,3,2,1];
+ 		pos := [0,2];
+ 		<at-indices(|pos)> list => out;
+ 		(?[5,3] <+ <fatal-err(|"Test test-list-at-indices failed \n Expected [5,3] but got: ")> out)
+ 	
+ 	test-get-indices = 
+ 		list := ["foo","bar","is", "foo", "and", "bar"];
+ 		<get-indices(?"foo")> list => out;
+ 		(?[0,3] <+ <fatal-err(|"Test test-get-indices failed \n Expected [0,3] but got: ")> out);
+ 		<get-indices(?"foo" + ?"bar")> list => out2;
+ 		(?[0,1,3,5] <+ <fatal-err(|"Test test-get-indices failed \n Expected [0,1,3,5] but got: ")> out2)
+ 	
+	test-positions-of-term-1 =
+		!(Test("a"),Test("b"),(Test("d"),(Test("e"),Test("f")))) => term;
+		positions-of-term(?Test("e"));
+		?[ position@[2,1,0] ];
+		<term-at-position(|position)> term;
+		?Test("e")
+	
+	test-positions-of-term-2 =
+		!(Test("a"),Test("b"),(Test("d"),(Test("e"),Test("f")))) => term;
+		positions-of-term(?Test("e"));
+		?[ position@[2,1,0] ];
+		<term-at-position(|position)> term;
+		?Test("e")
+	
+	test-positions-of-term-3 =
+		!(Test(1),Test(2),(Test(3),(Test(3),Test(4)))) => term;
+		positions-of-term(?Test(3));
+		?[ p1@[2,0],p2@[2,1,0] ];
+		<term-at-position(|p1)> term;
+		?Test(3);
+		<term-at-position(|p2)> term;
+		?Test(3)
+
+	test-positions-of-term-4 =
+		!(Test(1),Test(2),(Test(3),(Test(3),Test(4)))) => term;
+		positions-of-term(?Test(15));
+		?[]
+
+	test-parent-at-position-1 =
+		tree := Test(Test(Test(Test("a"))){"kkk"});
+		positions := <position-of-term(?Test("a"))> tree;
+		<parent-at-position(?Test(_){"kkk"}|positions)> tree;
+		?Test(_){"kkk"}
+	
+	test-parent-at-position-2 =
+		tree := Test(Test(Test(Test("a"))){"kkk"});
+		positions := <position-of-term(?Test("a"))> tree;
+		<not(parent-at-position(?Test(_){"xxx"}|positions))> tree
+	
+	test-long-cart = 
+		test-long-cart-1
+		;test-long-cart-2
+		;test-long-cart-3
+		;test-long-cart-4
+		;test-long-cart-5
+		;test-long-cart-6
+		;test-long-cart-7
+		;debug(!"All long-cart tests passed. ")
+	
+	test-long-cart-1 = 
+		![];
+		not(long-cart(id))
+	
+	test-long-cart-2 = 
+		![[1,2,3]];
+		not(long-cart(id))
+	
+	test-long-cart-3 =
+		![[1,2,3],[]];
+		long-cart(id);
+		?[]
+	
+	test-long-cart-4 = 
+		![[1],[2]];
+		long-cart(add);
+		?[3]
+	
+	test-long-cart-5 =
+		![ [1,2,3],[4,5]];
+		long-cart(add);
+		?[5,6,6,7,7,8]
+	
+	test-long-cart-6 =
+		![[1,2],[4,5],[6,7,8]];
+		long-cart(add);
+		?[11,12,13,12,13,14,12,13,14,13,14,15]
+	
+	test-long-cart-7 = 
+		![ 
+			[
+				(Int(),CSet([Constraint("a",Int())])),
+				(Double(),CSet([Constraint("a",Double())]))
+			],
+			[
+				(Int(),CSet([Constraint("b",String())])),
+				(List(),CSet([Constraint("a",String())]))
+			]
+		];
+		long-cart(\
+			((s1,c1),(s2,c2)) -> (<sort-apply <+ sort-any> (s1,s2),<solve-top> ISection(c1,c2)) 
+		\);
+		filter(not(?(_,FAIL())));
+		?[(Int(),CSet([Constraint("a",Int()),Constraint("b",String())])),(<sort-any>,CSet([Constraint("a",Double()),Constraint("b",String())]))]
+	
+	
+	test-reducel =
+		test-reducel-1
+		;debug(!"Reducell tests passed ")
+		 
+	test-reducel-1 = 
+		![42,1,2,3];
+		reducel(subti);
+		?36
+	

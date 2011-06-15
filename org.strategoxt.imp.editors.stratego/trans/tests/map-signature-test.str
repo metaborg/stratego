@@ -1,0 +1,65 @@
+module map-signature-test
+
+imports
+	signatures/map
+	signatures/constructors
+
+rules /* Tests for signature/map */
+
+	test-map = test-sort-storage
+
+	test-sort-storage = 
+		test-sort-storage-1;
+		test-sort-storage-2;
+		test-sort-storage-3;
+		test-sort-storage-4;
+		debug(!"All sort storage tests passed. ")
+		
+	test-sort-storage-1 = 
+		{|DeclaredSort,SortCookie,SortSig:
+			sig := ConstSig("a",["b"],"c",["d"],12345);
+			cookie := <store-sort-decl>;
+			!"d"{cookie};
+			get-sort-declarations;
+			?[sig];
+			<get-sort-declaration> 12345;
+			?sig
+		|}
+	
+	test-sort-storage-2 = 
+		{|DeclaredSort,SortCookie,SortSig:
+			sig1 := ConstSig("a",["b"],"c",["d"],12345);
+			sig2 := ConstSig("e",["f"],"c",["g"],12346);
+			<store-sort-decl> sig1 => cookie;
+			<store-sort-decl> sig2 => cookie;
+			<get-sort-declarations> "c"{cookie};
+			(?[sig1,sig2] + ?[sig2,sig1]);
+			<get-sort-declaration> 12345 => sig1;
+			<get-sort-declaration> 12346 => sig2 
+		|}
+	
+	test-sort-storage-3 = 
+		{|DeclaredSort,SortCookie,SortSig:
+			sig1 := ConstSig("a",["b"],"c",["d"],12345);
+			cookie := <store-sort-decl>;
+			sig2 := ConstSig("a",["b"],"c",["d","e"],12345);
+			<replace-sort-decl> sig2;
+			<get-sort-declaration> 12345;
+			?sig2
+		|}
+	
+	test-sort-storage-4 = 
+		{|DeclaredSort,SortCookie,SortSig:
+			sig1 := ConstSig("a",["b"],"c",["d"],12345);
+			sig2 := ConstSig("a",["b"],"c",["d","e"],12346);
+			sig3 := ConstSig("thisisaB",["b"],"c",["d","e"],12347);
+			<store-sort-decl> sig1;
+			<store-sort-decl> sig2;
+			<store-sort-decl> sig3;
+			<get-signatures-for-constructor> "a";
+			(?[sig1,sig2] + ?[sig2,sig1]);
+			<get-signatures-for-constructor> "thisisaB";
+			?[sig3]
+		|}
+	
+	

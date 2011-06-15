@@ -1,0 +1,263 @@
+module constraints-test
+
+imports
+	solver/constraints
+	signatures/constructors
+
+rules /* Tests for solver */
+
+	test-constraints-all = 
+		test-constraints-utils;
+		test-constraints-solvers;
+		debug(!"ALL constraints tests passed ")
+		
+	test-constraints-utils =
+		test-clean-constraint-set-1;
+		test-clean-constraint-set-2;
+		test-clean-constraint-set-3;
+		test-clean-constraint-set-4;
+		test-clean-constraint-set-5;
+		test-remove-duplicate-constraints-1;
+		test-remove-duplicate-constraints-2;
+		test-remove-duplicate-constraints-3;
+		test-is-valid-constraint-set-1;
+		test-is-valid-constraint-set-2;
+		test-is-valid-constraint-set-3;
+		test-get-var-constraint-1;
+		test-get-constrained-var-sort-1;
+		debug(!"Constraints utils test passed ")
+	
+	test-constraints-solvers = 
+		test-constraint-intersect-1;
+		test-constraint-intersect-2;
+		test-constraint-intersect-3;
+		test-constraint-intersect-4;
+		test-constraint-intersect-5;
+		test-constraint-intersect-6;
+		test-constraint-union-1;
+		test-constraint-union-2;
+		test-constraint-union-3;
+		test-solve-1;
+		test-solve-2;
+		test-solve-3;
+		test-solve-4;
+		test-solve-5;
+		test-solve-6;
+		debug(!"Constraint solvers test passed ")
+	
+	test-remove-duplicate-constraints-1 = 
+		<remove-duplicate-constraints(eq-constraint-vars)> CSet([Constraint("varA",Int()),Constraint("varB",Int()),Constraint("varA",Double())]) => nodups;
+		<eq> (nodups, CSet([Constraint("varA",Int()),Constraint("varB",Int())]))
+	
+	test-remove-duplicate-constraints-2 = 
+		<remove-duplicate-constraints(eq-constraints)> CSet([Constraint("varA",Int()),Constraint("varB",Int()),Constraint("varA",Double())]) => nodups;
+		<eq> (nodups, CSet([Constraint("varA",Int()),Constraint("varB",Int()),Constraint("varA",Double())]))
+		
+	test-remove-duplicate-constraints-3 = 
+		<remove-duplicate-constraints(eq-constraints)> CSet([Constraint("varA",Int()),Constraint("varB",Int()),Constraint("varA",Int())]) => nodups;
+		<eq> (nodups, CSet([Constraint("varA",Int()),Constraint("varB",Int())]))
+	
+	test-is-valid-constraint-set-1 = 
+		!CSet([]); is-valid-constraint-set
+	
+	test-is-valid-constraint-set-2 = 
+		!CSet([Constraint("varA",Int()),Constraint("varB",Int())]); is-valid-constraint-set
+	
+	test-is-valid-constraint-set-3 = 
+		!CSet([Constraint("varA",Int()),Constraint("varA",Double())]); not(is-valid-constraint-set)
+		
+	test-get-var-constraint-1 =
+		<get-var-constraint(|"varA")> CSet([Constraint("a",Int()),Constraint("varA",Double())]);
+		?Constraint("varA",Double())
+	
+	test-get-constrained-var-sort-1 =
+		<get-constrained-var-sort> Constraint("varZ",Int());
+		?Int()
+	
+	test-clean-constraint-set-1 =
+		origin := CSet([Constraint("varA",Int()),Constraint("varB",Double())]);
+		clean := <clean-constraint-set> origin;
+		<eq> (origin, clean)
+	
+	test-clean-constraint-set-2 =
+		origin := CSet([Constraint("varB",Int()),Constraint("varA",Double())]);
+		clean := <clean-constraint-set> origin;
+		exp := CSet([Constraint("varA",Double()),Constraint("varB",Int())]);
+		<eq> (exp,clean)
+			
+	test-clean-constraint-set-3 =
+		origin := CSet([Constraint("43",Int()),Constraint("42",Double()),Constraint("abc",Double())]);
+		clean := <clean-constraint-set> origin;
+		exp := CSet([Constraint("42",Double()),Constraint("43",Int()),Constraint("abc",Double())]);
+		<eq> (exp, clean)
+		
+	test-clean-constraint-set-4 =
+		!CSet([Constraint("a",<sort-any>)]);
+		clean-constraint-set;
+		?CSet([Constraint("a",<sort-any>)])
+	
+	test-clean-constraint-set-5 =
+		!CSet([Constraint("c",<sort-any>),Constraint("a",<sort-any>)]);
+		clean-constraint-set;
+		?CSet([Constraint("a",<sort-any>),Constraint("c",<sort-any>)])
+	
+	test-constraint-intersect-1 = 
+		// disjoint sets
+		lhs := CSet([Constraint("a",Double()),Constraint("b",Int())]);
+		rhs := CSet([Constraint("c",Int()),Constraint("d",Double())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected :=  CSet([Constraint("a",Double()),Constraint("b",Int()),Constraint("c",Int()),Constraint("d",Double())]);
+		<eq> (expected,intersected)
+	
+	test-constraint-intersect-2 = 
+		// non-disjoint sets with equal intersection constraints
+		lhs := CSet([Constraint("a",Double()),Constraint("b",Int())]);
+		rhs := CSet([Constraint("c",Int()),Constraint("b",Int())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected :=  CSet([Constraint("a",Double()),Constraint("b",Int()),Constraint("c",Int())]);
+		<eq> (expected,intersected)
+	
+	test-constraint-intersect-3 = 
+		// non-disjoint sets with equal intersection constraints
+		lhs := CSet([Constraint("f",String()),Constraint("a",Double()),Constraint("b",Int())]);
+		rhs := CSet([Constraint("c",Int()),Constraint("b",Int()),Constraint("f",String())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected :=  CSet([Constraint("a",Double()),Constraint("b",Int()),Constraint("c",Int()),Constraint("f",String())]);
+		<eq> (expected,intersected)
+	
+	test-constraint-intersect-4 = 
+		// non-disjoint sets with non-equal intersection constraints
+		lhs := CSet([Constraint("a",Double()),Constraint("b",Int())]);
+		rhs := CSet([Constraint("c",Int()),Constraint("b",Double()),Constraint("f",String())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected :=  FAIL();
+		<eq> (expected,intersected)
+	
+	test-constraint-intersect-5 = 
+		// non-disjoint sets with non-equal intersection constraints
+		lhs := CSet([Constraint("a",Double()),Constraint("b",Int()),Constraint("f",Double())]);
+		rhs := CSet([Constraint("c",Int()),Constraint("b",Int()),Constraint("f",String())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected :=  FAIL();
+		<eq> (expected,intersected)
+	
+	test-constraint-intersect-6 =
+		lhs := CSet([Constraint("a",<sort-any>)]);
+		rhs := CSet([Constraint("a",Int())]);
+		intersected := <constraint-intersect> (lhs,rhs);
+		expected := CSet([Constraint("a",Int())]);
+		<eq> (expected,intersected)
+		
+	test-constraint-union-1 =
+		// disjoint sets 
+		lhs := CSet([Constraint("a",Int()),Constraint("b",Double())]);
+		rhs := CSet([Constraint("c",Double()),Constraint("d", Int())]);
+		unified := <constraint-unify> (lhs,rhs);
+		expected := CSet([Constraint("a",Int()),Constraint("b",Double()),Constraint("c",Double()),Constraint("d", Int())]);
+		<eq> (expected, unified)
+	
+	test-constraint-union-2 =
+		// complementary sets
+		lhs := CSet([Constraint("a",Int()),Constraint("b",Double())]);
+		rhs := CSet([Constraint("b",Double()),Constraint("d", Int())]);
+		unified := <constraint-unify> (lhs,rhs);
+		expected := CSet([Constraint("a",Int()),Constraint("b",Double()),Constraint("d", Int())]);
+		<eq> (expected, unified)
+	
+	test-constraint-union-3 =
+		// parallel universes
+		lhs := CSet([Constraint("a",Int()),Constraint("b",Double())]);
+		rhs := CSet([Constraint("b",Int()),Constraint("d", Int())]);
+		<not(constraint-unify)> (lhs,rhs)
+	
+	
+	test-solve-1 = 
+		c := Union(
+								CSet([Constraint("a",String()),Constraint("c",Int())]),
+								CSet([Constraint("a",Int()),Constraint("c",String())])
+								);
+		exp := Union(
+								CSet([Constraint("a",String()),Constraint("c",Int())]),
+								CSet([Constraint("a",Int()),Constraint("c",String())])
+								);
+		solved := <solve-top> c;
+		<eq> (exp,solved)
+	
+	test-solve-2 = 
+		c := 			Union(
+								CSet([Constraint("a",Double())]),
+								Union(
+										CSet([Constraint("a",Int())]),
+										CSet([Constraint("a",String())])
+									)
+								);
+		exp := Union(
+								CSet([Constraint("a",Double())]),
+								Union(
+										CSet([Constraint("a",Int())]),
+										CSet([Constraint("a",String())])
+									)
+								);
+		solved := <solve-top> c;
+		<eq> (exp,solved)
+	
+	test-solve-3 = 
+		c := 			ISection(
+								CSet([Constraint("a",Double())]),
+								Union(
+										CSet([Constraint("a",Int())]),
+										CSet([Constraint("a",String())])
+									)
+								);
+		exp := FAIL();
+		solved := <solve-top> c;
+		<eq> (exp,solved)
+	
+	test-solve-4 = 
+		c := ISection(
+							Union(
+								CSet([Constraint("a",String()),Constraint("c",Int())]),
+								CSet([Constraint("a",Int()),Constraint("c",String())])
+								),
+							Union(
+								CSet([Constraint("a",Double())]),
+								Union(
+										CSet([Constraint("a",Int())]),
+										CSet([Constraint("a",String())])
+									)
+								)
+							);
+		exp1 := Union(CSet([Constraint("a",Int()),Constraint("c",String())]),CSet([Constraint("a",String()),Constraint("c",Int())]));
+		exp2 := Union(CSet([Constraint("a",String()),Constraint("c",Int())]),CSet([Constraint("a",Int()),Constraint("c",String())]));
+		solved := <solve-top> c;
+		(<eq> (exp1,solved) <+ <eq> (exp2,solved))
+	
+	test-solve-5 = 
+		c := ISection( 
+				ISection(
+							Union(
+								CSet([Constraint("a",String()),Constraint("c",Int())]),
+								CSet([Constraint("a",Int()),Constraint("c",String())])
+								),
+							Union(
+								CSet([Constraint("a",Double())]),
+								Union(
+										CSet([Constraint("a",Int())]),
+										CSet([Constraint("a",String())])
+									)
+								)
+							),
+					Union(CSet([Constraint("c",String())]),CSet([Constraint("c",String())])));
+		exp1 := CSet([Constraint("a",Int()),Constraint("c",String())]);
+		solved := <solve-top> c;
+		<eq> (exp1,solved)
+		
+	test-solve-6 =
+		c := Union(
+						ISection(CSet([Constraint("a",Int())]),CSet([Constraint("b",(Double(),Int()))])),
+						ISection(CSet([Constraint("a",String())]),CSet([Constraint("b",(Double(),Int()))])));
+		exp1 := Union(
+							CSet([Constraint("a",Int()),Constraint("b",(Double(),Int()))]),
+							CSet([Constraint("a",String()),Constraint("b",(Double(),Int()))]));
+		solved := <solve-top> c;
+		<eq> (exp1, solved)

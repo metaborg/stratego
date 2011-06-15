@@ -8,6 +8,8 @@ imports
   sourcedir
 	signatures/project
 	signatures/map
+	rules/rename
+	rules/map
 	
 strategies
 
@@ -25,6 +27,9 @@ strategies
       end;
       if <file-exists> $[[project-path]/.warn-global-analysis] then
         rules(WarnAnalysis: _)
+      end;
+      if <file-exists> $[[project-path]/.disable-sort-analysis] then
+      	rules(DisableSortAnalysis: _)
       end
     with
       <basic-desugar-top> ast;
@@ -145,7 +150,9 @@ rules // Declare globals
   declare-globals-top =
     if not(NoAnalysis) then
       with(<declare-globals> Import("libstratego-lib"));
-      alltd(declare-globals)
+      alltd(declare-globals);
+      declare-var-constraints;
+      alltd(resolve-var-constraints)
     end
 
   declare-globals:
@@ -153,17 +160,20 @@ rules // Declare globals
     with
       x' := x{<declare-definition>};
       s' := <topdown(try(declare-dynrule))> s
-
+      
+		
   declare-globals:
     ExtSDef(x, s*, t*) -> <id>
     with
       redeclare-definition
 
   declare-globals:
-    OpDecl(x, t) -> OpDecl(x', t')
+    w@OpDecl(x, t) -> OpDecl(x', t'){decl-id}
     with
       cookie := <redeclare-definition>;
-      x'     := x{cookie}
+      x'     := x{cookie};
+      // each declaration gets a unique identifier
+      decl-id := <newterm>
     with
       // Declare congruence
       (x'', n) := <signature-of>;
@@ -171,23 +181,26 @@ rules // Declare globals
       rules(
         DeclareCookie: sig' -> cookie
       )
-    with try(
-    	rename-sort-vars => t';
-      poly-sort-signature-of;
-      infer-var-sorts;
-      where (debug(!"> "));
-     	store-sort-decl
-    )
+    with
+    	if(not(DisableSortAnalysis)) then
+	    	t':= <rename-sort-vars> t;
+	    	!OpDecl(x,t'){decl-id};
+	      	poly-sort-signature-of;
+	     	where (store-sort-decl)
+	     end
   
   declare-globals:
-  	w@OpDeclInj(_) -> w
+  	w@OpDeclInj(t) -> OpDeclInj(t'){decl-id}
   	with
-  		type-sig :=  <poly-sort-signature-of> w;
-  		sort := <signature-sort> type-sig;
-  		<store-sort-decl> type-sig;
-			rules(
-				SortDeclare: sort -> type-sig
-			)
+  		decl-id := <newterm>
+	with
+		if(not(DisableSortAnalysis)) then
+			!w{decl-id};
+	    	t' := <rename-sort-vars>;
+	      	poly-sort-signature-of;
+	     	where (store-sort-decl)
+	    end
+    
 			
   declare-globals:
     ExtOpDecl(x, t) -> <id>
@@ -335,12 +348,21 @@ rules // Declarations inside definition bodies
     alltd(propose-completion <+ declare-bodies)
 
   declare-bodies:
-    SDefT(x, s*, t*, s) -> SDefT(x, s'*, t'*, s')
+    SDefT(x, s*, t*, s) -> res
     with
       {| DeclareCookie:
         s'* := <map(declare-svar)> s*;
         t'* := <map(declare-tvar)> t*;
-        s'  := <declare-bodies-top> s
+        s'  := <declare-bodies-top> s;
+        res := SDefT(x, <rename-sort-vars> s'*, <rename-sort-vars> t'*, s'){<newterm>};
+        if(not(DisableSortAnalysis)) then
+	        if(<?Rule(_,_,_)> s) then
+	        	try(
+			        <rename-rule-vars> res;
+			        <declare-rule> res
+		       	)
+		      end
+		end
       |}
 
   declare-bodies:
@@ -469,7 +491,7 @@ rules // Declarations inside definition bodies
   declare-svar:
     dec @ VarDec(x, t) -> VarDec(x', t)
     with
-      cookie := <newterm>;
+      cookie := <newterm> x;
       x'     := x{cookie};
       rules(
         DeclareCookie: (x, _, _) -> cookie

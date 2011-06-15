@@ -1,0 +1,248 @@
+module project-rule-test
+
+imports
+	rules/project
+	libstrc
+	signatures/constructors
+	signatures/map
+	solver/constraints
+	signatures/project
+	
+rules /* Tests for rules/project */
+
+	test-rule-project = 
+		test-sort-of;
+		debug(!"All tests rule-project passed.")
+
+	test-sort-of = 
+		test-sort-of-1;
+		test-sort-of-2;
+		test-sort-of-3;
+		test-sort-of-4;
+		test-sort-of-5;
+		test-sort-of-6;
+		test-sort-of-7;
+		test-sort-of-8;
+		test-sort-of-9;
+		test-sort-of-10;
+		test-sort-of-11;
+		test-sort-of-12;
+		test-sort-of-13;
+		test-sort-of-14;
+		test-sort-of-15;
+		test-sort-of-16;
+		test-sort-of-17;
+		test-sort-of-18;
+		test-sort-of-19;
+		test-sort-of-20;
+		debug(!"All tests for sort-of are passed. ")
+		
+	test-sort-of-1 = 
+		ops := List([Real("42.22"),Real("3.14"),Wld()]);
+		srt := <sort-of> ops;
+		?[(List(Double()),_)]
+	
+	test-sort-of-2 = 
+		op := List([Str("hello"),Real("3.14"),Wld()]);
+		srt := <sort-of> op;
+		?[(List(<sort-any>),_)]
+
+	test-sort-of-3 = 
+		op := List([Var("a"{"a"}),Var("b"{"b"})]);
+		srt := <sort-of> op;
+		?[(List(<sort-any>),CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>)]))]
+	
+	test-sort-of-4 = 
+		op := List([Var("a"{"a"}),Var("b"{"b"}),Int("3")]);
+		srt := <sort-of> op;
+		?[(List(Int()),CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>)]))]
+	
+	test-sort-of-5 = 
+		op := List([Var("a"{"a"}),Var("b"{"b"}),Int("3"),Real("55.5")]);
+		srt := <sort-of> op;
+		?[(List(<sort-any>),CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>)]))]
+	
+	test-sort-of-6 =
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"BinOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",["Number"#([Var("x")]),"Number"#([Var("x")])],"PlusOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),2);
+			<store-sort-decl> sig2;
+			sig3 := ConstSig("Number",[Int()],"Number"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			sig4 := ConstSig("Number",[Double()],"Number"#([]),CSet([]),4);
+			<store-sort-decl> sig4;
+			op := List([NoAnnoList(Op("Sum"{1147911}, [Var("l"{"l"}), Var("r"{"r"})])),NoAnnoList(Op("Sum"{1147911}, [Var("l"{"l"}), Var("r"{"r"})]))]);
+			<sort-of> op;
+			?[(List(<sort-any>),Union(Union(_,_),Union(_,_)))]
+		|}
+	
+	test-sort-of-7 =
+		{| DeclaredSort,SortSig,SortCookie:
+			sig3 := ConstSig("Number",[Int()],"Number"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			sig4 := ConstSig("Number",[Double()],"Number"#([]),CSet([]),4);
+			<store-sort-decl> sig4;
+			op := List(
+                [ NoAnnoList(Op("Number"{4088499}, [Var("a"{"a"})]))
+                , NoAnnoList(Op("Number"{4088499}, [Var("b"{"b"})]))
+                ]
+              );
+			<sort-of> op;
+			?[(List(<sort-any>),Union(Union(_,_),Union(_,_)))]
+		|}
+	
+	test-sort-of-8 = 
+		op := As(Var("x"{"x"}),List([Var("a"{"a"}),Var("b"{"b"}),Int("3"),Int("55")]));
+		srt := <sort-of> op;
+		?[(List(Int()),CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>),Constraint("x",List(Int()))]))]
+
+	test-sort-of-9 = 
+		op := ListTail([Var("a"{"a"}),Var("b"{"b"}),Int("3")],Var("x"{"x"}));
+		srt := <sort-of> op;
+		?[(List(Int()),CSet([Constraint("a",<sort-any>),Constraint("b",<sort-any>),Constraint("x",List(Int()))]))]
+		
+	test-sort-of-10 =
+		op := ListTail([Var("a"{"a"}),Var("b"{"b"}),Int("3")],List([Int("42")]));
+		srt := <sort-of> op;
+		?[(List(Int()),_)]
+	
+	test-sort-of-11 =
+		op := ListTail([Var("a"{"a"}),Var("b"{"b"}),Int("3")],List([]));
+		srt := <sort-of> op;
+		?[(List(Int()),CSet(_))]
+	
+	test-sort-of-12 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig3 := ConstSig("Number",[Int()],"Num"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			op := ListTail(
+                [Var("a"{4795521}), Var("b"{4795522})]
+              , NoAnnoList(Op("Number"{4795505}, [Var("x"{4795523})]))
+              );
+      <sort-of> op;
+      ?[(List(ATerm()),FAIL())]
+     |}
+	
+	test-sort-of-13 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig2 := ConstSig("Number",[Int()],"Number"#([]),CSet([]),1);
+			<store-sort-decl> sig2;
+			sig3 := ConstSig("Number",[Int()],"Num"#([]),CSet([]),2);
+			<store-sort-decl> sig3;
+			op := ListTail(
+                [Var("a"{4795521}), Var("b"{4795522})]
+              , NoAnnoList(Op("Number"{4795505}, [Var("x"{4795523})]))
+              );
+      <sort-of> op;
+      ?[(List(ATerm()),FAIL())]
+     |}
+		
+	
+	test-sort-of-14 =
+		op := Tuple([Var("op"{1194161}), NoAnnoList(Str("\"hello\"")), NoAnnoList(Str("\"world\""))]);
+		srt := <sort-of> op;
+		?[(<new-tuple-sort> [Var(1194161),String(),String()],CSet([Constraint(1194161,<sort-any>)]))]
+	
+	test-sort-of-15 =
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"BinOp"#([]),CSet([Constraint("x",Int())]),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"PlusOp"#([]),CSet([Constraint("x",Int())]),2);
+			<store-sort-decl> sig2;
+			sig3 := ConstSig("Number",[Int()],"Num"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			op := Tuple([ NoAnnoList(Op("Sum"{878442}, [Wld(), Wld()])), NoAnnoList(Op("Sum"{878442}, [Wld(), Wld()]))]);
+			debug(!"151 ");
+			<sort-of> op;
+			debug(!"152 ");
+			?[("Tuple-2"#(["BinOp"#(_),"BinOp"#(_)]),_),
+				("Tuple-2"#(["BinOp"#(_),"PlusOp"#(_)]),_),
+				("Tuple-2"#(["PlusOp"#(_),"BinOp"#(_)]),_),
+				("Tuple-2"#(["PlusOp"#(_),"PlusOp"#(_)]),_)]
+		|}
+
+	
+	test-sort-of-16 =
+		{| DeclaredSort,SortSig,SortCookie:
+			sig3 := ConstSig("Number",[Int()],"Num"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			sig4 := ConstSig("Number",[Double()],"Num"#([]),CSet([]),4);
+			<store-sort-decl> sig4;
+			op := NoAnnoList(Op("Number"{4945430}, [Var("l"{"l"})]));
+			sort-of;
+			?[ ("Num"#([Var("l")]),Union(CSet([Constraint("l",Int())]),CSet([Constraint("l",Double())])))]
+		|}
+	
+	test-sort-of-17 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"BinOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",["Number"#([Var("x")]),"Number"#([Var("x")])],"PlusOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),2);
+			<store-sort-decl> sig2;
+      op := NoAnnoList(Op("Sum"{1147911}, [Var("l"{"l"}), Var("r"{"r"})]));
+      sort-of;
+      ?[
+      	("BinOp"#([Var("l"),Var("r")]),Union(CSet([Constraint("l","Num"#([Int()])),Constraint("r","Num"#([Int()]))]),CSet([Constraint("l","Num"#([Double()])),Constraint("r","Num"#([Double()]))]))),
+      	("PlusOp"#([Var("l"),Var("r")]),Union(CSet([Constraint("l","Number"#([Int()])),Constraint("r","Number"#([Int()]))]),CSet([Constraint("l","Number"#([Double()])),Constraint("r","Number"#([Double()]))])))
+      ]
+		|}
+	
+	
+	test-sort-of-18 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"BinOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",["Number"#([Var("x")]),"Number"#([Var("x")])],"PlusOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),2);
+			<store-sort-decl> sig2;
+			sig3 := ConstSig("Number",[Int()],"Number"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			sig4 := ConstSig("Number",[Double()],"Number"#([]),CSet([]),4);
+			<store-sort-decl> sig4;
+      op := NoAnnoList(
+              Op(
+                "Sum"{4792220}
+              , [NoAnnoList(Op("Number"{4792216}, [Var("l"{"l"})])), Var("r"{"r"})]
+              )
+            );
+      sort-of;
+      ?[
+      	("PlusOp"#(["Number"#([Var("l")]),Var("r")]),Union(CSet([Constraint("l",Int()),Constraint("r","Number"#([Int()]))]),CSet([Constraint("l",Double()),Constraint("r","Number"#([Double()]))])))
+      ]
+		|}
+		
+	test-sort-of-19 = 
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Sum",["Num"#([Var("x")]),"Num"#([Var("x")])],"BinOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",["Number"#([Var("x")]),"Number"#([Var("x")])],"PlusOp"#([]),Union(CSet([Constraint("x",Int())]),CSet([Constraint("x",Double())])),2);
+			<store-sort-decl> sig2;
+			sig3 := ConstSig("Number",[Int()],"Number"#([]),CSet([]),3);
+			<store-sort-decl> sig3;
+			sig4 := ConstSig("Number",[Double()],"Number"#([]),CSet([]),4);
+			<store-sort-decl> sig4;
+      op := NoAnnoList(
+              Op(
+                "Sum"{4792220}
+              , [NoAnnoList(Op("Number"{4792216}, [Var("l"{"l"})])), Var("r"{"r"})]
+              )
+            );
+      sort-of;
+      ?[
+      	("PlusOp"#(["Number"#([Var("l")]),Var("r")]),Union(CSet([Constraint("l",Int()),Constraint("r","Number"#([Int()]))]),CSet([Constraint("l",Double()),Constraint("r","Number"#([Double()]))])))
+      ]
+		|}
+		
+	test-sort-of-20 =
+		{| DeclaredSort,SortSig,SortCookie:
+			sig1 := ConstSig("Number",[Int()],"Num"#([]),CSet([]),1);
+			<store-sort-decl> sig1;
+			sig2 := ConstSig("Sum",[<new-tuple-sort> ["Num"#([Var("x")]),"Num"#([Var("x")])] ],"BinOp"#([]),CSet([Constraint("x",Int())]),2);
+			<store-sort-decl> sig2;
+			op := Op("Sum"{"1234"},[NoAnnoList(Tuple([Var("a"{"a"}), Var("b"{"b"})]))]);
+			<sort-of> op;
+			?[("BinOp"#([<new-tuple-sort> [Var("a"),Var("b")] ]),CSet([Constraint("a","Num"#([Int()])),Constraint("b","Num"#([Int()]))]))]
+		|}
+		
+		
+		

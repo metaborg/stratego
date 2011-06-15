@@ -3,64 +3,152 @@ module signatures/map
 imports
 	signatures/constructors
 	signatures/project
-	libstrc
 	utils/utils
+	libstrc
+
+rules // map signatures to their internal declarations
+	
+	poly-sort-signature-of =
+			sort-signature-of;
+			to-poly-signature
+
+	// normal signature with name and function	
+	sort-signature-of: 
+		OpDecl(name, FunType(args,srt)){decl-id} -> ConstSig(name,args',srt',[],decl-id)
+		with
+			args' := <map(sort-signature-of)> args;
+			srt' := <sort-signature-of> srt
+	
+	// signature with no arguments	
+	sort-signature-of:
+		OpDecl(name, ConstType(srt)){decl-id} -> ConstSig(name,[],srt',[],decl-id)
+		with
+			srt' := <sort-signature-of> srt			
+			
+	// signature with no name
+	sort-signature-of:
+		OpDeclInj(FunType(args,srt)){decl-id} -> ConstSig("",args',srt',[],decl-id)
+		with
+			args' := <map(sort-signature-of)> args;
+			srt' := <sort-signature-of> srt
+	
+	sort-signature-of:
+		OpDeclInj(ConstType(srt)){decl-id}-> ConstSig("",[],srt',[],decl-id)
+		with
+			srt' := <sort-signature-of> srt
+	
+	sort-signature-of:
+		ConstType(s) -> <sort-signature-of> s
+	
+	sort-signature-of:
+		SortVar(v){vnum} -> Var(vnum)
+	
+	sort-signature-of:
+		SortNoArgs(s) -> sort
+		with
+			srt := s#([]);
+			sort := srt{<get-sort-cookie> srt}
+	
+	sort-signature-of:
+		Sort(s,a) -> sort
+		with
+			srt := s#(<sort-signature-of> a);
+			sort := srt{<get-sort-cookie> srt}
+		
+	sort-signature-of:
+		SortTuple(sort-list) -> sort
+		with
+			srt := <map(sort-signature-of);new-tuple-sort> sort-list;
+			sort := srt{<get-sort-cookie> srt}
+		
+	sort-signature-of:
+		t -> <map(sort-signature-of)> t
+		where ?[_|_] //is-list
+	
+	sort-signature-of:
+		[] -> []
+	
+	// get all the variables from the LHS of constructor
+	to-poly-signature:
+		ConstSig(n,args,srt,_,decl-id) -> ConstSig(n,args,srt,<new-configuration> freevars,decl-id)
+		with
+			freevars := <collect-all(\ Var(a) -> a \,union)> args
 	
 rules // store & retrieve sorts
-			
-		store-sort-decl:
-			sig -> cookie
-			where
-				signature-sort;
-				not(is-prim)
-			with
-				signature-sort => sort;
-				get-sort-cookie => cookie;
-				not(
-					<elem> (sig,<bagof-DeclaredSort> cookie)
-				) <
-					rules (
-						DeclaredSort:+ cookie -> sig
-					)
-					+
-					id
 		
-		get-sort-decls:
-			sort -> decls
+		store-sort-decl:
+			sig@ConstSig(_,_,_,_,decl-id) -> cookie
 			where
-				?_{cookie};
-				decls := <bagof-DeclaredSort> cookie
-
-		// already has a cookie
-		get-sort-cookie:
-			sort -> cookie
+				signature-sort => sort;
+				not(is-sort-prim)
+			with
+				cookie := <get-sort-cookie> sort;
+				// (<elem> (sig,<bagof-DeclaredSort;mapconcat(SortSig)> cookie)
+				(<get-sort-declaration> decl-id
+				<+
+				rules (
+					DeclaredSort:+ cookie -> decl-id
+					SortSig: decl-id -> sig
+				))
+		
+		replace-sort-decl:
+			sig@ConstSig(_,_,_,_,decl-id) -> sig
 			where
-				?_{cookie} +
-				?s#(l@_);
-				all-keys-SortCookie;
-				filter(\
-				s'#(l'@_) -> <and(<eq> (s',s), <eq> (<length> l',<length> l))>
-				\);
-				mapconcat(bagof-SortCookie);
-				?[cookie|_]
-
-		// no cookie yet		
-		get-sort-cookie:
-			sort -> cookie
-			where not(is-prim)
-			where not(
-				?_{_} +
-				?s#(l@_);
-				all-keys-SortCookie;
-				filter(\
-				s'#(l'@_) -> <and(<eq> (s',s), <eq> (<length> l',<length> l))>
-				\);
-				?[_|_]
+				<get-sort-declaration> decl-id
+			with rules (
+				SortSig: decl-id -> sig
 			)
+		
+		
+		get-sort-declarations:
+			// _{cookie} -> <bagof-DeclaredSort;mapconcat(bagof-SortSig)> cookie
+			_{cookie} -> <bagof-DeclaredSort;map(get-sort-declaration)> cookie
+			
+		get-sort-declarations:
+			s{} -> <get-sort-cookie => cookie;!s{cookie};get-sort-declarations> s
+		
+		get-sort-declaration:
+			decl-id -> <SortSig> decl-id 
+			// decl-id -> <all-keys-DeclaredSort;mapconcat(bagof-DeclaredSort);fetch-elem(?ConstSig(_, _, _, _, decl-id))>
+		
+		get-signatures-for-constructor:
+			c -> <all-keys-SortSig;mapconcat(bagof-SortSig);filter(?ConstSig(c, _, _, _, _))>
+		/* 
+		* get cookie for non-primitive sort (parameterized or not)
+		*/
+		
+		get-sort-cookie:
+			sort{cookie} -> cookie
+			// where debug(!"Getting sort cookie for declared sort which has a cookie-anno ")
+		
+		get-sort-cookie:
+			sort -> cookie
+			where not(?_{_})
+			where
+				?s#(_);
+				!s#([]);
+				SortCookie => cookie
+				// ;<debug(!"Getting cookie for declared sort which doesn't have an cookie-anno ")> sort
+
+		// no cookie yet
+		/* we are ignoring any parameters that the sort has */		
+		get-sort-cookie:
+			sort -> cookie
+			where not(is-sort-prim)
+			where not(?_{_})
+			where 
+				?s#(_);
+				!s#([]) => srt
+			where not(
+				!srt;
+				SortCookie
+			)
+			// where debug(!"Storing cookie for non-primitive sort ")
 			with
 				cookie := <newterm>;
+				// store the cookie as unparameterised sort
 				rules (
-					SortCookie:+ sort -> cookie
+					SortCookie: srt -> cookie
 				)
 				
 rules // transparent auto-declarations for the primitive sorts
@@ -90,50 +178,60 @@ rules // transparent auto-declarations for the primitive sorts
 			sig -> cookie
 			where
 				signature-sort;
-				is-prim;
+				is-sort-prim;
+				// debug(!"Storing declaration for primitive sort ");
 				get-sort-cookie => cookie
+				
 		
-		//normal sort
+		/* primitive sort (whether parameterized or not)
+		* If its parameterized it gets automatically declared with variables in the different parameter positions.
+		* Tuple is a special case:
+		* - Tuple-2(_,_) -> ConstSig("",[Var(a),Var(b)],Tuple-2(Var(a),Var(b)){cookie},[Var(a),Var(b)])
+		* - Tuple-3(_,_,_) -> ConstSig("",[Var(a),Var(b),Var(c)],Tuple-2(Var(a),Var(b),Var(c)){cookie},[Var(a),Var(b),Var(c)])
+		*/
 		get-sort-cookie:
 			sort -> cookie
 			where
-				is-prim;
-				?srt#([])
+				is-sort-prim
 			where not(
 				?_{_} + SortCookie
 			)
+			// where debug(!"Storing cookie for primitive sort ")
 			with
 				cookie := <newterm>;
-				sig := ConstSig(srt,[],srt#([]){cookie},[]);
+				// gen the list of arguments (variables)
+				var-args := <list-of(new-var|[],<arity> sort)>;
+				// sig := ConstSig("",var-args,sort{cookie},var-args);
+				decl-id := <newterm>;
+				sig := ConstSig("",var-args, <?s#(_);!s#(var-args){cookie}> sort,<new-configuration> var-args, decl-id);
+				srt := s#([]);
 				rules (
-					SortCookie:+ sort -> cookie
-					DeclaredSort:+ cookie -> sig
+					SortCookie: srt -> cookie
+					DeclaredSort:+ cookie -> decl-id
+					SortSig: decl-id -> sig
 				)
 		
-		//parameterized sort
-		get-sort-cookie:
-			sort -> cookie
-			where
-				is-prim;
-				?srt#([_|_])
-			where not(
-				?_{_} + SortCookie
-			)
-			with
-				cookie := <newterm>;
-				sig := ConstSig(srt,[Var("a")],srt#([Var("a")]),["a"]);
-				rules (
-					SortCookie:+ sort -> cookie
-					DeclaredSort:+ cookie -> sig
-				)
+		// TODO: move these two to a utilities module
+		
+		// generate a list of the given element
+		list-of(|acc,length):
+			k -> <list-of(!k|acc,length)>
 
+		// generates a list of the given element producing strategy
+		list-of(s|accumulator,length) =
+			if(<gt> (length,0)) then
+				list-of(s|[<s>|accumulator],<dec> length)
+			else
+				!accumulator
+			end
+		
 rules // rename variables
 	
 	rename-sort-vars = {| RenamedVar: alltd(rename-sort-var) |}
 	
 	rename-sort-var:
 		SortVar(v) -> SortVar(v){<rename> v}
-		where debug(!$[Renamed variable [v] to [<rename> v] ])
+		// where debug(!$[Renamed variable [v] to [<rename> v] ])
 		
 	rename:
 		v -> v'
@@ -147,88 +245,13 @@ rules // rename variables
 			is-string;
 			not(RenamedVar)
 		with
-			v' := <newterm>;
+			// v' := <newterm>;
+			v' := <newname> v;
 			rules (
 				RenamedVar : v -> v'
 				RenamedVarCookie: v' -> v
 			)
-	
+		
+		new-var = !Var(<newname> "var")
 
-rules // variable sort storage
 	
-	chain-proxy-varsort(|var,pos):
-		sig@(_#(use-args)) -> var
-		with
-			if(not(<VarToProxy> var => old_cookie)) then
-				old_cookie := -42
-			end;
-			cookie := <newterm>;
-			// verify that a var actually exists at the given position
-			var-positions := <get-indices(?Var(var))> use-args;
-			<elem> (pos,var-positions);
-			num_args := <length> use-args
-		with
-			if(<gt> (old_cookie,0)) then
-				// a rule already exists, cleanup
-				rules (
-					VarToProxy:- var
-					SortVar:- var
-				)
-			end;
-			rules (
-				VarToProxy: var -> cookie
-				DeferredApplication: cookie -> result
-					with
-						<get-sort-decls> sig;
-						// keep from the decls only those that have the right number of arguments
-						map(signature-sort);
-						filter(\
-							_#(decl-args) -> decl-args
-							where <eq> (<length> decl-args, num_args)
-							\);
-						// FIXME: keep from the remaining decls only those that apply in non-variable positions
-						// FIXME: this is loss of strictness
-						// keep only the positions at POS
-						map(elem-at-index(|pos)) => elems;
-						if(<gt> (old_cookie,0)) then
-							<sort-apply <+ ![]> (<DeferredApplication> old_cookie, elems) => result
-						else
-							<sort-apply <+ ![]> (Term(), elems) => result
-						end
-				SortVar: var -> <DeferredApplication> cookie
-			)
-	
-	
-	chain-proxy-varsort(|var):
-		sig@(_#(use-args)) -> var
-		with
-			var-positions := <get-indices(?Var(var))> use-args;
-			<map(\ 
-				pos -> <chain-proxy-varsort(|var,pos)> sig
-			\)> var-positions
-			
-	get-var-sorts:
-		var -> srts
-		where all-keys-SortVar;fetch(?var)
-		with {|Strace:
-			if(<Strace> var) then
-				<debug(!"Cyclic lookup detected on ")> Var(<RenamedVarCookie> var);
-				srts := [Term()]
-			else
-				rules (
-					Strace: var
-				);
-				<SortVar> var => srts
-			end
-		|}
-	
-	get-var-sorts:
-		var -> [Term()]
-		where all-keys-SortVar;not(fetch(?var))
-	
-	store-var-sorts(|var):
-		srts -> srts
-		where <is-list> srts
-		with rules (
-			SortVar: var -> srts
-		)

@@ -1,0 +1,388 @@
+module project
+
+imports
+	signatures/project
+	signatures/map
+	signatures/constructors
+	solver/constraints
+	utils/utils
+	libstrc
+
+rules
+	
+	/**
+	* projections of Stratego AST matchers to plausible sorts
+	* the sort-of rules follow the following type signature
+	* @type: ATerm -> List((Sort,ConstraintSet))
+	*/
+	
+	sort-of:
+		Explode(_, _) -> [(<sort-any>,CSet([]))]
+		with log(|Critical(),"Encountered Explode(_,_) in sort-of. NO SUPPORT.")
+	
+	sort-of:
+		AnnoList(t, _) -> <sort-of> t
+		with log(|Error(),"Ignoring annotation in sort-of. NO SUPPORT")
+	
+	sort-of:
+		Wld() -> [(<sort-any>,CSet([]))]
+	
+	sort-of:
+		Str(_) -> [(String(),CSet([]))] //,("ID"#([]),CSet([]))]
+	
+	sort-of:
+		Int(_) -> [(Int(),CSet([]))]
+	
+	sort-of:
+		Real(_) -> [(Double(),CSet([]))]
+	
+	sort-of:
+		Var(x{cookie}) -> [(Var(cookie),CSet([Constraint(cookie,<sort-any>)]))]
+	
+	sort-of:
+		Tuple(elems) -> result
+		where
+			// debug(!"SOC1 ");
+			elems-sorts := <map(sort-of)> elems; // [ [(Sort,ConstraintSet)] ]
+			// debug(!"SOC2 ");
+			// get the cartesian product with <solved> constraint intersection
+			map(\ x -> <map(\ (s,c) -> ([s],c) \)> x \);
+			// debug(!"SOC4 ");
+			long-cart(\ ((s1,c1),(s2,c2)) -> (<conc> (s1,s2),<solve-top> ISection(c1,c2)) \);
+			// debug(!"SOC5 ");
+			// remove the FAIL()-ed ones
+			filter(not(?(_,FAIL())));
+			// debug(!"SOC6 ");
+			// transform to (Tuple-x(elems),constraints)
+			map(\ (s,c) -> (<new-tuple-sort> s,c) \) => result
+			// debug(!"SOC7 ")
+	
+	sort-of:
+		NoAnnoList(t) -> res
+		where res := <sort-of> t
+	
+	sort-of:
+		List([]) -> [(List(),CSet([]))]
+	
+	// if not all elements of the list are compatible, then it's a list of ATerm()
+	sort-of:
+		List(elems) -> [(List(srt),<solve-top> constraints)]
+		where <not(?[])> elems
+		where
+			debug(!"SOLA1 ");
+			elems-sorts := <map(sort-of)> elems; // [ [(Sort,ConstraintSet)] ]
+			debug(!"SOLA2 ");
+			// attempt to combine all sort options for each of the elements. if they are not compatible replace with ATerm
+			if(?[_|_]) then
+				map(\ e-sort -> <reducel(\ ((s1,c1),(s2,c2)) -> (<sort-apply> (s1,s2), Union(c1,c2)) \)> e-sort \ <+
+						\ e-sort -> <reducel(\ ((_,c1),(_,c2)) -> (<sort-any>,Union(c1,c2)) \)> e-sort \)
+			end;
+			debug(!"SOLA3 ");
+			// temporarily replace the variables with their constraints
+			mapconcat(explode-sort); // [ [Sort] ]
+			debug(!"SOLA4 ");
+			// try to apply to get a sort. we can end up with either a sort, or ATerm
+			// srt := <foldll(!ATerm(), \ (l,r) -> <sort-apply <+ sort-any> (l,r) \)>;
+			srt := <reducel(\ (l,r) -> <sort-apply <+ sort-any> (l,r) \)>;
+			debug(!"SOLA5 ")
+		where
+			// make a list of all the constraint sets
+			// unify and intersect constraints
+			<map(\ e-sort -> <map(\ (_,b) -> b \);to-constraint-union> e-sort \)> elems-sorts;
+			debug(!"SOLA6 ");
+			constraints := <to-constraint-intersection>;
+			debug(!"SOLA7 ")
+	
+	sort-of:
+		ListTail(elems,rest) -> [result-tup]
+		where
+			debug(!"SOLB1 ");
+			[(List(elem-srts),elem-constraints)] := <sort-of> List(elems);
+			debug(!"SOLB2 ");
+			<sort-of> rest; // [ [(Sort,Constraint)] ]
+			// the common sorts of the elems must become the same as the common sorts of rest
+			if (?[_]) then
+				debug(!"SOLB3 ");
+				?[rest-sorts]; 
+				switch !rest-sorts
+					case ?(List(),rest-constraints):
+						debug(!"SOLB4 ");
+						result-tup := (List(elem-srts),<solve-top> ISection(elem-constraints,rest-constraints));
+						debug(!"SOLB5 ")
+					case ?(List(rest-sort),rest-constraints):
+						debug(!"SOLB6 ");
+						// relax the constraints
+						rest-sort' := <innermost(\ Var(v) -> <sort-any> \)> rest-sort;
+						debug(!"SOLB7 ");
+						// re-tighten constraints
+						result-tup := (List(<sort-apply <+ sort-any> (elem-srts,rest-sort')), <solve-top> ISection(elem-constraints,rest-constraints));
+						debug(!"SOLB8 ")
+					case ?(Var(v),rest-constraints):
+						debug(!"SOLB9 ");
+						result-tup := (List(elem-srts),<solve-top> ISection(CSet([Constraint(v,List(elem-srts))]),ISection(elem-constraints,rest-constraints)));
+						debug(!"SOLB10 ")
+					case ?(rest-sort,rest-constraints):
+						debug(!"SOLB11 ");
+						// if rest sort is not ATerm, it's likely that rest-tup is a user sort and not a list. then it cannot be the tail, and we really trully must fail this term
+						if(<is-sort-any> rest-sort) then
+							result-tup := (List(<sort-any>),<solve-top> ISection(elem-constraints,rest-constraints))
+						else
+							result-tup := (List(<sort-any>), FAIL())
+						end;
+						debug(!"SOLB12 ")
+				end
+			else
+				debug(!"SOLB13 ");
+				?[_,_|_];
+				debug(!"SOLB14 ");
+				// our assumption is that there can be nothing but Sorts here. let's enforce that
+				where (
+					debug(!"SOLB15 ");
+					filter(?(Var(_),_) + ?(List(),_) + ?(List(_),_));
+					debug(!"SOLB16 ");
+					if(not(?[])) then
+						fatal-err(|"Assumption regarding list tail sorts has failed. ")
+					end
+				);
+				debug(!"SOLB17 ");
+				// in that case we can fail the current list
+				result-tup := (List(<sort-any>),FAIL());
+				debug(!"SOLB18 ")
+			end;
+			debug(!"SOLB19 ")
+	
+	// FIXME: the As variable binding should be replaced with some sort of late binding.
+	sort-of:
+		As(Var(var{cookie}),y) -> result
+		where
+			// debug(!"SAS1 ");
+			<sort-of> y;
+			// debug(!"SAS2 ");
+			result := <map(\ (s,c) -> (s,<solve-top> ISection(c,<explode-sort(|c);map(\ s' -> CSet([Constraint(cookie,s')]) \);to-constraint-union> s)) \)>
+			// debug(!"SAS3 ")
+	
+	sort-of:
+		Op(conc{cookie},[]) -> result
+		where
+			debug(!"SNOARGS1 ");
+			// get all the declarations for this constructor
+			<get-signatures-for-constructor> $[[conc]];
+			debug(!"SNOARGS2 ");
+			// keep only those with zero arguments
+			filter(?ConstSig(_, [], _,_,_));
+			?[_|_];
+			debug(!"SNOARGS3 ");
+			map(\ ConstSig(_,_,s-out,_,_) -> (s-out,CSet([])) \) => result;
+			debug(!"SNOARGS4 ")
+
+	sort-of:
+		Op(conc{cookie},args) -> result
+		where <not(?[])> args
+		where
+			num-args := <length> args
+		where
+			// sorts and constraints plausible for each of the arguments
+			// [ [(Sort,ConstraintSet)] ]
+			debug(!"SO1 ");
+			<map(sort-of)> args;
+			debug(!"SO2 ");
+			?[ [(_,_)|_]|_]; // just to be sure
+			debug(!"SO3 ");
+			// transform to [ [([Sort],ConstraintSet)] ]
+			map(\ x -> <map(\ (s,c) -> ([s],c) \)> x \);
+			debug(!"SO4 ");
+			?[ [([_],_)|_]|_]; // just to be sure
+			debug(!"SO5 ");
+			if(not(?[_] + ?[])) then
+				// get cartesian product of the plausible sorts
+				// we need a list of lists. each of the sub-lists has the length equal to the number of arguments
+				long-cart(\ ((s1,c1),(s2,c2)) -> (<conc> (s1,s2),<solve-top> ISection(c1,c2)) \)
+			else
+				// just unpack the contents from the list
+				head
+			end;
+			debug(!"SO6 ");
+			?[ ([_|_],_)|_];
+			debug(!"SO7 ");
+			// remove anything which has failed contraints
+			filter(not(?(_,FAIL()))) => plausible-argument-sorts;
+			debug(!"SO8 ")
+		where
+			debug(!"SO9 ");
+			// get all the declarations for this constructor
+			( <get-signatures-for-constructor> $[[conc]] + <get-signatures-for-constructor> conc );
+			// keep only the ones that have the same number of arguments
+			filter(where(\ ConstSig(_,a,_,_,_) -> <eq> (<length> a, num-args) \));
+			debug(!"SO10 ");
+			// convert each signature to list of tuples of args and constraints
+			map(\ sig@ConstSig(_,_,_,c,_) -> (<signature-sort> sig,c) \);
+			debug(!"SO11 ");
+			// replace FAIL() constraints with new variables
+			map(try(\
+				(sig,FAIL()) -> (sig, <collect-all(\ Var(x) -> x\,union);new-configuration> sig)
+			\));
+			debug(!"SO12 ");
+			// explode each argument for the constraints
+			mapconcat(\ (sig,c) -> <explode-sort(|c)> sig \);
+			debug(!"SO13 ");
+			// try to apply the arguments of each sort to the arguments in plausible-argument-sorts and constrain the variables
+			// the result should be a list of tuples (Sort,ConstraintSet)
+			// if an application fails, just add FAIL() to the constraint set so that we can really fail the result later
+			map(\
+				// FIXME: the use-constraints must be interesected as well
+				s#(d-args) -> <	debug(!"S013- ");
+												map(\ (u-args,u-constraints) -> <debug(!"PREZIP ");zip(local-coerce(|u-constraints));debug(!"ZIP RES ")> (d-args,u-args) \);
+												debug(!"SO13A ");
+												map(reducel(\ ((s1,c1),(s2,c2)) -> (<conc> (s1,[s2]),<solve-top> ISection(c1,c2)) \ <+
+																\ ((s1,c1),(s2,c2)) -> (<conc> ([s1],[s2]),<solve-top> ISection(c1,c2)) \));
+												debug(!"SO13B ");
+												// all of the first element of each tuple must be a list
+												map(try(\
+													(s,c) -> ([s],c)
+													where <not(is-list)> s
+												\));
+												if(not(?[([_|_],_)|_] + ?[])) then
+													fatal-err(|"Even after forcing, the list is not a list. ")
+												end;
+												// try(where(not(?([_|_],_));debug(!"SO13B1 "));\ (a,b) -> ([a],b) \;where(debug(!"SO13B2 ")));
+												map(construct-solve(|s));
+												debug(!"SO13C ")
+											> plausible-argument-sorts
+			\);
+			try(concat);
+			// remove all the fails
+			debug(!"SO14- ");
+			filter(not(?(_,FAIL())));
+			debug(!"SO14+ ");
+			// attempt to reduce duplicates. the duplicates are likely to be adjacent, and if they are not, so be it
+			// TODO: instead of adjacent identical sorts, we can try sort-compatible adjacent sorts.
+			// only if the list is longer than 1
+			// if the result is empty
+			if (?[]) then
+				![(<sort-any>,FAIL())]
+			end;
+			if (?[_]) then
+				result := <id>
+				// id
+			else
+				result := <duplicate-union>
+				// duplicate-union
+			end;
+			// for each one of the possible sorts, we need to expand the sort for all of the Inj sorts (equivalent sorts)
+			debug(!"SO15 ")
+			// mapconcat( \
+			// 	t@(s#(args),c) -> [t|xs]
+			// 	where
+			// 		debug(!"X1 ");
+			// 		all-keys-SortSig;
+			// 		mapconcat(bagof-SortSig);
+			// 		debug(!"X2 ");
+			// 		filter(?ConstSig("",[s#([])],_,_,_));
+			// 		debug(!"X3 ");
+			// 		// keep only s-outs
+			// 		map(\ ConstSig(_,_,o#(_),_,_) -> (o#(args),c) \) => xs;
+			// 		debug(!"X4 ")
+			// \);
+			// result :=[];
+			// debug(!"SO16 ")
+			
+		
+		duplicate-union:
+			[a,b|xs] -> <duplicate-union> [a'|xs]
+			where
+				// a & b are the same in the sort positions
+				<?(s,ca)> a;
+				<?(s,cb)> b;
+				// then unify the constraints and produce only one tuple
+				a' := (s,<solve-top> Union(ca,cb))
+		
+		duplicate-union:
+			[a,b|xs] -> [a|<duplicate-union> [b|xs]]
+			where not(
+				<?(s,ca)> a;
+				<?(s,cb)> b
+			)
+		
+		duplicate-union:
+			[a] -> [a]
+				
+		
+		/**
+		* Local strategy to help us go from a tuple of sorts and constraints to a tuple of sort and solved constraints.
+		* The only reason this is required is to avoid the binding of variables in the caller's traversal
+		* @param String
+		* @type (List(Sort),ConstraintSet) -> (String#(List(Sort),ConstraintSet)
+		*/
+		construct-solve(|srt):
+			(args,constraints) -> out //(srt#(args),<solve-top> constraints)
+			with
+				debug(!"CSOLVE IN ");
+				s-out := srt#(args);
+				// debug(!"CS2 ");
+				constraints-out := <solve-top> constraints;
+				// debug(!"CS3 ");
+				out := (s-out,constraints-out);
+				debug(!"CSOLVE OUT ")
+		
+		
+		/**
+		* @type (Sort,Sort) -> (Sort,ConstraintSet)
+		*/ 
+		local-coerce(|constraints):
+			(source,target) -> (out-sort,out-constraints)
+			where {| ExtraConstraints:
+				debug(!"COERCE IN ");
+				// // get all the variable positions from target
+				// v-pos := <positions-of-term(?Var(_))> target;
+				// debug(!"LC2 ");
+				// // get the source positions at variable positions
+				// s-at-pos := <terms-at-positions(|v-pos)> source;
+				// debug(!"LC3 ");
+				// // get the actual variables
+				// v-at-pos := <terms-at-positions(|v-pos);map(\ Var(v) -> v \)> target;
+				// debug(!"LC4 ");
+				// // convert to constraints
+				// new-constraints := <zip(\ (v,s) -> CSet([Constraint(v,s)]) \);to-constraint-intersection> (v-at-pos,s-at-pos);
+				// debug(!"LC5 ");
+				// try to apply the sorts now
+				if(tmp-out-sort := <sort-apply> (source,target)) then
+					// alas, success!
+					// <debug(!"LC5A1 ")> tmp-out-sort;
+					switch !tmp-out-sort
+						case ?[_|_]:
+							// debug(!"LC5A1-1A ");
+							out-sort := <head> tmp-out-sort;
+							// out-constraints := ISection(constraints,<bagof-ExtraConstraints;to-constraint-intersection>)
+							out-constraints := ISection(constraints,<ExtraConstraints <+ !CSet([])>)
+							// debug(!"LC5A1-1B ")
+						case ?[]:
+							// debug(!"LC5A1-2A ");
+							out-sort := target;
+							out-constraints := FAIL()
+							// debug(!"LC5A1-2B ")
+						otherwise:
+							// debug(!"LC5A1-3A ");
+							out-sort := tmp-out-sort;
+							// out-constraints := ISection(constraints,<bagof-ExtraConstraints;to-constraint-intersection>)
+							out-constraints := ISection(constraints,<ExtraConstraints <+ !CSet([])>)
+							// debug(!"LC5A1-3B ")
+					end
+					// if(<?[_|_]> tmp-out-sort) then
+					// <debug(!"LC5A1 ")> out-sort;
+					// // out-constraints := new-constraints;
+					// out-constraints := <bagof-ExtraConstraints;to-constraint-intersection>;
+					// debug(!"LC5A2 ")
+				else
+					// darn
+					// debug(!"LC5B1 ");
+					out-sort := target;
+					// out-constraints := ISection(new-constraints,FAIL());
+					out-constraints := FAIL()
+					// debug(!"LC5B2 ")
+				end;
+				<debug(!"COERCE OUT ")> (out-sort,out-constraints)
+			|}
+
+
+		
+		

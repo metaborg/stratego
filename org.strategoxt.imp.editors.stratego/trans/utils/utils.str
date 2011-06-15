@@ -1,8 +1,13 @@
 module utils
 
-rules // utilities
+imports lib/editor-common.generated
 
-
+rules /* list utilities */
+	
+	
+	can-be-unique-value-term =
+		not(is-string + is-tuple + is-list + is-real);?c#(_);<?"">c
+	
 	/**
 	* returns a list containing the indices at which the given strategy succeeds
 	* List(a) -> List(Int)
@@ -19,7 +24,6 @@ rules // utilities
 	// 
 	get-indices(s|index): [] -> []
 	
- 			
  	/**
  	* returns a sublist consisting of the elements at the given indices
  	* List(a) -> List(a)
@@ -37,13 +41,78 @@ rules // utilities
 	at-indices(|indices,curindex):
 		[] -> []
  	
- 	elem-at-index(|index) = elem-at-index(|index,0)
- 	
- 	elem-at-index(|index,pos)=
- 		?[x|xs];
- 		if(<eq> (pos,index)) then
- 			!x
- 		else
- 			<elem-at-index(|index,<inc> pos)> xs
- 		end
- 	
+ 	// FIXME: this is not necessary. we can refactor to use the built in one.
+ 	elem-at-index(|index) = index(|<inc> index)
+
+	/**
+	* Wrapper for foldl to take the starting value as a strategy argument
+	* @param s1: _ -> b
+	* @param s2: (b,a) -> b
+	* @type: List(a) -> b
+	*/
+	foldll(s1,s2):
+		t -> <foldl(s2)> (t,<s1>) 
+	
+	/**
+	* Wrapper for fold-left to simulate left reduce. Fails if the list is empty.
+	*/
+	reducel(s):
+		[e1|xs] -> <foldl(\(a,b) -> (b,a)\;s)> (xs,e1)
+	
+	head = ?[x];!x
+	
+	/**
+	* A wrapper around cartesion product to process a list of lists.
+	*/		
+	// long-cart(s: (a,a) -> a):
+	long-cart(s):
+		[l1,l2] -> <cart(s)> (l1,l2)
+	
+	// long-cart(s: (a,a) -> a):
+	long-cart(s):
+		[l1,l2|xs@[_|_]] -> out
+		where
+			interim := <cart(s)> (l1,l2);
+			out := <long-cart(s)> [interim|xs]
+	
+rules /* tree utilities */
+	
+	// FIXME: this is not necessary. we can use subterm-at(|index) from editor-common
+	argument-at-position(|pos):
+		// _#(args) -> <take(|<inc> pos);last> args
+		_#(args) -> <index(|pos)> args
+
+	positions-of-term(s) = 
+		// first annotate the terms with their path
+		positions-of-term(s|[]);
+		collect-all(where(s);\ _{path} -> path \,conc)
+	
+	positions-of-term(s|path):
+		e@t#(t-args) -> result
+		with
+			t-args' := <add-indices;map(\ (i,e) -> <positions-of-term(s|<conc> (path,[<dec> i]))> e \)> t-args;
+			if(<s> e) then
+				result := t#(t-args'){path}
+			else
+				result := t#(t-args')
+			end
+	
+	terms-at-positions(|positions) = ?tree; <map(\ pos -> <term-at-position(|pos)> tree \)> positions
+	
+	parent-at-position(s|position) = parent-at-position(|position);where(s)
+	
+	parent-at-position(s|position):
+		p -> <parent-at-position(s|position')> p
+		where
+			<parent-at-position(|position)> p;
+			not(s)
+		where
+			// previous position
+			if(<not(?[])> position) then
+				position' := <take(|<dec> <length> position)> position
+			end
+	
+rules /* constructor utilities */
+	arity:
+		_#(a) -> <length> a
+			

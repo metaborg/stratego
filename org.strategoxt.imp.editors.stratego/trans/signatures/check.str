@@ -2,73 +2,268 @@ module signatures/check
 
 imports
 	libstrc
+	analysis
 	signatures/constructors
 	signatures/map
 	signatures/project
 	signatures/pp
+	solver/constraints
+	utils/utils
 
-rules // sort constraints
+rules 
 	
-	// not declared SortNoArgs or Sort
+	/* name checking */
+	
+	/* Warn about redeclaration of primitive sorts */
+	constraint-warning:
+		OpDecl(_,c@ConstType(_)) -> <constraint-warning-wrapped> c
+		
+	constraint-warning:
+		OpDecl(_,FunType(_,c)) -> <constraint-warning-wrapped> c
+	
+	constraint-warning:
+		OpDeclInj(ConstType(c)) -> <constraint-warning-wrapped> c
+	
+	constraint-warning:
+		OpDeclInj(FunType(_,c)) -> <constraint-warning-wrapped> c
+	
+	constraint-warning-wrapped:
+		use -> (use, $[Redeclares primitive sort [<pp-sort-signature-top> s-dec]])
+		where not(DisableSortAnalysis)
+		where
+			sort-signature-of => s-dec;
+			is-sort-prim
+	
+	/* error about undeclared Sorts */
 	global-constraint-error:
 		_ -> (s, $[The sort [<pp-sort-signature-top> s'] is not declared])
+		where not(DisableSortAnalysis)
+		where ?s@SortNoArgs(_) + ?s@Sort(_,_)
 		where
-			?s@SortNoArgs(_) + ?s@Sort(_,_)
-		where
+			// debug(!"B1 ");
 			sort-signature-of => s';
-			get-sort-decls;
+			// debug(!"B2 ");
+			get-sort-declarations;
 			?[]
-
-	// unknown generic sort vars on RHS of signature
+	
+	/* sort usage with incorrect number of parameters. unparameterized is allowed */
 	global-constraint-error:
-		d@OpDecl(_,_) -> msgs 
+		_ -> (s, $[The sort [s-name]/[num-args] is not declared])
+		where not(DisableSortAnalysis)
+		where ?s@SortNoArgs(s-name) + ?s@Sort(s-name,s-args@[_|_])
+		where <length + !0> s-args => num-args
 		where
-			poly-sort-signature-of => sig@ConstSig(_,[_|_],sort,_);
-			srtVars := <collect-all(?Var(_),union)> sort;
-			<filter(\
-				Var(v) -> v
-				where not( <is-freevar(|v)> sig )
-			\)> srtVars;
-			map(\
-				v -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. It should be declared in left-hand-side])
-			\) => msgs@[_|_] // force fail if no errors
+			// debug(!"A1 ");
+			sort-signature-of;
+			// debug(!"A2 ");
+			get-sort-declarations;
+			// keep only the ones that have the same num of args
+			?[_|_];
+			filter(\
+				d@ConstSig(_,args,_,_,_) -> <eq> (<length> args, num-args)
+			\);
+			?[]
+			
+	/* note that the RHS arguments are optional */
+	constraint-note:
+		_ -> <constraint-note-wrapped> s
+		where not(DisableSortAnalysis)
+		where
+			?OpDecl(_,ConstType(s)) +
+			?OpDecl(_,FunType(_,ConstType(s))) +
+			?OpDeclInj(ConstType(s)) +
+			?OpDeclInj(FunType(_,ConstType(s)))
+		
+	constraint-note-wrapped:
+		s@Sort(_,_) -> (s,$[Parameterization on the RHS is optional])
+		where not(DisableSortAnalysis)
+		
+	/* warning if the RHS arguments are not the same as the LHS arguments (although they are optional) */
+	constraint-warning:
+		_ -> (s,$[The RHS parameterization (optional) does not correspond to RHS arguments])
+		where not(DisableSortAnalysis)
+		where
+			?OpDecl(_,FunType(a,ConstType(s@Sort(_,a')))) +
+			?OpDeclInj(FunType(a,ConstType(s@Sort(_,a'))))
+		where not(
+			a'' := <map(\ ConstType(s) -> s \)> a;
+			<zip> (a'',a');
+			filter(not(eq));
+			?[]
+		)
 	
 	constraint-warning:
-		d@OpDecl(_,_) -> msgs
+		_ -> (s,$[The RHS parameterization (optional) does not correspond to LHS arguments])
+		where not(DisableSortAnalysis)
 		where
-			poly-sort-signature-of => sig@ConstSig(_,[],sort,_);
-			srtVars := <collect-all(?Var(_),union)> sort;
-			map(\
-				Var(v) -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. Either declare in left-hand-side or remove it from right-hand-side])
-			\) => msgs
+			?OpDecl(_,ConstType(s@Sort(_,_))) +
+			?OpDeclInj(ConstType(s@Sort(_,_)))
 	
-	// incompatible sort application
-	global-constraint-error:
-		s@Sort(_,_) -> (s,$[The sort application [<pp-sort-signature-top> s'] is not compatible with any of its declarations:
-			 [<pp-list(pp-sort-signature-top|", ")> decl]])
-		where debug(!"Checking: ")
+	
+	global-constraints-error = non-global-constraint-error
+	
+	/**
+	* Check that the sort usages are applicable to their declarations
+	* This only checks sorts that have no variables. The idea is that if we have variables some other rule is going to explode them and wrap us
+	*/
+	non-global-constraint-error:
+		s@Sort(_,_) -> (s, $[The sort application [<pp-sort-signature-top> s'] is not compatible with any of its declarations: [<pp-list(pp-sort-signature-top|", ")> decls] ])
+		where not(DisableSortAnalysis)
 		where
+			// only if it has no variables
+			collect-all(?SortVar(_),conc);?[]
+		where
+			// get the sort declarations
+			// debug(!"1 ");
 			sort-signature-of => s';
-			get-sort-decls;
-			map(signature-sort) => decl;
-			<not(sort-apply)> (s',decl);
-			<innermost(\ Var(v) -> <get-var-sorts;not(?[])> v \);collect-all(?Var(_));?[]> decl
-			
-			
-	// Warn about sort variables that are constrained to a single Sort which is not Term or List or Option
-	constraint-warning:
-		d@OpDecl(_,_) -> messages
+			// debug(!"2 ");
+			get-sort-declarations;
+			// debug(!"3 ");
+			// remove all the ones that have FAIL in the configuration (not plausible)
+			filter(not(?ConstSig(_,_,_,FAIL(),_))); // TODO: replace the ones with FAIL() with new-configuration with ATerm() such that we can continue checking
+			// debug(!"4 ");
+			map( \ csig@ConstSig(_,_,_,d-config,_) -> (<signature-sort> csig,d-config) \);
+			// debug(!"5 ");
+			// only continue if there are some declarations left;
+			?[_|_];
+			// debug(!"6 ");
+			// explode all the variable configurations in the declarations
+			// mapconcat(\
+			// 		(srt,constraints) -> <collect-all(?CSet(_),conc);map(\ cset -> <substitute(|cset)> srt \)> constraints
+			// \)  => decls;
+			mapconcat(explode-sort) => decls;
+			// debug(!"7 ");
+			// keep all the declarations that apply
+			filter(\ dec -> <sort-apply> (s',dec) \);
+			// debug(!"8 ");
+			?[]
+			// debug(!"9 ")
+			// decls := <map(\ (a,_) -> a \)> sort-constraint-declarations;
+			// debug(!"10 ")
+	
+	global-constraint-error:
+		c@ConstType(Sort(_,_)){FAIL()} -> (c,$[There's a failure (probably caused by variable sorts) in this sort. (TODO: better message => make constraints FAIL per variable and piggyback message on it)])
+		where not(DisableSortAnalysis) 
+		
+	/** 
+	* Error about overlapping signatures.
+	*
+	*	Overlapping signatures declarations are constructors declarations which:
+	* 1. have the same constructor name
+	* 2. have the same number of arguments
+	* 3. the declared sorts are or are not the same
+	* 4. each argument from one is compatible with the corresponding argument from the other
+	*/
+	constraint-warning: 
+		dec@OpDecl(cons{_}, _){decl-id} -> (dec,$[Constructor declaration overlaps with these declarations [<pp-list(pp-sort-signature-top|" <br /> ")> overlaps]])
+		where not(DisableSortAnalysis)
 		where
-			poly-sort-signature-of => ConstSig(_,_,_,freevars);
-			// for each variable get their possible sorts
-			// for all the variables that have only a single possible sort which is not Term, give a warning
-			<map(\
-				var -> (Var(var),$[Sort variable [<RenamedVarCookie> var] is not polymorphic ([<pp-sort-signature> srt])])
-				where
-					<get-var-sorts> var;
-					?[srt];
-					not(?[Term()])
-			\)> freevars => messages
+			ConstSig(_, args', _, constraints, _) := <get-sort-declaration> decl-id;
+			// explode all the arg' that have constraints. If we have FAIL() we allow ourselves to crash hard, because that error has priority
+			args := <map(\ srt -> <explode-sort(|constraints);\ [x] ->  x \> srt \)> args';
+			num-args := <length> args
+		where
+			// get all declarations for this constructor
+			<get-signatures-for-constructor> $[[cons]];
+			// remove our own declaration, and ones that don't have the same number of arguments
+			filter(not(?ConstSig(_ , _, _, _, decl-id));where(\ ConstSig(_,a,_,_,_) -> <eq> (<length> a, num-args) \)) => candidates;
+			// explode all the variables in the arguments, and get rid of useles sigs
+			map(\ ConstSig(_, a, _, a-constraints, _) -> <map(explode-sort(|a-constraints);\ [x] ->  x \)> a \);
+			// associate each of the arguments list with our own arguments
+			map(\ a -> <zip> (args,a) \);
+			// keep only the lists where sort-apply doesn't fail. if it fails replace with empty list (to preserve positions)
+			map(\ tups -> <map(sort-apply <+ ![]);where(get-indices(?[]);?[])> tups \ <+ ![]);
+			// get indices of non-empty lists
+			get-indices(?[_|_]) => overlap-indices;
+			// continue only if non-empty
+			?[_|_];
+			// get the overlapping signatures
+			overlaps := <at-indices(|overlap-indices)> candidates
+			
+			
+			
+			
+			
+			 
+	
+	/**
+	* Checks that the sort usages are applicable to their declarations
+	* This only checks sorts that reference variables. The variables are exploded, and the non-global-constraint-error is called on the resulting sorts.
+	* if the called strategy reports errors, the sort in the returned tuple is replaced by the original (non-exploded) sort and returned and the resulting tuple returned as an error
+	*/
+	
+			
+		
+		
+		
+		
+	 	
+//	// not declared SortNoArgs or Sort
+// 	global-constraint-error:
+// 		_ -> (s, $[The sort [<pp-sort-signature-top> s'] is not declared])
+// 		where
+// 			?s@SortNoArgs(_) + ?s@Sort(_,_)
+// 		where
+// 			sort-signature-of => s';
+// 			get-sort-decls;
+// 			?[]
+// 
+// 	// unknown generic sort vars on RHS of signature
+// 	global-constraint-error:
+// 		d@OpDecl(_,_) -> msgs 
+// 		where
+// 			poly-sort-signature-of => sig@ConstSig(_,[_|_],sort,_);
+// 			srtVars := <collect-all(?Var(_),union)> sort;
+// 			<filter(\
+// 				Var(v) -> v
+// 				where not( <is-freevar(|v)> sig )
+// 			\)> srtVars;
+// 			map(\
+// 				v -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. It should be declared in left-hand-side])
+// 			\) => msgs@[_|_] // force fail if no errors
+// 	
+// 	constraint-warning:
+// 		d@OpDecl(_,_) -> msgs
+// 		where
+// 			poly-sort-signature-of => sig@ConstSig(_,[],sort,_);
+// 			srtVars := <collect-all(?Var(_),union)> sort;
+// 			map(\
+// 				Var(v) -> (v, $[Unknown sort variable [<RenamedVarCookie> v]. Either declare in left-hand-side or remove it from right-hand-side])
+// 			\) => msgs
+// 	
+// 	// incompatible sort application
+// 	global-constraint-error:
+// 		s@Sort(_,_) -> (s,$[The sort application [<pp-sort-signature-top> s'] is not compatible with any of its declarations:
+// 			 [<pp-list(pp-sort-signature-top|", ")> decl]])
+// 		where debug(!"Checking: ")
+// 		where
+// 			debug(!"A ");
+// 			sort-signature-of => s';
+// 			debug(!"B ");
+// 			get-sort-decls;
+// 			debug(!"C ");
+// 			map(signature-sort) => decl;
+// 			<debug(!"D APPLY ")> (s', decl);
+// 			<not(sort-apply)> (s',decl);
+// 			debug(!"E ");
+// 			<innermost(\ Var(v) -> <get-var-sorts;not(?[])> v \);collect-all(?Var(_));?[]> decl;
+// 			debug(!"F ")
+// 			
+// 			
+// 	// Warn about sort variables that are constrained to a single Sort which is not Term or List or Option
+// 	constraint-warning:
+// 		d@OpDecl(_,_) -> messages
+// 		where
+// 			poly-sort-signature-of => ConstSig(_,_,_,freevars);
+// 			// for each variable get their possible sorts
+// 			// for all the variables that have only a single possible sort which is not Term, give a warning
+// 			<map(\
+// 				var -> (Var(var),$[Sort variable [<RenamedVarCookie> var] is not polymorphic ([<pp-sort-signature> srt])])
+// 				where
+// 					<get-var-sorts> var;
+// 					?[srt];
+// 					not(?[Term()])
+// 			\)> freevars => messages
 			
 			
 	

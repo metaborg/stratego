@@ -1,0 +1,32 @@
+module constructors
+
+/**
+* Defines constructors necessary for sorting (typing) Stratego rules 
+*/
+
+imports
+	signatures/constructors
+	solver/constraints
+
+signature
+	constructors
+	/**
+	* Signature of a rule:
+	*		1. name (string)
+	*		2. list of parameter strategy variables
+	*		3. list of parameter term variables
+	*		4. input term variable
+	*		5. list of plausible output sorts (unapplied)
+	*		6. set of constraints over the variables
+	*		7. unique identification matching to actual rule definition
+	*/
+	RuleSig: String * List(Var) * List(Var)	* Var * List(Sort) * ConstraintSet * String -> RuleSig
+	
+	/**
+	* Constructor to hold a rule call:
+	*		1. name/cookie of the rule called
+	*		2. list of cookies representing parameter strategies
+	*		3. list of sorts given as parameter terms (possibly lists of lists)
+	*		4. the sort of the input term for the called rule
+	*/
+	RuleCall: String * List(String) * List(Sort) * Sort -> RuleCall
