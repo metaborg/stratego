@@ -134,7 +134,7 @@ rules
 			mapconcat(explode-sort) => decls;
 			// debug(!"7 ");
 			// keep all the declarations that apply
-			filter(\ dec -> <sort-apply> (s',dec) \);
+			filter(\ dec -> <sort-apply-top> (s',dec) \);
 			// debug(!"8 ");
 			?[]
 			// debug(!"9 ")
@@ -172,7 +172,7 @@ rules
 			// associate each of the arguments list with our own arguments
 			map(\ a -> <zip> (args,a) \);
 			// keep only the lists where sort-apply doesn't fail. if it fails replace with empty list (to preserve positions)
-			map(\ tups -> <map(sort-apply <+ ![]);where(get-indices(?[]);?[])> tups \ <+ ![]);
+			map(\ tups -> <map(sort-apply-top <+ ![]);where(get-indices(?[]);?[])> tups \ <+ ![]);
 			// get indices of non-empty lists
 			get-indices(?[_|_]) => overlap-indices;
 			// continue only if non-empty

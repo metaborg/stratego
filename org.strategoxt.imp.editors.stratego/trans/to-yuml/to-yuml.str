@@ -1,0 +1,30 @@
+module to-yuml
+
+imports
+	signatures/constructors
+	signatures/map
+	signatures/pp
+	utils/annotations
+	
+strategies
+	
+	generate-all-yuml =
+		get-all-sort-declarations;
+		remove-all-annos;
+		mapconcat(sig-to-yuml);
+		pp-list(|"\r")
+
+rules
+	sig-to-yuml:
+		ConstSig(cons, args, out-sort, _, _) -> result
+		with
+			<map(\ a -> (out-sort,a) \)> args;
+			result := <map(to-yuml-line(|cons))>
+	
+	to-yuml-line(|label):
+		(from,to) -> out
+		with
+			out := <concat-strings> ["[",$[ [<pp-sort-signature> from] ],"]-",label,">","[",$[ [<pp-sort-signature;debug(!"TO DONE ")> to] ],"]"]
+			
+			
+			

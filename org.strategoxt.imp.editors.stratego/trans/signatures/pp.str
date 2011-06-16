@@ -21,7 +21,7 @@ rules // pretty print for constructor signatures
 		where is-string
 		
 	pp-sort-signature:
-		Var(a) -> <RenamedVarCookie;pp-sort-signature-top> a
+		Var(a) -> <try(RenamedVarCookie);pp-sort-signature-top> a
 	
 	pp-sort-signature:
 		_#(t-args) -> $[([<pp-list(pp-sort-signature|", ")> t-args])]

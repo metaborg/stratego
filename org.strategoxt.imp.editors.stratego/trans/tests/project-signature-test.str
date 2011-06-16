@@ -65,3 +65,24 @@ rules /* Tests for signatures/project */
 			<store-sort-decl> sig2;
 			<not(sort-apply)> ("A"#([]),"A"#([String(),Int()]))
 		|}
+		
+	test-bfs-path-search-1 =
+		{| DeclaredSort,SortSig,SortCookie:
+	  	<store-sort-decl> ConstSig("ClassType", [String(){2201525}], "ClassType"#([]){2201527}, CSet([]), 2201524);
+	  	<store-sort-decl> ConstSig("Reference", ["ClassName"#([]){2201530}], "Reference"#([]){2201531}, CSet([]), 2201529);
+		  <store-sort-decl> ConstSig("", ["QualifiedName"#([]){2201533}], "ClassName"#([]){2201530}, CSet([]), 2201532);
+		  <store-sort-decl> ConstSig("", [String(){2201525}], "QualifiedName"#([]){2201533}, CSet([]), 2201534);
+		  <store-sort-decl> ConstSig("", [String(){2201525}], "Hello"#([]){2201536}, CSet([]), 2201535);
+		  <store-sort-decl> ConstSig("", ["Hello"#([]){2201536}], "World"#([]){2201538}, CSet([]), 2201537);
+		  <store-sort-decl> ConstSig("", [String(){2201525}], "FourtyTwo"#([]){2201540}, CSet([]), 2201539);
+		  <store-sort-decl> ConstSig("", ["FourtyTwo"#([]){2201540}], "TheAnswer"#([]){2201542}, CSet([]), 2201541);
+		  <store-sort-decl> ConstSig("", ["TheAnswer"#([]){2201542}], "ClassName"#([]){2201530}, CSet([]), 2201543);
+		  // <store-sort-decl> ConstSig("", [], "QualifiedName"#([]){2201533}, CSet([]), 2201546);
+		  // <store-sort-decl> ConstSig("", [], "Hello"#([]){2201536}, CSet([]), 2201547);
+		  // <store-sort-decl> ConstSig("", [String(){2201525}], "World"#([]){2201538}, CSet([]), 2201548);
+		  // <store-sort-decl> ConstSig("", [], "FourtyTwo"#([]){2201540}, CSet([]), 2201549);
+		  // <store-sort-decl> ConstSig("", [String(){2201525}], "TheAnswer"#([]){2201542}, CSet([]), 2201550);
+		  // <store-sort-decl> ConstSig("", ["FourtyTwo"#([]){2201540}], "ClassName"#([]){2201530}, CSet([]), 2201551);
+		  debug(!"SEARCHING ");
+	  	<DFS-path-search> (String(),"ClassName"#([]))
+	  |}

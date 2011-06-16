@@ -21,6 +21,7 @@ imports
 	rules/check
 	utils/utils
 	tests/test-all
+	to-yuml/to-yuml
 	
 strategies
 
@@ -146,9 +147,10 @@ rules
     with
       filename := <guarantee-extension(|"sig.aterm")> path;
       if(not(DisableSortAnalysis)) then
-	      all-keys-DeclaredSort;
-	      mapconcat(bagof-DeclaredSort);
-	      mapconcat(bagof-SortSig) => signatures;
+	      // all-keys-DeclaredSort;
+	      // mapconcat(bagof-DeclaredSort);
+	      // mapconcat(bagof-SortSig) => signatures;
+	      get-all-sort-declarations => signatures;
 	      all-keys-SortCookie => cookies;
 	      all-keys-DeclaredRule;
 	      mapconcat(bagof-DeclaredRule);
@@ -160,5 +162,15 @@ rules
       
   run-tests = test-all
   	
-
+	generate-yuml-signatures:
+		(selected, _, _, path, _)  -> (filename,result)
+		with
+			filename := <guarantee-extension(|"yuml")> path;
+			<DecoratedAst> selected;
+			if(DisableSortAnalysis) then
+				result := "Sort analysis is required to generate yUML diagrams. It is currently disabled"
+			else
+				result := <generate-all-yuml>
+			end
+			 
 

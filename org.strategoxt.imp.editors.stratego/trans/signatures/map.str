@@ -3,7 +3,9 @@ module signatures/map
 imports
 	signatures/constructors
 	signatures/project
+	solver/constraints
 	utils/utils
+	utils/annotations
 	libstrc
 
 rules // map signatures to their internal declarations
@@ -73,7 +75,56 @@ rules // map signatures to their internal declarations
 		ConstSig(n,args,srt,_,decl-id) -> ConstSig(n,args,srt,<new-configuration> freevars,decl-id)
 		with
 			freevars := <collect-all(\ Var(a) -> a \,union)> args
+
+
+strategies /* Depth-First-Search search accross Injective signatures for a path between two sorts ! with no arguments ! */
 	
+	/**
+	* Returns the path between from-sort and to-sort if such a path across injective sort declarations exists
+	* given declarations such as:
+	* : ID -> String
+	* : String -> Name
+	* : Name -> QualifiedName
+	* then a search for the path (ID,QualifiedName) will produce the following path:
+	* [ID,STring,Name,QualifiedName]
+	*/
+	DFS-path-search:
+		(from-sort,to-sort) -> res 
+		where
+			// the sorts are ops with no arguments
+			<?_#([])> from-sort;
+			<?_#([])> to-sort
+		where
+			res := <DFS-path-search(|[from-sort])> (from-sort,to-sort)
+
+	// protects against loops by looking back at path
+	
+	DFS-path-search(|path):
+		(from-sort,to-sort) -> out-path
+		where
+			where (from-sort' := <remove-all-annos> from-sort);
+			// get all the declarations, keep only injective ones
+			get-all-sort-declarations;
+			// keep only ones that match the from-sort
+			// next-candidates := <filter(\ ConstSig("",[from-sort],next,CSet([]),_) -> next \)>;
+			filter( where (\ ConstSig("",[f-s],_,CSet([]),_) -> <remove-all-annos;?from-sort'> f-s \));
+			next-candidates := <map(\ ConstSig(_,_,next,_,_) -> next \)>;
+			// if any of the candidates is the to-sort, we have found a path
+			if(<elem(\ (a,b) -> <eq> (<remove-all-annos> a, <remove-all-annos> b) \)> (to-sort,next-candidates)) then
+				out-path := <conc> (path,[to-sort])
+			else
+				// otherwise we recurse
+				// filter any candidates that we have already visited
+				filter(not(\ x -> <elem> (x,path) \));
+				if(?[]) then
+					out-path := []
+				else
+					// find the first shallow path
+					out-path := <fetch-elem(\ new-from-sort -> <DFS-path-search(|<conc> (path,[new-from-sort]))> (new-from-sort,to-sort) \)>
+				end
+			end
+		
+
 rules // store & retrieve sorts
 		
 		store-sort-decl:
@@ -111,8 +162,10 @@ rules // store & retrieve sorts
 			decl-id -> <SortSig> decl-id 
 			// decl-id -> <all-keys-DeclaredSort;mapconcat(bagof-DeclaredSort);fetch-elem(?ConstSig(_, _, _, _, decl-id))>
 		
+		get-all-sort-declarations = all-keys-SortSig; mapconcat(bagof-SortSig)
+		
 		get-signatures-for-constructor:
-			c -> <all-keys-SortSig;mapconcat(bagof-SortSig);filter(?ConstSig(c, _, _, _, _))>
+			c -> <get-all-sort-declarations;filter(?ConstSig(c, _, _, _, _))>
 		/* 
 		* get cookie for non-primitive sort (parameterized or not)
 		*/

@@ -27,8 +27,11 @@ builders
   builder : "Show AST (selection)" =
     generate-aterm (realtime) (meta)(openeditor) (source)
     
- builder : "Show signatures & constraints" =
-     generate-sort-signatures (realtime) (meta)(openeditor) (source)
+ builder : "Show signatures and constraints" =
+    generate-signatures (realtime) (meta)(openeditor) (source)
  
- builder : "Run tests" = run-tests
+ builder : "Generate yUML signatures" = 
+ 		generate-yuml-signatures (realtime) (meta)(openeditor) (source)
+ 
+  builder : "Run tests" = run-tests
  

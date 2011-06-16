@@ -49,6 +49,28 @@ rules // primitive test helper rules
 
 rules // sort applications
 	
+	
+	sort-apply-top:
+		(s,t) -> res
+		where not(<?[_|_]> s + <?[_|_]> t)
+		where
+			if(not(res := <sort-apply> (s,t))) then
+				res := t;
+				<?s'#(_)> s;
+				<?t'#(_)> t;
+				(
+				<DFS-path-search;not(?[])> (t'#([]),s'#([])) <+
+				<DFS-path-search;not(?[])> (s'#([]),t'#([]))
+				)
+				
+			end
+	
+	
+	sort-apply-top:
+		(s,t) -> <sort-apply> (s,t)
+		where
+			<?[_|_]> s + <?[_|_]> t
+	
 	/*
 	* rules to implement application of sort signatures
 	* sort-apply: (sig, applyTo) -> resulting sort signature OR fail
@@ -62,13 +84,13 @@ rules // sort applications
 	// 	(s@[_|_],l) -> <filter(\ s' -> <sort-apply> (s',l) \);not(?[]);flatten-list;make-set> s
 	
 	sort-apply:
-		(s,l@[_|_]) -> <sort-apply> (s',l)
+		(s,l@[_|_]) -> <sort-apply-top> (s',l)
 		where
 			<not(?[_|_])> s;
 			s' := [s]
 	
 	sort-apply:
-		(l@[_|_],s) -> <sort-apply> (l,s')
+		(l@[_|_],s) -> <sort-apply-top> (l,s')
 		where
 			<not(?[_|_])> s;
 			s' := [s]
@@ -95,7 +117,7 @@ rules // sort applications
 					fatal-err(|"Failed to remove all ExtraConstraints dynamic rules")
 				end;
 				{|ExtraConstraints:
-						if(res := <sort-apply> (s,t)) then
+						if(res := <sort-apply-top> (s,t)) then
 							new-constraints := <ExtraConstraints <+ !CSet([])>
 						else
 							res := []
@@ -128,10 +150,10 @@ rules // sort applications
 				
 
 	sort-apply:
-		([l],r) -> <sort-apply> (l,r)
+		([l],r) -> <sort-apply-top> (l,r)
 	
 	sort-apply:
-		(l,[r]) -> <sort-apply> (l,r)
+		(l,[r]) -> <sort-apply-top> (l,r)
 	
 	/* rules for primitive applications */
 	
@@ -171,7 +193,7 @@ rules // sort applications
 	
 	// the sort application for collections propagates inside the sorts collected
 	sort-apply:
-		(List(s),List(k)) -> List(<sort-apply> (s,k))
+		(List(s),List(k)) -> List(<sort-apply-top> (s,k))
 	
 	// // empty lists collect the Nothing sort (which doesn't exist). On application to a List of sort a, the result is a list of sort a
 	// sort-apply:
@@ -196,7 +218,7 @@ rules // sort applications
 	
 	/* tuples */	
 	sort-apply:
-		(l,r) -> <zip(sort-apply);new-tuple-sort> (args-l,args-r)
+		(l,r) -> <zip(sort-apply-top);new-tuple-sort> (args-l,args-r)
 		where
 			<is-sort-tuple> l;
 			<is-sort-tuple> r;
@@ -213,7 +235,7 @@ rules // sort applications
 	sort-apply:
 		(s,t@Var(v)) -> t
 		where
-			res := <sort-apply> (s,<sort-any>);
+			res := <sort-apply-top> (s,<sort-any>);
 			if(constraints := <ExtraConstraints> ) then
 				rules (
 					ExtraConstraints: _ -> ISection(constraints,CSet([Constraint(v,s)]))
@@ -227,7 +249,7 @@ rules // sort applications
 	/* rules for user-declared sorts */
 	
 	sort-apply:
-		(s,t) -> c#(<zip(sort-apply)> (p,p'))
+		(s,t) -> c#(<zip(sort-apply-top)> (p,p'))
 		where not(
 			<is-sort-prim> s +
 			<is-sort-prim> t +
@@ -240,7 +262,7 @@ rules // sort applications
 			?c#(p')
 	
 	sort-apply:
-		(l@s#(la),r@s#(ra)) -> <sort-apply> (l',r')
+		(l@s#(la),r@s#(ra)) -> <sort-apply-top> (l',r')
 		where not(
 			<is-sort-prim> l +
 			<is-sort-prim> r +

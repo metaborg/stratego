@@ -151,8 +151,10 @@ rules // Declare globals
     if not(NoAnalysis) then
       with(<declare-globals> Import("libstratego-lib"));
       alltd(declare-globals);
-      declare-var-constraints;
-      alltd(resolve-var-constraints)
+      if(not(DisableSortAnalysis)) then
+      	declare-var-constraints;
+      	alltd(resolve-var-constraints)
+      end
     end
 
   declare-globals:
