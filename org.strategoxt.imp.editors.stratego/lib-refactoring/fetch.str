@@ -47,7 +47,7 @@ rules //strategies for fetching terms in the ast
     where
       <not(match)> term;
       <not(stop)> term;
-      parent-tuple := (<parent-at-position(|term)> ast, <init> position);
+      parent-tuple := (<parent-at-position(|position)> ast, <init> position);
       (term', position') := <fetch-up-with-position(match, stop|ast)> parent-tuple
 
   fetch-up-with-position(match, stop|ast) =
