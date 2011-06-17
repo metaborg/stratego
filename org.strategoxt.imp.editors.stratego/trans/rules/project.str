@@ -25,6 +25,10 @@ rules
 		with log(|Error(),"Ignoring annotation in sort-of. NO SUPPORT")
 	
 	sort-of:
+		StringQuotation1(_, _) -> <sort-of> Str(" ")
+		with log(|Critical(), "Encountered StringQuotation1 in sort-of. NO SUPPORT.")
+	
+	sort-of:
 		Wld() -> [(<sort-any>,CSet([]))]
 	
 	sort-of:
@@ -74,7 +78,7 @@ rules
 			debug(!"SOLA2 ");
 			// attempt to combine all sort options for each of the elements. if they are not compatible replace with ATerm
 			if(?[_|_]) then
-				map(\ e-sort -> <reducel(\ ((s1,c1),(s2,c2)) -> (<sort-apply> (s1,s2), Union(c1,c2)) \)> e-sort \ <+
+				map(\ e-sort -> <reducel(\ ((s1,c1),(s2,c2)) -> (<sort-apply-top> (s1,s2), Union(c1,c2)) \)> e-sort \ <+
 						\ e-sort -> <reducel(\ ((_,c1),(_,c2)) -> (<sort-any>,Union(c1,c2)) \)> e-sort \)
 			end;
 			debug(!"SOLA3 ");
@@ -83,7 +87,7 @@ rules
 			debug(!"SOLA4 ");
 			// try to apply to get a sort. we can end up with either a sort, or ATerm
 			// srt := <foldll(!ATerm(), \ (l,r) -> <sort-apply <+ sort-any> (l,r) \)>;
-			srt := <reducel(\ (l,r) -> <sort-apply <+ sort-any> (l,r) \)>;
+			srt := <reducel(\ (l,r) -> <sort-apply-top <+ sort-any> (l,r) \)>;
 			debug(!"SOLA5 ")
 		where
 			// make a list of all the constraint sets
@@ -115,7 +119,7 @@ rules
 						rest-sort' := <innermost(\ Var(v) -> <sort-any> \)> rest-sort;
 						debug(!"SOLB7 ");
 						// re-tighten constraints
-						result-tup := (List(<sort-apply <+ sort-any> (elem-srts,rest-sort')), <solve-top> ISection(elem-constraints,rest-constraints));
+						result-tup := (List(<sort-apply-top <+ sort-any> (elem-srts,rest-sort')), <solve-top> ISection(elem-constraints,rest-constraints));
 						debug(!"SOLB8 ")
 					case ?(Var(v),rest-constraints):
 						debug(!"SOLB9 ");
@@ -345,7 +349,7 @@ rules
 				// new-constraints := <zip(\ (v,s) -> CSet([Constraint(v,s)]) \);to-constraint-intersection> (v-at-pos,s-at-pos);
 				// debug(!"LC5 ");
 				// try to apply the sorts now
-				if(tmp-out-sort := <sort-apply> (source,target)) then
+				if(tmp-out-sort := <sort-apply-top> (source,target)) then
 					// alas, success!
 					// <debug(!"LC5A1 ")> tmp-out-sort;
 					switch !tmp-out-sort

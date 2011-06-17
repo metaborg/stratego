@@ -4,7 +4,9 @@ imports
 	libstrc
 	rules/map
 	rules/constructors
+	signatures/constructors
 	solver/constraints
+	utils/utils
 	analysis
 rules
 	
@@ -17,13 +19,73 @@ rules
 			<filter(not(?(_,FAIL())))> in-s;
 			?[]
 	
-	
 	constraint-warning:
-		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[This rule can never succeed because of an invalid match.])
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[Rule never matches valid signatures. (Because of the rule's term parameters)])
 		where not(DisableSortAnalysis)
 		where
 			<get-rule-signature> decl-id;
-			?RuleSig(_, _, _, [], _, _, _)
+			?RuleSig(_, _, _, in-s, _, local-constraints, _);
+			<filter(not(?(_,FAIL())))> in-s;
+			?[_|_];
+			where (<not(FAIL())> local-constraints );
+			map(\ (_,c) -> <solve-top> ISection(local-constraints,c) \);
+			filter(not(?FAIL()));
+			?[]
+			
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[Sort incompatibility in term parameters])
+		where not(DisableSortAnalysis)
+		where
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, _, _, _, FAIL(), _)
+	
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[Rule violates signatures on output term. (Because of variables from match)])
+		where not(DisableSortAnalysis)
+		where
+			// if there's at least one successful input term
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, _, in-s@[_|_], out-s@[_|_], _, _);
+			<filter(not(?(_,FAIL())))> in-s;
+			?[_|_]
+		where
+			in-constraint := <map(\ (_,b) -> b \);to-constraint-union> in-s;
+			out-constraint := <map(\ (_,b) -> b \);to-constraint-union> out-s;
+			<solve-top> ISection(in-constraint,out-constraint);
+			?FAIL()
+	
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[Rule violates signatures on output term. (Because of term parameters)])
+		where not(DisableSortAnalysis)
+		where
+			// if there's at least one successful input term
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, _, _, out-s@[_|_], local-constraints, _);
+			// remove all failed terms
+			<filter(not(?(_,FAIL())))> out-s;
+			?[_|_];
+			map(\ (_,c) -> <solve-top> ISection(local-constraints,c) \);
+			filter(not(?FAIL()));
+			?[]
+	
+	constraint-warning:
+		rule@SDefT(_, _, _, _){decl-id} -> (rule,$[Rule violates signatures on output term. (3-way sort incompatibility between match, build and term parameters)])
+		where not(DisableSortAnalysis)
+		where
+			<get-rule-signature> decl-id;
+			?RuleSig(_, _, in-s@[_|_], _, out-s@[_|_], local-constraints, _);
+			out-s' := <map(\ (_,b) -> b \);to-constraint-union;solve-top;not(?FAIL())> out-s;
+			in-s' := <map(\ (_,b) -> b \);to-constraint-union;solve-top;not(?FAIL())> in-s
+		where
+			// local to match
+			<solve-top> ISection(local-constraints,in-s') => loc-to-match;
+			not(?FAIL());
+			// local to build
+			<solve-top> ISection(local-constraints,out-s') => loc-to-build;
+			not(?FAIL());
+			// but fail at all three
+			<solve-top> ISection(loc-to-match,loc-to-build);
+			?FAIL()
 			
 			
-			
+			 

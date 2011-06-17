@@ -1,23 +1,21 @@
 module lib-refactoring/files
 
 imports
-  lib-refactoring/user-interaction
-  
+  lib/editor-common.generated
+
 rules //strategies for collecting files
 
   get-source-asts(parse|extensions, source-dirs) =
     get-source-asts(parse, check-extension(|extensions), elem-of(|source-dirs))
 
   get-source-asts(parse, is-source-file, is-source-dir) =
-  	save-all-resources;
     get-source-files(is-source-file, is-source-dir);
     parse-source-files(parse)
   
   parse-source-files(parse) :
-  	filenames -> asts
+  	filenames -> (asts, parse-failures)
   	where
-      (asts, parse-failures) := <partition(parse)> filenames;
-      <report-parse-failures> parse-failures
+      (asts, parse-failures) := <partition(parse)> filenames
   	
   get-source-files(|extensions, source-dirs) =
     get-source-files(check-extension(|extensions), elem-of(|source-dirs))
@@ -36,7 +34,7 @@ rules //strategies for collecting files
       ![]
     end
 	
-  save-all-resources = where(prim("SSL_EXT_saveresources", ""))
+  //save-all-resources = where(prim("SSL_EXT_saveresources", ""))
   
   check-extension(|ext) =
   	has-extension(|ext)
@@ -47,5 +45,39 @@ rules //strategies for collecting files
   	  <fetch(equal(|ext))> extensions 
   	)
   	
-  elem-of(|source-dirs) =
-  	!(<id>, source-dirs); elem
+  elem-of(|lst) =
+  	!(<id>, lst); elem
+  	
+  is-spoofax-dir:
+    dir -> dir
+    where 
+  	  spoofax-dirs := ["bin", "editor", "icons", "include", "META-INF", "syntax",
+        "utils", ".cache", ".externalToolBuilders", ".settings", ".svn", "trans"];
+      <map(!$[[<project-path>]/[<id>]]); fetch(equal(|dir))> spoofax-dirs
+
+  get-affected-asts(affected, get-cache-path):
+    fnames -> (affected-asts, unparsable-files)
+    where
+      (collected-asts, unparsable-files) := <partition(get-affected-ast-or-none(affected, get-cache-path))> fnames;
+      affected-asts := <filter(not(equal(|None())))> collected-asts //filter irrelevant
+      
+  get-affected-ast-or-none(affected, get-cache-path) =
+    reject-ast-from-cache(affected, get-cache-path) <+ //cache can not be used to get the AST since origin info is required
+    reject-or-get-ast-from-parsing(affected)
+  
+  reject-ast-from-cache(affected, get-cache-path):
+    fname -> None()
+    where
+  	  cached-ast := <get-cache-path; ReadFromFile> fname;
+  	  <not(affected)> cached-ast
+
+  reject-or-get-ast-from-parsing(affected):
+    fname -> ast
+    where
+  	  parsed-ast := <parse-file> fname;
+  	  if <not(affected)> parsed-ast then
+  	    ast := None()
+  	  else
+  	    ast := parsed-ast
+  	  end
+

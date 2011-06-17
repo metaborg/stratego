@@ -8,6 +8,7 @@ imports
 	signatures/map
 	rules/constructors
 	rules/project
+	utils/utils
 	
 rules /* store our own version of rule declarations */
 	
@@ -31,19 +32,22 @@ rules /* store our own version of rule declarations */
 			s-vars-constraints := <map(\ (Var(c),sig) -> CSet([Constraint(c,sig)]) \);to-constraint-intersection> s-vars';
 			debug(!"D4 ");
 			// get the signatures of all the term parameters
-			t-vars' := <map(declare-argument-t)> t-vars;
+			// t-vars' := <map(declare-argument-t)> t-vars;
 			debug(!"D5 ");
 			// the term Var(cookie)'s
-			t-vars'' := <map(\ (c,_) -> c \)> t-vars';
+			// t-vars'' := <map(\ (c,_) -> c \)> t-vars';
 			debug(!"D6 ");
 			// the sort constraints
-			t-vars-constraints := <map(\ (Var(c),sig) -> CSet([Constraint(c,sig)]) \);to-constraint-intersection> t-vars';
+			// t-vars-constraints := <map(\ (Var(c),sig) -> CSet([Constraint(c,sig)]) \);to-constraint-intersection> t-vars';
+			t-arguments := <map(declare-argument-t)> t-vars; // [ (Var(.),ConstraintSet) ]
+			t-vars' := <map(\ (v,_) -> v \)> t-arguments;
+			t-vars-constraints := <map(\ (_,c) -> c \);to-constraint-intersection> t-arguments;
 			debug(!"D7 ");
 			(in-t,out-t,rule-constraints) := <declare-rule> rule;
 			// (in-t,out-t,rule-constraints) := (Var("xxx"),[<sort-any>],CSet([]));
 			debug(!"D8 ");
 			// build the signature
-			sig := RuleSig(name,s-vars'',t-vars'',in-t,out-t, <solve-top>  ISection(s-vars-constraints,ISection(t-vars-constraints,rule-constraints)),decl-id);
+			sig := RuleSig(name,s-vars'',t-vars',in-t,out-t, <solve-top>  ISection(s-vars-constraints,ISection(t-vars-constraints,rule-constraints)),decl-id);
 			debug(!"D9 ");
 			// store the signature
 			<store-rule-signature(|cookie)> sig;
@@ -54,11 +58,20 @@ rules /* store our own version of rule declarations */
 	* @type Rule(..) -> (Sort,[Sort],ConstraintSet)
 	*/
 	declare-rule:
-		Rule(match, build, _) -> (in-sorts,[],CSet([]))
+		Rule(match, build, _) -> (in-sorts,out-sorts,CSet([]))
 		where
 			debug(!"DR 1");
-			in-sorts := <sort-of> match;
+			in-sorts := <sort-of <+ ![]> match;
 			debug(!"DR 2")
+		where
+			// if the build does not have any applications, go through it and infer sorts
+			<positions-of-term(?RootApp(_) + ?App(_,_))> build;
+			if(?[]) then
+				out-sorts := <sort-of <+ ![]> build
+			else
+				out-sorts := []
+			end;
+			debug(!"DR 3")
 	
 		
 	/**
@@ -120,10 +133,14 @@ rules /* store our own version of rule declarations */
 	* @type VarDec(_{cookie},ConstType(Sort)) -> (Var(cookie),List(Sort))
 	*/
 	declare-argument-t:
-		VarDec(_{cookie},ConstType(s)) -> (Var(cookie),outs)
+		VarDec(_{cookie},ConstType(s)) -> (Var(cookie),constraint-set)
 		with
 			<sort-signature-of> s;
-			outs := <get-compatible-sorts>
+			get-compatible-sorts;
+			map(\ s -> CSet([Constraint(cookie,s)])\);
+			to-constraint-union => constraint-set
+			
+			
 	
 rules /* rule signature storage */
 

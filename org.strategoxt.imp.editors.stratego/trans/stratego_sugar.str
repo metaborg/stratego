@@ -19,6 +19,7 @@ imports
 	solver/constraints
 	rules/map
 	rules/check
+	rules/constructors
 	utils/utils
 	tests/test-all
 	to-yuml/to-yuml
@@ -115,7 +116,45 @@ rules
   		<not(?FAIL())> config;
   		<collect-all(?Constraint(cookie,_);get-constrained-var-sort,union)> config;
   		text := <pp-list(pp-sort-signature|" + ")>
-  	
+  
+  editor-hover:
+  	(Var(_{cookie}),position,ast,_,_) -> text
+  	where
+  		not(DisableSortAnalysis);
+  		debug(!" HOVER MATCH ");
+  		position' := <desugar-position(basic-desugar|ast)> position;
+  		ast' := <DecoratedAst>;
+  		debug(!" AST' ");
+  		<parent-at-position(?SDefT(_, _, _, _){decl-id}|position')> ast';
+  		debug(!"H1 ");
+  		<get-rule-signature> decl-id;
+  		debug(!"H2 ");
+  		?RuleSig(_, _, _, in-s, out-s, local-constraints, _);
+  		debug(!"H3 ");
+  		if(<?[_|_]> local-constraints) then
+	  		!ISection(
+	  			local-constraints,
+	  			ISection(
+	  				<map(\ (_,b) -> b \);to-constraint-union;solve-top;not(?FAIL())> in-s,
+	  				<map(\ (_,b) -> b \);to-constraint-union;solve-top;not(?FAIL())> out-s
+	  			))
+	  	else
+	  		!ISection(local-constraints,<map(\ (_,b) -> b \);to-constraint-union;solve-top;not(?FAIL())> in-s)
+	  	end;
+  		debug(!"H5 ");
+  		solve-top;
+  		debug(!"H6 ");
+  		if(?FAIL()) then
+  			text := "Failure";
+  			debug(!"H7 ")
+  		else
+  			collect-all(?Constraint(cookie,_);get-constrained-var-sort,union);
+  			debug(!"H8 ");
+  			text := <pp-list(pp-sort-signature|" + ")>;
+  			debug(!"H9 ")
+  		end;
+  		debug(!"H10 ")
+  		
   
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text

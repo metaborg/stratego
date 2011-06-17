@@ -11,15 +11,12 @@ builders
   provider : include/stratego_sugar.jar
 
   observer : editor-analyze
-
-  builder     : "Rename (builder)" = 
-  	rename-builder (source)(meta)
   
-  refactoring Id: "Rename (refactoring)" = 
+  refactoring Id: "Rename" = 
   	rename-refactoring (source)
 
   builder : "Show analysed AST" =
-    generate-analysed-aterm (realtime) (meta) (openeditor) (source)
+    generate-aterm (realtime) (meta) (openeditor) 
 
   builder : "Show desugared AST (selection)" =
     generate-desugared-aterm (realtime) (meta) (openeditor) (source)

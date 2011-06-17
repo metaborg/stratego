@@ -1,0 +1,50 @@
+module generic-rename
+
+imports
+  lib-refactoring/consistency-preservation
+  lib-refactoring/namebinding-preservation
+  
+rules
+	
+apply-rename-refactoring(annotate-names, collect-constraint-errors|oldname, newname):
+  asts-analyzed -> (ast-changes, errors, warnings)
+  where
+  	(ast-changes, errors, warnings) := <apply-rename-refactoring(annotate-names, collect-constraint-errors|[(oldname, newname)])> asts-analyzed
+
+apply-rename-refactoring(annotate-names, collect-constraint-errors|renamings):
+  asts-analyzed -> (ast-changes, errors, warnings)
+  where  
+  	asts-transformed := <topdown(try(apply-rename(|renamings)))> asts-analyzed;
+  	asts-reanalyzed := <annotate-names> asts-transformed;
+    (constraint-errors, warnings) := 
+      <introduced-constraint-errors(collect-constraint-errors)> (asts-analyzed, asts-reanalyzed);
+    binding-violations := 
+      <namebinding-error-messages(is-endangered-name(|renamings))> (asts-transformed, asts-reanalyzed);
+    errors := <conc>(binding-violations, constraint-errors);
+    ast-changes := <get-changed-asts> (asts-analyzed, asts-transformed)
+
+apply-rename(|renamings):
+  trm -> <apply-rename(|old, new) <+ apply-rename(|tail)> trm
+  where
+    <?[(old, new)|tail]> renamings
+
+apply-rename(|old, new): 
+  old -> new{ref} 
+  where 
+  	<?_{ref}> old
+
+is-endangered-name(|renamings):
+  trm -> <is-endangered-name(|old, new) <+ is-endangered-name(|tail)> trm
+  where
+    <?[(old, new)|tail]> renamings  
+	
+is-endangered-name(|old, new) =
+  where(strip-annos; (equal(|old{}) <+ equal(|new{})))
+
+get-changed-asts:
+  (asts-before, asts-after) -> changed-asts
+  where
+    changed-asts := <zip; filter(not(equal))> (
+      <topdown(strip-annos)> asts-before, 
+      <topdown(strip-annos)> asts-after
+    )

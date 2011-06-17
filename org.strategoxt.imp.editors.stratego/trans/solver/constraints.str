@@ -139,7 +139,7 @@ rules
 			// debug(!"8 ");
 			r-isection := <isect(compatible-constraints)> (r-cset,l-cset);
 			// debug(!"9 ");
-			isect := <zip(\ (Constraint(a,sl),Constraint(a,sr)) -> Constraint(a,<sort-apply> (sl,sr)) \)> (l-isection,r-isection);
+			isect := <zip(\ (Constraint(a,sl),Constraint(a,sr)) -> Constraint(a,<sort-apply-top> (sl,sr)) \)> (l-isection,r-isection);
 			// debug(!"10 ");
 			cset := <conc> (diff-l,diff-r,isect);
 			// debug(!"11 ");
@@ -223,7 +223,7 @@ rules
 		t@(l,r) -> t 
 		where
 			<eq> (<constraint-var> l, <constraint-var> r);
-			<sort-apply> (<constraint-sort> l, <constraint-sort> r)
+			<sort-apply-top> (<constraint-sort> l, <constraint-sort> r)
 	
 	eq-constraints:
 		t@(l,l) -> t 
