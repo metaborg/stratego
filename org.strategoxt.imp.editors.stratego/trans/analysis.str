@@ -381,11 +381,11 @@ rules // Declarations inside definition bodies
         // Undeclare
         <list-loop({
           sig := (<id>, 0);
-          try(DeclareCookie; rules(OuterCookie : sig -> <id>));
+          try({cookie: DeclareCookie; ?cookie; rules(OuterCookie : sig -> cookie)});
           rules(DeclareCookie :- sig)})> vars;
         x' := <declare-bodies-top> x;
         // Re-declare
-        all-keys-OuterCookie; map(\key -> <rules(DeclareCookie : key -> <OuterCookie> key)> \)
+        all-keys-OuterCookie; map({cookie: \key -> <OuterCookie; ?cookie; rules(DeclareCookie : key -> cookie)> \})
       |}
 
   declare-bodies:
