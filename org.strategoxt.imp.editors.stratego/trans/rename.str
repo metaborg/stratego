@@ -13,7 +13,7 @@ imports
 rules //rename refactoring
 
   rename-refactoring:
-    (newname, selected, position, ast, path, project-path) -> 
+    ((newname), selected, position, ast, path, project-path) -> 
     (ast-changes, [], <conc> (pre-condition-errors, semantic-errors), warnings)
     where 
       (renamings, asts, pre-condition-errors)  := <prepare-renaming> (newname, selected, ast, path);
