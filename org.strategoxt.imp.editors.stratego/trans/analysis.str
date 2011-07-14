@@ -143,7 +143,7 @@ rules // Declare globals
   declare-globals-top =
     if not(NoAnalysis) then
       with(<declare-globals> Import("libstratego-lib"));
-      alltd(declare-globals)
+      alltd(origin-track-forced(declare-globals))
     end
 
   declare-globals:
@@ -313,7 +313,7 @@ rules // Declare globals
 rules // Declarations inside definition bodies
 
   declare-bodies-top =
-    alltd(propose-completion <+ declare-bodies)
+    alltd(propose-completion <+ origin-track-forced(declare-bodies))
 
   declare-bodies:
     SDefT(x, s*, t*, s) -> SDefT(x, s'*, t'*, s')

@@ -4,6 +4,7 @@ module desugar
 imports
   libstratego-lib
   libstrc
+  lib/editor-common.generated
 
 signature constructors
 
@@ -23,7 +24,7 @@ signature constructors
 rules
 
   basic-desugar-top =
-    topdown(try(basic-desugar))
+    topdown(try(origin-track-forced(basic-desugar)))
 
   basic-desugar:
     SDef(x, a*, s) -> SDefT(x, a*, [], s)
