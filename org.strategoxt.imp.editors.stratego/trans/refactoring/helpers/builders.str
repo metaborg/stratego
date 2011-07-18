@@ -5,9 +5,9 @@ imports
   refactoring/inline
   refactoring/remove-debug
   lib-refactoring/fetch
-  lib-reconstruction/construct-text
+  //lib-reconstruction/construct-text
   libstratego-gpp
-  lib-reconstruction/stratego-parenthesize
+  //lib-reconstruction/stratego-parenthesize
   libstrc
 
 rules 
@@ -36,7 +36,8 @@ process-refactoring-result:
   where
     result := <
     	map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
-    	construct-textual-change(pp-stratego-string); 
+    	pp-stratego-string;
+    	//construct-textual-change(pp-stratego-string); 
     	Hd; 
     	Third
     > ast-changes; //textual result of the first changed file
