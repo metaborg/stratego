@@ -458,7 +458,18 @@ rules // Declarations inside definition bodies
       rules(
         DeclareCookie: (x, _, _) -> cookie
         Declaration: cookie -> dec
-      )
+      );
+      // HACK: a higher-order strategy can be passed as an argument, 
+      // as in s1(s2), where s2 has arguments.
+      // We overwrite (in local scope) global strategies with signature ?(x,_,_)
+      // Fixes Bug: a{1} = fail; foo(a{2}) = a{2} //NOT a{1}
+      all-keys-DeclareCookie; 
+      filter(declare-svar-signatures(|cookie, x))
+  
+  declare-svar-signatures(|cookie, svar-name):
+  	key@(svar-name,_,_) -> key
+  	where
+  	  rules (DeclareCookie: key -> cookie)
 
   declare-tvar:
     x -> x'
