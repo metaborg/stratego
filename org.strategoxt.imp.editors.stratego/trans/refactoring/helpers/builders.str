@@ -35,11 +35,13 @@ process-refactoring-result:
   (ast-changes, fatal-errors, errors, warnings) -> result
   where
     result := <
-    	map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
-    	pp-stratego-string;
+    	Hd;
+    	Snd; 
+    	pp-stratego-string
+    	//map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
     	//construct-textual-change(pp-stratego-string); 
-    	Hd; 
-    	Third
+    	//Hd; 
+    	//Third
     > ast-changes; //textual result of the first changed file
     <length; debug(!"number of affected files: ")> ast-changes;
     <debug(!"fatal-errors: ")> fatal-errors;
@@ -52,3 +54,8 @@ process-refactoring-result:
                <import-term(lib-reconstruction/Stratego.pp.af)>]);
     box2text-string(|100)
 */
+
+pp-builder:
+  (selected, position, ast, path, project-path) -> ("x.str", result)
+  where 
+    result := <debug(!"pp: "); pp-stratego-string> selected
