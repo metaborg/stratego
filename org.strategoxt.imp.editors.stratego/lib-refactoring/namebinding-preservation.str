@@ -18,13 +18,23 @@ namebinding-error-messages(is-name):
     violations := <collect-binding-violations(is-name)> (ast-t, ast-t-reanalyzed);
     violation-messages := <map(mk-binding-violation-message)> violations
 
+/**
+ * Collects name binding violation by comparing the name annotations 
+ * in the transformed tree before and after re-analysis.
+ * @example input:
+ * ast-t := <annotate; transform> ast
+ * ast-t-reanalyzed := <annotate; transform; re-annotate> ast
+ * is-name = ?oldname <+ ?newname
+ * @param matches endangered names
+ * @type (Term, Term) -> List((Term, Term)) 
+ */
 collect-binding-violations(is-name):
   (ast-t, ast-t-reanalyzed) -> violations
   where
     old-names  := <collect-all(where(is-name), conc)> ast-t; 
     new-names  := <collect-all(where(is-name), conc)> ast-t-reanalyzed;
     violations := <zip; binding-violations> (old-names, new-names)
-	
+  
 binding-violations: 
   [(x,y)|tl] -> violations
   where
@@ -40,8 +50,10 @@ binding-violations(|x,y):
        partition(is-binding-violation(|x,y))
     > lst
 
-is-binding-violation(|x,y) =
-  where((?(_,y) <+ ?(x,_)); not(?(x,y)))
+is-binding-violation(|x,y):
+  (old-refname, new-refname) -> (old-refname, new-refname)
+  where
+    <(?(_,y) <+ ?(x,_)); not(?(x,y))> (old-refname, new-refname)
 
 mk-binding-violation-message:
-  (name, _) -> (name, <!$[Variabele captures detected for '[<strip-annos> name]']>)
+  (name, _) -> (name, $[Variabele captures detected for '[<strip-annos> name]'])
