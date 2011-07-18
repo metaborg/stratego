@@ -30,10 +30,10 @@ rules
     SDef(x, a*, s) -> SDefT(x, a*, [], s)
 
   basic-desugar:
-    RDef(x, a*, s) -> SDefT(x, a*, [], s)
+    RDef(x, a*, s) -> SDefT(x, a*, [], SRule(s))
 
   basic-desugar:
-    RDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s)
+    RDefT(x, s*, t*, s) -> SDefT(x, s*, t*, SRule(s))
 
   basic-desugar:
     RDec(x, a*) -> RDecT(x, a*, [])
@@ -42,7 +42,7 @@ rules
     SDefNoArgs(x, s) -> SDefT(x, [], [], s)
 
   basic-desugar:
-    RDefNoArgs(x, s) -> SDefT(x, [], [], s)
+    RDefNoArgs(x, s) -> SDefT(x, [], [], SRule(s))
 
   basic-desugar:
     OverlayNoArgs(x, o) -> Overlay(x, [], o)
@@ -64,6 +64,12 @@ rules
 
   basic-desugar:
     RuleNoCond(t1, t2) -> Rule(t1, t2, [])
+
+  basic-desugar:
+    LRule(rule) -> Scope(lhs-vars, SRule(desugared-rule))
+    where 
+    	desugared-rule@Rule(lhs,_,_) := <basic-desugar-top> rule;
+    	lhs-vars := <collect-all(?Var(<id>))> lhs 
 
   basic-desugar:
     Choice(s1, s2) -> <try(basic-desugar)> GuardedLChoice(s1, Id(), s2)
@@ -120,3 +126,4 @@ rules
                       + ?FromMetaListExpr(_) + ?FromStrategy(_)
                       + \meta-var(x) -> Var(x)\
                       + \meta-listvar(x) -> Var(x)\, conc)> t
+

@@ -36,7 +36,7 @@ process-refactoring-result:
   where
     result := <
     	Hd;
-    	Snd; 
+    	Snd; debug; 
     	pp-stratego-string
     	//map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
     	//construct-textual-change(pp-stratego-string); 

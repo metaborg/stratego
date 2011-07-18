@@ -399,14 +399,7 @@ rules // Declarations inside definition bodies
       t1' := <declare-match> t1;
       w'  := <declare-bodies-top> w;
       t2' := <declare-bodies-top> t2
-
-  declare-bodies:
-    LRule(r) -> LRule(r')
-    with
-      {| DeclareCookie: // acts as a non-blanking scope
-        r' := <declare-bodies-top> r
-      |}
-
+  
   declare-bodies:
     SetDynRule(x, r) -> SetDynRule(x', r')
     with

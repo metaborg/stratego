@@ -64,31 +64,25 @@ inline-call(|decl):
     inlined-body := <
       substitute-multiple(|s-uses, svalues);
       substitute-multiple(|t-uses, tvalues);
-      try(rule-to-strategy)
+      try(rule-to-lambda-rule);
+      scope-free-vars
     > body
-    
-rule-to-strategy:
-  Rule(lhs, rhs, []) -> Seq(Match(lhs), Build(rhs))
 
-rule-to-strategy:
-  Rule(lhs, rhs, cond) -> Seq(Match(lhs), Seq(Where(cond), Build(rhs)))
-  where
-    <not(is-list)> cond
+scope-free-vars =
+  try(!Scope(<collect-vars; not(?[])>, <id>))
+  
+collect-vars =
+	topdown(strip-annos);
+	collect-om(
+		?Var(<id>) <+ collect-vars-scope 
+	);
+	flatten-list; make-set
 
-rule-to-strategy:
-  Rule(lhs, rhs, clauses) -> Seq(Match(lhs), Seq(<clauses-to-strategy> clauses, Build(rhs)))
+collect-vars-scope:
+	Scope(scoped-vars, body) -> <diff>(<collect-vars> body, scoped-vars)
 
-clauses-to-strategy:
-  [WhereClause(s)] -> Where(s)
-
-clauses-to-strategy:
-  [WithClause(s)] -> With(s)
-
-clauses-to-strategy:
-  [WhereClause(s)|clauses] -> Seq(Where(s), <clauses-to-strategy> clauses)
-
-clauses-to-strategy:
-  [WithClause(s)|clauses] -> Seq(With(s), <clauses-to-strategy> clauses)
+rule-to-lambda-rule:
+  rule@Rule(_, _, _) -> LRule(rule)
 
 svardec-to-svaruse:
   VarDec(name{ref}, _) -> CallT(SVar(name{ref}), [], [])
@@ -121,4 +115,3 @@ delete-elements(is-deletion-elem):
   ast -> ast-t
   where
     ast-t := <topdown(try(filter(not(is-deletion-elem))))> ast
-  
