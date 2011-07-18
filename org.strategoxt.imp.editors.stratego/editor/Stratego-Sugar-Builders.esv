@@ -11,16 +11,32 @@ builders
   provider : include/stratego_sugar.jar
 
   observer : editor-analyze
+
+
+  builder : "Rename" = rename-builder (meta)
   
-  refactoring Id: "Rename" = 
-  	rename-refactoring (source)
+  builder: "Inline strategy" = inline-builder (meta)
+
+  builder: "Remove debug calls" = remove-debug-builder (meta)
 
   builder : "Show analysed AST" =
-    generate-aterm (realtime) (meta) (openeditor) 
+    generate-aterm (meta)
 
   builder : "Show desugared AST (selection)" =
-    generate-desugared-aterm (realtime) (meta) (openeditor) (source)
+    generate-desugared-aterm (realtime) (openeditor) (source) (meta)
 
   builder : "Show AST (selection)" =
-    generate-aterm (realtime) (meta)(openeditor) (source) 
+    generate-aterm (source) (meta) 
+
+
+refactorings
+  
+  pretty-print: pp-stratego-string
+   
+  refactoring Id: "Rename" = rename-refactoring
+  //input
+  //  identifier : "New Name" = ""
+  	
+  //refactoring: "Remove debug" = remove-debug-refactoring //(preview) //(source)
+
  

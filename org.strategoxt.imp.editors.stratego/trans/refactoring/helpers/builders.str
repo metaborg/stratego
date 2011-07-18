@@ -1,0 +1,53 @@
+module refactoring/helpers/builders //for testing
+
+imports
+  refactoring/rename
+  refactoring/inline
+  refactoring/remove-debug
+  lib-refactoring/fetch
+  lib-reconstruction/construct-text
+  libstratego-gpp
+  lib-reconstruction/stratego-parenthesize
+  libstrc
+
+rules 
+
+rename-builder:
+  (selected, position, ast, path, project-path) -> ("x.str", result)
+  where 
+  	<oncetd(oldname := <is-string; has-annos>)> selected;
+    refactoring-result := <rename-refactoring> ("NEWNAME", oldname, position, ast, path, project-path);
+    result := <process-refactoring-result> refactoring-result
+
+inline-builder:
+  (selected, position, ast, path, project-path) -> ("x.str", result)
+  where
+    refactoring-result := <inline-refactoring> (None(), selected, position, ast, path, project-path);
+    result := <process-refactoring-result> refactoring-result
+
+remove-debug-builder:
+  (selected, position, ast, path, project-path) -> ("x.str", result)
+  where
+    refactoring-result := <remove-debug-refactoring> (None(), selected, position, ast, path, project-path);
+    result := <process-refactoring-result> refactoring-result
+      
+process-refactoring-result:
+  (ast-changes, fatal-errors, errors, warnings) -> result
+  where
+    result := <
+    	map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
+    	construct-textual-change(pp-stratego-string); 
+    	Hd; 
+    	Third
+    > ast-changes; //textual result of the first changed file
+    <length; debug(!"number of affected files: ")> ast-changes;
+    <debug(!"fatal-errors: ")> fatal-errors;
+    <debug(!"errors: ")> errors;
+    <debug(!"warnings: ")> warnings
+
+/*
+  pp-stratego-sugar = 
+    ast2abox(|[<import-term(include/Stratego-Sugar.generated.pp.af)>,
+               <import-term(lib-reconstruction/Stratego.pp.af)>]);
+    box2text-string(|100)
+*/

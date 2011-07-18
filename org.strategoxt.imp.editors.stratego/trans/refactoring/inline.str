@@ -1,0 +1,124 @@
+module refactoring/inline
+
+imports
+  libstrc
+
+rules //inline refactoring
+
+inline-refactoring:
+  (_, selected, position, ast, path, project-path) -> 
+  (ast-changes, fatal-errors, [], warnings)
+    where
+      declaration := <?(<?SDefT(_, _, _, _)>, _) <+ declaration-of-call> (selected, ast);
+      warnings := <warnings-multiple-declarations> (declaration, ast);
+      fatal-errors := <errors-recursion> declaration;
+      if <?[]> fatal-errors then
+        ast-changes := [(ast, <inline> (declaration, ast))]
+      else
+        ast-changes := []
+    end
+    
+declaration-of-call:
+  (CallT(SVar(name{ref}), _, _), ast) -> declaration
+  where
+    <oncetd(declaration := <?SDefT(name{ref}, _, _, _)>)> ast
+
+errors-recursion:
+  decl@SDefT(name{ref}, _, _, _) -> errors
+  where
+    if <is-recursive-declaration> decl then
+      errors := [(decl, "strategy declaration contains recursive call")]
+    else
+      errors := []
+    end
+
+is-recursive-declaration:
+  decl@SDefT(name{ref}, _, _, _) -> decl
+  where
+    <oncetd(?Rec(_, _) <+ ?SVar(name{ref}))> decl
+
+warnings-multiple-declarations:
+  (SDefT(name{ref}, _, _, _), ast) -> warnings
+  where
+    all-defs := <collect-all(?SDefT(name{ref}, _, _, _))> ast;
+    if <?[_,_|_]> all-defs then
+      warnings := <map(!(<id>, "multiple declarations found"))> all-defs
+    else
+      warnings := []
+    end
+    
+inline:
+  (decl@SDefT(name{ref}, _, _, _), ast) -> ast-inlined
+  where
+    ast-inlined := <
+      topdown(try(inline-call(|decl)));
+      delete-elements(?decl)
+    > ast 
+  
+inline-call(|decl):
+  CallT(SVar(name{ref}), svalues, tvalues) -> inlined-body
+  where
+    <?SDefT(name{ref}, svars, tvars, body)> decl;
+    s-uses := <map(svardec-to-svaruse)> svars;
+    t-uses := <map(tvardec-to-tvaruse)> tvars;
+    inlined-body := <
+      substitute-multiple(|s-uses, svalues);
+      substitute-multiple(|t-uses, tvalues);
+      try(rule-to-strategy)
+    > body
+    
+rule-to-strategy:
+  Rule(lhs, rhs, []) -> Seq(Match(lhs), Build(rhs))
+
+rule-to-strategy:
+  Rule(lhs, rhs, cond) -> Seq(Match(lhs), Seq(Where(cond), Build(rhs)))
+  where
+    <not(is-list)> cond
+
+rule-to-strategy:
+  Rule(lhs, rhs, clauses) -> Seq(Match(lhs), Seq(<clauses-to-strategy> clauses, Build(rhs)))
+
+clauses-to-strategy:
+  [WhereClause(s)] -> Where(s)
+
+clauses-to-strategy:
+  [WithClause(s)] -> With(s)
+
+clauses-to-strategy:
+  [WhereClause(s)|clauses] -> Seq(Where(s), <clauses-to-strategy> clauses)
+
+clauses-to-strategy:
+  [WithClause(s)|clauses] -> Seq(With(s), <clauses-to-strategy> clauses)
+
+svardec-to-svaruse:
+  VarDec(name{ref}, _) -> CallT(SVar(name{ref}), [], [])
+
+tvardec-to-tvaruse:
+  VarDec(name{ref}, _) -> Var(name{ref})
+
+substitute-multiple(|vars, values):
+  body -> new-body
+  where
+    <?[hvar|tl-vars]> vars;
+    <?[hvalue|tl-values]> values;
+    new-body := <
+      substitute-single(|hvar, hvalue);
+      substitute-multiple(|tl-vars, tl-values)
+    > body
+
+substitute-multiple(|vars, values):
+  body -> body
+  where
+    <?[]> vars;
+    <?[]> values
+
+substitute-single(|var, value):
+  body -> new-body
+  where
+    new-body := <topdown(try(?var; !value))> body
+
+delete-elements(is-deletion-elem):
+  ast -> ast-t
+  where
+    ast-t := <topdown(try(filter(not(is-deletion-elem))))> ast
+  

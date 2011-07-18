@@ -8,14 +8,15 @@ imports
   analysis
   desugar
   lib/editor-common.generated
-  rename
+  refactoring/rename
+  refactoring/helpers/builders
 
 strategies
 
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (/*ast',*/ errors, warnings, [])
+    (ast, path, project-path) -> (ast', errors, warnings, [])
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
