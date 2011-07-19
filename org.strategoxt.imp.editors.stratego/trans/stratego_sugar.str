@@ -9,6 +9,7 @@ imports
   desugar
   lib/editor-common.generated
   refactoring/rename
+  refactoring/format
   refactoring/helpers/builders
 
 strategies

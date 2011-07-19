@@ -65,7 +65,7 @@ rules
   basic-desugar:
     RuleNoCond(t1, t2) -> Rule(t1, t2, [])
 
-  basic-desugar:
+  basic-desugar: //TODO: resugar rule for pretty-printing?
     LRule(rule) -> Scope(lhs-vars, SRule(desugared-rule))
     where 
     	desugared-rule@Rule(lhs,_,_) := <basic-desugar-top> rule;

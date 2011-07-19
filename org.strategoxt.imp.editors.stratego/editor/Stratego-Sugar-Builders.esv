@@ -3,15 +3,15 @@ module Stratego-Sugar-Builders
 
 imports Stratego-Sugar-Builders.generated
 
+
 builders
                                                                                       
   // This file can be used for custom analysis rules.                                 
   // See the imported file for a brief introduction and examples.                     
-                                                                                      
+                                                                                       
   provider : include/stratego_sugar.jar
 
   observer : editor-analyze
-
 
   builder : "Rename" = rename-builder (meta)
   
@@ -28,15 +28,24 @@ builders
   builder : "Show AST (selection)" =
     generate-aterm (source) (meta) 
 
+  builder : "PP Stratego String" =
+    pp-builder (source) (meta) 
+
+  builder : "PP Stratego String (analyzed)" =
+    pp-builder (meta) 
 
 refactorings
   
   pretty-print: pp-stratego-string
    
-  refactoring Id: "Rename" = rename-refactoring
-  //input
-  //  identifier : "New Name" = ""
+  refactoring Id: "Rename" = rename-refactoring //(shortcut)
+  input
+    identifier : "New Name"
+    //identifier : "New Name" = "<newname>"
+    //identifier : "New Name" = selected-name
   	
-  //refactoring: "Remove debug" = remove-debug-refactoring //(preview) //(source)
+  refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) //(preview) (shortcut)
+
+  refactoring: "Remove debug" = remove-debug-refactoring (meta) //(preview)
 
  

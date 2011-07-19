@@ -70,6 +70,7 @@ inline-call(|decl):
 
 scope-free-vars =
   try(!Scope(<collect-vars; not(?[])>, <id>))
+  //TODO: warning, programmar may not be happy with the result?
   
 collect-vars =
 	topdown(strip-annos);

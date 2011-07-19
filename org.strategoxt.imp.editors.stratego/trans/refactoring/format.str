@@ -1,0 +1,10 @@
+module refactoring/format
+
+imports
+  libstrc
+
+rules //remove debug refactoring
+
+format-refactoring:
+  (_, selected, position, ast, path, project-path) -> 
+  ([(selected, <pp-stratego-string> selected)], [], [], [])
