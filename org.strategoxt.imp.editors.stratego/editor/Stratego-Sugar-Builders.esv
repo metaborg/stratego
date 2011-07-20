@@ -41,8 +41,6 @@ refactorings
   refactoring Id: "Rename" = rename-refactoring //(shortcut)
   input
     identifier : "New Name"
-    //identifier : "New Name" = "<newname>"
-    //identifier : "New Name" = selected-name
   	
   refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) //(preview) (shortcut)
 
