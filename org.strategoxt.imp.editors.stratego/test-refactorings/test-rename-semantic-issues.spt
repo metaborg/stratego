@@ -1,0 +1,70 @@
+module test-rename-samantic-issues
+ 
+language Stratego-Sugar
+
+/**
+ * Basic rename testcases: basic constructs, errors do not occur
+ */
+setup [[
+  module test-rename-semantic-issues
+  rules
+]]
+
+test Rename Unintended-Strategy-Overloading (1)
+  [[ 
+  	  aaa = fail
+      [[bbb]] =  id 
+  ]] refactor rename-refactoring("aaa") to 
+  [[
+  	  aaa = fail
+      aaa = id 
+  ]]
+  1 error
+  
+test Rename Unintended-Strategy-Overloading (2)
+  [[ 
+  	  aaa(s) = s; fail
+      [[bbb]] =  id 
+  ]] refactor rename-refactoring("aaa") to 
+  [[
+  	  aaa(s) = s; fail
+      aaa = id 
+  ]]
+  0 error
+  
+test Rename Shadow-Global-Strategy (1)
+  [[ 
+  	  aaa = debug; fail
+  	  b(foo) = aaa; [[foo]]
+  ]] refactor rename-refactoring("aaa") to 
+  [[
+  	  aaa = debug; fail
+  	  b(aaa) = aaa; aaa
+  ]]
+  1 error
+
+test Rename Shadow-Global-Strategy (2)
+  [[ 
+  	  aaa(s|t) = s; fail
+  	  b(foo) = [[aaa]](id|[]); foo
+  ]] refactor rename-refactoring("foo") to 
+  [[
+  	  foo(s|t) = s; fail
+  	  b(foo) = [[foo]](id|[]); foo
+  ]]
+  1 error
+
+test Rename Duplicate-Local-Declaration
+  [[
+  	  aaa = 
+  	  	[[b]] := "";
+  	  	c := "" 
+  ]] refactor rename-refactoring("c") to 
+  [[
+  	  aaa = 
+  	  	c := "";
+  	  	c := "" 
+  ]]
+  1 error
+  1 warning
+
