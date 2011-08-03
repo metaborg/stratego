@@ -6,6 +6,19 @@ lib/editor-common.generated
 rules //strategies for fetching terms in the ast
 
 /**
+ * fetches the AST position by visiting the ancestors 
+ * of a term, bottum up, starting at a certain position.
+ * @param matches ancestor term to be fetched
+ * @param AST
+ * @type List(Int)) ->  List(Int)
+ */ 
+fetch-up-position(match|ast):
+  position -> position'
+  where
+  	term := <term-at-position(|position)> ast;
+  	(term', position') := <fetch-up-with-position(match|ast)> (term, position)
+  	  
+/**
  * fetches an ancestor and its AST position by visiting the ancestors of a term, bottum up
  * @param matches ancestor term to be fetched
  * @param AST

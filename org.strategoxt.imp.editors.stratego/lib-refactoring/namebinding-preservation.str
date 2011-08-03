@@ -8,14 +8,14 @@ rules
  * @example input:
  * ast-t := <annotate; transform> ast
  * ast-t-reanalyzed := <annotate; transform; re-annotate> ast
- * is-name = ?oldname <+ ?newname
+ * get-refname = ?oldname <+ ?newname
  * @param matches endangered names
  * @type (Term, Term) -> List((Term, String)) 
  */
-namebinding-error-messages(is-name):
+namebinding-error-messages(get-refname):
   (ast-t, ast-t-reanalyzed) -> violation-messages
   where
-    violations := <collect-binding-violations(is-name)> (ast-t, ast-t-reanalyzed);
+    violations := <collect-binding-violations(get-refname)> (ast-t, ast-t-reanalyzed);
     violation-messages := <map(mk-binding-violation-message)> violations
 
 /**
@@ -24,15 +24,15 @@ namebinding-error-messages(is-name):
  * @example input:
  * ast-t := <annotate; transform> ast
  * ast-t-reanalyzed := <annotate; transform; re-annotate> ast
- * is-name = ?oldname <+ ?newname
+ * get-refname = ?oldname <+ ?newname
  * @param matches endangered names
  * @type (Term, Term) -> List((Term, Term)) 
  */
-collect-binding-violations(is-name):
+collect-binding-violations(get-refname):
   (ast-t, ast-t-reanalyzed) -> violations
   where
-    old-names  := <collect-all(where(is-name), conc)> ast-t; 
-    new-names  := <collect-all(where(is-name), conc)> ast-t-reanalyzed;
+    old-names  := <collect-all(get-refname, conc)> ast-t; 
+    new-names  := <collect-all(get-refname, conc)> ast-t-reanalyzed;
     violations := <zip; binding-violations> (old-names, new-names)
   
 binding-violations: 
@@ -52,7 +52,7 @@ binding-violations(|x,y):
 
 is-binding-violation(|x,y):
   (old-refname, new-refname) -> (old-refname, new-refname)
-  where
+  where 
     <(?(_,y) <+ ?(x,_)); not(?(x,y))> (old-refname, new-refname)
 
 mk-binding-violation-message:

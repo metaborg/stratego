@@ -16,7 +16,11 @@ rename-refactoring:
   (ast-changes, [], <make-set> errors, <make-set> warnings)
   where 
     renamings := <get-dependend-renamings> (name{ref}, newname);
-    (asts, parse-errors) := <get-asts-affected-by-renaming>(ref, renamings, ast-analyzed);
+    if <not(has-extension(|"spt"))> path then
+      (asts, parse-errors) := <get-asts-affected-by-renaming>(ref, renamings, ast-analyzed)
+    else //testing language
+      (asts, parse-errors) := ([ast-analyzed], [])
+    end;
     (ast-changes, semantic-errors, warnings) := <apply-rename-refactoring(
       re-analyse-names, 
       collect-semantic-issues |

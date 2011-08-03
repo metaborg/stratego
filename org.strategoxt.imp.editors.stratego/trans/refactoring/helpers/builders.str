@@ -3,30 +3,41 @@ module refactoring/helpers/builders //for testing
 imports
   refactoring/rename
   refactoring/inline
+  refactoring/extract
   refactoring/remove-debug
   lib-refactoring/fetch
   //lib-reconstruction/construct-text
   libstratego-gpp
   //lib-reconstruction/stratego-parenthesize
   libstrc
+  include/Stratego-Sugar-parenthesize
 
 rules 
 
+//surround-with (preserve-annos, ...)
+
 rename-builder:
-  (selected, position, ast, path, project-path) -> ("x.str", result)
+  (selected, position, ast, path, project-path) -> ("x.aterm", result)
   where 
   	<oncetd(oldname := <is-string; has-annos>)> selected;
     refactoring-result := <rename-refactoring> ("NEWNAME", oldname, position, ast, path, project-path);
     result := <process-refactoring-result> refactoring-result
 
 inline-builder:
-  (selected, position, ast, path, project-path) -> ("x.str", result)
+  (selected, position, ast, path, project-path) -> ("x.aterm", result)
   where
     refactoring-result := <inline-refactoring> (None(), selected, position, ast, path, project-path);
     result := <process-refactoring-result> refactoring-result
 
+extract-builder:
+  (selected, position, ast, path, project-path) -> ("x.aterm", result)
+  where
+    refactoring-result := <extract-refactoring> ("MyStrategy", selected, position, ast, path, project-path);
+    result := <process-refactoring-result> refactoring-result
+
+
 remove-debug-builder:
-  (selected, position, ast, path, project-path) -> ("x.str", result)
+  (selected, position, ast, path, project-path) -> ("x.aterm", result)
   where
     refactoring-result := <remove-debug-refactoring> (None(), selected, position, ast, path, project-path);
     result := <process-refactoring-result> refactoring-result
@@ -36,8 +47,8 @@ process-refactoring-result:
   where
     result := <
     	Hd;
-    	Snd; debug; 
-    	pp-stratego-string
+    	Snd; debug
+    	//pp-stratego-string
     	//map(!(<Fst>, <Snd; parenthesize-Stratego>)); 
     	//construct-textual-change(pp-stratego-string); 
     	//Hd; 
@@ -59,3 +70,9 @@ pp-builder:
   (selected, position, ast, path, project-path) -> ("x.str", result)
   where 
     result := <debug(!"pp: "); pp-stratego-string> selected
+
+test-builder:
+  (selected, position, ast, path, project-path) -> ("x.str", result)
+  where 
+    //result := <debug(!"pp: "); parenthesize-Stratego-Sugar> selected
+    result := <reorder-right-associativity-chain> selected 

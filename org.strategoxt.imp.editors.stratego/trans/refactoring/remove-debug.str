@@ -5,6 +5,8 @@ imports
 
 rules //remove debug refactoring
 
+//TODO: optional: replace <debug> x by !x or not(fail)
+//TODO: optional: in workspace/ in file/ in selection, only visable if selection empty?
 remove-debug-refactoring:
   (_, selected, position, ast, path, project-path) -> 
   (ast-changes, [], <conc> (pre-condition-errors, semantic-errors), warnings)
@@ -35,6 +37,22 @@ remove-debug: //TODO: preference because more specific
 remove-debug:
   GuardedLChoice(s1, s2, <debug-call>) -> GuardedLChoice(s1, s2, Id())
 
+remove-debug:
+  Rule(lhs, App(<debug-call>, rhs), conds) -> Rule(lhs, rhs, conds)
+
+remove-debug:
+  Rule(lhs, rhs, <debug-call>) -> Rule(lhs, rhs, [])
+
+remove-debug:
+  Rule(lhs, rhs, conds) -> Rule(lhs, rhs, conds')
+  where
+  	conds' := <filter(not(is-debug-clause))> conds
+  	
+is-debug-clause =
+  where(
+    ?WhereClause(<debug-call>) <+
+    ?WithClause(<debug-call>)
+  )
 
 //TODO: support some common patterns
 //<debug> term ... result not used ???
@@ -48,7 +66,17 @@ debug-call =
   where(?Where(BA(<debug-call>, NoAnnoList(_))))
 
 debug-call =
+  where(?With(BA(<debug-call>, Var(_))))
+
+debug-call =
+  where(?With(BA(<debug-call>, NoAnnoList(_))))
+
+debug-call =
   ?CallT(SVar("debug"{_}), _, [])
 
 debug-call =
   ?Where(CallT(SVar("debug"{_}), _, []))
+  
+debug-call =
+  ?With(CallT(SVar("debug"{_}), _, []))
+  

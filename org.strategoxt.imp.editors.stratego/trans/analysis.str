@@ -367,14 +367,14 @@ rules // Declarations inside definition bodies
   declare-bodies:
     ScopeDefault(s) -> ScopeDefault(s')
     with
-      s' := <scope-variables(declare-bodies-top | <tvars>)> s
+      (_, s') := <scope-variables(declare-bodies-top)> (<tvars>, s)
 
   declare-bodies:
-    Scope(v*, s) -> Scope(v*, s')
+    Scope(v*, s) -> Scope(v', s')
     with
-      s' := <scope-variables(declare-bodies-top | v*)> s
+      (v', s') := <scope-variables(declare-bodies-top)> (v*, s)
       
-  scope-variables(s | vars): x -> x'
+  scope-variables(s): (vars, x) -> (vars', x')
     with
       // Temporarely undeclare vars for redeclaration errors
       {| OuterCookie:
@@ -384,6 +384,7 @@ rules // Declarations inside definition bodies
           try({cookie: DeclareCookie; ?cookie; rules(OuterCookie : sig -> cookie)});
           rules(DeclareCookie :- sig)})> vars;
         x' := <declare-bodies-top> x;
+        vars' := <map(!Var(<id>); try(declare-bodies); ?Var(<id>))> vars; 
         // Re-declare
         all-keys-OuterCookie; map({cookie: \key -> <OuterCookie; ?cookie; rules(DeclareCookie : key -> cookie)> \})
       |}

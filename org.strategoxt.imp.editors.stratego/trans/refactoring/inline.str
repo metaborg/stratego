@@ -8,7 +8,7 @@ rules //inline refactoring
 inline-refactoring:
   (_, selected, position, ast, path, project-path) -> 
   (ast-changes, fatal-errors, [], warnings)
-    where
+    where //TODO: multi-file
       declaration := <?(<?SDefT(_, _, _, _)>, _) <+ declaration-of-call> (selected, ast);
       warnings := <warnings-multiple-declarations> (declaration, ast);
       fatal-errors := <errors-recursion> declaration;
@@ -17,11 +17,17 @@ inline-refactoring:
       else
         ast-changes := []
     end
-    
+ 
+
+rules //resolve declaration 
+	
 declaration-of-call:
   (CallT(SVar(name{ref}), _, _), ast) -> declaration
   where
     <oncetd(declaration := <?SDefT(name{ref}, _, _, _)>)> ast
+
+
+rules //precondition errors, warnings
 
 errors-recursion:
   decl@SDefT(name{ref}, _, _, _) -> errors
@@ -42,17 +48,21 @@ warnings-multiple-declarations:
   where
     all-defs := <collect-all(?SDefT(name{ref}, _, _, _))> ast;
     if <?[_,_|_]> all-defs then
-      warnings := <map(!(<id>, "multiple declarations found"))> all-defs
+      warnings := 
+      	<map(!(<id>, "multiple declarations found, refactoring may change behaviour by introducing determinism"))> all-defs
     else
       warnings := []
     end
-    
+
+
+rules //transformation
+	
 inline:
   (decl@SDefT(name{ref}, _, _, _), ast) -> ast-inlined
   where
     ast-inlined := <
       topdown(try(inline-call(|decl)));
-      delete-elements(?decl)
+      delete-elements(?decl) //TODO: remove all declarations, make clear in error message?
     > ast 
   
 inline-call(|decl):
@@ -68,6 +78,12 @@ inline-call(|decl):
       scope-free-vars
     > body
 
+
+rules //helpers scoping
+	
+rule-to-lambda-rule:
+  rule@Rule(_, _, _) -> LRule(rule)
+
 scope-free-vars =
   try(!Scope(<collect-vars; not(?[])>, <id>))
   //TODO: warning, programmar may not be happy with the result?
@@ -82,15 +98,24 @@ collect-vars =
 collect-vars-scope:
 	Scope(scoped-vars, body) -> <diff>(<collect-vars> body, scoped-vars)
 
-rule-to-lambda-rule:
-  rule@Rule(_, _, _) -> LRule(rule)
+collect-vars-scope: //TODO: resugar rule for pretty-printing?
+    LRule(rule@Rule(lhs, _, _)) -> <diff>(<collect-vars> rule, lhs-vars)
+    where 
+    	lhs-vars := <collect-all(?Var(<id>))> lhs 
 
+
+rules //helpers variabele substitution
+	
 svardec-to-svaruse:
   VarDec(name{ref}, _) -> CallT(SVar(name{ref}), [], [])
 
 tvardec-to-tvaruse:
   VarDec(name{ref}, _) -> Var(name{ref})
 
+
+rules //helpers variabele substitution, generic 
+
+//TODO: more efficient one-pass implementation
 substitute-multiple(|vars, values):
   body -> new-body
   where
@@ -112,6 +137,9 @@ substitute-single(|var, value):
   where
     new-body := <topdown(try(?var; !value))> body
 
+
+rules //helper transformation, generic
+	
 delete-elements(is-deletion-elem):
   ast -> ast-t
   where
