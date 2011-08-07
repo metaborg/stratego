@@ -17,6 +17,8 @@ builders
   
   builder: "Inline strategy" = inline-builder (meta)
 
+  builder: "Extract strategy" = extract-builder (meta)
+
   builder: "Remove debug calls" = remove-debug-builder (meta)
 
   builder : "Show analysed AST" =
@@ -31,19 +33,24 @@ builders
   builder : "PP Stratego String" =
     pp-builder (source) (meta) 
 
-  builder : "PP Stratego String (analyzed)" =
-    pp-builder (meta) 
+  //builder : "Test" =
+    //test-builder //(meta) 
 
-refactorings
-  
+    
+refactorings 
+   
   pretty-print: pp-stratego-string
    
-  refactoring Id: "Rename" = rename-refactoring //(shortcut)
+  refactoring Id: "Rename" = rename-refactoring
+  shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
   input
     identifier : "New Name"
   	
-  refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) //(preview) (shortcut)
+  refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) 
+  shortcut: "org.eclipse.jdt.ui.edit.text.java.format"
+  
+  refactoring: "Remove debug" = remove-debug-refactoring
 
-  refactoring: "Remove debug" = remove-debug-refactoring (meta) //(preview)
+  refactoring: "Inline" = inline-refactoring (meta)
 
- 
+  refactoring: "Extract" = extract-refactoring (meta)
