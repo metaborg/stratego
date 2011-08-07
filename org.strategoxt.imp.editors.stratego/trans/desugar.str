@@ -45,6 +45,11 @@ rules
     RDefNoArgs(x, s) -> SDefT(x, [], [], SRule(s))
 
   basic-desugar:
+    Rule(x, y, z) -> Rule(x, y, [WhereClause(z)])
+    where
+    	<not(is-list)> z
+
+  basic-desugar:
     OverlayNoArgs(x, o) -> Overlay(x, [], o)
 
   basic-desugar:
