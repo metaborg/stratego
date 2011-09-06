@@ -51,6 +51,6 @@ refactorings
   
   refactoring: "Remove debug" = remove-debug-refactoring
 
-  refactoring: "Inline" = inline-refactoring (meta)
+  refactoring: "Inline" = inline-refactoring
 
   refactoring: "Extract" = extract-refactoring (meta)
