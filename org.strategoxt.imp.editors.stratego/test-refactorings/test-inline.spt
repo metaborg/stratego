@@ -41,16 +41,6 @@ test Inline Definition Selected
   	  bar = aaa
   ]]  
 
-//TODO: more tolerant with selection
-test Inline Definition-Name Selected
-  [[ 
-  	  bar = foo
-  	  [[foo]] = aaa 
-  ]] refactor inline-refactoring to
-  [[ 
-  	  bar = aaa
-  ]]  
-
 test Inline Simple Rule
   [[ 
   	  bar = <map(foo)> [1,2,3]
@@ -78,3 +68,5 @@ test Inline Strategy with Variabeles
   	  bar = <map({a: ?a; !(a,a)})> [1,2,3]
   ]]  
 
+
+     

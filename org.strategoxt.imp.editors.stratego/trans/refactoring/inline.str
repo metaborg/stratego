@@ -7,18 +7,13 @@ rules //inline refactoring
 
 inline-refactoring:
   (_, selected, position, ast, path, project-path) -> 
-  (ast-changes, fatal-errors, [], warnings)
+  (ast-changes, [], [], warnings)
     where //TODO: multi-file
       declaration := <?(<?SDefT(_, _, _, _)>, _) <+ declaration-of-call> (selected, ast);
+      <not(errors-recursion)> declaration;
       warnings := <warnings-multiple-declarations> (declaration, ast);
-      fatal-errors := <errors-recursion> declaration;
-      if <?[]> fatal-errors then
-        ast-changes := [(ast, <inline> (declaration, ast))]
-      else
-        ast-changes := []
-    end
+      ast-changes := [(ast, <inline> (declaration, ast))]
  
-
 rules //resolve declaration 
 	
 declaration-of-call:
@@ -30,13 +25,9 @@ declaration-of-call:
 rules //precondition errors, warnings
 
 errors-recursion:
-  decl@SDefT(name{ref}, _, _, _) -> errors
+  decl@SDefT(name{ref}, _, _, _) -> [(decl, "strategy declaration contains recursive call")]
   where
-    if <is-recursive-declaration> decl then
-      errors := [(decl, "strategy declaration contains recursive call")]
-    else
-      errors := []
-    end
+    <is-recursive-declaration> decl
 
 is-recursive-declaration:
   decl@SDefT(name{ref}, _, _, _) -> decl
@@ -53,6 +44,19 @@ warnings-multiple-declarations:
     else
       warnings := []
     end
+
+inline-refactoring:
+  (_, selected, position, ast, path, project-path) -> 
+  ([], ["No declaration found. Libary strategy?"], [], [])
+    where //TODO: multi-file
+      <not(?(<?SDefT(_, _, _, _)>, _) <+ declaration-of-call)> (selected, ast)
+
+inline-refactoring:
+  (_, selected, position, ast, path, project-path) -> 
+  ([], fatal-errors, [], [])
+    where //TODO: multi-file
+      declaration := <?(<?SDefT(_, _, _, _)>, _) <+ declaration-of-call> (selected, ast);
+      fatal-errors := <errors-recursion> declaration
 
 
 rules //transformation

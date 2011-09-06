@@ -6,7 +6,7 @@ language Stratego-Sugar
  * Basic rename testcases: basic constructs, errors do not occur
  */
 setup [[
-  module test-rename-todo
+  module test-rename-TODO
   rules
 ]]
 

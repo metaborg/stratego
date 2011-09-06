@@ -11,7 +11,9 @@ test Pretty-Print
     rules
       bar(x) = map(x)]] 
   ]] refactor format-refactoring to
-  "module test-prettyprint
-    rules
-      bar(|x) = map(x)"
- 
+"module test-prettyprint
+
+rules
+
+ bar(x) =
+ map(x)"
