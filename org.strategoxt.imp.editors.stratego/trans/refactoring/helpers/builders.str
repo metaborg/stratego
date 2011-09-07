@@ -10,7 +10,6 @@ imports
   libstratego-gpp
   //lib-reconstruction/stratego-parenthesize
   libstrc
-  include/Stratego-Sugar-parenthesize
 
 rules 
 
