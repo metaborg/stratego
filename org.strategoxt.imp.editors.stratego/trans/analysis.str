@@ -6,9 +6,9 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
-
+      
 strategies
-
+ 
   analyze-ast:
     (ast, path, project-path) -> ast'
     with
@@ -216,11 +216,42 @@ rules // Declare globals
      <+
        full-path := <resolve-import-path> $[[x].rtree]
 
+   external java-load-properties(|)
+   external java-interpolate-environment-variables(|)
+   
+   load-include-properties =
+   	   MemoizeIncludeProperties
+   	 <+ 
+         paths := <java-load-properties <+ ![]> $[[<ProjectDir>]/.spoofax/stratego.properties]
+       ; rules(MemoizeIncludeProperties: paths)
+
+   load-include-paths =
+      load-include-properties 
+    ; fetch-elem(\ ("stratego.include", paths) -> paths \)
+    ; string-tokenize(|[' '])
+      
+   default-include-paths =
+      <map(\ x -> $[[<ProjectDir>]/[x]] \)> [ "", "trans", "lib", "src", "syntax", "syn", "src/syntax" ]
+    ; if SourceDir then 
+        ![ <SourceDir> | <id> ] 
+      else 
+        id 
+      end
+  	   
+   expand-relative-path :
+     x -> $[[<ProjectDir>]/[x]]
+   where
+     explode-string ; Hd ; not(?'/')
+
    resolve-import-path:
      x -> full-path
      where
+       <conc> (<load-include-paths <+ ![]>, <default-include-paths>)
+     ; includes := <map(java-interpolate-environment-variables ; try(expand-relative-path))>
+     ; full-path := <fetch-elem(\ path -> <file-exists> $[[path]/[x]] \)> includes
+        
         // FIXME: fetch true import paths from someplace
-        full-path := <file-exists> $[[<SourceDir>]/[x]]
+/*        full-path := <file-exists> $[[<SourceDir>]/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/trans/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/lib/[x]]
@@ -228,7 +259,7 @@ rules // Declare globals
      <+ full-path := <file-exists> $[[<ProjectDir>]/syntax/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/syn/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/src/syntax/[x]]
-
+*/
   read-stratego-signatures:
     str -> <to-signatures> file
     where

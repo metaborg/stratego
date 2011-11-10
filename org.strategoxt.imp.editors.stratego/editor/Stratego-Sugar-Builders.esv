@@ -10,6 +10,7 @@ builders
   // See the imported file for a brief introduction and examples.                     
                                                                                        
   provider : include/stratego_sugar.jar
+  provider : include/stratego_sugar-java.jar
 
   observer : editor-analyze
 
