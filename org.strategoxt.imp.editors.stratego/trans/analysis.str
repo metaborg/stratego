@@ -6,9 +6,10 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
-      
+    
 strategies
  
+  
   analyze-ast:
     (ast, path, project-path) -> ast'
     with
@@ -222,7 +223,7 @@ rules // Declare globals
    load-include-properties =
    	   MemoizeIncludeProperties
    	 <+ 
-         paths := <java-load-properties <+ ![]> $[[<ProjectDir>]/.spoofax/stratego.properties]
+         paths := <java-load-properties <+ ![]> $[[<ProjectDir>]/.settings/org.strategoxt.imp.editors.stratego.prefs]
        ; rules(MemoizeIncludeProperties: paths)
 
    load-include-paths =
