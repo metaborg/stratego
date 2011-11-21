@@ -242,7 +242,7 @@ rules // Declare globals
    expand-relative-path :
      x -> $[[<ProjectDir>]/[x]]
    where
-     explode-string ; Hd ; not(?'/')
+     <is-relpath> x
 
    resolve-import-path:
      x -> full-path
