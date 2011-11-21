@@ -35,11 +35,4 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>lib-org.strategoxt.strj_0.17.92.201111091047</name>
-			<type>2</type>
-			<location>/home/karltk/apps/eclipse-3.7-webapps/plugins/org.strategoxt.strj_0.17.92.201111091047</location>
-		</link>
-	</linkedResources>
 </projectDescription>
