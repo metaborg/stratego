@@ -1,8 +1,9 @@
 package org.strategoxt.imp.editors.stratego.strategies;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -27,7 +28,7 @@ public class java_load_properties_0_0 extends Strategy {
 
 		Properties prop = new Properties();
 		try {
-			prop.load(new FileReader(path.stringValue()));
+			prop.load(new FileInputStream(path.stringValue()));
 		} catch (FileNotFoundException e) {
 			return null;
 		} catch (IOException e) {
@@ -36,7 +37,10 @@ public class java_load_properties_0_0 extends Strategy {
 
 		ITermFactory factory = context.getFactory();
 		IStrategoList els = factory.makeList();
-		for (String key : prop.stringPropertyNames()) {
+		for (Object o : Collections.list(prop.propertyNames())) {
+			if(!(o instanceof String))
+				continue;
+			String key = (String)o;
 			IStrategoString k = factory.makeString(key);
 			IStrategoString v = factory.makeString(prop.getProperty(key));
 			IStrategoTuple tup = factory.makeTuple(k, v);
