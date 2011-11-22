@@ -6,10 +6,10 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
-    
+
 strategies
- 
-  
+
+
   analyze-ast:
     (ast, path, project-path) -> ast'
     with
@@ -219,26 +219,26 @@ rules // Declare globals
 
    external java-load-properties(|)
    external java-interpolate-environment-variables(|)
-   
+
    load-include-properties =
-   	   MemoizeIncludeProperties
-   	 <+ 
+        MemoizeIncludeProperties
+      <+
          paths := <java-load-properties <+ ![]> $[[<ProjectDir>]/.settings/org.strategoxt.imp.editors.stratego.prefs]
        ; rules(MemoizeIncludeProperties: paths)
 
    load-include-paths =
-      load-include-properties 
+      load-include-properties
     ; fetch-elem(\ ("stratego.include", paths) -> paths \)
     ; string-tokenize(|[' '])
-      
+
    default-include-paths =
       <map(\ x -> $[[<ProjectDir>]/[x]] \)> [ "", "trans", "lib", "src", "syntax", "syn", "src/syntax" ]
-    ; if SourceDir then 
-        ![ <SourceDir> | <id> ] 
-      else 
-        id 
+    ; if SourceDir then
+        ![ <SourceDir> | <id> ]
+      else
+        id
       end
-  	   
+
    expand-relative-path :
      x -> $[[<ProjectDir>]/[x]]
    where
@@ -250,7 +250,7 @@ rules // Declare globals
        <conc> (<load-include-paths <+ ![]>, <default-include-paths>)
      ; includes := <map(java-interpolate-environment-variables ; try(expand-relative-path))>
      ; full-path := <fetch-elem(\ path -> <file-exists> $[[path]/[x]] \)> includes
-        
+
         // FIXME: fetch true import paths from someplace
 /*        full-path := <file-exists> $[[<SourceDir>]/[x]]
      <+ full-path := <file-exists> $[[<ProjectDir>]/[x]]
@@ -405,7 +405,7 @@ rules // Declarations inside definition bodies
     Scope(v*, s) -> Scope(v', s')
     with
       (v', s') := <scope-variables(declare-bodies-top)> (v*, s)
-      
+
   scope-variables(s): (vars, x) -> (vars', x')
     with
       // Temporarely undeclare vars for redeclaration errors
@@ -416,7 +416,7 @@ rules // Declarations inside definition bodies
           try({cookie: DeclareCookie; ?cookie; rules(OuterCookie : sig -> cookie)});
           rules(DeclareCookie :- sig)})> vars;
         x' := <declare-bodies-top> x;
-        vars' := <map(!Var(<id>); try(declare-bodies); ?Var(<id>))> vars; 
+        vars' := <map(!Var(<id>); try(declare-bodies); ?Var(<id>))> vars;
         // Re-declare
         all-keys-OuterCookie; map({cookie: \key -> <OuterCookie; ?cookie; rules(DeclareCookie : key -> cookie)> \})
       |}
@@ -432,7 +432,7 @@ rules // Declarations inside definition bodies
       t1' := <declare-match> t1;
       w'  := <declare-bodies-top> w;
       t2' := <declare-bodies-top> t2
-  
+
   declare-bodies:
     SetDynRule(x, r) -> SetDynRule(x', r')
     with
@@ -485,17 +485,17 @@ rules // Declarations inside definition bodies
         DeclareCookie: (x, _, _) -> cookie
         Declaration: cookie -> dec
       );
-      // HACK: a higher-order strategy can be passed as an argument, 
+      // HACK: a higher-order strategy can be passed as an argument,
       // as in s1(s2), where s2 has arguments.
       // We overwrite (in local scope) global strategies with signature ?(x,_,_)
       // Fixes Bug: a{1} = fail; foo(a{2}) = a{2} //NOT a{1}
-      all-keys-DeclareCookie; 
+      all-keys-DeclareCookie;
       filter(declare-svar-signatures(|cookie, x))
-  
+
   declare-svar-signatures(|cookie, svar-name):
-  	key@(svar-name,_,_) -> key
-  	where
-  	  rules (DeclareCookie: key -> cookie)
+    key@(svar-name,_,_) -> key
+    where
+      rules (DeclareCookie: key -> cookie)
 
   declare-tvar:
     x -> x'
@@ -536,7 +536,7 @@ rules // Uses inside definition bodies
     where
       x' := x{<declare-cookie-of>}
     <+
-      // HACK: a higher-order strategy can be passed as an argument, 
+      // HACK: a higher-order strategy can be passed as an argument,
       // as in s1(s2), where s2 has arguments. We can only check if there
       // is a strategy called s2, independent of the number of
       // (strategy/term) arguments to s2.
@@ -544,7 +544,7 @@ rules // Uses inside definition bodies
       all-keys-DeclareCookie;
       fetch-elem(\key@(x, s*, t*) -> <?sig; !key; DeclareCookie> (x, 0, 0)\);
       x' := x{<id>}
-  
+
   declare-bodies:
     Op(x, t*) -> Op(x', t'*)
     where
@@ -751,15 +751,15 @@ rules // Constraints
       map(!(<id>, "Build symbol in match pattern")) => builds;
       require([])
 
-  constraint-warning: elem -> (x, $[Variable '[x]' may be bound already]) 
-    where v@Var(x) := <get-assign-var> elem; 
+  constraint-warning: elem -> (x, $[Variable '[x]' may be bound already])
+    where v@Var(x) := <get-assign-var> elem;
           Var(x') := <declaration-of> v;
           require(<origin-equal(|x)> x')
-        
+
   get-assign-var =
     ?Assign(<id>, _)
     <+ ?AM(_, <id>)
-        
+
   constraint-warning:
     Var(x) -> (x, $[Unparenthesized constructor: use '[x]()' instead])
     where
