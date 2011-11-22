@@ -18,3 +18,4 @@ Require-Bundle: org.eclipse.core.runtime,
   org.strategoxt.strj
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: org.strategoxt.imp.editors.stratego
+Bundle-Vendor: Spoofax.org
