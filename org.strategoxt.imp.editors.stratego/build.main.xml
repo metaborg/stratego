@@ -35,7 +35,7 @@
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
     
         <import file="build.generated.xml"/>
-    
+
         <!-- Main target -->
         <target name="all" depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,stratego.jar,sdf2imp"/>
     </project>
