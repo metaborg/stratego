@@ -47,8 +47,9 @@ refactorings
   input
     identifier : "New Name"
   	
-  refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) 
-  shortcut: "org.eclipse.jdt.ui.edit.text.java.format"
+  // UNDONE: experimental formatting
+  // refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) 
+  // shortcut: "org.eclipse.jdt.ui.edit.text.java.format"
   
   refactoring: "Remove debug" = remove-debug-refactoring
 
