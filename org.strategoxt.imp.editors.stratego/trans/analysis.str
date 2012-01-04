@@ -758,7 +758,7 @@ rules // Constraints
 
   get-assign-var =
     ?Assign(<id>, _)
-    <+ ?AM(_, <id>)
+    // <+ ?AM(_, <id>)
 
   constraint-warning:
     Var(x) -> (x, $[Unparenthesized constructor: use '[x]()' instead])
