@@ -773,6 +773,9 @@ rules // Constraints
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")
 
+  constraint-warning:
+    "def" -> (<id>, "The name def is reserved for future use; use 'def or a different name")
+
   /*
   constraint-warning:
     Module(x, _) -> (x, $[Module name should be qualified with a path relative to the import path])
