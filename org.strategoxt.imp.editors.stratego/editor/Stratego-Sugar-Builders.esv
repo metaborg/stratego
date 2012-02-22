@@ -14,29 +14,25 @@ builders
 
   observer : editor-analyze
 
-  builder : "Rename" = rename-builder (meta)
+  builder : "Rename" = rename-builder (meta) (openeditor)
   
-  builder: "Inline strategy" = inline-builder (meta)
+  builder: "Inline strategy" = inline-builder (meta) (openeditor)
 
-  builder: "Extract strategy" = extract-builder (meta)
+  builder: "Extract strategy" = extract-builder (meta) (openeditor)
 
-  builder: "Remove debug calls" = remove-debug-builder (meta)
+  builder: "Remove debug calls" = remove-debug-builder (meta) (openeditor)
 
   builder : "Show analysed AST" =
-    generate-aterm (meta)
+    generate-aterm (meta) (openeditor)
 
   builder : "Show desugared AST (selection)" =
     generate-desugared-aterm (realtime) (openeditor) (source) (meta)
 
   builder : "Show AST (selection)" =
-    generate-aterm (source) (meta) 
+    generate-aterm (source) (openeditor) (meta) 
 
   builder : "PP Stratego String" =
-    pp-builder (source) (meta) 
-
-  //builder : "Test" =
-    //test-builder //(meta) 
-
+    pp-builder (source) (openeditor) (meta) 
     
 refactorings 
    
