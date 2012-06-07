@@ -23,13 +23,13 @@ builders
   builder: "Remove debug calls" = remove-debug-builder (meta) (openeditor)
 
   builder : "Show analysed AST" =
-    generate-aterm (meta) (openeditor)
+    generate-aterm (openeditor)
 
   builder : "Show desugared AST (selection)" =
-    generate-desugared-aterm (realtime) (openeditor) (source) (meta)
+    generate-desugared-aterm (realtime) (openeditor) (source)
 
   builder : "Show AST (selection)" =
-    generate-aterm (source) (openeditor) (meta) 
+    generate-aterm (source) (openeditor)
 
   builder : "PP Stratego String" =
     pp-builder (source) (openeditor) (meta) 
