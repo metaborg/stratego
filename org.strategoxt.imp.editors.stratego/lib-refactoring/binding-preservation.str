@@ -1,4 +1,4 @@
-module namebinding-preservation
+module binding-preservation
 
 rules
 

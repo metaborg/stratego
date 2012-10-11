@@ -2,7 +2,7 @@ module refactoring/extract
 
 imports
   libstrc
-  lib-refactoring/namebinding-preservation
+  lib-refactoring/binding-preservation
   analysis
   lib/editor-common.generated
   lib-refactoring/fetch
