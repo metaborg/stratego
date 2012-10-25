@@ -110,25 +110,25 @@ rules // Projections and lookup
 rules // Helpers
 
   declare-definition:
-    def -> cookie
+    definition -> cookie
     with
       sig := <signature-of>;
       if not(cookie := <DeclareCookie> sig) then
         cookie := <newterm>;
         rules(
           DeclareCookie: sig -> cookie
-          Declaration: cookie -> def
+          Declaration: cookie -> definition
         )
       end
 
   redeclare-definition:
-    def -> cookie
+    definition -> cookie
     with
       sig := <signature-of>;
       cookie := <newterm>;
       rules(
         DeclareCookie: sig -> cookie
-        Declaration: cookie -> def
+        Declaration: cookie -> definition
       )
 
   /*internal*/ require(s) =
@@ -345,7 +345,8 @@ rules // Declare globals
 rules // Declarations inside definition bodies
 
   declare-bodies-top =
-    alltd(propose-completion <+ origin-track-forced(declare-bodies))
+    alltd((origin-track-forced(declare-bodies); try(propose-completion)) <+ propose-completion)
+    //alltd(propose-completion <+ origin-track-forced(declare-bodies))
 
   declare-bodies:
     SDefT(x, s*, t*, s) -> SDefT(x, s'*, t'*, s')
