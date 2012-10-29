@@ -12,6 +12,9 @@ exports %% RECOVERY RULES AND TWEAKS START HERE
   lexical syntax
     -> ";" {recover, cons("INSERTION")}
     -> "|" {recover, cons("INSERTION")}
+  
+  context-free syntax
+    "<" Strategy             -> Term {cons("App"), completion}
 
 exports
   sorts Overlay
