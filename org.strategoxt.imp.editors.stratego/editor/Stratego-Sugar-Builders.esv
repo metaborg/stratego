@@ -34,21 +34,3 @@ builders
   builder : "PP Stratego String" =
     pp-builder (source) (openeditor) (meta) 
     
-refactorings 
-   
-  pretty-print: pp-stratego-string
-   
-  refactoring Id: "Rename" = rename-refactoring
-  shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
-  input
-    identifier : "New Name"
-  	
-  // UNDONE: experimental formatting
-  // refactoring: "Pretty-Print (Warning: Looses Comments in Selection!)" = format-refactoring (source) 
-  // shortcut: "org.eclipse.jdt.ui.edit.text.java.format"
-  
-  refactoring: "Remove debug" = remove-debug-refactoring
-
-  refactoring: "Inline" = inline-refactoring
-
-  refactoring: "Extract" = extract-refactoring (meta)
