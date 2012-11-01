@@ -39,8 +39,14 @@ rules
 
   editor-complete:
     (node, position, ast, path, project-path) -> proposals
+    where
+      <not(oncetd(?SortVar(COMPLETION(_))))> node;
+      <not(oncetd(?DynRuleScopeId(COMPLETION(_))))> node
+      //TODO: DynRuleScopeId(COMPLETION(""))
+      //TODO: SortVar
     with
-      <basic-desugar-top; analyze-ast-local> ast;
+      //debug(!"editor-complete: ");
+      <analyze-ast-local> ast;
       proposals := <ContentProposals>
  
   /* TODO: return ast' from analysis and use this rule based on the decorated ast
