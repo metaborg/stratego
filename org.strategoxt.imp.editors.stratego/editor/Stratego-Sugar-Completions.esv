@@ -2,14 +2,7 @@ module Stratego-Sugar-Completions
 
 imports Stratego-Sugar-Completions.generated
 
-references
-                                                                   
-  // This file can be used for custom reference resolving rules.   
-  // See the imported file for a brief introduction and examples.
-
-  completion proposer : editor-complete
-  
-  identifier lexical : [a-zA-Z\_][a-zA-Z0-9\'\-\_]*\*?
+completions
 
 /* TODO: enable completion triggers in a later release?
   completion trigger : "->[ \n\t]*[A-Za-z]"
@@ -23,13 +16,8 @@ references
   completion trigger : ":[ \n\t]*[A-Za-z]"
   completion trigger : ":= [A-Za-z]"
 */
-                                                                                 
-  reference _ : editor-resolve
 
-  hover _ : editor-hover
-
-
-completions
+  completion proposer : editor-complete
     
   completion template Module: 
     "module" " " <name> "\n\nstrategies\n\n\t" (blank)
