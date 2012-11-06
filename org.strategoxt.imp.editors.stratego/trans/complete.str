@@ -9,27 +9,30 @@ imports
 strategies
   
   editor-complete:
-    (Var(COMPLETION(_)), position, ast, path, project-path) -> proposals
+    (v@Var(COMPLETION(_)), position, ast, path, project-path) -> proposals
     with
       <analyze-ast-local> ast;
-      proposals := <ContentProposals>
+      proposals := <get-completion-proposals> v
       
   editor-complete:
-    (SVar(COMPLETION(_)), position, ast, path, project-path) -> proposals
+    (sv@SVar(COMPLETION(_)), position, ast, path, project-path) -> proposals
     with
       <analyze-ast-local> ast;
-      proposals := <ContentProposals>
+      proposals := <get-completion-proposals> sv 
 
   editor-complete:
-    (SVar(COMPLETION(_)), position, ast, path, project-path) -> proposals
-    with
-      <analyze-ast-local> ast;
-      proposals := <ContentProposals>
+    (dr@DynRuleScopeId(COMPLETION(_)), position, ast, path, project-path) -> proposals
+    where
+      proposals := <get-completion-proposals> dr 
+
+  editor-complete:
+    (rd@RDecT(COMPLETION(_), _, _), position, ast, path, project-path) -> proposals
+    where
+      proposals := <get-completion-proposals> rd //Completion support for adding a dynamic rule
 
   editor-complete:
     (Import(COMPLETION(_)), position, ast, path, project-path) -> proposals
     where
-      debug(!"Import: ");
       proposals := <imported-module-name-proposals> ast
 
   editor-complete:
@@ -41,16 +44,18 @@ strategies
     (SortVar(COMPLETION(_)), position, ast, path, project-path) -> proposals
     where
       proposals := [] //TODO
-
-  editor-complete:
-    (RDecT(COMPLETION(_), _, _), position, ast, path, project-path) -> proposals
-    where
-      proposals := [] //TODO
+ 
 
 
 rules //helpers
+  
+  get-completion-proposals :
+    cn@completion-node -> proposals
+    where
+      //Fallback in case analysis fails, only global vars are shown
+      proposals := <ContentProposals <+ <propose-completion> cn <+ ![]> 
 
-   imported-module-name-proposals:
+  imported-module-name-proposals:
     ast -> proposals'
     where
       proposals := <all-keys-ModuleName>;

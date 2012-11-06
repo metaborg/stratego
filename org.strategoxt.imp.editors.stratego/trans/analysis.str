@@ -574,7 +574,9 @@ rules // Content completion
         case ?SVar(_):
           all-signatures' := <filter(?(_, _, _))> all-signatures
         case ?DynRuleScopeId(_):
-          all-signatures' := <filter(?(_, _, _); not(is-congruence-signature))> all-signatures
+          all-signatures' := <filter(dr-name-filter; not(is-congruence-signature))> all-signatures
+        case ?RDecT(_,_,_): //add rule to existing rule set
+          all-signatures' := <filter(dr-name-filter; not(is-congruence-signature))> all-signatures
         case ?Import(_):
           all-signatures' := []
         otherwise: // unknown context
@@ -585,6 +587,11 @@ rules // Content completion
         ContentProposals := proposals
       )
 
+  dr-name-filter: //HACK: only show dynamic rules
+  (dr-name, x, y) -> (name, x, y) 
+  where
+    name := <string-starts-with(|"all-keys-"); string-as-chars(drop(|9))> dr-name
+    
   propose-completion:
     Rule(lhs, rhs @ Var(COMPLETION(_)), _) -> proposals
     where
