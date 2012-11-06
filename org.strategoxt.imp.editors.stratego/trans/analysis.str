@@ -6,6 +6,7 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
+  
 
 strategies
 
@@ -32,6 +33,12 @@ strategies
       rules(
         DecoratedAst := ast'
       )
+    with //to allow module name completion
+      <?Module(mname, _)> ast;
+      if <not(ModuleName)> mname then 
+        record-all-module-names
+      end
+
 
   analyze-ast-local =
     if not(bagof-Declaration => [_ | _]) then // TODO: nicer "has done global analysis" check
@@ -800,3 +807,38 @@ rules // Constraints
       <string-starts-with(|"../")> f
 
   // TODO: overlapping signatures
+
+strategies
+  
+  record-all-module-names =
+    record-all-definitions(
+        record-module-name
+      , parse-stratego_sugar-string
+      | "str"
+    )
+  
+  record-module-name =
+    ?Module(mname, _);
+    rules(ModuleName : mname -> mname)
+  
+  record-all-definitions(record, parse|ext) =
+    <readdir> ".";
+    list-loop(
+      if <isdir> <filemode> then
+        chdir;
+        record-all-definitions(record, parse|ext);
+        <chdir> ".."
+      else
+        try(record-definitions(record, parse|ext))
+      end
+    )
+  
+  record-definitions(record, parse|ext):
+    filename -> filename
+    where
+      <has-extension(|ext)> filename;
+      <open-import(
+        abspath, 
+        parse, 
+        record
+     )> filename
