@@ -2,7 +2,7 @@ module Stratego-Sugar-Completions
 
 imports Stratego-Sugar-Completions.generated
 
-completions
+completions Triggers
 
 /* TODO: enable completion triggers in a later release?
   completion trigger : "->[ \n\t]*[A-Za-z]"
@@ -17,10 +17,20 @@ completions
   completion trigger : ":= [A-Za-z]"
 */
 
+
+completions Semantic proposer
+
   completion proposer : editor-complete
     
-  completion template Module: 
-    "module" " " <name> "\n\nstrategies\n\n\t" (blank)
+
+
+completions Syntactic templates
+ 
+  completion template Module: "module" = 
+    "module" " " (cursor) (blank)
+
+  completion template Module: "module (template)" = 
+    "module" " " <name> "\n\n" <decl*:Decl> (blank)
     
   completion template Decl*:
     "strategies" "\n\t" <def:Def> (blank)
@@ -32,7 +42,7 @@ completions
     "overlays" "\n\t" <ol:Overlay> (blank)
   
   completion template Decl*:
-    "imports" "\n\t" <module> (blank)
+    "imports" "\n\t" (cursor) (blank)
   
   completion template Decl*:
     "signature" <sdecl:Sdecl> "\n\t" (blank)
@@ -100,13 +110,13 @@ completions
 //  completion template Strategy: "s" =
 //    <s> 
 
-  completion template Strategy: "left choice" =
+  completion template Strategy: "_ <+ _>" =
     <s> " <+ " <s>
 
-  completion template Strategy: "guarded left choice" =
+  completion template Strategy: "_ < _ + _" =
     <s> " < " <s> "+" <s>
 
-  completion template Strategy: "sequential" =
+  completion template Strategy: "_ ; _" =
     <s> "; " <s>
 
   completion template Strategy: 
@@ -154,10 +164,10 @@ completions
   completion template Strategy: "if-else" =
     "if" " " <s> " then\n\t" <s> "\nelse\n\t" <s> "\nend"
 
-  completion template Strategy: "assign ( => )" = 
+  completion template Strategy: "_ => _" = 
       <s> " => " <t>
 
-  completion template Strategy: "assign ( := )" = 
+  completion template Strategy: "_ := _" = 
       <t> " := " <t>
       
   completion template Strategy: 
@@ -172,7 +182,7 @@ completions
   completion template Strategy:
   	"let" "\n\t" <x> " = " <s> "\nin\n\t" <s> "\nend"
 
-  completion template Strategy: "dynamic rule scope" =
+  completion template Strategy: "{| Dr: s |}" =
   "{| " <labels:DynRuleScopeId> ":" "\n\t" <s> "\n" "|}" (blank)
 
   completion template DynRuleScopeId: "scope-name (labeled)" =
