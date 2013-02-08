@@ -6,10 +6,11 @@ imports
   desugar
   lib/editor-common.generated
   sourcedir
+  
 
 strategies
 
-
+ 
   analyze-ast:
     (ast, path, project-path) -> ast'
     with
@@ -32,6 +33,12 @@ strategies
       rules(
         DecoratedAst := ast'
       )
+    with //to allow module name completion
+      <?Module(mname, _)> ast;
+      if <not(ModuleName)> mname then 
+        record-all-module-names
+      end
+
 
   analyze-ast-local =
     if not(bagof-Declaration => [_ | _]) then // TODO: nicer "has done global analysis" check
@@ -110,25 +117,25 @@ rules // Projections and lookup
 rules // Helpers
 
   declare-definition:
-    def -> cookie
+    definition -> cookie
     with
       sig := <signature-of>;
       if not(cookie := <DeclareCookie> sig) then
         cookie := <newterm>;
         rules(
           DeclareCookie: sig -> cookie
-          Declaration: cookie -> def
+          Declaration: cookie -> definition
         )
       end
 
   redeclare-definition:
-    def -> cookie
+    definition -> cookie
     with
       sig := <signature-of>;
       cookie := <newterm>;
       rules(
         DeclareCookie: sig -> cookie
-        Declaration: cookie -> def
+        Declaration: cookie -> definition
       )
 
   /*internal*/ require(s) =
@@ -345,7 +352,8 @@ rules // Declare globals
 rules // Declarations inside definition bodies
 
   declare-bodies-top =
-    alltd(propose-completion <+ origin-track-forced(declare-bodies))
+    alltd((origin-track-forced(declare-bodies); try(propose-completion)) <+ propose-completion)
+    //alltd(propose-completion <+ origin-track-forced(declare-bodies))
 
   declare-bodies:
     SDefT(x, s*, t*, s) -> SDefT(x, s'*, t'*, s')
@@ -566,7 +574,9 @@ rules // Content completion
         case ?SVar(_):
           all-signatures' := <filter(?(_, _, _))> all-signatures
         case ?DynRuleScopeId(_):
-          all-signatures' := <filter(?(_, _, _); not(is-congruence-signature))> all-signatures
+          all-signatures' := <filter(dr-name-filter; not(is-congruence-signature))> all-signatures
+        case ?RDecT(_,_,_): //add rule to existing rule set
+          all-signatures' := <filter(dr-name-filter; not(is-congruence-signature))> all-signatures
         case ?Import(_):
           all-signatures' := []
         otherwise: // unknown context
@@ -577,6 +587,11 @@ rules // Content completion
         ContentProposals := proposals
       )
 
+  dr-name-filter: //HACK: only show dynamic rules
+  (dr-name, x, y) -> (name, x, y) 
+  where
+    name := <string-starts-with(|"all-keys-"); string-as-chars(drop(|9))> dr-name
+    
   propose-completion:
     Rule(lhs, rhs @ Var(COMPLETION(_)), _) -> proposals
     where
@@ -758,7 +773,7 @@ rules // Constraints
 
   get-assign-var =
     ?Assign(<id>, _)
-    <+ ?AM(_, <id>)
+    // <+ ?AM(_, <id>)
 
   constraint-warning:
     Var(x) -> (x, $[Unparenthesized constructor: use '[x]()' instead])
@@ -772,6 +787,9 @@ rules // Constraints
 
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")
+
+  constraint-warning:
+    "def" -> (<id>, "The name def is reserved for future use; use 'def or a different name")
 
   /*
   constraint-warning:
@@ -796,3 +814,38 @@ rules // Constraints
       <string-starts-with(|"../")> f
 
   // TODO: overlapping signatures
+
+strategies
+  
+  record-all-module-names =
+    record-all-definitions(
+        record-module-name
+      , parse-stratego_sugar-string
+      | "str"
+    )
+  
+  record-module-name =
+    ?Module(mname, _);
+    rules(ModuleName : mname -> mname)
+  
+  record-all-definitions(record, parse|ext) =
+    <readdir> ".";
+    list-loop(
+      if <isdir> <filemode> then
+        chdir;
+        record-all-definitions(record, parse|ext);
+        <chdir> ".."
+      else
+        try(record-definitions(record, parse|ext))
+      end
+    )
+  
+  record-definitions(record, parse|ext):
+    filename -> filename
+    where
+      <has-extension(|ext)> filename;
+      <open-import(
+        abspath, 
+        parse, 
+        record
+     )> filename

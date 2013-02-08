@@ -2,7 +2,7 @@ module generic-rename
 
 imports
   lib-refactoring/consistency-preservation
-  lib-refactoring/namebinding-preservation
+  lib-refactoring/binding-preservation
   
 rules
 

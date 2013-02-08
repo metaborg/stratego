@@ -7,33 +7,31 @@ imports
 
 strategies
 
-  parse-file = parse-stratego_sugar-file
-  parse-stratego_sugar-file =
+  parse-file = parse-tego-file
+  parse-tego-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
-    | <import-term(include/Stratego-Sugar.tbl)>
+    | <import-term(include/Tego.tbl)>
     )
 
-  parse-string = parse-stratego_sugar-string
-  parse-stratego_sugar-string =
+  parse-string = parse-tego-string
+  parse-tego-string =
     parse-string(
       strsglr-report-parse-error
-    | <import-term(include/Stratego-Sugar.tbl)>
+    | <import-term(include/Tego.tbl)>
     )
   
-  parse-stream = parse-stratego_sugar-stream
-  parse-stratego_sugar-stream =
+  parse-stream = parse-tego-stream
+  parse-tego-stream =
     parse-stream(
       strsglr-report-parse-error
-    | <import-term(include/Stratego-Sugar.tbl)>
+    | <import-term(include/Tego.tbl)>
     )
 
-  pp-stratego_sugar-string =
-    ast2abox(|[<import-term(include/Stratego-Sugar.generated.pp.af)>,
-               <import-term(include/Stratego-Sugar.pp.af)>]);
+  pp-tego-string =
+    ast2abox(|[<import-term(include/Tego.generated.pp.af)>,
+               <import-term(include/Tego.pp.af)>]);
     box2text-string(|100)
-    
-  language = !"Stratego-Sugar"
 
 strategies
   
@@ -139,7 +137,7 @@ strategies
     prim("SSL_EXT_origin_language", <id>)
   
   origin-surrounding-comments =
-    prim("SSL_EXT_origin_surrounding_comments", "Stratego-Sugar", <id>)
+    prim("SSL_EXT_origin_surrounding_comments", "Tego", <id>)
     
   origin-documentation-comment =
     origin-surrounding-comments;
@@ -219,8 +217,8 @@ signature constructors
   True       : Term
 
   // Below are copies of the signatures of the terms used in example
-  // trans/stratego_sugar.str file. These definitions should also be automatically 
-  // generated in the imported include/Stratego-Sugar.str module. However,
+  // trans/tego.str file. These definitions should also be automatically 
+  // generated in the imported include/Tego.str module. However,
   // to ensure that the example transformation doesn't break when the
   // syntax is changed, we also hard-coded them here.
           
@@ -228,9 +226,6 @@ signature constructors
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property
   Type     : ID                  -> Type
-  
-  Type     : Namespace
-  Property : Namespace
 
 strategies
   
