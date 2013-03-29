@@ -1,41 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <project name="Stratego-Sugar" default="all">
-        
-        <!-- Key input modules -->
-        <property name="sdfmodule" value="Stratego-Sugar"/>
-        <property name="esvmodule" value="Stratego-Sugar"/>
-        <property name="strmodule" value="stratego_sugar"/>
-    
-        <!-- Project directories -->
-        <property name="trans" location="trans"/>
-        <property name="src-gen" location="editor/java"/>
-        <property name="syntax" location="syntax"/>
-        <property name="include" location="include"/>
-        <property name="lib" location="lib"/>
-        <property name="build" location="bin"/>
-        <property name="dist" location="bin/dist"/>
-        
-        <!-- Imports -->
-        <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="--library
+
+	<!-- Key input modules -->
+	<property name="sdfmodule" value="Stratego-Sugar" />
+	<property name="esvmodule" value="Stratego-Sugar" />
+	<property name="strmodule" value="stratego_sugar" />
+
+	<!-- Project directories -->
+	<property name="trans" location="trans" />
+	<property name="src-gen" location="editor/java" />
+	<property name="syntax" location="syntax" />
+	<property name="include" location="include" />
+	<property name="lib" location="lib" />
+	<property name="build" location="bin" />
+	<property name="dist" location="bin/dist" />
+
+	<!-- Imports -->
+	<property name="build.sdf.imports" value="" />
+	<property name="build.stratego.args"
+	          value="--library
                         -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc"/>
-        
-        <property name="externaldef" location="syntax/Stratego-Sugar.def"/>
-        <!-- External .def and .jar locations
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
+
+	<property name="externaldef" location="syntax/Stratego-Sugar.def" />
+	<!-- External .def and .jar locations
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
-    
-        <!-- Environment configuration for command-line builds -->
-        <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
-            <isset property="eclipse.spoofaximp.nativeprefix"/>
-        </condition>
-        <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
-    
-        <import file="build.generated.xml"/>
 
-        <!-- Main target -->
-        <target name="all" depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,stratego.jar,sdf2imp"/>
-    </project>
+	<!-- Environment configuration for command-line builds -->
+	<condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
+		<isset property="eclipse.spoofaximp.nativeprefix" />
+	</condition>
+	<property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin" />
+
+	<import file="build.generated.xml" />
+
+	<!-- Main target -->
+	<target name="all"
+	        depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,stratego.jar,sdf2imp,refresh,
+		      sdf2imp.eclipse.load" />
+</project>
