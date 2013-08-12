@@ -39,5 +39,5 @@
 
 	<!-- Main target -->
 	<target name="all"
-	        depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,stratego.jar,sdf2imp" />
+	        depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,sdf2imp,stratego.jar" />
 </project>
