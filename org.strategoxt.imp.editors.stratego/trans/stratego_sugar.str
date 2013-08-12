@@ -12,6 +12,7 @@ imports
   refactoring/format
   refactoring/helpers/builders
   complete
+  editor/Stratego-Sugar-Outliner
 
 strategies
 
