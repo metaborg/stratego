@@ -13,7 +13,7 @@ strategies
  
   analyze-ast:
     (ast, path, project-path) -> ast'
-    with
+    where
       rules(
         CurrentFile := $[[project-path]/[path]]
         CurrentDir  := <dirname> $[[project-path]/[path]]
@@ -26,14 +26,14 @@ strategies
       if <file-exists> $[[project-path]/.warn-global-analysis] then
         rules(WarnAnalysis: _)
       end
-    with
+    where
       <basic-desugar-top> ast;
       declare-globals-top;
       ast' := <declare-bodies-top>;
       rules(
         DecoratedAst := ast'
       )
-    with //to allow module name completion
+    where //to allow module name completion
       <?Module(mname, _)> ast;
       if <not(ModuleName)> mname then 
         record-all-module-names
