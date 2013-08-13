@@ -7,7 +7,7 @@ imports
 
 rules
 	
-  outline-strategy:
+  outline:
     ast -> Node(label{icon}, children)
     where
       label := <get-module-name> ast;
