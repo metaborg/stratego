@@ -25,7 +25,7 @@ rules
       try(dr-scope-all-end);
       dr-scope-all-start
     with
-      ast' := <analyze-ast> (ast, path, project-path);
+      ast' := <analyze-ast <+ !()> (ast, path, project-path);
       if NoAnalysis then
         errors   := <collect-all(constraint-error, conc)> ast';
         warnings := <collect-all(constraint-warning, conc)> ast'

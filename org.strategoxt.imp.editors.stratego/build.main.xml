@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
 <project name="Stratego-Sugar" default="all">
-
 	<!-- Key input modules -->
 	<property name="sdfmodule" value="Stratego-Sugar" />
 	<property name="esvmodule" value="Stratego-Sugar" />
@@ -18,8 +16,7 @@
 
 	<!-- Imports -->
 	<property name="build.sdf.imports" value="" />
-	<property name="build.stratego.args"
-	          value="--library
+	<property name="build.stratego.args" value="--library
                         -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
 
@@ -38,6 +35,5 @@
 	<import file="build.generated.xml" />
 
 	<!-- Main target -->
-	<target name="all"
-	        depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,sdf2imp,stratego.jar" />
+	<target name="all" depends="utils-files,sdf2table,ppgen.helper.fallback,pppack.helper.fallback,java.jar,sdf2imp,stratego.jar" />
 </project>
