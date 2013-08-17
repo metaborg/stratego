@@ -4,13 +4,13 @@ imports
 	include/Stratego-Sugar
 	lib/runtime/editor/outline-library
   lib/runtime/editor/origins
+  analysis
 
 rules
 	
   outline:
     ast -> Node(label{icon}, children)
     where
-      debug;
       label := <get-module-name> ast;
       icon :=  <icon-module>;
       sections := <collect-om(is-outline-section, conc)> ast;
@@ -62,14 +62,14 @@ rules // rules and strategies
     sections -> nodes
     where
       Rules() := outline-section;
-      sigs := <collect-om(fetch-sig, conc); reverse; make-set; reverse> sections; // HACK => collect-om returns the last element in case of duplicates; we want the first, for its origin
+      sigs := <collect-om(sig-of, conc); reverse; make-set; reverse> sections; // HACK => collect-om returns the last element in case of duplicates; we want the first, for its origin
       nodes := <map(sig-to-outline-node(|sections))> sigs
   
-  fetch-sig = <?SDefNoArgs(a, _) + ?RDefNoArgs(a, _)> := <id>; !RuleSig(a)
-  fetch-sig = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !RuleSig(a, <length> b)
-  fetch-sig = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !RuleSig(a, <length> b, <(length)> c)
+  sig-of = <?SDefNoArgs(x, s) + ?RDefNoArgs(x, s)> := <id>; !(<remove-quote> x, 0, 0)
+  sig-of = <?SDef(x, s*, s) + ?RDef(x, s*, s)> := <id>; !(<remove-quote> x, <length> s*, 0)
+  sig-of = <?SDefT(x, s*, t*, s) + ?RDecT(x, s*, t*)> := <id>; !(<remove-quote> x, <length> s*, <length> t*)
   
-  has-sig(|sig) = ?rule; fetch-sig; ?sig; !rule
+  has-signature(|sig) = ?rule; sig-of; ?sig; !rule
   
   rule-to-label = <?SDefNoArgs(a, _) + ?RDefNoArgs(a, _)> := <id>; !a; origin-text 
   rule-to-label = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, ")"); conc-strings
@@ -78,7 +78,7 @@ rules // rules and strategies
   sig-to-outline-node(|sections):
   	sig -> Node(label{icon}, children)
   	where
-  		'rules := <collect-om(has-sig(|sig), conc)> sections;
+  		'rules := <collect-om(has-signature(|sig), conc)> sections;
       label := <Hd; ?rule; rule-to-label; fix-origin(|rule)> 'rules;
       icon := <icon-rule>;
       children := <add-indices; Tl; map(rule-to-outline-node)> 'rules 
