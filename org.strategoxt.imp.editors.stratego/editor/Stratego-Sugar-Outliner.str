@@ -10,6 +10,7 @@ rules
   outline:
     ast -> Node(label{icon}, children)
     where
+      debug;
       label := <get-module-name> ast;
       icon :=  <icon-module>;
       sections := <collect-om(is-outline-section, conc)> ast;
@@ -23,6 +24,7 @@ signature constructors
   
   // outline sections
   Rules:           OutlineSection
+  Signatures:      OutlineSection // TODO
   Overlays:        OutlineSection // TODO
 
   // rule signatures
@@ -64,27 +66,27 @@ rules // rules and strategies
       nodes := <map(sig-to-outline-node(|sections))> sigs
   
   fetch-sig = <?SDefNoArgs(a, _) + ?RDefNoArgs(a, _)> := <id>; !RuleSig(a)
-  fetch-sig = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !RuleSig(a, b)
-  fetch-sig = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !RuleSig(a, b, c)
+  fetch-sig = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !RuleSig(a, <length> b)
+  fetch-sig = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !RuleSig(a, <length> b, <(length)> c)
   
   has-sig(|sig) = ?rule; fetch-sig; ?sig; !rule
   
-  sig-to-label = ?RuleSig(a); !a; origin-text
-  sig-to-label = ?RuleSig(a, b); !(<origin-text> a, "(", <origin-text> b, ")"); conc-strings
-  sig-to-label = ?RuleSig(a, b, c); !(<origin-text> a, "(", <origin-text> b, "|", <origin-text> c, ")"); conc-strings
+  rule-to-label = <?SDefNoArgs(a, _) + ?RDefNoArgs(a, _)> := <id>; !a; origin-text 
+  rule-to-label = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, ")"); conc-strings
+  rule-to-label = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, "|", <origin-text> c, ")"); conc-strings
   
   sig-to-outline-node(|sections):
   	sig -> Node(label{icon}, children)
   	where
   		'rules := <collect-om(has-sig(|sig), conc)> sections;
-      label := <Hd; ?rule; fetch-sig; sig-to-label; fix-origin(|rule)> 'rules;
+      label := <Hd; ?rule; rule-to-label; fix-origin(|rule)> 'rules;
       icon := <icon-rule>;
-      children := <add-indices; Tl; map(rule-to-outline-node)> 'rules
+      children := <add-indices; Tl; map(rule-to-outline-node)> 'rules 
   
   rule-to-outline-node:
     (index, rule) -> Node(label{icon}, [])
     where
-      label := <conc-strings; fix-origin(|rule)> (<fetch-sig; sig-to-label> rule, " (", <int-to-string> index, ")");
+      label := <conc-strings; fix-origin(|rule)> (<rule-to-label> rule, " (", <int-to-string> index, ")");
       icon := <icon-rule>
   
   fix-origin(|rule) =
