@@ -67,7 +67,7 @@ rules // rules and strategies
   
   sig-of = <?SDefNoArgs(x, s) + ?RDefNoArgs(x, s)> := <id>; !(<remove-quote> x, 0, 0)
   sig-of = <?SDef(x, s*, s) + ?RDef(x, s*, s)> := <id>; !(<remove-quote> x, <length> s*, 0)
-  sig-of = <?SDefT(x, s*, t*, s) + ?RDecT(x, s*, t*)> := <id>; !(<remove-quote> x, <length> s*, <length> t*)
+  sig-of = <?SDefT(x, s*, t*, s) + ?RDefT(x, s*, t*, s)> := <id>; !(<remove-quote> x, <length> s*, <length> t*)
   
   has-signature(|sig) = ?rule; sig-of; ?sig; !rule
   
