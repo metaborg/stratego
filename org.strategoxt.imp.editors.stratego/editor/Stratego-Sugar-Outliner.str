@@ -45,7 +45,9 @@ rules
     outline-section -> Node(label{icon}, children)
     where
       sections' := <collect-om(has-outline-section(|outline-section), conc)> sections;    
-      label := <Hd; origin-text-at-start> sections';
+      label := <literals-to-outline-label(|<Hd> sections')>
+        <Hd; explode-term; ?(<id>, _);
+        lower-case> sections';
       icon := <icon-exports>;
       children := <to-outline-nodes(|outline-section)> sections'
 
