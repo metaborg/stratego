@@ -75,7 +75,7 @@ rules // rules and strategies
   
   rule-to-label = <?SDefNoArgs(a, _) + ?RDefNoArgs(a, _)> := <id>; !a; origin-text 
   rule-to-label = <?SDef(a, b, _) + ?RDef(a, b, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, ")"); conc-strings
-  rule-to-label = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, "|", <origin-text> c, ")"); conc-strings
+  rule-to-label = <?SDefT(a, b, c, _) + ?RDefT(a, b, c, _)> := <id>; !(<origin-text> a, "(", <origin-text> b, " | ", <origin-text> c, ")"); conc-strings
   
   sig-to-outline-node(|sections):
   	sig -> Node(label{icon}, children)
