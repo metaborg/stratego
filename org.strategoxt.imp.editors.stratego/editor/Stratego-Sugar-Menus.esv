@@ -1,0 +1,19 @@
+module Stratego-Sugar-Menus
+
+imports Stratego-Sugar-Menus.generated
+
+menus
+  
+  menu: "Syntax"
+    
+    action: "Show abstract syntax"  = generate-aterm (openeditor) (realtime) (meta) (source)
+    action: "Show desugared syntax" = generate-desugared-aterm (openeditor) (realtime) (meta) (source)
+    action: "Show analyzed syntax"  = generate-aterm (openeditor) (meta)
+    action: "Format"                = pp-builder (source) (openeditor) (meta)
+  
+  menu: "Refactorings"
+    
+	  action: "Rename"             = rename-builder (meta) (openeditor)
+	  action: "Inline strategy"    = inline-builder (meta) (openeditor)
+	  action: "Extract strategy"   = extract-builder (meta) (openeditor)
+	  action: "Remove debug calls" = remove-debug-builder (meta) (openeditor)
