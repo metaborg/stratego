@@ -748,7 +748,8 @@
 		<delete file="${include}/${strmodule}.ctree.dep" />
 		<delete file="${include}/${strmodule}.jar" />
 		<delete>
-			<fileset dir="editor" includes="*.generated.esv" />
+			<fileset dir="editor" includes="*.generated.*" />
+      <fileset dir="trans" includes="*.pp.generated.str" />
 		</delete>
 		<delete dir="${src-gen}/trans" />
 		<delete file="editor/${sdfmodule}.generated.esv" />
@@ -760,7 +761,6 @@
 		<delete file=".settings/org.eclipse.jdt.core.prefs" />
 		<delete dir="utils" />
 		<delete>
-			<fileset dir="lib-refactoring" includes="*.generated.str" />
 			<fileset dir="${lib}" includes="*.generated.str" />
 		</delete>
 		<antcall target="refresh-cleaned" />
