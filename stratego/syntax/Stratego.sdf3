@@ -1,0 +1,14 @@
+module Stratego
+
+imports
+	
+	Common
+
+context-free start-symbols
+  
+  Start
+
+templates
+  
+  Start.Dummy = <>
+
