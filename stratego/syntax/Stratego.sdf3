@@ -1,14 +1,7 @@
 module Stratego
 
-imports
-	
-	Common
+imports Stratego-Sugar
 
-context-free start-symbols
-  
-  Start
-
-templates
-  
-  Start.Dummy = <>
-
+context-free start-symbols Module
+ 
+ 
