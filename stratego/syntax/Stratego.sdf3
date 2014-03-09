@@ -3,5 +3,3 @@ module Stratego
 imports Stratego-Sugar
 
 context-free start-symbols Module
- 
- 

@@ -1,0 +1,133 @@
+module Stratego-Core-Strategies
+
+imports
+  Stratego-Core-Terms
+  Stratego-Core-Constants
+  Stratego-Core-Signatures
+
+  sorts Def
+  templates
+    Def = <<StrategyDef>>
+    
+    SVar.SVar = <<Id>>
+    
+    Strategy.Let = 
+      <let <Def*> 
+        in <Strategy> 
+       end>
+        
+    Strategy.CallT = 
+      <<SVar>(<Strategy*; separator=", ">|<Term*; separator=", ">)>
+      
+    Strategy.CallDynamic = 
+      <call(<Term>|<Strategy*; separator=", ">|<Term*; separator=", ">)>
+    
+  sorts StrategyDef
+  templates
+    StrategyDef.SDefT = 
+      <<Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+         <Strategy>>
+  
+    Def.AnnoDef = 
+      <<Anno+> <StrategyDef>>
+  
+    StrategyDef.ExtSDefInl = 
+      <external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+         <Strategy>>
+  
+    StrategyDef.ExtSDef = 
+      <external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">)>
+  
+    StrategyDef.ExtSDef = 
+      <external <EmptyId>(<Typedid*; separator=", "> | <Typedid*; separator=", ">)> 
+  
+  sorts EmptyId
+  lexical syntax
+  
+    EmptyId =
+
+  sorts Anno
+  
+  templates
+    Anno.Extend   = <extend>
+    Anno.Override = <override>
+    Anno.Internal = <internal>  
+        
+    // Anno.Sealed = <sealed>
+    // Anno.Extensible = <extensible>
+    // Anno.Overridable = <overridable>
+
+  lexical syntax
+    
+    Keyword = "extend"    
+    Keyword = "override"   
+    Keyword = "internal"  
+    Keyword = "sealed"      
+    Keyword = "extensible"  
+    Keyword =  "overridable"
+
+  lexical restrictions
+  
+    "extend"
+    "override"
+    "internal"
+    "sealed"
+    "extensible"
+    "overridable" -/- [a-zA-Z0-9\'\-\_]
+
+  sorts Typedid
+  templates
+    Typedid.VarDec = <<ID> : <Type>>
+
+  sorts Strategy SVar StrategyParen StrategyMid 
+  
+  templates
+  
+    StrategyParen.ParenStrat = <(<Strategy>)>
+    
+    // identity and failure
+    
+    Strategy.Id   = <id>
+    Strategy.Fail = <fail>
+        
+    // Match and build
+    
+    Strategy.Match = <?<Term>>
+    Strategy.Build = <!<Term>>   
+    Strategy.Scope = <{<ID*; separator=", "> : <Strategy>}>
+    
+    // Combinators
+    
+    Strategy.Seq = <<Strategy> ; <Strategy>> {right}
+        
+    Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}   
+    
+    StrategyMid = <<Strategy>>
+    
+    // Primitives
+    
+    Strategy.PrimT = <prim(<String>, <Strategy*; separator=", "> | <Term*; separator=", ">)>
+    
+    // Traversal
+    
+    Strategy.Some = <some(<Strategy>)>
+    Strategy.One  = <one(<Strategy>)>
+    Strategy.All  = <all(<Strategy>)>
+
+    // proceed 
+    
+    Strategy.ProceedT = 
+      <proceed(<Strategy*; separator=", "> | <Term*; separator=", ">)> {prefer}
+      
+    Strategy.ProceedNoArgs = <proceed> {prefer}
+      
+    // import term
+    
+    Strategy.ImportTerm = <import-term ( <ModName> )>
+  
+  context-free priorities
+    { Strategy.Build Strategy.Match }
+    > Strategy.Seq
+    > Strategy.GuardedLChoice 
+
+
