@@ -1,9 +1,10 @@
-module Stratego-Core-Strategies
+module core/Stratego-Core-Strategies
 
 imports
-  Stratego-Core-Terms
-  Stratego-Core-Constants
-  Stratego-Core-Signatures
+  core/Stratego-Core-Terms
+  core/Stratego-Core-Constants
+  core/Stratego-Core-Signatures
+  core/Stratego-Core-Identifiers
 
   sorts Def
   templates

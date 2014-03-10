@@ -1,0 +1,40 @@
+module sugar/Stratego-Sugar-Rules
+
+  imports 
+    core/Stratego-Core-Identifiers
+    core/Stratego-Core-Signatures
+    core/Stratego-Core-Terms
+    sugar/Stratego-Sugar-Terms
+    sugar/Stratego-Sugar-Strategies
+
+  sorts RuleDef
+  
+  templates
+    RuleDef.RDefNoArgs = 
+      <<Id> : 
+         <Rule>>
+    
+    Def.AnnoDef = 
+      <<Anno+> <RuleDef>>
+    
+    RuleDef.RDef = 
+      <<Id>(<Typedid*; separator=", ">) : 
+         <Rule>>
+    
+    RuleDef.RDefT = 
+      <<Id> ( <Typedid*; separator=", "> | <Typedid*; separator=", ">) : 
+         <Rule>>
+
+  sorts Rule RuleCond
+  
+  templates
+    Rule.RuleNoCond = [[Term] -> [Term]] // backward comp.
+    
+    Rule.Rule = [[Term] -> [Term] where [Strategy]]  // backward comp.
+    
+    Rule.Rule = [[Term] -> [Term] [RuleCond+]] {avoid}
+    
+    RuleCond.WhereClause = <where <Strategy>>
+    RuleCond.WithClause = <with <Strategy>>
+  
+

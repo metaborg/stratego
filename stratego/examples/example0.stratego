@@ -1,0 +1,23 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  lib/runtime/tmpl/pp
+  Common.pp.generated
+  Stratego.pp.generated
+
+rules
+  
+  pp-Stratego-string =
+    prettyprint-Start
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-Stratego-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-Stratego-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+

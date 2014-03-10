@@ -1,4 +1,4 @@
-module Stratego-Core-Identifiers
+module core/Stratego-Core-Identifiers
 
   sorts ModName ModNamePart 
   lexical syntax

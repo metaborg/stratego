@@ -1,0 +1,17 @@
+module sugar/Stratego-Sugar-Signatures
+
+  imports
+    core/Stratego-Core-Signatures
+    sugar/Stratego-Sugar-Constants
+
+  sorts Sort
+  
+  templates
+    Sort.SortList   = <[<Sort*; separator=", "> ]>
+    Sort.SortListTl = <[<Sort*; separator=", "> | <Sort> ]>
+    Sort.SortTuple  = <(<Sort*; separator=", "> )>
+
+  sorts Kind
+  templates  
+    Kind.Star = <*>
+    Kind.StarStar = <**>

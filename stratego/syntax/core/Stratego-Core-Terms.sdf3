@@ -1,8 +1,8 @@
-module Stratego-Core-Terms
+module core/Stratego-Core-Terms
 
   imports
-    Stratego-Core-Identifiers
-    Stratego-Core-Constants
+    core/Stratego-Core-Identifiers
+    core/Stratego-Core-Constants
 
   sorts ID Var Wld
   templates

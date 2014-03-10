@@ -1,15 +1,15 @@
 module Stratego-Sugar
 
 imports
-  Stratego-Sugar-Layout
-  Stratego-Core-Identifiers
-  Stratego-Sugar-Constants 
-  Stratego-Sugar-Modules
-  Stratego-Sugar-Signatures
-  Stratego-Sugar-Terms
-  Stratego-Sugar-Strategies
-  Stratego-Sugar-Rules
-  Stratego-Sugar-DynamicRules
-  Stratego-Sugar-Overlays
+  core/Stratego-Core-Identifiers
+  core/Stratego-Core-Modules
+  
+  sugar/Stratego-Sugar-Constants 
+  sugar/Stratego-Sugar-Signatures
+  sugar/Stratego-Sugar-Modules
+  sugar/Stratego-Sugar-Terms
+  sugar/Stratego-Sugar-Strategies
+  sugar/Stratego-Sugar-Rules
+  sugar/Stratego-Sugar-DynamicRules
+  sugar/Stratego-Sugar-Overlays
 
-context-free start-symbols Module

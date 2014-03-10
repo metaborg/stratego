@@ -1,4 +1,4 @@
-module Stratego-Core-Constants
+module core/Stratego-Core-Constants
 
   sorts Int Real String StrChar
   

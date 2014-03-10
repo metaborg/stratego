@@ -1,9 +1,9 @@
-module Stratego-Core-Modules
+module core/Stratego-Core-Modules
 
 imports
-  Stratego-Core-Identifiers
-  Stratego-Core-Strategies
-  Stratego-Core-Signatures
+  core/Stratego-Core-Identifiers
+  core/Stratego-Core-Strategies
+  core/Stratego-Core-Signatures
 
   sorts Module 
   templates

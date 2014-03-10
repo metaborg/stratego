@@ -1,0 +1,13 @@
+module sugar/Stratego-Sugar-Overlays
+imports
+  core/Stratego-Core-Identifiers
+  sugar/Stratego-Sugar-Terms
+
+  sorts Overlay
+
+  templates
+    Overlay.OverlayNoArgs = <<Id> = <Term>>
+    
+    Overlay.Overlay = 
+      <<Id>(<Id*; separator=", ">) = <Term>>
+  

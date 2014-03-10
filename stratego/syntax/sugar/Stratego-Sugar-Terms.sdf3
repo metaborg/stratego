@@ -1,0 +1,34 @@
+module sugar/Stratego-Sugar-Terms
+imports
+  core/Stratego-Core-Terms
+  core/Stratego-Core-Identifiers
+  sugar/Stratego-Sugar-Constants
+  sugar/Stratego-Sugar-Strategies
+
+  sorts LID 
+  templates
+    LID.ListVar = <<LId>>
+    Var.Var     = <<LID>>
+    ID          = <<LID>>
+
+  templates
+  
+    Term.BuildDefault = <_<Term>>{prefer}
+    Term.AnnoList     = <<PreTerm>{<Term*; separator=",">}>
+    Term.NoAnnoList   = <<PreTerm>>
+    Term.App          = [<[Strategy]> [Term]] {prefer}
+    Term.RootApp      = <<StrategyAngle>> {prefer}
+ 
+  templates   
+    
+    PreTerm.Char      = <<Char>>
+    PreTerm.App       = [<[Strategy]> [Term]]
+    PreTerm.RootApp   = <<StrategyAngle>>
+    PreTerm.Tuple     = <(<Term*; separator=", ">)>
+    PreTerm.List      = <[<Term*; separator=", ">]>
+    PreTerm.ListTail  = <[<Term*; separator=", "> | <Term>]>
+   
+    PreTerm.BuildDefaultPT = <_<PreTerm>>
+    
+  context-free priorities
+    PreTerm.Explode > Term.AnnoList > Term.As

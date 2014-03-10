@@ -21,7 +21,7 @@ language General properties
   
   extensions:    stratego
   table:         include/Stratego.tbl
-  start symbols: Start
+  start symbols: Module
   
   provider:      include/stratego.ctree
   provider:      include/stratego-java.jar

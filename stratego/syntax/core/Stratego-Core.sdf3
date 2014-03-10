@@ -1,12 +1,12 @@
-module Stratego-Core
+module core/Stratego-Core
 
 imports 
-  Stratego-Core-Constants 
-  Stratego-Core-Identifiers 
-  Stratego-Core-Layout
-  Stratego-Core-Signatures 
-  Stratego-Core-Terms
-  Stratego-Core-Strategies 
-  Stratego-Core-Modules
+  core/Stratego-Core-Constants 
+  core/Stratego-Core-Identifiers 
+  core/Stratego-Core-Layout
+  core/Stratego-Core-Signatures 
+  core/Stratego-Core-Terms
+  core/Stratego-Core-Strategies 
+  core/Stratego-Core-Modules
 
 context-free start-symbols Module

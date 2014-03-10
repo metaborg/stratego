@@ -1,26 +1,24 @@
-module Stratego-Core-Layout
+module core/Stratego-Core-Layout
 
   sorts Ws ShortCom LongCom CommChar Asterisk Eof 
+  
   lexical syntax
-    [\t\ \n\r]			-> Ws
-
-    "//" ~[\n]* ([\n] | Eof)	-> ShortCom
-    "/*" CommChar* "*/"	-> LongCom
-				-> Eof  
-
-    ~[\*]     -> CommChar
-
-    "*"       -> Asterisk
-    Asterisk  -> CommChar
+    Ws       = [\t\ \n\r]
+    ShortCom = "//" ~[\n]* ([\n] | Eof)	
+    LongCom  = "/*" CommChar* "*/"	
+	  Eof      = 
+    CommChar = ~[\*]     
+    Asterisk = "*"     
+    CommChar = Asterisk 
 
   lexical restrictions
     Asterisk -/- [\/]
     Eof      -/- ~[]
 
   lexical syntax
-    ShortCom 	-> LAYOUT
-    LongCom 	-> LAYOUT
-    Ws 		-> LAYOUT
+    LAYOUT = ShortCom
+    LAYOUT = LongCom 
+    LAYOUT = Ws 	
 
   context-free restrictions
     LAYOUT? -/- [\ \t\n\r]
