@@ -1,0 +1,35 @@
+Strategies(
+  [ amb(
+      [ SDef(
+          "repeat"
+        , [DefaultVarDec("s")]
+        , LChoice(
+            Seq(
+              CallNoArgs(SVar("s"))
+            , Call(SVar("repeat"), [CallNoArgs(SVar("s"))])
+            )
+          , Id()
+          )
+        )
+      , SDef(
+          "repeat"
+        , [DefaultVarDec("s")]
+        , Seq(
+            CallNoArgs(SVar("s"))
+          , LChoice(
+              Call(SVar("repeat"), [CallNoArgs(SVar("s"))])
+            , Id()
+            )
+          )
+        )
+      ]
+    )
+  , SDefNoArgs(
+      "eval"
+    , Call(
+        SVar("repeat")
+      , [Choice(CallNoArgs(SVar("A")), CallNoArgs(SVar("B")))]
+      )
+    )
+  ]
+)

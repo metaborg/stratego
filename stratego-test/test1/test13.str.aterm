@@ -1,0 +1,47 @@
+Module(
+  "test13"
+, [ Imports([Import("libstratego-lib")])
+  , Signature(
+      [ Constructors(
+          [ OpDecl(
+              "Add"
+            , FunType(
+                [ConstType(SortNoArgs("Int")), ConstType(SortNoArgs("Int"))]
+              , ConstType(SortNoArgs("Exp"))
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Strategies(
+      [ SDefNoArgs(
+          "eval"
+        , Seq(
+            Match(
+              NoAnnoList(Op("Add", [Var("i"), Var("j")]))
+            )
+          , BA(
+              CallNoArgs(SVar("add"))
+            , NoAnnoList(Tuple([Var("i"), Var("j")]))
+            )
+          )
+        )
+      , SDefNoArgs(
+          "main"
+        , Seq(
+            Build(
+              NoAnnoList(
+                Op(
+                  "Add"
+                , [NoAnnoList(Int("1")), NoAnnoList(Int("2"))]
+                )
+              )
+            )
+          , Seq(CallNoArgs(SVar("eval")), Match(NoAnnoList(Int("3"))))
+          )
+        )
+      ]
+    )
+  ]
+)
