@@ -24,7 +24,7 @@ language General properties
   start symbols: Module
   
   provider:      include/stratego.ctree
-  provider:      include/stratego-java.jar
+  //provider:      include/stratego-java.jar
   
   observer:      editor-analyze (multifile)
   

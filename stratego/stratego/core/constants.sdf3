@@ -1,4 +1,4 @@
-module core/Stratego-Core-Constants
+module stratego/core/constants
 
   sorts Int Real String StrChar
   
@@ -11,3 +11,4 @@ module core/Stratego-Core-Constants
     
     StrChar = ~[\"\\] 
     StrChar = [\\] [\"tnr\\]
+

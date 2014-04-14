@@ -1,7 +1,7 @@
-module sugar/Stratego-Sugar-StringQuotations
+module stratego/sugar/string-quotations
 
   imports
-    core/Stratego-Core-Terms
+    stratego/core/terms
 
   sorts
     StringQuotation

@@ -6,7 +6,7 @@ imports
   lib/runtime/tmpl/pp
   Common.pp.generated
   Stratego.pp.generated
-
+ 
 rules
   
   pp-Stratego-string =

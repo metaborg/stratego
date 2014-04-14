@@ -1,9 +1,8 @@
 module Stratego-Core-in-Stratego
 imports Stratego-Core StrategoRenamed
-hiddens
   context-free start-symbols StrategoModule
 
-exports
+
 
   context-free syntax
 

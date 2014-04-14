@@ -1,48 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Stratego" default="all">
-    
-    <!-- Key input modules -->
-    <property name="sdfmodule" value="Stratego"/>
-    <property name="metasdfmodule" value="Stratego-Stratego"/>
-    <property name="esvmodule" value="Stratego"/>
-    <property name="strmodule" value="stratego"/>
 
-    <!-- Project directories -->
-    <property name="trans" location="trans"/>
-    <property name="src-gen" location="editor/java"/>
-    <property name="src-dirs" location="editor/java"/>
-    <property name="syntax" location="syntax"/>
-    <property name="include" location="include"/>
-    <property name="lib" location="lib"/>
-    <property name="build" location="bin"/>
-    <property name="dist" location="bin/dist"/>
-    
-    <!-- Imports -->
-    <property name="build.sdf.imports" value="
-      -I  &quot;${syntax}&quot;
-      -I  &quot;${syntax/core}&quot;
-      -I  &quot;${syntax/sugar}&quot;"/>
-    <property name="build.stratego.args" value="
+	<!-- Key input modules -->
+	<property name="sdfmodule" value="Stratego" />
+	<property name="metasdfmodule" value="Stratego-Stratego" />
+	<property name="esvmodule" value="Stratego" />
+	<property name="strmodule" value="stratego" />
+
+	<!-- Project directories -->
+	<property name="trans" location="trans" />
+	<property name="src-gen" location="editor/java" />
+	<property name="src-dirs" location="editor/java" />
+	<property name="syntax" location="${basedir}" />
+	<property name="include" location="include" />
+	<property name="lib" location="lib" />
+	<property name="build" location="bin" />
+	<property name="dist" location="bin/dist" />
+
+	<!-- Imports -->
+	<property name="build.sdf.imports" value="-I &quot;${syntax}&quot;" />
+
+	<property name="build.stratego.args" value="
                     --library
                     -I &quot;${trans}&quot;
                     -I &quot;${basedir}&quot;
-                    -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-parallel"/>
-    
-    <!-- Optional: external .def and .jar locations
+                    -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-parallel" />
+
+	<!-- Optional: external .def and .jar locations
     <property name="externaldef" location="syntax/${sdfmodule}.def"/>
     <property name="externaljar" value="../lib.jar"/>
     <property name="externaljarflags" value="-la org.lib"/>
     -->
 
-    <!-- Environment configuration for command-line builds -->
-    <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
-        <isset property="eclipse.spoofaximp.nativeprefix"/>
-    </condition>
-    <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
-		
-    <!-- used for building inside of Eclipse -->
-    <import file="build.generated.xml"/>   
+	<!-- Environment configuration for command-line builds -->
+	<condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
+		<isset property="eclipse.spoofaximp.nativeprefix" />
+	</condition>
+	<property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin" />
 
-    <!-- Main target -->
-    <target name="all" depends="spoofaximp.default.ctree"/>
+	<!-- used for building inside of Eclipse -->
+	<import file="build.generated.xml" />
+
+	<!-- Main target -->
+	<target name="all" depends="spoofaximp.default.ctree" />
+
+	<target name="pack-sdf" unless="externaldef">
+		<dependset>
+			<srcfileset dir="${basedir}">
+				<include name="**/*.sdf" />
+			</srcfileset>
+			<srcfileset dir="${lib}">
+				<include name="**/*.def" />
+			</srcfileset>
+			<targetfileset file="${include}/${sdfmodule}.def" />
+		</dependset>
+		<available file="${include}/${sdfmodule}.def" property="pack-sdf.available" />
+		<antcall target="pack-sdf.helper" />
+	</target>
+
+	<target name="pack-sdf.helper" unless="pack-sdf.available">
+		<condition property="utils-include" value="-I ${utils}" else="">
+			<available file="${utils}" />
+		</condition>
+		<java classname="run" failonerror="true">
+			<arg value="org.strategoxt.tools.main-pack-sdf" />
+			<arg value="-i" />
+			<arg value="${syntax}/stratego/${sdfmodule}.sdf" />
+			<arg value="-o" />
+			<arg value="${include}/${sdfmodule}.def" />
+			<arg value="-I" />
+			<arg value="${syntax}" />
+			<arg value="-I" />
+			<arg value="${lib}" />
+			<arg line="${utils-include}" />
+			<arg line="${build.sdf.imports}" />
+		</java>
+	</target>
 </project>

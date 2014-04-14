@@ -1,11 +1,11 @@
-module sugar/Stratego-Sugar-Rules
+module stratego/sugar/rules
 
   imports 
-    core/Stratego-Core-Identifiers
-    core/Stratego-Core-Signatures
-    core/Stratego-Core-Terms
-    sugar/Stratego-Sugar-Terms
-    sugar/Stratego-Sugar-Strategies
+    stratego/core/identifiers
+    stratego/core/signatures
+    stratego/core/terms
+    stratego/sugar/terms
+    stratego/sugar/strategies
 
   sorts RuleDef
   

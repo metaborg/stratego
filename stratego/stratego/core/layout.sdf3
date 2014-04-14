@@ -1,7 +1,7 @@
-module core/Stratego-Core-Layout
+module stratego/core/layout
 
   sorts Ws ShortCom LongCom CommChar Asterisk Eof 
-  
+     
   lexical syntax
     Ws       = [\t\ \n\r]
     ShortCom = "//" ~[\n]* ([\n] | Eof)	
@@ -14,11 +14,11 @@ module core/Stratego-Core-Layout
   lexical restrictions
     Asterisk -/- [\/]
     Eof      -/- ~[]
-
+    
   lexical syntax
     LAYOUT = ShortCom
     LAYOUT = LongCom 
-    LAYOUT = Ws 	
+    LAYOUT = Ws 	 
 
   context-free restrictions
     LAYOUT? -/- [\ \t\n\r]

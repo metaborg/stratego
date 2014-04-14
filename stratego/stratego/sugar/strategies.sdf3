@@ -1,13 +1,13 @@
-module sugar/Stratego-Sugar-Strategies
+module stratego/sugar/strategies
 imports
-  core/Stratego-Core-Identifiers
-  core/Stratego-Core-Constants
-  core/Stratego-Core-Strategies
-  core/Stratego-Core-Terms
-  sugar/Stratego-Sugar-Terms
-  sugar/Stratego-Sugar-Rules
-  sugar/Stratego-Sugar-Constants
-  sugar/Stratego-Sugar-Signatures
+  stratego/core/identifiers
+  stratego/core/constants
+  stratego/core/strategies
+  stratego/core/terms
+  stratego/sugar/terms
+  stratego/sugar/rules
+  stratego/sugar/constants
+  stratego/sugar/signatures
 
   templates
     StrategyDef.SDefNoArgs = 
@@ -62,6 +62,8 @@ imports
     Strategy.AnnoCong       = <<Strategy> <StrategyCurly>>
     
     StrategyCurly.StrategyCurly = <{ <Strategy> }>
+    
+    StrategyParen = <(<Strategy>)>
   
   %% Syntactic sugar sugar
 
@@ -92,8 +94,6 @@ imports
     SwitchCase.SwitchCase = 
       <case <Strategy> : 
          <Strategy>>
-
-  %% Priorities
 
   context-free priorities
     { Strategy.AnnoCong Strategy.ExplodeCong }

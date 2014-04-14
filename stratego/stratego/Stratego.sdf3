@@ -1,7 +1,8 @@
 module Stratego
 
 imports 
-  Stratego-Sugar
-  Stratego-Core-Modules
-
+  stratego/sugar/sugar
+  stratego/core/modules
+ 
 context-free start-symbols Module
+

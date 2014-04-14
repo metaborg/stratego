@@ -1,7 +1,7 @@
-module sugar/Stratego-Sugar-Overlays
+module stratego/sugar/overlays
 imports
-  core/Stratego-Core-Identifiers
-  sugar/Stratego-Sugar-Terms
+  stratego/core/identifiers
+  stratego/sugar/terms
 
   sorts Overlay
 

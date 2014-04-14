@@ -1,8 +1,8 @@
-module core/Stratego-Core-Signatures
+module stratego/core/signatures
 
 imports
-  core/Stratego-Core-Identifiers
-  core/Stratego-Core-Constants
+  stratego/core/identifiers
+  stratego/core/constants
 
   sorts Sdecl
   templates

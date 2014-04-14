@@ -1,18 +1,17 @@
-module sugar/Stratego-Sugar-DynamicRules
-imports
-  core/Stratego-Core-Identifiers
-  core/Stratego-Core-Terms
-  core/Stratego-Core-Signatures
-  sugar/Stratego-Sugar-Strategies
-  sugar/Stratego-Sugar-Rules
+module stratego/sugar/dynamic-rules
 
-exports
+imports
+  stratego/core/identifiers
+  stratego/core/terms
+  stratego/core/signatures
+  stratego/sugar/strategies
+  stratego/sugar/rules
  
   sorts ScopeLabels
   templates
     Strategy.DynRuleScope = 
       <{| <ScopeLabels> 
-        : <Strategy> 
+        : <Strategy>  
         |}>
     
     ScopeLabels = 
@@ -47,7 +46,7 @@ exports
       <<DynRuleId> := <Term>>
     DynRuleDef.DynRuleAssignAdd = 
       <<DynRuleId> :+= <Term>>
-    DynRuleDef.SetDynRuleDepends = 
+    DynRuleDef.SetDynRuleDepends =  
       <<DynRuleId> : <Rule> depends on <Term>>
     DynRuleId.LabeledDynRuleId = 
       <<RuleDec> . <Term>>
@@ -133,12 +132,12 @@ exports
     }
   > <Strategy-CF> <LAYOUT?-CF> "=>" <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("AM")}
 
-  context-free priorities
-    Strategy.BA
-  > Strategy.DynRuleIntersectFix
-  > Strategy.AM
-  > Strategy.DynRuleIntersect
-  > Strategy.DynRuleUnion
-  > Strategy.DynRuleIntersectUnion
-  > Strategy.Seq
+  // context-free priorities
+  //   Strategy.BA
+  // > Strategy.DynRuleIntersectFix
+  // > Strategy.AM
+  // > Strategy.DynRuleIntersect
+  // > Strategy.DynRuleUnion
+  // > Strategy.DynRuleIntersectUnion
+  // > Strategy.Seq
 

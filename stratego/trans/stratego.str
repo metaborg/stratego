@@ -18,7 +18,8 @@ imports
 	names
 	check
 	generate
-	pp
+	//pp
+	stratego/Stratego
 
 rules // Analysis
 	
@@ -43,12 +44,12 @@ rules // Editor services
 	// For references, this rule is invoked using the resolved term.
 	editor-hover:
 		(target, position, ast, path, project-path) ->
-			<get-editor-properties(pp-Stratego-string |<language>, project-path);properties-to-html>target
+			<get-editor-properties(id |<language>, project-path);properties-to-html>target
 
 	// Gathers the properties for the properties view.
 	editor-properties:
 		(target, position, ast, path, project-path) ->
-			<get-editor-properties(pp-Stratego-string |<language>, project-path)>target
+			<get-editor-properties(id |<language>, project-path)>target
 
 	// Completes an identifier when the user presses control-space
 	// (the completion identifier in the AST provides additional context information)
@@ -57,13 +58,13 @@ rules // Editor services
 		where
 			proposals := <analysis-propose-completions(|<language>, project-path)> ast
 	
-	// Formats the program using a pretty printer		
-  editor-format:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-    	ext      := <get-extension> path;
-      filename := <guarantee-extension(|$[pp.[ext]])> path;
-      result   := <pp-debug> selected
+	// // Formats the program using a pretty printer		
+ //  editor-format:
+ //    (selected, position, ast, path, project-path) -> (filename, result)
+ //    with
+ //    	ext      := <get-extension> path;
+ //      filename := <guarantee-extension(|$[pp.[ext]])> path;
+ //      result   := <pp-debug> selected
 
 rules // Debugging
 	

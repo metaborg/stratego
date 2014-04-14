@@ -1,0 +1,12 @@
+module stratego/core
+
+imports 
+  stratego/core/constants 
+  stratego/core/identifiers 
+  stratego/core/layout
+  stratego/core/signatures 
+  stratego/core/terms
+  stratego/core/strategies 
+  stratego/core/modules
+
+context-free start-symbols Module

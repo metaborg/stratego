@@ -1,8 +1,8 @@
-module sugar/Stratego-Sugar-Signatures
+module stratego/sugar/signatures
 
   imports
-    core/Stratego-Core-Signatures
-    sugar/Stratego-Sugar-Constants
+    stratego/core/signatures
+    stratego/sugar/constants
 
   sorts Sort
   

@@ -1,9 +1,0 @@
-module core/Stratego-Core
-imports core/Stratego-Core-Constants core/Stratego-Core-Identifiers
-        core/Stratego-Core-Layout core/Stratego-Core-Signatures
-        core/Stratego-Core-Terms core/Stratego-Core-Strategies
-        core/Stratego-Core-Modules
-
-exports
-  context-free start-symbols
-    Module
