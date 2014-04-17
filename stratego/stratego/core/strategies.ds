@@ -1,13 +1,37 @@
 module strategies
 
-rules // match, build, scope
+rules // match
 
-   T t |- (Match(p), E env) --> (t, E env')
-   where match(p, t, env) => MatchRes(t, env')
-     
+   T t |- (Match(p), E env) --> (v, E env')
+   where match(p, t, env) => MatchRes(v, env')
+   
+rules  // match (explicit)
+
+   T t |- (Match(Var(x)), E env) --> (S(t), E env)
+   where env[x] => t', t == t'
+
+   T t |- (Match(Var(x)), E env) --> (F(), E env)
+   where env[x] => t', t != t'
+              
+   T t |- (Match(Var(x)), E env) --> (S(t), E {x |--> t, env})
+   where env[x] => F()
+   
+//    T t@Op(c, ts) |- (Match(Op(c', ps)), E env) --> (t, E env')
+//    where T ts |- (Match(ps), E env) --> (t', E env')
+//    
+//    T t@[] |- (Match([]), E env) -> (t, E env)
+//    
+//    T t@[t' | ts] |- (Match([p | ps]), E env) --> (t, E env'')
+//    where T t' |- (Match(p), E env) --> (t'', E env'),
+//          T ts |- (Match(ps), E env') --> (ts', E env'')
+         
+
+rules // build
+    
    T t |- (Build(p), E env) --> (t', E env)
    where substitute(p, env) => t'
-   
+  
+rules // scope 
 
    T t |- (Scope([], s), E env) --> (t', E env')
    where 
@@ -17,8 +41,7 @@ rules // match, build, scope
    where 
       T t |- (Scope(xs, s), E {x |--> F(), env}) --> (t', E env'),
       env' => {x |--> v, env''}
-      
-   
+        
 rules // identity and failure
 
   T t |- Id() --> S(t)
@@ -51,4 +74,239 @@ rules // guarded choice
         T t |- (s3, E env) --> (v, E env'')
         
 rules
+
+signature
+
+  sorts MatchRes
+  constructors
+    match : Term * Term * Env -> MatchRes
+    MatchRes : Value * Env -> MatchRes
+    substitute : Term * Env -> Term
+
+  sorts Value SemComp Env
+  constructors
+    S : Term -> value
+    F : -> Value
+    T : Term -> SemComp // current term
+    E : Env -> SemComp // variable environment
+  
+  sorts Strategy Term PreTerm Id Var
+  constructors
+    // RuleNames                : Term -> RuleNames
+    //                          : List(Id) -> RuleNames
+    // RDecT                    : Id * List(Typedid) * List(Typedid) -> RuleDec
+    // RDec                     : Id * List(Typedid) -> RuleDec
+    // RDecNoArgs               : Id -> RuleDec
+    // DynRuleScopeId           : Id -> DynRuleScopeId
+    // LabeledDynRuleScopeId    : Id * Term -> DynRuleScopeId
+    // DynRuleId                : RuleDec -> DynRuleId
+    // AddLabelDynRuleId        : RuleDec * Term -> DynRuleId
+    // LabeledDynRuleId         : RuleDec * Term -> DynRuleId
+    // SetDynRuleDepends        : DynRuleId * Rule * Term -> DynRuleDef
+    // DynRuleAssignAdd         : DynRuleId * Term -> DynRuleDef
+    // DynRuleAssign            : DynRuleId * Term -> DynRuleDef
+    // SetDynRuleMatch          : DynRuleId * Term -> DynRuleDef
+    // AddDynRule               : DynRuleId * Rule -> DynRuleDef
+    // SetDynRule               : DynRuleId * Rule -> DynRuleDef
+    // UndefineDynRule          : DynRuleId * Term -> DynRuleDef
+    // AddScopeLabel            : Id * Term -> DynRuleDef
+    // ScopeLabels              : Term -> ScopeLabels
+    //                          : List(DynRuleScopeId) -> ScopeLabels
+    // Overlay                  : Id * List(Id) * Term -> Overlay
+    // OverlayNoArgs            : Id * Term -> Overlay
+    // SwitchCase               : Strategy * Strategy -> SwitchCase
+    // StrategyCurly            : Strategy -> StrategyCurly
+    //                          : Strategy -> StrategyAngle
+    // WithClause               : Strategy -> RuleCond
+    // WhereClause              : Strategy -> RuleCond
+    // Rule                     : Term * Term * List(RuleCond) -> Rule
+    // Rule                     : Term * Term * Strategy -> Rule
+    // RuleNoCond               : Term * Term -> Rule
+    // RDefT                    : Id * List(Typedid) * List(Typedid) * Rule -> RuleDef
+    // RDef                     : Id * List(Typedid) * Rule -> RuleDef
+    // RDefNoArgs               : Id * Rule -> RuleDef
+    // ListVar                  : LId -> LID
+    //                          : String -> Char
+    //                          : String -> Padding
+    // QBr                      : String -> StringQuotedPart4
+    // QDollar                  : String -> StringQuotedPart4
+    // QStr                     : String -> StringQuotedPart4
+    // StringEscape4            : Padding * Term -> StringQuotedPart4
+    // QBr                      : String -> StringQuotedPart3
+    // QDollar                  : String -> StringQuotedPart3
+    // QStr                     : String -> StringQuotedPart3
+    // StringEscape3            : Padding * Term -> StringQuotedPart3
+    // QBr                      : String -> StringQuotedPart2
+    // QDollar                  : String -> StringQuotedPart2
+    // QStr                     : String -> StringQuotedPart2
+    // StringEscape2            : Padding * Term -> StringQuotedPart2
+    // QBr                      : String -> StringQuotedPart1
+    // QDollar                  : String -> StringQuotedPart1
+    // QStr                     : String -> StringQuotedPart1
+    // StringEscape1            : Padding * Term -> StringQuotedPart1
+    // StringQuotation4         : Padding * List(StringQuotedPart4) -> StringQuotation
+    // StringQuotation3         : Padding * List(StringQuotedPart3) -> StringQuotation
+    // StringQuotation2         : Padding * List(StringQuotedPart2) -> StringQuotation
+    // StringQuotation1         : Padding * List(StringQuotedPart1) -> StringQuotation
+    // ImportWildcard           : ModName -> ImportModName
+    // Import                   : ModName -> ImportModName
+    // Overlays                 : List(Overlay) -> Decl
+    // Rules                    : List(Def) -> Decl
+    // Signature                : List(Sdecl) -> Decl
+    // Strategies               : List(Def) -> Decl
+    // Imports                  : List(ImportModName) -> Decl
+    // Specification            : List(Decl) -> Module
+    // Module                   : ModName * List(Decl) -> Module
+    //                          : Strategy -> StrategyMid
+    // ParenStrat               : Strategy -> StrategyParen
+    // DefaultVarDec            : ID -> Typedid
+    // VarDec                   : ID * Type -> Typedid
+    // Internal                 : Anno
+    // Override                 : Anno
+    // Extend                   : Anno
+    //                          : String -> EmptyId
+    // SDef                     : Id * List(Typedid) * Strategy -> StrategyDef
+    // SDefNoArgs               : Id * Strategy -> StrategyDef
+    // ExtSDef                  : EmptyId * List(Typedid) * List(Typedid) -> StrategyDef
+    // ExtSDef                  : Id * List(Typedid) * List(Typedid) -> StrategyDef
+    // ExtSDefInl               : Id * List(Typedid) * List(Typedid) * Strategy -> StrategyDef
+    // SDefT                    : Id * List(Typedid) * List(Typedid) * Strategy -> StrategyDef
+    // DynRuleIntersectUnion    : Strategy * RuleNames * RuleNames * Strategy -> Strategy
+    // DynRuleUnion             : Strategy * RuleNames * Strategy -> Strategy
+    // DynRuleIntersect         : Strategy * RuleNames * Strategy -> Strategy
+    // DynRuleIntersectUnionFix : RuleNames * RuleNames * Strategy -> Strategy
+    // DynRuleUnionFix          : RuleNames * Strategy -> Strategy
+    // DynRuleIntersectFix      : RuleNames * Strategy -> Strategy
+    // GenDynRules              : List(DynRuleDef) -> Strategy
+    // DynRuleScope             : ScopeLabels * Strategy -> Strategy
+    // SwitchChoice             : Strategy * List(SwitchCase) * Strategy -> Strategy
+    // SwitchChoiceNoOtherwise  : Strategy * List(SwitchCase) -> Strategy
+    // IfThen                   : Strategy * Strategy -> Strategy
+    // CondChoice               : Strategy * Strategy * Strategy -> Strategy
+    // Proceed                  : List(Strategy) -> Strategy
+    // RChoice                  : Strategy * Strategy -> Strategy
+    // Choice                   : Strategy * Strategy -> Strategy
+    // SRule                    : Rule -> Strategy
+    // LRule                    : Rule -> Strategy
+    // CallNoArgs               : SVar -> Strategy
+    // AnnoCong                 : Strategy * StrategyCurly -> Strategy
+    // Assign                   : Term * Term -> Strategy
+    // AM                       : Strategy * Term -> Strategy
+    // ExplodeCong              : Strategy * StrategyParen -> Strategy
+    // ListCong                 : List(Strategy) * Strategy -> Strategy
+    // ListCongNoTail           : List(Strategy) -> Strategy
+    // TupleCong                : Strategy * List(Strategy) -> Strategy
+    // EmptyTupleCong           : Strategy
+    // CongQ                    : String * List(Strategy) -> Strategy
+    // CharCong                 : Char -> Strategy
+    // RealCong                 : Real -> Strategy
+    // IntCong                  : Int -> Strategy
+    // StrCong                  : String -> Strategy
+    // Prim                     : String * List(Term) -> Strategy
+    // PrimNoArgs               : String -> Strategy
+    // Test                     : Strategy -> Strategy
+    // With                     : Strategy -> Strategy
+    // Where                    : Strategy -> Strategy
+    // Not                      : Strategy -> Strategy
+    // Rec                      : Id * Strategy -> Strategy
+    // LChoice                  : Strategy * Strategy -> Strategy
+    // BA                       : StrategyAngle * Term -> Strategy
+    // ScopeDefault             : Strategy -> Strategy
+    // Call                     : SVar * List(Strategy) -> Strategy
+    // ImportTerm               : ModName -> Strategy
+    // All                      : Strategy -> Strategy
+    // One                      : Strategy -> Strategy
+    // Some                     : Strategy -> Strategy
+    // PrimT                    : String * List(Strategy) * List(Term) -> Strategy
+    GuardedLChoice           : Strategy * Strategy * Strategy -> Strategy
+    Seq                      : Strategy * Strategy -> Strategy
+    Scope                    : List(ID) * Strategy -> Strategy
+    Build                    : Term -> Strategy
+    Match                    : Term -> Strategy
+    // ProceedNoArgs            : Strategy
+    // ProceedT                 : List(Strategy) * List(Term) -> Strategy
+    Id                       : -> Strategy
+    Fail                     : -> Strategy
+    // CallDynamic              : Term * List(Strategy) * List(Term) -> Strategy
+    // CallT                    : SVar * List(Strategy) * List(Term) -> Strategy
+    // Let                      : List(Def) * Strategy -> Strategy
+    // SVar                     : Id -> SVar
+    //                          : RuleDef -> Def
+    // AnnoDef                  : List(Anno) * RuleDef -> Def
+    // AnnoDef                  : List(Anno) * StrategyDef -> Def
+    //                          : StrategyDef -> Def
+    //                          : ConstType -> Type
+    //                          : FunType -> Type
+    //                          : Type -> RetType
+    //                          : ConstType -> ArgType
+    //                          : Type -> ArgType
+    // FunType                  : List(ArgType) * RetType -> FunType
+    // ConstType                : Sort -> ConstType
+    // ExtOpDeclInj             : Type -> Opdecl
+    // ExtOpDeclQ               : String * Type -> Opdecl
+    // ExtOpDecl                : Id * Type -> Opdecl
+    // OpDeclInj                : Type -> Opdecl
+    // OpDeclQ                  : String * Type -> Opdecl
+    // OpDecl                   : Id * Type -> Opdecl
+    // SortTuple                : List(Sort) -> Sort
+    // SortListTl               : List(Sort) * Sort -> Sort
+    // SortList                 : List(Sort) -> Sort
+    // Sort                     : Id * List(Sort) -> Sort
+    // SortNoArgs               : UCID -> Sort
+    // SortVar                  : LCID -> Sort
+    // Constructors             : List(Opdecl) -> Sdecl
+    // Sorts                    : List(Sort) -> Sdec
+   
+    // Wld                      : Wld
+    // BuildDefaultPT           : PreTerm -> PreTerm
+    // ListTail                 : List(Term) * Term -> PreTerm
+    // List                     : List(Term) -> PreTerm
+    // Tuple                    : List(Term) -> PreTerm
+    // RootApp                  : StrategyAngle -> PreTerm
+    // App                      : Strategy * Term -> PreTerm
+    // Char                     : Char -> PreTerm
+    //                          : StringQuotation -> PreTerm
+    // As                       : Var * PreTerm -> PreTerm
+    // Explode                  : Term * Term -> PreTerm
+    // OpQ                      : String * List(Term) -> PreTerm
+    Op                       : Id * List(Term) -> PreTerm
+    // Str                      : String -> PreTerm
+    // Real                     : Real -> PreTerm
+    // Int                      : Int -> PreTerm
+    //                          : Wld -> PreTerm
+    //                          : Var -> PreTerm
+    // RootApp                  : StrategyAngle -> Term
+    // App                      : Strategy * Term -> Term
+    NoAnnoList               : PreTerm -> Term
+    AnnoList                 : PreTerm * List(Term) -> Term
+    // BuildDefault             : Term -> Term
+    // As                       : Var * Term -> Term
+    // Anno                     : PreTerm * PreTerm -> Term
+    //                          : Wld -> Term
+    //                          : Var -> Term
+    //                          : LID -> ID
+    //                          : Id -> ID
+    // Var                      : LID -> Var
+    Var                      : Id -> Var
+    //                          : String -> String
+    //                          : String -> Real
+    //                          : String -> Int
+    //                          : String -> UCID
+    //                          : String -> LCID
+    //                          : String -> LId
+    //                          : String -> Id
+    //                          : String -> ModName
+
+
+// signature
+//   constructors
+//     Some : a -> Option(a)
+//     None : Option(a)
+// 
+// 
+// signature
+//   constructors
+//     Cons : a * List(a) -> List(a)
+//     Nil  : List(a)
+//     Conc : List(a) * List(a) -> List(a)
 
