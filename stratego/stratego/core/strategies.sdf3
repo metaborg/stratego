@@ -12,10 +12,11 @@ imports
     
     SVar.SVar = <<Id>>
     
-    Strategy.Let = 
-      <let <Def*> 
+    Strategy.Let = <
+      let <Def*> 
         in <Strategy> 
-       end>
+       end
+    >
         
     Strategy.CallT = 
       <<SVar>(<Strategy*; separator=", ">|<Term*; separator=", ">)>
@@ -25,16 +26,18 @@ imports
     
   sorts StrategyDef
   templates
-    StrategyDef.SDefT = 
-      <<Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
-         <Strategy>>
+    StrategyDef.SDefT = <
+      <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+         <Strategy>
+    >
   
     Def.AnnoDef = 
       <<Anno+> <StrategyDef>>
   
-    StrategyDef.ExtSDefInl = 
-      <external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
-         <Strategy>>
+    StrategyDef.ExtSDefInl = <
+      external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+         <Strategy>
+    >
   
     StrategyDef.ExtSDef = 
       <external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">)>

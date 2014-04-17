@@ -10,30 +10,27 @@ imports
   stratego/sugar/signatures
 
   templates
-    StrategyDef.SDefNoArgs = 
-      <<Id> = 
-         <Strategy>>
+    StrategyDef.SDefNoArgs = <
+      <Id> = 
+         <Strategy>
+    >
          
-    StrategyDef.SDef = 
-      <<Id>(<Typedid*; separator=", ">) = 
-         <Strategy>>
+    StrategyDef.SDef = <
+      <Id>(<Typedid*; separator=", ">) = 
+         <Strategy>
+    >
   
   templates  
     Typedid.DefaultVarDec = <<ID>>
 
   sorts StrategyParen StrategyCurly StrategyAngle  
-  templates
+  templates 
   
-    Strategy.Call = 
-      <<SVar> ( <Strategy*; separator=","> )>
-    Strategy.ScopeDefault = 
-      <{ <Strategy> }>
-    Strategy.BA = 
-      <<StrategyAngle> <Term>>
-    StrategyAngle = 
-      [< [Strategy] >] {bracket}
-    Strategy.LChoice = 
-      [[Strategy] <+ [Strategy]] {right}
+    Strategy.Call = <<SVar> ( <Strategy*; separator=","> )>
+    Strategy.ScopeDefault = <{ <Strategy> }>
+    Strategy.BA = <<StrategyAngle> <Term>>
+    StrategyAngle = [< [Strategy] >] {bracket}
+    Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
       
     Strategy.Rec        = <rec <Id> ( <Strategy> )>     
     Strategy.Not        = <not(<Strategy>)>
@@ -80,33 +77,36 @@ imports
    
   sorts SwitchCase
   templates    
-    Strategy.SwitchChoiceNoOtherwise = 
-      <switch <Strategy> 
+    Strategy.SwitchChoiceNoOtherwise = <
+      switch <Strategy> 
          <SwitchCase*> 
-       end>
+      end
+    >
        
-    Strategy.SwitchChoice = 
-      <switch <Strategy> 
+    Strategy.SwitchChoice = <
+      switch <Strategy> 
         <SwitchCase*> 
         otherwise : <Strategy> 
-       end>
+      end
+    >
        
-    SwitchCase.SwitchCase = 
-      <case <Strategy> : 
-         <Strategy>>
+    SwitchCase.SwitchCase = <
+      case <Strategy> : 
+        <Strategy>
+    >
 
   context-free priorities
     { Strategy.AnnoCong Strategy.ExplodeCong }
-  > { Strategy.Match Strategy.Build }
+  // > { Strategy.Match Strategy.Build } 
   > Strategy.BA 
   > Strategy.AM  
-  > Strategy.Seq
+  // > Strategy.Seq
   > {right: 
      Strategy.Choice
      Strategy.LChoice
      Strategy.RChoice    
-     Strategy.GuardedLChoice
-    }
+     //Strategy.GuardedLChoice
+    } 
 
   // context-free priorities
   //   StrategyMid
