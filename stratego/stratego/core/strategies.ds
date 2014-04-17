@@ -1,0 +1,54 @@
+module strategies
+
+rules // match, build, scope
+
+   T t |- (Match(p), E env) --> (t, E env')
+   where match(p, t, env) => MatchRes(t, env')
+     
+   T t |- (Build(p), E env) --> (t', E env)
+   where substitute(p, env) => t'
+   
+
+   T t |- (Scope([], s), E env) --> (t', E env')
+   where 
+      T t |- (s, E env) --> (t', E env')
+         
+   T t |- (Scope([x | xs], s), E env) --> (t', E env')
+   where 
+      T t |- (Scope(xs, s), E {x |--> F(), env}) --> (t', E env'),
+      env' => {x |--> v, env''}
+      
+   
+rules // identity and failure
+
+  T t |- Id() --> S(t)
+  
+  T t |- Fail() --> F()
+
+rules // proceed
+
+  // ProceedT(s*, t*) ?
+  
+  // ProceedNoArgs() ?
+
+rules // sequential composition
+  
+  T t |- Seq(s1, s2) --> v
+  where T t |- s1 --> S(t'),
+        T t' |- s2 --> v 
+        
+  T t |- Seq(s1, s2) --> F()
+  where T t |- s1 --> F()
+                   
+rules // guarded choice   
+        
+  T t |- GuardedLChoice(s1, s2, s3) --> v
+  where T t |- s1 --> S(t'), 
+        T t' |- s2 --> v 
+                
+  T t |- (GuardedLChoice(s1, s2, s3), E env) --> (v, E env'')
+  where T t |- (s1, E env) --> (F(), E env'), 
+        T t |- (s3, E env) --> (v, E env'')
+        
+rules
+
