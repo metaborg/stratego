@@ -1,4 +1,4 @@
-module strategies
+module stratego/core/strategies
 
 rules // match
 
@@ -73,6 +73,35 @@ rules // guarded choice
   where T t |- (s1, E env) --> (F(), E env'), 
         T t |- (s3, E env) --> (v, E env'')
         
+rules // term traversal: all
+
+  T Op(c, ts) |- All(s) --> S(Op(c, ts'))
+  where Ts ts |- map(s) --> S(ts')
+   
+  Ts [] |- map(s) --> S([])
+  
+  Ts [t | ts] |- map(s) --> S([t' | ts'])
+  where T t |- s --> S(t'),
+        Ts ts |- map(s) --> S(ts')
+ 
+  // + failure cases
+ 
+rules // term traversal: one
+       
+  T Op(c, ts) |- One(s) --> S(Op(c, ts'))
+  where Ts ts |- first(s) --> S(ts')
+           
+  Ts [] |- first(s) --> F()
+  
+  Ts [t | ts] |- first(s) --> S([t' | ts])
+  where T t |- s --> S(t')
+
+  Ts [t | ts] |- first(s) --> S([t | ts'])
+  where T t |- s --> F(),
+        Ts ts |- first(s) --> S(ts')   
+
+  // + failure cases
+  
 rules
 
 signature
@@ -82,6 +111,9 @@ signature
     match : Term * Term * Env -> MatchRes
     MatchRes : Value * Env -> MatchRes
     substitute : Term * Env -> Term
+    
+    map : Strategy -> Strategy
+    first : Strategy -> Strategy
 
   sorts Value SemComp Env
   constructors
@@ -90,7 +122,7 @@ signature
     T : Term -> SemComp // current term
     E : Env -> SemComp // variable environment
   
-  sorts Strategy Term PreTerm Id Var
+  sorts Strategy Term PreTerm Id Var String Real Int
   constructors
     // RuleNames                : Term -> RuleNames
     //                          : List(Id) -> RuleNames
@@ -189,7 +221,7 @@ signature
     // SRule                    : Rule -> Strategy
     // LRule                    : Rule -> Strategy
     // CallNoArgs               : SVar -> Strategy
-    // AnnoCong                 : Strategy * StrategyCurly -> Strategy
+    AnnoCong                 : Strategy * Strategy -> Strategy
     // Assign                   : Term * Term -> Strategy
     // AM                       : Strategy * Term -> Strategy
     // ExplodeCong              : Strategy * StrategyParen -> Strategy
@@ -197,7 +229,7 @@ signature
     // ListCongNoTail           : List(Strategy) -> Strategy
     // TupleCong                : Strategy * List(Strategy) -> Strategy
     // EmptyTupleCong           : Strategy
-    // CongQ                    : String * List(Strategy) -> Strategy
+    CongQ                    : String * List(Strategy) -> Strategy
     // CharCong                 : Char -> Strategy
     // RealCong                 : Real -> Strategy
     // IntCong                  : Int -> Strategy
@@ -214,9 +246,9 @@ signature
     // ScopeDefault             : Strategy -> Strategy
     // Call                     : SVar * List(Strategy) -> Strategy
     // ImportTerm               : ModName -> Strategy
-    // All                      : Strategy -> Strategy
-    // One                      : Strategy -> Strategy
-    // Some                     : Strategy -> Strategy
+    All                      : Strategy -> Strategy
+    One                      : Strategy -> Strategy
+    Some                     : Strategy -> Strategy
     // PrimT                    : String * List(Strategy) * List(Term) -> Strategy
     GuardedLChoice           : Strategy * Strategy * Strategy -> Strategy
     Seq                      : Strategy * Strategy -> Strategy
@@ -270,9 +302,9 @@ signature
     // Explode                  : Term * Term -> PreTerm
     // OpQ                      : String * List(Term) -> PreTerm
     Op                       : Id * List(Term) -> PreTerm
-    // Str                      : String -> PreTerm
-    // Real                     : Real -> PreTerm
-    // Int                      : Int -> PreTerm
+    Str                      : String -> PreTerm
+    Real                     : Real -> PreTerm
+    Int                      : Int -> PreTerm
     //                          : Wld -> PreTerm
     //                          : Var -> PreTerm
     // RootApp                  : StrategyAngle -> Term
