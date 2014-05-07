@@ -21,9 +21,10 @@ rules
       
       imports
         
-        include/[m]
+        [m]
         lib/runtime/nabl/-
         lib/runtime/properties/-
+        lib/runtime/editor/-
       
       rules
         
