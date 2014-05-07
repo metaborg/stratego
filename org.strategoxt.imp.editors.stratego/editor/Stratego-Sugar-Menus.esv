@@ -17,3 +17,7 @@ menus
 	  action: "Inline strategy"    = inline-builder (meta) (openeditor)
 	  action: "Extract strategy"   = extract-builder (meta) (openeditor)
 	  action: "Remove debug calls" = remove-debug-builder (meta) (openeditor)
+
+	menu: "Generation"
+		
+		action: "Specific traversal" = generate-specific-traversal (meta) (openeditor) (source)

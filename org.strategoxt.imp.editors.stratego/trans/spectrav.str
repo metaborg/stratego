@@ -1,0 +1,93 @@
+module spectrav
+
+imports
+	
+	include/Stratego-Sugar
+	lib/runtime/nabl/utils
+	
+rules
+	
+  generate-specific-traversal:
+	  (selected, position, ast, path, project-path) -> (filename, result)
+	  with
+	    filename := <guarantee-extension(|"traversal.str")> path;
+	    result   := <gen-spectrav-module> ast
+	
+rules
+	
+	gen-spectrav-module:
+		Module(m, decl*) -> 
+		$[module [m].traversal
+		  
+		  imports
+		  	
+		  	include/[m]
+		  
+		  rules
+		  	
+		    tdbu(d,u) = tdbu-Int(d,u) 
+		    tdbu-Int(d,u)    = d; u
+		    tdbu(d,u) = tdbu-String(d,u)
+		    tdbu-String(d,u) = d; u
+		  
+		  rules
+		    [traversal]]
+		with
+			sig*      := <collect-all(?Constructors(<id>)); concat> decl*;
+			traversal := <filter(gen-spectrav); concat-strings> sig*
+
+rules
+			
+	gen-spectrav:
+		OpDeclInj(FunType([inj-sort], sort@ConstType(SortNoArgs(_)))) -> 
+		$[tdbu(d,u) = [sort-name](d,u)
+		  [sort-name](d,u) = [sort-call]
+		
+		]
+		with
+			sort-name := <gen-sort-name> sort;
+			sort-call := <gen-sort-call> inj-sort
+			
+	gen-spectrav:
+		OpDecl(cons, sort@ConstType(SortNoArgs(_))) -> 
+		$[tdbu(d,u) = [sort-name](d,u)
+		  [sort-name](d,u) = [cons-name](d,u)
+		  [cons-name](d,u) = d; u
+		
+		]
+		with
+			sort-name   := <gen-sort-name> sort;
+			cons-name   := <gen-cons-name(|0)> cons
+		
+	gen-spectrav:
+		OpDecl(cons, FunType(sort-param*, sort@ConstType(SortNoArgs(_)))) ->
+		$[tdbu(d,u) = [sort-name](d,u)
+		  [sort-name](d,u) = [cons-name](d,u)
+		  [cons-name](d,u) = d; [congruence]; u
+		
+		]
+		with
+			sort-name   := <gen-sort-name> sort;
+			arity       := <length> sort-param*;
+			cons-name   := <gen-cons-name(|arity)> cons;
+			congruence  := <gen-congruence(|sort-param*)> cons
+		
+rules
+	
+	gen-cons-name(|arity):
+		cons -> $[tdbu-[cons]-[arity]]
+		
+	gen-congruence(|sort-param*):
+		cons -> $[[cons]([sort-names])]
+		with
+			sort-names := <map(gen-sort-call); separate-by(|", "); concat-strings> sort-param*
+	
+rules
+	
+	gen-sort-name:
+		ConstType(SortNoArgs(sort)) -> $[tdbu-[sort]]
+		
+	gen-sort-call = !$[[<gen-sort-name>](d,u)]
+	gen-sort-call: ConstType(Sort("List", [SortNoArgs(sort)])) -> $[map(tdbu-[sort](d,u))]
+	gen-sort-call: ConstType(Sort("Option", [SortNoArgs(sort)])) -> $[tdbu-[sort](d,u)]
+	

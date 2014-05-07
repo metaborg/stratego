@@ -13,6 +13,7 @@ imports
   refactoring/helpers/builders
   complete
   editor/Stratego-Sugar-Outliner
+	spectrav
 
 strategies
 
