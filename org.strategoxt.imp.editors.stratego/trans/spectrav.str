@@ -25,10 +25,10 @@ rules
 		  
 		  rules
 		  	
-		    tdbu(d,u) = tdbu-Int(d,u) 
-		    tdbu-Int(d,u)    = d; u
-		    tdbu(d,u) = tdbu-String(d,u)
-		    tdbu-String(d,u) = d; u
+		  	tdbu = tdbu-Int 
+		  	tdbu-Int    = id
+		  	tdbu = tdbu-String
+		  	tdbu-String = id
 		  
 		  rules
 		    [traversal]]
@@ -40,8 +40,8 @@ rules
 			
 	gen-spectrav:
 		OpDeclInj(FunType([inj-sort], sort@ConstType(SortNoArgs(_)))) -> 
-		$[tdbu(d,u) = [sort-name](d,u)
-		  [sort-name](d,u) = [sort-call]
+		$[tdbu = [sort-name]
+		  [sort-name] = [sort-call]
 		
 		]
 		with
@@ -50,32 +50,46 @@ rules
 			
 	gen-spectrav:
 		OpDecl(cons, sort@ConstType(SortNoArgs(_))) -> 
-		$[tdbu(d,u) = [sort-name](d,u)
-		  [sort-name](d,u) = [cons-name](d,u)
-		  [cons-name](d,u) = d; u
-		
+		$[tdbu = [sort-name]
+		  [sort-name] = [cons-name]
+		  [cons-name] = try([before-name]); try([after-name])
+		  [before-name] = fail
+		  [after-name] = fail
+		  
 		]
 		with
 			sort-name   := <gen-sort-name> sort;
-			cons-name   := <gen-cons-name(|0)> cons
+			cons-name   := <gen-cons-name(|0)> cons;
+			before-name := <gen-cons-before(|0)> cons;
+			after-name  := <gen-cons-after(|0)> cons
 		
 	gen-spectrav:
 		OpDecl(cons, FunType(sort-param*, sort@ConstType(SortNoArgs(_)))) ->
-		$[tdbu(d,u) = [sort-name](d,u)
-		  [sort-name](d,u) = [cons-name](d,u)
-		  [cons-name](d,u) = d; [congruence]; u
+		$[tdbu = [sort-name]
+		  [sort-name] = [cons-name]
+		  [cons-name] = try([before-name]); [congruence]; try([after-name])
+		  [before-name] = fail
+		  [after-name] = fail
 		
 		]
 		with
 			sort-name   := <gen-sort-name> sort;
 			arity       := <length> sort-param*;
 			cons-name   := <gen-cons-name(|arity)> cons;
+			before-name := <gen-cons-before(|arity)> cons;
+			after-name  := <gen-cons-after(|arity)> cons;
 			congruence  := <gen-congruence(|sort-param*)> cons
 		
 rules
 	
 	gen-cons-name(|arity):
 		cons -> $[tdbu-[cons]-[arity]]
+		
+	gen-cons-before(|arity):
+		cons -> $[tdbu-[cons]-[arity]-before]
+		
+	gen-cons-after(|arity):
+		cons -> $[tdbu-[cons]-[arity]-after]
 		
 	gen-congruence(|sort-param*):
 		cons -> $[[cons]([sort-names])]
@@ -87,7 +101,7 @@ rules
 	gen-sort-name:
 		ConstType(SortNoArgs(sort)) -> $[tdbu-[sort]]
 		
-	gen-sort-call = !$[[<gen-sort-name>](d,u)]
-	gen-sort-call: ConstType(Sort("List", [SortNoArgs(sort)])) -> $[map(tdbu-[sort](d,u))]
-	gen-sort-call: ConstType(Sort("Option", [SortNoArgs(sort)])) -> $[tdbu-[sort](d,u)]
+	gen-sort-call = !$[[<gen-sort-name>]]
+	gen-sort-call: ConstType(Sort("List", [SortNoArgs(sort)])) -> $[map(tdbu-[sort])]
+	gen-sort-call: ConstType(Sort("Option", [SortNoArgs(sort)])) -> $[tdbu-[sort]]
 	
