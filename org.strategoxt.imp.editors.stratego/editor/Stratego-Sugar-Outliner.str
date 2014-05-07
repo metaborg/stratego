@@ -8,13 +8,15 @@ imports
 
 rules
 	
-  outline:
-    ast -> Node(label{icon}, children)
-    where
-      label := <get-module-name> ast;
-      icon :=  <icon-module>;
-      sections := <collect-om(is-outline-section, conc)> ast;
-      children := <collect-om(get-outline-section); map(outline-section-to-node(|sections))> sections
+	outline = fail
+	
+  // outline:
+  //   ast -> Node(label{icon}, children)
+  //   where
+  //     label := <get-module-name> ast;
+  //     icon :=  <icon-module>;
+  //     sections := <collect-om(is-outline-section, conc)> ast;
+  //     children := <collect-om(get-outline-section); map(outline-section-to-node(|sections))> sections
 	
 	outline-expand-to-level = !3
 	
