@@ -75,6 +75,11 @@ rules
       str := <meta-explode(false) ; Stratego-Ensugar>node 
     ; text := <concat-strings>["<pre>", <pp-stratego-string>str ,"</pre>"]
 
+  editor-outline:
+    (node, position, ast, path, project-path) -> outline
+    where
+      outline := <outline> ast
+
   generate-aterm:
     (selected, position, ast, path, project-path) -> (filename, result)
     with

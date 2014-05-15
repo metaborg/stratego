@@ -16,8 +16,6 @@ rules
       sections := <collect-om(is-outline-section, conc)> ast;
       children := <collect-om(get-outline-section); map(outline-section-to-node(|sections))> sections
 	
-	outline-expand-to-level = !3
-	
   get-module-name: Module(name, _) -> name
 	
 signature constructors
