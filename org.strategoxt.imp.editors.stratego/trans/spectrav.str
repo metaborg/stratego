@@ -194,19 +194,19 @@ rules // Constructors
         specific-siblings-call := ${; specific-siblings-{cons-name}(|lang, partition, unique*, uri*)};
         congruence-part-str    := <gen-specific-siblings-congruence; separate-by(|", "); concat-strings> sort-param*;
         specific-siblings-def  :=
-          ${{<specific-siblings-name> cons-name} =
-              spectrav-debug(|"a "); {cons}(
-                {congruence-part-str}  
-              ); spectrav-debug(|"b ")
-          }
           // ${{<specific-siblings-name> cons-name} =
-          //     preserve-annos(origin-track-forced(
-          //       spectrav-debug(|"a "); {cons}(
-          //         {congruence-part-str}  
-          //       ); spectrav-debug(|"b ")
-          //     ))
-          //   
+          //     spectrav-debug(|"a "); {cons}(
+          //       {congruence-part-str}  
+          //     ); spectrav-debug(|"b ")
           // }
+          ${{<specific-siblings-name> cons-name} =
+              preserve-annos(origin-track-forced(
+                spectrav-debug(|"a "); {cons}(
+                  {congruence-part-str}  
+                ); spectrav-debug(|"b ")
+              ))
+            
+          }
       else
         specific-siblings-call := "";
         specific-siblings-def  := ""
