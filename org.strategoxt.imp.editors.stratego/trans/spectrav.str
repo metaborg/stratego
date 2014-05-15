@@ -57,7 +57,7 @@ rules
       
   gen-spectrav:
     OpDeclInj(FunType([inj-sort], sort@ConstType(SortNoArgs(_)))) -> 
-    $[rules
+    $[rules // Sort [sort-name], injected into [inj-sort-name]
       
         [<gen-generic> sort-name]
         
@@ -71,7 +71,7 @@ rules
       
   gen-spectrav:
     OpDecl(cons, sort@ConstType(SortNoArgs(_))) -> 
-    $[rules
+    $[rules // Constructor [cons-name], Sort [sort-name]
       
         [<gen-generic> sort-name]
     
@@ -86,7 +86,7 @@ rules
     
   gen-spectrav:
     OpDecl(cons, FunType(sort-param*, sort@ConstType(SortNoArgs(_)))) ->
-    $[rules
+    $[rules // Constructor [cons-name], Sort [sort-name]
       
         [<gen-generic> sort-name]
     
@@ -192,7 +192,7 @@ rules // Constructors
     	cons-match := <gen-constructor-match(|arity)> cons;
       if <gt> (<length> sort-param*, 0) then
         specific-siblings-call := ${; specific-siblings-{cons-name}(|lang, partition, unique*, uri*)};
-        congruence-part-str    := <gen-specific-siblings-congruence(|0); separate-by(|", "); concat-strings> sort-param*;
+        congruence-part-str    := <gen-specific-siblings-congruence; separate-by(|", "); concat-strings> sort-param*;
         specific-siblings-def  :=
           ${{<specific-siblings-name> cons-name} =
               spectrav-debug(|"a "); {cons}(
@@ -215,45 +215,47 @@ rules // Constructors
   gen-constructor-match(|arity):
   	name -> $[?[name]([<repeat(!["_"|<id>]|arity); separate-by(!", ")> []])]
   
-  gen-specific-siblings-congruence(|n):
-    [sort, next-sort | sortz] -> [part-str | <gen-specific-siblings-congruence(|n')> [next-sort | sortz]]
+  gen-specific-siblings-congruence = gen-specific-siblings-congruence(|0, 0)
+  
+  gen-specific-siblings-congruence(|n, d):
+    [sort, next-sort | sortz] -> [part-str | <gen-specific-siblings-congruence(|n', <inc> d)> [next-sort | sortz]]
     with
-      (part-str, n') := <gen-specific-siblings-part(|n)> sort
+      (part-str, n') := <gen-specific-siblings-part(|n, d)> sort
 
-  gen-specific-siblings-congruence(|n):
+  gen-specific-siblings-congruence(|n, d):
     [sort] -> [part-str]
     with
-      (part-str, _) := <gen-specific-siblings-part(|n)> sort
+      (part-str, _) := <gen-specific-siblings-part(|n, d)> sort
 
-  gen-specific-siblings-part(|n):
-    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)], <inc> n)
+  gen-specific-siblings-part(|n, d):
+    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*); spectrav-debug(|"[d] ")], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       0 := n
       
-  gen-specific-siblings-part(|n):
-    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)], <inc> n)
+  gen-specific-siblings-part(|n, d):
+    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*); spectrav-debug(|"[d] ")], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       not(0 := n)
       
-  gen-specific-siblings-part(|n):
-    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)], <inc> n)
+  gen-specific-siblings-part(|n, d):
+    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*); spectrav-debug(|"[d] ")], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
       0 := n
       
-  gen-specific-siblings-part(|n):
-    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)], <inc> n)
+  gen-specific-siblings-part(|n, d):
+    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*); spectrav-debug(|"[d] ")], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
       not(0 := n)
     
-  gen-specific-siblings-part(|n):
+  gen-specific-siblings-part(|n, d):
     ConstType(Sort("List", [SortNoArgs(sort-name)])) -> 
-    (<specific-siblings-list-name> sort-name, n)
+    ($[[<specific-siblings-list-name> sort-name]; spectrav-debug(|"[d] ")], n)
 
