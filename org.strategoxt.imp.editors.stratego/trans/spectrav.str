@@ -5,7 +5,7 @@ imports
   include/Stratego-Sugar
   lib/runtime/nabl/utils
   
-rules
+rules // Builder
   
   generate-specific-traversal:
     (selected, position, ast, path, project-path) -> (filename, result)
@@ -13,7 +13,7 @@ rules
       filename := <guarantee-extension(|"traversal.str")> path;
       result   := <gen-spectrav-module> ast
   
-rules
+rules // Top rule
   
   gen-spectrav-module:
     Module(m, decl*) -> 
@@ -47,13 +47,13 @@ rules
       sib-list-trav := <filter(sig-sort-name); make-set; map(gen-sort-siblings); concat-strings> sig*;
       traversal     := <filter(gen-spectrav); concat-strings> sig*
 
-rules
+rules // Sort names from signatures
 	
 	sig-sort-name: OpDeclInj(FunType(_, ConstType(SortNoArgs(sort-name)))) -> sort-name
 	sig-sort-name: OpDecl(_, ConstType(SortNoArgs(sort-name)))             -> sort-name
 	sig-sort-name: OpDecl(_, FunType(_, ConstType(SortNoArgs(sort-name)))) -> sort-name
 		 
-rules
+rules // Specific traversal generation
       
   gen-spectrav:
     OpDeclInj(FunType([inj-sort], sort@ConstType(SortNoArgs(_)))) -> 
@@ -100,25 +100,13 @@ rules
       cons-arity  := <length> sort-param*;
       cons-name   := <cons-name(|cons-arity)> cons
 
-rules // Generic
+rules // Rules for the generic traversal
   
   gen-generic:
     sort-name -> 
     $[[<generic-collect-name>] = [<specific-collect-name> sort-name]]
-  
-  
-  collect-parameters = !"(sibling-uris|lang, partition, unique*, uri*)"
-  generic-collect-name = !$[generic-collect[<collect-parameters>]]
-  specific-collect-name:
-    postfix -> $[specific-collect-[postfix][<collect-parameters>]]
-  
-  siblings-parameters = !"(|lang, partition, unique*, uri*)"
-  specific-siblings-name:
-    cons-name -> $[specific-siblings-[cons-name][<siblings-parameters>]]
-  specific-siblings-list-name:
-    sort-name -> $[specific-siblings-list-[sort-name][<siblings-parameters>]]
 
-rules // Sorts
+rules // Rules for sort-specific traversal
   
   sort-name: ConstType(SortNoArgs(sort)) -> sort
   sort-name: ConstType(Sort("List", [SortNoArgs(sort)])) -> sort
@@ -137,12 +125,12 @@ rules // Sorts
       
       specific-siblings-option-{sort-name}(sibling-uris|lang, partition, unique*, uri*) =
         (None(); match(sibling-uris|uri*))
-      + Some(specific-collect-{sort-name}(?sibling-uris|lang, partition, unique*, uri*))
-      + specific-collect-{sort-name}(?sibling-uris|lang, partition, unique*, uri*)
+      + Some(specific-collect-{sort-name}(sibling-uris|lang, partition, unique*, uri*))
+      + specific-collect-{sort-name}(sibling-uris|lang, partition, unique*, uri*)
       
     }
     
-rules // Constructors
+rules // Rules for constructor-specific traversal
   
   cons-name(|arity): cons -> $[[cons]-[arity]]
   
@@ -165,7 +153,7 @@ rules // Constructors
       )    
       ; try({cons-name}-state-site)
       ; try({cons-name}-collect-rewrite(|lang, partition, uri*, uri'*))
-      {specific-siblings-call}
+      {specific-siblings}
       ; try({cons-name}-external-def-site(|lang, partition, unique*, uri'*, state*, implicit*))
       ; try({cons-name}-use-site(|lang, partition, unique*, uri'*, state*))
       ; try({cons-name}-import-site(|lang, partition, unique*, child-uri*, state*))
@@ -173,9 +161,7 @@ rules // Constructors
       ; try({cons-name}-disambiguation-site(|lang, partition, unique*, uri*, state*))
       ; try({cons-name}-prop-site(|lang, partition, uri*, state*, implicit*))
       ; nabl-annotate-properties(|lang, partition, uri*, uri'*)
-        
-      {specific-siblings-def}
-        
+
       {cons-name}-collect-rewrite(|lang, partition, old-uri*, new-uri*) = fail
       {cons-name}-scoping-site = fail
       {cons-name}-new-scoping-site = fail
@@ -191,25 +177,13 @@ rules // Constructors
     	cons-name  := <cons-name(|arity)> cons;
     	cons-match := <gen-constructor-match(|arity)> cons;
       if <gt> (<length> sort-param*, 0) then
-        specific-siblings-call := ${; specific-siblings-{cons-name}(|lang, partition, unique*, uri*)};
-        congruence-part-str    := <gen-specific-siblings-congruence; separate-by(|", "); concat-strings> sort-param*;
-        specific-siblings-def  :=
-          // ${{<specific-siblings-name> cons-name} =
-          //     spectrav-debug(|"a "); {cons}(
-          //       {congruence-part-str}  
-          //     ); spectrav-debug(|"b ")
-          // }
-          ${{<specific-siblings-name> cons-name} =
-              preserve-annos(origin-track-forced(
-                spectrav-debug(|"a "); {cons}(
-                  {congruence-part-str}  
-                ); spectrav-debug(|"b ")
-              ))
-            
-          }
+        congruence-part-str := <gen-specific-siblings-congruence; separate-by(|", \n"); concat-strings> sort-param*;
+        specific-siblings   :=
+          $[; [<gen-debug-before(|"con")>]preserve-annotations-attachments([cons](
+                [congruence-part-str]
+              ))[<gen-debug-after(|"con")>]]
       else
-        specific-siblings-call := "";
-        specific-siblings-def  := ""
+        specific-siblings := ""
       end
   
   gen-constructor-match(|arity):
@@ -228,28 +202,28 @@ rules // Constructors
       (part-str, _) := <gen-specific-siblings-part(|n, d)> sort
 
   gen-specific-siblings-part(|n, d):
-    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*); spectrav-debug(|"[d] ")], <inc> n)
+    _ -> ($[[<gen-debug-before(|d)>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)[<gen-debug-after(|d)>]], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       0 := n
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*); spectrav-debug(|"[d] ")], <inc> n)
+    _ -> ($[[<gen-debug-before(|d)>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|d)>]], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       not(0 := n)
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*); spectrav-debug(|"[d] ")], <inc> n)
+    _ -> ($[[<gen-debug-before(|d)>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)[<gen-debug-after(|d)>]], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
       0 := n
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*); spectrav-debug(|"[d] ")], <inc> n)
+    _ -> ($[[<gen-debug-before(|d)>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|d)>]], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
@@ -257,5 +231,23 @@ rules // Constructors
     
   gen-specific-siblings-part(|n, d):
     ConstType(Sort("List", [SortNoArgs(sort-name)])) -> 
-    ($[[<specific-siblings-list-name> sort-name]; spectrav-debug(|"[d] ")], n)
+    ($[[<gen-debug-before(|d)>][<specific-siblings-list-name> sort-name][<gen-debug-after(|d)>]], n)
 
+rules // Naming of generated rules
+	
+	collect-parameters = !"(sibling-uris|lang, partition, unique*, uri*)"
+  generic-collect-name = !$[generic-collect[<collect-parameters>]]
+  specific-collect-name:
+    postfix -> $[specific-collect-[postfix][<collect-parameters>]]
+  
+  siblings-parameters = !"(|lang, partition, unique*, uri*)"
+  specific-siblings-list-name:
+    sort-name -> $[specific-siblings-list-[sort-name][<siblings-parameters>]]
+    
+rules // Debugging
+	
+	gen-debug(|msg) = (spectrav-should-debug; gen-debug-msg(|$[[msg] ])) <+ !""
+	gen-debug-before(|msg) = (spectrav-should-debug; !$[[<gen-debug-msg(|$[b-[msg] ])>]; ]) <+ !""
+	gen-debug-after(|msg) = (spectrav-should-debug; !$[; [<gen-debug-msg(|$[a-[msg] ])>]]) <+ !""
+	gen-debug-msg(|msg) = !$[spectrav-debug(|"[msg]")]
+	spectrav-should-debug = fail
