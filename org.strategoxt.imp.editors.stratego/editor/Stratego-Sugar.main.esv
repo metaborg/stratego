@@ -3,7 +3,7 @@ module Stratego-Sugar.main
 imports
   Stratego-Sugar-Menus Stratego-Sugar-Colorer Stratego-Sugar-Folding
   Stratego-Sugar-References Stratego-Sugar-Syntax
-  Stratego-Sugar-Completions
+  Stratego-Sugar-Completions Stratego-Sugar-Views
 
 language General properties
                   
