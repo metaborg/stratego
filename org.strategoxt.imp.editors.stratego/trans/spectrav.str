@@ -26,10 +26,6 @@ rules // Top rule
         lib/properties/-
         lib/editor/-
       
-      rules // Debugging
-      	
-      	spectrav-debug(|msg) = fail
-      
       rules // Built-ins
         
         [<gen-generic> "Int"]
@@ -179,9 +175,9 @@ rules // Rules for constructor-specific traversal
       if <gt> (<length> sort-param*, 0) then
         congruence-part-str := <gen-specific-siblings-congruence; separate-by(|", \n"); concat-strings> sort-param*;
         specific-siblings   :=
-          $[; [<gen-debug-before(|"con")>]preserve-annotations-attachments([cons](
+          $[; [<gen-debug-before(|"b")>]preserve-annotations-attachments([cons](
                 [congruence-part-str]
-              ))[<gen-debug-after(|"con")>]]
+              ))[<gen-debug-after(|"a")>]]
       else
         specific-siblings := ""
       end
@@ -202,28 +198,28 @@ rules // Rules for constructor-specific traversal
       (part-str, _) := <gen-specific-siblings-part(|n, d)> sort
 
   gen-specific-siblings-part(|n, d):
-    _ -> ($[[<gen-debug-before(|d)>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)[<gen-debug-after(|d)>]], <inc> n)
+    _ -> ($[[<gen-debug-before(|$[ [d]-b])>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, child-uri*)[<gen-debug-after(|$[ [d]-a])>]], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       0 := n
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[[<gen-debug-before(|d)>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|d)>]], <inc> n)
+    _ -> ($[[<gen-debug-before(|$[ [d]-b])>]specific-collect-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|$[ [d]-a])>]], <inc> n)
     where
       ?ConstType(SortNoArgs(sort-name))
     where
       not(0 := n)
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[[<gen-debug-before(|d)>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)[<gen-debug-after(|d)>]], <inc> n)
+    _ -> ($[[<gen-debug-before(|$[ [d]-b])>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, uri*)[<gen-debug-after(|$[ [d]-a])>]], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
       0 := n
       
   gen-specific-siblings-part(|n, d):
-    _ -> ($[[<gen-debug-before(|d)>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|d)>]], <inc> n)
+    _ -> ($[[<gen-debug-before(|$[ [d]-b])>]specific-siblings-option-[sort-name](?sibling-uri-[n]*|lang, partition, unique*, sibling-uri-[<dec> n]*)[<gen-debug-after(|$[ [d]-a])>]], <inc> n)
     where
       ?ConstType(Sort("Option", [SortNoArgs(sort-name)]))
     where
@@ -231,7 +227,7 @@ rules // Rules for constructor-specific traversal
     
   gen-specific-siblings-part(|n, d):
     ConstType(Sort("List", [SortNoArgs(sort-name)])) -> 
-    ($[[<gen-debug-before(|d)>][<specific-siblings-list-name> sort-name][<gen-debug-after(|d)>]], n)
+    ($[[<gen-debug-before(|$[ [d]-b])>]specific-siblings-list-[sort-name](|lang, partition, unique*, child-uri*)[<gen-debug-after(|$[ [d]-a])>]], n)
 
 rules // Naming of generated rules
 	
@@ -246,8 +242,8 @@ rules // Naming of generated rules
     
 rules // Debugging
 	
-	gen-debug(|msg) = (spectrav-should-debug; gen-debug-msg(|$[[msg] ])) <+ !""
-	gen-debug-before(|msg) = (spectrav-should-debug; !$[[<gen-debug-msg(|$[b-[msg] ])>]; ]) <+ !""
-	gen-debug-after(|msg) = (spectrav-should-debug; !$[; [<gen-debug-msg(|$[a-[msg] ])>]]) <+ !""
-	gen-debug-msg(|msg) = !$[spectrav-debug(|"[msg]")]
+	gen-debug(|msg) = (spectrav-should-debug; gen-debug-msg(|$[[msg][" "]])) <+ !""
+	gen-debug-before(|msg) = (spectrav-should-debug; !$[[<gen-debug-msg(|$[[msg][" "]])>];[" "]]) <+ !""
+	gen-debug-after(|msg) = (spectrav-should-debug; !$[; [<gen-debug-msg(|$[[msg][" "]])>]]) <+ !""
+	gen-debug-msg(|msg) = !$[debug(|"[msg]")]
 	spectrav-should-debug = fail
