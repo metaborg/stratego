@@ -17,27 +17,34 @@ rules // Top rule
   
   gen-spectrav-module:
     Module(m, decl*) -> 
-    $[module [m].traversal
+    ${module {m}.traversal
       
       imports
         
-        [m]
+        {m}
         lib/nabl/-
         lib/properties/-
         lib/editor/-
       
       rules // Built-ins
         
-        [<gen-generic> "Int"]
-        [<specific-collect-name> "Int"] = where(is-int); match(sibling-uris|uri*)
-        [<gen-generic> "String"]
-        [<specific-collect-name> "String"] = where(is-string); match(sibling-uris|uri*)
+        spectrav-match-defaults(sibling-uris, implicits-up, uris-up, child-uris-up, state-up|uri*) =
+          match(sibling-uris|uri*)
+        ; match(implicits-up|[])
+        ; match(uris-up|uri*)
+        ; match(child-uris-up|uri*)
+        ; match(state-up|[])
+                
+        {<gen-generic> "Int"}
+        {<specific-collect-name> "Int"} = where(is-int); match(sibling-uris|uri*)
+        {<gen-generic> "String"}
+        {<specific-collect-name> "String"} = where(is-string); match(sibling-uris|uri*)
       
       rules // Sibling list traversals
       	
-      	[sib-list-trav]
+      	{sib-list-trav}
       
-      [traversal]]
+      {traversal}}
     with
       sig*          := <collect-all(?Constructors(<id>)); concat> decl*;
       sib-list-trav := <filter(sig-sort-name); make-set; map(gen-sort-siblings); concat-strings> sig*;
@@ -125,7 +132,7 @@ rules // Rules for constructor-specific traversal
     sort-name ->
     ${specific-collect-{cons-name}(sibling-uris|lang, partition, unique*, uri*) =
         {cons-match} 
-      ; try({cons-name}-down(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|lang, partition, unique*, uri*))
+      ; ({cons-name}-down(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|lang, partition, unique*, uri*) <+ spectrav-match-defaults(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|uri*))
       {specific-siblings}
       ; try({cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*))
       {cons-name}-down(sibling-uris, implicits-up, uris-up, child-uris-up, states-up|lang, partition, unique*, uri*) = fail
