@@ -29,9 +29,9 @@ rules // Top rule
       rules // Built-ins
         
         [<gen-generic> "Int"]
-        [<specific-collect-name> "Int"] = match(sibling-uris|uri*)
+        [<specific-collect-name> "Int"] = where(is-int); match(sibling-uris|uri*)
         [<gen-generic> "String"]
-        [<specific-collect-name> "String"] = match(sibling-uris|uri*)
+        [<specific-collect-name> "String"] = where(is-string); match(sibling-uris|uri*)
       
       rules // Sibling list traversals
       	
@@ -54,9 +54,7 @@ rules // Specific traversal generation
   gen-spectrav:
     OpDeclInj(FunType([inj-sort], sort@ConstType(SortNoArgs(_)))) -> 
     $[rules // Sort [sort-name], injected into [inj-sort-name]
-      
         [<gen-generic> sort-name]
-        
         [<specific-collect-name> sort-name] = [<specific-collect-name> inj-sort-name]
     
     ]
@@ -68,11 +66,8 @@ rules // Specific traversal generation
   gen-spectrav:
     OpDecl(cons, sort@ConstType(SortNoArgs(_))) -> 
     $[rules // Constructor [cons-name], Sort [sort-name]
-      
         [<gen-generic> sort-name]
-    
         [<gen-sort(|cons-name)> sort-name]
-      
         [<gen-constructor(|cons, 0, [])> sort-name]
       
     ]
@@ -83,11 +78,8 @@ rules // Specific traversal generation
   gen-spectrav:
     OpDecl(cons, FunType(sort-param*, sort@ConstType(SortNoArgs(_)))) ->
     $[rules // Constructor [cons-name], Sort [sort-name]
-      
         [<gen-generic> sort-name]
-    
         [<gen-sort(|cons-name)> sort-name]
-      
         [<gen-constructor(|cons, cons-arity, sort-param*)> sort-name]
     
     ]
@@ -118,7 +110,6 @@ rules // Rules for sort-specific traversal
         []
       + [ specific-collect-{sort-name}(?sibling-uri*|lang, partition, unique*, uri*)
         | specific-siblings-list-{sort-name}(|lang, partition, unique*, sibling-uri*) ]
-      
       specific-siblings-option-{sort-name}(sibling-uris|lang, partition, unique*, uri*) =
         (None(); match(sibling-uris|uri*))
       + Some(specific-collect-{sort-name}(sibling-uris|lang, partition, unique*, uri*))
@@ -134,41 +125,11 @@ rules // Rules for constructor-specific traversal
     sort-name ->
     ${specific-collect-{cons-name}(sibling-uris|lang, partition, unique*, uri*) =
         {cons-match} 
-      ; nabl-state-pop(?state*)
-      ; try({cons-name}-scoping-site)
-      ; (
-           nabl-scope-site(?uri'*|lang, partition, unique*, uri*)
-        <+ nabl-new-scope-site(?uri'*|lang, partition, unique*, uri*)
-        <+ match(?uri'*|uri*) 
-      ) 
-      ; (
-          {cons-name}-def-site(?child-uri*, sibling-uris, ?implicit*|lang, partition, unique*, uri'*, state*)
-        ; try({cons-name}-new-scoping-site)
-          <+ match(sibling-uris|uri*)
-        ; match(?child-uri*|uri'*)
-      )    
-      ; try({cons-name}-state-site)
-      ; try({cons-name}-collect-rewrite(|lang, partition, uri*, uri'*))
+      ; try({cons-name}-down(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|lang, partition, unique*, uri*))
       {specific-siblings}
-      ; try({cons-name}-external-def-site(|lang, partition, unique*, uri'*, state*, implicit*))
-      ; try({cons-name}-use-site(|lang, partition, unique*, uri'*, state*))
-      ; try({cons-name}-import-site(|lang, partition, unique*, child-uri*, state*))
-      ; try({cons-name}-filtering-site(|lang, partition, unique*, uri*, state*))
-      ; try({cons-name}-disambiguation-site(|lang, partition, unique*, uri*, state*))
-      ; try({cons-name}-prop-site(|lang, partition, uri*, state*, implicit*))
-      ; nabl-annotate-properties(|lang, partition, uri*, uri'*)
-
-      {cons-name}-collect-rewrite(|lang, partition, old-uri*, new-uri*) = fail
-      {cons-name}-scoping-site = fail
-      {cons-name}-new-scoping-site = fail
-      {cons-name}-def-site(child-uris, sibiling-uris, implicits| lang, partition, unique*, uri*, state*) = fail
-      {cons-name}-external-def-site(|lang, partition, unique*, uri*, state*, implicit*) = fail
-      {cons-name}-state-site = fail
-      {cons-name}-use-site(|lang, partition, unique*, uri*, state*) = fail
-      {cons-name}-filtering-site(|lang, partition, unique*, uri*, state*) = fail
-      {cons-name}-disambiguation-site(|lang, partition, unique*, uri*, state*) = fail
-      {cons-name}-import-site(|lang, partition, unique*, uri*, state*) = fail
-      {cons-name}-prop-site(|lang, partition, uri*, state*, implicit*) = fail}
+      ; try({cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*))
+      {cons-name}-down(sibling-uris, implicits-up, uris-up, child-uris-up, states-up|lang, partition, unique*, uri*) = fail
+      {cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*) = fail}
     with
     	cons-name  := <cons-name(|arity)> cons;
     	cons-match := <gen-constructor-match(|arity)> cons;
