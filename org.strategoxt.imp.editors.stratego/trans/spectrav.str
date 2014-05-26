@@ -135,7 +135,10 @@ rules // Rules for constructor-specific traversal
       ; ({cons-name}-down(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|lang, partition, unique*, uri*) <+ spectrav-match-defaults(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|uri*))
       {specific-siblings}
       ; try({cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*))
-      ; nabl-annotate-properties(|lang, partition, uri*, uri'*)
+      ; !(<nabl-get-all-properties>, <id>)
+      ; foldl({cons-name}-annotate-property(|lang, partition, uri*, uri'*) <+ Snd) 
+      ; try({cons-name}-constraint(|lang, partition, uri*, uri'*))
+        
       {cons-name}-down(sibling-uris, implicits-up, uris-up, child-uris-up, states-up|lang, partition, unique*, uri*) = fail
       {cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*) = fail}
     with
