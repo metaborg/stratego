@@ -140,7 +140,14 @@ rules // Rules for constructor-specific traversal
       ; try({cons-name}-constraint(|lang, partition, uri*, uri'*))
         
       {cons-name}-down(sibling-uris, implicits-up, uris-up, child-uris-up, states-up|lang, partition, unique*, uri*) = fail
-      {cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*) = fail}
+      {cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*) = fail
+      
+  nabl-annotate-property(|lang, partition, old-uri*, new-uri*):
+    (kind, term{a*}) -> term{(kind, prop), a*}
+    where
+      not(<get-property-task(|kind)> term)
+    ; prop := <create-property-task(|partition, kind, old-uri*, new-uri*) <+ create-property-task(|partition, kind, new-uri*) <+ create-property-task(|partition, kind)> term
+}
     with
     	cons-name  := <cons-name(|arity)> cons;
     	cons-match := <gen-constructor-match(|arity)> cons;
