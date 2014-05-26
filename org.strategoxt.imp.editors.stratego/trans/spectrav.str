@@ -135,18 +135,19 @@ rules // Rules for constructor-specific traversal
       ; ({cons-name}-down(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|lang, partition, unique*, uri*) <+ spectrav-match-defaults(sibling-uris, ?implicit*, ?uri'*, ?child-uri*, ?state*|uri*))
       {specific-siblings}
       ; try({cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*))
-      ; !(<nabl-get-all-properties>, <id>)
-      ; foldl({cons-name}-annotate-property(|lang, partition, uri*, uri'*) <+ Snd) 
-      ; try({cons-name}-constraint(|lang, partition, uri*, uri'*))
+      ; <foldl({cons-name}-annotate-property(|lang, partition, uri*, uri'*) <+ Snd)> (<nabl-get-all-properties>, <id>)
+      ; try({cons-name}-constraint(|partition, uri*, uri'*))
         
       {cons-name}-down(sibling-uris, implicits-up, uris-up, child-uris-up, states-up|lang, partition, unique*, uri*) = fail
       {cons-name}-up(|lang, partition, unique*, implicit*, uri*, uri'*, child-uri*, state*) = fail
       
-  nabl-annotate-property(|lang, partition, old-uri*, new-uri*):
-    (kind, term{a*}) -> term{(kind, prop), a*}
-    where
-      not(<get-property-task(|kind)> term)
-    ; prop := <create-property-task(|partition, kind, old-uri*, new-uri*) <+ create-property-task(|partition, kind, new-uri*) <+ create-property-task(|partition, kind)> term
+      {cons-name}-annotate-property(|lang, partition, old-uri*, new-uri*):
+        (kind, term{"{"}a*{"}"}) -> term{"{"}(kind, prop), a*{"}"}
+        where
+          not(<get-property-task(|kind)> term)
+        ; prop := <{cons-name}-property-task(|partition, kind, old-uri*, new-uri*)> term
+      {cons-name}-property-task(|partition, kind, old-uri*, new-uri*) = fail
+      {cons-name}-constraint(|partition, old-uri*, new-uri*) = fail
 }
     with
     	cons-name  := <cons-name(|arity)> cons;
