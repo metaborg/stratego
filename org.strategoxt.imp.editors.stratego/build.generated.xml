@@ -79,7 +79,10 @@
 	</condition>
 	<condition property="metasdfmodule.available" value="1">
 		<available file="${syntax}/${metasdfmodule}.sdf" />
-	</condition>
+  </condition>
+  <condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
+    <isset property="src-dirs" />
+  </condition>
 
 	<fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually" />
 	<mkdir dir="${build}" />
@@ -101,9 +104,9 @@
 
 	<!-- Call on-save handler for template and name binding files so that their generated files are present. -->
 	<target name="call-onsave" if="eclipse.running">
-		<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
+		<pathconvert pathsep=";;;" property="call-onsave.args" refid="call-onsave.files" />
 		<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
-			<arg line="${call-onsave.args}" />
+			<arg value="${call-onsave.args}" />
 		</java>
 	</target>
 
@@ -499,10 +502,10 @@
 			<param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java" />
 			<param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}" />
 		</antcall>
-		<javac srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.7" target="1.7" debug="on">
+		<javac srcdir="${src-dirs}" includes="trans/**" destdir="${build}" source="1.7" target="1.7" debug="on">
 			<classpath>
 				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
-				<fileset dir="${eclipse.home}/plugins">
+				<fileset dir="${eclipse.home}/plugins" erroronmissingdir="false">
 					<include name="*.jar" />
 				</fileset>
 				<!-- Spoofax/322 -->
@@ -617,14 +620,12 @@
 			<param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}" />
 		</antcall>
 		<!-- compile java to class -->
-		<javac destdir="${build}" source="1.7" target="1.7" debug="on">
-			<!-- attribute in javac: srcdir="${src-gen}" -->
-			<src path="${src-gen}" />
+		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
 			<!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"  -->
 			<classpath>
 				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
 				<!-- the path attribute accepts colon- or semicolon-separated lists of locations -->
-				<fileset dir="${eclipse.home}/plugins">
+				<fileset dir="${eclipse.home}/plugins" erroronmissingdir="false">
 					<include name="*.jar" />
 				</fileset>
 				<!-- Spoofax/322 -->
@@ -732,36 +733,30 @@
 	</target>
 
 	<target name="clean" description="Clean project">
-		<delete dir="${build}" />
-		<delete dir=".cache" />
-		<delete file="${include}/${sdfmodule}.def" />
-		<delete file="${include}/${sdfmodule}-parenthesize.str" />
-		<delete file="${include}/${sdfmodule}-Permissive.def" />
-		<delete file="${include}/${sdfmodule}.generated.pp.af" />
-		<delete file="${include}/${sdfmodule}.packed.esv" />
-		<delete file="${include}/${sdfmodule}.pp.af" />
-		<delete file="${include}/${sdfmodule}.rtg" />
-		<delete file="${include}/${sdfmodule}.str" />
-		<delete file="${include}/${sdfmodule}.tbl" />
-		<delete file="${include}/${strmodule}.rtree" />
-		<delete file="${include}/${strmodule}.ctree" />
-		<delete file="${include}/${strmodule}.ctree.dep" />
-		<delete file="${include}/${strmodule}.jar" />
-		<delete>
-			<fileset dir="editor" includes="*.generated.*" />
-      <fileset dir="trans" includes="*.pp.generated.str" />
-		</delete>
-		<delete dir="${src-gen}/trans" />
-		<delete file="editor/${sdfmodule}.generated.esv" />
-		<delete file="${syntax}/${sdfmodule}.generated.esv" />
-		<delete file="${syntax}/${sdfmodule}.generated.pp" />
-		<delete file="${include}/${metasdfmodule}-Permissive.def" />
-		<delete file="${include}/${metasdfmodule}.def" />
-		<delete file="${include}/${metasdfmodule}.tbl" />
-		<delete file=".settings/org.eclipse.jdt.core.prefs" />
-		<delete dir="utils" />
-		<delete>
-			<fileset dir="${lib}" includes="*.generated.str" />
+		<delete dir="${build}" failonerror="false" />
+		<delete dir=".cache" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.def" failonerror="false" />
+		<delete file="${include}/${sdfmodule}-parenthesize.str" failonerror="false" />
+		<delete file="${include}/${sdfmodule}-Permissive.def" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.generated.pp.af" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.packed.esv" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.pp.af" failonerror="false"  />
+		<delete file="${include}/${sdfmodule}.rtg" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.str" failonerror="false" />
+		<delete file="${include}/${sdfmodule}.tbl" failonerror="false" />
+		<delete file="${include}/${strmodule}.rtree" failonerror="false" />
+		<delete file="${include}/${strmodule}.ctree" failonerror="false" />
+		<delete file="${include}/${strmodule}.ctree.dep" failonerror="false" />
+		<delete file="${include}/${strmodule}.jar" failonerror="false" />
+		<delete dir="${src-gen}/trans" failonerror="false" />
+		<delete file="${syntax}/${sdfmodule}.generated.esv" failonerror="false" />
+		<delete file="${syntax}/${sdfmodule}.generated.pp" failonerror="false" />
+		<delete file="${include}/${metasdfmodule}-Permissive.def" failonerror="false" />
+		<delete file="${include}/${metasdfmodule}.def" failonerror="false" />
+		<delete file="${include}/${metasdfmodule}.tbl" failonerror="false" />
+		<delete dir="utils" failonerror="false" />
+		<delete failonerror="false" >
+			<fileset dir="${lib}" includes="*.generated.str" erroronmissingdir="false" />
 		</delete>
 		<antcall target="refresh-cleaned" />
 	</target>

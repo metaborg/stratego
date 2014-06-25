@@ -1,4 +1,5 @@
 bin
+target
 .cache
 include/Stratego.def
 include/Stratego-parenthesize.str
