@@ -11,16 +11,13 @@
 	<property name="syntax" location="syntax" />
 	<property name="include" location="include" />
 	<property name="lib" location="lib" />
-	<property name="build" location="bin" />
-	<property name="dist" location="bin/dist" />
+	<property name="build" location="target/classes" />
 
 	<!-- Imports -->
 	<property name="build.sdf.imports" value="" />
-	<property name="build.stratego.args"
-	          value="--library
+	<property name="build.stratego.args" value="--library
                         -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc"
-	/>
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
 
 	<property name="externaldef" location="syntax/Stratego-Sugar.def" />
 	<!-- External .def and .jar locations
@@ -38,4 +35,6 @@
 
 	<!-- Main target -->
 	<target name="all" depends="spoofaximp.default.jar" />
+	<target name="generate-sources" depends="generate-sources-java" />
+	<target name="package" depends="package-java" />
 </project>
