@@ -1,0 +1,8 @@
+module Stratego
+
+imports 
+  stratego/sugar/sugar
+  stratego/core/modules
+ 
+context-free start-symbols Module
+

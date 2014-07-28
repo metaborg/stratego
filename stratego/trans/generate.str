@@ -1,0 +1,8 @@
+module generate
+
+imports
+	
+	include/Stratego
+
+rules 
+
