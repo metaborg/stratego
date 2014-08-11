@@ -1,6 +1,7 @@
 .cache
 .settings
 bin
+target
 editor/*generated*
 editor/java/trans
 include
