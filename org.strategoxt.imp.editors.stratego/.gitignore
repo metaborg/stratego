@@ -17,3 +17,4 @@ lib/runtime
 syntax/*generated*
 test/*.aterm
 utils
+src-gen
