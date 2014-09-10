@@ -7,7 +7,6 @@
 						init,
 						sdf2table,
 						meta-sdf2table,
-						generate-pp,
 						pppack,
 						sdf2imp.eclipse,
 						sdf2imp.standalone,
@@ -25,7 +24,6 @@
 						init,
 						sdf2table,
 						meta-sdf2table,
-						generate-pp,
 						pppack,
 						sdf2imp.eclipse,
 						sdf2imp.standalone,
@@ -381,7 +379,7 @@
     </target>
 	
 	<!-- Target to create jar from generated pp and signatures -->
-	<target name="pp.lib" depends="utils-files" if="pp.module.enabled">
+	<target name="pp.lib" depends="utils-files, sdf2imp" if="pp.module.enabled">
 		
 		<available file="${src-gen}/pplib/Main.java" property="pp-java.available" />
 		<antcall target="pp.lib.deletehelper" />
