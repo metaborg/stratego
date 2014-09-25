@@ -36,13 +36,12 @@
         -->
 
 	<!-- Environment configuration for command-line builds -->
-	<condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
+	<condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="${user.home}/.nix-profile/bin/">
 		<isset property="eclipse.spoofaximp.nativeprefix" />
 	</condition>
 	<property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin" />
-	<property name="nativepath" value="${build.strategoxt.sdf}/"/>
-	<property location="${user.home}/.nix-profile/bin" name="build.strategoxt.sdf"/>
-
+	<property name="nativepath" value="${eclipse.spoofaximp.nativeprefix}"/>
+	
 	<import file="build.generated.xml" />
 
 	<!-- Main target -->
