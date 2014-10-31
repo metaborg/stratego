@@ -107,6 +107,9 @@
 
 	<!-- Call on-save handler for template and name binding files so that their generated files are present. -->
 	<target name="call-onsave" if="eclipse.running">
+	    <delete failonerror="false">
+            <fileset dir="src-gen" includes="**/*.sdf3" erroronmissingdir="false" />
+        </delete>
 		<pathconvert pathsep=";;;" property="call-onsave.args" refid="call-onsave.files" />
 		<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
 			<arg value="${call-onsave.args}" />
@@ -480,6 +483,7 @@
 	</target>
 
 	<target name="java.jar" if="java.jar.enabled">
+	    <delete file="${include}/${strmodule}-java.jar" failonerror="false" />
 		<jar basedir="${build}" includes="org/strategoxt/imp/editors/stratego/strategies/" update="true" destfile="${include}/${strmodule}-java.jar" />
 	</target>
 
