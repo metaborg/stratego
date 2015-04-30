@@ -8,7 +8,7 @@ imports
 language General properties
                   
   name          : Stratego-Sugar
-  id            : org.strategoxt.imp.editors.stratego
+  id            : org.metaborg.meta.lang.stratego
   extends       : Root
                   
   description   : "Spoofax/IMP-generated editor for the Stratego-Sugar language"
