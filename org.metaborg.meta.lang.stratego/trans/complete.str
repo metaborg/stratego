@@ -3,7 +3,7 @@ module complete
 imports
   analysis
   libstrc
-  lib/editor-common.generated
+  editor-common.generated
 
 
 strategies

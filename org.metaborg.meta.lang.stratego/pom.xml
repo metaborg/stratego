@@ -15,6 +15,15 @@
 		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.language</relativePath>
 	</parent>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.spoofax.meta.runtime.libraries</artifactId>
+			<version>${metaborg-version}</version>
+			<type>spoofax-language</type>
+		</dependency>
+	</dependencies>
+
     <build>
         <plugins>
             <plugin>

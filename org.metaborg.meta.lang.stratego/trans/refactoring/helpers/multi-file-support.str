@@ -5,7 +5,7 @@ imports
   libstrc
   desugar
   sourcedir
-  lib/editor-common.generated
+  editor-common.generated
   lib-refactoring/files
 
 rules //collecting affected asts using cache when possible
