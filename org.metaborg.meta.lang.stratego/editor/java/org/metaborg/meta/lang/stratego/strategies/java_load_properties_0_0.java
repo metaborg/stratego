@@ -1,4 +1,4 @@
-package org.strategoxt.imp.editors.stratego.strategies;
+package org.metaborg.meta.lang.stratego.strategies;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

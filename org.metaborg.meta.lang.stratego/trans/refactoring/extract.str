@@ -4,7 +4,7 @@ imports
   libstrc
   lib-refactoring/binding-preservation
   analysis
-  lib/editor-common.generated
+  editor-common.generated
   lib-refactoring/fetch
 
 //TODO Scope

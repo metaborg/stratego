@@ -3,7 +3,7 @@ module refactoring/rename
 imports
   analysis
   libstrc
-  lib/editor-common.generated
+  editor-common.generated
   lib-refactoring/generic-rename
   lib-refactoring/files
   refactoring/helpers/multi-file-support

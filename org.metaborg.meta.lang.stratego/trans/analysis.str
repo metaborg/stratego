@@ -4,7 +4,7 @@ imports
   libstratego-lib
   libstrc
   desugar
-  lib/editor-common.generated
+  editor-common.generated
   sourcedir
   
 
