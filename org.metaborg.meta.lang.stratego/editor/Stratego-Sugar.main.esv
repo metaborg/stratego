@@ -1,14 +1,12 @@
 module Stratego-Sugar.main
 
-imports
+imports Stratego-Sugar.generated
   Stratego-Sugar-Menus Stratego-Sugar-Colorer Stratego-Sugar-Folding
   Stratego-Sugar-References Stratego-Sugar-Syntax
   Stratego-Sugar-Completions Stratego-Sugar-Views
 
 language General properties
                   
-  name          : Stratego-Sugar
-  id            : org.metaborg.meta.lang.stratego
   extends       : Root
                   
   description   : "Spoofax/IMP-generated editor for the Stratego-Sugar language"
