@@ -10,7 +10,6 @@ imports
 
 strategies
 
- 
   analyze-ast:
     (ast, path, project-path) -> ast'
     where
@@ -224,27 +223,8 @@ rules // Declare globals
      <+
        full-path := <resolve-import-path> $[[x].rtree]
 
-   external java-load-properties(|)
-   external java-interpolate-environment-variables(|)
-
-   load-include-properties =
-        MemoizeIncludeProperties
-      <+
-         paths := <java-load-properties <+ ![]> $[[<ProjectDir>]/.settings/org.strategoxt.imp.editors.stratego.prefs]
-       ; rules(MemoizeIncludeProperties: paths)
-
-   load-include-paths =
-      load-include-properties
-    ; fetch-elem(\ ("stratego.include", paths) -> paths \)
-    ; string-tokenize(|[' '])
-
-   default-include-paths =
-      <map(\ x -> $[[<ProjectDir>]/[x]] \)> [ "", "trans", "lib", "src", "syntax", "syn", "src/syntax" ]
-    ; if SourceDir then
-        ![ <SourceDir> | <id> ]
-      else
-        id
-      end
+//   external java-load-properties(|)
+//   external java-interpolate-environment-variables(|)
 
    expand-relative-path :
      x -> $[[<ProjectDir>]/[x]]
@@ -254,8 +234,8 @@ rules // Declare globals
    resolve-import-path:
      x -> full-path
      where
-       <conc> (<load-include-paths <+ ![]>, <default-include-paths>)
-     ; includes := <map(java-interpolate-environment-variables ; try(expand-relative-path))>
+       stratego_sugar-source-and-include-locations
+     ; includes := <map(try(expand-relative-path))>
      ; full-path := <fetch-elem(\ path -> <file-exists> $[[path]/[x]] \)> includes
 
         // FIXME: fetch true import paths from someplace
@@ -828,16 +808,10 @@ strategies
     ?Module(mname, _);
     rules(ModuleName : mname -> mname)
   
-  record-all-definitions(record, parse|ext) =
-    <readdir> ".";
+  record-all-definitions(record, parse|ext) = 
+    stratego_sugar-source-and-include-files;
     list-loop(
-      if <isdir> <filemode> then
-        chdir;
-        record-all-definitions(record, parse|ext);
-        <chdir> ".."
-      else
-        try(record-definitions(record, parse|ext))
-      end
+      try(record-definitions(record, parse|ext))
     )
   
   record-definitions(record, parse|ext):
