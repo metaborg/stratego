@@ -5,12 +5,18 @@ import java.util.Properties;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
-import org.strategoxt.lang.Strategy;
+import org.strategoxt.lang.RegisteringStrategy;
+import org.strategoxt.lang.StrategyCollector;
 
-public class java_interpolate_environment_variables_0_0 extends Strategy {
+public class java_interpolate_environment_variables_0_0 extends RegisteringStrategy {
 
 	public static java_interpolate_environment_variables_0_0 instance = new java_interpolate_environment_variables_0_0();
 
+	@Override
+	public void registerImplementators(StrategyCollector collector) {
+		collector.registerStrategyImplementator("java_interpolate_environment_variables_0_0", instance);
+	}
+	
 	@Override
 	public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 		

@@ -12,12 +12,18 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
-import org.strategoxt.lang.Strategy;
+import org.strategoxt.lang.RegisteringStrategy;
+import org.strategoxt.lang.StrategyCollector;
 
-public class java_load_properties_0_0 extends Strategy {
+public class java_load_properties_0_0 extends RegisteringStrategy {
 
-	public static java_load_properties_0_0 instance = new java_load_properties_0_0();
+	protected static java_load_properties_0_0 instance = new java_load_properties_0_0();
 
+	@Override
+	public void registerImplementators(StrategyCollector collector) {
+		collector.registerStrategyImplementator("java_load_properties_0_0", instance);
+	}
+	
 	@Override
 	public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 
