@@ -25,6 +25,14 @@
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
     </dependency>
+
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.lang.esv</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -40,14 +48,6 @@
             <arg>strc</arg>
           </strategoArgs>
         </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.metaborg</groupId>
-            <artifactId>org.metaborg.meta.lang.esv</artifactId>
-            <version>${metaborg-version}</version>
-            <type>spoofax-language</type>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>
