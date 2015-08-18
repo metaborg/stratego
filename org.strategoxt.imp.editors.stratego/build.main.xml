@@ -23,7 +23,7 @@
     <property name="include.rel" location="${include}" relative="yes"/>
     <property name="lib-gen.rel" location="${lib-gen}" relative="yes"/>
 
-	<!-- Imports -->
+	<!-- Imports --> 
 	<property name="build.sdf.imports" value="" />
 	<property name="build.stratego.args" value="--library
                         -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
