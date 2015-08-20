@@ -1,4 +1,4 @@
-module lib-refactoring/fetch
+module lib-refactoring/lib-refactoring/fetch
 
 imports
 lib/editor-common.generated

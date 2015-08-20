@@ -1,4 +1,4 @@
-module generic-rename
+module lib-refactoring/generic-rename
 
 imports
   lib-refactoring/consistency-preservation

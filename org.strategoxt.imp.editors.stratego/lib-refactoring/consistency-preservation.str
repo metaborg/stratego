@@ -1,4 +1,4 @@
-module consistency-preservation
+module lib-refactoring/consistency-preservation
 
 rules
 

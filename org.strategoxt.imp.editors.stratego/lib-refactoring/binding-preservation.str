@@ -1,4 +1,4 @@
-module binding-preservation
+module lib-refactoring/binding-preservation
 
 rules
 
