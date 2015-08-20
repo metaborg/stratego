@@ -24,6 +24,7 @@
       <artifactId>org.spoofax.meta.runtime.libraries</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
+      <scope>${metaborg-meta-lang-scope}</scope>
     </dependency>
 
     <dependency>
@@ -31,7 +32,7 @@
       <artifactId>org.metaborg.meta.lang.esv</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
-      <scope>provided</scope>
+      <scope>${metaborg-meta-lang-scope}</scope>
     </dependency>
   </dependencies>
 
@@ -40,6 +41,8 @@
       <plugin>
         <groupId>org.metaborg</groupId>
         <artifactId>spoofax-maven-plugin</artifactId>
+        <version>${metaborg-version}</version>
+        <extensions>true</extensions>
         <configuration>
           <format>jar</format>
           <externalDef>${basedir}/syntax/Stratego-Sugar.def</externalDef>
