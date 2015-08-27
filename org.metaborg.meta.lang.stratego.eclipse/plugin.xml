@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
   <extension point="org.metaborg.spoofax.eclipse.language">
-    <language esvFile="target/unpacked/include/Stratego-Sugar.packed.esv" /> 
+    <language location="target/unpacked/latest" />
+    <language location="target/unpacked/baseline" /> 
   </extension>
 </plugin>

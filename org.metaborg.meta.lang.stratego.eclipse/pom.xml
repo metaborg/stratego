@@ -14,12 +14,30 @@
     <relativePath>../../spoofax-eclipse/org.metaborg.spoofax.eclipse.parent.language/pom.xml</relativePath>
   </parent>
 
+  <properties>
+    <lang.unpack.artifactId>org.metaborg.meta.lang.stratego</lang.unpack.artifactId>
+    <lang.baseline.unpack.skip>false</lang.baseline.unpack.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>org.metaborg.meta.lang.stratego</artifactId>
+      <artifactId>${lang.unpack.artifactId}</artifactId>
       <version>${project.version}</version>
       <type>spoofax-language</type>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.metaborg</groupId>
+        <artifactId>spoofax-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>
