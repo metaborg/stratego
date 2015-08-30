@@ -725,7 +725,7 @@
 			<arg line="${build.stratego.args}" />
 			<arg line="${build.stratego.extraargs}" />
 			<arg line="${externaldefimport}" />
-			<arg line="-I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
+			<arg line="-I &quot;${lib}&quot; -I &quot;${trans}&quot; -I &quot;${include}&quot; -I &quot;${src-gen}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
 
 			<fileset file="${trans}/${strmodule}.str" />
 			<mapper type="glob" from="*.str" to="*.${build.stratego.extension}" />
