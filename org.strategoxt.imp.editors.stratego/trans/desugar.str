@@ -4,7 +4,7 @@ module desugar
 imports
   libstratego-lib
   libstrc
-  lib/editor-common.generated
+  editor-common.generated
 
 signature constructors
 

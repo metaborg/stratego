@@ -7,7 +7,7 @@ imports
   libstrc
   analysis
   desugar
-  lib/editor-common.generated
+  editor-common.generated
   refactoring/rename
   refactoring/format
   refactoring/helpers/builders
