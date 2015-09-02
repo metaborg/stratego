@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Stratego Editor Plug-in
 Bundle-SymbolicName: org.strategoxt.imp.editors.stratego;singleton:=true
-Bundle-Version: 1.4.0
+Bundle-Version: 1.4.1
 Bundle-Activator: org.strategoxt.imp.editors.stratego.Activator
 Import-Package: org.osgi.framework;version="1.3.0"
 Require-Bundle: org.eclipse.core.runtime,
