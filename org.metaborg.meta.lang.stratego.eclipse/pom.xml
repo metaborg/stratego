@@ -9,9 +9,9 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.spoofax.eclipse.parent.language</artifactId>
+    <artifactId>parent.eclipse.language</artifactId>
     <version>1.5.0-SNAPSHOT</version>
-    <relativePath>../../spoofax-eclipse/org.metaborg.spoofax.eclipse.parent.language/pom.xml</relativePath>
+    <relativePath>../../releng/parent/eclipse/language</relativePath>
   </parent>
 
   <properties>

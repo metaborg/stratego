@@ -13,9 +13,9 @@
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>org.metaborg.maven.parent.language</artifactId>
+    <artifactId>parent.language</artifactId>
     <version>1.5.0-SNAPSHOT</version>
-    <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.language</relativePath>
+    <relativePath>../../releng/parent/language</relativePath>
   </parent>
 
   <dependencies>
