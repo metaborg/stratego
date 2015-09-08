@@ -26,9 +26,11 @@
 	<!-- Imports --> 
 	<property name="build.sdf.imports" value="" />
 	<property name="build.stratego.args" value="--library
-						-I morelibs
+						-I morelibs 
 						-la org.strategoxt.imp.editors.stratego.strategies
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
+		<!-- include path morelibs is for lib-refactoring -->
+		<!-- la org.strategoxt.imp.editors.stratego.strategies to include Java hand coded strategies -->
 
 	<property name="externaldef" location="syntax/Stratego-Sugar.def" />
 	<!-- External .def and .jar locations
