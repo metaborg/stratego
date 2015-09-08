@@ -26,7 +26,7 @@
 	<!-- Imports --> 
 	<property name="build.sdf.imports" value="" />
 	<property name="build.stratego.args" value="--library
-                         
+						-I morelibs
 						-la org.strategoxt.imp.editors.stratego.strategies
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
 

@@ -1,7 +1,7 @@
 module lib-refactoring/fetch
 
 imports
-lib/editor-common.generated
+	editor-common.generated
 
 rules //strategies for fetching terms in the ast
 
