@@ -13,6 +13,7 @@
 	<property name="syntax" location="src-gen/syntax" />
 	<property name="include" location="include" />
 	<property name="lib" location="lib" />
+	<property name="editor" location="editor" />
 	<property name="morelibs" location="morelibs" />
 	<property name="build" location="target/classes" />
 	<property name="sdf-src-gen" location="src-gen"/>
