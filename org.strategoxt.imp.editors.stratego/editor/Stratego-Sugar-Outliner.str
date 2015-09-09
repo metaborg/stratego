@@ -1,4 +1,4 @@
-module editor/Stratego-Sugar-Outliner
+module Stratego-Sugar-Outliner
 
 imports
 	Stratego-Sugar
