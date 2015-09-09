@@ -13,6 +13,7 @@
 	<property name="syntax" location="src-gen/syntax" />
 	<property name="include" location="include" />
 	<property name="lib" location="lib" />
+	<property name="morelibs" location="morelibs" />
 	<property name="build" location="target/classes" />
 	<property name="sdf-src-gen" location="src-gen"/>
     <property name="pp" location="${sdf-src-gen}/pp"/>
@@ -26,7 +27,7 @@
 	<!-- Imports --> 
 	<property name="build.sdf.imports" value="" />
 	<property name="build.stratego.args" value="--library
-						-I morelibs 
+						-I &quot;${morelibs}&quot;
 						-la org.strategoxt.imp.editors.stratego.strategies
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la strc" />
 		<!-- include path morelibs is for lib-refactoring -->
