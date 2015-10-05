@@ -1,18 +1,38 @@
 module Stratego-Sugar-Colorer
 
-imports Stratego-Sugar-Colorer.generated
+colorer Default, token-based highlighting
+                                  
+  keyword    : 127 0 85 bold      
+  identifier : default            
+  string     : blue               
+  number     : darkgreen          
+  //var        : 255 0 100 italic   
+  operator   : 0 0 128            
+  layout     : 63 127 95 italic   
+
+colorer System colors
+                            
+  darkred   = 128 0 0       
+  red       = 255 0 0       
+  darkgreen = 0 128 0       
+  green     = 0 255 0       
+  darkblue  = 0 0 128       
+  blue      = 0 0 255       
+  cyan      = 0 255 255     
+  magenta   = 255 0 255     
+  yellow    = 255 255 0     
+  white     = 255 255 255   
+  black     = 0 0 0         
+  gray      = 128 128 128   
+  grey      = gray          
+  orange    = 255 165 0     
+  pink      = 255 105 180   
+  brown     = 139 69 19     
+  default   = _             
 
 colorer Extension
 
-  layout     : 63 127 95    italic
-
-  environment var:
-    0 128 64
-    255 255 255
-    italic
-    
-  // StrategyDef: 0 128 128 bold
-  // RuleDef:     0 128 128 bold
+  var: 139 69 19 italic
   
   // White background for variables and escapes
   environment _.StringEscape1 : _ 255 255 255
@@ -37,24 +57,21 @@ colorer Extension
   StrategyDef : 0 64 128 bold
   Overlay     : 0 64 128 bold
   
-  //strategies    = 0    0    0
-  strategycalls = 0   64  128
-  terms         = 0    0    0
-  vars          = 0    0    0   255 255 255
-  sdefault      = 0    0    0
+  strategycalls = 0 64 128
+  //vars          = 0 0 0
+  //sdefault      = 0 0 0
   
   _.RootApp : strategycalls
   _.App     : strategycalls
   
-  //Strategy  : strategies
   SVar      : strategycalls
-  Term      : terms
-  PreTerm   : terms
-  Var       : vars
-  _.Var     : vars
-  _.ListVar : vars
-  _.Assign  : sdefault
-  _.AM      : sdefault
+  //Term      : terms
+  //PreTerm   : terms
+  //Var       : vars
+  //_.Var     : vars
+  //_.ListVar : vars
+  //_.Assign  : sdefault
+  //_.AM      : sdefault
 
   QuotedBracket1 : blue
   QuotedBracket2 : blue
