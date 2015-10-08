@@ -1,7 +1,5 @@
 module Stratego-Sugar-Completions
 
-imports Stratego-Sugar-Completions.generated
-
 completions Triggers
 
 /* TODO: enable completion triggers in a later release?

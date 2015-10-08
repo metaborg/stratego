@@ -1,7 +1,5 @@
 module Stratego-Sugar-References
 
-imports Stratego-Sugar-References.generated
-
 references
                                                                                  
   reference _ : editor-resolve

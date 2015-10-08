@@ -1,7 +1,5 @@
 module Stratego-Sugar-Refactorings
 
-imports Stratego-Sugar-Refactorings.generated
-
 refactorings 
    
   pretty-print: pp-stratego-string
