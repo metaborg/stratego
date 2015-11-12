@@ -820,7 +820,7 @@ strategies
   record-all-module-names =
     record-all-definitions(
         record-module-name
-      , parse-stratego_sugar-string
+      , parse-stratego_sugar-main-string
       | "str"
     )
   
