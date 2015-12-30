@@ -46,10 +46,6 @@
         <configuration>
           <format>jar</format>
           <externalDef>${basedir}/syntax/Stratego-Sugar.def</externalDef>
-          <strategoArgs combine.children="append">
-            <arg>-la</arg>
-            <arg>strc</arg>
-          </strategoArgs>
         </configuration>
       </plugin>
     </plugins>
