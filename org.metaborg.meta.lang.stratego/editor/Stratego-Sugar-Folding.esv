@@ -1,0 +1,5 @@
+module Stratego-Sugar-Folding
+
+folding
+  
+  Decl.Imports (folded)
