@@ -1,13 +1,13 @@
 ---
-id: "org.metaborg:org.metaborg.meta.lang.stratego:1.5.0-SNAPSHOT"
+id: "org.metaborg:org.metaborg.meta.lang.stratego:2.0.0-SNAPSHOT"
 name: "Stratego-Sugar"
 format: "jar"
 compileDependencies:
-- "org.metaborg:org.metaborg.meta.lang.esv:1.5.0-SNAPSHOT"
-- "org.metaborg:org.metaborg.meta.lib.analysis:1.5.0-SNAPSHOT"
+- "org.metaborg:org.metaborg.meta.lang.esv:2.0.0-SNAPSHOT"
+- "org.metaborg:org.metaborg.meta.lib.analysis:2.0.0-SNAPSHOT"
 runtimeDependencies:
-- "org.metaborg:org.metaborg.meta.lang.esv:1.5.0-SNAPSHOT"
-- "org.metaborg:org.metaborg.meta.lib.analysis:1.5.0-SNAPSHOT"
+- "org.metaborg:org.metaborg.meta.lang.esv:2.0.0-SNAPSHOT"
+- "org.metaborg:org.metaborg.meta.lib.analysis:2.0.0-SNAPSHOT"
 pardonedLanguages:
 - "EditorService"
 - "Stratego-Sugar"
