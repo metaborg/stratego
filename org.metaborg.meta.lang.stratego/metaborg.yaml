@@ -11,8 +11,9 @@ pardonedLanguages:
 - EditorService
 - Stratego-Sugar
 - SDF
-externalDef: ${path:root}/syntax/Stratego-Sugar.def
 language:
+  sdf:  
+    externalDef: ${path:root}/syntax/Stratego-Sugar.def
   stratego:
     format: jar
     args:
