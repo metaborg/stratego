@@ -1,4 +1,4 @@
-module Stratego-Sugar-Colorer
+module Colorer
 
 colorer Default, token-based highlighting
                                   

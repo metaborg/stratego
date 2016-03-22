@@ -1,4 +1,4 @@
-module Stratego-Sugar-Syntax
+module Syntax
 
 language
 

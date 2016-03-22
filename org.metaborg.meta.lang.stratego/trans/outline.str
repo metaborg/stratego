@@ -1,7 +1,7 @@
 module editor/Stratego-Sugar-Outliner
 
 imports
-	include/Stratego-Sugar
+	signatures/Stratego-Sugar
 	runtime/editor/outline-library
   runtime/editor/origins
   analysis

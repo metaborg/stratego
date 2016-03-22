@@ -4,7 +4,7 @@ imports
   libstratego-lib
   libstrc
   desugar
-  editor-common.generated
+  stratego/metaborg
   sourcedir
   
 
