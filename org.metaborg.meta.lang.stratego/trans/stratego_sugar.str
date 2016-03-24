@@ -5,14 +5,10 @@ imports
   libstratego-gpp
   libstratego-aterm
   libstrc
+  stratego/metaborg
   analysis
   desugar
-  editor-common.generated
-  refactoring/rename
-  refactoring/format
-  refactoring/helpers/builders
-  complete
-  editor/Stratego-Sugar-Outliner
+  outline
 
 strategies
 

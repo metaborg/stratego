@@ -1,10 +1,9 @@
-// Based on org.strategoxt.imp.editors.stratego/trans/desugar.str
 module desugar
 
 imports
   libstratego-lib
   libstrc
-  editor-common.generated
+  stratego/metaborg
 
 signature constructors
 
