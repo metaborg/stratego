@@ -1,6 +1,0 @@
-module Stratego-Sugar-Views
-
-views
-  
-  outline view: editor-outline (source)
-    expand to level: 3

@@ -1,0 +1,79 @@
+module Colorer
+
+colorer Default, token-based highlighting
+                                  
+  keyword    : 127 0 85 bold      
+  identifier : default            
+  string     : blue               
+  number     : darkgreen          
+  //var        : 255 0 100 italic   
+  operator   : 0 0 128            
+  layout     : 63 127 95 italic   
+
+colorer System colors
+                            
+  darkred   = 128 0 0       
+  red       = 255 0 0       
+  darkgreen = 0 128 0       
+  green     = 0 255 0       
+  darkblue  = 0 0 128       
+  blue      = 0 0 255       
+  cyan      = 0 255 255     
+  magenta   = 255 0 255     
+  yellow    = 255 255 0     
+  white     = 255 255 255   
+  black     = 0 0 0         
+  gray      = 128 128 128   
+  grey      = gray          
+  orange    = 255 165 0     
+  pink      = 255 105 180   
+  brown     = 139 69 19     
+  default   = _             
+
+colorer Extension
+
+  var: 139 69 19 italic
+  
+  // White background for variables and escapes
+  environment _.StringEscape1 : _ 255 255 255
+  environment _.StringEscape2 : _ 255 255 255
+  environment _.StringEscape3 : _ 255 255 255
+  environment _.StringEscape4 : _ 255 255 255
+  _.Wld     : _ 255 255 255
+
+  _.StringEscape1 : gray  
+  _.StringEscape2 : gray  
+  _.StringEscape3 : gray  
+  _.StringEscape4 : gray
+  
+  _.Str     : blue
+  _.StrCong : blue
+  _.QStr    : blue
+  _.QDollar : blue
+  _.QBr     : gray
+  
+  RuleDef     : 0 64 128 bold
+  RuleDec     : 0 64 128 bold
+  StrategyDef : 0 64 128 bold
+  Overlay     : 0 64 128 bold
+  
+  strategycalls = 0 64 128
+  //vars          = 0 0 0
+  //sdefault      = 0 0 0
+  
+  _.RootApp : strategycalls
+  _.App     : strategycalls
+  
+  SVar      : strategycalls
+  //Term      : terms
+  //PreTerm   : terms
+  //Var       : vars
+  //_.Var     : vars
+  //_.ListVar : vars
+  //_.Assign  : sdefault
+  //_.AM      : sdefault
+
+  QuotedBracket1 : blue
+  QuotedBracket2 : blue
+  QuotedBracket3 : blue
+  QuotedBracket4 : blue

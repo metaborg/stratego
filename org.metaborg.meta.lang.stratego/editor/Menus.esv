@@ -1,0 +1,17 @@
+module Menus
+
+menus
+  
+  menu: "Syntax"                      (openeditor)
+    
+    action: "Show abstract syntax"  = generate-aterm (realtime) (source)
+    action: "Show desugared syntax" = generate-desugared-aterm (realtime) (meta) (source)
+    action: "Show analyzed syntax"  = generate-aterm (meta)
+    action: "Format"                = pp-builder (source) (meta)
+  
+//  menu: "Refactorings"                (meta) (openeditor)
+//
+//	  action: "Rename"                = rename-builder
+//	  action: "Inline strategy"       = inline-builder
+//	  action: "Extract strategy"      = extract-builder
+//	  action: "Remove debug calls"    = remove-debug-builder
