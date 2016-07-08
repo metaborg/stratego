@@ -234,8 +234,7 @@ rules // Declare globals
    resolve-import-path:
      x -> full-path
      where
-       stratego_sugar-source-and-include-locations
-     ; includes := <map(try(expand-relative-path))>
+       includes := <stratego_sugar-source-and-include-locations>
      ; full-path := <fetch-elem(\ path -> <file-exists> $[[path]/[x]] \)> includes
 
         // FIXME: fetch true import paths from someplace

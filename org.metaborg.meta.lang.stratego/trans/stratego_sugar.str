@@ -87,3 +87,6 @@ rules
     with
       filename := <guarantee-extension(|"aterm")> path;
       result   := <basic-desugar-top> selected
+
+signature constructors
+    ParenStrat               : Strategy -> Strategy
