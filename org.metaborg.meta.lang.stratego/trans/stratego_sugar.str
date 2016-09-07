@@ -5,7 +5,7 @@ imports
   libstratego-gpp
   libstratego-aterm
   libstrc
-  stratego/metaborg
+  libspoofax/term/position
   analysis
   desugar
   outline

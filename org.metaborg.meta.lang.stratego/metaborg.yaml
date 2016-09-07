@@ -6,7 +6,7 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
   source:
-  - org.metaborg:org.metaborg.meta.lib.analysis:${metaborgVersion}
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar
