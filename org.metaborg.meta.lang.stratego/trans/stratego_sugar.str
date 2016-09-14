@@ -5,6 +5,7 @@ imports
   libstratego-gpp
   libstratego-aterm
   libstrc
+  libspoofax/stratego/dynrule
   libspoofax/term/position
   analysis
   desugar
@@ -17,9 +18,7 @@ rules
   editor-analyze:
     (ast, path, project-path) -> (ast', errors, warnings, [])
     with
-      // Ensure all dynamic rules are properly scoped
-      try(dr-scope-all-end);
-      dr-scope-all-start
+      reset-dynamic-rules
     with
       ast' := <analyze-ast <+ !()> (ast, path, project-path);
       if NoAnalysis then
