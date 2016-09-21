@@ -673,11 +673,11 @@ module Stratego-Core-Constants
 exports
   sorts Int Real String StrChar
   lexical syntax
-    [\-]? [0-9]+ 		-> Int
-    [\-]? [0-9]+ [\.] [0-9]+ 	-> Real
-    "\"" StrChar* "\"" 		-> String
-    ~[\"\\] 			-> StrChar
-    [\\] [\"tnr\\] 		-> StrChar
+    [\-]? [0-9]+             -> Int
+    [\-]? [0-9]+ [\.] [0-9]+ -> Real
+    "\"" StrChar* "\""       -> String
+    ~[\"\\]                  -> StrChar %% add the new line character (\n) to be consistent with other languages but break backwards compatibility
+    [\\] [tnrbf\"\'\\]       -> StrChar
 
 
 module Stratego-Sugar-Constants
@@ -688,10 +688,10 @@ imports
 exports
   sorts Char CharChar
   lexical syntax
-    "'" CharChar "'"		-> Char
-    ~[\']			-> CharChar
-    [\\] [\'ntr\ ]		-> CharChar
-    Char		 	-> Id {reject}
+    "'" CharChar "'"     -> Char
+    ~[\']                -> CharChar %% add the new line and backslash characters (\n\\) to be consistent with other languages but break backwards compatibility
+    [\\] [tnrbf\"\'\\\ ] -> CharChar %% remove the space character (\ ) to be consistent with other languages but break backwards compatability
+    Char                 -> Id {reject}
 
 module Stratego-Core-Identifiers
 exports

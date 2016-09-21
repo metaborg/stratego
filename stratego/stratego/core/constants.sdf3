@@ -9,6 +9,6 @@ module stratego/core/constants
     
     String  = "\"" StrChar* "\""
     
-    StrChar = ~[\"\\] 
-    StrChar = [\\] [\"tnr\\]
+    StrChar = ~[\"\\] %% add the new line character (\n) to be consistent with other languages but break backwards compatibility
+    StrChar = [\\] [tnrbf\"\'\\]
 
