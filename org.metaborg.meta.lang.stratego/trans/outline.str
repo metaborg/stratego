@@ -1,9 +1,9 @@
-module editor/Stratego-Sugar-Outliner
+module outline
 
 imports
 	signatures/Stratego-Sugar
-	runtime/editor/outline-library
-  runtime/editor/origins
+	libspoofax/editor/outline
+  libspoofax/term/origin
   analysis
 
 rules

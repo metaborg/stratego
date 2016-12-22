@@ -3,7 +3,7 @@ module desugar
 imports
   libstratego-lib
   libstrc
-  stratego/metaborg
+  libspoofax/term/origin
 
 signature constructors
 

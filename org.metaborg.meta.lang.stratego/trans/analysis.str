@@ -3,8 +3,12 @@ module analysis
 imports
   libstratego-lib
   libstrc
+  libspoofax/resource/path
+  libspoofax/resource/cache
+  libspoofax/term/origin
+  libspoofax/core/parse
+  libspoofax/editor/completion/legacy
   desugar
-  stratego/metaborg
   sourcedir
   
 
@@ -231,10 +235,13 @@ rules // Declare globals
    where
      <is-relpath> x
 
+    stratego-source-and-include-directories = <language-source-and-include-directories> "Stratego-Sugar"
+    stratego-source-and-include-files = <language-source-and-include-files> "Stratego-Sugar"
+
    resolve-import-path:
      x -> full-path
      where
-       includes := <stratego_sugar-source-and-include-locations>
+       includes := <stratego-source-and-include-directories>
      ; full-path := <fetch-elem(\ path -> <file-exists> $[[path]/[x]] \)> includes
 
         // FIXME: fetch true import paths from someplace
@@ -253,10 +260,10 @@ rules // Declare globals
       file := <fetch-library-ast>
     <+
       rtree := <guarantee-extension(|"rtree")>;
-      if <is-newer> (rtree, str) + not(<file-exists> str) + <has-extension(|"rtree")> str then
+      if <file-is-newer> (rtree, str) + not(<file-exists> str) + <has-extension(|"rtree")> str then
         file := <file-exists; ReadFromFile> rtree
       else
-        file := <parse-stratego-file> str
+        file := <parse-stratego-editor-file> str
       end
 
   fetch-library-ast:
@@ -796,10 +803,12 @@ rules // Constraints
 
 strategies
   
+  parse-stratego-editor-file = parse-file-with-lang(|"Stratego-Sugar")
+  
   record-all-module-names =
     record-all-definitions(
         record-module-name
-      , parse-stratego_sugar-string; basic-desugar-top
+      , parse-stratego-editor-file; basic-desugar-top
       | "str"
     )
   
@@ -807,8 +816,8 @@ strategies
     ?Module(mname, _);
     rules(ModuleName : mname -> mname)
   
-  record-all-definitions(record, parse|ext) = 
-    stratego_sugar-source-and-include-files;
+  record-all-definitions(record, parse|ext) =
+    stratego-source-and-include-files;
     list-loop(
       try(record-definitions(record, parse|ext))
     )
@@ -818,7 +827,7 @@ strategies
     where
       <has-extension(|ext)> filename;
       <open-import(
-        abspath, 
+        id, 
         parse, 
         record
      )> filename
