@@ -17,13 +17,13 @@ imports
     Term.AnnoList     = <<PreTerm>{<{Term ","}*>}>
     Term.NoAnnoList   = <<PreTerm>>
     Term.App          = [<[Strategy]> [Term]] {prefer}
-    Term.RootApp      = <<StrategyAngle>> {prefer}
+    Term.RootApp      = [<[Strategy]>] {prefer}
  
   context-free syntax   
     
     PreTerm.Char      = <<Char>>
     PreTerm.App       = [<[Strategy]> [Term]]
-    PreTerm.RootApp   = <<StrategyAngle>>
+    PreTerm.RootApp   = [<[Strategy]>]
     PreTerm.Tuple     = <(<{Term ","}*>)>
     PreTerm.List      = <[<{Term ","}*>]>
     PreTerm.ListTail  = <[<{Term ","}*> | <Term>]>

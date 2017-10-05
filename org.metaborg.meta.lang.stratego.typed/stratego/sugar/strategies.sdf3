@@ -23,7 +23,7 @@ imports
   context-free syntax  
     Typedid.DefaultVarDec = <<ID>>
 
-  sorts StrategyParen StrategyCurly StrategyAngle  
+  sorts StrategyParen StrategyCurly //StrategyAngle  
   context-free syntax 
   
     Strategy.Call = <<SVar> ( <{Strategy ","}*> )>
