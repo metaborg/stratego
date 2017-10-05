@@ -1,0 +1,12 @@
+module stratego/core/modules
+
+namespaces Module
+
+binding rules
+
+  Module(name, _) : 
+  	defines Module name
+  	scopes Strategy, Constructor
+  	
+  Import(name) :
+  	imports Strategy, Constructor from Module name
