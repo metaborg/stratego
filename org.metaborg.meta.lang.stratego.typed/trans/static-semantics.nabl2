@@ -1,7 +1,6 @@
 module static-semantics
 
-imports
-  signatures/-
+imports signatures/stratego/sugar/modules-sig
   
 imports stratego/core/modules
 imports stratego/sugar/modules
