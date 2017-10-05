@@ -1,5 +1,8 @@
 module stratego/core/modules
 
+imports nabl2-lib
+imports stratego/core/signatures
+
 rules
 
   Declarations[[ [] ^ (s_mod) ]].
@@ -12,4 +15,6 @@ rules
   
   Declaration[[ Strategies(sdefs) ^ (s_mod) ]].
   
-  Declaration[[ Signature(sdecls) ^ (s_mod) ]].
+  Declaration[[ Signature(sdecls) ^ (s_mod) ]] :=
+    Map(Sdecl)[[ sdecls ^ (s_mod) ]].
+    
