@@ -1,0 +1,9 @@
+---
+id: org.metaborg:org.metaborg.meta.lang.stratego.typed.test:0.1.0-SNAPSHOT
+name: Stratego
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.stratego.typed:0.1.0-SNAPSHOT
+  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
+build:
+  useBuildSystemSpec: true
