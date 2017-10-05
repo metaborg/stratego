@@ -6,10 +6,10 @@ module stratego/core/identifiers
     ModNamePart = [a-zA-Z\.\_] [a-zA-Z0-9\'\.\-\_]* 
   lexical restrictions
     ModName -/- [a-zA-Z0-9\'\.\-\_]
-  templates
+  context-free syntax
     ModName = "imports" 		{reject}
-    ModName = "overlays" 		{reject}
-    ModName = "rules" 		  {reject}
+    ModName = "overlays"    {reject}
+    ModName = "rules" 		{reject}
     ModName = "signature" 	{reject}
     ModName = "strategies" 	{reject}
 

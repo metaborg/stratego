@@ -1,0 +1,15 @@
+module stratego/core/modules
+
+rules
+
+  Declarations[[ [] ^ (s_mod) ]].
+  
+  Declarations[[ [decl | decls] ^ (s_mod) ]] :=
+    Declaration[[ decl ^ (s_mod) ]],
+    Declarations[[ decls ^ (s_mod) ]].
+    
+  Declaration[[ Imports(names) ^ (s_mod) ]].
+  
+  Declaration[[ Strategies(sdefs) ^ (s_mod) ]].
+  
+  Declaration[[ Signature(sdecls) ^ (s_mod) ]].

@@ -7,7 +7,7 @@ imports
   stratego/core/identifiers
 
   sorts Def
-  templates
+  context-free syntax
     Def = <<StrategyDef>>
     
     SVar.SVar = <<Id>>
@@ -19,15 +19,15 @@ imports
     >
         
     Strategy.CallT = 
-      <<SVar>(<Strategy*; separator=", ">|<Term*; separator=", ">)>
+      <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
       
     Strategy.CallDynamic = 
-      <call(<Term>|<Strategy*; separator=", ">|<Term*; separator=", ">)>
+      <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)>
     
   sorts StrategyDef
-  templates
+  context-free syntax
     StrategyDef.SDefT = <
-      <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+      <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) = 
          <Strategy>
     >
   
@@ -35,15 +35,15 @@ imports
       <<Anno+> <StrategyDef>>
   
     StrategyDef.ExtSDefInl = <
-      external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">) = 
+      external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) = 
          <Strategy>
     >
   
     StrategyDef.ExtSDef = 
-      <external <Id>(<Typedid*; separator=", "> | <Typedid*; separator=", ">)>
+      <external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
   
-    StrategyDef.ExtSDef = 
-      <external <EmptyId>(<Typedid*; separator=", "> | <Typedid*; separator=", ">)> 
+//    StrategyDef.ExtSDef = 
+//      <external <EmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)> 
   
 
   sorts EmptyId
@@ -51,7 +51,7 @@ imports
     EmptyId =
 
   sorts Anno  
-  templates
+  context-free syntax
     Anno.Extend = <extend>
     Anno.Override = <override>
     Anno.Internal = <internal>
@@ -59,41 +59,45 @@ imports
     %%  "extensible"  -> Anno {cons("Extensible")}
     %%  "overridable" -> Anno {cons("Overridable")}
 
-  lexical syntax   
-    "extend"      -> Keyword
-    "override"    -> Keyword
-    "internal"    -> Keyword
-    "sealed"      -> Keyword
-    "extensible"  -> Keyword
-    "overridable" -> Keyword
+  template options
+    Id = keyword {reject}
+    keyword -/- [a-zA-Z0-9\'\-\_]
+    
+//  lexical syntax   
+//    "extend"      -> Keyword
+//    "override"    -> Keyword
+//    "internal"    -> Keyword
+//    "sealed"      -> Keyword
+//    "extensible"  -> Keyword
+//    "overridable" -> Keyword
 
-  lexical restrictions 
-    "extend"
-    "override"
-    "internal"
-    "sealed"
-    "extensible"
-    "overridable" -/- [a-zA-Z0-9\'\-\_]
+//  lexical restrictions 
+//    "extend"
+//    "override"
+//    "internal"
+//    "sealed"
+//    "extensible"
+//    "overridable" -/- [a-zA-Z0-9\'\-\_]
 
   sorts Typedid
-  templates
+  context-free syntax
     Typedid.VarDec = <<ID> : <Type>>
 
 
   sorts Strategy SVar StrategyParen StrategyMid 
-  templates
+  context-free syntax
 	  StrategyParen.ParenStrat = <(<Strategy>)>
 	  Strategy.Fail = <fail>
 	  Strategy.Id = <id>
-	  Strategy.ProceedT = <proceed ( <Strategy*; separator=","> | <Term*; separator=","> )> {prefer}
+	  Strategy.ProceedT = <proceed ( <{Strategy ", "}*> | <{Term ", "}*> )> {prefer}
 	  Strategy.ProceedNoArgs = <proceed> {prefer}
 	  Strategy.Match = <?<Term>>
 	  Strategy.Build = <!<Term>>
-	  Strategy.Scope = <{<ID*; separator=",">: <Strategy> }>
+	  Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
 	  Strategy.Seq = <<Strategy>; <Strategy>> {right}
 	  Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}
 	  StrategyMid = <<Strategy>>
-	  Strategy.PrimT = <prim( <String> , <Strategy*; separator=","> | <Term*; separator=","> )>
+	  Strategy.PrimT = <prim( <String> , <{Strategy ", "}*> | <{Term ", "}*> )>
 	  Strategy.Some = <some( <Strategy> )>
 	  Strategy.One = <one( <Strategy> )>
 	  Strategy.All = <all( <Strategy> )>
@@ -106,7 +110,7 @@ imports
   > {right: 
      Strategy.GuardedLChoice }
 
-  templates
+  context-free syntax
     Strategy.ImportTerm = <import-term ( <ModName> )>
     
     

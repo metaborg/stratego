@@ -6,12 +6,12 @@ module stratego/sugar/signatures
 
   sorts Sort
   
-  templates
-    Sort.SortList   = <[<Sort*; separator=", "> ]>
-    Sort.SortListTl = <[<Sort*; separator=", "> | <Sort> ]>
-    Sort.SortTuple  = <(<Sort*; separator=", "> )>
+  context-free syntax
+    Sort.SortList   = <[<{Sort ", "}*> ]>
+    Sort.SortListTl = <[<{Sort ", "}*> | <Sort> ]>
+    Sort.SortTuple  = <(<{Sort ", "}*> )>
 
   sorts Kind
-  templates  
+  context-free syntax  
     Kind.Star = <*>
     Kind.StarStar = <**>

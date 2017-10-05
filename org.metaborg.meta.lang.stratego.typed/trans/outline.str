@@ -2,7 +2,7 @@ module outline
 
 imports
   
-  signatures/Stratego-sig
+  signatures/StrategoTyped-sig
   libspoofax/editor/outline
 
 rules

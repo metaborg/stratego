@@ -1,0 +1,11 @@
+module stratego/sugar/rules
+
+imports stratego/core/strategies
+
+//binding rules
+//
+//  RDef(name, arg*, r) :
+//  	defines Strategy name
+//  	scopes Variable
+  	
+  

@@ -5,7 +5,7 @@ imports
   stratego/core/constants
 
   sorts Sdecl
-  templates
+  context-free syntax
   
     Sdecl.Sorts = 
       <sorts <Sort*>>
@@ -15,13 +15,13 @@ imports
          <Opdecl*>>
 
   sorts Sort
-  templates
+  context-free syntax
     Sort.SortVar    = <<LCID>>
     Sort.SortNoArgs = <<UCID>>
-    Sort.Sort       = <<Id>(<Sort*; separator=",">)>
+    Sort.Sort       = <<Id>(<{Sort ","}*>)>
 
   sorts Opdecl
-  templates
+  context-free syntax
     Opdecl.OpDecl    = <<Id> : <Type>>
     Opdecl.OpDeclQ   = <<String> : <Type>>
     Opdecl.OpDeclInj = <: <Type>>
@@ -31,10 +31,10 @@ imports
     Opdecl.ExtOpDeclInj = <external : <Type>>
 
   sorts Type ArgType ConstType FunType RetType
-  templates
+  context-free syntax
     ConstType.ConstType = <<Sort>>
     
-    FunType.FunType = [[ArgType+; separator="*"] -> [RetType]]
+    FunType.FunType = [[{ArgType "*"}+] -> [RetType]]
     
     ArgType = <(<Type>)> {bracket}
     ArgType = <<ConstType>>

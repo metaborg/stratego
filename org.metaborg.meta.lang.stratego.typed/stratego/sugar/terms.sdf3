@@ -6,27 +6,27 @@ imports
   stratego/sugar/strategies
 
   sorts LID 
-  templates
+  context-free syntax
     LID.ListVar = <<LId>>
     Var.Var     = <<LID>>
     ID          = <<LID>>  
 
-  templates
+  context-free syntax
   
     Term.BuildDefault = <_<Term>>{prefer}
-    Term.AnnoList     = <<PreTerm>{<Term*; separator=",">}>
+    Term.AnnoList     = <<PreTerm>{<{Term ","}*>}>
     Term.NoAnnoList   = <<PreTerm>>
     Term.App          = [<[Strategy]> [Term]] {prefer}
     Term.RootApp      = <<StrategyAngle>> {prefer}
  
-  templates   
+  context-free syntax   
     
     PreTerm.Char      = <<Char>>
     PreTerm.App       = [<[Strategy]> [Term]]
     PreTerm.RootApp   = <<StrategyAngle>>
-    PreTerm.Tuple     = <(<Term*; separator=", ">)>
-    PreTerm.List      = <[<Term*; separator=", ">]>
-    PreTerm.ListTail  = <[<Term*; separator=", "> | <Term>]>
+    PreTerm.Tuple     = <(<{Term ","}*>)>
+    PreTerm.List      = <[<{Term ","}*>]>
+    PreTerm.ListTail  = <[<{Term ","}*> | <Term>]>
    
     PreTerm.BuildDefaultPT = <_<PreTerm>>
     

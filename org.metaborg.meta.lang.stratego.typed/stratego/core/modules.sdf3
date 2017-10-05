@@ -4,10 +4,10 @@ imports
   stratego/core/identifiers
   stratego/core/layout
   stratego/core/strategies
-  // stratego/core/signatures
+  stratego/core/signatures
 
   sorts Module 
-  templates
+  context-free syntax
     
     Module.Module = <
       module <ModName> 
@@ -20,7 +20,7 @@ imports
     >
 
   sorts Decl 
-  templates
+  context-free syntax
     Decl.Imports = 
       <imports 
          <ImportModName*>>
@@ -36,9 +36,9 @@ imports
     >
 
   sorts ImportModName
-  templates
-    ImportModName.Import = <<ModName>
+  context-free syntax
+    ImportModName.Import = <<ModName>>
     
-  syntax
-    <ModName-CF> "/" "-" -> <ImportModName-CF> {cons("ImportWildcard")}
+  syntax 
+    ImportModName-CF.ImportWildcard = ModName-CF "/" "-" 
 

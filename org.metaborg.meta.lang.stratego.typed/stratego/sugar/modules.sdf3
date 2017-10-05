@@ -8,7 +8,7 @@ imports
 
   sorts Decl Def
   
-  templates
+  context-free syntax
     Decl.Rules = 
       <rules 
          <Def*>>

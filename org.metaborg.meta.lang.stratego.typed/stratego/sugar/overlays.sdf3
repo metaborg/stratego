@@ -5,9 +5,9 @@ imports
 
   sorts Overlay
 
-  templates
+  context-free syntax
     Overlay.OverlayNoArgs = <<Id> = <Term>>
     
     Overlay.Overlay = 
-      <<Id>(<Id*; separator=", ">) = <Term>>
+      <<Id>(<{Id ", "}*>) = <Term>>
   

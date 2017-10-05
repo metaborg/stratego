@@ -1,0 +1,8 @@
+module stratego/core/signatures
+
+//namespaces Constructor
+//
+//binding rules
+//
+//  OpDecl(name, t) :
+//  	defines Constructor name of type t

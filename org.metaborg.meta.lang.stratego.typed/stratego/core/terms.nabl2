@@ -1,0 +1,11 @@
+module stratego/core/terms
+
+//namespaces Variable
+//
+//binding rules
+//
+//  Op(name, t*) :
+//  	refers to Constructor name
+//  	
+//  Var(name) :
+//  	defines Variable name
