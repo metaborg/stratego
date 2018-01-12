@@ -1,0 +1,33 @@
+module stratego/core/terms
+
+imports signatures/stratego/core/terms-sig
+
+rules
+
+  Term[[ Var(x) ^ (s) : ty ]] :=
+    TermVar{x@s} : ty.
+  
+  Term[[ Wld() ^ (s) : ty ]].
+  
+  Term[[ Anno(pt, anno) ^ (s) : ty ]] :=
+    Term[[ pt ^ (s) : ty ]].
+    // to do: check annotations
+    
+  Term[[ As(x, t) ^ (s) : ty ]] :=
+    Term[[ x ^ (s) : ty_x ]],
+    Term[[ t ^ (s) : ty_t ]],
+    ty_x == ty_t | warning $[types do not match] @x.
+    
+   Term[[ Int(_) ^ (s)  : ConstType("Int") ]].    
+   Term[[ Real(_) ^ (s) : ConstType("Real") ]].    
+   Term[[ Str(_) ^ (s)  : ConstType("String") ]].
+   
+   Term[[ Op(c, ts@[_|_]) ^ (s) : ty ]] :=
+     Op{c} -> s,
+     Op{c} |-> d,
+     d : FunType(tys, ty),
+     MapTy(Term)[[ ts ^ (s) : tys_ts ]],
+     tys == tys_ts | warning $[type mismatch] @c.
+   
+   
+  

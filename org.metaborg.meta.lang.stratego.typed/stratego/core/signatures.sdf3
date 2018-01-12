@@ -1,0 +1,49 @@
+module stratego/core/signatures
+
+imports
+  stratego/core/identifiers
+  stratego/core/constants
+
+  sorts Sdecl
+  context-free syntax
+  
+    Sdecl.Sorts = 
+      <sorts <Sort*>>
+      
+    Sdecl.Constructors = 
+      <constructors 
+         <Opdecl*>>
+
+  sorts Sort
+  context-free syntax
+    Sort.SortVar    = <<LCID>>
+    Sort.SortNoArgs = <<UCID>>
+    Sort.Sort       = <<Id>(<{Sort ","}*>)>
+
+  sorts Opdecl
+  context-free syntax
+    Opdecl.OpDecl    = <<Id> : <Type>>
+    Opdecl.OpDeclQ   = <<String> : <Type>>
+    Opdecl.OpDeclInj = <: <Type>>
+    
+    Opdecl.ExtOpDecl    = <external <Id> : <Type>>
+    Opdecl.ExtOpDeclQ   = <external <String> : <Type>>
+    Opdecl.ExtOpDeclInj = <external : <Type>>
+
+  sorts Type ArgType ConstType FunType RetType
+  context-free syntax
+    ConstType.ConstType = <<Sort>>
+    
+    FunType.FunType = [[{ArgType "*"}+] -> [RetType]]
+    
+    ArgType = <(<Type>)> {bracket}
+    ArgType = <<ConstType>>
+    RetType = <<Type>>
+    RetType = <<FunType>> {reject}
+    
+    Type = <<FunType>>
+    Type = <<ConstType>>
+
+  // Restriction is required for the Sort* in Sdecl: List(a) is ambiguous.
+  context-free restrictions
+    Sort -/- [\(]

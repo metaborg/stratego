@@ -1,0 +1,34 @@
+module stratego/sugar/terms
+imports
+  stratego/core/terms
+  stratego/core/identifiers
+  stratego/sugar/constants
+  stratego/sugar/strategies
+
+  sorts LID 
+  context-free syntax
+    LID.ListVar = <<LId>>
+    Var.Var     = <<LID>>
+    ID          = <<LID>>  
+
+  context-free syntax
+  
+    Term.BuildDefault = <_<Term>>{prefer}
+    Term.AnnoList     = <<PreTerm>{<{Term ","}*>}>
+    Term.NoAnnoList   = <<PreTerm>>
+    Term.App          = [<[Strategy]> [Term]] {prefer}
+    Term.RootApp      = [<[Strategy]>] {prefer}
+ 
+  context-free syntax   
+    
+    PreTerm.Char      = <<Char>>
+    PreTerm.App       = [<[Strategy]> [Term]]
+    PreTerm.RootApp   = [<[Strategy]>]
+    PreTerm.Tuple     = <(<{Term ","}*>)>
+    PreTerm.List      = <[<{Term ","}*>]>
+    PreTerm.ListTail  = <[<{Term ","}*> | <Term>]>
+   
+    PreTerm.BuildDefaultPT = <_<PreTerm>>
+    
+  // context-free priorities
+  //   PreTerm.Explode > Term.AnnoList > Term.As
