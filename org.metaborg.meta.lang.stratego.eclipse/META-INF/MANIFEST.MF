@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Stratego-Sugar language Eclipse plugin
 Bundle-SymbolicName: org.metaborg.meta.lang.stratego.eclipse;singleton:=true
-Bundle-Version: 2.4.0
+Bundle-Version: 2.5.0.qualifier
 Bundle-Vendor: metaborg.org
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.metaborg.spoofax.eclipse
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
