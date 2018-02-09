@@ -153,7 +153,7 @@ rules // Declare globals
 
   declare-globals-top =
     if not(NoAnalysis) then
-      with(<declare-globals> Import("libstratego-lib"));
+      with(<map(declare-globals)> [Import("libstratego-lib"), Import("libstratego-sglr")]);
       alltd(origin-track-forced(declare-globals))
     end
 
