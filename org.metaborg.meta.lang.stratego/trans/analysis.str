@@ -766,10 +766,21 @@ rules // Constraints
     where
       require(not(is-constructor))
 
-  constraint-warning:
-    CallT(SVar(<"debug" + "say">), [t], []) -> (s, $[Should be '![s]'])
-    where
-      !t => StrCong(s) + !t => IntCong(s)
+  contraint-warning-om:
+    t -> (t, $[Simple matching congruence: prefix with '?'. Or with '!' if you meant to build.])
+    where <rec x(strat-in-Cong(x))> t
+
+  strat-in-Cong(x) = ?StrCong(_)
+  strat-in-Cong(x) = ?IntCong(_)
+  strat-in-Cong(x) = ?RealCong(_)
+  strat-in-Cong(x) = ?CharCong(_)
+  strat-in-Cong(x) = CongQ(id,map(x))
+  strat-in-Cong(x) = AnnoCong(x,StrategyCurly(x))
+  strat-in-Cong(x) = ?EmptyTupleCong()
+  strat-in-Cong(x) = TupleCong(map(x))
+  strat-in-Cong(x) = ListCongNoTail(map(x))
+  strat-in-Cong(x) = ListCong(map(x),x)
+  strat-in-Cong(x) = ExplodeCong(x,ParenStrat(x))
 
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")

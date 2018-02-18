@@ -16,21 +16,24 @@ strategies
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (ast', errors, warnings, [])
+    (ast, path, project-path) -> (ast', errors, warnings', [])
     with
       reset-dynamic-rules
     with
       ast' := <analyze-ast <+ !()> (ast, path, project-path);
       if NoAnalysis then
-        errors   := <collect-all(constraint-error, conc)> ast';
-        warnings := <collect-all(constraint-warning, conc)> ast'
+        errors    := <collect-all(constraint-error, conc)> ast';
+        warnings  := <collect-all(constraint-warning, conc)> ast';
+        warnings' := <conc> (warnings, <collect-om(contraint-warning-om, conc)> ast')
       else
         if WarnAnalysis then
-          errors   := <collect-all(constraint-error, conc)> ast';
-          warnings := <collect-all(global-constraint-error + constraint-warning, conc)> ast'
+          errors    := <collect-all(constraint-error, conc)> ast';
+          warnings  := <collect-all(global-constraint-error + constraint-warning, conc)> ast';
+          warnings' := <conc> (warnings, <collect-om(contraint-warning-om, conc)> ast')
         else
-          errors   := <collect-all(global-constraint-error + constraint-error, conc)> ast';
-          warnings := <collect-all(constraint-warning, conc)> ast'
+          errors    := <collect-all(global-constraint-error + constraint-error, conc)> ast';
+          warnings  := <collect-all(constraint-warning, conc)> ast';
+          warnings' := <conc> (warnings, <collect-om(contraint-warning-om, conc)> ast')
         end
       end
 
