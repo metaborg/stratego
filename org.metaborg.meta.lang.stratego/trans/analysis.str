@@ -781,6 +781,7 @@ rules // Constraints
   strat-in-Cong(x) = ListCongNoTail(map(x))
   strat-in-Cong(x) = ListCong(map(x),x)
   strat-in-Cong(x) = ExplodeCong(x,ParenStrat(x))
+  strat-in-Cong(x) = ?CallT(SVar(_), _, _); where(is-constructor); CallT(id, map(x), id)
 
   constraint-warning:
     Import("Java-15") -> (<id>, "Use 'import libjava-front' instead")
