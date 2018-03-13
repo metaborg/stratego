@@ -1,0 +1,182 @@
+module compile
+
+imports signatures/StrategoTyped-sig
+imports libstrc
+//imports libstrjlib
+imports misc
+
+strategies
+
+  compile-module(|project-path) : 
+    Module(m, defs) -> (imps, decls)
+    with
+      (imps, defs') := <partition(?Imports(_))> defs
+    with
+      <set-config> ("--library", ())
+    with
+      spec := <frontend-clone> Specification(defs')
+    with
+      decls := <rename-strategies; collect-declarations(|m)> spec
+    with
+      <map(store-decl(|project-path))> decls
+      
+rules
+
+  store-decl(|project-path) :
+    (f, m, d) -> file
+    with 
+      file := <src-gen-file(|project-path, f, ".aterm")> m
+      ; <WriteToTextFile> (file, d)
+       
+strategies
+
+  collect-declarations(|m) = 
+    alltd(get-declaration(|m))
+    ; dr-all-keys(|"Def")
+    //; debug(!"keys: ")
+    ; map(\(f, m) -> (f, m, <bagof-Def>(f, m))\)
+    //; debug(!"defs: ")
+    
+  get-declaration(|m) =
+    ?d@SDefT(f, args1, args2, s_body)
+    ; add-declaration(|f, m, d)
+    
+  get-declaration(|m) =
+    ?d@OpDecl(c, t) 
+    ; add-declaration(|c, m, d)
+    
+  add-declaration(|f, m, d) =
+    rules(
+      Def :+ (f, m) -> d
+    )
+ 
+rules // rename strategies
+   
+  rename-strategies =
+    topdown(try(rename-strategy))
+    
+  rename-strategy :
+    SDefT(f, args1, args2, s_body) -> SDefT(g, args1, args2, s_body)
+    where g := <rename-strategy-name> (f, args1, args2)
+    
+  rename-strategy :
+    CallT(SVar(f), args1, args2) -> CallT(SVar(g), args1, args2)
+    where g := <rename-strategy-name> (f, args1, args2)
+    
+  rename-strategy-name :
+    (f, args1, args2) -> $[[f]_[<length> args1]_[<length>args2]]
+    
+strategies
+
+  frontend-clone = 
+    m-transform-no-overlays(id
+
+      // add some definitions and constructors
+
+      ; if-not-lib(m-add-main)
+      ; m-add-anno-cong-def
+      ; where(dr-constructors; map(m-add-constructor))
+
+      // desugar and check constructors
+
+      ; m-transform-constructors(id
+          ; pre-desugar
+          ; try(DeclareVarToConst)
+	      ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
+          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
+          ; try(where(m-MkCongDef; m-add-def))
+        )
+
+      // desugar and check overlays
+
+      ; m-transform-overlays(id
+          ; pre-desugar
+          //; check-overlay
+          ; try(DeclareVarToConst)
+        )
+
+      ; m-transform-overlays(id
+          ; m-variables-to-constructors-in-def
+          ; pre-desugar
+          //; not(def-use-def)
+          ; not(check-where-with)
+          ; raise-annotations
+          ; GenerateCheckRule
+          ; DeclareExpandOverlay
+          ; where(Overlay-to-Congdef; m-add-def)
+        )
+
+      //; m-transform-overlays(
+          //not(check-constructors)
+        //)
+
+//      // plug in dump of asts
+//      ; if <get-config> "--dump-aterms" then 
+//          where(
+//            <debug> "Going to write to file"
+//            ; if <get-config> "-i" then
+//                fp := <fopen <+ debug(!"Could not open file")> (<concat-strings> [<get-config> "-i", ".aterm"], "w")
+//              else
+//                fp := <fopen <+ debug(!"Could not open file")> ("dump.aterm", "w")
+//              end
+//            ; <fprint <+ debug(!"Could not write to file")> (fp, [<bagof-StrAsts>])
+//            ; <fclose> fp
+//          )
+//        end
+
+      // transform and check local definitions
+
+      ; m-transform-local-defs(map(id
+          ; m-repair-types
+          ; pre-desugar		
+          ; raise-annotations
+        ))
+
+      ; m-lift-dynamic-rules-from-spec
+
+      //; check-calls
+
+      ; m-transform-local-defs(
+          map(id
+            ; stratego-desugar
+            ; raise-annotations
+	        //; not(def-use-def)
+            //; not(check-constructors)
+            ; expand-overlays-in-def
+            ; rules-to-sdefs-def
+            ; desugar-list-matching
+	        ; desugar-DefaultVarDec
+            ; strename
+            ; desugar-def
+            //; check-patterns
+          )
+        )
+
+//      ; m-transform-local-defs(id
+//          ; ![<joindefs>] 
+//          ; [RenameSDef]
+//        )
+
+//      ; m-transform-external-defs(id
+//          ; if ?[_,_|_] then
+//              warn(|"multiple external definitions with same signature")
+//	        ; [rules(SameSigExtDef :+= <id>) | ![]]
+//            end
+//          ; [RenameSDef
+//             ; desugar-DefaultVarDec
+//             ; strename
+//            ]
+//        )
+
+//      ; m-transform-local-defs(
+//          [rename-calls
+//           ; simplify
+//	       ; define-congruences-def
+//          ]
+//        )
+              
+      //; if-lib(remove-unused-external-defs, remove-unused-defs)
+    )
+    ; tfc1(|"Stratego-Core", "fe-cong")
+    
+    

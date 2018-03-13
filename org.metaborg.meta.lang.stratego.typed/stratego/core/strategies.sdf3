@@ -87,20 +87,20 @@ imports
   sorts Strategy SVar StrategyParen StrategyMid 
   context-free syntax
 	  StrategyParen.ParenStrat = <(<Strategy>)>
-	  Strategy.Fail = <fail>
-	  Strategy.Id = <id>
+	  Strategy.Fail  = <fail>
+	  Strategy.Id    = <id>
 	  Strategy.ProceedT = <proceed ( <{Strategy ", "}*> | <{Term ", "}*> )> {prefer}
 	  Strategy.ProceedNoArgs = <proceed> {prefer}
 	  Strategy.Match = <?<Term>>
 	  Strategy.Build = <!<Term>>
 	  Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
-	  Strategy.Seq = <<Strategy>; <Strategy>> {right}
+	  Strategy.Seq   = <<Strategy>; <Strategy>> {right}
 	  Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}
-	  StrategyMid = <<Strategy>>
+	  StrategyMid    = <<Strategy>>
 	  Strategy.PrimT = <prim( <String> , <{Strategy ", "}*> | <{Term ", "}*> )>
-	  Strategy.Some = <some( <Strategy> )>
-	  Strategy.One = <one( <Strategy> )>
-	  Strategy.All = <all( <Strategy> )>
+	  Strategy.Some  = <some( <Strategy> )>
+	  Strategy.One   = <one( <Strategy> )>
+	  Strategy.All   = <all( <Strategy> )>
 	  
   context-free priorities
     { Strategy.Build

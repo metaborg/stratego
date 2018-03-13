@@ -20,6 +20,10 @@ menus
     
     action: "Format"          = editor-format (source)
     action: "Show parsed AST" = debug-show-aterm (source)
+  
+  menu: "Compile" (openeditor)
+    
+    action: "Compile"         = compile-module-builder (source)
 
 views
   

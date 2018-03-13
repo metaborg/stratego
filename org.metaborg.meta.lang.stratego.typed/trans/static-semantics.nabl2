@@ -9,10 +9,12 @@ rules
 
   init ^ (s) := new s.
   
-  [[ Module(m, decls) ^ (s) ]] :=
-     Module{m} <- s,
-     new s_mod,
-     s_mod -P-> s,
-     Declarations[[ decls ^ (s_mod) ]].
+  [[ Module(m, decls) ^ (s) ]].
+  
+//  [[ Module(m, decls) ^ (s) ]] :=
+//     Module{m} <- s,
+//     new s_mod,
+//     s_mod -P-> s,
+//     Declarations[[ decls ^ (s_mod) ]].
 
 

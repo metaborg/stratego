@@ -95,7 +95,7 @@ imports
 
   context-free priorities
     { Strategy.AnnoCong Strategy.ExplodeCong }
-  // > { Strategy.Match Strategy.Build } 
+  > { Strategy.Match Strategy.Build } 
   > Strategy.BA 
   > Strategy.AM  
   // > Strategy.Seq
