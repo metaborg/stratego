@@ -28,6 +28,7 @@ rules
       file := <src-gen-file(|project-path, f, ".aterm")> m
       ; <WriteToTextFile> (file, d)
        
+// TODO: use ModDefinition & ModConstructor dynamic rules from model used in frontend-clone instead of new Def dynamic rule?
 strategies
 
   collect-declarations(|m) = 
@@ -49,7 +50,8 @@ strategies
     rules(
       Def :+ (f, m) -> d
     )
- 
+
+// TODO: use renaming strategies from strj?
 rules // rename strategies
    
   rename-strategies =
@@ -91,14 +93,17 @@ strategies
 
       ; m-transform-overlays(id
           ; pre-desugar
-          //; check-overlay
+// TODO: reinstate? Seems like a proper (local) check: match symbols in overlay pattern
+//          ; check-overlay
           ; try(DeclareVarToConst)
         )
 
       ; m-transform-overlays(id
           ; m-variables-to-constructors-in-def
           ; pre-desugar
-          //; not(def-use-def)
+// TODO: reinstate? Seems like a proper (local) check: Test whether all variables used in builds are matched before
+// ===> But variables can be nullary constructors, so maybe that's why it's commented?
+//          ; not(def-use-def)
           ; not(check-where-with)
           ; raise-annotations
           ; GenerateCheckRule
@@ -106,23 +111,10 @@ strategies
           ; where(Overlay-to-Congdef; m-add-def)
         )
 
-      //; m-transform-overlays(
-          //not(check-constructors)
-        //)
-
-//      // plug in dump of asts
-//      ; if <get-config> "--dump-aterms" then 
-//          where(
-//            <debug> "Going to write to file"
-//            ; if <get-config> "-i" then
-//                fp := <fopen <+ debug(!"Could not open file")> (<concat-strings> [<get-config> "-i", ".aterm"], "w")
-//              else
-//                fp := <fopen <+ debug(!"Could not open file")> ("dump.aterm", "w")
-//              end
-//            ; <fprint <+ debug(!"Could not write to file")> (fp, [<bagof-StrAsts>])
-//            ; <fclose> fp
-//          )
-//        end
+// ===> checks if used constructor with such an arity exists. Therefore needs global information
+//      ; m-transform-overlays(
+//          not(check-constructors)
+//        )
 
       // transform and check local definitions
 
@@ -134,29 +126,32 @@ strategies
 
       ; m-lift-dynamic-rules-from-spec
 
-      //; check-calls
+//      ; check-calls
 
       ; m-transform-local-defs(
           map(id
             ; stratego-desugar
             ; raise-annotations
-	        //; not(def-use-def)
-            //; not(check-constructors)
+//	          ; not(def-use-def)
+//            ; not(check-constructors)
             ; expand-overlays-in-def
             ; rules-to-sdefs-def
             ; desugar-list-matching
 	        ; desugar-DefaultVarDec
             ; strename
             ; desugar-def
-            //; check-patterns
+// TODO: reinstate? Seems like a proper (local) check: Test whether match and build patterns don't have build or match symbols resp.
+//            ; check-patterns
           )
         )
 
+// TODO: reinstate? Joins definitions/rules of the same name&arity, then renames the definition to cified_n_m
 //      ; m-transform-local-defs(id
 //          ; ![<joindefs>] 
 //          ; [RenameSDef]
 //        )
 
+// TODO: reinstate? Checks for multiple external definitions and picks one, then renames to cified_n_m and then something else
 //      ; m-transform-external-defs(id
 //          ; if ?[_,_|_] then
 //              warn(|"multiple external definitions with same signature")
@@ -168,6 +163,7 @@ strategies
 //            ]
 //        )
 
+// TODO: reinstate? Renames calls to line up with renamed definitions, then something else
 //      ; m-transform-local-defs(
 //          [rename-calls
 //           ; simplify
@@ -175,8 +171,10 @@ strategies
 //          ]
 //        )
               
-      //; if-lib(remove-unused-external-defs, remove-unused-defs)
+// commented: Can't tell if unused without global information
+//      ; if-lib(remove-unused-external-defs, remove-unused-defs)
     )
-    ; tfc1(|"Stratego-Core", "fe-cong")
+// commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
+//    ; tfc1(|"Stratego-Core", "fe-cong")
     
     
