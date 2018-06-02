@@ -2,76 +2,34 @@ module compile
 
 imports signatures/StrategoTyped-sig
 imports libstrc
-//imports libstrjlib
 imports misc
+imports dr-scoping
 
 strategies
 
-  compile-module(|project-path) : 
+  compile-module(|project-path):
     Module(m, defs) -> (imps, decls)
     with
       (imps, defs') := <partition(?Imports(_))> defs
     with
       <set-config> ("--library", ())
     with
-      spec := <frontend-clone> Specification(defs')
+      decls := <frontend-sep-comp> Specification(defs')
     with
-      decls := <rename-strategies; collect-declarations(|m)> spec
-    with
-      <map(store-decl(|project-path))> decls
-      
+      <map(store-decl(|project-path, m))> decls
+
 rules
 
-  store-decl(|project-path) :
-    (f, m, d) -> file
+  store-decl(|project-path, m):
+    (f, d) -> file
     with 
       file := <src-gen-file(|project-path, f, ".aterm")> m
       ; <WriteToTextFile> (file, d)
-       
-// TODO: use ModDefinition & ModConstructor dynamic rules from model used in frontend-clone instead of new Def dynamic rule?
+
 strategies
 
-  collect-declarations(|m) = 
-    alltd(get-declaration(|m))
-    ; dr-all-keys(|"Def")
-    //; debug(!"keys: ")
-    ; map(\(f, m) -> (f, m, <bagof-Def>(f, m))\)
-    //; debug(!"defs: ")
-    
-  get-declaration(|m) =
-    ?d@SDefT(f, args1, args2, s_body)
-    ; add-declaration(|f, m, d)
-    
-  get-declaration(|m) =
-    ?d@OpDecl(c, t) 
-    ; add-declaration(|c, m, d)
-    
-  add-declaration(|f, m, d) =
-    rules(
-      Def :+ (f, m) -> d
-    )
-
-// TODO: use renaming strategies from strj?
-rules // rename strategies
-   
-  rename-strategies =
-    topdown(try(rename-strategy))
-    
-  rename-strategy :
-    SDefT(f, args1, args2, s_body) -> SDefT(g, args1, args2, s_body)
-    where g := <rename-strategy-name> (f, args1, args2)
-    
-  rename-strategy :
-    CallT(SVar(f), args1, args2) -> CallT(SVar(g), args1, args2)
-    where g := <rename-strategy-name> (f, args1, args2)
-    
-  rename-strategy-name :
-    (f, args1, args2) -> $[[f]_[<length> args1]_[<length>args2]]
-    
-strategies
-
-  frontend-clone = 
-    m-transform-no-overlays(id
+  frontend-sep-comp =
+    m-transform-split-definitions(id
 
       // add some definitions and constructors
 
@@ -84,7 +42,7 @@ strategies
       ; m-transform-constructors(id
           ; pre-desugar
           ; try(DeclareVarToConst)
-	      ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
+          ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
           ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
           ; try(where(m-MkCongDef; m-add-def))
         )
@@ -93,16 +51,14 @@ strategies
 
       ; m-transform-overlays(id
           ; pre-desugar
-// TODO: reinstate? Seems like a proper (local) check: match symbols in overlay pattern
-//          ; check-overlay
+          ; check-overlay
           ; try(DeclareVarToConst)
         )
 
       ; m-transform-overlays(id
           ; m-variables-to-constructors-in-def
           ; pre-desugar
-// TODO: reinstate? Seems like a proper (local) check: Test whether all variables used in builds are matched before
-// ===> But variables can be nullary constructors, so maybe that's why it's commented?
+// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
 //          ; not(def-use-def)
           ; not(check-where-with)
           ; raise-annotations
@@ -111,7 +67,7 @@ strategies
           ; where(Overlay-to-Congdef; m-add-def)
         )
 
-// ===> checks if used constructor with such an arity exists. Therefore needs global information
+// commented: checks if used constructor with such an arity exists. Therefore needs global information
 //      ; m-transform-overlays(
 //          not(check-constructors)
 //        )
@@ -120,61 +76,76 @@ strategies
 
       ; m-transform-local-defs(map(id
           ; m-repair-types
-          ; pre-desugar		
+          ; pre-desugar        
           ; raise-annotations
         ))
 
       ; m-lift-dynamic-rules-from-spec
 
+// commented: checks if used strategy with such an arity exists. Therefore needs global information
 //      ; check-calls
 
       ; m-transform-local-defs(
           map(id
             ; stratego-desugar
             ; raise-annotations
-//	          ; not(def-use-def)
+//            ; not(def-use-def)
 //            ; not(check-constructors)
             ; expand-overlays-in-def
             ; rules-to-sdefs-def
             ; desugar-list-matching
-	        ; desugar-DefaultVarDec
+            ; desugar-DefaultVarDec
             ; strename
             ; desugar-def
-// TODO: reinstate? Seems like a proper (local) check: Test whether match and build patterns don't have build or match symbols resp.
-//            ; check-patterns
+            ; check-patterns
           )
         )
 
-// TODO: reinstate? Joins definitions/rules of the same name&arity, then renames the definition to cified_n_m
-//      ; m-transform-local-defs(id
-//          ; ![<joindefs>] 
-//          ; [RenameSDef]
-//        )
+      ; m-transform-local-defs(id
+          ; ![<joindefs>] 
+          ; [RenameSDef]
+        )
 
-// TODO: reinstate? Checks for multiple external definitions and picks one, then renames to cified_n_m and then something else
-//      ; m-transform-external-defs(id
-//          ; if ?[_,_|_] then
-//              warn(|"multiple external definitions with same signature")
-//	        ; [rules(SameSigExtDef :+= <id>) | ![]]
-//            end
-//          ; [RenameSDef
-//             ; desugar-DefaultVarDec
-//             ; strename
-//            ]
-//        )
+      ; m-transform-external-defs(id
+          ; if ?[_,_|_] then
+              warn(|"multiple external definitions with same signature")
+            ; [id | ![]] // Cannot reuse dyn rule when already used in library
+            end
+          ; [RenameSDef
+             ; desugar-DefaultVarDec
+             ; strename
+            ]
+        )
 
-// TODO: reinstate? Renames calls to line up with renamed definitions, then something else
-//      ; m-transform-local-defs(
-//          [rename-calls
-//           ; simplify
-//	       ; define-congruences-def
-//          ]
-//        )
-              
+      ; m-transform-local-defs(
+          [rename-calls
+           ; simplify
+           ; define-congruences-def
+          ]
+        )
+
 // commented: Can't tell if unused without global information
 //      ; if-lib(remove-unused-external-defs, remove-unused-defs)
     )
 // commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
 //    ; tfc1(|"Stratego-Core", "fe-cong")
-    
-    
+
+  m-transform-split-definitions(s) =
+    dr-scope-all-verbose(id
+     ; to-model
+     ; s
+     ; m-split-definitions
+     )
+
+  m-split-definitions = id
+    ; where(id
+      ; m-get-all-local-definitions
+      ; map(!(<m-def-signature;Fst>, <id>))
+      ; ?localDef*
+    )
+    ; where(id
+      ; m-get-all-constructors
+      ; map(!(<m-constr-signature;Fst>, <id>))
+      ; ?constructor*
+    )
+    ; ![localDef*, constructor*]

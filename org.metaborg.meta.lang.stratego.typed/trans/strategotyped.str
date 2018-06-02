@@ -17,11 +17,11 @@ rules // Debugging
     ; result   := node
   
   compile-module-builder:
-    (node, _, _, path, project-path) -> (filename, result)
+    (node, _, _, path, project-path) -> ()
     with
       filename := <guarantee-extension(|"comp.aterm")> path
     ; result   := <compile-module(|project-path)>node
-    ; <debug(!"(path, project-path): ")> (path, project-path)
+//    ; <debug(!"(path, project-path): ")> (path, project-path)
 
     
 //      generate-nabl2:
