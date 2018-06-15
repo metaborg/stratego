@@ -9,21 +9,25 @@ strategies
 
   compile-module(|project-path):
     Module(m, defs) -> (imps, decls)
-    with
-      (imps, defs') := <partition(?Imports(_))> defs
-    with
-      <set-config> ("--library", ())
-    with
-      decls := <frontend-sep-comp> Specification(defs')
-    with
-      <map(store-decl(|project-path, m))> decls
+    with id
+      ; (imps, defs') := <partition(?Imports(_))> defs
+      ; <set-config> ("--library", ())
+      ; decls := <frontend-sep-comp> Specification(defs')
+      ; <map((id, try(prepare-decl)); store-decl(|project-path, m))> decls
 
 rules
 
+  prepare-decl:
+    s@SDefT(_, svars, tvars, _) -> body
+    with id
+      ; new-svars := <let apply(|i) = !$[svar_[i]] in nmap(apply|0) end> svars
+      ; new-tvars := <let apply(|i) = !$[tvar_[i]] in nmap(apply|0) end> tvars
+      ; body := <RenameDefinition(|new-svars, new-tvars)> s
+
   store-decl(|project-path, m):
     (f, d) -> file
-    with 
-      file := <src-gen-file(|project-path, f, ".aterm")> m
+    with id
+      ; file := <src-gen-file(|project-path, f, ".aterm")> m
       ; <WriteToTextFile> (file, d)
 
 strategies

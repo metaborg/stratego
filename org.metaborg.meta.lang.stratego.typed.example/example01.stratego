@@ -11,3 +11,7 @@ rules
 
   eval : Plus(Int(0), e) -> e   
   
+  hi = {|hello: !a; rules(hello : a -> <inc> s)|}
+  
+  hi = {|hello: !a; rules(hello : a -> <dec> s)|}
+  

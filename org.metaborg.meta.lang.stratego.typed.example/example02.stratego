@@ -1,0 +1,7 @@
+module example02
+
+imports example01
+
+rules
+
+eval : Int(2) -> Plus(Int(1), Int(1))
