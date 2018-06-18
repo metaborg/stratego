@@ -5,15 +5,24 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.metaborg.meta.lang.stratego.typed</artifactId>
+  <artifactId>stratego.typed.example</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>spoofax-language</packaging>
+  <packaging>spoofax-project</packaging>
 
   <parent>
     <groupId>org.metaborg</groupId>
     <artifactId>parent.language</artifactId>
     <version>2.4.0-SNAPSHOT</version>
   </parent>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>stratego.typed</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+      <type>spoofax-language</type>
+    </dependency>
+  </dependencies>
   
   <repositories>
     <repository>

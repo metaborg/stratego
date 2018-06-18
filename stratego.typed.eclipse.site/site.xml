@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.metaborg.meta.lang.stratego.typed.eclipse.feature_0.1.0.qualifier.jar" id="org.metaborg.meta.lang.stratego.typed.eclipse.feature" version="0.1.0.qualifier">
+   <feature url="features/stratego.typed.eclipse.feature_0.1.0.qualifier.jar" id="stratego.typed.eclipse.feature" version="0.1.0.qualifier">
       <category name="Stratego"/>
    </feature>
    <category-def name="Stratego" label="Stratego language Eclipse plugin">

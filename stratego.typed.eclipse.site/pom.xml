@@ -4,43 +4,16 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.metaborg.meta.lang.stratego.typed.eclipse</artifactId>
+  <artifactId>stratego.typed.eclipse.site</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>eclipse-plugin</packaging>
+  <packaging>eclipse-update-site</packaging>
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>parent.eclipse.language</artifactId>
+    <artifactId>parent.eclipse.plugin</artifactId>
     <version>2.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
-
-  <properties>
-    <lang.unpack.artifactId>org.metaborg.meta.lang.stratego.typed</lang.unpack.artifactId>
-    <lang.baseline.unpack.skip>true</lang.baseline.unpack.skip>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.metaborg.meta.lang.stratego.typed</artifactId>
-      <version>${project.version}</version>
-      <type>spoofax-language</type>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.metaborg</groupId>
-        <artifactId>spoofax-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 
   <repositories>
     <repository>

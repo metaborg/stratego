@@ -1,5 +1,5 @@
 ---
-id: org.metaborg:org.metaborg.meta.lang.stratego.typed:0.1.0-SNAPSHOT
+id: org.metaborg:stratego.typed:0.1.0-SNAPSHOT
 name: StrategoTyped
 dependencies:
   compile:

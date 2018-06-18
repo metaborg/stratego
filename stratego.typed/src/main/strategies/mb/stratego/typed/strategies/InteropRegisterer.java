@@ -1,4 +1,4 @@
-package org.metaborg.meta.lang.stratego.typed.strategies;
+package mb.stratego.typed.strategies;
 
 import org.strategoxt.lang.JavaInteropRegisterer;
 import org.strategoxt.lang.Strategy;
