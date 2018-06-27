@@ -1,4 +1,4 @@
-module Stratego
+module stratego/Stratego
 
 imports 
   stratego/core/core
