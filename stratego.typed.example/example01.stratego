@@ -11,7 +11,7 @@ rules
 
   eval : Plus(Int(0), e) -> e   
   
-  hi = {|hello: !a; rules(hello : a -> <inc> s)|}
+  hi = {|hello: ?a; rules(hello : a -> <inc> a)|}
   
-  hi = {|hello: !a; rules(hello : a -> <dec> s)|}
+  hi = {|hello: ?s; rules(hello : Int(s) -> <dec> a)|}
   
