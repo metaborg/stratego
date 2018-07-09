@@ -12,6 +12,9 @@ import java.util.stream.Stream;
 
 public class Packer {
 
+    private static final String SPEC_END = "\n])])";
+    private static final String SPEC_START = "Specification([Signature([Constructors([])]), Strategies([\n";
+
     /**
      * Packs StrategoCore strategy bodies in a directory into a single strategy
      * definition in a file
@@ -56,16 +59,15 @@ public class Packer {
      *             When there is a file system problem
      */
     public static void pack(Path dir, String strategyName, int svars, int tvars) throws IOException {
-        // TODO: make output file configurable
-        final Path outputFile = dir.resolve("packed$.aterm");
+        final Path outputFile = dir.resolve(strategyName + ".ctree");
         // We use the nio.Channel API here because it is supposed to be the fastest way
         // to append one file to another
         // This may need to be changed when using this tool inside Spoofax, dealing with
         // a virtual file system...
         try (final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            write(outChannel, SPEC_START);
             write(outChannel, sdeftStart(strategyName, svars, tvars));
-            outChannel.force(false);
 
             // We need to be careful not to include the outputFile among the input files in
             // the directory
@@ -88,13 +90,14 @@ public class Packer {
                 Arrays.fill(closing, (byte) ')');
                 write(outChannel, closing);
             }
+            write(outChannel, SPEC_END);
         }
     }
 
     private static Predicate<? super Path> isThisFile(final Path outputFile) {
         return f -> {
             try {
-                return !Files.isSameFile(f, outputFile);
+                return f.getFileName().toString().endsWith(".aterm") && !Files.isSameFile(f, outputFile);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
