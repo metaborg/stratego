@@ -17,6 +17,8 @@ strategies
 
 rules
 
+  // Rename the arguments to the strategy to predictable names used by the middle-end strategy
+  //  packing tool.
   prepare-decl:
     s@SDefT(_, svars, tvars, _) -> body
     with id
@@ -152,4 +154,4 @@ strategies
       ; map(!(<m-constr-signature;Fst>, <id>))
       ; ?constructor*
     )
-    ; ![localDef*, constructor*]
+    ; ![localDef*]
