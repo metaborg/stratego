@@ -6,6 +6,15 @@ imports misc
 imports dr-scoping
 
 strategies
+  clean-module(|project-path):
+    Module(m, _) -> <id>
+  with id
+    ; src-gen-dir := <src-gen-dir(|project-path, "stratego.typed")>
+    ; subdirs := <readdir;remove-all(?"." + ?"..")> src-gen-dir
+    ; output-files := <map(\f -> <src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m\)> subdirs
+    ; <map(try(remove-file))> output-files
+
+strategies
 
   compile-module(|project-path):
     Module(m, defs) -> (imps, decls)

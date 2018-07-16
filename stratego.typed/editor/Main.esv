@@ -4,6 +4,7 @@ imports
 
   Syntax
   Analysis
+  Compile
 
 language
 

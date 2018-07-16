@@ -16,12 +16,16 @@ rules // Debugging
       filename := <guarantee-extension(|"aterm")> path
     ; result   := node
   
+  clean-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with <clean-module(|project-path)> node
+  
   compile-module-builder:
     (node, _, _, path, project-path) -> ()
     with
-      filename := <guarantee-extension(|"comp.aterm")> path
-    ; result   := <compile-module(|project-path)>node
-//    ; <debug(!"(path, project-path): ")> (path, project-path)
+      clean-module-builder
+    ; filename := <guarantee-extension(|"comp.aterm")> path
+    ; result   := <compile-module(|project-path)> node
 
     
 //      generate-nabl2:
