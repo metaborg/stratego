@@ -5,10 +5,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 public class Packer {
 
@@ -19,16 +22,17 @@ public class Packer {
      * Packs StrategoCore strategy bodies in a directory into a single strategy
      * definition in a file
      * 
-     * @param dir
+     * @param inputDir
      *            Directory that only includes .aterm files with the strategy bodies
-     * @param strategyName
+     * @param outputFile
+     * @param strategyName 
      *            The strategy name to use for the strategy definition, expected to
      *            end with _a_b where a and b are the number of strategy and term
      *            variables resp.
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void pack(Path dir, String strategyName) throws IOException {
+    public static void pack(Path inputDir, @Nullable String outputFile, String strategyName) throws IOException {
         // find the latest underscore and assume the term variable count is between that
         // and the end of the string
         int uLast = strategyName.lastIndexOf('_');
@@ -38,7 +42,15 @@ public class Packer {
         int uSecondLast = strategyName.lastIndexOf('_', uLast - 1);
         int svars = Integer.parseInt(strategyName.substring(uSecondLast + 1, uLast));
 
-        pack(dir, strategyName, svars, tvars);
+        final Path outputFilePath;
+        if(outputFile == null) {
+            outputFilePath = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", strategyName + ".ctree");
+        } else {
+            outputFilePath = Paths.get(outputFile);
+        }
+        Files.createDirectories(outputFilePath.getParent());
+
+        pack(inputDir, outputFilePath, strategyName, svars, tvars);
     }
 
     /**
@@ -47,6 +59,8 @@ public class Packer {
      * 
      * @param dir
      *            Directory that only includes .aterm files with the strategy bodies
+     * @param outputFile
+     *            The file to output to. This file will be truncated if one already exists.
      * @param strategyName
      *            The strategy name to use for the strategy definition, expected to
      *            end with _a_b where a and b are the number of strategy and term
@@ -58,12 +72,12 @@ public class Packer {
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void pack(Path dir, String strategyName, int svars, int tvars) throws IOException {
-        final Path outputFile = dir.resolve(strategyName + ".ctree");
+    public static void pack(Path dir, Path outputFile, String strategyName, int svars, int tvars) throws IOException {
         // We use the nio.Channel API here because it is supposed to be the fastest way
         // to append one file to another
         // This may need to be changed when using this tool inside Spoofax, dealing with
         // a virtual file system...
+        openFile:
         try (final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
             write(outChannel, SPEC_START);
@@ -71,7 +85,7 @@ public class Packer {
 
             // We need to be careful not to include the outputFile among the input files in
             // the directory
-            try (Stream<Path> inputFiles = Files.list(dir).filter(isThisFile(outputFile))) {
+            try (Stream<Path> inputFiles = Files.list(dir).filter(relevantFiles(outputFile))) {
                 int num_defs = 0;
                 // Iterable instead of Stream.forEach, because of exceptions and counting
                 // num_defs
@@ -85,16 +99,23 @@ public class Packer {
                     }
                     next_line = "\n, Id(), GuardedLChoice(\n";
                 }
+                if (num_defs == 0) {
+                    // When there are no relevant files, close the file
+                    break openFile;
+                }
                 write(outChannel, "\n, Id(), Id())");
                 byte[] closing = new byte[num_defs];
                 Arrays.fill(closing, (byte) ')');
                 write(outChannel, closing);
             }
             write(outChannel, SPEC_END);
+            return; // success
         }
+        // Break to here when there are no relevant files; clean up incomplete file
+        Files.delete(outputFile);
     }
 
-    private static Predicate<? super Path> isThisFile(final Path outputFile) {
+    private static Predicate<? super Path> relevantFiles(final Path outputFile) {
         return f -> {
             try {
                 return f.getFileName().toString().endsWith(".aterm") && !Files.isSameFile(f, outputFile);

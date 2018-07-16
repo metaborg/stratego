@@ -9,8 +9,12 @@ public class Arguments {
             help = true) public boolean help;
 
 
-    @Parameter(names = { "--dir", "-d" }, description = "Directory with strategies to pack together", 
-            required = true) public String dir;
+    @Parameter(names = { "--input-dir", "-i" }, description = "Directory with strategies to pack together", 
+            required = true) public String inputDir;
+
+
+    @Parameter(names = { "--output", "-o" }, description = "File to put the output into", 
+            required = false) public String outputFile;
 
 
     @Parameter(names = { "--strategy-name", "-n" }, description = "The strategy name to use when packing the definition", 

@@ -106,7 +106,7 @@
                 <argument>-classpath</argument>
                 <classpath />
                 <argument>${main-class}</argument>
-                <argument>--dir</argument>
+                <argument>--input-dir</argument>
                 <argument>.</argument>
                 <argument>--exit</argument>
               </arguments>
@@ -123,7 +123,7 @@
               <arguments>
                 <argument>-jar</argument>
                 <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
-                <argument>--dir</argument>
+                <argument>--input-dir</argument>
                 <argument>.</argument>
                 <argument>--exit</argument>
               </arguments>

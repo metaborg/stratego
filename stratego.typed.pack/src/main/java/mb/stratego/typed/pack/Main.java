@@ -35,10 +35,10 @@ public class Main {
         }
 
         try {
-            Path dir = Paths.get(arguments.dir).toAbsolutePath();
-            String strategyName = (arguments.strategyName != null) ? arguments.strategyName : dir.getName(dir.getNameCount()-1).toString();
+            Path inputDir = Paths.get(arguments.inputDir).toAbsolutePath();
+            String strategyName = (arguments.strategyName != null) ? arguments.strategyName : inputDir.getName(inputDir.getNameCount()-1).toString();
 
-            Packer.pack(dir, strategyName);
+            Packer.pack(inputDir, arguments.outputFile, strategyName);
         } catch(Exception e) {
             logger.error("Error during packing of strategy", e);
             System.exit(1);
