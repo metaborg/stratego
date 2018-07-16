@@ -1,44 +1,43 @@
 package mb.stratego.typed.pack;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
+import mb.stratego.typed.pack.arguments.Arguments;
+import mb.stratego.typed.pack.arguments.Boilerplate;
+import mb.stratego.typed.pack.arguments.SharedArguments;
+import mb.stratego.typed.pack.arguments.SingleStrategy;
 
 public class Main {
     private static final ILogger logger = LoggerUtils.logger(Main.class);
 
     public static void main(String[] args) {
-        final Arguments arguments = new Arguments();
-        final JCommander jc = new JCommander(arguments);
+        final Arguments arguments = Arguments.parse(args);
 
         try {
-            jc.parse(args);
-        } catch(ParameterException e) {
-            logger.error("Could not parse parameters", e);
-            jc.usage();
-            System.exit(1);
-        }
+            SharedArguments commandArgs = arguments.getParsedCommandArguments();
+            if(commandArgs instanceof SingleStrategy) {
+                SingleStrategy ssArgs = (SingleStrategy) commandArgs;
+                final Path inputDir = ssArgs.inputDir.toAbsolutePath();
+                final String strategyName;
+    
+                if(ssArgs.strategyName != null) {
+                    strategyName = ssArgs.strategyName;
+                } else {
+                    strategyName = inputDir.getName(inputDir.getNameCount() - 1).toString();
+                }
+    
+                Packer.packStrategy(inputDir, commandArgs.outputFile, strategyName);
+            } else if(commandArgs instanceof Boilerplate) {
+                Boilerplate bArgs = (Boilerplate) commandArgs;
+                final Path inputDir = bArgs.inputDir.toAbsolutePath();
 
-        if(arguments.help) {
-            jc.usage();
-            System.exit(0);
-        }
-
-        if(arguments.exit) {
-            logger.info("Exiting immediately for testing purposes");
-            System.exit(0);
-        }
-
-        try {
-            Path inputDir = Paths.get(arguments.inputDir).toAbsolutePath();
-            String strategyName = (arguments.strategyName != null) ? arguments.strategyName : inputDir.getName(inputDir.getNameCount()-1).toString();
-
-            Packer.pack(inputDir, arguments.outputFile, strategyName);
+                Packer.packBoilerplate(inputDir, commandArgs.outputFile);
+            } else {
+                throw new IllegalArgumentException("Unknown command parsed");
+            }
         } catch(Exception e) {
             logger.error("Error during packing of strategy", e);
             System.exit(1);

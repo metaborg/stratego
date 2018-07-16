@@ -14,9 +14,8 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 public class Packer {
-
-    private static final String SPEC_END = "\n])])";
     private static final String SPEC_START = "Specification([Signature([Constructors([])]), Strategies([\n";
+    private static final String SPEC_END = "\n])])";
 
     /**
      * Packs StrategoCore strategy bodies in a directory into a single strategy
@@ -32,7 +31,7 @@ public class Packer {
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void pack(Path inputDir, @Nullable String outputFile, String strategyName) throws IOException {
+    public static void packStrategy(Path inputDir, @Nullable Path outputFile, String strategyName) throws IOException {
         // find the latest underscore and assume the term variable count is between that
         // and the end of the string
         int uLast = strategyName.lastIndexOf('_');
@@ -42,22 +41,19 @@ public class Packer {
         int uSecondLast = strategyName.lastIndexOf('_', uLast - 1);
         int svars = Integer.parseInt(strategyName.substring(uSecondLast + 1, uLast));
 
-        final Path outputFilePath;
         if(outputFile == null) {
-            outputFilePath = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", strategyName + ".ctree");
-        } else {
-            outputFilePath = Paths.get(outputFile);
+            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", strategyName + ".ctree");
         }
-        Files.createDirectories(outputFilePath.getParent());
+        Files.createDirectories(outputFile.getParent());
 
-        pack(inputDir, outputFilePath, strategyName, svars, tvars);
+        packStrategy(inputDir, outputFile, strategyName, svars, tvars);
     }
 
     /**
      * Packs StrategoCore strategy bodies in a directory into a single strategy
      * definition in a file
      * 
-     * @param dir
+     * @param inputDir
      *            Directory that only includes .aterm files with the strategy bodies
      * @param outputFile
      *            The file to output to. This file will be truncated if one already exists.
@@ -72,7 +68,7 @@ public class Packer {
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void pack(Path dir, Path outputFile, String strategyName, int svars, int tvars) throws IOException {
+    public static void packStrategy(Path inputDir, Path outputFile, String strategyName, int svars, int tvars) throws IOException {
         // We use the nio.Channel API here because it is supposed to be the fastest way
         // to append one file to another
         // This may need to be changed when using this tool inside Spoofax, dealing with
@@ -85,7 +81,7 @@ public class Packer {
 
             // We need to be careful not to include the outputFile among the input files in
             // the directory
-            try (Stream<Path> inputFiles = Files.list(dir).filter(relevantFiles(outputFile))) {
+            try (Stream<Path> inputFiles = Files.list(inputDir).filter(relevantFiles(outputFile))) {
                 int num_defs = 0;
                 // Iterable instead of Stream.forEach, because of exceptions and counting
                 // num_defs
@@ -113,6 +109,49 @@ public class Packer {
         }
         // Break to here when there are no relevant files; clean up incomplete file
         Files.delete(outputFile);
+    }
+
+    /**
+     * Packs Strategy definitions in a directory into a single CTree definition in a file
+     * 
+     * @param inputDir
+     *            Directory that only includes .aterm files with the strategy definitions
+     * @param outputFile
+     * @throws IOException
+     *             When there is a file system problem or no aterm files were found
+     */
+    public static void packBoilerplate(Path inputDir, @Nullable Path outputFile) throws IOException {
+        if(outputFile == null) {
+            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", "boilerplate.ctree");
+        }
+        Files.createDirectories(outputFile.getParent());
+
+        try (final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            write(outChannel, SPEC_START);
+
+            // We need to be careful not to include the outputFile among the input files in
+            // the directory
+            try (Stream<Path> inputFiles = Files.list(inputDir).filter(relevantFiles(outputFile))) {
+                int num_defs = 0;
+                // Iterable instead of Stream.forEach, because of exceptions and counting
+                // num_defs
+                Iterable<Path> iterable = () -> inputFiles.iterator();
+                String next_line = "\n";
+                for (Path inputFile : iterable) {
+                    num_defs++;
+                    write(outChannel, next_line);
+                    try (final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                        transferContents(inChannel, outChannel);
+                    }
+                    next_line = "\n,\n";
+                }
+                if (num_defs == 0) {
+                    throw new IOException("Input directory does not contain aterm files");
+                }
+            }
+            write(outChannel, SPEC_END);
+        }
     }
 
     private static Predicate<? super Path> relevantFiles(final Path outputFile) {
