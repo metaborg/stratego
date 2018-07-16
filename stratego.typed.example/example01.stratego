@@ -13,5 +13,5 @@ rules
   
   hi = {|hello: ?a; rules(hello : a -> <inc> a)|}
   
-  hi = {|hello: ?s; rules(hello : Int(s) -> <dec> a)|}
+  hi = {|hello: ?s; rules(hello : Int(s) -> <dec> s)|}
   
