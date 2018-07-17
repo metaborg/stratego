@@ -201,18 +201,18 @@ public class Packer {
         out.append("SDefT(\"");
         out.append(strategyName);
         out.append("\", [");
+        String next_line = "";
         for (int i = 0; i < svars; i++) {
+            out.append(next_line);
             out.append(svarArg(i));
-            if (i < svars - 1) {
-                out.append(", ");
-            }
+            next_line = ", ";
         }
         out.append("], [");
+        next_line = "";
         for (int i = 0; i < tvars; i++) {
+            out.append(next_line);
             out.append(tvarArg(i));
-            if (i < tvars - 1) {
-                out.append(", ");
-            }
+            next_line = ", ";
         }
         out.append("], \n");
         return out.toString();
