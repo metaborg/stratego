@@ -32,7 +32,7 @@ rules
   // Rename the arguments and body to something short, we just need a stub that the compiler
   //  accepts for generating the InteropRegistrer
 
-  prepare-decl = SDefT(id, map(build-short-tvar), map(build-short-svar), !Id())
+  prepare-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))

@@ -1,0 +1,79 @@
+module rename-defs2
+
+imports libstrc
+imports libspoofax/term/annotation
+
+signature constructors
+
+  LocalArg : Anno
+
+strategies
+
+  // Rename the names of all top-level strategy definitions; 
+  // The Stratego syntax cannot be used for names of Java classes.
+
+  rename-calls2 =
+    topdown(try(RenameCall2))
+
+rules
+
+  RenameSDef2 :
+    AnnoDef(a*, 'def) -> AnnoDef(a*, <RenameSDef2> 'def)
+
+  RenameSDef2 : 
+    SDefT(x, args1, args2, s) -> SDefT(y, args1, args2, s')
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <rename-var-manual>(x, (n,m)) => y
+        ; s' := <annotate-arg-calls(|args1)> s
+        ; (<HoArg2> x; rules(HoArg2 :- x)
+                    <+ rules(HoArg2 : x -> y))
+
+  RenameSDef2 : 
+    ExtSDef(x, args1, args2) -> ExtSDef(y, args1, args2)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <rename-var-manual>(x, (n,m)) => y
+        ; (<HoArg2> x; rules(HoArg2 :- x )
+                    <+ rules(HoArg2 : x -> y))
+
+  RenameSDef2 : 
+    ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(y, args1, args2, s')
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <rename-var-manual>(x, (n,m)) => y
+        ; s' := <annotate-arg-calls(|args1)> s
+        ; (<HoArg2> x; rules(HoArg2 :- x)
+                    <+ rules(HoArg2 : x -> y))
+
+  RenameCall2 : 
+    Call(SVar(x), ss) -> Call(SVar(y), ss)
+    where <length> ss => n
+        ; <HoArg2> x => y
+
+  RenameCall2 : 
+    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+    where id
+      ; <get-annotation(?LocalArg())> x
+      ; y := <remove-annotations(?LocalArg())> x
+
+  RenameCall2 : 
+    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+    where id
+      ; not(<get-annotation(?LocalArg())> x)
+      ; <length> ss => n
+      ; <length> ts => m
+      ; ( <HoArg2> x => y <+ <rename-var-manual>(x, (n,m)) => y)
+
+
+  rename-var-manual:
+    (x,(n,m)) -> <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m]
+
+  annotate-arg-calls(|sargs) = where([] := sargs)
+
+  annotate-arg-calls(|sargs) = alltd(annotate-arg-call(|sargs))
+  
+  annotate-arg-call(|sargs): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  where id
+    ; <getfirst(?VarDec(x,_))> sargs
+    ; y := <add-annotation(|LocalArg())> x
