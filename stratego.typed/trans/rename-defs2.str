@@ -25,7 +25,7 @@ rules
     where <length> args1 => n
         ; <length> args2 => m
         ; <rename-var-manual>(x, (n,m)) => y
-        ; s' := <annotate-arg-calls(|args1)> s
+        ; s' := <annotate-local-args(|<map(?VarDec(<id>,_))> args1)> s
         ; (<HoArg2> x; rules(HoArg2 :- x)
                     <+ rules(HoArg2 : x -> y))
 
@@ -42,7 +42,7 @@ rules
     where <length> args1 => n
         ; <length> args2 => m
         ; <rename-var-manual>(x, (n,m)) => y
-        ; s' := <annotate-arg-calls(|args1)> s
+        ; s' := <annotate-local-args(|<map(?VarDec(<id>,_))> args1)> s
         ; (<HoArg2> x; rules(HoArg2 :- x)
                     <+ rules(HoArg2 : x -> y))
 
@@ -69,11 +69,14 @@ rules
   rename-var-manual:
     (x,(n,m)) -> <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m]
 
-  annotate-arg-calls(|sargs) = where([] := sargs)
+  annotate-local-args(|larg*) = alltd(annotate-local-arg(|larg*))
 
-  annotate-arg-calls(|sargs) = alltd(annotate-arg-call(|sargs))
-  
-  annotate-arg-call(|sargs): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  annotate-local-arg(|larg*): Let(sdeft*, body) -> Let(sdeft*, body')
+  with id
+    ; def* := <map(?SDefT(<id>, _, _, _))> sdeft*
+    ; body' := <annotate-local-args(|[larg*, def*])> body
+
+  annotate-local-arg(|larg*): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
   where id
-    ; <getfirst(?VarDec(x,_))> sargs
+    ; <getfirst(?x)> larg*
     ; y := <add-annotation(|LocalArg())> x
