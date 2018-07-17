@@ -69,7 +69,7 @@ imports
   
   context-free syntax
   
-    RuleNames = <<{Id ", }*>>
+    RuleNames = <<{Id ", "}*>>
     RuleNames.RuleNames = <~ <Term>>
     Strategy.DynRuleIntersectFix = </ <RuleNames> \\* <Strategy>>  
   
