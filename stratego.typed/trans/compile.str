@@ -4,6 +4,7 @@ imports signatures/StrategoTyped-sig
 imports libstrc
 imports misc
 imports dr-scoping
+imports rename-defs2
 
 strategies
   clean-module(|project-path):
@@ -43,8 +44,8 @@ rules
   prepare-decl-body:
     s@SDefT(_, svars, tvars, _) -> body
     with id
-      ; new-svars := <let apply(|i) = !$[svar_[i]] in nmap(apply|0) end> svars
-      ; new-tvars := <let apply(|i) = !$[tvar_[i]] in nmap(apply|0) end> tvars
+      ; new-svars := <let apply(|i) = !SVar($[svar_[i]]) in nmap(apply|0) end> svars
+      ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
       ; body := <RenameDefinition(|new-svars, new-tvars)> s
 
   store-decl(|project-path, m):
@@ -56,7 +57,7 @@ rules
   store-defs(|project-path, m):
     def* -> <id>
   with id
-    ; file := <src-gen-file(|project-path, "stratego.typed/boilerplate", ".aterm")> m
+    ; file := <src-gen-file(|project-path, "stratego.typed", ".aterm")> m
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
@@ -137,7 +138,7 @@ strategies
 
       ; m-transform-local-defs(id
           ; ![<joindefs>] 
-          ; [RenameSDef]
+          ; [RenameSDef2]
         )
 
       ; m-transform-external-defs(id
@@ -145,14 +146,14 @@ strategies
               warn(|"multiple external definitions with same signature")
             ; [id | ![]] // Cannot reuse dyn rule when already used in library
             end
-          ; [RenameSDef
+          ; [RenameSDef2
              ; desugar-DefaultVarDec
              ; strename
             ]
         )
 
       ; m-transform-local-defs(
-          [rename-calls
+          [rename-calls2
            ; simplify
            ; define-congruences-def
           ]

@@ -15,3 +15,5 @@ rules
   
   hi = {|hello: ?s; rules(hello : Int(s) -> <dec> s)|}
   
+  eval = Int(id)
+  

@@ -122,7 +122,7 @@ public class Packer {
      */
     public static void packBoilerplate(Path inputDir, @Nullable Path outputFile) throws IOException {
         if(outputFile == null) {
-            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", "boilerplate.ctree");
+            outputFile = Paths.get(inputDir.getParent().toString(), "stratego.typed.pack", "boilerplate.ctree");
         }
         Files.createDirectories(outputFile.getParent());
 
