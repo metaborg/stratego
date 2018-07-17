@@ -22,13 +22,25 @@ strategies
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; decls := <frontend-sep-comp> Specification(defs')
-      ; <map((id, try(prepare-decl)); store-decl(|project-path, m))> decls
+      ; <map((id, try(prepare-decl-body)); store-decl(|project-path, m))> decls
+      ; <map(?(_, <try(prepare-decl)>))
+        ;store-defs(|project-path, m)> decls
+
+rules
+
+  // Rename the arguments and body to something short, we just need a stub that the compiler
+  //  accepts for generating the InteropRegistrer
+
+  prepare-decl = SDefT(id, map(build-short-tvar), map(build-short-svar), !Id())
+
+  build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
+  build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
 
 rules
 
   // Rename the arguments to the strategy to predictable names used by the middle-end strategy
   //  packing tool.
-  prepare-decl:
+  prepare-decl-body:
     s@SDefT(_, svars, tvars, _) -> body
     with id
       ; new-svars := <let apply(|i) = !$[svar_[i]] in nmap(apply|0) end> svars
@@ -40,6 +52,13 @@ rules
     with id
       ; file := <src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m
       ; <WriteToTextFile> (file, d)
+
+  store-defs(|project-path, m):
+    def* -> <id>
+  with id
+    ; file := <src-gen-file(|project-path, "stratego.typed/boilerplate", ".aterm")> m
+    ; d* := <separate-by(|", ")> def*
+    ; <WriteToFile(fprint)> (file, d*)
 
 strategies
 
