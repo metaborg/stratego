@@ -7,12 +7,18 @@ imports dr-scoping
 imports rename-defs2
 
 strategies
+
+  module-src-gen-file(|project-path, base, extension) =
+    string-replace(|"/", "+");src-gen-file(|project-path, base, extension)
+
+strategies
+
   clean-module(|project-path):
     Module(m, _) -> <id>
   with id
     ; src-gen-dir := <src-gen-dir(|project-path, "stratego.typed")>
     ; subdirs := <readdir;remove-all(?"." + ?"..")> src-gen-dir
-    ; output-files := <map(\f -> <src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m\)> subdirs
+    ; output-files := <map(\f -> <module-src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m\)> subdirs
     ; <map(try(remove-file))> output-files
 
 strategies
@@ -22,7 +28,7 @@ strategies
     with id
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; decls := <frontend-sep-comp> Specification(defs')
+      ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
       ; <map((id, try(prepare-decl-body)); store-decl(|project-path, m))> decls
       ; <map(?(_, <try(prepare-decl)>))
         ;store-defs(|project-path, m)> decls
@@ -51,13 +57,13 @@ rules
   store-decl(|project-path, m):
     (f, d) -> file
     with id
-      ; file := <src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m
+      ; file := <module-src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m
       ; <WriteToTextFile> (file, d)
 
   store-defs(|project-path, m):
     def* -> <id>
   with id
-    ; file := <src-gen-file(|project-path, "stratego.typed", ".aterm")> m
+    ; file := <module-src-gen-file(|project-path, "stratego.typed/", ".aterm")> m
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
