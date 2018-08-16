@@ -98,12 +98,12 @@ imports
   > { Strategy.Match Strategy.Build } 
   > Strategy.BA 
   > Strategy.AM  
-  // > Strategy.Seq
+  > Strategy.Seq
   > {right: 
      Strategy.Choice
      Strategy.LChoice
      Strategy.RChoice    
-     //Strategy.GuardedLChoice
+     Strategy.GuardedLChoice
     } 
 
   // context-free priorities

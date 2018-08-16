@@ -4,5 +4,5 @@ menus
   
   menu: "Compile" (openeditor)
     
-    action: "Clean"           = clean-module-builder (source)
-    action: "Compile"         = compile-module-builder (source)
+    action: "Clean"           = clean-module-builder
+    action: "Compile"         = compile-module-builder
