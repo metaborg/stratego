@@ -1,0 +1,13 @@
+module stratego/sugar/overlays
+imports
+  stratego/core/identifiers
+  stratego/sugar/terms
+
+  sorts Overlay
+
+  context-free syntax
+    Overlay.OverlayNoArgs = <<Id> = <Term>>
+    
+    Overlay.Overlay = 
+      <<Id>(<{Id ", "}*>) = <Term>>
+  

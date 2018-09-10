@@ -1,0 +1,19 @@
+module example01
+
+signature
+  sorts Int String Exp
+  constructors
+    Var  : String -> Exp 
+    Int  : Int -> Exp
+    Plus : Exp * Exp -> Exp  
+    
+rules
+
+  eval : Plus(Int(0), e) -> e   
+  
+  hi = {|hello: ?a; rules(hello : a -> <inc> a)|}
+  
+  hi = {|hello: ?s; rules(hello : Int(s) -> <dec> s)|}
+  
+  eval = Int(id)
+  

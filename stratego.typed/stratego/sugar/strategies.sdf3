@@ -1,0 +1,115 @@
+module stratego/sugar/strategies
+imports
+  stratego/core/identifiers
+  stratego/core/constants
+  stratego/core/strategies
+  stratego/core/terms
+  stratego/sugar/terms
+  stratego/sugar/rules
+  stratego/sugar/constants
+  stratego/sugar/signatures
+
+  context-free syntax
+    StrategyDef.SDefNoArgs = <
+      <Id> = 
+         <Strategy>
+    >
+         
+    StrategyDef.SDef = <
+      <Id>(<{Typedid ", "}*>) = 
+         <Strategy>
+    >
+  
+  context-free syntax  
+    Typedid.DefaultVarDec = <<ID>>
+
+  sorts StrategyParen StrategyCurly //StrategyAngle  
+  context-free syntax 
+  
+    Strategy.Call = <<SVar> ( <{Strategy ","}*> )>
+    Strategy.ScopeDefault = <{ <Strategy> }>
+    Strategy.BA = [<[Strategy]> [Term]]
+    Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
+      
+    Strategy.Rec        = <rec <Id> ( <Strategy> )>     
+    Strategy.Not        = <not(<Strategy>)>
+    Strategy.Where      = <where(<Strategy>)>
+    Strategy.With       = <with(<Strategy>)> {prefer}
+    Strategy.Test       = <test(<Strategy>)>
+    Strategy.PrimNoArgs = <prim(<String>)>
+    Strategy.Prim       = <prim(<String>, <{Term ", "}*>)>
+    
+  context-free syntax // congruence operators
+     
+    Strategy.StrCong        = <<String>>
+    Strategy.IntCong        = <<Int>>
+    Strategy.RealCong       = <<Real>>
+    Strategy.CharCong       = <<Char>>
+    Strategy.CongQ          = <<String>(<{Strategy ", "}*>)>
+    Strategy.EmptyTupleCong = <( )>
+    Strategy                = <(<Strategy>)> {bracket}
+    Strategy.TupleCong      = <(<Strategy>, <{Strategy ", "}+> )>
+    Strategy.ListCongNoTail = <[<{Strategy ", "}*> ]>
+    Strategy.ListCong       = <[<{Strategy ", "}*> | <Strategy> ]>
+    Strategy.ExplodeCong    = <<Strategy> # (<Strategy>)>
+    Strategy.AM             = [[Strategy] => [Term]]
+    Strategy.Assign         = <<Term> := <Term>>
+    
+    Strategy.AnnoCong       = <<Strategy> { <Strategy> }>
+    
+//    StrategyCurly.StrategyCurly = <{ <Strategy> }>
+//    StrategyParen = <(<Strategy>)> 
+  
+  %% Syntactic sugar sugar
+
+  context-free syntax
+  
+    Strategy.CallNoArgs = <<SVar>>
+    Strategy.LRule      = <\\ <Rule> \\>
+    Strategy.SRule      = <(<Rule>)>
+    Strategy.Choice     = <<Strategy> + <Strategy>> {right}
+    Strategy.RChoice    = [[Strategy] +> [Strategy]] {right}
+    Strategy.Proceed    = <proceed(<{Strategy ", "}+>)> {prefer}
+    Strategy.CondChoice = <if <Strategy> then <Strategy> else <Strategy> end>
+    Strategy.IfThen     = <if <Strategy> then <Strategy> end>
+   
+  sorts SwitchCase
+  context-free syntax    
+    Strategy.SwitchChoiceNoOtherwise = <
+      switch <Strategy> 
+         <SwitchCase*> 
+      end
+    >
+       
+    Strategy.SwitchChoice = <
+      switch <Strategy> 
+        <SwitchCase*> 
+        otherwise : <Strategy> 
+      end
+    >
+       
+    SwitchCase.SwitchCase = <
+      case <Strategy> : 
+        <Strategy>
+    >
+
+  context-free priorities
+    { Strategy.AnnoCong Strategy.ExplodeCong }
+  > { Strategy.Match Strategy.Build } 
+  > Strategy.BA 
+  > Strategy.AM  
+  > Strategy.Seq
+  > {right: 
+     Strategy.Choice
+     Strategy.LChoice
+     Strategy.RChoice    
+     Strategy.GuardedLChoice
+    } 
+
+  // context-free priorities
+  //   StrategyMid
+  // > Strategy.Choice
+
+  context-free priorities
+    { Strategy.AnnoCong Strategy.ExplodeCong }
+    .> Strategy.Assign

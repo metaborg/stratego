@@ -1,0 +1,6 @@
+module stratego/Stratego
+
+imports 
+  stratego/core/core
+  stratego/sugar/sugar
+

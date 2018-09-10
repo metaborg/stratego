@@ -1,0 +1,37 @@
+module strategotyped
+
+imports
+  
+  completion/completion
+  pp
+  outline
+  analysis
+  compile
+
+rules // Debugging
+  
+  debug-show-aterm:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path
+    ; result   := node
+  
+  clean-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with <clean-module(|project-path)> node
+  
+  compile-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with
+      clean-module-builder
+    ; filename := <guarantee-extension(|"comp.aterm")> path
+    ; result   := <compile-module(|project-path)> node
+
+    
+//      generate-nabl2:
+//    (node, _, ast@Module(name,_), path, project-path) -> (filename, result)
+//    with
+//      filename := <src-gen-file(|project-path, "dss", "-dss.nabl2")> name
+//    ; debug(!"writing NaBL2 to file: ")
+//    ; result   := <desugar-all; dss-to-nabl2; nabl2-sugar-all; pp-NaBL2-string>ast
+

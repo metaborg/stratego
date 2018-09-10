@@ -12,3 +12,5 @@
 /.classpath
 /.project
 /.settings
+
+/.polyglot.metaborg.yaml

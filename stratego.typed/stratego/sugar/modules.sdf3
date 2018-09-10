@@ -1,0 +1,20 @@
+module stratego/sugar/modules
+imports
+  stratego/core/modules
+  stratego/sugar/strategies
+  stratego/sugar/signatures
+  stratego/sugar/overlays
+  stratego/sugar/rules
+
+  sorts Decl Def
+  
+  context-free syntax
+    Decl.Rules = 
+      <rules 
+         <Def*>>
+    
+    Decl.Overlays =     
+      <overlays 
+         <Overlay*>>
+    
+    Def = <<RuleDef>>
