@@ -1,0 +1,22 @@
+module sep-comp-front-end/misc
+
+rules
+
+  unzip3 = ?[(x,y,z)|xyz*] < <unzip3> xyz* => (x*,y*,z*); !([x|x*],[y|y*],[z|z*]) + !([],[],[])
+
+  path-prepend(|dir): file -> $[[dir]/[file]]
+
+  src-gen-file(|project-path, sub-dir, ext): name -> file-name
+  with src-gen-dir := <src-gen-dir(|project-path, sub-dir)>;
+       file-name := $[[src-gen-dir]/[name][ext]]
+
+  src-gen-dir(|project-path, sub-dir): _ -> dir
+  with dir := $[[project-path]/src-gen/[sub-dir]]
+  
+  
+  trans-dir(|project-path, sub-dir): _ -> dir
+  with dir := $[[project-path]/trans/[sub-dir]]
+
+  trans-file(|project-path, sub-dir, ext): name -> file-name
+  with trans-dir := <trans-dir(|project-path, sub-dir)>;
+       file-name := $[[trans-dir]/[name][ext]]

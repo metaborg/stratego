@@ -11,7 +11,20 @@ imports
   desugar
   outline
 
+  sep-comp-front-end/compile
+
 strategies
+
+  clean-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with <clean-module(|project-path)> node
+
+  compile-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with
+      clean-module-builder
+    ; filename := <guarantee-extension(|"comp.aterm")> path
+    ; result   := <compile-module(|project-path)> node
 
 rules
 
@@ -65,13 +78,13 @@ rules
     (node, position, ast, path, project-path) -> text
     where
       <signature-of> node; // only show definitions
-      text := <pp-stratego-string> node
+      text := <pp-stratego-string;html-escape> node
 
   editor-hover:
     (node@ToMetaExpr(_), position, ast, path, project-path) -> text
     where
       str := <meta-explode(false) ; Stratego-Ensugar>node 
-    ; text := <concat-strings>["<pre>", <pp-stratego-string>str ,"</pre>"]
+    ; text := <concat-strings>["<pre>", <pp-stratego-string;html-escape>str ,"</pre>"]
 
   editor-outline:
     (node, position, ast, path, project-path) -> outline
@@ -89,6 +102,14 @@ rules
     with
       filename := <guarantee-extension(|"aterm")> path;
       result   := <basic-desugar-top> selected
+
+strategies
+
+  html-escape =
+      string-replace(|"&", "&amp;")
+    ; string-replace(|"<", "&lt;")
+    ; string-replace(|">", "&gt;")
+    ; string-replace(|"\n", "<br/>")
 
 signature constructors
     ParenStrat               : Strategy -> Strategy

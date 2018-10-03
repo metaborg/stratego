@@ -1,0 +1,195 @@
+module sep-comp-front-end/compile
+
+imports libstrc
+imports sep-comp-front-end/misc
+imports sep-comp-front-end/dr-scoping
+imports sep-comp-front-end/rename-defs2
+
+overlays
+
+  LANGNAME() = "stratego_sugar"
+
+strategies
+
+  module-src-gen-file(|project-path, base, extension) =
+    string-replace(|"/", "+");src-gen-file(|project-path, base, extension)
+
+strategies
+
+  clean-module(|project-path):
+    Module(m, _) -> <id>
+  with id
+    ; src-gen-dir := <src-gen-dir(|project-path, LANGNAME())>
+    ; subdirs := <readdir;remove-all(?"." + ?"..")> src-gen-dir
+    ; output-files := <map(\f -> <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> m\)> subdirs
+    ; <map(try(remove-file))> output-files
+
+strategies
+
+  compile-module(|project-path):
+    Module(m, defs) -> (imps, decls)
+    with id
+      ; (imps, defs') := <partition(?Imports(_))> defs
+      ; <set-config> ("--library", ())
+      ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
+      ; <map((id, try(prepare-decl-body)); store-decl(|project-path, m))> decls
+      ; <map(?(_, <try(prepare-decl)>))
+        ;store-defs(|project-path, m)> decls
+
+rules
+
+  // Rename the arguments and body to something short, we just need a stub that the compiler
+  //  accepts for generating the InteropRegistrer
+
+  prepare-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
+
+  build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
+  build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
+
+rules
+
+  // Rename the arguments to the strategy to predictable names used by the middle-end strategy
+  //  packing tool.
+  prepare-decl-body:
+    s@SDefT(_, svars, tvars, _) -> body
+    with id
+      ; new-svars := <let apply(|i) = !SVar($[svar_[i]]) in nmap(apply|0) end> svars
+      ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
+      ; body := <RenameDefinition(|new-svars, new-tvars)> s
+
+  store-decl(|project-path, m):
+    (f, d) -> file
+    with id
+      ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> m
+      ; <WriteToTextFile> (file, d)
+
+  store-defs(|project-path, m):
+    def* -> <id>
+  with id
+    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/], ".aterm")> m
+    ; d* := <separate-by(|", ")> def*
+    ; <WriteToFile(fprint)> (file, d*)
+
+strategies
+
+  frontend-sep-comp =
+    m-transform-split-definitions(id
+
+      // add some definitions and constructors
+
+      ; if-not-lib(m-add-main)
+      ; m-add-anno-cong-def
+      ; where(dr-constructors; map(m-add-constructor))
+
+      // desugar and check constructors
+
+      ; m-transform-constructors(id
+          ; pre-desugar
+          ; try(DeclareVarToConst)
+          ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
+          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
+          ; try(where(m-MkCongDef; m-add-def))
+        )
+
+      // desugar and check overlays
+
+      ; m-transform-overlays(id
+          ; pre-desugar
+          ; check-overlay
+          ; try(DeclareVarToConst)
+        )
+
+      ; m-transform-overlays(id
+          ; m-variables-to-constructors-in-def
+          ; pre-desugar
+// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
+//          ; not(def-use-def)
+          ; not(check-where-with)
+          ; raise-annotations
+          ; GenerateCheckRule
+          ; DeclareExpandOverlay
+          ; where(Overlay-to-Congdef; m-add-def)
+        )
+
+// commented: checks if used constructor with such an arity exists. Therefore needs global information
+//      ; m-transform-overlays(
+//          not(check-constructors)
+//        )
+
+      // transform and check local definitions
+
+      ; m-transform-local-defs(map(id
+          ; m-repair-types
+          ; pre-desugar        
+          ; raise-annotations
+        ))
+
+      ; m-lift-dynamic-rules-from-spec
+
+// commented: checks if used strategy with such an arity exists. Therefore needs global information
+//      ; check-calls
+
+      ; m-transform-local-defs(
+          map(id
+            ; stratego-desugar
+            ; raise-annotations
+//            ; not(def-use-def)
+//            ; not(check-constructors)
+            ; expand-overlays-in-def
+            ; rules-to-sdefs-def
+            ; desugar-list-matching
+            ; desugar-DefaultVarDec
+            ; strename
+            ; desugar-def
+            ; check-patterns
+          )
+        )
+
+      ; m-transform-local-defs(id
+          ; ![<joindefs>] 
+          ; [RenameSDef2]
+        )
+
+      ; m-transform-external-defs(id
+          ; if ?[_,_|_] then
+              warn(|"multiple external definitions with same signature")
+            ; [id | ![]] // Cannot reuse dyn rule when already used in library
+            end
+          ; [RenameSDef2
+             ; desugar-DefaultVarDec
+             ; strename
+            ]
+        )
+
+      ; m-transform-local-defs(
+          [rename-calls2
+           ; simplify
+           ; define-congruences-def
+          ]
+        )
+
+// commented: Can't tell if unused without global information
+//      ; if-lib(remove-unused-external-defs, remove-unused-defs)
+    )
+// commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
+//    ; tfc1(|"Stratego-Core", "fe-cong")
+
+  m-transform-split-definitions(s) =
+    dr-scope-all-verbose(id
+     ; to-model
+     ; s
+     ; m-split-definitions
+     )
+
+  m-split-definitions = id
+    ; where(id
+      ; m-get-all-local-definitions
+      ; map(!(<m-def-signature;Fst>, <id>))
+      ; ?localDef*
+    )
+    ; where(id
+      ; m-get-all-constructors
+      ; map(!(<m-constr-signature;Fst>, <id>))
+      ; ?constructor*
+    )
+    ; ![localDef*]
