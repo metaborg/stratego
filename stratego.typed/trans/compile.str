@@ -6,6 +6,10 @@ imports misc
 imports dr-scoping
 imports rename-defs2
 
+overlays
+
+  LANGNAME() = "stratego.typed"
+
 strategies
 
   module-src-gen-file(|project-path, base, extension) =
@@ -16,9 +20,9 @@ strategies
   clean-module(|project-path):
     Module(m, _) -> <id>
   with id
-    ; src-gen-dir := <src-gen-dir(|project-path, "stratego.typed")>
+    ; src-gen-dir := <src-gen-dir(|project-path, LANGNAME())>
     ; subdirs := <readdir;remove-all(?"." + ?"..")> src-gen-dir
-    ; output-files := <map(\f -> <module-src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m\)> subdirs
+    ; output-files := <map(\f -> <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> m\)> subdirs
     ; <map(try(remove-file))> output-files
 
 strategies
@@ -57,13 +61,13 @@ rules
   store-decl(|project-path, m):
     (f, d) -> file
     with id
-      ; file := <module-src-gen-file(|project-path, $[stratego.typed/[f]], ".aterm")> m
+      ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> m
       ; <WriteToTextFile> (file, d)
 
   store-defs(|project-path, m):
     def* -> <id>
   with id
-    ; file := <module-src-gen-file(|project-path, "stratego.typed/", ".aterm")> m
+    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/], ".aterm")> m
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
