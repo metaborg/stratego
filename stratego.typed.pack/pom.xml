@@ -25,6 +25,7 @@
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core</artifactId>
+      <version>${metaborg-version}</version>
     </dependency>
 
     <dependency>
