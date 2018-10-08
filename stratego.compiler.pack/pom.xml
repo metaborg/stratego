@@ -5,14 +5,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>stratego.typed.pack</artifactId>
+  <artifactId>stratego.compiler.pack</artifactId>
   <packaging>jar</packaging>
   <description>Tool to pack Stratego strategy bodies into a definition</description>
   <url>https://github.com/metaborg/stratego</url>
-
-  <properties>
-    <main-class>mb.stratego.typed.pack.Main</main-class>
-  </properties>
 
   <parent>
     <groupId>org.metaborg</groupId>

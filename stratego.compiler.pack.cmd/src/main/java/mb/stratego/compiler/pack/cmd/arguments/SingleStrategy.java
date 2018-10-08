@@ -1,4 +1,4 @@
-package mb.stratego.typed.pack.cmd.arguments;
+package mb.stratego.compiler.pack.cmd.arguments;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;

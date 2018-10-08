@@ -1,4 +1,4 @@
-package mb.stratego.typed.pack;
+package mb.stratego.compiler.pack;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,7 +42,7 @@ public class Packer {
         int svars = Integer.parseInt(strategyName.substring(uSecondLast + 1, uLast));
 
         if(outputFile == null) {
-            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.typed.pack", strategyName + ".ctree");
+            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.compiler.pack", strategyName + ".ctree");
         }
         Files.createDirectories(outputFile.getParent());
 
@@ -122,7 +122,7 @@ public class Packer {
      */
     public static void packBoilerplate(Path inputDir, @Nullable Path outputFile) throws IOException {
         if(outputFile == null) {
-            outputFile = Paths.get(inputDir.getParent().toString(), "stratego.typed.pack", "boilerplate.ctree");
+            outputFile = Paths.get(inputDir.getParent().toString(), "stratego.compiler.pack", "boilerplate.ctree");
         }
         Files.createDirectories(outputFile.getParent());
 

@@ -1,4 +1,4 @@
-package mb.stratego.typed.pack.cmd.arguments;
+package mb.stratego.compiler.pack.cmd.arguments;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
