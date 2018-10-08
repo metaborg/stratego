@@ -20,7 +20,7 @@ strategies
     with <clean-module(|project-path)> node
 
   compile-module-builder:
-    (node, _, _, path, project-path) -> ()
+    (node, _, _, path, project-path) -> result
     with
       clean-module-builder
     ; filename := <guarantee-extension(|"comp.aterm")> path

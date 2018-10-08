@@ -27,7 +27,7 @@ strategies
 strategies
 
   compile-module(|project-path):
-    Module(m, defs) -> (imps, decls)
+    Module(m, defs) -> (m, <map(Fst)> decls, imps)
     with id
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
@@ -50,6 +50,8 @@ rules
 
   // Rename the arguments to the strategy to predictable names used by the middle-end strategy
   //  packing tool.
+  // TODO: handle AnnoDef([Extend()], SDefT(_,_,_,_)), AnnoDef([Override()], SDefT(_,_,_,_)) etc.
+  //       by preserving them so they end up in the module for the strategy.
   prepare-decl-body:
     s@SDefT(_, svars, tvars, _) -> body
     with id
