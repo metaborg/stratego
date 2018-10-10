@@ -9,7 +9,7 @@ menus
     action: "Show analyzed syntax"  = generate-aterm (meta)
     action: "Format"                = pp-builder (source) (meta)
   
-  menu: "Separate compilation (front-end)" (meta)
+  menu: "Separate compilation (front-end)" (source) (meta)
     
     action: "Clean"           = clean-module-builder
     action: "Compile"         = compile-module-builder

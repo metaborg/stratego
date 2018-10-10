@@ -23,8 +23,8 @@ strategies
     (node, _, _, path, project-path) -> result
     with
       clean-module-builder
-    ; filename := <guarantee-extension(|"comp.aterm")> path
-    ; result   := <compile-module(|project-path)> node
+    ; project-name := <checksum> path
+    ; result := <compile-module(|project-path, project-name)> node
 
 rules
 

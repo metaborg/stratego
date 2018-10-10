@@ -12,7 +12,7 @@ overlays
 strategies
 
   module-src-gen-file(|project-path, base, extension) =
-    string-replace(|"/", "+");src-gen-file(|project-path, base, extension)
+    dollars-for-capitals;string-replace(|"/", "+");src-gen-file(|project-path, <dollars-for-capitals> base, extension)
 
 strategies
 
@@ -26,15 +26,20 @@ strategies
 
 strategies
 
-  compile-module(|project-path):
+  compile-module(|project-path, project-name):
     Module(m, defs) -> (m, <map(Fst)> decls, imps)
     with id
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
-      ; <map((id, try(prepare-decl-body)); store-decl(|project-path, m))> decls
+      ; <map((id, try(prepare-decl-body)); store-decl(|project-path, project-name, m))> decls
       ; <map(?(_, <try(prepare-decl)>))
-        ;store-defs(|project-path, m)> decls
+        ;store-defs(|project-path, project-name, m)> decls
+
+  clean-and-compile-module: (project-path, project-name, ast) -> result
+  with
+    <clean-module(|project-path)> ast
+  ; result := <compile-module(|project-path, project-name)> ast
 
 rules
 
@@ -59,16 +64,16 @@ rules
       ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
       ; body := <RenameDefinition(|new-svars, new-tvars)> s
 
-  store-decl(|project-path, m):
+  store-decl(|project-path, project-name, m):
     (f, d) -> file
     with id
-      ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> m
+      ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
       ; <WriteToTextFile> (file, d)
 
-  store-defs(|project-path, m):
+  store-defs(|project-path, project-name, m):
     def* -> <id>
   with id
-    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/], ".aterm")> m
+    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/], ".aterm")> $[[project-name]&[m]]
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
