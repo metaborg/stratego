@@ -21,7 +21,7 @@ rules
     AnnoDef(a*, 'def) -> AnnoDef(a*, <RenameSDef2> 'def)
 
   RenameSDef2 : 
-    SDefT(x, args1, args2, s) -> SDefT(y, args1, args2, s')
+    SDefT(x, args1, args2, s) -> SDefT(x, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
         ; <rename-var-manual>(x, (n,m)) => y
@@ -30,7 +30,7 @@ rules
                     <+ rules(HoArg2 : x -> y))
 
   RenameSDef2 : 
-    ExtSDef(x, args1, args2) -> ExtSDef(y, args1, args2)
+    ExtSDef(x, args1, args2) -> ExtSDef(x, args1, args2)
     where <length> args1 => n
         ; <length> args2 => m
         ; <rename-var-manual>(x, (n,m)) => y
@@ -38,7 +38,7 @@ rules
                     <+ rules(HoArg2 : x -> y))
 
   RenameSDef2 : 
-    ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(y, args1, args2, s')
+    ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(x, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
         ; <rename-var-manual>(x, (n,m)) => y

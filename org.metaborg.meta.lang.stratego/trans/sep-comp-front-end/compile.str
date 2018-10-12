@@ -162,7 +162,7 @@ strategies
 
       ; m-transform-local-defs(id
           ; ![<joindefs>] 
-          ; [where(RenameSDef2)]
+          ; [RenameSDef2]
         )
 
       ; m-transform-external-defs(id
@@ -171,7 +171,7 @@ strategies
             ; [id | ![]] // Cannot reuse dyn rule when already used in library
             end
           ; [ id
-             ; where(RenameSDef2)
+             ; RenameSDef2
              ; desugar-DefaultVarDec
              ; strename
             ]
