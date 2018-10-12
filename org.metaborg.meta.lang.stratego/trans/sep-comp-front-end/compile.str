@@ -32,8 +32,9 @@ strategies
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
-      ; <map((id, try(prepare-decl-body)); store-decl(|project-path, project-name, m))> decls
-      ; <map(?(_, <try(prepare-decl)>))
+      ; combined-decls := <combine-decls> decls
+      ; <map(store-decls(|project-path, project-name, m))> combined-decls
+      ; <map(?(_, <prepare-decl>))
         ;store-defs(|project-path, project-name, m)> decls
 
   clean-and-compile-module: (project-path, project-name, ast) -> result
@@ -47,33 +48,40 @@ rules
   //  accepts for generating the InteropRegistrer
 
   prepare-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
+  prepare-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
 
 rules
 
+  combine-decls: decls -> <combine-decls(|[])> decls
+
+  combine-decls(|combined): [] -> combined
+  combine-decls(|combined): [(name, sdeft)|decls] -> <combine-decls(|combined')> decls
+  with
+    combined' := <one((?name, ![sdeft|<id>])) <+ ![(name, [sdeft])|<id>]> combined
+
   // Rename the arguments to the strategy to predictable names used by the middle-end strategy
   //  packing tool.
-  // TODO: handle AnnoDef([Extend()], SDefT(_,_,_,_)), AnnoDef([Override()], SDefT(_,_,_,_)) etc.
-  //       by preserving them so they end up in the module for the strategy.
-  prepare-decl-body:
-    s@SDefT(_, svars, tvars, _) -> body
-    with id
-      ; new-svars := <let apply(|i) = !SVar($[svar_[i]]) in nmap(apply|0) end> svars
-      ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
-      ; body := <RenameDefinition(|new-svars, new-tvars)> s
+//  prepare-decl-body:
+//    s@SDefT(_, svars, tvars, _) -> body
+//    with id
+//      ; new-svars := <let apply(|i) = !SVar($[svar_[i]]) in nmap(apply|0) end> svars
+//      ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
+//      ; body := <RenameDefinition(|new-svars, new-tvars)> s
 
-  store-decl(|project-path, project-name, m):
-    (f, d) -> file
+  store-decls(|project-path, project-name, m):
+    (f, def*) -> file
     with id
       ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
-      ; <WriteToTextFile> (file, d)
+      ; d* := <separate-by(|", ")> def*
+      ; <WriteToFile(fprint)> (file, d*)
 
   store-defs(|project-path, project-name, m):
     def* -> <id>
   with id
-    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/], ".aterm")> $[[project-name]&[m]]
+    ; file := <module-src-gen-file(|project-path, LANGNAME(), ".aterm")> $[[project-name]&[m]]
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
@@ -154,7 +162,7 @@ strategies
 
       ; m-transform-local-defs(id
           ; ![<joindefs>] 
-          ; [RenameSDef2]
+          ; [where(RenameSDef2)]
         )
 
       ; m-transform-external-defs(id
@@ -162,7 +170,8 @@ strategies
               warn(|"multiple external definitions with same signature")
             ; [id | ![]] // Cannot reuse dyn rule when already used in library
             end
-          ; [RenameSDef2
+          ; [ id
+             ; where(RenameSDef2)
              ; desugar-DefaultVarDec
              ; strename
             ]
@@ -194,9 +203,9 @@ strategies
       ; map(!(<m-def-signature;Fst>, <id>))
       ; ?localDef*
     )
-    ; where(id
-      ; m-get-all-constructors
-      ; map(!(<m-constr-signature;Fst>, <id>))
-      ; ?constructor*
-    )
+//    ; where(id
+//      ; m-get-all-constructors
+//      ; map(!(<m-constr-signature;Fst>, <id>))
+//      ; ?constructor*
+//    )
     ; ![localDef*]
