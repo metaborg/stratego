@@ -27,7 +27,7 @@ strategies
 strategies
 
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> decls, imps)
+    Module(m, defs) -> (m, <map(Fst)> decls, <mapconcat(?Imports(<id>))> imps)
     with id
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
