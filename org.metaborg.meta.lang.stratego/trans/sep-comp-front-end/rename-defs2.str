@@ -47,10 +47,6 @@ rules
       ; <rename-var-manual>(x, (n,m)) => y
 
 
-  // Use _n_m for ambiguous call (occurs in strategy argument position of calls)
-  rename-var-manual:
-    (x,(0,0)) -> <concat-strings>[<cify> x, "_n_m"]
-
   rename-var-manual:
     (x,(n,m)) -> <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m]
 
