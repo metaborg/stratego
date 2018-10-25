@@ -1,0 +1,75 @@
+module scopes
+
+imports signatures/stratego/core/-
+imports signatures/stratego/sugar/-
+imports signatures/analysis-sig
+imports signatures/StrategoTyped-sig
+imports libspoofax/term/origin
+
+rules
+
+  introduce-implicit-scopes = topdown(try(introduce-implicit-scope))
+
+  introduce-implicit-scope: d@SDefT(n, sargs, targs, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; vars' := <diff> (vars, <map(?VarDec(<id>, _) + ?DefaultVarDec(<id>))> targs)
+  ; body' := <origin-set-relation> (body, Scope(vars', body))
+  ; d' := <origin-set-relation> (d, SDefT(n, sargs, targs, body'))
+
+  introduce-implicit-scope: d@SDefNoArgs(n, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; body' := <origin-set-relation> (body, Scope(vars, body))
+  ; d' := <origin-set-relation> (d, SDefNoArgs(n, body'))
+
+  introduce-implicit-scope: d@SDef(n, sargs, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; body' := <origin-set-relation> (body, Scope(vars, body))
+  ; d' := <origin-set-relation> (d, SDef(n, sargs, body'))
+
+  introduce-implicit-scope: d@ExtSDefInl(n, sargs, targs, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; vars' := <diff> (vars, <map(?VarDec(<id>, _) + ?DefaultVarDec(<id>))> targs)
+  ; body' := <origin-set-relation> (body, Scope(vars', body))
+  ; d' := <origin-set-relation> (d, ExtSDefInl(n, sargs, targs, body'))
+
+  introduce-implicit-scope: d@RDefT(n, sargs, targs, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; vars' := <diff> (vars, <map(?VarDec(<id>, _) + ?DefaultVarDec(<id>))> targs)
+  ; d' := <origin-set-relation> (d, RDefT(n, sargs, targs, vars', body))
+
+  introduce-implicit-scope: d@RDefNoArgs(n, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; d' := <origin-set-relation> (d, RDefNoArgs(n, vars, body))
+
+  introduce-implicit-scope: d@RDef(n, sargs, body) -> d'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> body
+  ; d' := <origin-set-relation> (d, RDef(n, sargs, vars, body))
+
+  introduce-implicit-scope: l@LRule(r@Rule(t1, _, _)) -> l'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> t1
+  ; l' := <origin-set-relation> (l, LRule(vars, r))
+
+  resolve-default-scopes = topdown(try(resolve-default-scope))
+
+  resolve-default-scope: sc@ScopeDefault(s) -> sc'
+  with id
+  ; vars := <collect-om(?Var(<origin-strip>))> s
+  ; sc' := <origin-set-relation> (sc, Scope(vars, s))
+
+  remove-analysis-constructs = topdown(try(origin-track-forced(remove-analysis-construct)))
+
+  remove-analysis-construct: RDefNoArgs(n, _, body) -> RDefNoArgs(n, body)
+
+  remove-analysis-construct: RDef(n, sargs, _, body) -> RDef(n, sargs, body)
+
+  remove-analysis-construct: RDefT(n, sargs, targs, _, body) -> RDefT(n, sargs, targs, body)
+
+  remove-analysis-construct: LRule(_, r) -> LRule(r)

@@ -1,13 +1,14 @@
 module stratego/sugar/modules
 
-imports nabl2-lib
+imports stratego/sugar/strategies
+imports stratego/sugar/signatures
+imports stratego/sugar/overlays
 imports stratego/sugar/rules
 
 rules
-  
-  Declaration[[ Rules(rs) ^ (s_mod) ]] :=
-    Map(RuleDef)[[ rs ^ (s_mod) ]].
-  
-  Declaration[[ Overlays(ols) ^ (s_mod) ]].
-  
-  
+
+  Declaration [[ Rules(rs) ^ (s_mod) ]] :=
+    Map1(Def) [[ rs ^ (s_mod) ]].
+
+  Declaration [[ Overlays(ols) ^ (s_mod) ]] :=
+    Map1(Overlay) [[ ols ^ (s_mod) ]].

@@ -4,22 +4,44 @@ imports stratego/core/terms
 
 rules // terms
 
-  Term[[ BuildDefault(t) ^ (s) : ty ]] :=
-    Term[[ t ^ (s) : ty ]].
+  Term [[ BuildDefault(t) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Term [[ t ^ (s_str) : _ ]] . // : ty ]].
 
-  Term[[ AnnoList(t, ts) ^ (s) : ty ]] :=
-    Term[[ t ^ (s) : ty ]],
-    Map(Term)[[ ts ^ (s) : tys ]].
+  Term [[ AnnoList(pt, ts) ^ (s_str) : _ ]]  := // : ty ]] :=
+    PreTerm [[ pt ^ (s_str) : _ ]] , // : ty ]],
+    Map1T(Term) [[ ts ^ (s_str) : _ ]].
 
-  Term[[ NoAnnoList(t) ^ (s) : ty ]] :=
-    Term[[ t ^ (s) : ty ]].
+  Term [[ NoAnnoList(pt) ^ (s_str) : _ ]]  := // : ty ]] :=
+    PreTerm [[ pt ^ (s_str) : _ ]] . // : ty ]].
 
-  Term[[ App(str, trm) ^ (s) : ty ]] :=
-    Term[[ t ^ (s) : ty ]].
-    // to do: strategy expression
+  Term [[ App(s, t) ^ (s_str) : ConstType(Sort("ATerm",[])) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]],
+    Term [[ t ^ (s_str) : _ ]].
 
-  Term[[ RootApp(str) ^ (s) : ty ]].
-    // to do: strategy expression
-    
+  Term [[ RootApp(s) ^ (s_str) : ConstType(Sort("ATerm",[])) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
 rules // pre-terms
+
+  PreTerm [[ Char(_) ^ (s_str) : ConstType(Sort("Int",[])) ]].
+
+  PreTerm [[ App(s, t) ^ (s_str) : ConstType(Sort("ATerm",[])) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]],
+    Term [[ t ^ (s_str) : _ ]].
+
+  PreTerm [[ RootApp(s) ^ (s_str) : ConstType(Sort("ATerm",[])) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  PreTerm [[ Tuple(ts) ^ (s_str) : ConstType(Sort("", tys)) ]] :=
+    Map1T(Term) [[ ts ^ (s_str) : _ ]] . // : tys ]].
+
+  PreTerm [[ List(ts) ^ (s_str) : ConstType(Sort("List", [ConstType(Sort("ATerm", []))])) ]] :=
+    Map1T(Term) [[ ts ^ (s_str) : _ ]].
+
+  PreTerm [[ ListTail(ts, t) ^ (s_str) : ConstType(Sort("List", [ConstType(Sort("ATerm", []))])) ]] :=
+    Map1T(Term) [[ ts ^ (s_str) : _ ]],
+    Term [[ t ^ (s_str) : _ ]].
+
+  PreTerm [[ BuildDefaultPT(t) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Term [[ t ^ (s_str) : _ ]] . // : ty ]].
 

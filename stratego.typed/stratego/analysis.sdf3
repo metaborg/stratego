@@ -1,0 +1,22 @@
+module analysis
+
+imports
+  stratego/core/identifiers
+  stratego/core/strategies
+  stratego/sugar/rules
+
+context-free syntax
+
+  RuleDef.RDefNoArgs = 
+    <<Id> : 
+       {<{Id ", "}*>: <Rule>}>
+
+  RuleDef.RDef = 
+    <<Id>(<{Typedid ", "}*>) : 
+       {<{Id ", "}*>: <Rule>}>
+
+  RuleDef.RDefT = 
+    <<Id> ( <{Typedid ", "}*> | <{Typedid ", "}*>) : 
+       {<{Id ", "}*>: <Rule>}>
+
+  Strategy.LRule      = <{<{Id ", "}*>: (<Rule>) }>

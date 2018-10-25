@@ -5,15 +5,51 @@ imports stratego/sugar/terms
 
 rules
 
-  RuleDef[[ RDefNoArgs(x, r) ^ (s_mod) ]] :=
-    Rule{x} <- s_mod,
-    Rule{x} : ty,
-    new s_r,
-    s_r -P-> s_mod,
-    Rule[[ r ^ (s_r) : ty ]].
+  // scoped variables of a rule defs are collected before analysis
+  Def [[ RDefNoArgs(x, vars, r) ^ (s_mod) ]] :=
+    Strategy { x } <- s_mod,
+    Strategy { x }.sargs := [] !,
+    Strategy { x }.targs := [] !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1(RuleVar) [[ vars ^ (s_str) ]],
+    Rule [[ r ^ (s_str) ]].
 
-  Rule[[ Rule(t1, t2, conds) ^ (s_r) : FunType([ty1], ty2) ]] :=
-      Term [[ t1 ^ (s_r) : ty1 ]],
-      Term [[ t2 ^ (s_r) : ty2 ]]. 
-  
-  
+// AnnoDef is handled by Def rule in core
+
+  Def [[ RDef(s, sargs, vars, r) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := [] !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Map1(RuleVar) [[ vars ^ (s_str) ]],
+    Rule [[ r ^ (s_str) ]].
+
+  Def [[ RDefT(s, sargs, targs, vars, r) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := tty !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Map1T(TermArg) [[ targs ^ (s_str) : _ ]] , // : tty ]],
+    Map1(RuleVar) [[ vars ^ (s_str) ]],
+    Rule [[ r ^ (s_str) ]].
+
+  RuleVar [[ t ^ (s_rule) ]] :=
+    Variable { t } <- s_rule.
+
+rules
+
+  Rule [[ Rule(t1, t2, clauses) ^ (s_rule) ]] :=
+    Term [[ t1 ^ (s_rule) : _ ]] , // ) : ty1 ]],
+    Term [[ t2 ^ (s_rule) : _ ]] , // ) : ty2 ]],
+    Map1(Clause) [[ clauses ^ (s_rule) ]].
+
+  Clause [[ WhereClause(s) ^ (s_mod) ]] :=
+    Strategy [[ s ^ (s_mod, s_mod) ]].
+
+  Clause [[ WithClause(s) ^ (s_mod) ]] :=
+    Strategy [[ s ^ (s_mod, s_mod) ]].

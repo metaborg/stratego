@@ -1,76 +1,105 @@
 module stratego/core/signatures
 
-imports nabl2-lib
+signature
+
+  relations
+     reflexive, transitive, anti-symmetric sub : Type * Type {
+       FunType(-sub, +sub),
+       ConstType(+sub),
+       [+sub]
+     }
 
 rules
 
-  Sdecl[[ Sorts(srts) ^ (s_mod) ]] :=
-    Map(Sort)[[ srts ^ (s_mod) ]].
-  
-  Sdecl[[ Constructors(opdecls) ^ (s_mod) ]] :=
-    Map(OpDecl)[[ opdecls ^ (s_mod) ]].
+  Sdecl [[ Sorts(srts) ^ (s_mod) ]] :=
+    Map1(Sort) [[ srts ^ (s_mod) ]].
+
+  Sdecl [[ Constructors(opdecls) ^ (s_mod) ]] :=
+    Map1(OpDecl) [[ opdecls ^ (s_mod) ]].
 
 rules // sorts
-    
-  Sort[[ SortVar(x) ^ (s_mod)  ]] :=
-    Sort{x} <- s_mod,
-    false | warning $[sorts should start with uppercase letter] @x.
-    
-  Sort[[ SortNoArgs(x) ^ (s_mod) ]] :=
-    Sort{x} <- s_mod.
-    
-  Sort[[ Sort(x, srts) ^ (s_mod) ]] :=
-    Sort{x} <- s_mod,
-    false | warning $[sort arguments not supported yet] @srts.
+
+  Sort [[ SortVar(x) ^ (s_mod)  ]] :=
+    Sort { x } <- s_mod,
+    Sort(x, []) <sub! Sort("ATerm", []),
+    false | error $[sorts should start with uppercase letter] @x.
+
+  Sort [[ SortNoArgs(x) ^ (s_mod) ]] :=
+    Sort { x } <- s_mod,
+    Sort(x, []) <sub! Sort("ATerm", []),
+    Sort { x } : Sort(x, []).
+
+  Sort [[ Sort(x, srts) ^ (s_mod) ]] :=
+    Sort { x } <- s_mod,
+    Sort(x, argsty) <sub! Sort("ATerm", []),
+    Sort { x } : Sort(x, argsty),
+    Map1T(SortRef) [[ srts ^ (s_mod) : _ ]] . // : argsty ]].
 
 rules // sort references
 
-  SortRef[[ SortVar(x) ^ (s_mod) : x ]] :=
-    Sort{x} -> s_mod,
-    Sort{x} |-> d,
-    false | warning $[sorts should start with uppercase letter] @x.
-    
-  SortRef[[ SortNoArgs(x) ^ (s_mod) : x ]] :=
-    Sort{x} -> s_mod,
-    Sort{x} |-> d.
-    
-  SortRef[[ Sort(x, srts) ^ (s_mod) : x ]] :=
-    Sort{x} -> s_mod,
-    Sort{x} |-> d,
-    false | warning $[sort arguments not supported yet] @srts.
+  SortRef [[ SortVar(x) ^ (s_mod) : Sort("ATerm", []) ]] :=
+    Sort { x } -> s_mod.
+//    Sort { x } |-> d,
+//    d : ty.
+
+  SortRef [[ SortNoArgs(x) ^ (s_mod) : Sort(x, []) ]] :=
+    Sort { x } -> s_mod,
+    Sort { x } |-> d.
+
+  SortRef [[ Sort(x, srts) ^ (s_mod) : Sort(x, argty) ]] :=
+    Sort { x } -> s_mod,
+    Sort { x } |-> d,
+    Map1T(SortRef) [[ srts ^ (s_mod) : _ ]] . // : argty ]].
 
 rules // constructor declarations
-    
-  OpDecl[[ OpDecl(c, t) ^ (s_mod) ]] :=
-    Op{c} <- s_mod,
-    Op{c} : ty,
-    Type[[ t ^ (s_mod) : ty ]].
-    
-  OpDecl[[ OpDeclQ(c, t) ^ (s_mod) ]] :=
-    Op{c} <- s_mod,
-    Op{c} : ty,
-    Type[[ t ^ (s_mod) : ty ]]. 
-    
-//  OpDecl[[ OpDeclInj(t) ^ (s_mod) ]] :=
-//    Op{c} <- s_mod,
-//    Op{c} : ([], t). // to do: process type
-//  to do: deal with injections
 
-//    Opdecl.ExtOpDecl    = <external <Id> : <Type>>
-//    Opdecl.ExtOpDeclQ   = <external <String> : <Type>>
-//    Opdecl.ExtOpDeclInj = <external : <Type>>
-    
+  OpDecl [[ OpDecl(c, t) ^ (s_mod) ]] :=
+    Op { c } <- s_mod,
+    Op { c } : ty,
+    Strategy { c } <- s_mod,
+    Strategy { c } : FunType([ConstType(Sort("ATerm", []))], retty) !,
+    Strategy { c }.sargs := argsty !,
+    Strategy { c }.targs := [] !,
+    ty == FunType(argsty, retty),
+    Type[[ t ^ (s_mod) : _ ]] . // : ty ]].
+
+  OpDecl[[ OpDeclQ(s, t) ^ (s_mod) ]] :=
+    Op { s } <- s_mod,
+    Op { s } : ty,
+    ty == FunType(_, _),
+    Type [[ t ^ (s_mod) : _ ]] . // : ty ]].
+
+  OpDecl[[ OpDeclInj(t) ^ (s_mod) ]] :=
+    Type [[ t ^ (s_mod) : _ ]] , // : ty ]],
+    ty == FunType([ConstType(s1)], ConstType(s2)),
+    s1 <sub! s2.
+
+  OpDecl [[ ExtOpDecl(c, t) ^ (s_mod) ]] :=
+    Op { c } <- s_mod,
+    Op { c } : ty,
+    Strategy { c } <- s_mod,
+    Strategy { c } : FunType([ConstType(Sort("ATerm", []))], retty) !,
+    Strategy { c }.sargs := argsty !,
+    Strategy { c }.targs := [] !,
+    ty == FunType(argsty, retty),
+    Type[[ t ^ (s_mod) : _ ]] . // : ty ]].
+
+  OpDecl [[ ExtOpDeclQ(s, t) ^ (s_mod) ]] :=
+    Op { s } <- s_mod,
+    Op { s } : ty,
+    ty == FunType(_, _),
+    Type [[ t ^ (s_mod) : _ ]] . // : ty ]].
+
+  OpDecl [[ ExtOpDeclInj(t) ^ (s_mod) ]] :=
+    Type [[ t ^ (s_mod) : _ ]] , // : ty ]],
+    ty == FunType([ConstType(s1)], ConstType(s2)),
+    s1 <sub! s2.
+
 rules // types
 
-  Type[[ ConstType(srt) ^ (s_mod) : ConstType(ty)]] :=
-    SortRef[[ srt ^ (s_mod) : ty ]].
-    
-  Type[[ FunType(args, t) ^ (s_mod) : FunType(tys, ty) ]] :=
-    MapTy(Type)[[ args ^ (s_mod) : tys ]],
-    Type[[ t ^ (s_mod) : ty]].
-    
+  Type [[ ConstType(srt) ^ (s_mod) : ConstType(ty)]] :=
+    SortRef [[ srt ^ (s_mod) : _ ]] . // : ty ]].
 
-    
- 
-    
-    
+  Type [[ FunType(args, t) ^ (s_mod) : FunType(tys, ty) ]] :=
+    Map1T(Type) [[ args ^ (s_mod) : _ ]] , // : tys ]],
+    Type [[ t ^ (s_mod) : _ ]] . // ) : ty]].

@@ -1,27 +1,137 @@
 module stratego/core/strategies
 
 imports stratego/core/terms
+imports stratego/core/signatures
+imports signatures/stratego/core/strategies-sig
 
-//namespaces Strategy StrategyVariable MatchContext BuildContext
-//
-//binding rules
-//
-//  SDefNoArgs(name, _) : 
-//  	defines Strategy name 
-//  	scopes Variable
-//  	
-//  SVar(name) :
-//  	refers to Strategy name
-//  	
-//  DefaultVarDec(name) :
-//  	defines Strategy name
-//  	
-//  Match(_) :
-//  	implicitly defines MatchContext ""
-//  
-//  Build(_) :
-//  	implicitly defines BuildContext ""
-//  	
-//  Scope(_, _) :
-//  	scopes Variable
-//  	
+rules
+
+  SVar [[ SVar(s) ^ (s_str) : d ]] :=
+    Strategy { s } -> s_str,
+    Strategy { s } |-> d.
+
+  Strategy [[ Let(defs, body) ^ (s_str, s_mod) ]] :=
+    new s_let,
+    s_let -P-> s_str,
+    Map1(Def) [[ defs ^ (s_let) ]],
+    Strategy [[ body ^ (s_let, s_mod) ]].
+
+  Strategy [[ CallT(svar, sargs, targs) ^ (s_str, s_mod) ]] :=
+    SVar [[ svar ^ (s_str) : def ]],
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]],
+    Map1T(Term) [[ targs ^ (s_str) : targtys ]].
+//    def.targs := def_targs,
+//    targs_len is `nabl2-length` of def_targs,
+//    targs_len is `nabl2-length` of targstys,
+//    def.sargs := def_sargs,
+//    sargs_len is `nabl2-length` of def_sargs,
+//    sargs_len is `nabl2-length` of sargs.
+
+  Strategy [[ CallDynamic(nameTerm, sargs, targs) ^ (s_str, s_mod) ]] :=
+    Term [[ nameTerm ^ (s_str) : _ ]],
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]],
+    Map1T(Term) [[ targs ^ (s_str) : _ ]].
+
+rules
+
+  Def [[ SDefT(s, sargs, targs, body) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := tty !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Map1T(TermArg) [[ targs ^ (s_str) : _ ]] , // : tty ]],
+    Strategy [[ body ^ (s_str, s_mod) ]].
+
+  Def [[ AnnoDef(annos, sdef) ^ (s_mod) ]] :=
+    Def [[ sdef ^ (s_mod) ]].
+
+  Def [[ ExtSDefInl(s, sargs, targs, body) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := tty !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Map1T(TermArg) [[ targs ^ (s_str) : _ ]] , // : tty ]],
+    Strategy [[ body ^ (s_str, s_mod) ]].
+
+  Def [[ ExtSDef(s, sargs, targs) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := tty !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Map1T(TermArg) [[ targs ^ (s_str) : _ ]] . // : tty ]].
+
+rules
+
+  StratArg [[ VarDec(s, type) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Strategy { s } <- s_str,
+    Strategy { s } : ty !,
+    // we don't assume anything about the number of sargs/targs here...
+    Type [[ type ^ (s_str) : _ ]] , // : ty ]],
+    ty == FunType(_, _) | error $[Expected function type, got [ty]] @type.
+
+  TermArg [[ VarDec(t, type) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Variable { t } <- s_str,
+    Variable { t } : ty !,
+    Type [[ type ^ (s_str) : _ ]] , // : ty ]],
+    ty == ConstType(_) | error $[Expected sort, got [ty]] @type.
+
+rules
+
+  Strategy [[ ParenStrat(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ Fail() ^ (s_str, s_mod) ]].
+  Strategy [[ Id() ^ (s_str, s_mod) ]].
+
+  Strategy [[ ProceedT(sargs, targs) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]],
+    Map1T(Term) [[ targs ^ (s_str) : _ ]].
+
+  Strategy [[ ProceedNoArgs() ^ (s_str, s_mod) ]].
+
+  Strategy [[ Match(t) ^ (s_str, s_mod) ]] :=
+    Term [[ t ^ (s_str) : _ ]].
+
+  Strategy [[ Build(t) ^ (s_str, s_mod) ]] :=
+    Term [[ t ^ (s_str) : _ ]].
+
+  Strategy [[ Scope(vars, s) ^ (s_str, s_mod) ]] :=
+    new s_scope,
+    s_scope -P-> s_str,
+    Map1(ScopeVar) [[ vars ^ (s_scope) ]],
+    Strategy [[ s ^ (s_scope, s_mod) ]].
+
+  ScopeVar [[ t ^ (s_scope) ]] :=
+    Variable { t } <- s_scope.
+
+  Strategy [[ Seq(s1, s2) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s1 ^ (s_str, s_mod) ]],
+    Strategy [[ s2 ^ (s_str, s_mod) ]].
+
+  Strategy [[ GuardedLChoice(sc, st, se) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ st ^ (s_str, s_mod) ]],
+    Strategy [[ se ^ (s_str, s_mod) ]].
+
+  Strategy [[ PrimT(nameString, sargs, targs) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]],
+    Map1T(Term) [[ targs ^ (s_str) : _ ]].
+
+  Strategy [[ Some(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ One(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ All(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+rules
+
+  Strategy [[ ImportTerm(path) ^ (s_str, s_mod) ]].

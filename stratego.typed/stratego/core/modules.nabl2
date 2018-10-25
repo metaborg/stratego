@@ -1,20 +1,34 @@
 module stratego/core/modules
 
-imports nabl2-lib
+imports signatures/stratego/sugar/modules-sig
+
 imports stratego/core/signatures
+imports stratego/core/strategies
 
 rules
 
-  Declarations[[ [] ^ (s_mod) ]].
-  
-  Declarations[[ [decl | decls] ^ (s_mod) ]] :=
-    Declaration[[ decl ^ (s_mod) ]],
-    Declarations[[ decls ^ (s_mod) ]].
-    
-  Declaration[[ Imports(names) ^ (s_mod) ]].
-  
-  Declaration[[ Strategies(sdefs) ^ (s_mod) ]].
-  
-  Declaration[[ Signature(sdecls) ^ (s_mod) ]] :=
-    Map(Sdecl)[[ sdecls ^ (s_mod) ]].
-    
+  [[ Module(m, decls) ^ (s) ]] :=
+     Module { m } <- s,
+     new s_mod,
+     s_mod -P-> s,
+     Module { m } =I=> s_mod,
+     Map1(Declaration) [[ decls ^ (s_mod) ]].
+
+  [[ Specification(decls) ^ (s) ]] :=
+     new s_mod,
+     s_mod -P-> s,
+     Map1(Declaration) [[ decls ^ (s_mod) ]].
+
+  Declaration [[ Imports(names) ^ (s_mod) ]] :=
+    Map1(Import) [[ names ^ (s_mod) ]].
+
+  Declaration [[ Strategies(sdefs) ^ (s_mod) ]] :=
+    Map1(Def) [[ sdefs ^ (s_mod) ]].
+
+  Declaration [[ Signature(sdecls) ^ (s_mod) ]] :=
+    Map1(Sdecl) [[ sdecls ^ (s_mod) ]].
+
+  Import [[ Import(m) ^ (s_mod) ]] :=
+    Module { m } -> s_mod,
+    Module { m } |-> _,
+    Module { m } <=I= s_mod.

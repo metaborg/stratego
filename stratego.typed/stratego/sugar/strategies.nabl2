@@ -1,0 +1,172 @@
+module stratego/sugar/strategies
+
+imports stratego/sugar/terms
+imports stratego/sugar/rules
+imports stratego/sugar/signatures
+
+rules
+
+  Def [[ SDefNoArgs(s, body) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := [] !,
+    Strategy { s }.targs := [] !,
+    new s_str,
+    s_str -P-> s_mod,
+    Strategy [[ body ^ (s_str, s_mod) ]].
+
+  Def [[ SDef(s, sargs, body) ^ (s_mod) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sty !,
+    Strategy { s }.targs := [] !,
+    new s_str,
+    s_str -P-> s_mod,
+    Map1T(StratArg) [[ sargs ^ (s_str) : _ ]] , // : sty ]],
+    Strategy [[ body ^ (s_str, s_mod) ]].
+
+rules
+
+  StratArg [[ DefaultVarDec(s) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Strategy { s } <- s_str,
+    Strategy { s } : ty,
+    // we don't assume anything about the number of sargs/targs here...
+    ty == FunType([ConstType(Sort("ATerm",[]))],ConstType(Sort("ATerm",[]))).
+
+  TermArg [[ DefaultVarDec(t) ^ (s_str) : _ ]]  := // : ty ]] :=
+    Variable { t } <- s_str,
+    Variable { t } : ty,
+    ty == ConstType(Sort("ATerm",[])).
+
+rules
+
+  Strategy [[ Call(svar, sargs) ^ (s_str, s_mod) ]] :=
+    SVar [[ svar ^ (s_str) : def ]],
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+//    def.sargs := def_sargs,
+//    sargs_len is `nabl2-length` of def_sargs,
+//    sargs_len is `nabl2-length` of sargs.
+
+  // ScopeDefault is turned into Scope before analysis
+
+  Strategy [[ BA(s, t) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]],
+    Term [[ t ^ (s_str) : _ ]].
+
+  Strategy [[ LChoice(sc, se) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ se ^ (s_str, s_mod) ]].
+
+  Strategy [[ Rec(s, body) ^ (s_str, s_mod) ]] :=
+    new s_rec,
+    s_rec -P-> s_str,
+    Strategy { s } <- s_rec,
+    Strategy { s }.sargs := [] !,
+    Strategy { s }.targs := [] !,
+    Strategy [[ body ^ (s_rec, s_mod) ]].
+
+  Strategy [[ Not(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ Where(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ With(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ Test(s) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ PrimNoArgs(nameString) ^ (s_str, s_mod) ]].
+
+  Strategy [[ Prim(nameString, targs) ^ (s_str, s_mod) ]] :=
+    Map1T(Term) [[ targs ^ (s_str) : _ ]].
+
+rules
+
+  Strategy [[ StrCong(string) ^ (s_str, s_mod) ]].
+  Strategy [[ IntCong(int) ^ (s_str, s_mod) ]].
+  Strategy [[ RealCong(real) ^ (s_str, s_mod) ]].
+  Strategy [[ CharCong(char) ^ (s_str, s_mod) ]].
+
+  Strategy [[ CongQ(string, sargs) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+
+  Strategy [[ EmptyTupleCong() ^ (s_str, s_mod) ]].
+
+  Strategy [[ TupleCong(sarg, sargs) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sarg ^ (s_str, s_mod) ]],
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+
+  Strategy [[ ListCongNoTail(sargs) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+
+  Strategy [[ ListCong(sargs, sarg) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]],
+    Strategy [[ sarg ^ (s_str, s_mod) ]].
+
+  Strategy [[ ExplodeCong(scons, sargs) ^ (s_str, s_mod) ]] :=
+    Strategy [[ scons ^ (s_str, s_mod) ]],
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+
+  Strategy [[ AM(s, t) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s ^ (s_str, s_mod) ]],
+    Term [[ t ^ (s_str) : _ ]].
+
+  Strategy [[ Assign(t1, t2) ^ (s_str, s_mod) ]] :=
+    Term [[ t1 ^ (s_str) : _ ]],
+    Term [[ t2 ^ (s_str) : _ ]].
+
+  Strategy [[ AnnoCong(sarg1, sarg2) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sarg1 ^ (s_str, s_mod) ]],
+    Strategy [[ sarg2s ^ (s_str, s_mod) ]].
+
+rules
+
+  Strategy [[ CallNoArgs(svar) ^ (s_str, s_mod) ]] :=
+    SVar [[ svar ^ (s_str) : def ]].
+//    def.targs := [],
+//    def.sargs := [].
+// TODO: allow CallNoArgs to any strategy if it's an sarg in a call
+
+  // scoped variables of an LRule are collected before analysis
+  Strategy [[ LRule(vars, rule) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    Map1(RuleVar) [[ ts ^ (s_rule) ]],
+    Rule [[ rule ^ (s_rule) ]].
+
+  Strategy [[ SRule(rule) ^ (s_str, s_mod) ]] :=
+    Rule [[ rule ^ (s_str) ]].
+
+  Strategy [[ Choice(sc, se) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ se ^ (s_str, s_mod) ]].
+
+  Strategy [[ RChoice(sc, se) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ se ^ (s_str, s_mod) ]].
+
+  Strategy [[ Proceed(sargs) ^ (s_str, s_mod) ]] :=
+    Map2(Strategy) [[ sargs ^ (s_str, s_mod) ]].
+
+  Strategy [[ CondChoice(sc, st, se) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ st ^ (s_str, s_mod) ]],
+    Strategy [[ se ^ (s_str, s_mod) ]].
+
+  Strategy [[ IfThen(sc, st) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ st ^ (s_str, s_mod) ]].
+
+  Strategy [[ SwitchChoiceNoOtherwise(sc, cases) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Map1(SwitchCase) [[ cases ^ (s_str) ]].
+
+  Strategy [[ SwitchChoice(sc, cases, so) ^ (s_str, s_mod) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Map1(SwitchCase) [[ cases ^ (s_str) ]],
+    Strategy [[ so ^ (s_str, s_mod) ]].
+
+  SwitchCase [[ SwitchCase(sc, sb) ^ (s_str) ]] :=
+    Strategy [[ sc ^ (s_str, s_mod) ]],
+    Strategy [[ sb ^ (s_str, s_mod) ]].
+

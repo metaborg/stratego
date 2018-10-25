@@ -4,3 +4,8 @@ imports
   stratego/core/core
   stratego/sugar/sugar
 
+rules
+
+  init ^ (s_global) := new s_global,
+  Sort { "ATerm" } <- s_global.
+

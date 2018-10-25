@@ -1,0 +1,62 @@
+module hover
+
+imports
+  nabl2/api
+  nabl2shared
+  nabl2runtime
+
+  nabl2/runtime/pp
+  nabl2/runtime/prelude/-
+  nabl2/runtime/analysis/-
+
+  pp
+
+rules // Derived from https://github.com/MetaBorgCube/IceDust/blob/c21e7c6974565ae96148782622b169d7ddb2bc42/icedust/trans/editor/services.str
+
+editor-hover: x@(target, position, ast, path, project-path) -> result
+where <not(hover-parent-for)> target
+with analysis := <nabl2-get-resource-analysis> $[[project-path]/[path]]
+with result := <get-editor-properties(pp-StrategoTyped-string;truncate-string(|200) | analysis)
+                ;properties-to-html> target
+
+get-editor-properties(language-pp | a) =
+  get-all-editor-properties(language-pp | a);filter(not(?(_,None())<+?(_,[])))
+
+get-all-editor-properties(language-pp | a): t ->
+[ ("Target",               <language-pp            <+ !None()> t)
+, ("Target Constructor",   <pp-cons                <+ !None()> t)
+, ("Type",                 <nabl2-get-ast-type(|a) <+ !None()> t)
+]
+
+pp-cons: t -> $[[<get-constructor> t]/[<get-arguments;length> t]] where not(is-string)
+
+pp-property: a -> a
+where is-string
+pp-property: None() -> "-"
+pp-property: a -> <map(pp-property; !("", <id>))> a
+where is-list
+pp-property = topdown(try(rm-annotations)); write-to-string
+
+properties-to-html = map(property-to-html); separate-by(|"<br/>\n"); concat-strings
+property-to-html: ("", prop) -> $[[<property-to-html> prop]]
+property-to-html: (name, prop) -> $[<b>[name]</b>: [<property-to-html> prop]]
+property-to-html: list -> $[<div>[<properties-to-html> list]</div>]
+where is-list
+property-to-html: prop -> <escape-for-html> $[[<pp-property> prop]]
+
+escape-for-html =
+  string-replace(|"&", "&amp;")
+; string-replace(|"<", "&lt;")
+; string-replace(|">", "&gt;")
+; string-replace(|"\n", "<br/>")
+
+truncate-string(|maxlen): s -> s'
+with if <gt> (<strlen> s, maxlen) then
+  trunc := <explode-string; split-at(|<dec; dec; dec> maxlen); ?(<id>,_); implode-string> s;
+  s':= <conc-strings> (trunc, "...")
+else
+  s' := s
+end
+
+hover-parent-for: a -> a // for constructors with no children hover parent, except for literals
+where [] := <get-arguments> a

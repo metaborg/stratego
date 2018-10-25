@@ -1,0 +1,249 @@
+module stratego/sugar/dynamic-rules
+
+imports
+  stratego/sugar/strategies
+  stratego/sugar/rules
+
+rules
+  Strategy [[ DynRuleScope(labels, s) ^ (s_str, s_mod) ]] :=
+    ScopeLabels [[ labels ^ (s_str, s_mod) ]],
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  ScopeLabels [[ ScopeLabels(ts) ^ (s_str, s_mod) ]] :=
+    Map1T(Term) [[ ts ^ (s_str) : _ ]].
+
+  ScopeLabels [[ [] ^ (s_str, s_mod) ]].
+  ScopeLabels [[ l@[_|_] ^ (s_str, s_mod) ]] :=
+    Map2(ScopeLabel) [[ l ^ (s_str, s_mod) ]].
+
+rules
+
+  Strategy [[ GenDynRules(dynruledefs) ^ (s_str, s_mod) ]] :=
+    Map2(DynRuleDef) [[ dynruledefs ^ (s_str, s_mod) ]].
+
+  DynRuleDef [[ AddScopeLabel(label,t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleDef [[ UndefineDynRule(dynruleid,t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleDef [[ SetDynRule(dynruleid,r) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Rule [[ r ^ (s_rule) ]].
+
+  DynRuleDef [[ AddDynRule(dynruleid,r) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Rule [[ r ^ (s_rule) ]].
+
+  DynRuleDef [[ SetDynRuleMatch(dynruleid,t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleDef [[ DynRuleAssign(dynruleid,t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleDef [[ DynRuleAssignAdd(dynruleid,t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleDef [[ SetDynRuleDepends(dynruleid,r, t) ^ (s_str, s_mod) ]] :=
+    new s_rule,
+    s_rule -P-> s_str,
+    DynRuleId [[ dynruleid ^ (s_rule, s_mod) ]],
+    Rule [[ r ^ (s_rule) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleId [[ LabeledDynRuleId(ruledec, t) ^ (s_rule, s_mod) ]] :=
+    RuleDec [[ ruledec ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_rule) : _ ]].
+
+  DynRuleId [[ AddLabelDynRuleId(ruledec, t) ^ (s_rule, s_mod) ]] :=
+    RuleDec [[ ruledec ^ (s_rule, s_mod) ]],
+    Term [[ t ^ (s_str) : _ ]].
+
+  DynRuleId [[ DynRuleId(ruledec) ^ (s_rule, s_mod) ]] := 
+    RuleDec [[ ruledec ^ (s_rule, s_mod) ]].
+
+  ScopeLabel [[ DynRuleScopeId(s) ^ (s_str, s_mod) ]].
+
+  ScopeLabel [[ LabeledDynRuleScopeId(scopeid, t) ^ (s_str, s_mod) ]] :=
+    Term [[ t ^ (s_str) : _ ]].
+
+rules
+
+  RuleDec [[ RDecNoArgs(s) ^ (s_rule, s_mod) ]] :=
+    DefineDynStrategies [[ s ^ (s_mod) : ([], []) ]].
+
+  RuleDec [[ RDec(s, sargs) ^ (s_rule, s_mod) ]] :=
+    Map1T(StratArg) [[ sargs ^ (s_str) : sty ]],
+    DefineDynStrategies [[ s ^ (s_mod) : (sty, []) ]].
+
+  RuleDec [[ RDecT(s, sargs, targs) ^ (s_rule, s_mod) ]] :=
+    Map1T(StratArg) [[ sargs ^ (s_str) : sty ]],
+    Map1T(TermArg) [[ sargs ^ (s_str) : tty ]],
+    DefineDynStrategies [[ s ^ (s_mod) : (sty, tty) ]].
+
+rules
+
+  RuleNames [[ [] ^ (s_str) ]].
+
+  RuleNames [[ l@[_|_] ^ (s_str) ]] :=
+    Map1(RuleName) [[ l ^ (s_str) ]].
+
+  RuleName [[ rn ^ (s_str) ]].
+
+  RuleNames [[ RuleNames(t) ^ (s_str) ]] :=
+    Term [[ t ^ (s_str) : _ ]].
+
+  Strategy [[ DynRuleIntersectFix(rulenames, s) ^ (s_str, s_mod) ]] :=
+    RuleNames [[ rulenames ^ (s_str) ]],
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+rules
+
+  Strategy [[ DynRuleUnionFix(rulenames, s) ^ (s_str, s_mod) ]] :=
+    RuleNames [[ rulenames ^ (s_str) ]],
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+  Strategy [[ DynRuleIntersectUnionFix(rulenames1, rulenames2, s) ^ (s_str, s_mod) ]] :=
+    RuleNames [[ rulenames1 ^ (s_str) ]],
+    RuleNames [[ rulenames2 ^ (s_str) ]],
+    Strategy [[ s ^ (s_str, s_mod) ]].
+
+rules
+
+  Strategy [[ DynRuleIntersect(s1, rulenames, s2) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s1 ^ (s_str, s_mod) ]],
+    RuleNames [[ rulenames ^ (s_str) ]],
+    Strategy [[ s2 ^ (s_str, s_mod) ]].
+
+  Strategy [[ DynRuleUnion(s1, rulenames, s2) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s1 ^ (s_str, s_mod) ]],
+    RuleNames [[ rulenames ^ (s_str) ]],
+    Strategy [[ s2 ^ (s_str, s_mod) ]].
+
+  Strategy [[ DynRuleIntersectUnion(s1, rulenames1, rulenames2, s2) ^ (s_str, s_mod) ]] :=
+    Strategy [[ s1 ^ (s_str, s_mod) ]],
+    RuleNames [[ rulenames1 ^ (s_str) ]],
+    RuleNames [[ rulenames2 ^ (s_str) ]],
+    Strategy [[ s2 ^ (s_str, s_mod) ]].
+
+rules
+
+  DefineDynStrategies [[ s ^ (s_mod) : (sargs, targs) ]] :=
+    Strategy { s } <- s_mod,
+    Strategy { s }.sargs := sargs !,
+    Strategy { s }.targs := targs !,
+    
+    all_keys is `nabl2-conc-strings` of ("all-keys-", s), // copy args
+    Strategy { all_keys@s } <- s_mod,
+    Strategy { all_keys@s }.sargs := sargs !,
+    Strategy { all_keys@s }.targs := targs !,
+    
+    aux is `nabl2-conc-strings` of ("aux-", s), // copy args + targs from args in rule lhs + 1 targ
+    // TODO: count variable in rule pattern to get the targs count right
+    aux_targs is `nabl2-conc` of (targs, [ConstType(Sort("ATerm",[]))]),
+    Strategy { aux@s } <- s_mod,
+    Strategy { aux@s }.sargs := sargs !,
+    Strategy { aux@s }.targs := aux_targs !,
+    
+    bagof is `nabl2-conc-strings` of ("bagof-", s), // copy args
+    Strategy { bagof@s } <- s_mod,
+    Strategy { bagof@s }.sargs := sargs !,
+    Strategy { bagof@s }.targs := targs !,
+    
+    bigbagof is `nabl2-conc-strings` of ("bigbagof-", s), // copy args
+    Strategy { bigbagof@s } <- s_mod,
+    Strategy { bigbagof@s }.sargs := sargs !,
+    Strategy { bigbagof@s }.targs := targs !,
+    
+    bigchain is `nabl2-conc-strings` of ("bigchain-", s), // copy args
+    Strategy { bigchain@s } <- s_mod,
+    Strategy { bigchain@s }.sargs := sargs !,
+    Strategy { bigchain@s }.targs := targs !,
+    
+    bigfold is `nabl2-conc-strings` of ("bigfold-", s), // 1 sarg + copy args
+    Strategy { bigfold@s } <- s_mod,
+    fold_sargs is `nabl2-conc` of ([FunType([FunType(ConstType(SortVar("t")), ConstType(SortVar("t"))), ConstType(SortVar("t"))], ConstType(SortVar("t")))], sargs),
+    Strategy { bigfold@s }.sargs := fold_sargs !,
+    Strategy { bigfold@s }.targs := targs !,
+    
+    break_bp is `nabl2-conc-strings` of ("break-bp-", s), // copy args
+    Strategy { break_bp@s } <- s_mod,
+    Strategy { break_bp@s }.sargs := sargs !,
+    Strategy { break_bp@s }.targs := targs !,
+    
+    break is `nabl2-conc-strings` of ("break-", s), // copy args
+    Strategy { break@s } <- s_mod,
+    Strategy { break@s }.sargs := sargs !,
+    Strategy { break@s }.targs := targs !,
+    
+    break_to_label is `nabl2-conc-strings` of ("break-to-label-", s), // copy args + 1 targ
+    break_to_label_targs is `nabl2-conc` of (targs, [ConstType(Sort("ATerm",[]))]),
+    Strategy { break_to_label@s } <- s_mod,
+    Strategy { break_to_label@s }.sargs := sargs !,
+    Strategy { break_to_label@s }.targs := break_to_label_targs !,
+    
+    chain is `nabl2-conc-strings` of ("chain-", s), // copy args
+    Strategy { chain@s } <- s_mod,
+    Strategy { chain@s }.sargs := sargs !,
+    Strategy { chain@s }.targs := targs !,
+    
+    continue is `nabl2-conc-strings` of ("continue-", s), // copy args
+    Strategy { continue@s } <- s_mod,
+    Strategy { continue@s }.sargs := sargs !,
+    Strategy { continue@s }.targs := targs !,
+    
+    continue_to_label is `nabl2-conc-strings` of ("continue-to-label-", s), // copy args + 1 targ
+    Strategy { continue_to_label@s } <- s_mod,
+    Strategy { continue_to_label@s }.sargs := sargs !,
+    Strategy { continue_to_label@s }.targs := break_to_label_targs !,
+    
+    fold is `nabl2-conc-strings` of ("fold-", s), // 1 sarg + copy args
+    Strategy { fold@s } <- s_mod,
+    Strategy { fold@s }.sargs := fold_sargs !,
+    Strategy { fold@s }.targs := targs !,
+    
+    innermost_scope is `nabl2-conc-strings` of ("innermost-scope-", s), // 1 sarg
+    Strategy { innermost_scope@s } <- s_mod,
+    Strategy { innermost_scope@s }.sargs := [FunType([ConstType(Sort("ATerm", []))], ConstType(Sort("ATerm", [])))] !,
+    Strategy { innermost_scope@s }.targs := [] !,
+    
+    once is `nabl2-conc-strings` of ("once-", s), // copy args
+    Strategy { once@s } <- s_mod,
+    Strategy { once@s }.sargs := sargs !,
+    Strategy { once@s }.targs := targs !,
+    
+    reverse_bagof is `nabl2-conc-strings` of ("reverse-bagof-", s), // copy args + 1 sarg
+    reverse_bagof_sargs is `nabl2-conc` of (sargs, [FunType([ConstType(Sort("List", [SortVar("t")]))], ConstType(Sort("List", [SortVar("t")])))]),
+    Strategy { reverse_bagof@s } <- s_mod,
+    Strategy { reverse_bagof@s }.sargs := reverse_bagof_sargs !,
+    Strategy { reverse_bagof@s }.targs := targs !,
+    
+    throw is `nabl2-conc-strings` of ("throw-", s), // copy args + 1 sarg + 1 targ
+    throw_sargs is `nabl2-conc` of (sargs, [FunType([ConstType(Sort("", [SortVar("t"), SortVar("t")]))], ConstType(Sort("", [SortVar("t"), SortVar("t")])))]),
+    throw_targs is `nabl2-conc` of (targs, [ConstType(SortVar("t"))]),
+    Strategy { throw@s } <- s_mod,
+    Strategy { throw@s }.sargs := throw_sargs !,
+    Strategy { throw@s }.targs := throw_targs !,
+    
+    undefine is `nabl2-conc-strings` of ("undefine-", s), // 1 targ
+    Strategy { undefine@s } <- s_mod,
+    Strategy { undefine@s }.sargs := [] !,
+    Strategy { undefine@s }.targs := [ConstType(Sort("ATerm", []))] !.

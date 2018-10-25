@@ -1,0 +1,15 @@
+module stratego/sugar/signatures
+
+rules
+
+rules // sorts
+
+  Sort [[ SortList(sorts) ^ (s_mod)  ]].
+  Sort [[ SortListTl(sorts, sort) ^ (s_mod)  ]].
+  Sort [[ SortTuple(sorts) ^ (s_mod)  ]].
+
+rules // sort references
+
+  SortRef [[ SortList(sorts) ^ (s_mod) : _ ]].
+  SortRef [[ SortListTl(sorts, sort) ^ (s_mod) : _ ]].
+  SortRef [[ SortTuple(sorts) ^ (s_mod) : _ ]].

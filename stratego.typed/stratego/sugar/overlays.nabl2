@@ -1,0 +1,18 @@
+module stratego/sugar/overlays
+imports
+  stratego/sugar/terms
+
+rules
+  Overlay [[ OverlayNoArgs(o, t) ^ (s_mod) ]] :=
+    Op { o } <- s_mod,
+    Term [[ t ^ (s_mod) : _ ]] . // : t ]].
+
+  Overlay [[ Overlay(o, targs, t) ^ (s_mod) ]] :=
+    Op { o } <- s_mod,
+    new s_ol,
+    s_ol -P-> s_mod,
+    Map1(OverlayArg) [[ targs ^ (s_ol) ]],
+    Term [[ t ^ (s_ol) : _ ]].
+
+  OverlayArg [[ t ^ (s_ol) ]] :=
+    Variable { t } <- s_ol.

@@ -4,6 +4,7 @@ imports signatures/StrategoTyped-sig
 imports libstrc
 imports misc
 imports dr-scoping
+imports scopes
 imports rename-defs2
 
 overlays
@@ -32,7 +33,7 @@ strategies
     with id
       ; (imps, defs') := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
+      ; decls := <remove-analysis-constructs;strip-annos;frontend-sep-comp> Specification(defs')
       ; <map((id, try(prepare-decl-body)); store-decl(|project-path, m))> decls
       ; <map(?(_, <try(prepare-decl)>))
         ;store-defs(|project-path, m)> decls

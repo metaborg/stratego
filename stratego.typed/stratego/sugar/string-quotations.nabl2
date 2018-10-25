@@ -1,0 +1,35 @@
+module stratego/sugar/string-quotations
+
+rules
+
+  PreTerm [[ StringQuotation1(_, parts) ^ (s_str) : ConstType(Sort("String",[]))]] :=
+    Map1(StringQPart) [[ parts ^ (s_str) ]].
+
+  PreTerm [[ StringQuotation2(_, parts) ^ (s_str) : ConstType(Sort("String",[])) ]] :=
+    Map1(StringQPart) [[ parts ^ (s_str) ]].
+
+  PreTerm [[ StringQuotation3(_, parts) ^ (s_str) : ConstType(Sort("String",[])) ]] :=
+    Map1(StringQPart) [[ parts ^ (s_str) ]].
+
+  PreTerm [[ StringQuotation4(_, parts) ^ (s_str) : ConstType(Sort("String",[])) ]] :=
+    Map1(StringQPart) [[ parts ^ (s_str) ]].
+
+  StringQPart [[ StringEscape1(_,t) ^ (s_str) ]] :=
+    Term [[ t ^ (s_str) : _ ]] , // : ty ]],
+    ty == ConstType(Sort("String",[])) | warning $[Cannot prove this is a string] @ t.
+
+  StringQPart [[ StringEscape2(_,t) ^ (s_str) ]] :=
+    Term [[ t ^ (s_str) : _ ]] , // : ty ]],
+    ty == ConstType(Sort("String",[])) | warning $[Cannot prove this is a string] @ t.
+
+  StringQPart [[ StringEscape3(_,t) ^ (s_str) ]] :=
+    Term [[ t ^ (s_str) : _ ]] , // : ty ]],
+    ty == ConstType(Sort("String",[])) | warning $[Cannot prove this is a string] @ t.
+
+  StringQPart [[ StringEscape4(_,t) ^ (s_str) ]] :=
+    Term [[ t ^ (s_str) : _ ]] , // : ty ]],
+    ty == ConstType(Sort("String",[])) | warning $[Cannot prove this is a string] @ t.
+
+  StringQPart [[ QStr(_) ^ (s_str) ]].
+  StringQPart [[ QDollar(_) ^ (s_str) ]].
+  StringQPart [[ QBr(_) ^ (s_str) ]].

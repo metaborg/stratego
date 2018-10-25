@@ -18,8 +18,16 @@ menus
   
   menu: "Syntax" (openeditor)
     
-    action: "Format"          = editor-format (source)
-    action: "Show parsed AST" = debug-show-aterm (source)
+    action: "Format"            = editor-format (source)
+    action: "Show parsed AST"   = debug-show-aterm (source)
+    action: "Show prepared AST" = debug-prepared-aterm (source)
+  
+  menu: "Analysis" (openeditor)
+    action: "Show analyzed AST" = debug-show-analyzed
+  
+  menu: "Compile" (openeditor)
+    
+    action: "Compile"         = compile-module-builder (source)
 
 views
   

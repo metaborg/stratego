@@ -3,10 +3,17 @@ module analysis
 imports nabl2/api
 imports static-semantics
 imports pp
+imports scopes
 
 rules // Analysis
 
-  editor-analyze = nabl2-analyze(id)
+  editor-analyze = prepare-ast; nabl2-analyze(id)
+
+  prepare-ast = introduce-implicit-scopes; resolve-default-scopes
+
+  nabl2-length = length
+  nabl2-conc = conc
+  nabl2-conc-strings = conc-strings
 
 rules // Debugging
   
@@ -14,6 +21,11 @@ rules // Debugging
   debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"aterm")> path
        ; result   := selected
+  
+  // Prints the abstract syntax ATerm of a selection.
+  debug-prepared-aterm: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"aterm")> path
+       ; result   := <prepare-ast> selected
 
   // Prints the analyzed annotated abstract syntax ATerm of a selection.
   debug-show-analyzed: (selected, _, _, path, project-path) -> (filename, result)
