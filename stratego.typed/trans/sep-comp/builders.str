@@ -1,0 +1,18 @@
+module sep-comp/builders
+
+imports
+
+  sep-comp/compile
+
+rules
+
+  clean-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with <clean-module(|project-path)> node
+
+  compile-module-builder:
+    (node, _, _, path, project-path) -> ()
+    with
+      clean-module-builder
+    ; filename := <guarantee-extension(|"comp.aterm")> path
+    ; result   := <compile-module(|project-path)> node
