@@ -1,4 +1,4 @@
-module scopes
+module analysis/scopes
 
 imports signatures/stratego/core/-
 imports signatures/stratego/sugar/-

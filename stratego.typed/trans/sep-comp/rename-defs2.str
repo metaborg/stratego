@@ -1,4 +1,4 @@
-module rename-defs2
+module sep-comp/rename-defs2
 
 imports libstrc
 imports libspoofax/term/annotation

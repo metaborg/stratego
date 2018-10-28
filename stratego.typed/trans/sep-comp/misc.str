@@ -1,0 +1,10 @@
+module sep-comp/misc
+
+rules
+
+  src-gen-file(|project-path, sub-dir, ext): name -> file-name
+  with src-gen-dir := <src-gen-dir(|project-path, sub-dir)>;
+       file-name := $[[src-gen-dir]/[name][ext]]
+
+  src-gen-dir(|project-path, sub-dir): _ -> dir
+  with dir := $[[project-path]/src-gen/[sub-dir]]

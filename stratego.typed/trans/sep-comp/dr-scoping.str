@@ -1,7 +1,7 @@
 /**
  * @author Lennart Kats
  */
-module dr-scoping
+module sep-comp/dr-scoping
 
 imports
   libstratego-lib

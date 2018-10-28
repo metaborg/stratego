@@ -1,11 +1,11 @@
-module compile
+module sep-comp/compile
 
 imports signatures/StrategoTyped-sig
 imports libstrc
-imports misc
-imports dr-scoping
-imports scopes
-imports rename-defs2
+imports sep-comp/misc
+imports sep-comp/dr-scoping
+imports sep-comp/rename-defs2
+imports analysis/scopes
 
 overlays
 
