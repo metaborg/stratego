@@ -2,14 +2,70 @@ module outline
 
 imports
   
-  signatures/StrategoTyped-sig
+  signatures/stratego/core/-
+  signatures/stratego/sugar/-
   libspoofax/editor/outline
+  libspoofax/term/origin
 
 rules
   
   editor-outline:
     (_, _, ast, path, project-path) -> outline
     where
-      outline := <simple-label-outline(to-outline-label)> ast
+      outline := <custom-label-outline(strt--to-outline-label, strt--to-outline-node)> ast
   
-  to-outline-label = fail
+  strt--icon-module = !"icons/module.png"
+  strt--icon-exports = !"icons/exports.png"
+  strt--icon-rule = !"icons/rule.png"
+  
+  strt--to-outline-label: m@Module(name, _) -> <origin-location-offset-set(|<origin-location-offset> m);add-annotation(|<strt--icon-module>)> name
+  strt--to-outline-label: Specification(_) -> "specification"{<strt--icon-module>}
+  
+  strt--to-outline-label: Imports(_) -> "imports"{<strt--icon-exports>}
+  strt--to-outline-label: Import(m) -> m
+  
+  strt--to-outline-label: Overlays(_) -> "overlays"{<strt--icon-exports>}
+  strt--to-outline-label: d@OverlayNoArgs(o, _) -> o
+  strt--to-outline-label: d@Overlay(o, _, _) -> o
+  
+  strt--to-outline-node: r@Rules(defs) -> Node(<origin-set-relation;add-annotation(|<strt--icon-exports>)> (r, "rules"), <strt--defs-to-outline-nodes> defs)
+  strt--def-to-outline-label: d@RDefNoArgs(r, _)          -> <strt--fix-origin(|d)> r
+  strt--def-to-outline-label: d@RDef(r, sarg*, _)         -> <strt--fix-origin(|d)> ${{r}({<origin-text> sarg*})}
+  strt--def-to-outline-label: d@RDefT(r, sarg*, targ*, _) -> <strt--fix-origin(|d)> ${{r}({<origin-text> sarg*}|{<origin-text> targ*})}
+
+  strt--to-outline-node: s@Strategies(defs) -> Node(<origin-set-relation;add-annotation(|<strt--icon-exports>)> (s, "strategies"), <strt--defs-to-outline-nodes> defs)
+  strt--def-to-outline-label: d@SDefNoArgs(s, _)          -> <strt--fix-origin(|d)> s
+  strt--def-to-outline-label: d@SDef(s, sarg*, _)         -> <strt--fix-origin(|d)> ${{s}({<origin-text> sarg*})}
+  strt--def-to-outline-label: d@SDefT(s, sarg*, targ*, _) -> <strt--fix-origin(|d)> ${{s}({<origin-text> sarg*}|{<origin-text> targ*})}
+  
+  strt--defs-to-outline-nodes: def* -> node*
+  with label* := <map(strt--def-to-outline-label;add-annotation(|<strt--icon-rule>))> def*
+     ; node* := <foldr(![], strt--dton-1);map(strt--dton-2)> label*
+  
+  strt--dton-1: (l, acc) -> <at-suffix(?[ l*@[l|_] | <id> ]);![[l|l*]|<id>]> acc
+  strt--dton-1: (l, acc) -> [[l] | acc]
+  strt--dton-2: [h|t] -> Node(h, <map(!Node(<id>, []))> t)
+  
+  strt--to-outline-label: Signature(_) -> "signatures"{<strt--icon-exports>}
+  
+  strt--to-outline-label: Sorts(_) -> "sorts"{<strt--icon-exports>}
+  strt--to-outline-node = ?Sort(_, _); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?SortNoArgs(_); origin-track-forced(origin-text); !Node(<id>, [])
+  
+  strt--to-outline-label: Constructors(_) -> "constructors"{<strt--icon-exports>}
+  strt--to-outline-node = ?OpDecl(_, _); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?OpDeclQ(_, _); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?OpDeclInj(_); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?ExtOpDecl(_, _); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?ExtOpDeclQ(_, _); origin-track-forced(origin-text); !Node(<id>, [])
+  strt--to-outline-node = ?ExtOpDeclInj(_); origin-track-forced(origin-text); !Node(<id>, [])
+  
+  strt--fix-origin(|rule): label -> <origin-location-offset-set(|(a, b, c, d, <add; dec> (d, <string-length> origin)))>
+  where id
+  ; (a, b, c, d, _) := <origin-location-offset> rule
+  ; origin := <!rule
+              ; origin-text
+              ; string-as-chars(
+  	              take-while(not(?':' + ?'='))
+  	            ; rtrim(is-whitespace + ?'\n')
+  	            )>
