@@ -7,8 +7,10 @@ imports signatures/stratego/core/strategies-sig
 rules
 
   SVar [[ SVar(s) ^ (s_str) : d ]] :=
-    Strategy { s } -> s_str,
-    Strategy { s } |-> d.
+    Strategy { s } -> s_str.
+    // Note that we don't resolve here as that will result in errors on ambiguous resolution
+    // Instead we have a custom final hook that generates resolution errors on def-not-found only
+    // Strategy { s } |-> d. 
 
   Strategy [[ Let(defs, body) ^ (s_str, s_mod) ]] :=
     new s_let,

@@ -4,6 +4,7 @@ imports nabl2/api
 imports static-semantics
 imports pp
 imports analysis/scopes
+imports analysis/unresolved-name
 
 rules // Analysis
 
@@ -14,6 +15,14 @@ rules // Analysis
   nabl2-length = length
   nabl2-conc = conc
   nabl2-conc-strings = conc-strings
+
+  nabl2-custom-analysis-final-hook(|a):
+      (resource, custom-initial-result, custom-unit-results) -> (errors, warnings, notes, custom-final-result)
+    with nabl2-custom-analysis-info-msg(|"Custom final analysis step");
+         custom-final-result := a;
+         errors   := <unresolved-names(|a)>;
+         warnings := [];
+         notes    := []
 
 rules // Debugging
   

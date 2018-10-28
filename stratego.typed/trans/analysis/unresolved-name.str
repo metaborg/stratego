@@ -1,0 +1,14 @@
+module analysis/unresolved-name
+
+imports
+
+signatures/-
+
+nabl2/api
+
+rules
+
+unresolved-names(|a) = 
+  nabl2-get-all-refs(|a)
+; retain-all(where(nabl2-get-resolved-names(|a);?[]))
+; map(!(<nabl2-get-occurrence-name>, ${Cannot resolve {<nabl2-get-occurrence-name>}}))

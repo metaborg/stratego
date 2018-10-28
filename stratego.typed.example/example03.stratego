@@ -1,0 +1,9 @@
+module example03
+
+imports
+
+example01
+
+rules
+
+ola = ?a; id; !a
