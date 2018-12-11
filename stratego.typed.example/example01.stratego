@@ -5,7 +5,7 @@ signature
   constructors
     Var  : String -> Exp 
     Int  : Int -> Exp
-    Plus : Exp * Exp -> Exp  
+    Plus : Exp * Exp -> Exp
     
 rules
 
@@ -16,4 +16,3 @@ rules
   hi = {|hello: ?s; rules(hello : Int(s) -> <dec> s)|}
   
   eval = Int(id)
-  
