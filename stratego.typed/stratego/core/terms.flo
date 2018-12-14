@@ -24,11 +24,11 @@ control-flow rules
 
 functions
   patternVars(pattern: Term) = match pattern with
-    | Var(n) => { n }
-    | Anno(t, a) => patternVars(t) \/ patternVars(a)
-    | As(v, t) => patternVars(v) \/ patternVars(t)
-    | Op(_, ts) => patternVars(ts)
-    | OpQ(_, ts) => patternVars(ts)
-    | Explode(c, t) => patternVars(c) \/ patternVars(t)
-    | Cons(h, t) => patternVars(h) \/ patternVars(t)
+    | Var(n0) => { n0 }
+    | Anno(t1, a) => patternVars(t1) \/ patternVars(a)
+    | As(v0, t2) => patternVars(v0) \/ patternVars(t2)
+    | Op(_, ts1) => patternVars(ts1)
+    | OpQ(_, ts2) => patternVars(ts2)
+    | Explode(c0, t3) => patternVars(c0) \/ patternVars(t3)
+    | Cons(h0, t4) => patternVars(h0) \/ patternVars(t4)
     | _ => {}

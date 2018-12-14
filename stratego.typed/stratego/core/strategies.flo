@@ -102,11 +102,11 @@ property rules
   reachingDefinitions(prev -> v@VarDec(n, _)) =
     reachingDefinitions(prev) \/ {(n, Some(position(v)))}
 
-  reachingDefinitions(prev -> m@Match(t)) =
+  reachingDefinitions(prev -> m@Match(pattern)) =
     { (n, p) | (n, p) <- rdprev, !(n in pv && p == None()) }
     \/ { (nm, Some(position(m))) | nm <- pv, (nm, None()) in rdprev }
   where rdprev = reachingDefinitions(prev)
-        pv = patternVars(t)
+        pv = patternVars(pattern)
 
   reachingDefinitions(prev -> Scope(names, _)) =
     reachingDefinitions(prev) \/ { (n, None()) | n <- Set.fromList(names) }
