@@ -1,0 +1,27 @@
+module annotate-bound-unbound
+
+imports
+
+  flowspec/api
+  signatures/stratego/core/-
+  flowspec/stratego/core/strategies
+  libspoofax/stratego/debug
+
+strategies
+
+  annotate-bound-unbound(|a) = topdown(try(abu(|a)))
+
+  abu(|a): v@Var(n) -> Var(n){anno}
+  where debug1;
+    rd-set := <flowspec-get-property-post(|a, flowspec-prop-reachingDefinitions());debug2> v
+  ; n' := n{}
+  ; relevant := <flowspec-set-lookup(!<id>{};?n');debug3> rd-set
+  ; if [single] := relevant
+    then
+      if None() := single
+      then anno := "unbound"
+      else anno := "bound"
+      end
+    else
+      anno := "(un)bound"
+    end
