@@ -26,7 +26,7 @@ language:
     placeholder:
       prefix: "$"
   stratego:
-    format: ctree
+    format: jar
     args:
     - -la
     - stratego-lib
