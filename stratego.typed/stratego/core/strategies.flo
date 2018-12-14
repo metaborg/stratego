@@ -8,7 +8,7 @@ imports
 control-flow rules
 
   root SDefT(_, sargs, targs, body) =
-    start -> end//sargs -> targs -> body -> end
+    start -> sargs -> targs -> body -> end
 
   root ExtSDefInl(_, sargs, targs, body) =
     start -> sargs -> targs -> body -> end
@@ -54,7 +54,7 @@ control-flow rules
     entry -> t -> this -> exit
 
   Scope(_, body) =
-    entry -> body -> exit
+    entry -> this -> body -> exit
 
   Seq(first, second) =
     entry -> first -> second -> exit
@@ -81,8 +81,8 @@ control-flow rules
 
   node ImportTerm(_)
 
-// *  This is a hack. It adds conditionally executing strategies that are strategy arguments,
-//    but for interpreter-like analyses the "current term" would be wrong and multiple strategy
+// *  This adds conditionally executing strategies that are strategy arguments. For interpreter-like
+//    analyses you would need more context for the "current term" and multiple strategy
 //    arguments are not guaranteed to be executed either not at all or all once. For now it's
 //    easier to this than to figure out some way to express the effect in user defined functions
 //    on the this node of these calls.
@@ -103,9 +103,10 @@ property rules
     reachingDefinitions(prev) \/ {(n, Some(position(v)))}
 
   reachingDefinitions(prev -> m@Match(t)) =
-    { (n, p) | (n, p) <- reachingDefinitions(prev), !(n in pv) }
-    \/ { (nm, Some(position(m))) | nm <- pv }
-  where pv = patternVars(t)
+    { (n, p) | (n, p) <- rdprev, !(n in pv && p == None()) }
+    \/ { (nm, Some(position(m))) | nm <- pv, (nm, None()) in rdprev }
+  where rdprev = reachingDefinitions(prev)
+        pv = patternVars(t)
 
-  reachingDefinitions(prev -> Scope(names, _).entry) =
-    reachingDefinitions(prev) \/ { (n, None()) | n <- names }
+  reachingDefinitions(prev -> Scope(names, _)) =
+    reachingDefinitions(prev) \/ { (n, None()) | n <- Set.fromList(names) }
