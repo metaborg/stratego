@@ -25,7 +25,7 @@ control-flow rules
 functions
   patternVars(pattern: Term) = match pattern with
     | Var(n0) => { n0 }
-    | Anno(t1, a) => patternVars(t1) \/ patternVars(a)
+    | Anno(t1, a0) => patternVars(t1) \/ patternVars(a0)
     | As(v0, t2) => patternVars(v0) \/ patternVars(t2)
     | Op(_, ts1) => patternVars(ts1)
     | OpQ(_, ts2) => patternVars(ts2)
