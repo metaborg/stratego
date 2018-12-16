@@ -31,7 +31,7 @@ rules // Analysis
        ; notes := []
      )
 
-  benchmark-flowspec-analysis: (ast, a) -> ast''
+  benchmark-flowspec-analysis: (ast, a) -> ast
   where
     ast' := <nabl2--index-ast(|"benchmarking")> ast
   ; a' := <flowspec-analyze(|a)> ast'
