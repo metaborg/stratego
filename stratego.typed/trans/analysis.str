@@ -31,16 +31,12 @@ rules // Analysis
        ; notes := []
      )
 
-  benchmark-flowspec-analysis: (ast, a) -> ast
-  where
-    ast' := <nabl2--index-ast(|"benchmarking")> ast
-  ; a' := <flowspec-analyze(|a)> ast'
+  benchmark-flowspec-analysis: (ast, a) -> <flowspec-analyze(|a)> ast
   
-  test-flowspec-analysis: (ast, a) -> <nabl2-erase-ast-indices> ast''
+  test-flowspec-analysis: (ast, a) -> <nabl2-erase-ast-indices> ast'
   where
-    ast' := <nabl2--index-ast(|"benchmarking")> ast
-  ; a' := <flowspec-analyze(|a)> ast'
-  ; ast'' := <annotate-bound-unbound(|a')> ast'
+    a' := <flowspec-analyze(|a)> ast
+  ; ast' := <annotate-bound-unbound(|a')> ast
 
   collect-in-build(s|a) = collect-all(?Build(<id>); collect-all(s, conc), conc); concat
 
