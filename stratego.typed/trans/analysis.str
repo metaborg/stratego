@@ -38,6 +38,8 @@ rules // Analysis
     a' := <flowspec-analyze(|a)> ast
   ; ast' := <annotate-bound-unbound(|a')> ast
 
+  benchmark-flowspec-cfg-create: (ast, a) -> <flowspec--create-cfg(flowspec--register-cfg-toplevel|a)> ast
+
   collect-in-build(s|a) = collect-all(?Build(<id>); collect-all(s, conc), conc); concat
 
   unbound-var(|a): v@Var(_) -> (v, "Variable is unbound")
