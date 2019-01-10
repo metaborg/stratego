@@ -32,6 +32,10 @@ rules // Analysis
      )
 
   benchmark-flowspec-analysis: (ast, a) -> <flowspec-analyze(|a)> ast
+
+  benchmark-flowspec-analysis2: (ast, a) -> result
+  where cfg := <flowspec--create-cfg(flowspec--register-cfg-toplevel|a)> ast
+      ; result := <flowspec--solve(|cfg, <flowspec--prop-names>)> ast
   
   test-flowspec-analysis: (ast, a) -> <nabl2-erase-ast-indices> ast'
   where
