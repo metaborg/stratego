@@ -39,7 +39,12 @@ rules // Analysis
   
   test-flowspec-analysis: (ast, a) -> <nabl2-erase-ast-indices> ast'
   where
-    a' := <flowspec-analyze(|a)> ast
+    a' := <benchmark-flowspec-analysis> (ast, a)
+  ; ast' := <annotate-bound-unbound(|a')> ast
+
+  test-flowspec-analysis2: (ast, a) -> <nabl2-erase-ast-indices> ast'
+  where
+    a' := <benchmark-flowspec-analysis2> (ast, a)
   ; ast' := <annotate-bound-unbound(|a')> ast
 
   benchmark-flowspec-cfg-create: (ast, a) -> <flowspec--create-cfg(flowspec--register-cfg-toplevel|a)> ast
