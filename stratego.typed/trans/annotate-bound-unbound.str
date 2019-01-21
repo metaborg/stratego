@@ -16,6 +16,7 @@ strategies
     rd-set := <flowspec-get-property-post(|a, flowspec-prop-reachingDefinitions());debug2> v
   ; n' := n{}
   ; relevant := <flowspec-set-lookup(!<id>{};?n');debug3> rd-set
+  ; not([] := relevant)
   ; if [single] := relevant
     then
       if None() := single
