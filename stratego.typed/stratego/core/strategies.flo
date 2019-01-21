@@ -84,10 +84,10 @@ control-flow rules
 // *  This adds conditionally executing strategies that are strategy arguments. For interpreter-like
 //    analyses you would need more context for the "current term" and multiple strategy
 //    arguments are not guaranteed to be executed either not at all or all once. For now it's
-//    easier to this than to figure out some way to express the effect in user defined functions
+//    easier to do this than to figure out some way to express the effect in user defined functions
 //    on the this node of these calls.
 
-// ** Note how c is not in executed before e as that part is backtracked. It would be interesting
+// ** Note how c is not executed before e as that part is backtracked. It would be interesting
 //    to find a way to model that the part was executed and backtracked which preserves
 //    side-effects but not binding and current term effects.
 
