@@ -12,17 +12,17 @@ strategies
   annotate-bound-unbound(|a) = topdown(try(abu(|a)))
 
   abu(|a): v@Var(n) -> Var(n){anno}
-  where debug1;
-    rd-set := <flowspec-get-property-post(|a, flowspec-prop-reachingDefinitions());debug2> v
+  where
+    rd-set := <flowspec-get-property-post(|a, flowspec-prop-reachingDefinitions())> v
   ; n' := n{}
-  ; relevant := <flowspec-set-lookup(!<id>{};?n');debug3> rd-set
+  ; relevant := <flowspec-set-lookup(!<id>{};?n')> rd-set
   ; not([] := relevant)
-  ; if [single] := relevant
+  ; if <getfirst(?None())> relevant
     then
-      if None() := single
-      then anno := "unbound"
-      else anno := "bound"
+      if <getfirst(?Some(_))> relevant
+      then anno := "(un)bound"
+      else anno := "unbound"
       end
     else
-      anno := "(un)bound"
+      anno := "bound"
     end
