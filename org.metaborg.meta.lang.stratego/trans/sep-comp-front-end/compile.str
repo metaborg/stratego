@@ -27,15 +27,16 @@ strategies
 strategies
 
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> decls, <mapconcat(?Imports(<id>))> imps)
+    Module(m, defs) -> (m, <map(Fst)> defs3, <mapconcat(?Imports(<id>))> imps, constrs, <map(Fst)> olays)
     with id
-      ; (imps, defs') := <partition(?Imports(_))> defs
+      ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; decls := <strip-annos;frontend-sep-comp> Specification(defs')
-      ; combined-decls := <combine-decls> decls
-      ; <map(store-decls(|project-path, project-name, m))> combined-decls
-      ; <map(?(_, <prepare-decl>))
-        ;store-defs(|project-path, project-name, m)> decls
+      ; (defs3, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
+      ; combined-defs := <combine-defs> defs3
+      ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
+      ; <map(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
+      ; constrs := <map(?(_, <extract-used-constructors>))> combined-defs
+      ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
   clean-and-compile-module: (project-path, project-name, ast) -> result
   with
@@ -47,41 +48,36 @@ rules
   // Rename the arguments and body to something short, we just need a stub that the compiler
   //  accepts for generating the InteropRegistrer
 
-  prepare-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
-  prepare-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
+  def-to-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
+  def-to-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
+
+  extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]]\)
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
 
 rules
 
-  combine-decls: decls -> <combine-decls(|[])> decls
+  combine-defs: decls -> <combine-defs(|[])> decls
 
-  combine-decls(|combined): [] -> combined
-  combine-decls(|combined): [(name, sdeft)|decls] -> <combine-decls(|combined')> decls
+  combine-defs(|combined): [] -> combined
+  combine-defs(|combined): [(name, sdeft)|decls] -> <combine-defs(|combined')> decls
   with
     combined' := <one((?name, ![sdeft|<id>])) <+ ![(name, [sdeft])|<id>]> combined
 
-  // Rename the arguments to the strategy to predictable names used by the middle-end strategy
-  //  packing tool.
-//  prepare-decl-body:
-//    s@SDefT(_, svars, tvars, _) -> body
-//    with id
-//      ; new-svars := <let apply(|i) = !SVar($[svar_[i]]) in nmap(apply|0) end> svars
-//      ; new-tvars := <let apply(|i) = !Var($[tvar_[i]]) in nmap(apply|0) end> tvars
-//      ; body := <RenameDefinition(|new-svars, new-tvars)> s
+  store-combined-defs(|project-path, project-name, m):
+    (f, def*) -> <store-defs-comma-sep(|project-path, project-name, $[[LANGNAME()]/[f]], m)> def*
 
-  store-decls(|project-path, project-name, m):
-    (f, def*) -> file
-    with id
-      ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
-      ; d* := <separate-by(|", ")> def*
-      ; <WriteToFile(fprint)> (file, d*)
+  store-decls(|project-path, project-name, m) =
+    store-defs-comma-sep(|project-path, project-name, LANGNAME(), m)
 
-  store-defs(|project-path, project-name, m):
-    def* -> <id>
+  store-overlay(|project-path, project-name, m):
+    (f, def*) -> <store-defs-comma-sep(|project-path, project-name, $[[LANGNAME()]/overlays/[f]], m)> def*
+
+  store-defs-comma-sep(|project-path, project-name, base, m):
+    def* -> file
   with id
-    ; file := <module-src-gen-file(|project-path, LANGNAME(), ".aterm")> $[[project-name]&[m]]
+    ; file := <module-src-gen-file(|project-path, base, ".aterm")> $[[project-name]&[m]]
     ; d* := <separate-by(|", ")> def*
     ; <WriteToFile(fprint)> (file, d*)
 
@@ -106,25 +102,26 @@ strategies
           ; try(where(m-MkCongDef; m-add-def))
         )
 
-      // desugar and check overlays
-
-      ; m-transform-overlays(id
-          ; pre-desugar
-          ; check-overlay
-          ; try(DeclareVarToConst)
-        )
-
-      ; m-transform-overlays(id
-          ; m-variables-to-constructors-in-def
-          ; pre-desugar
-// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
-//          ; not(def-use-def)
-          ; not(check-where-with)
-          ; raise-annotations
-          ; GenerateCheckRule
-          ; DeclareExpandOverlay
-          ; where(Overlay-to-Congdef; m-add-def)
-        )
+// commented: moved to backend where we have access to all overlays
+//      // desugar and check overlays
+//
+//      ; m-transform-overlays(id
+//          ; pre-desugar
+//          ; check-overlay
+//          ; try(DeclareVarToConst)
+//        )
+//
+//      ; m-transform-overlays(id
+//          ; m-variables-to-constructors-in-def
+//          ; pre-desugar
+//// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
+////          ; not(def-use-def)
+//          ; not(check-where-with)
+//          ; raise-annotations
+//          ; GenerateCheckRule
+//          ; DeclareExpandOverlay
+//          ; where(Overlay-to-Congdef; m-add-def)
+//        )
 
 // commented: checks if used constructor with such an arity exists. Therefore needs global information
 //      ; m-transform-overlays(
@@ -150,7 +147,7 @@ strategies
             ; raise-annotations
 //            ; not(def-use-def)
 //            ; not(check-constructors)
-            ; expand-overlays-in-def
+//            ; expand-overlays-in-def
             ; rules-to-sdefs-def
             ; desugar-list-matching
             ; desugar-DefaultVarDec
@@ -205,7 +202,12 @@ strategies
     )
 //    ; where(id
 //      ; m-get-all-constructors
-//      ; map(!(<m-constr-signature;Fst>, <id>))
+//      ; map(!(<m-constr-signature>, <id>))
 //      ; ?constructor*
 //    )
-    ; ![localDef*]
+    ; where(id
+      ; m-get-all-overlays
+      ; map(!(<m-overlay-signature;!$[[<Fst>]_[<Snd>]]>, <id>))
+      ; ?overlay*
+    )
+    ; !(localDef*, overlay*)

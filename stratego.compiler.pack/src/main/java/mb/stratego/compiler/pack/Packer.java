@@ -13,73 +13,35 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.util.iterators.Iterables2;
+
 public class Packer {
-    private static final String SPEC_START = "Specification([Signature([Constructors([])]), Strategies([\n";
+    private static final String SPEC_START = "Specification([Signature([Constructors([])]), Overlays([\n";
+    private static final String SPEC_MIDDLE = "\n]), Strategies([\n";
     private static final String SPEC_END = "\n])])";
 
     /**
      * Packs StrategoCore strategy definitions in a directory into a single strategy definition in a file
      * 
-     * @param inputDir
+     * @param strategyDir
      *            Directory that only includes .aterm files with the strategy bodies
      * @param outputFile
      * @param strategyName
-     *            The strategy name to use for the strategy definition, expected to end with _a_b where a and b are the
-     *            number of strategy and term variables resp.
+     *            The strategy name to use for the strategy definition
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void packStrategy(Path inputDir, @Nullable Path outputFile, String strategyName) throws IOException {
+    public static void packStrategy(Path strategyDir, @Nullable Path outputFile, String strategyName)
+        throws IOException {
         if(outputFile == null) {
-            outputFile = Paths.get(inputDir.getParent().getParent().toString(), "stratego.compiler.pack",
+            outputFile = Paths.get(strategyDir.getParent().getParent().toString(), "stratego.compiler.pack",
                 strategyName + ".ctree");
         }
-        try(Stream<Path> inputFiles = Files.list(inputDir).filter(relevantFiles(outputFile))) {
-            Iterable<Path> iterable = () -> inputFiles.iterator();
-            packStrategy(iterable, outputFile, strategyName);
+        try(Stream<Path> strategyFiles = Files.list(strategyDir).filter(relevantFiles(outputFile))) {
+            Iterable<Path> strategyIterable = () -> strategyFiles.iterator();
+            Iterable<Path> overlayIterable = Iterables2.empty();
+            packStrategy(overlayIterable, strategyIterable, outputFile);
         }
-    }
-
-    /**
-     * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
-     * 
-     * @param paths
-     *            Paths that only include .aterm files with the strategy bodies
-     * @param outputFile
-     * @param strategyName
-     *            The strategy name to use for the strategy definition, expected to end with _a_b where a and b are the
-     *            number of strategy and term variables resp.
-     * @throws IOException
-     *             When there is a file system problem
-     */
-    public static void packStrategy(Iterable<Path> paths, Path outputFile, String strategyName) throws IOException {
-        Files.createDirectories(outputFile.getParent());
-
-        // We use the nio.Channel API here because it is supposed to be the fastest way
-        // to append one file to another
-        // This may need to be changed when using this tool inside Spoofax, dealing with
-        // a virtual file system...
-        openFile: try(final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
-            write(outChannel, SPEC_START);
-
-            String next_line = "";
-            for(Path inputFile : paths) {
-                write(outChannel, next_line);
-                try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
-                    transferContents(inChannel, outChannel);
-                }
-                next_line = "\n,";
-            }
-            if(next_line == "") {
-                // When there are no relevant files, close the file
-                break openFile;
-            }
-            write(outChannel, SPEC_END);
-            return; // success
-        }
-        // Break to here when there are no relevant files; clean up incomplete file
-        Files.delete(outputFile);
     }
 
     /**
@@ -102,6 +64,63 @@ public class Packer {
     }
 
     /**
+     * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
+     * 
+     * @param strategyPaths
+     *            Paths that only include .aterm files with the strategy bodies
+     * @param outputFile
+     * @throws IOException
+     *             When there is a file system problem
+     */
+    public static void packStrategy(Iterable<Path> overlayPaths, Iterable<Path> strategyPaths, Path outputFile)
+        throws IOException {
+        Files.createDirectories(outputFile.getParent());
+
+        // We use the nio.Channel API here because it is supposed to be the fastest way
+        // to append one file to another
+        // This may need to be changed when using this tool inside Spoofax, dealing with
+        // a virtual file system...
+        openFile: try(final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            write(outChannel, SPEC_START);
+
+            String next_line = "";
+            for(Path inputFile : overlayPaths) {
+                write(outChannel, next_line);
+                try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                    transferContents(inChannel, outChannel);
+                }
+                next_line = "\n,";
+            }
+            if(next_line == "") {
+                // When there are no relevant files, close the file
+                break openFile;
+            }
+
+            write(outChannel, SPEC_MIDDLE);
+
+            next_line = "";
+            for(Path inputFile : strategyPaths) {
+                write(outChannel, next_line);
+                try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                    transferContents(inChannel, outChannel);
+                }
+                next_line = "\n,";
+            }
+            if(next_line == "") {
+                // When there are no relevant files, close the file
+                break openFile;
+            }
+
+            write(outChannel, SPEC_END);
+            return; // success
+        }
+        // Break to here when there are no relevant files; clean up incomplete file
+        Files.delete(outputFile);
+        throw new IOException("Input directory does not contain aterm files");
+    }
+
+    /**
      * Packs Strategy definitions of some paths into a single CTree definition in a file
      * 
      * @param paths
@@ -116,16 +135,17 @@ public class Packer {
         try(final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
             StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
             write(outChannel, SPEC_START);
+            write(outChannel, SPEC_MIDDLE);
 
             int num_defs = 0;
-            String next_line = "\n";
+            String next_line = "";
             for(Path inputFile : paths) {
                 num_defs++;
                 write(outChannel, next_line);
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
                     transferContents(inChannel, outChannel);
                 }
-                next_line = "\n,\n";
+                next_line = "\n,";
             }
             if(num_defs == 0) {
                 throw new IOException("Input directory does not contain aterm files");
