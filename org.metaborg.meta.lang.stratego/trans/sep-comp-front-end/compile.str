@@ -27,7 +27,7 @@ strategies
 strategies
 
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> defs3, <mapconcat(?Imports(<id>))> imps, constrs, <map(Fst)> olays)
+    Module(m, defs) -> (m, <map(Fst)> combined-defs, <mapconcat(?Imports(<id>))> imps, constrs, <map(Fst)> olays)
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
@@ -51,7 +51,7 @@ rules
   def-to-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
   def-to-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
 
-  extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]]\)
+  extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
