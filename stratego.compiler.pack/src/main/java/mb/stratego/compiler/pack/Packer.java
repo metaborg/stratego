@@ -92,10 +92,6 @@ public class Packer {
                 }
                 next_line = "\n,";
             }
-            if(next_line == "") {
-                // When there are no relevant files, close the file
-                break openFile;
-            }
 
             write(outChannel, SPEC_MIDDLE);
 
