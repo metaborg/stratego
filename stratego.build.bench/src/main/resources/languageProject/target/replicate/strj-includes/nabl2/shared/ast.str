@@ -1,0 +1,35 @@
+module nabl2/shared/ast
+
+imports
+
+  libspoofax/term/origin
+  
+  signatures/nabl2/shared/common/-
+
+rules // ast indices
+
+  nabl2--index-ast(|source) =
+    prim("SG_index_ast", source)
+
+  nabl2--get-ast-index =
+    ?t ; prim("SG_get_ast_index") ; try(nabl2--copy-origin(|t))
+
+  nabl2--set-ast-index(|index) =
+    prim("SG_set_ast_index",index)
+
+  nabl2--copy-ast-index(|from) =
+    nabl2--set-ast-index(|<nabl2--get-ast-index> from)
+
+  nabl2--preserve-ast-index(s) =
+    ?t; s; try(nabl2--copy-ast-index(|t))
+
+  nabl2--erase-ast-indices =
+    prim("SG_erase_ast_indices")
+
+rules // origins
+
+  nabl2--copy-origin(|from) =
+    origin-location-offset-set(|<origin-location-offset> from)
+
+  nabl2--preserve-origin(s) =
+    ?t; s; nabl2--copy-origin(|t)

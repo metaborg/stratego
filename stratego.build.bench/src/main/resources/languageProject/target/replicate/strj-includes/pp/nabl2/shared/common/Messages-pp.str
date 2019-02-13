@@ -1,0 +1,325 @@
+module pp/nabl2/shared/common/Messages-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Messages-sig
+
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+imports
+  pp/nabl2/shared/common/AST-pp
+  pp/nabl2/shared/common/CTerms-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Message
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-MessageKind
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Message>
+    where <?"NaBL2-Message"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-MessageKind>
+    where <?"NaBL2-MessageKind"> sort
+
+  prettyprint-NaBL2-NaBL2-Message :
+    Message(t1__, t2__, t3__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [ S("| ")
+                                     , t1__'
+                                     , S(" ")
+                                     , t2__'
+                                     , t3__'
+                                     ]
+                                   )
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-MessageKind) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-MessageContent) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-MessagePosition) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-Message =
+    ?Message(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@Message(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Message"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@Message(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Message"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@Message(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Message"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    Error() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("error")]
+                 )
+               ]
+
+  is-NaBL2-NaBL2-MessageKind =
+    ?Error()
+
+  NaBL2-get-indent :
+    (t@Error(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Error(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Error(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    Warning() -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("warning")]
+                   )
+                 ]
+
+  is-NaBL2-NaBL2-MessageKind =
+    ?Warning()
+
+  NaBL2-get-indent :
+    (t@Warning(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Warning(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Warning(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    Note() -> [ H(
+                  [SOpt(HS(), "0")]
+                , [S("note")]
+                )
+              ]
+
+  is-NaBL2-NaBL2-MessageKind =
+    ?Note()
+
+  NaBL2-get-indent :
+    (t@Note(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Note(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Note(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-MessageKind"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Message =
+    fail
+
+  is-NaBL2-NaBL2-MessageKind =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Message :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Message> h
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-MessageKind> h
+
+  prettyprint-NaBL2-NaBL2-Message :
+    NaBL2-Message-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-Message")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-Message =
+    ?NaBL2-Message-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-MessageContent :
+    NaBL2-MessageContent-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-MessageContent")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-MessageContent =
+    ?NaBL2-MessageContent-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-MessagePosition :
+    NaBL2-MessagePosition-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-MessagePosition")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-MessagePosition =
+    ?NaBL2-MessagePosition-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    NaBL2-MessageKind-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-MessageKind")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-MessageKind =
+    ?NaBL2-MessageKind-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Message :
+    NaBL2-Message-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Message")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Message =
+    ?NaBL2-Message-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-MessageContent :
+    NaBL2-MessageContent-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-MessageContent")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-MessageContent =
+    ?NaBL2-MessageContent-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-MessagePosition :
+    NaBL2-MessagePosition-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-MessagePosition")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-MessagePosition =
+    ?NaBL2-MessagePosition-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-MessageKind :
+    NaBL2-MessageKind-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-MessageKind")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-MessageKind =
+    ?NaBL2-MessageKind-Plhdr(_)

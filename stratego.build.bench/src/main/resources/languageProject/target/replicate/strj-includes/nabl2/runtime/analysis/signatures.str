@@ -1,0 +1,36 @@
+module nabl2/runtime/analysis/signatures
+
+imports
+
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+
+rules // name resolution
+
+  nabl2--labels      = (nabl2--custom-labels <+ nabl2--default-labels); ![D()|<id>]
+  nabl2--label-order = nabl2--custom-label-order <+ nabl2--default-label-order
+  nabl2--labels-wf   = nabl2--custom-labels-wf <+ nabl2--default-labels-wf
+
+  nabl2--custom-labels  = fail
+  nabl2--default-labels = ![P(),I()]
+  
+  nabl2--custom-label-order  = fail
+  nabl2--default-label-order = ![
+    (D(),I()),
+    (D(),P()),
+    (I(),P())
+  ]
+  
+  nabl2--custom-labels-wf  = fail
+  nabl2--default-labels-wf = !Concat(Closure(P()),Closure(I()))
+
+rules
+
+  nabl2--relations = nabl2--custom-relations <+ nabl2--default-relations
+  nabl2--custom-relations = fail
+  nabl2--default-relations = ![(DefaultRelation(),[Reflexive(), AntiSymmetric(), Transitive()],[ListVariant(Covar(DefaultRelation()))])]
+
+rules
+
+  nabl2--functions = nabl2--custom-functions <+ ![]
+  nabl2--custom-functions = fail

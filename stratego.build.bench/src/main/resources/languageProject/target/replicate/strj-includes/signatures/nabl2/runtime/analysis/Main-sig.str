@@ -1,0 +1,10 @@
+module signatures/nabl2/runtime/analysis/Main-sig
+
+imports
+  signatures/nabl2/runtime/analysis/Debug-sig
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+signature
+  constructors
+    

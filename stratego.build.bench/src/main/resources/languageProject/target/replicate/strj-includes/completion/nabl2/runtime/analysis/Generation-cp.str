@@ -1,0 +1,76 @@
+module completion/nabl2/runtime/analysis/Generation-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ( "Params"
+                                       , Params(
+                                           <try(inline-completions(|NaBL2-AnalysisResult-Plhdr()))> NaBL2-CGenArgs-Plhdr()
+                                         )
+                                       )
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-CGenArgs-Plhdr() -> <add-completions(
+                               | ( "Params"
+                                 , Params(
+                                     <try(inline-completions(|NaBL2-CGenArgs-Plhdr()))> NaBL2-CGenParams-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-CGenArgs-Plhdr() -> <add-completions(
+                               | ( "ParamsAndType"
+                                 , ParamsAndType(
+                                     <try(inline-completions(|NaBL2-CGenArgs-Plhdr()))> NaBL2-CGenParams-Plhdr()
+                                   , <try(inline-completions(|NaBL2-CGenArgs-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-CGenParams" -> <is-left-recursive> "NaBL2-CGenArgs"
+    where <not(is-lexical-completion-sort)> "NaBL2-CGenParams"
+
+  is-right-recursive :
+    "NaBL2-CGenParams" -> <is-right-recursive> "NaBL2-CGenArgs"
+    where <not(is-lexical-completion-sort)> "NaBL2-CGenParams"
+
+  is-NaBL2-CGenArgs-completion-sort :
+    "NaBL2-CGenParams" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CGenArgs-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CGenParams-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()

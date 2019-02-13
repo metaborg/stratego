@@ -1,0 +1,61 @@
+module signatures/nabl2/shared/constraints/Namebinding-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+signature
+  constructors
+    CGDecl                      : NaBL2-Occurrence * NaBL2-Scope * NaBL2-MessagePosition -> NaBL2-Constraint
+    CGRef                       : NaBL2-Occurrence * NaBL2-Scope * NaBL2-MessagePosition -> NaBL2-Constraint
+    CResolve                    : NaBL2-CTerm * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    NaBL2-Occurrence-Plhdr      : NaBL2-Occurrence
+    NaBL2-Scope-Plhdr           : NaBL2-Scope
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-Constraint-Plhdr      : NaBL2-Constraint
+    NaBL2-CTerm-Plhdr           : NaBL2-CTerm
+    NaBL2-Message-Plhdr         : NaBL2-Message
+    NaBL2-Occurrence-Plhdr      : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-Scope-Plhdr           : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition
+    NaBL2-Constraint-Plhdr      : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-CTerm-Plhdr           : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Message-Plhdr         : COMPLETION-INSERTION -> NaBL2-Message
+    CGDirectEdge                : NaBL2-Scope * NaBL2-ELabel * NaBL2-Scope * NaBL2-MessagePosition -> NaBL2-Constraint
+    CGAssoc                     : NaBL2-Occurrence * NaBL2-NLabel * NaBL2-Scope * NaBL2-MessagePosition -> NaBL2-Constraint
+    CGNamedEdge                 : NaBL2-Occurrence * NaBL2-NLabel * NaBL2-Scope * NaBL2-MessagePosition -> NaBL2-Constraint
+    CAssoc                      : NaBL2-CTerm * NaBL2-NLabel * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    NaBL2-ELabel-Plhdr          : NaBL2-ELabel
+    NaBL2-Occurrence-Plhdr      : NaBL2-Occurrence
+    NaBL2-Scope-Plhdr           : NaBL2-Scope
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-Constraint-Plhdr      : NaBL2-Constraint
+    NaBL2-NLabel-Plhdr          : NaBL2-NLabel
+    NaBL2-CTerm-Plhdr           : NaBL2-CTerm
+    NaBL2-Message-Plhdr         : NaBL2-Message
+    NaBL2-ELabel-Plhdr          : COMPLETION-INSERTION -> NaBL2-ELabel
+    NaBL2-Occurrence-Plhdr      : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-Scope-Plhdr           : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition
+    NaBL2-Constraint-Plhdr      : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-NLabel-Plhdr          : COMPLETION-INSERTION -> NaBL2-NLabel
+    NaBL2-CTerm-Plhdr           : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Message-Plhdr         : COMPLETION-INSERTION -> NaBL2-Message
+                                : NaBL2-PathLabel -> NaBL2-ELabel
+                                : NaBL2-PathLabel -> NaBL2-NLabel
+    NaBL2-ELabel-Plhdr          : NaBL2-ELabel
+    NaBL2-NLabel-Plhdr          : NaBL2-NLabel
+    NaBL2-PathLabel-Plhdr       : NaBL2-PathLabel
+    NaBL2-ELabel-Plhdr          : COMPLETION-INSERTION -> NaBL2-ELabel
+    NaBL2-NLabel-Plhdr          : COMPLETION-INSERTION -> NaBL2-NLabel
+    NaBL2-PathLabel-Plhdr       : COMPLETION-INSERTION -> NaBL2-PathLabel
+    NAMETerm                    : NaBL2-CTerm
+    NAMEPosition                : NaBL2-MessagePosition
+    NaBL2-CTerm-Plhdr           : NaBL2-CTerm
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-CTerm-Plhdr           : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition
+                                : String -> NaBL2-Keyword

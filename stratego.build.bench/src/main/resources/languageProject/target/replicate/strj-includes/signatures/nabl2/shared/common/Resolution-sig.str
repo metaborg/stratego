@@ -1,0 +1,58 @@
+module signatures/nabl2/shared/common/Resolution-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+signature
+  constructors
+    Label                        : NaBL2-LabelId -> NaBL2-Label
+                                 : NaBL2-Label -> NaBL2-PathLabel
+                                 : NaBL2-BuiltinPathLabel -> NaBL2-PathLabel
+    P                            : NaBL2-BuiltinPathLabel
+    I                            : NaBL2-BuiltinPathLabel
+                                 : NaBL2-PathLabel -> NaBL2-AnyLabel
+                                 : NaBL2-BuiltinAnyLabel -> NaBL2-AnyLabel
+    D                            : NaBL2-BuiltinAnyLabel
+                                 : List(NaBL2-Step) -> NaBL2-Path
+    D                            : NaBL2-Scope * NaBL2-Occurrence -> NaBL2-Step
+    E                            : NaBL2-Scope * NaBL2-PathLabel -> NaBL2-Step
+    N                            : NaBL2-Scope * NaBL2-PathLabel * NaBL2-Occurrence * NaBL2-Path -> NaBL2-Step
+    NaBL2-LabelId-Plhdr          : NaBL2-LabelId
+    NaBL2-Label-Plhdr            : NaBL2-Label
+    NaBL2-BuiltinPathLabel-Plhdr : NaBL2-BuiltinPathLabel
+    NaBL2-AnyLabel-Plhdr         : NaBL2-AnyLabel
+    NaBL2-BuiltinAnyLabel-Plhdr  : NaBL2-BuiltinAnyLabel
+    NaBL2-Step-Plhdr             : NaBL2-Step
+    NaBL2-Scope-Plhdr            : NaBL2-Scope
+    NaBL2-PathLabel-Plhdr        : NaBL2-PathLabel
+    NaBL2-Occurrence-Plhdr       : NaBL2-Occurrence
+    NaBL2-Path-Plhdr             : NaBL2-Path
+    NaBL2-LabelId-Plhdr          : COMPLETION-INSERTION -> NaBL2-LabelId
+    NaBL2-Label-Plhdr            : COMPLETION-INSERTION -> NaBL2-Label
+    NaBL2-BuiltinPathLabel-Plhdr : COMPLETION-INSERTION -> NaBL2-BuiltinPathLabel
+    NaBL2-AnyLabel-Plhdr         : COMPLETION-INSERTION -> NaBL2-AnyLabel
+    NaBL2-BuiltinAnyLabel-Plhdr  : COMPLETION-INSERTION -> NaBL2-BuiltinAnyLabel
+    NaBL2-Step-Plhdr             : COMPLETION-INSERTION -> NaBL2-Step
+    NaBL2-Scope-Plhdr            : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-PathLabel-Plhdr        : COMPLETION-INSERTION -> NaBL2-PathLabel
+    NaBL2-Occurrence-Plhdr       : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-Path-Plhdr             : COMPLETION-INSERTION -> NaBL2-Path
+    NaBL2-Step-Opt-Plhdr         : NaBL2-Step
+    Empty                        : NaBL2-LabelRE
+    Epsilon                      : NaBL2-LabelRE
+                                 : NaBL2-PathLabel -> NaBL2-LabelRE
+    Closure                      : NaBL2-LabelRE -> NaBL2-LabelRE
+    Concat                       : NaBL2-LabelRE * NaBL2-LabelRE -> NaBL2-LabelRE
+    And                          : NaBL2-LabelRE * NaBL2-LabelRE -> NaBL2-LabelRE
+    Or                           : NaBL2-LabelRE * NaBL2-LabelRE -> NaBL2-LabelRE
+    Lt                           : NaBL2-AnyLabel * NaBL2-AnyLabel -> NaBL2-LabelOrder
+    NaBL2-PathLabel-Plhdr        : NaBL2-PathLabel
+    NaBL2-LabelRE-Plhdr          : NaBL2-LabelRE
+    NaBL2-LabelOrder-Plhdr       : NaBL2-LabelOrder
+    NaBL2-AnyLabel-Plhdr         : NaBL2-AnyLabel
+    NaBL2-PathLabel-Plhdr        : COMPLETION-INSERTION -> NaBL2-PathLabel
+    NaBL2-LabelRE-Plhdr          : COMPLETION-INSERTION -> NaBL2-LabelRE
+    NaBL2-LabelOrder-Plhdr       : COMPLETION-INSERTION -> NaBL2-LabelOrder
+    NaBL2-AnyLabel-Plhdr         : COMPLETION-INSERTION -> NaBL2-AnyLabel

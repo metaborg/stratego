@@ -1,0 +1,16 @@
+module completion/colorer/nabl2/shared/constraints/Main-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/constraints/AST-cc-esv
+  completion/colorer/nabl2/shared/constraints/Base-cc-esv
+  completion/colorer/nabl2/shared/constraints/Equality-cc-esv
+  completion/colorer/nabl2/shared/constraints/Functions-cc-esv
+  completion/colorer/nabl2/shared/constraints/Namebinding-cc-esv
+  completion/colorer/nabl2/shared/constraints/Polymorphism-cc-esv
+  completion/colorer/nabl2/shared/constraints/Properties-cc-esv
+  completion/colorer/nabl2/shared/constraints/Relations-cc-esv
+  completion/colorer/nabl2/shared/constraints/Sets-cc-esv
+  completion/colorer/nabl2/shared/constraints/Symbolic-cc-esv
+
+colorer
+  

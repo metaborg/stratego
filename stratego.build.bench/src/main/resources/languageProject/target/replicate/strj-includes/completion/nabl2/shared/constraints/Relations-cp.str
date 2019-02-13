@@ -1,0 +1,91 @@
+module completion/nabl2/shared/constraints/Relations-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Relations-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/Relations-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CBuildRel"
+                                   , CBuildRel(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-RelationBuildOp-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CCheckRel"
+                                   , CCheckRel(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-RelationCheckOp-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-FunctionRef-Plhdr() -> <suggest-completions(|completions)> NaBL2-RelationFunction-Plhdr()
+    where <not(is-expanded)> (NaBL2-FunctionRef-Plhdr(), NaBL2-RelationFunction-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-FunctionRef-Plhdr(), NaBL2-RelationFunction-Plhdr()) -> <id>
+            )
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-RelationFunction" -> <is-left-recursive> "NaBL2-FunctionRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-RelationFunction"
+
+  is-right-recursive :
+    "NaBL2-RelationFunction" -> <is-right-recursive> "NaBL2-FunctionRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-RelationFunction"
+
+  is-NaBL2-FunctionRef-completion-sort :
+    "NaBL2-RelationFunction" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-RelationBuildOp-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-RelationCheckOp-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-FunctionRef-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-RelationFunction-Plhdr()

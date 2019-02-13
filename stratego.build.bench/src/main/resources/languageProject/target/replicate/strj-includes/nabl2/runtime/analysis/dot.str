@@ -1,0 +1,99 @@
+module nabl2/runtime/analysis/dot
+
+imports
+
+  signatures/nabl2/runtime/analysis/Debug-sig
+  nabl2/runtime/pp
+
+rules
+
+scope-graph-to-dot: ScopeGraph(entries) ->
+$[digraph scope_graph {
+  layout=sfdp;
+  overlap=scale;
+  rankdir="BT";
+  [scopes]
+}] with scopes := <map(scope-to-dot);lines> entries
+
+rules
+
+scope-to-dot: Scope(scope, entries) ->
+$<
+  "<name>" [shape="ellipse"];
+  <edges-dot>
+  { rank="same";
+    <decls-dot>
+    <refs-dot>
+    <exports-dot>
+  }
+  {
+    <imports-dot>
+  }
+> with name := <pp-NaBL2-CTerm;escape> scope;
+       decls-dot := <filter(decls-to-dot(|name));lines> entries;
+       refs-dot  := <filter(refs-to-dot(|name));lines> entries;
+       edges-dot := <filter(edges-to-dot(|name));lines> entries;
+       exports-dot := <filter(exports-to-dot(|name));lines> entries;
+       imports-dot := <filter(imports-to-dot(|name));lines> entries
+
+rules
+
+decls-to-dot(|scope-name): Decls(entries) -> decls-dot
+  with decls-dot := <map(decl-to-dot(|scope-name));lines> entries
+
+decl-to-dot(|scope-name): Decl(decl, type) ->
+${
+  "{name}" [shape="box"];
+  "{scope-name}" -> "{name}";
+  {type-dot}
+} with name := <pp-NaBL2-CTerm;escape> decl;
+       type-dot := <decl-type-to-dot(|name)> type
+
+decl-type-to-dot(|decl-name): NoType() -> ""
+decl-type-to-dot(|decl-name): Type(type) ->
+${
+}
+
+rules
+
+refs-to-dot(|scope-name): Refs(entries) -> refs-dot
+  with refs-dot := <map(ref-to-dot(|scope-name));lines> entries
+
+ref-to-dot(|scope-name): Ref(ref) ->
+${
+  "{name}" [shape="box"];
+  "{name}" -> "{scope-name}";
+} with name := <pp-NaBL2-CTerm;escape> ref
+
+rules
+
+edges-to-dot(|scope-name): DirectEdges(entries) -> edges-dot
+  with edges-dot := <map(edge-to-dot(|scope-name));lines> entries
+
+edge-to-dot(|scope-name): DirectEdge(lbl, scope) ->
+${
+  "{scope-name}" -> "{name}" [label="{lbl'}"];
+} with lbl' := <pp-NaBL2-PathLabel;escape> lbl;
+       name := <pp-NaBL2-CTerm;escape> scope
+
+rules
+
+exports-to-dot(|scope-name): AssocEdges(entries) -> exports-dot
+  with exports-dot := <map(export-to-dot(|scope-name));lines> entries
+
+export-to-dot(|scope-name): AssocEdge(lbl, decl) ->
+${
+  "{name}" -> "{scope-name}" [label="{lbl'}",arrowhead="onormal"]
+} with lbl' := <pp-NaBL2-PathLabel;escape> lbl;
+       name := <pp-NaBL2-CTerm;escape> decl
+
+rules
+
+imports-to-dot(|scope-name): ImportEdges(entries) -> imports-dot
+  with imports-dot := <map(import-to-dot(|scope-name));lines> entries
+
+import-to-dot(|scope-name): ImportEdge(lbl, decl) ->
+${
+  "{scope-name}" -> "{name}" [label="{lbl'}",arrowhead="onormal",constraint="false"]
+} with lbl' := <pp-NaBL2-PathLabel;escape> lbl;
+       name := <pp-NaBL2-CTerm;escape> decl

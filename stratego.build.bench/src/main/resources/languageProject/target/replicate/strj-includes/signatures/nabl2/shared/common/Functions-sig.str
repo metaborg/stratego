@@ -1,0 +1,13 @@
+module signatures/nabl2/shared/common/Functions-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+signature
+  constructors
+    Function               : NaBL2-FunctionId -> NaBL2-Function
+    NaBL2-Function-Plhdr   : NaBL2-Function
+    NaBL2-FunctionId-Plhdr : NaBL2-FunctionId
+    NaBL2-Function-Plhdr   : COMPLETION-INSERTION -> NaBL2-Function
+    NaBL2-FunctionId-Plhdr : COMPLETION-INSERTION -> NaBL2-FunctionId

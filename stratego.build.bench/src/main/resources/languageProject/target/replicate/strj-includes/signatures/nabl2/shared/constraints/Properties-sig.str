@@ -1,0 +1,31 @@
+module signatures/nabl2/shared/constraints/Properties-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/shared/constraints/Base-sig
+  signatures/nabl2/shared/constraints/Equality-sig
+
+
+signature
+  constructors
+    CDeclProperty                  : NaBL2-Occurrence * NaBL2-DeclProperty * NaBL2-CTerm * NaBL2-ConstraintPriority * NaBL2-Message -> NaBL2-Constraint
+    Property                       : NaBL2-DeclPropertyId -> NaBL2-DeclProperty
+    Type                           : NaBL2-DeclProperty
+    NaBL2-Constraint-Plhdr         : NaBL2-Constraint
+    NaBL2-Occurrence-Plhdr         : NaBL2-Occurrence
+    NaBL2-CTerm-Plhdr              : NaBL2-CTerm
+    NaBL2-ConstraintPriority-Plhdr : NaBL2-ConstraintPriority
+    NaBL2-Message-Plhdr            : NaBL2-Message
+    NaBL2-DeclPropertyId-Plhdr     : NaBL2-DeclPropertyId
+    NaBL2-DeclProperty-Plhdr       : NaBL2-DeclProperty
+    NaBL2-Constraint-Plhdr         : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-Occurrence-Plhdr         : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-CTerm-Plhdr              : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-ConstraintPriority-Plhdr : COMPLETION-INSERTION -> NaBL2-ConstraintPriority
+    NaBL2-Message-Plhdr            : COMPLETION-INSERTION -> NaBL2-Message
+    NaBL2-DeclPropertyId-Plhdr     : COMPLETION-INSERTION -> NaBL2-DeclPropertyId
+    NaBL2-DeclProperty-Plhdr       : COMPLETION-INSERTION -> NaBL2-DeclProperty
+                                   : String -> NaBL2-DeclPropertyId

@@ -1,0 +1,14 @@
+module completion/colorer/nabl2/shared/constraints/AST-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/AST-cc-esv
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+  completion/colorer/nabl2/shared/common/Messages-cc-esv
+
+colorer
+  _.NaBL2-Constraint-Plhdr    : gray   
+  _.NaBL2-TermIndex-Plhdr     : gray   
+  _.NaBL2-CTerm-Plhdr         : gray   
+  _.NaBL2-AstPropertyId-Plhdr : gray   
+  _.NaBL2-AstProperty-Plhdr   : gray   

@@ -1,0 +1,17 @@
+module completion/nabl2/runtime/common/Main-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/Main-sig
+
+
+imports
+  completion/nabl2/runtime/common/AST-cp
+  completion/nabl2/runtime/common/CTerms-cp
+  completion/nabl2/runtime/common/Messages-cp
+  completion/nabl2/runtime/common/Native-cp
+  completion/nabl2/runtime/common/ScopeGraph-cp

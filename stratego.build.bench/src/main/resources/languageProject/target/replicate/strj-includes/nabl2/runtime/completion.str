@@ -1,0 +1,8 @@
+module nabl2/runtime/completion
+
+imports
+
+  nabl2/shared/completion
+
+  completion/nabl2/runtime/-
+ 

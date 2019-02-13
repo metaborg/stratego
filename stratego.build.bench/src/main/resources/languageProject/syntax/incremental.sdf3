@@ -1,0 +1,14 @@
+module incremental
+
+imports
+  
+  Common
+
+context-free start-symbols
+  
+  Start
+
+context-free syntax
+  
+  Start.Empty = <>
+  Start.Blank = <This file was intentionally left blank.>

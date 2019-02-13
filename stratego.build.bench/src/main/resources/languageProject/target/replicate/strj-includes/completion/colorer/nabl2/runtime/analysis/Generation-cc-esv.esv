@@ -1,0 +1,10 @@
+module completion/colorer/nabl2/runtime/analysis/Generation-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+
+colorer
+  _.NaBL2-AnalysisResult-Plhdr : gray   
+  _.NaBL2-CGenArgs-Plhdr       : gray   
+  _.NaBL2-CGenParams-Plhdr     : gray   
+  _.NaBL2-CTerm-Plhdr          : gray   

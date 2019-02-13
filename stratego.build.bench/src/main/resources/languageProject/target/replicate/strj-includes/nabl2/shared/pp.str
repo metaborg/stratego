@@ -1,0 +1,31 @@
+module nabl2/shared/common/pp
+
+imports
+
+  libstratego-gpp
+
+  libspoofax/sdf/pp
+
+  pp/nabl2/shared/-
+
+rules
+
+  pp-NaBL2(prettyprint) =
+    pp-NaBL2(prettyprint|120)
+
+  pp-NaBL2(prettyprint|width) =
+    try(parenthesize-NaBL2);
+    prettyprint;
+    !V([], <id>);
+    box2text-string(|width)
+
+  pp-NaBL2-string =
+    pp-NaBL2(prettyprint-NaBL2-start-symbols)
+
+  pp-partial-NaBL2-string =
+    pp-NaBL2(prettyprint-NaBL2)
+
+  pp-partial-NaBL2-string(|sort) =
+    pp-NaBL2(prettyprint-NaBL2(|sort))
+
+  parenthesize-NaBL2 = fail

@@ -1,0 +1,7 @@
+module nabl2runtime
+
+imports
+
+  libstratego-lib
+
+  nabl2/runtime

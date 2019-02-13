@@ -1,0 +1,564 @@
+module pp/nabl2/shared/common/Sorts-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Sorts-sig
+
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+imports
+  pp/nabl2/shared/common/Identifiers-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Sort
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-SortRef
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Sort>
+    where <?"NaBL2-Sort"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-SortRef>
+    where <?"NaBL2-SortRef"> sort
+
+  prettyprint-NaBL2-NaBL2-Sort :
+    SortNoArgs(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SortId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Sort =
+    ?SortNoArgs(_)
+
+  NaBL2-get-indent :
+    (t@SortNoArgs(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Sort"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@SortNoArgs(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Sort"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@SortNoArgs(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Sort"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-SortRef)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Sort) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    TermSort() -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("term")]
+                    )
+                  ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?TermSort()
+
+  NaBL2-get-indent :
+    (t@TermSort(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@TermSort(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@TermSort(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    OccurrenceSort() -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("occurrence")]
+                          )
+                        ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?OccurrenceSort()
+
+  NaBL2-get-indent :
+    (t@OccurrenceSort(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@OccurrenceSort(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@OccurrenceSort(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    ScopeSort() -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("scope")]
+                     )
+                   ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?ScopeSort()
+
+  NaBL2-get-indent :
+    (t@ScopeSort(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ScopeSort(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ScopeSort(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    StringSort() -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S("string")]
+                      )
+                    ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?StringSort()
+
+  NaBL2-get-indent :
+    (t@StringSort(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@StringSort(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@StringSort(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    Var(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__']
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SortVarId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-SortRef =
+    ?Var(_)
+
+  NaBL2-get-indent :
+    (t@Var(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Var(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Var(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    TupleSort(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [ S("(")
+                           , t1__'
+                           , S(")")
+                           ]
+                         )
+                       ]
+    with t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-SortRef|" * ")
+                   <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-SortRef =
+    ?TupleSort(_)
+
+  NaBL2-get-indent :
+    (t@TupleSort(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@TupleSort(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             separator := " * "
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@TupleSort(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    ListSort(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [ S("list(")
+                          , t1__'
+                          , S(")")
+                          ]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SortRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-SortRef =
+    ?ListSort(_)
+
+  NaBL2-get-indent :
+    (t@ListSort(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ListSort(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ListSort(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    MapSort(t1__, t2__) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [ S("map(")
+                               , t1__'
+                               , S(", ")
+                               , t2__'
+                               , S(")")
+                               ]
+                             )
+                           ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SortRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SortRef) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-SortRef =
+    ?MapSort(_, _)
+
+  NaBL2-get-indent :
+    (t@MapSort(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@MapSort(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@MapSort(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SortRef"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Sort =
+    fail
+
+  is-NaBL2-NaBL2-SortRef =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Sort :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Sort> h
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-SortRef> h
+
+  prettyprint-NaBL2-NaBL2-SortId :
+    NaBL2-SortId-Plhdr() -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-SortId")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-SortId =
+    ?NaBL2-SortId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Sort :
+    NaBL2-Sort-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-Sort")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-Sort =
+    ?NaBL2-Sort-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-SortVarId :
+    NaBL2-SortVarId-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-SortVarId")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-SortVarId =
+    ?NaBL2-SortVarId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    NaBL2-SortRef-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-SortRef")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?NaBL2-SortRef-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-SortId :
+    NaBL2-SortId-Plhdr(_) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-SortId")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-SortId =
+    ?NaBL2-SortId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Sort :
+    NaBL2-Sort-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Sort")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Sort =
+    ?NaBL2-Sort-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-SortVarId :
+    NaBL2-SortVarId-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-SortVarId")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-SortVarId =
+    ?NaBL2-SortVarId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    NaBL2-SortRef-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-SortRef")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?NaBL2-SortRef-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-SortRef :
+    NaBL2-SortRef-Opt-Plhdr() -> [ H(
+                                     []
+                                   , [S("")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-SortRef =
+    ?NaBL2-SortRef-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-SortVarId
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-SortVarId>
+    where <?"NaBL2-SortVarId"> sort
+
+  prettyprint-NaBL2-NaBL2-SortVarId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-SortVarId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-SortVarId> h

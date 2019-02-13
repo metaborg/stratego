@@ -1,0 +1,10 @@
+module signatures/nabl2/shared/Main-sig
+
+imports
+  signatures/nabl2/shared/common/Main-sig
+  signatures/nabl2/shared/constraints/Main-sig
+
+
+signature
+  constructors
+    

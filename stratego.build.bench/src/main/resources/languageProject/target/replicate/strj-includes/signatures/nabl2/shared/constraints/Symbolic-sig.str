@@ -1,0 +1,17 @@
+module signatures/nabl2/shared/constraints/Symbolic-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+signature
+  constructors
+    CGoal                       : NaBL2-CTerm * NaBL2-MessagePosition -> NaBL2-Constraint
+    CFact                       : NaBL2-CTerm * NaBL2-MessagePosition -> NaBL2-Constraint
+    NaBL2-Constraint-Plhdr      : NaBL2-Constraint
+    NaBL2-CTerm-Plhdr           : NaBL2-CTerm
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-Constraint-Plhdr      : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-CTerm-Plhdr           : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition

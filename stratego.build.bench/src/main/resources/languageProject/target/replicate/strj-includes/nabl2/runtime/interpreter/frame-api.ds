@@ -1,0 +1,45 @@
+module nabl2/runtime/interpreter/frame-api
+
+imports
+  nabl2/runtime/interpreter/scopegraph-api
+
+signature // The API is parameterized by a `Val` sort
+
+  sorts Val
+
+signature
+
+  sorts Heap
+
+  sorts Frame
+
+  sorts Addr
+  
+  components
+    F : Frame
+    H : Heap
+  
+  arrows
+    F, H |- lookup(Path) --> Addr
+    H |- get(Addr) --> Val
+    set(Addr, Val) :: H --> Val :: H
+    frameOf(Addr) --> Frame
+    
+  arrows
+    H |- scopeOf(Frame) --> Scope
+    H |- linksOf(Frame) --> Map(Label, Map(Scope, Frame))
+    H |- slotsOf(Frame) --> Map(Occurrence, Val)
+    addLink(Frame, Label, Frame) :: H --> Frame :: H
+
+signature // The API is parameterized by a `default` operation that returns a default value for each type (where `Type` is a parameter of the scope graph API)
+
+  arrows
+    default(Type) --> Val
+
+signature
+
+  arrows
+    initHeap(AST) --> Heap
+    initFrame(Scope, Map(Label, Map(Scope, Frame)), Map(Occurrence, Val)) :: H --> Frame :: H
+    initDefault(Scope, Map(Label, Map(Scope, Frame))) :: H --> Frame :: H
+    mkAddr(Frame, Occurrence) --> Addr

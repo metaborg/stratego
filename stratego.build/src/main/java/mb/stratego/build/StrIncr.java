@@ -6,18 +6,26 @@ import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.CommonPaths;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,21 +34,41 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
+    public static String id = "StrIncr";
+
     public static final class Input implements Serializable {
-        final File inputFile;
+        final URL inputFile;
         final String javaPackageName;
         final Collection<File> includeDirs;
+        final Collection<String> builtinLibs;
         final File cacheDir;
         final Arguments extraArgs;
         final File outputPath;
         final Collection<STask<?>> originTasks;
         final File projectLocation;
+
+        public Input(URL inputFile, String javaPackageName, Collection<File> includeDirs,
+            Collection<String> builtinLibs, File cacheDir, Arguments extraArgs, File outputPath,
+            Collection<STask<?>> originTasks, File projectLocation) {
+            this.inputFile = inputFile;
+            this.javaPackageName = javaPackageName;
+            this.includeDirs = includeDirs;
+            this.builtinLibs = builtinLibs;
+            this.cacheDir = cacheDir;
+            this.extraArgs = extraArgs;
+            this.outputPath = outputPath;
+            this.originTasks = originTasks;
+            this.projectLocation = projectLocation;
+
+        }
 
         @Override public boolean equals(Object o) {
             if(this == o)
@@ -79,33 +107,111 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             result = 31 * result + projectLocation.hashCode();
             return result;
         }
-
-        public Input(File inputFile, String javaPackageName, Collection<File> includeDirs, File cacheDir,
-            Arguments extraArgs, File outputPath, Collection<STask<?>> originTasks, File projectLocation) {
-            this.inputFile = inputFile;
-            this.javaPackageName = javaPackageName;
-            this.includeDirs = includeDirs;
-            this.cacheDir = cacheDir;
-            this.extraArgs = extraArgs;
-            this.outputPath = outputPath;
-            this.originTasks = originTasks;
-            this.projectLocation = projectLocation;
-
-        }
-
     }
 
-    private static final ILogger logger = LoggerUtils.logger(StrIncr.class);
+    public static final class Module implements Serializable {
+        public enum Type {
+            library, source
+        }
 
+        public final String path;
+        public final Type type;
+
+        private Module(String path, Type type) {
+            this.path = path;
+            this.type = type;
+        }
+
+        static Module library(String path) {
+            return new Module(path, Type.library);
+        }
+
+        public static Module source(String path) {
+            return new Module(path, Type.source);
+        }
+
+        static Set<Module> resolveWildcards(Collection<StrIncrFront.Import> imports, Collection<File> includeDirs,
+            File projectLocation) throws IOException {
+            final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p).toString());
+            final Set<Module> result = new HashSet<>(imports.size() * 2);
+            for(StrIncrFront.Import anImport : imports) {
+                switch(anImport.type) {
+                    case normal:
+                        for(File dir : includeDirs) {
+                            final Path strPath = dir.toPath().resolve(anImport.path + ".str");
+                            final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
+                            if(Files.exists(rtreePath)) {
+                                result.add(module.apply(rtreePath));
+                            } else if(Files.exists(strPath)) {
+                                result.add(module.apply(strPath));
+                            }
+                        }
+                        break;
+                    case wildcard:
+                        for(File dir : includeDirs) {
+                            final Path path = dir.toPath().resolve(anImport.path);
+                            if(Files.exists(path)) {
+                                final @Nullable File[] strFiles = path.toFile()
+                                    .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
+                                if(strFiles == null) {
+                                    throw new IOException(
+                                        "Reading file list in directory failed for directory: " + path);
+                                }
+                                for(File strFile : strFiles) {
+                                    result.add(module.apply(strFile.toPath()));
+                                }
+                            }
+                        }
+                        break;
+                    case library:
+                        result.add(Module.library(anImport.path));
+                        break;
+                }
+            }
+            return result;
+        }
+
+        public URL resolve(File projectLocation) {
+            try {
+                return projectLocation.toPath().resolve(path).toUri().toURL();
+            } catch(MalformedURLException e) {
+                // Shouldn't happen because any path can be expressed as a URL
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Module module = (Module) o;
+
+            //noinspection SimplifiableIfStatement
+            if(!path.equals(module.path))
+                return false;
+            return type == module.type;
+        }
+
+        @Override public int hashCode() {
+            int result = path.hashCode();
+            result = 31 * result + type.hashCode();
+            return result;
+        }
+    }
 
     private final IResourceService resourceService;
 
     private final StrIncrFront strIncrFront;
+    private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrBack strIncrBack) {
+    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
+        StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
+        this.strIncrFrontLib = strIncrFrontLib;
         this.strIncrBack = strIncrBack;
     }
 
@@ -121,86 +227,133 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(t);
         }
 
-        logger.debug("Starting time measurement");
-        long startTime = System.nanoTime();
-
         final FileObject location = resourceService.resolve(input.projectLocation);
 
         // FRONTEND
-        final Set<File> seen = new HashSet<>();
-        final Deque<File> workList = new ArrayDeque<>();
-        workList.add(input.inputFile);
-        seen.add(input.inputFile);
+        final Set<Module> seen = new HashSet<>();
+        final Deque<Module> workList = new ArrayDeque<>();
+        final Module inputModule;
+        try {
+            inputModule =
+                Module.source(input.projectLocation.toPath().relativize(Paths.get(input.inputFile.toURI())).toString());
+        } catch(URISyntaxException e) {
+            throw new ExecException(e);
+        }
+        workList.add(inputModule);
+        seen.add(inputModule);
 
         final List<File> boilerplateFiles = new ArrayList<>();
         final List<STask<?>> allFrontEndTasks = new ArrayList<>();
+        final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
+        for(String builtinLib : input.builtinLibs) {
+            defaultImports.add(StrIncrFront.Import.library(builtinLib));
+        }
+
+        final String mainFileModulePath = inputModule.path;
+        // Module-path to module-path
+        final Map<String, Set<String>> imports = new HashMap<>();
+        // Module-path to strategy-names used
+        final Map<String, Set<String>> usedStrategies = new HashMap<>();
+        // Module-path to constructor_arity names used
+        final Map<String, Set<String>> usedConstructors = new HashMap<>();
+        // Module-path to  visible when imported (transitive closure of strategy definitions)
+        final Map<String, Set<String>> visibleStrategies = new HashMap<>();
+        // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
+        final Map<String, Set<String>> visibleConstructors = new HashMap<>();
+
+        // Strategy-name to file with CTree definition of that strategy
         final Map<String, Set<File>> strategyFiles = new HashMap<>();
-        final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
+        // Strategy-name to constructor_arity names that were used in the body
+        final Map<String, Set<String>> strategyConstrs = new HashMap<>();
+        // Overlay_arity name to file with CTree definition of that overlay
         final Map<String, Set<File>> overlayFiles = new HashMap<>();
+        // Strategy-name to set of tasks that contributed strategy definitions
         final Map<String, List<STask<?>>> strategyOrigins = new HashMap<>();
+        // Overlay_arity names to set of tasks that contributed overlay definitions
         final Map<String, List<STask<?>>> overlayOrigins = new HashMap<>();
 
-        long frontEndStartTime;
-        long frontEndTime = 0;
-        long shuffleStartTime;
-        long shuffleTime = 0;
         do {
-            frontEndStartTime = System.nanoTime();
-            final File strFile = workList.remove();
-            final String projectName = projectName(strFile);
-            final StrIncrFront.Input frontEndInput =
-                new StrIncrFront.Input(input.projectLocation, strFile, projectName, input.originTasks);
-            final Task<StrIncrFront.Input, StrIncrFront.Output> task = strIncrFront.createTask(frontEndInput);
-            final StrIncrFront.Output frontEndOutput = execContext.require(task);
-            shuffleStartTime = System.nanoTime();
-            frontEndTime += shuffleStartTime - frontEndStartTime;
+            final Module module = workList.remove();
+            final String projectName = projectName(module.path);
+            final Task<?, StrIncrFront.Output> task;
+            switch(module.type) {
+                case source:
+                    final StrIncrFront.Input frontInput =
+                        new StrIncrFront.Input(input.projectLocation, module.resolve(input.projectLocation), projectName,
+                            input.originTasks);
+                    task = strIncrFront.createTask(frontInput);
+                    break;
+                case library:
+                    final StrIncrFrontLib.Input frontLibInput =
+                        new StrIncrFrontLib.Input(module.path);
+                    task = strIncrFrontLib.createTask(frontLibInput);
+                    break;
+                default:
+                    throw new ExecException("Internal error: Unhandled Module.Type variant " + module.type);
+            }
+            final StrIncrFront.Output frontOutput = execContext.require(task);
+            final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
+            theImports.addAll(defaultImports);
+
+            // combining output for check
+            for(Set<String> usedConstrs : frontOutput.strategyConstrs.values()) {
+                getOrInitialize(usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
+            }
+            usedStrategies.put(module.path, frontOutput.usedStrategies);
+            visibleStrategies.put(module.path, frontOutput.strategies);
+            {
+                Set<String> visConstrs = new HashSet<>(frontOutput.constrs);
+                visConstrs.addAll(frontOutput.overlayFiles.keySet());
+                visibleConstructors.put(module.path, visConstrs);
+            }
+
 
             // shuffling output for backend
             allFrontEndTasks.add(task.toSTask());
-            boilerplateFiles
-                .add(resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, frontEndOutput.moduleName)));
-            for(Map.Entry<String, File> gen : frontEndOutput.strategyFiles.entrySet()) {
+            boilerplateFiles.add(resourceService
+                .localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, frontOutput.moduleName)));
+            for(Map.Entry<String, File> gen : frontOutput.strategyFiles.entrySet()) {
                 String strategyName = gen.getKey();
                 getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
-                getOrInitialize(strategyConstrFiles, strategyName, HashSet::new)
-                    .addAll(frontEndOutput.strategyConstrFiles.get(strategyName));
+                getOrInitialize(strategyConstrs, strategyName, HashSet::new)
+                    .addAll(frontOutput.strategyConstrs.get(strategyName));
                 getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
             }
-            for(Map.Entry<String, File> gen : frontEndOutput.overlayFiles.entrySet()) {
+            for(Map.Entry<String, File> gen : frontOutput.overlayFiles.entrySet()) {
                 final String overlayName = gen.getKey();
                 getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
                 getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSTask());
             }
 
             // resolving imports
-            for(StrIncrFront.Import i : frontEndOutput.imports) {
-                final Set<File> resolvedImport;
-                try {
-                    resolvedImport = i.resolveImport(input.includeDirs);
-                } catch(IOException e) {
-                    throw new ExecException(e);
+            try {
+                final Set<Module> expandedImports =
+                    Module.resolveWildcards(theImports, input.includeDirs, input.projectLocation);
+                for(Module m : expandedImports) {
+                    getOrInitialize(imports, module.path, HashSet::new).add(m.path);
                 }
-                resolvedImport.removeAll(seen);
-                workList.addAll(resolvedImport);
-                seen.addAll(resolvedImport);
+                expandedImports.removeAll(seen);
+                workList.addAll(expandedImports);
+                seen.addAll(expandedImports);
+            } catch(IOException e) {
+                throw new ExecException(e);
             }
-
-            shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
 
-        long betweenFrontAndBack = System.nanoTime();
-        logger.debug("Frontends overall took: {} ns", betweenFrontAndBack - startTime);
-        logger.debug("Purely frontend tasks took: {} ns", frontEndTime);
-        logger.debug("While shuffling information and tracking imports took: {} ns", shuffleTime);
+        // CHECK: constructor/strategy uses have definition which is imported
+        staticCheck(execContext, mainFileModulePath, imports, usedStrategies, usedConstructors, visibleStrategies,
+            visibleConstructors);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
-            List<STask<?>> backEndOrigin = new ArrayList<>(strategyOrigins.size());
+            final List<STask<?>> backEndOrigin = new ArrayList<>(strategyOrigins.size());
             backEndOrigin.addAll(strategyOrigins.get(strategyName));
-            @Nullable File strategyDir = resourceService.localPath(CommonPaths.strSepCompStrategyDir(location, strategyName));
-            assert strategyDir != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
-            List<File> strategyOverlayFiles = new ArrayList<>();
-            for(String overlayName : strategyConstrFiles.get(strategyName)) {
+            final @Nullable File strategyDir =
+                resourceService.localPath(CommonPaths.strSepCompStrategyDir(location, strategyName));
+            assert strategyDir
+                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
+            final List<File> strategyOverlayFiles = new ArrayList<>();
+            for(String overlayName : strategyConstrs.get(strategyName)) {
                 final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
                 if(theOverlayFiles != null) {
                     strategyOverlayFiles.addAll(theOverlayFiles);
@@ -210,39 +363,88 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     backEndOrigin.addAll(overlayOriginBuilder);
                 }
             }
-            StrIncrBack.Input backEndInput = new StrIncrBack.Input(backEndOrigin, input.projectLocation, strategyName,
-                strategyDir, Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])),
-                strategyOverlayFiles, input.javaPackageName,
-                input.outputPath, input.cacheDir, input.extraArgs, false);
+            final Arguments args = new Arguments();
+            args.addAll(input.extraArgs);
+            for(String builtinLib : input.builtinLibs) {
+                args.add("-la", builtinLib);
+            }
+            StrIncrBack.Input backEndInput =
+                new StrIncrBack.Input(backEndOrigin, input.projectLocation, strategyName, strategyDir,
+                    Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])), strategyOverlayFiles,
+                    input.javaPackageName, input.outputPath, input.cacheDir, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
-        @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(location));
-        assert strSrcGenDir != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
-        StrIncrBack.Input backEndInput = new StrIncrBack.Input(allFrontEndTasks, input.projectLocation, null,
-            strSrcGenDir, boilerplateFiles, Collections.emptyList(), input.javaPackageName, input.outputPath,
-            input.cacheDir, input.extraArgs, true);
+        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(location));
+        assert strSrcGenDir
+            != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
+        StrIncrBack.Input backEndInput =
+            new StrIncrBack.Input(allFrontEndTasks, input.projectLocation, null, strSrcGenDir, boilerplateFiles,
+                Collections.emptyList(), input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs,
+                true);
         execContext.require(strIncrBack.createTask(backEndInput));
 
-        long finishTime = System.nanoTime();
-        logger.debug("Backends overall took: {} ns", finishTime - betweenFrontAndBack);
-
-        logger.debug("Full Stratego incremental build took: {} ns", finishTime - startTime);
         return None.getInstance();
     }
 
-    private static String projectName(File inputFile) {
+    private static void staticCheck(ExecContext execContext, String mainFileModulePath,
+        Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
+        Map<String, Set<String>> usedConstructors, Map<String, Set<String>> visibleStrategies,
+        Map<String, Set<String>> visibleConstructors) throws ExecException {
+        boolean checkOk = true;
+        final Deque<Set<String>> sccs = Algorithms
+            .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
+        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
+            Set<String> scc = iterator.next();
+            Set<String> theVisibleStrategies = new HashSet<>();
+            Set<String> theVisibleConstructors = new HashSet<>();
+            for(String moduleName : scc) {
+                theVisibleConstructors.addAll(visibleConstructors.getOrDefault(moduleName, Collections.emptySet()));
+                theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, Collections.emptySet()));
+                for(String mod : imports.getOrDefault(moduleName, Collections.emptySet())) {
+                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, Collections.emptySet()));
+                    theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, Collections.emptySet()));
+                }
+            }
+            for(String moduleName : scc) {
+                visibleConstructors.put(moduleName, theVisibleConstructors);
+                visibleStrategies.put(moduleName, theVisibleStrategies);
+                Set<String> unresolvedConstructors =
+                    Sets.difference(usedConstructors.getOrDefault(moduleName, Collections.emptySet()),
+                        theVisibleConstructors);
+                if(!unresolvedConstructors.isEmpty()) {
+                    checkOk = false;
+                    execContext.getLogger()
+                        .error("In module " + moduleName + ": Cannot find constructors " + unresolvedConstructors,
+                            null);
+                }
+                Set<String> unresolvedStrategies =
+                    Sets.difference(usedStrategies.getOrDefault(moduleName, Collections.emptySet()),
+                        theVisibleStrategies);
+                if(!unresolvedStrategies.isEmpty()) {
+                    checkOk = false;
+                    execContext.getLogger()
+                        .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
+                }
+            }
+        }
+        if(!checkOk) {
+            throw new ExecException("Name resolution check failed. ");
+        }
+    }
+
+    private static String projectName(String inputFile) {
         // TODO: *can* we get the project name somehow?
-        return Integer.toString(inputFile.toString().hashCode());
+        return Integer.toString(inputFile.hashCode());
     }
 
     private static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
         map.computeIfAbsent(key, ignore -> initialize.get());
         return map.get(key);
     }
-    
+
     @Override public String getId() {
-        return StrIncr.class.getCanonicalName();
+        return id;
     }
 
     @Override public Serializable key(Input input) {
@@ -250,18 +452,18 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public String desc(Input input) {
-        return this.getId() + "(" + input + ")";
+        return TaskDef.DefaultImpls.desc(this, input);
     }
 
     @Override public String desc(Input input, int maxLength) {
-        return desc(input);
+        return TaskDef.DefaultImpls.desc(this, input, maxLength);
     }
 
     @Override public Task<Input, None> createTask(Input input) {
-        return new Task<>(this, input);
+        return TaskDef.DefaultImpls.createTask(this, input);
     }
 
     @Override public STask<Input> createSerializableTask(Input input) {
-        return new STask<>(this.getId(), input);
+        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 }

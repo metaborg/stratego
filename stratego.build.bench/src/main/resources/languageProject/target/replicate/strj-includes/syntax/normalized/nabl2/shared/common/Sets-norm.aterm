@@ -1,0 +1,365 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/common/Sets-norm")
+, [Imports([Module(Unparameterized("normalized/nabl2/shared/common/CTerms-norm")), Module(Unparameterized("normalized/nabl2/shared/common/Identifiers-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"0\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\48"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"(\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\40"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\")\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\41"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"/\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\47"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"isect\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"union\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\117"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"minus\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\117"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"lsect\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-CSet\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\67"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-SetExpr\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\69"))))
+              , CharClass(Simple(Present(Numeric("\\120"))))
+              , CharClass(Simple(Present(Numeric("\\112"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"isect\"")
+              , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+              )
+            )
+          , Rhs([Lit("\"isect\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"isect\"")
+              , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+              )
+            )
+          , Rhs([Lit("\"union\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"isect\"")
+              , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+              )
+            )
+          , Rhs([Lit("\"minus\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"isect\"")
+              , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+              )
+            )
+          , Rhs([Lit("\"lsect\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("EmptySet"))
+          , Rhs([Lit("\"0\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("Union"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\"union\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("Isect"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\"isect\"")
+              , Cf(Sort("NaBL2-SetProj"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("Diff"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\"minus\"")
+              , Cf(Sort("NaBL2-SetProj"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("Lsect"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\"lsect\"")
+              , Cf(Sort("NaBL2-SetProj"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CSet"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetProj")), Constructor("NoProjection"))
+          , Rhs([])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetProj")), Constructor("Projection"))
+          , Rhs([Lit("\"/\""), Lex(Sort("NaBL2-ProjectionId"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-CSet"))
+          , Rhs([Cf(Sort("NaBL2-SetExpr"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-Keyword"))
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"isect\"")
+                  , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+                  )
+                )
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(
+              Alt(
+                Lit("\"isect\"")
+              , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+              )
+            )
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"isect\"")
+                  , Alt(Lit("\"union\""), Alt(Lit("\"minus\""), Lit("\"lsect\"")))
+                  )
+                )
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Keyword"))
+          , Rhs([Lex(Sort("NaBL2-Keyword"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CSet")), Constructor("NaBL2-CSet-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-CSet\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SetExpr")), Constructor("NaBL2-SetExpr-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-SetExpr\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Restrictions(
+        [ Follow(
+            [Lit("\"$NaBL2-CSet\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-SetExpr\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

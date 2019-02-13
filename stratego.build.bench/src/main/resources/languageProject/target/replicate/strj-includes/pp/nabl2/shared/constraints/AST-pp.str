@@ -1,0 +1,371 @@
+module pp/nabl2/shared/constraints/AST-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/constraints/AST-sig
+
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+imports
+  pp/nabl2/shared/common/AST-pp
+  pp/nabl2/shared/common/Identifiers-pp
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/Messages-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Constraint
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AstProperty
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Constraint>
+    where <?"NaBL2-Constraint"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AstProperty>
+    where <?"NaBL2-AstProperty"> sort
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CAstProperty(t1__, t2__, t3__) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [ t1__'
+                                          , S(".")
+                                          , t2__'
+                                          , S(" := ")
+                                          , t3__'
+                                          ]
+                                        )
+                                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-TermIndex) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-AstProperty) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CAstProperty(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@CAstProperty(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@CAstProperty(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@CAstProperty(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    Property(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-AstPropertyId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-AstProperty =
+    ?Property(_)
+
+  NaBL2-get-indent :
+    (t@Property(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Property(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Property(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    Type() -> [ H(
+                  [SOpt(HS(), "0")]
+                , [S("type")]
+                )
+              ]
+
+  is-NaBL2-NaBL2-AstProperty =
+    ?Type()
+
+  NaBL2-get-indent :
+    (t@Type(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Type(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Type(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    Params() -> [ H(
+                    [SOpt(HS(), "0")]
+                  , [S("params")]
+                  )
+                ]
+
+  is-NaBL2-NaBL2-AstProperty =
+    ?Params()
+
+  NaBL2-get-indent :
+    (t@Params(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Params(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Params(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AstProperty"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Constraint =
+    fail
+
+  is-NaBL2-NaBL2-AstProperty =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Constraint> h
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AstProperty> h
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Constraint")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    NaBL2-TermIndex-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-TermIndex")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-TermIndex =
+    ?NaBL2-TermIndex-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AstPropertyId :
+    NaBL2-AstPropertyId-Plhdr() -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [S("$NaBL2-AstPropertyId")]
+                                     )
+                                   ]
+
+  is-NaBL2-NaBL2-AstPropertyId =
+    ?NaBL2-AstPropertyId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    NaBL2-AstProperty-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-AstProperty")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-AstProperty =
+    ?NaBL2-AstProperty-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Constraint")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    NaBL2-TermIndex-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-TermIndex")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-TermIndex =
+    ?NaBL2-TermIndex-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-AstPropertyId :
+    NaBL2-AstPropertyId-Plhdr(_) -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AstPropertyId")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AstPropertyId =
+    ?NaBL2-AstPropertyId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-AstProperty :
+    NaBL2-AstProperty-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-AstProperty")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-AstProperty =
+    ?NaBL2-AstProperty-Plhdr(_)
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AstPropertyId
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AstPropertyId>
+    where <?"NaBL2-AstPropertyId"> sort
+
+  prettyprint-NaBL2-NaBL2-AstPropertyId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-AstPropertyId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AstPropertyId> h

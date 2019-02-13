@@ -1,0 +1,8 @@
+module completion/colorer/nabl2/shared/constraints/Polymorphism-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+  completion/colorer/nabl2/shared/common/Messages-cc-esv
+
+colorer
+  

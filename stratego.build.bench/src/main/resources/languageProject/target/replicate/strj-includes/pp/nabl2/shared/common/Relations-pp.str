@@ -1,0 +1,1277 @@
+module pp/nabl2/shared/common/Relations-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Relations-sig
+
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+imports
+  pp/nabl2/shared/common/Identifiers-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Reflexivity
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Symmetry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Transitivity
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Relation
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationRef
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Reflexivity>
+    where <?"NaBL2-Reflexivity"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Symmetry>
+    where <?"NaBL2-Symmetry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Transitivity>
+    where <?"NaBL2-Transitivity"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Relation>
+    where <?"NaBL2-Relation"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationRef>
+    where <?"NaBL2-RelationRef"> sort
+
+  prettyprint-NaBL2-NaBL2-Reflexivity :
+    Reflexive() -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("reflexive")]
+                     )
+                   ]
+
+  is-NaBL2-NaBL2-Reflexivity =
+    ?Reflexive()
+
+  NaBL2-get-indent :
+    (t@Reflexive(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Reflexive(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Reflexive(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Reflexivity :
+    Irreflexive() -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("irreflexive")]
+                       )
+                     ]
+
+  is-NaBL2-NaBL2-Reflexivity =
+    ?Irreflexive()
+
+  NaBL2-get-indent :
+    (t@Irreflexive(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Irreflexive(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Irreflexive(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Reflexivity"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Symmetry :
+    Symmetric() -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("symmetric")]
+                     )
+                   ]
+
+  is-NaBL2-NaBL2-Symmetry =
+    ?Symmetric()
+
+  NaBL2-get-indent :
+    (t@Symmetric(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Symmetric(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Symmetric(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Symmetry :
+    AntiSymmetric() -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [S("anti-symmetric")]
+                         )
+                       ]
+
+  is-NaBL2-NaBL2-Symmetry =
+    ?AntiSymmetric()
+
+  NaBL2-get-indent :
+    (t@AntiSymmetric(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@AntiSymmetric(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@AntiSymmetric(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Symmetry"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Transitivity :
+    Transitive() -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S("transitive")]
+                      )
+                    ]
+
+  is-NaBL2-NaBL2-Transitivity =
+    ?Transitive()
+
+  NaBL2-get-indent :
+    (t@Transitive(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Transitive(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Transitive(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Transitivity :
+    AntiTransitive() -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("anti-transitive")]
+                          )
+                        ]
+
+  is-NaBL2-NaBL2-Transitivity =
+    ?AntiTransitive()
+
+  NaBL2-get-indent :
+    (t@AntiTransitive(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@AntiTransitive(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@AntiTransitive(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Transitivity"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Relation :
+    Relation(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Relation =
+    ?Relation(_)
+
+  NaBL2-get-indent :
+    (t@Relation(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Relation"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Relation(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Relation"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Relation(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Relation"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    DefaultRelation() -> [ H(
+                             []
+                           , [S("")]
+                           )
+                         ]
+
+  is-NaBL2-NaBL2-RelationRef =
+    ?DefaultRelation()
+
+  NaBL2-get-indent :
+    (t@DefaultRelation(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@DefaultRelation(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@DefaultRelation(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-RelationRef)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Relation) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Reflexivity =
+    fail
+
+  is-NaBL2-NaBL2-Symmetry =
+    fail
+
+  is-NaBL2-NaBL2-Transitivity =
+    fail
+
+  is-NaBL2-NaBL2-Relation =
+    fail
+
+  is-NaBL2-NaBL2-RelationRef =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Reflexivity :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Reflexivity> h
+
+  prettyprint-NaBL2-NaBL2-Symmetry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Symmetry> h
+
+  prettyprint-NaBL2-NaBL2-Transitivity :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Transitivity> h
+
+  prettyprint-NaBL2-NaBL2-Relation :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Relation> h
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationRef> h
+
+  prettyprint-NaBL2-NaBL2-Reflexivity :
+    NaBL2-Reflexivity-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Reflexivity")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Reflexivity =
+    ?NaBL2-Reflexivity-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Symmetry :
+    NaBL2-Symmetry-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Symmetry")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Symmetry =
+    ?NaBL2-Symmetry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Transitivity :
+    NaBL2-Transitivity-Plhdr() -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-Transitivity")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-Transitivity =
+    ?NaBL2-Transitivity-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-RelationId :
+    NaBL2-RelationId-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-RelationId")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-RelationId =
+    ?NaBL2-RelationId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    NaBL2-RelationRef-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-RelationRef")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-RelationRef =
+    ?NaBL2-RelationRef-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Relation :
+    NaBL2-Relation-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Relation")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Relation =
+    ?NaBL2-Relation-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Reflexivity :
+    NaBL2-Reflexivity-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-Reflexivity")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-Reflexivity =
+    ?NaBL2-Reflexivity-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Symmetry :
+    NaBL2-Symmetry-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Symmetry")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Symmetry =
+    ?NaBL2-Symmetry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Transitivity :
+    NaBL2-Transitivity-Plhdr(_) -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [S("$NaBL2-Transitivity")]
+                                     )
+                                   ]
+
+  is-NaBL2-NaBL2-Transitivity =
+    ?NaBL2-Transitivity-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-RelationId :
+    NaBL2-RelationId-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-RelationId")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-RelationId =
+    ?NaBL2-RelationId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    NaBL2-RelationRef-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-RelationRef")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-RelationRef =
+    ?NaBL2-RelationRef-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Relation :
+    NaBL2-Relation-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Relation")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Relation =
+    ?NaBL2-Relation-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    NaBL2-RelationRef-Opt-Plhdr() -> [ H(
+                                         []
+                                       , [S("")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-RelationRef =
+    ?NaBL2-RelationRef-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationRef
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationBuildOp
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationCheckOp
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationFunction
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-OpRelation
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationRef>
+    where <?"NaBL2-RelationRef"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationBuildOp>
+    where <?"NaBL2-RelationBuildOp"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationCheckOp>
+    where <?"NaBL2-RelationCheckOp"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationFunction>
+    where <?"NaBL2-RelationFunction"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-OpRelation>
+    where <?"NaBL2-OpRelation"> sort
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    ExtRelation(t1__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("`")
+                             , t1__'
+                             , S("`")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-StrategyId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-RelationRef =
+    ?ExtRelation(_)
+
+  NaBL2-get-indent :
+    (t@ExtRelation(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ExtRelation(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ExtRelation(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationRef"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-RelationBuildOp :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [ S("<")
+                , t1__'
+                , S("!")
+                ]
+              )
+            ]
+    where not(is-NaBL2-NaBL2-RelationBuildOp)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-RelationCheckOp :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [ S("<")
+                , t1__'
+                , S("?")
+                ]
+              )
+            ]
+    where not(is-NaBL2-NaBL2-RelationCheckOp)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-RelationFunction :
+    Lub(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__', S("lub")]
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-OpRelation) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-RelationFunction =
+    ?Lub(_)
+
+  NaBL2-get-indent :
+    (t@Lub(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Lub(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Lub(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-RelationFunction :
+    Glb(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__', S("glb")]
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-OpRelation) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-RelationFunction =
+    ?Glb(_)
+
+  NaBL2-get-indent :
+    (t@Glb(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Glb(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Glb(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RelationFunction"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-OpRelation :
+    DefaultRelation() -> [ H(
+                             []
+                           , [S("")]
+                           )
+                         ]
+
+  is-NaBL2-NaBL2-OpRelation =
+    ?DefaultRelation()
+
+  NaBL2-get-indent :
+    (t@DefaultRelation(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@DefaultRelation(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@DefaultRelation(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-OpRelation :
+    Relation(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(".")]
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-OpRelation =
+    ?Relation(_)
+
+  NaBL2-get-indent :
+    (t@Relation(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Relation(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Relation(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-OpRelation"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-RelationRef =
+    fail
+
+  is-NaBL2-NaBL2-RelationBuildOp =
+    fail
+
+  is-NaBL2-NaBL2-RelationCheckOp =
+    fail
+
+  is-NaBL2-NaBL2-RelationFunction =
+    fail
+
+  is-NaBL2-NaBL2-OpRelation =
+    fail
+
+  prettyprint-NaBL2-NaBL2-RelationRef :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationRef> h
+
+  prettyprint-NaBL2-NaBL2-RelationBuildOp :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationBuildOp> h
+
+  prettyprint-NaBL2-NaBL2-RelationCheckOp :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationCheckOp> h
+
+  prettyprint-NaBL2-NaBL2-RelationFunction :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationFunction> h
+
+  prettyprint-NaBL2-NaBL2-OpRelation :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-OpRelation> h
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-VariancePattern
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Variances
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-VariancePattern>
+    where <?"NaBL2-VariancePattern"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Variances>
+    where <?"NaBL2-Variances"> sort
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    ListVariant(t1__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("[")
+                             , t1__'
+                             , S("]")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Variance) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-VariancePattern =
+    ?ListVariant(_)
+
+  NaBL2-get-indent :
+    (t@ListVariant(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ListVariant(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ListVariant(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    TupleVariant(t1__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [ S("(")
+                              , t1__'
+                              , S(")")
+                              ]
+                            )
+                          ]
+    with t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-Variance|",")
+                   <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-VariancePattern =
+    ?TupleVariant(_)
+
+  NaBL2-get-indent :
+    (t@TupleVariant(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@TupleVariant(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             separator := ","
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@TupleVariant(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Variances :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-Variances)
+    where t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-Variance|",")
+                    <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-VariancePattern =
+    fail
+
+  is-NaBL2-NaBL2-Variances =
+    fail
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-VariancePattern> h
+
+  prettyprint-NaBL2-NaBL2-Variances :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Variances> h
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    NaBL2-VariancePattern-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-VariancePattern")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-VariancePattern =
+    ?NaBL2-VariancePattern-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Variances :
+    NaBL2-Variances-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Variances")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Variances =
+    ?NaBL2-Variances-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    NaBL2-Variance-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Variance")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Variance =
+    ?NaBL2-Variance-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    NaBL2-VariancePattern-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-VariancePattern")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-VariancePattern =
+    ?NaBL2-VariancePattern-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Variances :
+    NaBL2-Variances-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Variances")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Variances =
+    ?NaBL2-Variances-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    NaBL2-Variance-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Variance")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Variance =
+    ?NaBL2-Variance-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    NaBL2-Variance-Opt-Plhdr() -> [ H(
+                                      []
+                                    , [S("")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-Variance =
+    ?NaBL2-Variance-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-VariancePattern
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Variance
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-VariancePattern>
+    where <?"NaBL2-VariancePattern"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Variance>
+    where <?"NaBL2-Variance"> sort
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    OpVariant(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [ t1__'
+                                 , S("( ")
+                                 , t2__'
+                                 , S(" )")
+                                 ]
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-OpId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Variances) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-VariancePattern =
+    ?OpVariant(_, _)
+
+  NaBL2-get-indent :
+    (t@OpVariant(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@OpVariant(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@OpVariant(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-VariancePattern"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    Invar() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("=")]
+                 )
+               ]
+
+  is-NaBL2-NaBL2-Variance =
+    ?Invar()
+
+  NaBL2-get-indent :
+    (t@Invar(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Invar(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Invar(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    Covar(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("+"), t1__']
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Variance =
+    ?Covar(_)
+
+  NaBL2-get-indent :
+    (t@Covar(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Covar(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Covar(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    Contravar(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [S("-"), t1__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-RelationRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Variance =
+    ?Contravar(_)
+
+  NaBL2-get-indent :
+    (t@Contravar(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Contravar(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Contravar(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Variance"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-VariancePattern =
+    fail
+
+  is-NaBL2-NaBL2-Variance =
+    fail
+
+  prettyprint-NaBL2-NaBL2-VariancePattern :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-VariancePattern> h
+
+  prettyprint-NaBL2-NaBL2-Variance :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Variance> h
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Keyword
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Keyword>
+    where <?"NaBL2-Keyword"> sort
+
+  prettyprint-NaBL2-NaBL2-Keyword =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Keyword :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Keyword> h

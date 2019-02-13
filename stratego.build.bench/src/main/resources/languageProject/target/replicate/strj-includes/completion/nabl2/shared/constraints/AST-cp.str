@@ -1,0 +1,84 @@
+module completion/nabl2/shared/constraints/AST-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/AST-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Messages-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CAstProperty"
+                                   , CAstProperty(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-TermIndex-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-AstProperty-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AstProperty-Plhdr() -> <add-completions(
+                                  | ( "Property"
+                                    , Property(
+                                        <try(inline-completions(|NaBL2-AstProperty-Plhdr()))> NaBL2-AstPropertyId-Plhdr()
+                                      )
+                                    )
+                                  )
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AstProperty-Plhdr() -> <add-completions(|("Type", Type()))
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AstProperty-Plhdr() -> <add-completions(|("Params", Params()))
+                                  ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-AstPropertyId" -> <is-left-recursive> "NaBL2-AstProperty"
+    where <not(is-lexical-completion-sort)> "NaBL2-AstPropertyId"
+
+  is-right-recursive :
+    "NaBL2-AstPropertyId" -> <is-right-recursive> "NaBL2-AstProperty"
+    where <not(is-lexical-completion-sort)> "NaBL2-AstPropertyId"
+
+  is-NaBL2-AstProperty-completion-sort :
+    "NaBL2-AstPropertyId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-AstPropertyId" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-TermIndex-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AstPropertyId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AstProperty-Plhdr()

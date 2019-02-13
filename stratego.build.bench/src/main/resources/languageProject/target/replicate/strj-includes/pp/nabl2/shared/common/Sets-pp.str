@@ -1,0 +1,531 @@
+module pp/nabl2/shared/common/Sets-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Sets-sig
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+imports
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/Identifiers-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-SetExpr
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-SetProj
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-SetExpr>
+    where <?"NaBL2-SetExpr"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-SetProj>
+    where <?"NaBL2-SetProj"> sort
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    EmptySet() -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("0")]
+                    )
+                  ]
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?EmptySet()
+
+  NaBL2-get-indent :
+    (t@EmptySet(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@EmptySet(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@EmptySet(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    Union(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("( ")
+                             , t1__'
+                             , S(" union ")
+                             , t2__'
+                             , S(" )")
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?Union(_, _)
+
+  NaBL2-get-indent :
+    (t@Union(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Union(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Union(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    Isect(t1__, t2__, t3__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [ S("( ")
+                                   , t1__'
+                                   , S(" isect")
+                                   , t2__'
+                                   , S(" ")
+                                   , t3__'
+                                   , S(" )")
+                                   ]
+                                 )
+                               ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetProj) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?Isect(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@Isect(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@Isect(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@Isect(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    Diff(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [ S("( ")
+                                  , t1__'
+                                  , S(" minus")
+                                  , t2__'
+                                  , S(" ")
+                                  , t3__'
+                                  , S(" )")
+                                  ]
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetProj) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?Diff(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@Diff(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@Diff(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@Diff(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    Lsect(t1__, t2__, t3__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [ S("( ")
+                                   , t1__'
+                                   , S(" lsect")
+                                   , t2__'
+                                   , S(" ")
+                                   , t3__'
+                                   , S(" )")
+                                   ]
+                                 )
+                               ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetProj) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?Lsect(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@Lsect(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@Lsect(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@Lsect(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetExpr"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetProj :
+    NoProjection() -> [ H(
+                          []
+                        , [S("")]
+                        )
+                      ]
+
+  is-NaBL2-NaBL2-SetProj =
+    ?NoProjection()
+
+  NaBL2-get-indent :
+    (t@NoProjection(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@NoProjection(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@NoProjection(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-SetProj :
+    Projection(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("/"), t1__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-ProjectionId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-SetProj =
+    ?Projection(_)
+
+  NaBL2-get-indent :
+    (t@Projection(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Projection(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Projection(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-SetProj"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-SetExpr =
+    fail
+
+  is-NaBL2-NaBL2-SetProj =
+    fail
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-SetExpr> h
+
+  prettyprint-NaBL2-NaBL2-SetProj :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-SetProj> h
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CSet
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CSet>
+    where <?"NaBL2-CSet"> sort
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CSet)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetExpr) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-CSet =
+    fail
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CSet> h
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    NaBL2-CSet-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CSet")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CSet =
+    ?NaBL2-CSet-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    NaBL2-SetExpr-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-SetExpr")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?NaBL2-SetExpr-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    NaBL2-CSet-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CSet")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CSet =
+    ?NaBL2-CSet-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-SetExpr :
+    NaBL2-SetExpr-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-SetExpr")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-SetExpr =
+    ?NaBL2-SetExpr-Plhdr(_)
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Keyword
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Keyword>
+    where <?"NaBL2-Keyword"> sort
+
+  prettyprint-NaBL2-NaBL2-Keyword =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Keyword :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Keyword> h

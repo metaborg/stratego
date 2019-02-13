@@ -1,0 +1,55 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/constraints/Main-norm")
+, [ Imports(
+      [ Module(Unparameterized("normalized/nabl2/shared/constraints/AST-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Base-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Equality-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Functions-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Namebinding-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Polymorphism-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Properties-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Relations-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Sets-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/constraints/Symbolic-norm"))
+      ]
+    )
+  ]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

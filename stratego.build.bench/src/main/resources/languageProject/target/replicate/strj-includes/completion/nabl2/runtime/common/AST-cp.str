@@ -1,0 +1,41 @@
+module completion/nabl2/runtime/common/AST-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/AST-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/runtime/common/Native-cp
+  completion/nabl2/runtime/analysis/Generation-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-TermIndex-Plhdr() -> <add-completions(
+                                | ( "TermIndex"
+                                  , TermIndex(
+                                      <try(inline-completions(|NaBL2-TermIndex-Plhdr()))> NaBL2-String-Plhdr()
+                                    , <try(inline-completions(|NaBL2-TermIndex-Plhdr()))> NaBL2-Int-Plhdr()
+                                    )
+                                  )
+                                )
+                                ; fail> completions
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-TermIndex-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-String-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Int-Plhdr()

@@ -1,0 +1,21 @@
+module nabl2/shared/fresh
+
+rules
+
+  nabl2--with-fresh(s) = nabl2--with-fresh(!"", s)
+
+  nabl2--with-fresh(sep, s) = ?t; {| NaBL2Sep, NaBL2Fresh:
+    where(
+      sep := <sep>;
+      rules(NaBL2Sep: _ -> sep)
+    ); s
+  |}
+
+  nabl2--fresh: n -> <nabl2--fresh> n
+    where not(<NaBL2Fresh> n)
+    with c := <new-counter>;
+         rules(NaBL2Fresh: n -> c)
+
+  nabl2--fresh: n -> $[[n][<NaBL2Sep>][<int-to-string> i]]
+    where c := <NaBL2Fresh> n
+    with i := <next-counter> c

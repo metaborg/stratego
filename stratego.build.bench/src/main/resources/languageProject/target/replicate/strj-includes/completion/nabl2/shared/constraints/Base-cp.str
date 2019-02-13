@@ -1,0 +1,130 @@
+module completion/nabl2/shared/constraints/Base-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Base-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/CTerms-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CTrue"
+                                   , CTrue(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CFalse"
+                                   , CFalse(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CConj"
+                                   , CConj(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Constraint-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Constraint-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CExists"
+                                   , CExists(
+                                       [ <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CVar-Plhdr()
+                                       ]
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Constraint-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CNew"
+                                   , CNew(
+                                       [ <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CVar-Plhdr()
+                                       ]
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-Constraint" -> <id>
+
+  suggest-completions-left-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "CConj"
+                            , CConj(
+                                orig-term
+                              , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Constraint-Plhdr()
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-Constraint-completion-sort> sort
+
+  is-right-recursive :
+    "NaBL2-Constraint" -> <id>
+
+  suggest-completions-right-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "CConj"
+                            , CConj(
+                                <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Constraint-Plhdr()
+                              , orig-term
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-Constraint-completion-sort> sort
+
+  is-NaBL2-Constraint-completion-sort :
+    "NaBL2-Constraint" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-ConstraintPriority" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-Keyword" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CVar-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()

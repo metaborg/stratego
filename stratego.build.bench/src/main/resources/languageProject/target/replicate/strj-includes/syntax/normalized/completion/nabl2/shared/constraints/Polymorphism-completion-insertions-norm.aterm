@@ -1,0 +1,102 @@
+Module(
+  Unparameterized("normalized/completion/nabl2/shared/constraints/Polymorphism-completion-insertions-norm")
+, [ Imports(
+      [Module(Unparameterized("normalized/nabl2/shared/constraints/Polymorphism-norm")), Module(Unparameterized("normalized/completion/nabl2/shared/common/CTerms-completion-insertions-norm")), Module(Unparameterized("normalized/completion/nabl2/shared/common/Messages-completion-insertions-norm"))]
+    )
+  ]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"genOf\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\103"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\79"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"instOf\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\79"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"genOf\""), Lit("\"instOf\"")))
+          , Rhs([Lit("\"genOf\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"genOf\""), Lit("\"instOf\"")))
+          , Rhs([Lit("\"instOf\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProduction(Lex(Sort("COMPLETION-INSERTION")), Rhs([]), NoAttrs())
+        , SdfProduction(
+            Cf(Sort("COMPLETION-INSERTION"))
+          , Rhs([Lex(Sort("COMPLETION-INSERTION"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Alt(Lit("\"genOf\""), Lit("\"instOf\"")))
+          , Rhs([Lex(Alt(Lit("\"genOf\""), Lit("\"instOf\"")))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Keyword"))
+          , Rhs([Lex(Sort("NaBL2-Keyword"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

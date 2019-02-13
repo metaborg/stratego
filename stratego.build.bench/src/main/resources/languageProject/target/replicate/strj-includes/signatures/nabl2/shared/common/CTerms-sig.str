@@ -1,0 +1,22 @@
+module signatures/nabl2/shared/common/CTerms-sig
+
+signature
+  sorts
+    NaBL2-CVar
+
+  constructors
+                          : NaBL2-CVar -> NaBL2-CTerm
+                          : NaBL2-CList -> NaBL2-CTerm
+                          : List(NaBL2-CTerm) -> NaBL2-CTerms
+                          : NaBL2-CVar -> NaBL2-CList
+    CList                 : List(NaBL2-CTerm) -> NaBL2-CList
+    CListTail             : List(NaBL2-CTerm) * NaBL2-CList -> NaBL2-CList
+    NaBL2-CTerms-Plhdr    : NaBL2-CTerms
+    NaBL2-CVar-Plhdr      : NaBL2-CVar
+    NaBL2-CTerm-Plhdr     : NaBL2-CTerm
+    NaBL2-CList-Plhdr     : NaBL2-CList
+    NaBL2-CTerms-Plhdr    : COMPLETION-INSERTION -> NaBL2-CTerms
+    NaBL2-CVar-Plhdr      : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-CTerm-Plhdr     : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-CList-Plhdr     : COMPLETION-INSERTION -> NaBL2-CList
+    NaBL2-CTerm-Opt-Plhdr : NaBL2-CTerm

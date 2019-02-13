@@ -1,0 +1,29 @@
+module signatures/nabl2/runtime/common/Messages-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/runtime/common/Native-sig
+
+
+signature
+  constructors
+    Formatted                      : List(NaBL2-MessageContent) -> NaBL2-MessageContent
+    Text                           : NaBL2-String -> NaBL2-MessageContent
+    Term                           : NaBL2-CTerm -> NaBL2-MessageContent
+    Default                        : NaBL2-MessageContent
+    NoIndex                        : NaBL2-MessagePosition
+    NAME                           : NaBL2-MessagePosition
+                                   : NaBL2-TermIndex -> NaBL2-MessagePosition
+    NaBL2-String-Plhdr             : NaBL2-String
+    NaBL2-CTerm-Plhdr              : NaBL2-CTerm
+    NaBL2-MessageContent-Plhdr     : NaBL2-MessageContent
+    NaBL2-MessagePosition-Plhdr    : NaBL2-MessagePosition
+    NaBL2-TermIndex-Plhdr          : NaBL2-TermIndex
+    NaBL2-String-Plhdr             : COMPLETION-INSERTION -> NaBL2-String
+    NaBL2-CTerm-Plhdr              : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-MessageContent-Plhdr     : COMPLETION-INSERTION -> NaBL2-MessageContent
+    NaBL2-MessagePosition-Plhdr    : COMPLETION-INSERTION -> NaBL2-MessagePosition
+    NaBL2-TermIndex-Plhdr          : COMPLETION-INSERTION -> NaBL2-TermIndex
+    NaBL2-MessageContent-Opt-Plhdr : NaBL2-MessageContent

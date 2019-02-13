@@ -1,0 +1,663 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/common/Sorts-norm")
+, [Imports([Module(Unparameterized("normalized/nabl2/shared/common/Identifiers-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"*\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\42"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\",\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\44"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\")\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\41"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"(\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\40"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"term\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"string\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\103"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"scope\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\112"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"occurrence\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\117"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"list\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"map\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\112"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-SortId\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\73"))))
+              , CharClass(Simple(Present(Numeric("\\100"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Sort\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-SortVarId\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\86"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\73"))))
+              , CharClass(Simple(Present(Numeric("\\100"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-SortRef\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProduction(
+            Cf(IterSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+          , Rhs([Cf(Sort("NaBL2-SortRef"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+          , Rhs(
+              [ Cf(IterSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+              , Cf(Opt(Layout()))
+              , Lit("\"*\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-SortRef"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterStarSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+          , Rhs([])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterStarSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+          , Rhs([Cf(IterSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"term\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"string\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"scope\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"occurrence\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"list\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"map\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Sort")), Constructor("SortNoArgs"))
+          , Rhs([Cf(Sort("NaBL2-SortId"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-SortRef"))
+          , Rhs([Cf(Sort("NaBL2-Sort"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("TermSort"))
+          , Rhs([Lit("\"term\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("OccurrenceSort"))
+          , Rhs([Lit("\"occurrence\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("ScopeSort"))
+          , Rhs([Lit("\"scope\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("StringSort"))
+          , Rhs([Lit("\"string\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("Var"))
+          , Rhs([Cf(Sort("NaBL2-SortVarId"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("TupleSort"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(IterStarSep(Sort("NaBL2-SortRef"), Lit("\"*\"")))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("ListSort"))
+          , Rhs(
+              [ Lit("\"list\"")
+              , Cf(Opt(Layout()))
+              , Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-SortRef"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("MapSort"))
+          , Rhs(
+              [ Lit("\"map\"")
+              , Cf(Opt(Layout()))
+              , Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-SortRef"))
+              , Cf(Opt(Layout()))
+              , Lit("\",\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-SortRef"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-SortVarId"))
+          , Rhs([Lex(Sort("NaBL2-VarId"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-SortVarId"))
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"term\"")
+                  , Alt(
+                      Lit("\"string\"")
+                    , Alt(
+                        Lit("\"scope\"")
+                      , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          , Attrs([Reject()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\")\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"term\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"occurrence\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"scope\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"string\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"(\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"list\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"map\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProduction(
+            Cf(
+              Alt(
+                Lit("\"term\"")
+              , Alt(
+                  Lit("\"string\"")
+                , Alt(
+                    Lit("\"scope\"")
+                  , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                  )
+                )
+              )
+            )
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"term\"")
+                  , Alt(
+                      Lit("\"string\"")
+                    , Alt(
+                        Lit("\"scope\"")
+                      , Alt(Lit("\"occurrence\""), Alt(Lit("\"list\""), Lit("\"map\"")))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-VarId"))
+          , Rhs([Lex(Sort("NaBL2-VarId"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-SortVarId"))
+          , Rhs([Lex(Sort("NaBL2-SortVarId"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortId")), Constructor("NaBL2-SortId-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-SortId\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Sort")), Constructor("NaBL2-Sort-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Sort\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortVarId")), Constructor("NaBL2-SortVarId-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-SortVarId\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-SortRef")), Constructor("NaBL2-SortRef-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-SortRef\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Restrictions(
+        [ Follow(
+            [Lit("\"list\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Numeric("\\39")
+                      , Conc(
+                          Range(Numeric("\\48"), Numeric("\\57"))
+                        , Conc(
+                            Range(Numeric("\\65"), Numeric("\\90"))
+                          , Conc(Numeric("\\95"), Range(Numeric("\\97"), Numeric("\\122")))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"map\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Numeric("\\39")
+                      , Conc(
+                          Range(Numeric("\\48"), Numeric("\\57"))
+                        , Conc(
+                            Range(Numeric("\\65"), Numeric("\\90"))
+                          , Conc(Numeric("\\95"), Range(Numeric("\\97"), Numeric("\\122")))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-SortId\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Sort\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-SortVarId\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-SortRef\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

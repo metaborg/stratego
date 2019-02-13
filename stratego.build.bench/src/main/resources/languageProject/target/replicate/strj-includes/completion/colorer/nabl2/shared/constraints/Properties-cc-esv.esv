@@ -1,0 +1,18 @@
+module completion/colorer/nabl2/shared/constraints/Properties-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/AST-cc-esv
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+  completion/colorer/nabl2/shared/common/Messages-cc-esv
+  completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
+  completion/colorer/nabl2/shared/constraints/Base-cc-esv
+  completion/colorer/nabl2/shared/constraints/Equality-cc-esv
+
+colorer
+  _.NaBL2-Constraint-Plhdr         : gray   
+  _.NaBL2-Occurrence-Plhdr         : gray   
+  _.NaBL2-CTerm-Plhdr              : gray   
+  _.NaBL2-ConstraintPriority-Plhdr : gray   
+  _.NaBL2-Message-Plhdr            : gray   
+  _.NaBL2-DeclPropertyId-Plhdr     : gray   
+  _.NaBL2-DeclProperty-Plhdr       : gray   

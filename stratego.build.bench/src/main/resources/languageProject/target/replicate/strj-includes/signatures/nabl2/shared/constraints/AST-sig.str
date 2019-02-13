@@ -1,0 +1,26 @@
+module signatures/nabl2/shared/constraints/AST-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+signature
+  constructors
+    CAstProperty              : NaBL2-TermIndex * NaBL2-AstProperty * NaBL2-CTerm -> NaBL2-Constraint
+    Property                  : NaBL2-AstPropertyId -> NaBL2-AstProperty
+    Type                      : NaBL2-AstProperty
+    Params                    : NaBL2-AstProperty
+    NaBL2-Constraint-Plhdr    : NaBL2-Constraint
+    NaBL2-TermIndex-Plhdr     : NaBL2-TermIndex
+    NaBL2-CTerm-Plhdr         : NaBL2-CTerm
+    NaBL2-AstPropertyId-Plhdr : NaBL2-AstPropertyId
+    NaBL2-AstProperty-Plhdr   : NaBL2-AstProperty
+    NaBL2-Constraint-Plhdr    : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-TermIndex-Plhdr     : COMPLETION-INSERTION -> NaBL2-TermIndex
+    NaBL2-CTerm-Plhdr         : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-AstPropertyId-Plhdr : COMPLETION-INSERTION -> NaBL2-AstPropertyId
+    NaBL2-AstProperty-Plhdr   : COMPLETION-INSERTION -> NaBL2-AstProperty
+                              : String -> NaBL2-AstPropertyId

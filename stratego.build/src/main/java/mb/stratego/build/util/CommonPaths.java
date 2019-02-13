@@ -13,19 +13,23 @@ public class CommonPaths {
         return resolve(strSepCompSrcGenDir(root), capitalsForDollars(strategy));
     }
 
-    public static FileObject strSepCompStrategyFile(FileObject root, String projectName, String moduleName, String strategy) {
+    public static FileObject strSepCompStrategyFile(FileObject root, String projectName, String moduleName,
+        String strategy) {
         return resolve(strSepCompStrategyDir(root, strategy), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
-    public static FileObject strSepCompConstrListFile(FileObject root, String projectName, String moduleName, String strategy) {
-        return resolve(strSepCompStrategyDir(root, strategy), prepareConstrListName(projectName, moduleName) + ".aterm");
+    public static FileObject strSepCompConstrListFile(FileObject root, String projectName, String moduleName,
+        String strategy) {
+        return resolve(strSepCompStrategyDir(root, strategy),
+            prepareConstrListName(projectName, moduleName) + ".aterm");
     }
 
     public static FileObject strSepCompOverlayDir(FileObject root, String overlayName) {
         return resolve(strSepCompSrcGenDir(root), "overlays", capitalsForDollars(overlayName));
     }
 
-    public static FileObject strSepCompOverlayFile(FileObject root, String projectName, String moduleName, String overlayName) {
+    public static FileObject strSepCompOverlayFile(FileObject root, String projectName, String moduleName,
+        String overlayName) {
         return resolve(strSepCompOverlayDir(root, overlayName), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 

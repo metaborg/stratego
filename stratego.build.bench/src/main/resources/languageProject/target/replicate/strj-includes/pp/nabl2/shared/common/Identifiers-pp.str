@@ -1,0 +1,263 @@
+module pp/nabl2/shared/common/Identifiers-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-INT
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-LCID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-UCID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-STRID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-STRLCID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-STRUCID
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-VarId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-OpId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-SortId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-NamespaceId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-PropertyId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RelationId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-FunctionId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ProjectionId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-StrategyId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-LabelId
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-BuiltinLabel
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-INT>
+    where <?"NaBL2-INT"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ID>
+    where <?"NaBL2-ID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-LCID>
+    where <?"NaBL2-LCID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-UCID>
+    where <?"NaBL2-UCID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-STRID>
+    where <?"NaBL2-STRID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-STRLCID>
+    where <?"NaBL2-STRLCID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-STRUCID>
+    where <?"NaBL2-STRUCID"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-VarId>
+    where <?"NaBL2-VarId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-OpId>
+    where <?"NaBL2-OpId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-SortId>
+    where <?"NaBL2-SortId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-NamespaceId>
+    where <?"NaBL2-NamespaceId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-PropertyId>
+    where <?"NaBL2-PropertyId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RelationId>
+    where <?"NaBL2-RelationId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-FunctionId>
+    where <?"NaBL2-FunctionId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ProjectionId>
+    where <?"NaBL2-ProjectionId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-StrategyId>
+    where <?"NaBL2-StrategyId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-LabelId>
+    where <?"NaBL2-LabelId"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-BuiltinLabel>
+    where <?"NaBL2-BuiltinLabel"> sort
+
+  prettyprint-NaBL2-NaBL2-INT =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-ID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-LCID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-UCID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-STRID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-STRLCID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-STRUCID =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-VarId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-OpId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-SortId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-NamespaceId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-PropertyId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-RelationId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-FunctionId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-ProjectionId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-StrategyId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-LabelId =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-BuiltinLabel =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-INT :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-INT> h
+
+  prettyprint-NaBL2-NaBL2-ID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ID> h
+
+  prettyprint-NaBL2-NaBL2-LCID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-LCID> h
+
+  prettyprint-NaBL2-NaBL2-UCID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-UCID> h
+
+  prettyprint-NaBL2-NaBL2-STRID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-STRID> h
+
+  prettyprint-NaBL2-NaBL2-STRLCID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-STRLCID> h
+
+  prettyprint-NaBL2-NaBL2-STRUCID :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-STRUCID> h
+
+  prettyprint-NaBL2-NaBL2-VarId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-VarId> h
+
+  prettyprint-NaBL2-NaBL2-OpId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-OpId> h
+
+  prettyprint-NaBL2-NaBL2-SortId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-SortId> h
+
+  prettyprint-NaBL2-NaBL2-NamespaceId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-NamespaceId> h
+
+  prettyprint-NaBL2-NaBL2-PropertyId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-PropertyId> h
+
+  prettyprint-NaBL2-NaBL2-RelationId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RelationId> h
+
+  prettyprint-NaBL2-NaBL2-FunctionId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-FunctionId> h
+
+  prettyprint-NaBL2-NaBL2-ProjectionId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ProjectionId> h
+
+  prettyprint-NaBL2-NaBL2-StrategyId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-StrategyId> h
+
+  prettyprint-NaBL2-NaBL2-LabelId :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-LabelId> h
+
+  prettyprint-NaBL2-NaBL2-BuiltinLabel :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-BuiltinLabel> h

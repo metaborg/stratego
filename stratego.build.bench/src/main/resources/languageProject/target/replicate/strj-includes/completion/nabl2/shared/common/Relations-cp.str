@@ -1,0 +1,135 @@
+module completion/nabl2/shared/common/Relations-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Relations-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Reflexivity-Plhdr() -> <add-completions(|("Reflexive", Reflexive()))
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Reflexivity-Plhdr() -> <add-completions(|("Irreflexive", Irreflexive()))
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Symmetry-Plhdr() -> <add-completions(|("Symmetric", Symmetric()))
+                               ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Symmetry-Plhdr() -> <add-completions(|("AntiSymmetric", AntiSymmetric()))
+                               ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Transitivity-Plhdr() -> <add-completions(|("Transitive", Transitive()))
+                                   ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Transitivity-Plhdr() -> <add-completions(|("AntiTransitive", AntiTransitive()))
+                                   ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Relation-Plhdr() -> <add-completions(
+                               | ( "Relation"
+                                 , Relation(
+                                     <try(inline-completions(|NaBL2-Relation-Plhdr()))> NaBL2-RelationId-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+  null-constructor-completion-sort :
+    "NaBL2-RelationRef" -> DefaultRelation()
+
+  suggest-completions(|completions):
+    NaBL2-RelationRef-Plhdr() -> <suggest-completions(|completions)> NaBL2-Relation-Plhdr()
+    where <not(is-expanded)> (NaBL2-RelationRef-Plhdr(), NaBL2-Relation-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-RelationRef-Plhdr(), NaBL2-Relation-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-VariancePattern-Plhdr() -> <add-completions(
+                                      | ( "ListVariant"
+                                        , ListVariant(
+                                            <try(inline-completions(|NaBL2-VariancePattern-Plhdr()))> NaBL2-Variance-Plhdr()
+                                          )
+                                        )
+                                      )
+                                      ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-VariancePattern-Plhdr() -> <add-completions(
+                                      | ("TupleVariant", TupleVariant(CURSOR_ELEMENT()))
+                                      )
+                                      ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-RelationId" -> <is-left-recursive> "NaBL2-Relation"
+    where <not(is-lexical-completion-sort)> "NaBL2-RelationId"
+
+  is-right-recursive :
+    "NaBL2-RelationId" -> <is-right-recursive> "NaBL2-Relation"
+    where <not(is-lexical-completion-sort)> "NaBL2-RelationId"
+
+  is-NaBL2-Relation-completion-sort :
+    "NaBL2-RelationId" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Relation" -> <is-left-recursive> "NaBL2-RelationRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Relation"
+
+  is-right-recursive :
+    "NaBL2-Relation" -> <is-right-recursive> "NaBL2-RelationRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Relation"
+
+  is-NaBL2-RelationRef-completion-sort :
+    "NaBL2-Relation" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-Keyword" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Reflexivity-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Symmetry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Transitivity-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-RelationId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-RelationRef-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Relation-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-VariancePattern-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Variances-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Variance-Plhdr()

@@ -1,0 +1,22 @@
+module signatures/nabl2/runtime/analysis/Generation-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+signature
+  constructors
+    Params                     : NaBL2-CGenArgs -> NaBL2-AnalysisResult
+    Params                     : NaBL2-CGenParams -> NaBL2-CGenArgs
+    ParamsAndType              : NaBL2-CGenParams * NaBL2-CTerm -> NaBL2-CGenArgs
+                               : List(NaBL2-CTerm) -> NaBL2-CGenParams
+                               : NaBL2-CTerm -> NaBL2-CGenParams
+    NaBL2-AnalysisResult-Plhdr : NaBL2-AnalysisResult
+    NaBL2-CGenArgs-Plhdr       : NaBL2-CGenArgs
+    NaBL2-CGenParams-Plhdr     : NaBL2-CGenParams
+    NaBL2-CTerm-Plhdr          : NaBL2-CTerm
+    NaBL2-AnalysisResult-Plhdr : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-CGenArgs-Plhdr       : COMPLETION-INSERTION -> NaBL2-CGenArgs
+    NaBL2-CGenParams-Plhdr     : COMPLETION-INSERTION -> NaBL2-CGenParams
+    NaBL2-CTerm-Plhdr          : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-CTerm-Opt-Plhdr      : NaBL2-CTerm

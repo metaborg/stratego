@@ -1,0 +1,20 @@
+module signatures/nabl2/shared/constraints/Polymorphism-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+signature
+  constructors
+    CGen                   : NaBL2-CTerm * NaBL2-CVar * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    CInst                  : NaBL2-CTerm * NaBL2-CVar * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    NaBL2-Constraint-Plhdr : NaBL2-Constraint
+    NaBL2-CVar-Plhdr       : NaBL2-CVar
+    NaBL2-CTerm-Plhdr      : NaBL2-CTerm
+    NaBL2-Message-Plhdr    : NaBL2-Message
+    NaBL2-Constraint-Plhdr : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-CVar-Plhdr       : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-CTerm-Plhdr      : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Message-Plhdr    : COMPLETION-INSERTION -> NaBL2-Message
+                           : String -> NaBL2-Keyword

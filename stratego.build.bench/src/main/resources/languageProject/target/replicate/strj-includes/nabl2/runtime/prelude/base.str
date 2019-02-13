@@ -1,0 +1,37 @@
+module nabl2/runtime/prelude/base
+
+imports
+
+  libspoofax/term/annotation
+
+rules
+
+  nabl2--term-eq = strip-annos ; eq
+
+
+  nabl2--xmlencode =
+    try(string-replace(|"&","&amp;"))
+  ; try(string-replace(|"<","&lt;"))
+  ; try(string-replace(|">","&gt;"))
+
+
+  nabl2--log(s|n) = with(s ; debug(!n))
+  nabl2--log(|n)  = nabl2--log(id|n)
+  nabl2--log(s)   = nabl2--log(s|"")
+
+  nabl2--assert(s) = nabl2--assert(s|"Assert failed")
+
+  nabl2--assert(s|msg) = with(s <+ fatal-err(|msg))
+
+
+  nabl2--strict(s) = nabl2--strict(s|"Failure in strict mode")
+
+  nabl2--strict(s|msg) =
+    s
+ <+ ?term;
+    prim("SSL_stacktrace_get_all_frame_names") => stack;
+    <debug> $[ERROR: [msg]];
+    <report-failure(|msg, term)> stack
+
+
+  nabl2--deprecated(|msg) = with(<warn(|"DEPRECATED")> msg)

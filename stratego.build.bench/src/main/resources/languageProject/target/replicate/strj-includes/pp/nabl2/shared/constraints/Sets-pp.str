@@ -1,0 +1,381 @@
+module pp/nabl2/shared/constraints/Sets-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/constraints/Sets-sig
+
+
+imports
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/Sets-sig
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+imports
+  pp/nabl2/shared/common/Messages-pp
+  pp/nabl2/shared/common/Sets-pp
+  pp/nabl2/shared/common/CTerms-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Constraint
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Constraint>
+    where <?"NaBL2-Constraint"> sort
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CEvalSet(t1__, t2__, t3__) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [ t1__'
+                                      , S(" is set ")
+                                      , t2__'
+                                      , S(" ")
+                                      , t3__'
+                                      ]
+                                    )
+                                  ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Message) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CEvalSet(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@CEvalSet(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@CEvalSet(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@CEvalSet(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Constraint =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Constraint> h
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Constraint")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    NaBL2-CSet-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CSet")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CSet =
+    ?NaBL2-CSet-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Message :
+    NaBL2-Message-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-Message")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-Message =
+    ?NaBL2-Message-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Constraint")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CSet :
+    NaBL2-CSet-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CSet")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CSet =
+    ?NaBL2-CSet-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Message :
+    NaBL2-Message-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Message")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Message =
+    ?NaBL2-Message-Plhdr(_)
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Constraint
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Constraint>
+    where <?"NaBL2-Constraint"> sort
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CSubsetEq(t1__, t2__, t3__, t4__) -> [ H(
+                                             [SOpt(HS(), "0")]
+                                           , [ t1__'
+                                             , S(" subseteq")
+                                             , t2__'
+                                             , S(" ")
+                                             , t3__'
+                                             , S(" ")
+                                             , t4__'
+                                             ]
+                                           )
+                                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetProj) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+    with t4__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Message) <+ pp-one-Z(prettyprint-completion-aux)> t4__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CSubsetEq(_, _, _, _)
+
+  NaBL2-get-indent :
+    ( t@CSubsetEq(t1__, t2__, t3__, t4__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           case ?4 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@CSubsetEq(t1__, t2__, t3__, t4__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           case ?4 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@CSubsetEq(t1__, t2__, t3__, t4__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := " "
+           case ?4 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CDistinct(t1__, t2__, t3__) -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [ S("distinct")
+                                       , t1__'
+                                       , S(" ")
+                                       , t2__'
+                                       , S(" ")
+                                       , t3__'
+                                       ]
+                                     )
+                                   ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-SetProj) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CSet) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Message) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CDistinct(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@CDistinct(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@CDistinct(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@CDistinct(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Constraint =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Constraint> h
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Keyword
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Keyword>
+    where <?"NaBL2-Keyword"> sort
+
+  prettyprint-NaBL2-NaBL2-Keyword =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Keyword :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Keyword> h

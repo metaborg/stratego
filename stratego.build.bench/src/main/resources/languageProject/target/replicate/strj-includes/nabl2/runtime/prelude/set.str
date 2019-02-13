@@ -1,0 +1,25 @@
+module nabl2/runtime/prelude/set
+
+strategies
+  
+  nabl2--dups = nabl2--dups(eq)
+  
+  nabl2--dups(eq): [x|x*] -> [d*|<nabl2--dups(eq)> z*]
+    where (y*,z*) := <partition(where(<eq> (x,<id>)))> x*
+        ; if [] := y* then
+            d* := []
+          else
+            d* := [x|y*]
+          end
+  nabl2--dups(eq): [] -> []
+  
+
+  nabl2--set-add(|x) = nabl2--set-add(eq|x)
+
+  nabl2--set-add(eq|x): ys@[y|_] -> ys
+    where <eq> (x,y)
+
+  nabl2--set-add(eq|x): [y|ys] -> [y|<nabl2--set-add(eq|x)> ys]
+    where <not(eq)> (x,y)
+
+  nabl2--set-add(eq|x): [] -> [x]

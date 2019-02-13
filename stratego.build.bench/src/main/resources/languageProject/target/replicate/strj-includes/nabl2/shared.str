@@ -1,0 +1,5 @@
+module nabl2/shared
+
+imports
+
+  nabl2/shared/main

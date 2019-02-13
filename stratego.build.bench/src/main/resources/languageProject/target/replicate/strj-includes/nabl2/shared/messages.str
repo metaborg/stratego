@@ -1,0 +1,9 @@
+module nabl2/shared/common/messages
+
+imports
+
+  signatures/nabl2/shared/common/-
+
+rules
+
+  nabl2--message-pos = ?Message(_,_,pos) < pos + id

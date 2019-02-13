@@ -1,0 +1,223 @@
+Module(
+  Unparameterized("normalized/nabl2/runtime/common/CTerms-norm")
+, [Imports([Module(Unparameterized("normalized/nabl2/runtime/common/Native-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"-\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\45"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"?\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\63"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"NAME\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\65"))))
+              , CharClass(Simple(Present(Numeric("\\77"))))
+              , CharClass(Simple(Present(Numeric("\\69"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-CVar\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\67"))))
+              , CharClass(Simple(Present(Numeric("\\86"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-String\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\103"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-CTerm\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\67"))))
+              , CharClass(Simple(Present(Numeric("\\84"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CVar")), Constructor("CVar"))
+          , Rhs(
+              [ Lit("\"?\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-String"))
+              , Cf(Opt(Layout()))
+              , Lit("\"-\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-String"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CTerm")), Constructor("NAME"))
+          , Rhs([Lit("\"NAME\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"?\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"NAME\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CVar")), Constructor("NaBL2-CVar-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-CVar\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-String")), Constructor("NaBL2-String-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-String\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CTerm")), Constructor("NaBL2-CTerm-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-CTerm\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Restrictions(
+        [ Follow(
+            [Lit("\"$NaBL2-CVar\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-String\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-CTerm\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

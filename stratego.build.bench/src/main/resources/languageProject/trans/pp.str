@@ -1,0 +1,49 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/editor/refactoring/-
+  pp/incremental-parenthesize
+  pp/incremental-pp
+
+rules
+
+  editor-format:
+    (node, _, ast, path, project-path) -> (filename, result)
+    with
+      ext      := <get-extension> path
+    ; filename := <guarantee-extension(|$[pp.[ext]])> path
+    ; result   := <pp-debug> node
+
+rules
+  
+  pp-incremental-string =
+    parenthesize-incremental
+    ; prettyprint-incremental-start-symbols
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-partial-incremental-string =
+    parenthesize-incremental
+    ; prettyprint-incremental
+    ; !V([], <id>)
+    ; box2text-string(|120)
+    
+  pp-partial-incremental-string(|sort) =
+    parenthesize-incremental
+    ; prettyprint-incremental(|sort)
+    ; !V([], <id>)
+    ; box2text-string(|120)  
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-incremental-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-incremental-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+
+rules
+  
+  construct-textual-change = construct-textual-change(pp-partial-incremental-string, parenthesize, override-reconstruction, resugar)

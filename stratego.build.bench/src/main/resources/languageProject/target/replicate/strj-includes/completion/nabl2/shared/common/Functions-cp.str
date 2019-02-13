@@ -1,0 +1,49 @@
+module completion/nabl2/shared/common/Functions-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Functions-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Function-Plhdr() -> <add-completions(
+                               | ( "Function"
+                                 , Function(
+                                     <try(inline-completions(|NaBL2-Function-Plhdr()))> NaBL2-FunctionId-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-FunctionId" -> <is-left-recursive> "NaBL2-Function"
+    where <not(is-lexical-completion-sort)> "NaBL2-FunctionId"
+
+  is-right-recursive :
+    "NaBL2-FunctionId" -> <is-right-recursive> "NaBL2-Function"
+    where <not(is-lexical-completion-sort)> "NaBL2-FunctionId"
+
+  is-NaBL2-Function-completion-sort :
+    "NaBL2-FunctionId" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Function-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-FunctionId-Plhdr()

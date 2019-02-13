@@ -1,0 +1,13 @@
+module signatures/nabl2/runtime/common/Main-sig
+
+imports
+  signatures/nabl2/runtime/common/AST-sig
+  signatures/nabl2/runtime/common/CTerms-sig
+  signatures/nabl2/runtime/common/Messages-sig
+  signatures/nabl2/runtime/common/Native-sig
+  signatures/nabl2/runtime/common/ScopeGraph-sig
+
+
+signature
+  constructors
+    

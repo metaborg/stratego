@@ -1,0 +1,56 @@
+module completion/nabl2/shared/common/Messages-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Messages-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/CTerms-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Message-Plhdr() -> <add-completions(
+                              | ( "Message"
+                                , Message(
+                                    <try(inline-completions(|NaBL2-Message-Plhdr()))> NaBL2-MessageKind-Plhdr()
+                                  , <try(inline-completions(|NaBL2-Message-Plhdr()))> NaBL2-MessageContent-Plhdr()
+                                  , <try(inline-completions(|NaBL2-Message-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageKind-Plhdr() -> <add-completions(|("Error", Error()))
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageKind-Plhdr() -> <add-completions(|("Warning", Warning()))
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageKind-Plhdr() -> <add-completions(|("Note", Note()))
+                                  ; fail> completions
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessageContent-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessageKind-Plhdr()

@@ -1,0 +1,90 @@
+module completion/nabl2/shared/constraints/Properties-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Properties-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+  completion/nabl2/shared/constraints/Base-cp
+  completion/nabl2/shared/constraints/Equality-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CDeclProperty"
+                                   , CDeclProperty(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-DeclProperty-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-ConstraintPriority-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-DeclProperty-Plhdr() -> <add-completions(
+                                   | ( "Property"
+                                     , Property(
+                                         <try(inline-completions(|NaBL2-DeclProperty-Plhdr()))> NaBL2-DeclPropertyId-Plhdr()
+                                       )
+                                     )
+                                   )
+                                   ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-DeclProperty-Plhdr() -> <add-completions(|("Type", Type()))
+                                   ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-DeclPropertyId" -> <is-left-recursive> "NaBL2-DeclProperty"
+    where <not(is-lexical-completion-sort)> "NaBL2-DeclPropertyId"
+
+  is-right-recursive :
+    "NaBL2-DeclPropertyId" -> <is-right-recursive> "NaBL2-DeclProperty"
+    where <not(is-lexical-completion-sort)> "NaBL2-DeclPropertyId"
+
+  is-NaBL2-DeclProperty-completion-sort :
+    "NaBL2-DeclPropertyId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-DeclPropertyId" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ConstraintPriority-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-DeclPropertyId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-DeclProperty-Plhdr()

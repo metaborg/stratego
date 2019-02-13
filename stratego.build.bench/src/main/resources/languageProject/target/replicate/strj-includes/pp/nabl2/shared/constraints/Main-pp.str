@@ -1,0 +1,53 @@
+module pp/nabl2/shared/constraints/Main-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/constraints/Main-sig
+
+
+imports
+  signatures/nabl2/shared/constraints/AST-sig
+  signatures/nabl2/shared/constraints/Base-sig
+  signatures/nabl2/shared/constraints/Equality-sig
+  signatures/nabl2/shared/constraints/Functions-sig
+  signatures/nabl2/shared/constraints/Namebinding-sig
+  signatures/nabl2/shared/constraints/Polymorphism-sig
+  signatures/nabl2/shared/constraints/Properties-sig
+  signatures/nabl2/shared/constraints/Relations-sig
+  signatures/nabl2/shared/constraints/Sets-sig
+  signatures/nabl2/shared/constraints/Symbolic-sig
+
+
+imports
+  pp/nabl2/shared/constraints/AST-pp
+  pp/nabl2/shared/constraints/Base-pp
+  pp/nabl2/shared/constraints/Equality-pp
+  pp/nabl2/shared/constraints/Functions-pp
+  pp/nabl2/shared/constraints/Namebinding-pp
+  pp/nabl2/shared/constraints/Polymorphism-pp
+  pp/nabl2/shared/constraints/Properties-pp
+  pp/nabl2/shared/constraints/Relations-pp
+  pp/nabl2/shared/constraints/Sets-pp
+  pp/nabl2/shared/constraints/Symbolic-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail

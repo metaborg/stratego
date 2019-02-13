@@ -1,0 +1,8 @@
+module completion/colorer/nabl2/shared/Main-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/Main-cc-esv
+  completion/colorer/nabl2/shared/constraints/Main-cc-esv
+
+colorer
+  

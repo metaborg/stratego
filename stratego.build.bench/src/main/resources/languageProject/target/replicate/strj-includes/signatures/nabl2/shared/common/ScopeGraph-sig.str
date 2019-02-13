@@ -1,0 +1,38 @@
+module signatures/nabl2/shared/common/ScopeGraph-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+signature
+  sorts
+    NaBL2-Scope NaBL2-OccurrenceIndex
+
+  constructors
+                                 : NaBL2-CVar -> NaBL2-Scope
+                                 : NaBL2-Scope -> NaBL2-CTerm
+    Occurrence                   : NaBL2-NamespaceRef * NaBL2-CTerm * NaBL2-OccurrenceIndex -> NaBL2-Occurrence
+                                 : NaBL2-CVar -> NaBL2-Occurrence
+                                 : NaBL2-Occurrence -> NaBL2-CTerm
+    Namespace                    : NaBL2-NamespaceId -> NaBL2-Namespace
+                                 : NaBL2-Namespace -> NaBL2-NamespaceRef
+    DefaultNamespace             : NaBL2-NamespaceRef
+    NaBL2-Scope-Plhdr            : NaBL2-Scope
+    NaBL2-OccurrenceIndex-Plhdr  : NaBL2-OccurrenceIndex
+    NaBL2-CVar-Plhdr             : NaBL2-CVar
+    NaBL2-CTerm-Plhdr            : NaBL2-CTerm
+    NaBL2-Occurrence-Plhdr       : NaBL2-Occurrence
+    NaBL2-NamespaceId-Plhdr      : NaBL2-NamespaceId
+    NaBL2-Namespace-Plhdr        : NaBL2-Namespace
+    NaBL2-NamespaceRef-Plhdr     : NaBL2-NamespaceRef
+    NaBL2-Scope-Plhdr            : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-OccurrenceIndex-Plhdr  : COMPLETION-INSERTION -> NaBL2-OccurrenceIndex
+    NaBL2-CVar-Plhdr             : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-CTerm-Plhdr            : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Occurrence-Plhdr       : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-NamespaceId-Plhdr      : COMPLETION-INSERTION -> NaBL2-NamespaceId
+    NaBL2-Namespace-Plhdr        : COMPLETION-INSERTION -> NaBL2-Namespace
+    NaBL2-NamespaceRef-Plhdr     : COMPLETION-INSERTION -> NaBL2-NamespaceRef
+    NaBL2-NamespaceRef-Opt-Plhdr : NaBL2-NamespaceRef

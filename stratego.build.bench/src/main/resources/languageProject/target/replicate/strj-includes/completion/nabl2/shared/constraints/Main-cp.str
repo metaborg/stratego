@@ -1,0 +1,22 @@
+module completion/nabl2/shared/constraints/Main-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Main-sig
+
+
+imports
+  completion/nabl2/shared/constraints/AST-cp
+  completion/nabl2/shared/constraints/Base-cp
+  completion/nabl2/shared/constraints/Equality-cp
+  completion/nabl2/shared/constraints/Functions-cp
+  completion/nabl2/shared/constraints/Namebinding-cp
+  completion/nabl2/shared/constraints/Polymorphism-cp
+  completion/nabl2/shared/constraints/Properties-cp
+  completion/nabl2/shared/constraints/Relations-cp
+  completion/nabl2/shared/constraints/Sets-cp
+  completion/nabl2/shared/constraints/Symbolic-cp

@@ -1,0 +1,43 @@
+module completion/nabl2/runtime/common/CTerms-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/CTerms-sig
+
+
+imports
+  completion/nabl2/runtime/common/Native-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-CVar-Plhdr() -> <add-completions(
+                           | ( "CVar"
+                             , CVar(
+                                 <try(inline-completions(|NaBL2-CVar-Plhdr()))> NaBL2-String-Plhdr()
+                               , <try(inline-completions(|NaBL2-CVar-Plhdr()))> NaBL2-String-Plhdr()
+                               )
+                             )
+                           )
+                           ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <add-completions(|("NAME", NAME()))
+                            ; fail> completions
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-CVar-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-String-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()

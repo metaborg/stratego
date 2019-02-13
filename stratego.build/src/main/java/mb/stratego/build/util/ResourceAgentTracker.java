@@ -14,8 +14,8 @@ public class ResourceAgentTracker {
 
 
     public ResourceAgentTracker(IResourceService resourceService, FileObject initialDir, String... excludePatterns) {
-        this(resourceService, initialDir, ResourceAgent.defaultStdout(excludePatterns), ResourceAgent
-            .defaultStderr(excludePatterns));
+        this(resourceService, initialDir, ResourceAgent.defaultStdout(excludePatterns),
+            ResourceAgent.defaultStderr(excludePatterns));
     }
 
     public ResourceAgentTracker(IResourceService resourceService, FileObject initialDir, OutputStream stdoutStream,

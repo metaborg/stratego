@@ -1,0 +1,59 @@
+module nabl2/runtime/interpreter/scopegraph-api
+
+signature
+
+  sorts
+    Name
+    Type
+    Scope
+    Occurrence
+ 
+  sorts Label constructors
+    P     : Label
+    I     : Label
+    Label : String -> Label
+
+  sort aliases
+    Path = List(Step)
+ 
+  sorts Step constructors
+    D : Scope * Occurrence -> Step
+    E : Scope * Label -> Step
+    N : Scope * Label * Occurrence * Path -> Step
+
+  sorts Namespace constructors
+    DefaultNamespace : Namespace
+    Namespace        : String -> Namespace
+ 
+  arrows // occurrences
+    mkOccurrence(Name)               --> Occurrence
+    mkOccurrence(String, Name)       --> Occurrence
+    mkOccurrence(String, Name, AST) --> Occurrence
+
+    namespaceOf(Occurrence) --> Namespace
+    nameOf(Occurrence) --> Name
+
+  arrows // scope graph
+    NaBL2 |- declsOf(Scope) --> List(Occurrence)
+    NaBL2 |- edgesOf(Scope) --> Map(Label, List(Scope))
+    NaBL2 |- importsOf(Scope) --> Map(Label, List(Occurrence))
+
+    NaBL2 |- scopeOfDecl(Occurrence) --> Scope
+    NaBL2 |- scopeOfRef(Occurrence) --> Scope
+    NaBL2 |- assocsOf(Occurrence) --> Map(Label, List(Scope))
+    NaBL2 |- typeOf(Occurrence) --> Type
+    
+    newScope(Scope, List(Occurrence), List(Occurrence), Map(Label, List(Scope)), Map(Label, List(Occurrence))) :: NaBL2 --> Scope :: NaBL2
+    setType(Occurrence, Type) :: NaBL2 --> Occurrence :: NaBL2
+    
+  arrows // name resolution
+    NaBL2 |- pathOf(Occurrence) --> Path
+ 
+  sorts
+    NaBL2
+
+  components
+    NaBL2 : NaBL2
+
+  arrows
+    initNaBL2(AST) --> NaBL2

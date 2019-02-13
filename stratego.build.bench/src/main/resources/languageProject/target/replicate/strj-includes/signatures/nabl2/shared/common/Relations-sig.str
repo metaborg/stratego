@@ -1,0 +1,76 @@
+module signatures/nabl2/shared/common/Relations-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+signature
+  constructors
+    Reflexive                    : NaBL2-Reflexivity
+    Irreflexive                  : NaBL2-Reflexivity
+    Symmetric                    : NaBL2-Symmetry
+    AntiSymmetric                : NaBL2-Symmetry
+    Transitive                   : NaBL2-Transitivity
+    AntiTransitive               : NaBL2-Transitivity
+    Relation                     : NaBL2-RelationId -> NaBL2-Relation
+    DefaultRelation              : NaBL2-RelationRef
+                                 : NaBL2-Relation -> NaBL2-RelationRef
+    NaBL2-Reflexivity-Plhdr      : NaBL2-Reflexivity
+    NaBL2-Symmetry-Plhdr         : NaBL2-Symmetry
+    NaBL2-Transitivity-Plhdr     : NaBL2-Transitivity
+    NaBL2-RelationId-Plhdr       : NaBL2-RelationId
+    NaBL2-RelationRef-Plhdr      : NaBL2-RelationRef
+    NaBL2-Relation-Plhdr         : NaBL2-Relation
+    NaBL2-Reflexivity-Plhdr      : COMPLETION-INSERTION -> NaBL2-Reflexivity
+    NaBL2-Symmetry-Plhdr         : COMPLETION-INSERTION -> NaBL2-Symmetry
+    NaBL2-Transitivity-Plhdr     : COMPLETION-INSERTION -> NaBL2-Transitivity
+    NaBL2-RelationId-Plhdr       : COMPLETION-INSERTION -> NaBL2-RelationId
+    NaBL2-RelationRef-Plhdr      : COMPLETION-INSERTION -> NaBL2-RelationRef
+    NaBL2-Relation-Plhdr         : COMPLETION-INSERTION -> NaBL2-Relation
+    NaBL2-RelationRef-Opt-Plhdr  : NaBL2-RelationRef
+    ExtRelation                  : NaBL2-StrategyId -> NaBL2-RelationRef
+                                 : NaBL2-RelationRef -> NaBL2-RelationBuildOp
+                                 : NaBL2-RelationRef -> NaBL2-RelationCheckOp
+    Lub                          : NaBL2-OpRelation -> NaBL2-RelationFunction
+    Glb                          : NaBL2-OpRelation -> NaBL2-RelationFunction
+    DefaultRelation              : NaBL2-OpRelation
+    Relation                     : NaBL2-RelationId -> NaBL2-OpRelation
+    NaBL2-StrategyId-Plhdr       : NaBL2-StrategyId
+    NaBL2-RelationBuildOp-Plhdr  : NaBL2-RelationBuildOp
+    NaBL2-RelationCheckOp-Plhdr  : NaBL2-RelationCheckOp
+    NaBL2-RelationRef-Plhdr      : NaBL2-RelationRef
+    NaBL2-RelationFunction-Plhdr : NaBL2-RelationFunction
+    NaBL2-OpRelation-Plhdr       : NaBL2-OpRelation
+    NaBL2-RelationId-Plhdr       : NaBL2-RelationId
+    NaBL2-StrategyId-Plhdr       : COMPLETION-INSERTION -> NaBL2-StrategyId
+    NaBL2-RelationBuildOp-Plhdr  : COMPLETION-INSERTION -> NaBL2-RelationBuildOp
+    NaBL2-RelationCheckOp-Plhdr  : COMPLETION-INSERTION -> NaBL2-RelationCheckOp
+    NaBL2-RelationRef-Plhdr      : COMPLETION-INSERTION -> NaBL2-RelationRef
+    NaBL2-RelationFunction-Plhdr : COMPLETION-INSERTION -> NaBL2-RelationFunction
+    NaBL2-OpRelation-Plhdr       : COMPLETION-INSERTION -> NaBL2-OpRelation
+    NaBL2-RelationId-Plhdr       : COMPLETION-INSERTION -> NaBL2-RelationId
+    ListVariant                  : NaBL2-Variance -> NaBL2-VariancePattern
+    TupleVariant                 : List(NaBL2-Variance) -> NaBL2-VariancePattern
+                                 : List(NaBL2-Variance) -> NaBL2-Variances
+    NaBL2-VariancePattern-Plhdr  : NaBL2-VariancePattern
+    NaBL2-Variances-Plhdr        : NaBL2-Variances
+    NaBL2-Variance-Plhdr         : NaBL2-Variance
+    NaBL2-VariancePattern-Plhdr  : COMPLETION-INSERTION -> NaBL2-VariancePattern
+    NaBL2-Variances-Plhdr        : COMPLETION-INSERTION -> NaBL2-Variances
+    NaBL2-Variance-Plhdr         : COMPLETION-INSERTION -> NaBL2-Variance
+    NaBL2-Variance-Opt-Plhdr     : NaBL2-Variance
+    OpVariant                    : NaBL2-OpId * NaBL2-Variances -> NaBL2-VariancePattern
+    Invar                        : NaBL2-Variance
+    Covar                        : NaBL2-RelationRef -> NaBL2-Variance
+    Contravar                    : NaBL2-RelationRef -> NaBL2-Variance
+    NaBL2-VariancePattern-Plhdr  : NaBL2-VariancePattern
+    NaBL2-OpId-Plhdr             : NaBL2-OpId
+    NaBL2-Variances-Plhdr        : NaBL2-Variances
+    NaBL2-Variance-Plhdr         : NaBL2-Variance
+    NaBL2-RelationRef-Plhdr      : NaBL2-RelationRef
+    NaBL2-VariancePattern-Plhdr  : COMPLETION-INSERTION -> NaBL2-VariancePattern
+    NaBL2-OpId-Plhdr             : COMPLETION-INSERTION -> NaBL2-OpId
+    NaBL2-Variances-Plhdr        : COMPLETION-INSERTION -> NaBL2-Variances
+    NaBL2-Variance-Plhdr         : COMPLETION-INSERTION -> NaBL2-Variance
+    NaBL2-RelationRef-Plhdr      : COMPLETION-INSERTION -> NaBL2-RelationRef
+                                 : String -> NaBL2-Keyword

@@ -1,0 +1,12 @@
+module signatures/nabl2/API-sig
+
+imports
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+signature
+  sorts
+    NaBL2Scope NaBL2Occurrence
+
+  constructors
+    

@@ -1,0 +1,20 @@
+module completion/nabl2/shared/common/Main-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Main-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/Names-cp
+  completion/nabl2/shared/common/Resolution-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+  completion/nabl2/shared/common/Sorts-cp

@@ -1,0 +1,8 @@
+module signatures/nabl2/runtime/common/Native-sig
+
+signature
+  constructors
+     : String -> NaBL2-Int
+     : String -> NaBL2-Real
+     : String -> NaBL2-String
+     : String -> NaBL2-Term

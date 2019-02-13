@@ -1,0 +1,74 @@
+module nabl2/runtime/prelude/map
+
+imports
+
+  nabl2/runtime/prelude/base
+
+rules
+
+  // nabl2--keys :: map k v -> [k]
+  nabl2--keys = map(Fst)
+
+  // nabl2--keys :: map k v -> [v]
+  nabl2--values = map(Snd)
+
+  // nabl2--mapv(s: a -> b) :: map k a -> map k b
+  nabl2--mapv(s) = map(!(<Fst>,<Snd;s>))
+
+  // nabl2--filterv(s: a -?> b) :: map k a -> map k b
+  nabl2--filterv(s) = filter(!(<Fst>,<Snd;s>))
+
+  // nabl2--partitionv(s: a -?> b) :: map k a -> (map k b, map k a)
+  nabl2--partitionv(s) = partition(!(<Fst>,<Snd;s>))
+
+  // nabl2--mapk(s: k -?> k') :: map k v -> map k' v
+  nabl2--mapk(s) = map(!(<Fst;s>,<Snd>))
+
+  // nabl2--filterk(s: k -?> k') :: map k v -> map k' v
+  nabl2--filterk(s) = filter(!(<Fst;s>,<Snd>))
+
+  // partitionk(s: k -?> k' :: map k v -> (map k' v, map k v)
+  partitionk(s) = partition(!(<Fst;s>,<Snd>))
+
+  // nabl2--merge(ks: [k] * [k] -> [k], vs: v * v -> v) :: map k v * map k v -> map k v
+
+  nabl2--mergemap(ks,vs) = nabl2--strict(
+    ?(kv1*,kv2*);
+    <ks> (<nabl2--keys> kv1*, <nabl2--keys> kv2*);
+    map(<nabl2--merge-step(vs)> (<id>,kv1*,kv2*))
+  )
+
+  nabl2--mergefilter(ks,vs) = nabl2--strict(
+    ?(kv1*,kv2*);
+    <ks> (<nabl2--keys> kv1*, <nabl2--keys> kv2*);
+    filter(<nabl2--merge-step(vs)> (<id>,kv1*,kv2*))
+  )
+
+  nabl2--merge-step(vs) =
+    ?(k,kv1*,kv2*);
+    ( v1 := <lookup> (k,kv1*)
+    < ( v2 := <lookup> (k,kv2*)
+      < <vs> (v1,v2)
+      + !v1
+      )
+    + <lookup> (k,kv2*)
+    );
+    !(k,<id>)
+
+
+  // nabl2--group(s: a -> b) :: [a] -> map b [a]
+  nabl2--group(s) = foldr(![],nabl2--group-step(s))
+  nabl2--group-step(s) =
+    ?(a,kv*)
+  ; <s> a => b
+  ; <nabl2--update(![a|<id>],![]|b)> kv*
+
+  // nabl2--update(s: v -> v, v: v | k) :: map k v -> map k v
+  nabl2--update(s,v|k) = ?kv* ; ![ (k,<(lookup<+v);s> (k,kv*)) | <nabl2--filterk(not(?k))> kv* ]
+
+  // nabl2--set(v: v) :: (k * map k v) -> map k v
+  nabl2--set(v|k) = nabl2--update(v,v|k)
+
+  nabl2--get(|k) = <lookup> (k,<id>)
+
+  nabl2--getOr(v|k) = <lookup> (k,<id>) <+ v

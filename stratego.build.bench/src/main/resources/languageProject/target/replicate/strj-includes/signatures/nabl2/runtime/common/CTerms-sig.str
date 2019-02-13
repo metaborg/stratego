@@ -1,0 +1,16 @@
+module signatures/nabl2/runtime/common/CTerms-sig
+
+imports
+  signatures/nabl2/runtime/common/Native-sig
+
+
+signature
+  constructors
+    CVar               : NaBL2-String * NaBL2-String -> NaBL2-CVar
+    NAME               : NaBL2-CTerm
+    NaBL2-CVar-Plhdr   : NaBL2-CVar
+    NaBL2-String-Plhdr : NaBL2-String
+    NaBL2-CTerm-Plhdr  : NaBL2-CTerm
+    NaBL2-CVar-Plhdr   : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-String-Plhdr : COMPLETION-INSERTION -> NaBL2-String
+    NaBL2-CTerm-Plhdr  : COMPLETION-INSERTION -> NaBL2-CTerm

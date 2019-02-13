@@ -1,0 +1,30 @@
+module signatures/nabl2/shared/constraints/Functions-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+signature
+  constructors
+    CEval                   : NaBL2-CTerm * NaBL2-FunctionRef * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    Function                : NaBL2-FunctionId -> NaBL2-Function
+                            : NaBL2-Function -> NaBL2-FunctionRef
+    NaBL2-Constraint-Plhdr  : NaBL2-Constraint
+    NaBL2-CTerm-Plhdr       : NaBL2-CTerm
+    NaBL2-Message-Plhdr     : NaBL2-Message
+    NaBL2-FunctionId-Plhdr  : NaBL2-FunctionId
+    NaBL2-FunctionRef-Plhdr : NaBL2-FunctionRef
+    NaBL2-Function-Plhdr    : NaBL2-Function
+    NaBL2-Constraint-Plhdr  : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-CTerm-Plhdr       : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Message-Plhdr     : COMPLETION-INSERTION -> NaBL2-Message
+    NaBL2-FunctionId-Plhdr  : COMPLETION-INSERTION -> NaBL2-FunctionId
+    NaBL2-FunctionRef-Plhdr : COMPLETION-INSERTION -> NaBL2-FunctionRef
+    NaBL2-Function-Plhdr    : COMPLETION-INSERTION -> NaBL2-Function
+    ExtFunction             : NaBL2-StrategyId -> NaBL2-FunctionRef
+    NaBL2-FunctionRef-Plhdr : NaBL2-FunctionRef
+    NaBL2-StrategyId-Plhdr  : NaBL2-StrategyId
+    NaBL2-FunctionRef-Plhdr : COMPLETION-INSERTION -> NaBL2-FunctionRef
+    NaBL2-StrategyId-Plhdr  : COMPLETION-INSERTION -> NaBL2-StrategyId

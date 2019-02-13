@@ -1,0 +1,82 @@
+module nabl2/runtime/editor/services
+
+imports
+
+  libspoofax/term/annotation
+  libspoofax/editor/resolution
+
+  nabl2/runtime/analysis/-
+  nabl2/runtime/prelude/-
+  nabl2/runtime/pp
+  nabl2/api
+  signatures/nabl2/runtime/common/-
+
+rules
+
+  // HACK: all these rules test if the node has a term index, because
+  //       sometimes Spoofax Core passes a node without one
+
+  nabl2--editor-resolve: (node, _, _, path, project-path) -> decls
+    where <nabl2-get-ast-index> node;
+          a := <nabl2-get-ast-analysis> node
+    where refs := <nabl2-get-ast-refs(|a)> node
+    where not([] := refs) // failure has Spoofax Core try a parent node
+    with decls := <mapconcat(nabl2-get-resolved-names(|a);
+                             map(Fst;nabl2-get-occurrence-index));
+                   sort-resolutions> refs
+
+  nabl2--editor-resolve: (node, _, _, _, _) -> refs
+    where <nabl2-get-ast-index> node;
+          a := <nabl2-get-ast-analysis> node
+    where decls := <nabl2-get-ast-decls(|a)> node
+    where not([] := decls) // failure has Spoofax Core try a parent node
+    with refs := <mapconcat(nabl2-get-refs-to-decl(|a);
+                             map(Fst;nabl2-get-occurrence-index));
+                   sort-resolutions> decls
+
+  nabl2--editor-hover: (node, _, _, path, project-path) -> label
+    where <nabl2-get-ast-index> node;
+          a := <nabl2-get-ast-analysis> node
+    with resource := path;
+         ast-labels  := <nabl2--ast-hover(|a, resource)> node;
+         decl-labels := <nabl2--decl-hover(|a, resource)> node;
+         labels := <conc> (ast-labels, decl-labels)
+    where not([] := labels) // failure has Spoofax Core try a parent node
+    with label := <nabl2--lines> labels
+
+  nabl2--ast-hover(|a, resource): node -> labels
+    with if type := <nabl2-get-ast-type(|a)> node then
+           labels := [$[Type: [<nabl2--hover-type-string(|resource)> type]]]
+         else
+           labels := []
+         end
+
+  nabl2--decl-hover(|a, resource): node -> labels
+    with decls := <nabl2-get-ast-decls(|a)> node;
+         declTypes := <filter(!(<id>, <nabl2-get-type(|a)>))> decls;
+         labels := <map(\ (decl, type) -> $[[<nabl2--hover-decl-string(|resource)> decl] : [<nabl2--hover-type-string(|resource)> type]] \)> declTypes
+
+  nabl2--hover-decl-string(|resource) = nabl2--strict(
+    topdown(try(nabl2--strip-occurrence-index));
+    nabl2--focus-term(|resource);
+    pp-NaBL2-CTerm;
+    nabl2--xmlencode
+  )
+
+  nabl2--hover-type-string(|resource) = nabl2--strict(
+    topdown(try(nabl2--strip-occurrence-index));
+    nabl2--focus-term(|resource);
+    pp-NaBL2-objlangterm;
+    nabl2--xmlencode
+  )
+
+  nabl2--lines = nabl2--strict(
+    separate-by(!"<br>");
+    <conc> (<id>, ["<br>"]);
+    concat-strings
+  )
+
+  nabl2--simplify-ast-indices = topdown(try(nabl2--simplify-ast-index))
+
+  nabl2--simplify-ast-index: t{a*} -> t{i,a'*}
+    where ([_|_], a'*) := <partition(?TermIndex(_, i))> a*

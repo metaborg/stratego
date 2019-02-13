@@ -1,0 +1,1179 @@
+module pp/nabl2/shared/common/Resolution-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Resolution-sig
+
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+imports
+  pp/nabl2/shared/common/Identifiers-pp
+  pp/nabl2/shared/common/ScopeGraph-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Label
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-PathLabel
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-BuiltinPathLabel
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnyLabel
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-BuiltinAnyLabel
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Path
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Step
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Label>
+    where <?"NaBL2-Label"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-PathLabel>
+    where <?"NaBL2-PathLabel"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-BuiltinPathLabel>
+    where <?"NaBL2-BuiltinPathLabel"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnyLabel>
+    where <?"NaBL2-AnyLabel"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-BuiltinAnyLabel>
+    where <?"NaBL2-BuiltinAnyLabel"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Path>
+    where <?"NaBL2-Path"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Step>
+    where <?"NaBL2-Step"> sort
+
+  prettyprint-NaBL2-NaBL2-Label :
+    Label(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [t1__']
+                     )
+                   ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Label =
+    ?Label(_)
+
+  NaBL2-get-indent :
+    (t@Label(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Label"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Label(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Label"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Label(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Label"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-PathLabel)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Label) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-PathLabel)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-BuiltinPathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-BuiltinPathLabel :
+    P() -> [ H(
+               [SOpt(HS(), "0")]
+             , [S("P")]
+             )
+           ]
+
+  is-NaBL2-NaBL2-BuiltinPathLabel =
+    ?P()
+
+  NaBL2-get-indent :
+    (t@P(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@P(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@P(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-BuiltinPathLabel :
+    I() -> [ H(
+               [SOpt(HS(), "0")]
+             , [S("I")]
+             )
+           ]
+
+  is-NaBL2-NaBL2-BuiltinPathLabel =
+    ?I()
+
+  NaBL2-get-indent :
+    (t@I(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@I(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@I(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinPathLabel"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-AnyLabel)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-AnyLabel)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-BuiltinAnyLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-BuiltinAnyLabel :
+    D() -> [ H(
+               [SOpt(HS(), "0")]
+             , [S("D")]
+             )
+           ]
+
+  is-NaBL2-NaBL2-BuiltinAnyLabel =
+    ?D()
+
+  NaBL2-get-indent :
+    (t@D(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinAnyLabel"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@D(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinAnyLabel"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@D(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-BuiltinAnyLabel"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Path :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [ S("[")
+                , t1__'
+                , S("]")
+                ]
+              )
+            ]
+    where not(is-NaBL2-NaBL2-Path)
+    where t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-Step|" ")
+                    <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-Step :
+    D(t1__, t2__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__', S(" D "), t2__']
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-Step =
+    ?D(_, _)
+
+  NaBL2-get-indent :
+    (t@D(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@D(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@D(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Step :
+    E(t1__, t2__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [ t1__'
+                         , S(" E(")
+                         , t2__'
+                         , S(")")
+                         ]
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-Step =
+    ?E(_, _)
+
+  NaBL2-get-indent :
+    (t@E(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@E(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@E(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Step :
+    N(t1__, t2__, t3__, t4__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [ t1__'
+                                     , S(" N(")
+                                     , t2__'
+                                     , S(",")
+                                     , t3__'
+                                     , S(",")
+                                     , t4__'
+                                     , S(")")
+                                     ]
+                                   )
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+    with t4__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Path) <+ pp-one-Z(prettyprint-completion-aux)> t4__
+
+  is-NaBL2-NaBL2-Step =
+    ?N(_, _, _, _)
+
+  NaBL2-get-indent :
+    ( t@N(t1__, t2__, t3__, t4__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           case ?4 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@N(t1__, t2__, t3__, t4__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           case ?4 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@N(t1__, t2__, t3__, t4__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Step"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := ""
+           case ?4 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Label =
+    fail
+
+  is-NaBL2-NaBL2-PathLabel =
+    fail
+
+  is-NaBL2-NaBL2-BuiltinPathLabel =
+    fail
+
+  is-NaBL2-NaBL2-AnyLabel =
+    fail
+
+  is-NaBL2-NaBL2-BuiltinAnyLabel =
+    fail
+
+  is-NaBL2-NaBL2-Path =
+    fail
+
+  is-NaBL2-NaBL2-Step =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Label :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Label> h
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-PathLabel> h
+
+  prettyprint-NaBL2-NaBL2-BuiltinPathLabel :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-BuiltinPathLabel> h
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnyLabel> h
+
+  prettyprint-NaBL2-NaBL2-BuiltinAnyLabel :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-BuiltinAnyLabel> h
+
+  prettyprint-NaBL2-NaBL2-Path :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Path> h
+
+  prettyprint-NaBL2-NaBL2-Step :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Step> h
+
+  prettyprint-NaBL2-NaBL2-LabelId :
+    NaBL2-LabelId-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-LabelId")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-LabelId =
+    ?NaBL2-LabelId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Label :
+    NaBL2-Label-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Label")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Label =
+    ?NaBL2-Label-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-BuiltinPathLabel :
+    NaBL2-BuiltinPathLabel-Plhdr() -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-BuiltinPathLabel")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-BuiltinPathLabel =
+    ?NaBL2-BuiltinPathLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    NaBL2-AnyLabel-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-AnyLabel")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-AnyLabel =
+    ?NaBL2-AnyLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-BuiltinAnyLabel :
+    NaBL2-BuiltinAnyLabel-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-BuiltinAnyLabel")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-BuiltinAnyLabel =
+    ?NaBL2-BuiltinAnyLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Step :
+    NaBL2-Step-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-Step")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-Step =
+    ?NaBL2-Step-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Scope")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-PathLabel")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Occurrence")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Path :
+    NaBL2-Path-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-Path")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-Path =
+    ?NaBL2-Path-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-LabelId :
+    NaBL2-LabelId-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-LabelId")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-LabelId =
+    ?NaBL2-LabelId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Label :
+    NaBL2-Label-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-Label")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-Label =
+    ?NaBL2-Label-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-BuiltinPathLabel :
+    NaBL2-BuiltinPathLabel-Plhdr(_) -> [ H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("$NaBL2-BuiltinPathLabel")]
+                                         )
+                                       ]
+
+  is-NaBL2-NaBL2-BuiltinPathLabel =
+    ?NaBL2-BuiltinPathLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    NaBL2-AnyLabel-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-AnyLabel")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-AnyLabel =
+    ?NaBL2-AnyLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-BuiltinAnyLabel :
+    NaBL2-BuiltinAnyLabel-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-BuiltinAnyLabel")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-BuiltinAnyLabel =
+    ?NaBL2-BuiltinAnyLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Step :
+    NaBL2-Step-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Step")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Step =
+    ?NaBL2-Step-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-Scope")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-PathLabel")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Occurrence")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Path :
+    NaBL2-Path-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Path")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Path =
+    ?NaBL2-Path-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Step :
+    NaBL2-Step-Opt-Plhdr() -> [ H(
+                                  []
+                                , [S("")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Step =
+    ?NaBL2-Step-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-LabelRE
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-LabelOrder
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-LabelRE>
+    where <?"NaBL2-LabelRE"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-LabelOrder>
+    where <?"NaBL2-LabelOrder"> sort
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Empty() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , [S("0")]
+                 )
+               ]
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?Empty()
+
+  NaBL2-get-indent :
+    (t@Empty(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Empty(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Empty(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Epsilon() -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [S("e")]
+                   )
+                 ]
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?Epsilon()
+
+  NaBL2-get-indent :
+    (t@Epsilon(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Epsilon(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Epsilon(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-LabelRE)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Closure(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [t1__', S("*")]
+                       )
+                     ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?Closure(_)
+
+  NaBL2-get-indent :
+    (t@Closure(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Closure(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Closure(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Concat(t1__, t2__) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [t1__', S(" "), t2__']
+                            )
+                          ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?Concat(_, _)
+
+  NaBL2-get-indent :
+    (t@Concat(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Concat(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Concat(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    And(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__', S(" & "), t2__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?And(_, _)
+
+  NaBL2-get-indent :
+    (t@And(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@And(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@And(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Or(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(" | "), t2__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?Or(_, _)
+
+  NaBL2-get-indent :
+    (t@Or(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Or(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Or(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelRE"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    Parenthetical(t1__) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [ S("(")
+                               , t1__'
+                               , S(")")
+                               ]
+                             )
+                           ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-LabelRE) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-LabelOrder :
+    Lt(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__', S(" < "), t2__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-AnyLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-AnyLabel) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-LabelOrder =
+    ?Lt(_, _)
+
+  NaBL2-get-indent :
+    (t@Lt(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelOrder"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Lt(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelOrder"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Lt(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-LabelOrder"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-LabelRE =
+    fail
+
+  is-NaBL2-NaBL2-LabelOrder =
+    fail
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-LabelRE> h
+
+  prettyprint-NaBL2-NaBL2-LabelOrder :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-LabelOrder> h
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-PathLabel")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    NaBL2-LabelRE-Plhdr() -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-LabelRE")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?NaBL2-LabelRE-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-LabelOrder :
+    NaBL2-LabelOrder-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-LabelOrder")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-LabelOrder =
+    ?NaBL2-LabelOrder-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    NaBL2-AnyLabel-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-AnyLabel")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-AnyLabel =
+    ?NaBL2-AnyLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-PathLabel")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-LabelRE :
+    NaBL2-LabelRE-Plhdr(_) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-LabelRE")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-LabelRE =
+    ?NaBL2-LabelRE-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-LabelOrder :
+    NaBL2-LabelOrder-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-LabelOrder")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-LabelOrder =
+    ?NaBL2-LabelOrder-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-AnyLabel :
+    NaBL2-AnyLabel-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-AnyLabel")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-AnyLabel =
+    ?NaBL2-AnyLabel-Plhdr(_)

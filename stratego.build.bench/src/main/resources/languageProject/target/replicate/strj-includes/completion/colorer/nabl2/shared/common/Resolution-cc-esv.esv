@@ -1,0 +1,21 @@
+module completion/colorer/nabl2/shared/common/Resolution-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+  completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
+
+colorer
+  _.NaBL2-LabelId-Plhdr          : gray   
+  _.NaBL2-Label-Plhdr            : gray   
+  _.NaBL2-BuiltinPathLabel-Plhdr : gray   
+  _.NaBL2-AnyLabel-Plhdr         : gray   
+  _.NaBL2-BuiltinAnyLabel-Plhdr  : gray   
+  _.NaBL2-Step-Plhdr             : gray   
+  _.NaBL2-Scope-Plhdr            : gray   
+  _.NaBL2-PathLabel-Plhdr        : gray   
+  _.NaBL2-Occurrence-Plhdr       : gray   
+  _.NaBL2-Path-Plhdr             : gray   
+  _.NaBL2-PathLabel-Plhdr        : gray   
+  _.NaBL2-LabelRE-Plhdr          : gray   
+  _.NaBL2-LabelOrder-Plhdr       : gray   
+  _.NaBL2-AnyLabel-Plhdr         : gray   

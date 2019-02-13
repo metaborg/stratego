@@ -1,0 +1,1956 @@
+module pp/nabl2/runtime/analysis/Debug-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/analysis/Debug-sig
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/constraints/Base-sig
+
+
+imports
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/ScopeGraph-pp
+  pp/nabl2/shared/common/Resolution-pp
+  pp/nabl2/shared/constraints/Base-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    Constraints(t1__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [S("constraints {")]
+                           )
+                         , t1__'
+                         , H(
+                             [SOpt(HS(), "0")]
+                           , [S("}")]
+                           )
+                         ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-Constraint) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?Constraints(_)
+
+  NaBL2-get-indent :
+    (t@Constraints(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Constraints(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Constraints(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Constraint")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Constraint")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Opt-Plhdr() -> [ H(
+                                        []
+                                      , [S("")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ScopeEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ScopePartEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-DeclEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-RefEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-DirectEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ImportEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AssocEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-DeclType
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ScopeEntry>
+    where <?"NaBL2-ScopeEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ScopePartEntry>
+    where <?"NaBL2-ScopePartEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-DeclEntry>
+    where <?"NaBL2-DeclEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-RefEntry>
+    where <?"NaBL2-RefEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-DirectEntry>
+    where <?"NaBL2-DirectEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ImportEntry>
+    where <?"NaBL2-ImportEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AssocEntry>
+    where <?"NaBL2-AssocEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-DeclType>
+    where <?"NaBL2-DeclType"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    ScopeGraph(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("scope graph {")]
+                          )
+                        , t1__'
+                        , H(
+                            [SOpt(HS(), "0")]
+                          , [S("}")]
+                          )
+                        ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-ScopeEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?ScopeGraph(_)
+
+  NaBL2-get-indent :
+    (t@ScopeGraph(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ScopeGraph(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ScopeGraph(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopeEntry :
+    Scope(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("scope ")
+                             , t1__'
+                             , S(" {")
+                             ]
+                           )
+                         , t2__'
+                         , H(
+                             [SOpt(HS(), "0")]
+                           , [S("}")]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-ScopePartEntry) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopeEntry =
+    ?Scope(_, _)
+
+  NaBL2-get-indent :
+    (t@Scope(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopeEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Scope(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopeEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Scope(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopeEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    Decls(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("declarations {")]
+                     )
+                   , t1__'
+                   , H(
+                       [SOpt(HS(), "0")]
+                     , [S("}")]
+                     )
+                   ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-DeclEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?Decls(_)
+
+  NaBL2-get-indent :
+    (t@Decls(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Decls(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Decls(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    Refs(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("references {")]
+                    )
+                  , t1__'
+                  , H(
+                      [SOpt(HS(), "0")]
+                    , [S("}")]
+                    )
+                  ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-RefEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?Refs(_)
+
+  NaBL2-get-indent :
+    (t@Refs(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Refs(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Refs(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    DirectEdges(t1__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [S("direct edges {")]
+                           )
+                         , t1__'
+                         , H(
+                             [SOpt(HS(), "0")]
+                           , [S("}")]
+                           )
+                         ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-DirectEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?DirectEdges(_)
+
+  NaBL2-get-indent :
+    (t@DirectEdges(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@DirectEdges(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@DirectEdges(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    ImportEdges(t1__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [S("import edges {")]
+                           )
+                         , t1__'
+                         , H(
+                             [SOpt(HS(), "0")]
+                           , [S("}")]
+                           )
+                         ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-ImportEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?ImportEdges(_)
+
+  NaBL2-get-indent :
+    (t@ImportEdges(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ImportEdges(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ImportEdges(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    AssocEdges(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("associated declarations {")]
+                          )
+                        , t1__'
+                        , H(
+                            [SOpt(HS(), "0")]
+                          , [S("}")]
+                          )
+                        ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-AssocEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?AssocEdges(_)
+
+  NaBL2-get-indent :
+    (t@AssocEdges(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@AssocEdges(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@AssocEdges(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ScopePartEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-DeclEntry :
+    Decl(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [t1__', t2__']
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-DeclType) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-DeclEntry =
+    ?Decl(_, _)
+
+  NaBL2-get-indent :
+    (t@Decl(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Decl(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Decl(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-RefEntry :
+    Ref(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , [t1__']
+                   )
+                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-RefEntry =
+    ?Ref(_)
+
+  NaBL2-get-indent :
+    (t@Ref(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RefEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Ref(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RefEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Ref(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-RefEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-DirectEntry :
+    DirectEdge(t1__, t2__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [t1__', S(" ~ "), t2__']
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-DirectEntry =
+    ?DirectEdge(_, _)
+
+  NaBL2-get-indent :
+    (t@DirectEdge(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DirectEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@DirectEdge(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DirectEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@DirectEdge(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DirectEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ImportEntry :
+    ImportEdge(t1__, t2__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [t1__', S(" ~ "), t2__']
+                                )
+                              ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-ImportEntry =
+    ?ImportEdge(_, _)
+
+  NaBL2-get-indent :
+    (t@ImportEdge(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ImportEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ImportEdge(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ImportEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ImportEdge(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ImportEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-AssocEntry :
+    AssocEdge(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [t1__', S(" ~ "), t2__']
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-PathLabel) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-AssocEntry =
+    ?AssocEdge(_, _)
+
+  NaBL2-get-indent :
+    (t@AssocEdge(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AssocEntry"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@AssocEdge(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AssocEntry"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@AssocEdge(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AssocEntry"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    Type(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S(" : "), t1__']
+                    )
+                  ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-DeclType =
+    ?Type(_)
+
+  NaBL2-get-indent :
+    (t@Type(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Type(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Type(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    NoType() -> [ H(
+                    []
+                  , [S("")]
+                  )
+                ]
+
+  is-NaBL2-NaBL2-DeclType =
+    ?NoType()
+
+  NaBL2-get-indent :
+    (t@NoType(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@NoType(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@NoType(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-DeclType"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  is-NaBL2-NaBL2-ScopeEntry =
+    fail
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    fail
+
+  is-NaBL2-NaBL2-DeclEntry =
+    fail
+
+  is-NaBL2-NaBL2-RefEntry =
+    fail
+
+  is-NaBL2-NaBL2-DirectEntry =
+    fail
+
+  is-NaBL2-NaBL2-ImportEntry =
+    fail
+
+  is-NaBL2-NaBL2-AssocEntry =
+    fail
+
+  is-NaBL2-NaBL2-DeclType =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-ScopeEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ScopeEntry> h
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ScopePartEntry> h
+
+  prettyprint-NaBL2-NaBL2-DeclEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-DeclEntry> h
+
+  prettyprint-NaBL2-NaBL2-RefEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-RefEntry> h
+
+  prettyprint-NaBL2-NaBL2-DirectEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-DirectEntry> h
+
+  prettyprint-NaBL2-NaBL2-ImportEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ImportEntry> h
+
+  prettyprint-NaBL2-NaBL2-AssocEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AssocEntry> h
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-DeclType> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ScopeEntry :
+    NaBL2-ScopeEntry-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-ScopeEntry")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-ScopeEntry =
+    ?NaBL2-ScopeEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    NaBL2-ScopePartEntry-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-ScopePartEntry")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?NaBL2-ScopePartEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DeclEntry :
+    NaBL2-DeclEntry-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-DeclEntry")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-DeclEntry =
+    ?NaBL2-DeclEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-RefEntry :
+    NaBL2-RefEntry-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-RefEntry")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-RefEntry =
+    ?NaBL2-RefEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DirectEntry :
+    NaBL2-DirectEntry-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-DirectEntry")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-DirectEntry =
+    ?NaBL2-DirectEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Scope")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ImportEntry :
+    NaBL2-ImportEntry-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-ImportEntry")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-ImportEntry =
+    ?NaBL2-ImportEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AssocEntry :
+    NaBL2-AssocEntry-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-AssocEntry")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-AssocEntry =
+    ?NaBL2-AssocEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-PathLabel")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Occurrence")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    NaBL2-DeclType-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-DeclType")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-DeclType =
+    ?NaBL2-DeclType-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ScopeEntry :
+    NaBL2-ScopeEntry-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-ScopeEntry")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-ScopeEntry =
+    ?NaBL2-ScopeEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    NaBL2-ScopePartEntry-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-ScopePartEntry")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?NaBL2-ScopePartEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-DeclEntry :
+    NaBL2-DeclEntry-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-DeclEntry")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-DeclEntry =
+    ?NaBL2-DeclEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-RefEntry :
+    NaBL2-RefEntry-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-RefEntry")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-RefEntry =
+    ?NaBL2-RefEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-DirectEntry :
+    NaBL2-DirectEntry-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-DirectEntry")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-DirectEntry =
+    ?NaBL2-DirectEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-Scope")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ImportEntry :
+    NaBL2-ImportEntry-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-ImportEntry")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-ImportEntry =
+    ?NaBL2-ImportEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-AssocEntry :
+    NaBL2-AssocEntry-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-AssocEntry")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-AssocEntry =
+    ?NaBL2-AssocEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-PathLabel :
+    NaBL2-PathLabel-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-PathLabel")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-PathLabel =
+    ?NaBL2-PathLabel-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Occurrence")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    NaBL2-DeclType-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-DeclType")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-DeclType =
+    ?NaBL2-DeclType-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ScopeEntry :
+    NaBL2-ScopeEntry-Opt-Plhdr() -> [ H(
+                                        []
+                                      , [S("")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-ScopeEntry =
+    ?NaBL2-ScopeEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ScopePartEntry :
+    NaBL2-ScopePartEntry-Opt-Plhdr() -> [ H(
+                                            []
+                                          , [S("")]
+                                          )
+                                        ]
+
+  is-NaBL2-NaBL2-ScopePartEntry =
+    ?NaBL2-ScopePartEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DeclEntry :
+    NaBL2-DeclEntry-Opt-Plhdr() -> [ H(
+                                       []
+                                     , [S("")]
+                                     )
+                                   ]
+
+  is-NaBL2-NaBL2-DeclEntry =
+    ?NaBL2-DeclEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-RefEntry :
+    NaBL2-RefEntry-Opt-Plhdr() -> [ H(
+                                      []
+                                    , [S("")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-RefEntry =
+    ?NaBL2-RefEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DirectEntry :
+    NaBL2-DirectEntry-Opt-Plhdr() -> [ H(
+                                         []
+                                       , [S("")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-DirectEntry =
+    ?NaBL2-DirectEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ImportEntry :
+    NaBL2-ImportEntry-Opt-Plhdr() -> [ H(
+                                         []
+                                       , [S("")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-ImportEntry =
+    ?NaBL2-ImportEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AssocEntry :
+    NaBL2-AssocEntry-Opt-Plhdr() -> [ H(
+                                        []
+                                      , [S("")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AssocEntry =
+    ?NaBL2-AssocEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-DeclType :
+    NaBL2-DeclType-Opt-Plhdr() -> [ H(
+                                      []
+                                    , [S("")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-DeclType =
+    ?NaBL2-DeclType-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-UnifierEntry
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-UnifierEntry>
+    where <?"NaBL2-UnifierEntry"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    Unifier(t1__) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("unifier {")]
+                       )
+                     , t1__'
+                     , H(
+                         [SOpt(HS(), "0")]
+                       , [S("}")]
+                       )
+                     ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-UnifierEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?Unifier(_)
+
+  NaBL2-get-indent :
+    (t@Unifier(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Unifier(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Unifier(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-UnifierEntry :
+    (t1__, t2__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__', S(" := "), t2__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CVar) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  is-NaBL2-NaBL2-UnifierEntry =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-UnifierEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-UnifierEntry> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-UnifierEntry :
+    NaBL2-UnifierEntry-Plhdr() -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-UnifierEntry")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-UnifierEntry =
+    ?NaBL2-UnifierEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CVar")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-UnifierEntry :
+    NaBL2-UnifierEntry-Plhdr(_) -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [S("$NaBL2-UnifierEntry")]
+                                     )
+                                   ]
+
+  is-NaBL2-NaBL2-UnifierEntry =
+    ?NaBL2-UnifierEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CVar")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-UnifierEntry :
+    NaBL2-UnifierEntry-Opt-Plhdr() -> [ H(
+                                          []
+                                        , [S("")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-UnifierEntry =
+    ?NaBL2-UnifierEntry-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ResolutionEntry
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ResolutionResult
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-ResolutionPath
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ResolutionEntry>
+    where <?"NaBL2-ResolutionEntry"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ResolutionResult>
+    where <?"NaBL2-ResolutionResult"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-ResolutionPath>
+    where <?"NaBL2-ResolutionPath"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NameResolution(t1__) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("name resolution {")]
+                              )
+                            , t1__'
+                            , H(
+                                [SOpt(HS(), "0")]
+                              , [S("}")]
+                              )
+                            ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-ResolutionEntry) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NameResolution(_)
+
+  NaBL2-get-indent :
+    (t@NameResolution(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@NameResolution(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@NameResolution(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ResolutionEntry :
+    (t1__, t2__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__', S(" "), t2__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-ResolutionResult) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  prettyprint-NaBL2-NaBL2-ResolutionResult :
+    NoResolution() -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("(does not resolve)")]
+                        )
+                      ]
+
+  is-NaBL2-NaBL2-ResolutionResult =
+    ?NoResolution()
+
+  NaBL2-get-indent :
+    (t@NoResolution(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@NoResolution(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@NoResolution(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ResolutionResult :
+    Resolution(t1__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("|-> "), t1__']
+                          )
+                        ]
+    with t1__' := <pp-V-list(prettyprint-NaBL2-NaBL2-ResolutionPath) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-ResolutionResult =
+    ?Resolution(_)
+
+  NaBL2-get-indent :
+    (t@Resolution(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Resolution(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Resolution(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-ResolutionResult"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-ResolutionPath :
+    (t1__, t2__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__', S(" via "), t2__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Path) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  is-NaBL2-NaBL2-ResolutionEntry =
+    fail
+
+  is-NaBL2-NaBL2-ResolutionResult =
+    fail
+
+  is-NaBL2-NaBL2-ResolutionPath =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-ResolutionEntry :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ResolutionEntry> h
+
+  prettyprint-NaBL2-NaBL2-ResolutionResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ResolutionResult> h
+
+  prettyprint-NaBL2-NaBL2-ResolutionPath :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-ResolutionPath> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ResolutionEntry :
+    NaBL2-ResolutionEntry-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-ResolutionEntry")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-ResolutionEntry =
+    ?NaBL2-ResolutionEntry-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ResolutionResult :
+    NaBL2-ResolutionResult-Plhdr() -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-ResolutionResult")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-ResolutionResult =
+    ?NaBL2-ResolutionResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ResolutionPath :
+    NaBL2-ResolutionPath-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-ResolutionPath")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-ResolutionPath =
+    ?NaBL2-ResolutionPath-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Occurrence")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Path :
+    NaBL2-Path-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-Path")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-Path =
+    ?NaBL2-Path-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ResolutionEntry :
+    NaBL2-ResolutionEntry-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-ResolutionEntry")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-ResolutionEntry =
+    ?NaBL2-ResolutionEntry-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ResolutionResult :
+    NaBL2-ResolutionResult-Plhdr(_) -> [ H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("$NaBL2-ResolutionResult")]
+                                         )
+                                       ]
+
+  is-NaBL2-NaBL2-ResolutionResult =
+    ?NaBL2-ResolutionResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ResolutionPath :
+    NaBL2-ResolutionPath-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-ResolutionPath")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-ResolutionPath =
+    ?NaBL2-ResolutionPath-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Occurrence")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Path :
+    NaBL2-Path-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Path")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Path =
+    ?NaBL2-Path-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-ResolutionEntry :
+    NaBL2-ResolutionEntry-Opt-Plhdr() -> [ H(
+                                             []
+                                           , [S("")]
+                                           )
+                                         ]
+
+  is-NaBL2-NaBL2-ResolutionEntry =
+    ?NaBL2-ResolutionEntry-Opt-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-ResolutionPath :
+    NaBL2-ResolutionPath-Opt-Plhdr() -> [ H(
+                                            []
+                                          , [S("")]
+                                          )
+                                        ]
+
+  is-NaBL2-NaBL2-ResolutionPath =
+    ?NaBL2-ResolutionPath-Opt-Plhdr()
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    SymbolicConstraints(t1__, t2__) -> [ H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("facts {")]
+                                         )
+                                       , t1__'
+                                       , H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("}")]
+                                         )
+                                       , H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("goals {")]
+                                         )
+                                       , t2__'
+                                       , H(
+                                           [SOpt(HS(), "0")]
+                                         , [S("}")]
+                                         )
+                                       ]
+    with t1__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                    ]
+    with t2__' := <pp-indent(|"2")> [ <pp-V-list(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?SymbolicConstraints(_, _)
+
+  NaBL2-get-indent :
+    (t@SymbolicConstraints(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := "  "
+           case ?2 :
+             indent := "  "
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@SymbolicConstraints(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := "\n"
+           case ?2 :
+             separator := "\n"
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@SymbolicConstraints(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := "\n  "
+           case ?2 :
+             ws := "\n  "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Opt-Plhdr() -> [ H(
+                                   []
+                                 , [S("")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Opt-Plhdr()

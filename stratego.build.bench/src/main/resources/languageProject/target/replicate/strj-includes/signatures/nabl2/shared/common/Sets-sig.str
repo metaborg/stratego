@@ -1,0 +1,30 @@
+module signatures/nabl2/shared/common/Sets-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+signature
+  constructors
+    EmptySet                 : NaBL2-SetExpr
+    Union                    : NaBL2-CSet * NaBL2-CSet -> NaBL2-SetExpr
+    Isect                    : NaBL2-CSet * NaBL2-SetProj * NaBL2-CSet -> NaBL2-SetExpr
+    Diff                     : NaBL2-CSet * NaBL2-SetProj * NaBL2-CSet -> NaBL2-SetExpr
+    Lsect                    : NaBL2-CSet * NaBL2-SetProj * NaBL2-CSet -> NaBL2-SetExpr
+    NoProjection             : NaBL2-SetProj
+    Projection               : NaBL2-ProjectionId -> NaBL2-SetProj
+    NaBL2-SetExpr-Plhdr      : NaBL2-SetExpr
+    NaBL2-CSet-Plhdr         : NaBL2-CSet
+    NaBL2-SetProj-Plhdr      : NaBL2-SetProj
+    NaBL2-ProjectionId-Plhdr : NaBL2-ProjectionId
+    NaBL2-SetExpr-Plhdr      : COMPLETION-INSERTION -> NaBL2-SetExpr
+    NaBL2-CSet-Plhdr         : COMPLETION-INSERTION -> NaBL2-CSet
+    NaBL2-SetProj-Plhdr      : COMPLETION-INSERTION -> NaBL2-SetProj
+    NaBL2-ProjectionId-Plhdr : COMPLETION-INSERTION -> NaBL2-ProjectionId
+                             : NaBL2-SetExpr -> NaBL2-CSet
+    NaBL2-CSet-Plhdr         : NaBL2-CSet
+    NaBL2-SetExpr-Plhdr      : NaBL2-SetExpr
+    NaBL2-CSet-Plhdr         : COMPLETION-INSERTION -> NaBL2-CSet
+    NaBL2-SetExpr-Plhdr      : COMPLETION-INSERTION -> NaBL2-SetExpr
+                             : String -> NaBL2-Keyword

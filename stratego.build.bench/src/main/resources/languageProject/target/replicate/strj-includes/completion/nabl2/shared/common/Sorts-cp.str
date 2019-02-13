@@ -1,0 +1,141 @@
+module completion/nabl2/shared/common/Sorts-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Sorts-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Sort-Plhdr() -> <add-completions(
+                           | ( "SortNoArgs"
+                             , SortNoArgs(
+                                 <try(inline-completions(|NaBL2-Sort-Plhdr()))> NaBL2-SortId-Plhdr()
+                               )
+                             )
+                           )
+                           ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <suggest-completions(|completions)> NaBL2-Sort-Plhdr()
+    where <not(is-expanded)> (NaBL2-SortRef-Plhdr(), NaBL2-Sort-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-SortRef-Plhdr(), NaBL2-Sort-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(|("TermSort", TermSort()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(|("OccurrenceSort", OccurrenceSort()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(|("ScopeSort", ScopeSort()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(|("StringSort", StringSort()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(
+                              | ( "Var"
+                                , Var(
+                                    <try(inline-completions(|NaBL2-SortRef-Plhdr()))> NaBL2-SortVarId-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(
+                              | ("TupleSort", TupleSort(CURSOR_ELEMENT()))
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(
+                              | ( "ListSort"
+                                , ListSort(
+                                    <try(inline-completions(|NaBL2-SortRef-Plhdr()))> NaBL2-SortRef-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-SortRef-Plhdr() -> <add-completions(
+                              | ( "MapSort"
+                                , MapSort(
+                                    <try(inline-completions(|NaBL2-SortRef-Plhdr()))> NaBL2-SortRef-Plhdr()
+                                  , <try(inline-completions(|NaBL2-SortRef-Plhdr()))> NaBL2-SortRef-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-SortId" -> <is-left-recursive> "NaBL2-Sort"
+    where <not(is-lexical-completion-sort)> "NaBL2-SortId"
+
+  is-right-recursive :
+    "NaBL2-SortId" -> <is-right-recursive> "NaBL2-Sort"
+    where <not(is-lexical-completion-sort)> "NaBL2-SortId"
+
+  is-NaBL2-Sort-completion-sort :
+    "NaBL2-SortId" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Sort" -> <is-left-recursive> "NaBL2-SortRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Sort"
+
+  is-right-recursive :
+    "NaBL2-Sort" -> <is-right-recursive> "NaBL2-SortRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Sort"
+
+  is-NaBL2-SortRef-completion-sort :
+    "NaBL2-Sort" -> <id>
+
+  is-left-recursive :
+    "NaBL2-SortVarId" -> <is-left-recursive> "NaBL2-SortRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-SortVarId"
+
+  is-right-recursive :
+    "NaBL2-SortVarId" -> <is-right-recursive> "NaBL2-SortRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-SortVarId"
+
+  is-NaBL2-SortRef-completion-sort :
+    "NaBL2-SortVarId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-SortVarId" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-SortId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Sort-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-SortVarId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-SortRef-Plhdr()

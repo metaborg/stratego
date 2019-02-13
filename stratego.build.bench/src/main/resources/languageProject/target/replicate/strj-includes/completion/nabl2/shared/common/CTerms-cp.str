@@ -1,0 +1,104 @@
+module completion/nabl2/shared/common/CTerms-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <suggest-completions(|completions)> NaBL2-CVar-Plhdr()
+    where <not(is-expanded)> (NaBL2-CTerm-Plhdr(), NaBL2-CVar-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CTerm-Plhdr(), NaBL2-CVar-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <suggest-completions(|completions)> NaBL2-CList-Plhdr()
+    where <not(is-expanded)> (NaBL2-CTerm-Plhdr(), NaBL2-CList-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CTerm-Plhdr(), NaBL2-CList-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CList-Plhdr() -> <suggest-completions(|completions)> NaBL2-CVar-Plhdr()
+    where <not(is-expanded)> (NaBL2-CList-Plhdr(), NaBL2-CVar-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CList-Plhdr(), NaBL2-CVar-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CList-Plhdr() -> <add-completions(
+                            | ("CList", CList(CURSOR_ELEMENT()))
+                            )
+                            ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-CList-Plhdr() -> <add-completions(
+                            | ( "CListTail"
+                              , CListTail(
+                                  CURSOR_ELEMENT()
+                                , <try(inline-completions(|NaBL2-CList-Plhdr()))> NaBL2-CList-Plhdr()
+                                )
+                              )
+                            )
+                            ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-CVar" -> <is-left-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-right-recursive :
+    "NaBL2-CVar" -> <is-right-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-NaBL2-CTerm-completion-sort :
+    "NaBL2-CVar" -> <id>
+
+  is-left-recursive :
+    "NaBL2-CList" -> <is-left-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-CList"
+
+  is-right-recursive :
+    "NaBL2-CList" -> <is-right-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-CList"
+
+  is-NaBL2-CTerm-completion-sort :
+    "NaBL2-CList" -> <id>
+
+  is-left-recursive :
+    "NaBL2-CVar" -> <is-left-recursive> "NaBL2-CList"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-right-recursive :
+    "NaBL2-CVar" -> <is-right-recursive> "NaBL2-CList"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-NaBL2-CList-completion-sort :
+    "NaBL2-CVar" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerms-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CVar-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CList-Plhdr()

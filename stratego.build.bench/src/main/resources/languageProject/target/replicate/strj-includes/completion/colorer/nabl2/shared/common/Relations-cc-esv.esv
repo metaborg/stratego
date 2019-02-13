@@ -1,0 +1,15 @@
+module completion/colorer/nabl2/shared/common/Relations-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+
+colorer
+  _.NaBL2-Reflexivity-Plhdr     : gray   
+  _.NaBL2-Symmetry-Plhdr        : gray   
+  _.NaBL2-Transitivity-Plhdr    : gray   
+  _.NaBL2-RelationId-Plhdr      : gray   
+  _.NaBL2-RelationRef-Plhdr     : gray   
+  _.NaBL2-Relation-Plhdr        : gray   
+  _.NaBL2-VariancePattern-Plhdr : gray   
+  _.NaBL2-Variances-Plhdr       : gray   
+  _.NaBL2-Variance-Plhdr        : gray   

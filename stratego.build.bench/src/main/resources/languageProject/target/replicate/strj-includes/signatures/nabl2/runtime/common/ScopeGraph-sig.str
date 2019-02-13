@@ -1,0 +1,24 @@
+module signatures/nabl2/runtime/common/ScopeGraph-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/runtime/common/Native-sig
+
+
+signature
+  constructors
+    Scope                           : NaBL2-String * NaBL2-String -> NaBL2-Scope
+                                    : NaBL2-TermIndex -> NaBL2-OccurrenceIndex
+                                    : NaBL2-Scope -> NaBL2-OccurrenceIndex
+    NoIndex                         : NaBL2-OccurrenceIndex
+    NaBL2-String-Plhdr              : NaBL2-String
+    NaBL2-TermIndex-Plhdr           : NaBL2-TermIndex
+    NaBL2-Scope-Plhdr               : NaBL2-Scope
+    NaBL2-OccurrenceIndex-Plhdr     : NaBL2-OccurrenceIndex
+    NaBL2-String-Plhdr              : COMPLETION-INSERTION -> NaBL2-String
+    NaBL2-TermIndex-Plhdr           : COMPLETION-INSERTION -> NaBL2-TermIndex
+    NaBL2-Scope-Plhdr               : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-OccurrenceIndex-Plhdr     : COMPLETION-INSERTION -> NaBL2-OccurrenceIndex
+    NaBL2-OccurrenceIndex-Opt-Plhdr : NaBL2-OccurrenceIndex

@@ -16,6 +16,8 @@ strategies
 
 strategies
 
+  clean-module(|project-path) = ?Specification(_)
+
   clean-module(|project-path):
     Module(m, _) -> <id>
   with id
@@ -26,16 +28,28 @@ strategies
 
 strategies
 
+//  compile-module(|project-path, project-name):
+//    Specification(defs) -> ("", <map(Fst)> combined-defs, cifiedDefNames, usedStrategies, <mapconcat(?Imports(<id>))> imps, <map(Fst)> constrs, usedConstrs, <map(Fst)> olays)
+//    with id
+//      ; (imps, defs2) := <partition(?Imports(_))> defs
+//      ; <set-config> ("--library", ())
+//      ; (defs3, constrs, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
+//      ; combined-defs := <combine-defs> defs3
+//      ; usedConstrs := <map(?(_, <extract-used-constructors>))> combined-defs
+//      ; usedStrategies := <extract-used-strategies> combined-defs
+
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> combined-defs, <mapconcat(?Imports(<id>))> imps, constrs, <map(Fst)> olays)
+    Module(m, defs) -> (m, <map(Fst)> combined-defs, cifiedDefNames, usedStrategies, <mapconcat(?Imports(<id>))> imps, <map(Fst)> constrs, usedConstrs, <map(Fst)> olays)
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; (defs3, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
+      ; (defs3, constrs, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
+      ; cifiedDefNames := <map(Snd; \SDefT(name, sargs, targs, _) -> $[[<cify> name]_[<length> sargs]_[<length> targs]]\)> defs3
       ; combined-defs := <combine-defs> defs3
+      ; usedConstrs := <map(?(_, <extract-used-constructors>))> combined-defs
+      ; usedStrategies := <extract-used-strategies> combined-defs
       ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
-      ; <map(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
-      ; constrs := <map(?(_, <extract-used-constructors>))> combined-defs
+      ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
   clean-and-compile-module: (project-path, project-name, ast) -> result
@@ -46,12 +60,12 @@ strategies
 rules
 
   // Rename the arguments and body to something short, we just need a stub that the compiler
-  //  accepts for generating the InteropRegistrer
-
+  //  accepts for generating the InteropRegistrer. Fails on ExtSDef
   def-to-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
   def-to-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
 
   extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
+  extract-used-strategies = svars // (from strc strat-lib)
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
@@ -187,6 +201,9 @@ strategies
 // commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
 //    ; tfc1(|"Stratego-Core", "fe-cong")
 
+  frontend-sep-comp-lib =
+    m-transform-split-definitions(id)
+
   m-transform-split-definitions(s) =
     dr-scope-all-verbose(id
      ; to-model
@@ -196,18 +213,22 @@ strategies
 
   m-split-definitions = id
     ; where(id
-      ; m-get-all-local-definitions
+      ; m-get-all-definitions
       ; map(!(<m-def-signature;Fst>, <id>))
       ; ?localDef*
     )
-//    ; where(id
-//      ; m-get-all-constructors
-//      ; map(!(<m-constr-signature>, <id>))
-//      ; ?constructor*
-//    )
+    ; where(id
+      ; m-get-all-constructors
+      ; filter(!(<m-constr-signature;constr-sig-to-string>, <id>))
+      ; ?constr*
+    )
     ; where(id
       ; m-get-all-overlays
       ; map(!(<m-overlay-signature;!$[[<Fst>]_[<Snd>]]>, <id>))
       ; ?overlay*
     )
-    ; !(localDef*, overlay*)
+    ; !(localDef*, constr*, overlay*)
+
+  constr-sig-to-string = (is-string, is-int); !$[[<Fst>]_[<Snd>]]
+  constr-sig-to-string: (Q(c), len) -> $[[<quote> c]_[len]]
+  constr-sig-to-string: (Inj(), 0) -> <fail>

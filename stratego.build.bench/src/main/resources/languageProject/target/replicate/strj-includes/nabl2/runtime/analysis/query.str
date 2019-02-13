@@ -1,0 +1,202 @@
+module nabl2/runtime/analysis/query 
+
+imports
+
+  libspoofax/analysis/constraint
+
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+  nabl2/shared/-
+
+  pp/nabl2/runtime/common/-
+  signatures/nabl2/runtime/common/-
+
+signature
+
+  constructors
+
+    AnalysisToken : Analysis
+
+rules
+
+  /**
+   * @type node:Term -> List(Occurrence)
+   */
+  nabl2--get-ast-decls(|a) =
+    prim("SG_get_ast_decls",a)
+
+  /**
+   * @type node:Term -> List(Occurrence)
+   */
+  nabl2--get-ast-refs(|a) =
+    prim("SG_get_ast_refs",a)
+
+  /**
+   * @param key : Term
+   * @type node:Term -> value:Term
+   */
+  nabl2--get-ast-property(|a,key) =
+    prim("SG_get_ast_property",a,key)
+
+  nabl2--get-ast-property-by-name(|a,name) =
+    nabl2--get-ast-property(|a,Property(name))
+
+  nabl2--get-ast-params(|a) =
+    nabl2--get-ast-property(|a,Params())
+
+  nabl2--get-ast-type(|a) =
+    nabl2--get-ast-property(|a,Type())
+
+rules
+
+  /**
+   * @type ref:Occurrence -> (decl:Occurrence,Path))
+   */
+  nabl2--get-ref-resolution(|a) =
+    prim("SG_get_ref_resolution", a)
+
+  /**
+   * @type decl -> (ref:Occurrence,Path))
+   */
+  nabl2--get-decl-resolution(|a) =
+    prim("SG_get_decl_resolution", a)
+
+  /**
+   * @param key : Term
+   * @type decl:Occurrence -> value:Term
+   */
+  nabl2--get-decl-property(|a,key) =
+    prim("SG_get_decl_property",a,key)
+
+  nabl2--get-decl-property-by-name(|a,name) =
+    nabl2--get-decl-property(|a,Property(name))
+
+  /**
+   * @param key : Term
+   * @type decl:Occurrence -> Type
+   */
+  nabl2--get-decl-type(|a) =
+    nabl2--get-decl-property(|a,Type())
+
+rules
+
+  nabl2--get-ast-analysis =
+    nabl2--get-ast-index;
+    ?TermIndex(<id>, _);
+    nabl2--get-resource-analysis
+
+  nabl2--get-resource-analysis =
+    get-resource-constraint-analysis
+
+  nabl2--get-resource-partial-analysis =
+    get-resource-partial-constraint-analysis
+
+  nabl2--analysis-has-errors =
+    ?a; prim("SG_analysis_has_errors", a)
+
+  nabl2--get-custom-analysis =
+    ?a; prim("SG_get_custom_analysis", a)
+
+  nabl2--set-custom-analysis(|a) =
+    prim("SG_set_custom_analysis", a)
+
+rules
+
+  nabl2--get-all-decls(|a) =
+    prim("SG_get_all_decls", a)
+
+  nabl2--get-all-refs(|a) =
+    prim("SG_get_all_refs", a)
+
+  nabl2--get-all-scopes(|a) =
+    prim("SG_get_all_scopes", a)
+
+  nabl2--get-decl-scope(|a) =
+    prim("SG_get_decl_scope", a)
+
+  nabl2--get-ref-scope(|a) =
+    prim("SG_get_ref_scope", a)
+
+  nabl2--get-scope-decls(|a) =
+    prim("SG_get_scope_decls", a)
+
+  nabl2--get-scope-refs(|a) =
+    prim("SG_get_scope_refs", a)
+
+  nabl2--get-direct-edges(|a) =
+    prim("SG_get_direct_edges", a)
+
+  nabl2--get-direct-edges-inv(|a) =
+    prim("SG_get_direct_edges_inv", a)
+
+  nabl2--get-export-edges(|a) =
+    prim("SG_get_export_edges", a)
+
+  nabl2--get-export-edges-inv(|a) =
+    prim("SG_get_export_edges_inv", a)
+
+  nabl2--get-import-edges(|a) =
+    prim("SG_get_import_edges", a)
+
+  nabl2--get-import-edges-inv(|a) =
+    prim("SG_get_import_edges_inv", a)
+
+  nabl2--get-visible-decls(|a) =
+    prim("SG_get_visible_decls", a)
+
+  nabl2--get-reachable-decls(|a) =
+    prim("SG_get_reachable_decls", a)
+
+rules
+
+  nabl2--get-symbolic-facts(|a) =
+    prim("SG_get_symbolic_facts", a)
+
+  nabl2--get-symbolic-goals(|a) =
+    prim("SG_get_symbolic_goals", a)
+
+rules
+
+  /* FIXME : Indices, origins, and occurrences are brittle
+   *
+   * - Should it be possible to get anaysis from an occurrence?
+   * - Editor resolution requires copying origins whn getting names. This
+   *   should probably be more principal
+   * - IceDust tries to build occurrences from names only, which fails
+   *   for cases like "this", that does not come from the AST. Find out if
+   *   IceDust is cutting corners, or we should handle that case differently.
+   */
+
+  nabl2--mk-occurrence: t -> Occurrence(DefaultNamespace(), t, index)
+    where index := <nabl2--get-ast-index> t
+
+  nabl2--mk-occurrence(|ns): t -> Occurrence(ns', t, index)
+    where ns' := <nabl2--mk-namespace> ns;
+          index := <nabl2--get-ast-index> t
+
+  nabl2--mk-occurrence(|ns,ot): t -> Occurrence(Namespace(ns), t, index)
+    where ns' := <nabl2--mk-namespace> ns;
+          index := <nabl2--get-ast-index> ot
+
+  nabl2--occurrence-name: Occurrence(_,name,index) -> name'
+    with name' := <try(nabl2--copy-origin(|index))> name
+
+  nabl2--occurrence-ns: Occurrence(ns,_,index) -> ns'
+    with ns' := <nabl2--namespace-name;try(nabl2--copy-origin(|index))> ns
+
+  nabl2--occurrence-index: Occurrence(_,_,index) -> index
+
+
+  nabl2--mk-namespace: "" -> DefaultNamespace()
+
+  nabl2--mk-namespace: ns -> Namespace(ns)
+
+  nabl2--namespace-name: DefaultNamespace() -> ""
+
+  nabl2--namespace-name: Namespace(ns) -> ns
+
+  nabl2--strip-occurrence-index = Occurrence(id, id, !NoIndex())
+
+rules
+
+  nabl2--message-pos = ?Message(_,_,pos) < !pos + id

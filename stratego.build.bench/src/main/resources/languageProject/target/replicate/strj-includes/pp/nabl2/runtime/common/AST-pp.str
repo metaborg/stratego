@@ -1,0 +1,169 @@
+module pp/nabl2/runtime/common/AST-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/common/AST-sig
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/runtime/common/Native-sig
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+imports
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/runtime/common/Native-pp
+  pp/nabl2/runtime/analysis/Generation-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-TermIndex
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-TermIndex>
+    where <?"NaBL2-TermIndex"> sort
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    TermIndex(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [ S("@")
+                                 , t1__'
+                                 , S(":")
+                                 , t2__'
+                                 ]
+                               )
+                             ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-String) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Int) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-TermIndex =
+    ?TermIndex(_, _)
+
+  NaBL2-get-indent :
+    (t@TermIndex(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-TermIndex"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@TermIndex(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-TermIndex"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@TermIndex(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-TermIndex"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-TermIndex =
+    fail
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-TermIndex> h
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    NaBL2-TermIndex-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-TermIndex")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-TermIndex =
+    ?NaBL2-TermIndex-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-String :
+    NaBL2-String-Plhdr() -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-String")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-String =
+    ?NaBL2-String-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Int :
+    NaBL2-Int-Plhdr() -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [S("$NaBL2-Int")]
+                           )
+                         ]
+
+  is-NaBL2-NaBL2-Int =
+    ?NaBL2-Int-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-TermIndex :
+    NaBL2-TermIndex-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-TermIndex")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-TermIndex =
+    ?NaBL2-TermIndex-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-String :
+    NaBL2-String-Plhdr(_) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-String")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-String =
+    ?NaBL2-String-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Int :
+    NaBL2-Int-Plhdr(_) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-Int")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-Int =
+    ?NaBL2-Int-Plhdr(_)

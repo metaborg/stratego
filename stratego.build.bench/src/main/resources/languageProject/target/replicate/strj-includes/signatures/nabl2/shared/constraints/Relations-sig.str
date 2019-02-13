@@ -1,0 +1,28 @@
+module signatures/nabl2/shared/constraints/Relations-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/Relations-sig
+
+
+signature
+  constructors
+    CBuildRel                    : NaBL2-CTerm * NaBL2-RelationBuildOp * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+    CCheckRel                    : NaBL2-CTerm * NaBL2-RelationCheckOp * NaBL2-CTerm * NaBL2-Message -> NaBL2-Constraint
+                                 : NaBL2-RelationFunction -> NaBL2-FunctionRef
+    NaBL2-RelationBuildOp-Plhdr  : NaBL2-RelationBuildOp
+    NaBL2-Constraint-Plhdr       : NaBL2-Constraint
+    NaBL2-RelationCheckOp-Plhdr  : NaBL2-RelationCheckOp
+    NaBL2-CTerm-Plhdr            : NaBL2-CTerm
+    NaBL2-Message-Plhdr          : NaBL2-Message
+    NaBL2-FunctionRef-Plhdr      : NaBL2-FunctionRef
+    NaBL2-RelationFunction-Plhdr : NaBL2-RelationFunction
+    NaBL2-RelationBuildOp-Plhdr  : COMPLETION-INSERTION -> NaBL2-RelationBuildOp
+    NaBL2-Constraint-Plhdr       : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-RelationCheckOp-Plhdr  : COMPLETION-INSERTION -> NaBL2-RelationCheckOp
+    NaBL2-CTerm-Plhdr            : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-Message-Plhdr          : COMPLETION-INSERTION -> NaBL2-Message
+    NaBL2-FunctionRef-Plhdr      : COMPLETION-INSERTION -> NaBL2-FunctionRef
+    NaBL2-RelationFunction-Plhdr : COMPLETION-INSERTION -> NaBL2-RelationFunction

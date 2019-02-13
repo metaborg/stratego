@@ -1,0 +1,11 @@
+module completion/colorer/nabl2/shared/common/Names-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+  completion/colorer/nabl2/shared/common/Messages-cc-esv
+  completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
+
+colorer
+  _.NaBL2-CSet-Plhdr  : gray   
+  _.NaBL2-Names-Plhdr : gray   

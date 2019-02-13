@@ -1,0 +1,143 @@
+module completion/nabl2/shared/constraints/Namebinding-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Namebinding-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/Resolution-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CGDecl"
+                                   , CGDecl(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Scope-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CGRef"
+                                   , CGRef(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Scope-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CResolve"
+                                   , CResolve(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ELabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-PathLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-ELabel-Plhdr(), NaBL2-PathLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-ELabel-Plhdr(), NaBL2-PathLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-NLabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-PathLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-NLabel-Plhdr(), NaBL2-PathLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-NLabel-Plhdr(), NaBL2-PathLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <add-completions(|("NAMETerm", NAMETerm()))
+                            ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessagePosition-Plhdr() -> <add-completions(|("NAMEPosition", NAMEPosition()))
+                                      ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-PathLabel" -> <is-left-recursive> "NaBL2-ELabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-right-recursive :
+    "NaBL2-PathLabel" -> <is-right-recursive> "NaBL2-ELabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-NaBL2-ELabel-completion-sort :
+    "NaBL2-PathLabel" -> <id>
+
+  is-left-recursive :
+    "NaBL2-PathLabel" -> <is-left-recursive> "NaBL2-NLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-right-recursive :
+    "NaBL2-PathLabel" -> <is-right-recursive> "NaBL2-NLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-NaBL2-NLabel-completion-sort :
+    "NaBL2-PathLabel" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-Keyword" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Scope-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ELabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-NLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-PathLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()

@@ -1,0 +1,11 @@
+module completion/colorer/nabl2/runtime/common/AST-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+  completion/colorer/nabl2/runtime/common/Native-cc-esv
+  completion/colorer/nabl2/runtime/analysis/Generation-cc-esv
+
+colorer
+  _.NaBL2-TermIndex-Plhdr : gray   
+  _.NaBL2-String-Plhdr    : gray   
+  _.NaBL2-Int-Plhdr       : gray   

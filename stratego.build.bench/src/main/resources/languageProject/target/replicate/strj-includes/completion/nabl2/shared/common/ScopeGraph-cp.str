@@ -1,0 +1,179 @@
+module completion/nabl2/shared/common/ScopeGraph-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Identifiers-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Scope-Plhdr() -> <suggest-completions(|completions)> NaBL2-CVar-Plhdr()
+    where <not(is-expanded)> (NaBL2-Scope-Plhdr(), NaBL2-CVar-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-Scope-Plhdr(), NaBL2-CVar-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <suggest-completions(|completions)> NaBL2-Scope-Plhdr()
+    where <not(is-expanded)> (NaBL2-CTerm-Plhdr(), NaBL2-Scope-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CTerm-Plhdr(), NaBL2-Scope-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-Occurrence-Plhdr() -> <add-completions(
+                                 | ( "Occurrence"
+                                   , Occurrence(
+                                       <try(inline-completions(|NaBL2-Occurrence-Plhdr()))> NaBL2-NamespaceRef-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Occurrence-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Occurrence-Plhdr()))> NaBL2-OccurrenceIndex-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Occurrence-Plhdr() -> <suggest-completions(|completions)> NaBL2-CVar-Plhdr()
+    where <not(is-expanded)> (NaBL2-Occurrence-Plhdr(), NaBL2-CVar-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-Occurrence-Plhdr(), NaBL2-CVar-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-CTerm-Plhdr() -> <suggest-completions(|completions)> NaBL2-Occurrence-Plhdr()
+    where <not(is-expanded)> (NaBL2-CTerm-Plhdr(), NaBL2-Occurrence-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CTerm-Plhdr(), NaBL2-Occurrence-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-Namespace-Plhdr() -> <add-completions(
+                                | ( "Namespace"
+                                  , Namespace(
+                                      <try(inline-completions(|NaBL2-Namespace-Plhdr()))> NaBL2-NamespaceId-Plhdr()
+                                    )
+                                  )
+                                )
+                                ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-NamespaceRef-Plhdr() -> <suggest-completions(|completions)> NaBL2-Namespace-Plhdr()
+    where <not(is-expanded)> (NaBL2-NamespaceRef-Plhdr(), NaBL2-Namespace-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-NamespaceRef-Plhdr(), NaBL2-Namespace-Plhdr()) -> <id>
+            )
+
+  null-constructor-completion-sort :
+    "NaBL2-NamespaceRef" -> DefaultNamespace()
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-CVar" -> <is-left-recursive> "NaBL2-Scope"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-right-recursive :
+    "NaBL2-CVar" -> <is-right-recursive> "NaBL2-Scope"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-NaBL2-Scope-completion-sort :
+    "NaBL2-CVar" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Scope" -> <is-left-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-Scope"
+
+  is-right-recursive :
+    "NaBL2-Scope" -> <is-right-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-Scope"
+
+  is-NaBL2-CTerm-completion-sort :
+    "NaBL2-Scope" -> <id>
+
+  is-left-recursive :
+    "NaBL2-CVar" -> <is-left-recursive> "NaBL2-Occurrence"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-right-recursive :
+    "NaBL2-CVar" -> <is-right-recursive> "NaBL2-Occurrence"
+    where <not(is-lexical-completion-sort)> "NaBL2-CVar"
+
+  is-NaBL2-Occurrence-completion-sort :
+    "NaBL2-CVar" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Occurrence" -> <is-left-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-Occurrence"
+
+  is-right-recursive :
+    "NaBL2-Occurrence" -> <is-right-recursive> "NaBL2-CTerm"
+    where <not(is-lexical-completion-sort)> "NaBL2-Occurrence"
+
+  is-NaBL2-CTerm-completion-sort :
+    "NaBL2-Occurrence" -> <id>
+
+  is-left-recursive :
+    "NaBL2-NamespaceId" -> <is-left-recursive> "NaBL2-Namespace"
+    where <not(is-lexical-completion-sort)> "NaBL2-NamespaceId"
+
+  is-right-recursive :
+    "NaBL2-NamespaceId" -> <is-right-recursive> "NaBL2-Namespace"
+    where <not(is-lexical-completion-sort)> "NaBL2-NamespaceId"
+
+  is-NaBL2-Namespace-completion-sort :
+    "NaBL2-NamespaceId" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Namespace" -> <is-left-recursive> "NaBL2-NamespaceRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Namespace"
+
+  is-right-recursive :
+    "NaBL2-Namespace" -> <is-right-recursive> "NaBL2-NamespaceRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Namespace"
+
+  is-NaBL2-NamespaceRef-completion-sort :
+    "NaBL2-Namespace" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Scope-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-OccurrenceIndex-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CVar-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-NamespaceId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Namespace-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-NamespaceRef-Plhdr()

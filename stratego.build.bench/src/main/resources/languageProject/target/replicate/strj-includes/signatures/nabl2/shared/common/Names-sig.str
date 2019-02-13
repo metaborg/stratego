@@ -1,0 +1,30 @@
+module signatures/nabl2/shared/common/Names-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+signature
+  constructors
+                                 : NaBL2-Names -> NaBL2-CSet
+    NaBL2-CSet-Plhdr             : NaBL2-CSet
+    NaBL2-Names-Plhdr            : NaBL2-Names
+    NaBL2-CSet-Plhdr             : COMPLETION-INSERTION -> NaBL2-CSet
+    NaBL2-Names-Plhdr            : COMPLETION-INSERTION -> NaBL2-Names
+    Declarations                 : NaBL2-Scope * NaBL2-NamespacePattern -> NaBL2-Names
+    References                   : NaBL2-Scope * NaBL2-NamespacePattern -> NaBL2-Names
+    Visibles                     : NaBL2-Scope * NaBL2-NamespacePattern -> NaBL2-Names
+    Reachables                   : NaBL2-Scope * NaBL2-NamespacePattern -> NaBL2-Names
+    DefaultNamespace             : NaBL2-NamespacePattern
+    Namespace                    : NaBL2-NamespaceId -> NaBL2-NamespacePattern
+    NaBL2-Names-Plhdr            : NaBL2-Names
+    NaBL2-Scope-Plhdr            : NaBL2-Scope
+    NaBL2-NamespacePattern-Plhdr : NaBL2-NamespacePattern
+    NaBL2-NamespaceId-Plhdr      : NaBL2-NamespaceId
+    NaBL2-Names-Plhdr            : COMPLETION-INSERTION -> NaBL2-Names
+    NaBL2-Scope-Plhdr            : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-NamespacePattern-Plhdr : COMPLETION-INSERTION -> NaBL2-NamespacePattern
+    NaBL2-NamespaceId-Plhdr      : COMPLETION-INSERTION -> NaBL2-NamespaceId

@@ -1,0 +1,13 @@
+module completion/nabl2/Shared-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/Shared-sig
+
+
+imports
+  completion/nabl2/shared/Main-cp

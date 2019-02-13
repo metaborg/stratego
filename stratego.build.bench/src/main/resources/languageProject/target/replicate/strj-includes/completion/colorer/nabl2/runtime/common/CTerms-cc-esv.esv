@@ -1,0 +1,9 @@
+module completion/colorer/nabl2/runtime/common/CTerms-cc-esv
+
+imports
+  completion/colorer/nabl2/runtime/common/Native-cc-esv
+
+colorer
+  _.NaBL2-CVar-Plhdr   : gray   
+  _.NaBL2-String-Plhdr : gray   
+  _.NaBL2-CTerm-Plhdr  : gray   

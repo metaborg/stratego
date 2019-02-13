@@ -1,0 +1,134 @@
+module pp/nabl2/shared/common/Functions-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Functions-sig
+
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+imports
+  pp/nabl2/shared/common/Identifiers-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Function
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Function>
+    where <?"NaBL2-Function"> sort
+
+  prettyprint-NaBL2-NaBL2-Function :
+    Function(t1__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [t1__']
+                        )
+                      ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-FunctionId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Function =
+    ?Function(_)
+
+  NaBL2-get-indent :
+    (t@Function(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Function"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Function(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Function"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Function(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Function"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Function =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Function :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Function> h
+
+  prettyprint-NaBL2-NaBL2-Function :
+    NaBL2-Function-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-Function")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-Function =
+    ?NaBL2-Function-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-FunctionId :
+    NaBL2-FunctionId-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-FunctionId")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-FunctionId =
+    ?NaBL2-FunctionId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Function :
+    NaBL2-Function-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Function")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Function =
+    ?NaBL2-Function-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-FunctionId :
+    NaBL2-FunctionId-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-FunctionId")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-FunctionId =
+    ?NaBL2-FunctionId-Plhdr(_)

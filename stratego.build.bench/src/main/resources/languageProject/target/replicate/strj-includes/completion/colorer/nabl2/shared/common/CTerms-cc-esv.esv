@@ -1,0 +1,7 @@
+module completion/colorer/nabl2/shared/common/CTerms-cc-esv
+
+colorer
+  _.NaBL2-CTerms-Plhdr : gray   
+  _.NaBL2-CVar-Plhdr   : gray   
+  _.NaBL2-CTerm-Plhdr  : gray   
+  _.NaBL2-CList-Plhdr  : gray   

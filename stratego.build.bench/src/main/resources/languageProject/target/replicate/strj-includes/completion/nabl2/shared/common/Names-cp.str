@@ -1,0 +1,50 @@
+module completion/nabl2/shared/common/Names-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Names-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-CSet-Plhdr() -> <suggest-completions(|completions)> NaBL2-Names-Plhdr()
+    where <not(is-expanded)> (NaBL2-CSet-Plhdr(), NaBL2-Names-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-CSet-Plhdr(), NaBL2-Names-Plhdr()) -> <id>
+            )
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-Names" -> <is-left-recursive> "NaBL2-CSet"
+    where <not(is-lexical-completion-sort)> "NaBL2-Names"
+
+  is-right-recursive :
+    "NaBL2-Names" -> <is-right-recursive> "NaBL2-CSet"
+    where <not(is-lexical-completion-sort)> "NaBL2-Names"
+
+  is-NaBL2-CSet-completion-sort :
+    "NaBL2-Names" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-CSet-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Names-Plhdr()

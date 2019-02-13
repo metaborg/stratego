@@ -1,0 +1,49 @@
+module pp/nabl2/shared/common/Main-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/Main-sig
+
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/Names-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/shared/common/Sorts-sig
+
+
+imports
+  pp/nabl2/shared/common/AST-pp
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/Identifiers-pp
+  pp/nabl2/shared/common/Messages-pp
+  pp/nabl2/shared/common/Names-pp
+  pp/nabl2/shared/common/Resolution-pp
+  pp/nabl2/shared/common/ScopeGraph-pp
+  pp/nabl2/shared/common/Sorts-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail

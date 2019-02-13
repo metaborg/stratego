@@ -1,0 +1,51 @@
+module completion/nabl2/shared/constraints/Symbolic-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Symbolic-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Messages-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CGoal"
+                                   , CGoal(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CFact"
+                                   , CFact(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-MessagePosition-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()

@@ -1,0 +1,28 @@
+module signatures/nabl2/shared/common/Sorts-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+signature
+  constructors
+    SortNoArgs              : NaBL2-SortId -> NaBL2-Sort
+                            : NaBL2-Sort -> NaBL2-SortRef
+    TermSort                : NaBL2-SortRef
+    OccurrenceSort          : NaBL2-SortRef
+    ScopeSort               : NaBL2-SortRef
+    StringSort              : NaBL2-SortRef
+    Var                     : NaBL2-SortVarId -> NaBL2-SortRef
+    TupleSort               : List(NaBL2-SortRef) -> NaBL2-SortRef
+    ListSort                : NaBL2-SortRef -> NaBL2-SortRef
+    MapSort                 : NaBL2-SortRef * NaBL2-SortRef -> NaBL2-SortRef
+    NaBL2-SortId-Plhdr      : NaBL2-SortId
+    NaBL2-Sort-Plhdr        : NaBL2-Sort
+    NaBL2-SortVarId-Plhdr   : NaBL2-SortVarId
+    NaBL2-SortRef-Plhdr     : NaBL2-SortRef
+    NaBL2-SortId-Plhdr      : COMPLETION-INSERTION -> NaBL2-SortId
+    NaBL2-Sort-Plhdr        : COMPLETION-INSERTION -> NaBL2-Sort
+    NaBL2-SortVarId-Plhdr   : COMPLETION-INSERTION -> NaBL2-SortVarId
+    NaBL2-SortRef-Plhdr     : COMPLETION-INSERTION -> NaBL2-SortRef
+    NaBL2-SortRef-Opt-Plhdr : NaBL2-SortRef
+                            : String -> NaBL2-SortVarId

@@ -1,0 +1,48 @@
+Module(
+  Unparameterized("normalized/completion/NaBL2Shared-completion-insertions-norm")
+, [Imports([Module(Unparameterized("normalized/NaBL2Shared-norm")), Module(Unparameterized("normalized/completion/nabl2/Shared-completion-insertions-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(Lex(Sort("COMPLETION-INSERTION")), Rhs([]), NoAttrs())
+        , SdfProduction(
+            Cf(Sort("COMPLETION-INSERTION"))
+          , Rhs([Lex(Sort("COMPLETION-INSERTION"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

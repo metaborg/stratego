@@ -1,0 +1,24 @@
+module signatures/nabl2/shared/common/Messages-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+signature
+  sorts
+    NaBL2-MessageContent NaBL2-MessagePosition
+
+  constructors
+    Message                     : NaBL2-MessageKind * NaBL2-MessageContent * NaBL2-MessagePosition -> NaBL2-Message
+    Error                       : NaBL2-MessageKind
+    Warning                     : NaBL2-MessageKind
+    Note                        : NaBL2-MessageKind
+    NaBL2-Message-Plhdr         : NaBL2-Message
+    NaBL2-MessageContent-Plhdr  : NaBL2-MessageContent
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-MessageKind-Plhdr     : NaBL2-MessageKind
+    NaBL2-Message-Plhdr         : COMPLETION-INSERTION -> NaBL2-Message
+    NaBL2-MessageContent-Plhdr  : COMPLETION-INSERTION -> NaBL2-MessageContent
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition
+    NaBL2-MessageKind-Plhdr     : COMPLETION-INSERTION -> NaBL2-MessageKind

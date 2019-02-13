@@ -1,0 +1,50 @@
+Module(
+  Unparameterized("normalized/nabl2/runtime/common/Main-norm")
+, [ Imports(
+      [ Module(Unparameterized("normalized/nabl2/runtime/common/AST-norm"))
+      , Module(Unparameterized("normalized/nabl2/runtime/common/CTerms-norm"))
+      , Module(Unparameterized("normalized/nabl2/runtime/common/Messages-norm"))
+      , Module(Unparameterized("normalized/nabl2/runtime/common/Native-norm"))
+      , Module(Unparameterized("normalized/nabl2/runtime/common/ScopeGraph-norm"))
+      ]
+    )
+  ]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

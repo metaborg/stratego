@@ -1,0 +1,37 @@
+module pp/nabl2/runtime/analysis/Main-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/analysis/Main-sig
+
+
+imports
+  signatures/nabl2/runtime/analysis/Debug-sig
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+imports
+  pp/nabl2/runtime/analysis/Debug-pp
+  pp/nabl2/runtime/analysis/Generation-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail

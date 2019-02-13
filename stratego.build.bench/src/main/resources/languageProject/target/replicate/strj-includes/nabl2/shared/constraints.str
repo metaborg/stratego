@@ -1,0 +1,43 @@
+module nabl2/shared/common/constraints
+
+imports
+
+  signatures/nabl2/shared/constraints/-
+
+  nabl2/shared/vars
+
+rules
+
+  nabl2--free-constraint-vars:
+      CConj(c1,c2) -> v*
+    with v1* := <nabl2--free-constraint-vars> c1;
+         v2* := <nabl2--free-constraint-vars> c2;
+         v*  := <conc; strip-annos; make-set> (v1*,v2*)
+
+  nabl2--free-constraint-vars:
+      CExists(evs,c) -> v*
+    with vc* := <nabl2--free-constraint-vars> c;
+         v*  := <diff(strip-annos; eq)> (vc*, evs)
+
+  nabl2--free-constraint-vars:
+      c -> <nabl2--all-vars> c
+
+
+  nabl2--normalize-constraint:
+      CConj(CConj(c1,c2),c3) -> <nabl2--normalize-constraint> CConj(c1,CConj(c2,c3))
+  nabl2--normalize-constraint:
+      CConj(c1,c2) -> CConj(c1, <nabl2--normalize-constraint> c2)
+  nabl2--normalize-constraint:
+      CExists(evs,c) -> CExists(evs, <nabl2--normalize-constraint> c)
+  nabl2--normalize-constraint:
+      c -> c
+
+
+  nabl2--make-cconj: [c]    -> c
+  nabl2--make-cconj: [c|cs] -> CConj(c, <nabl2--make-cconj> cs)
+  nabl2--make-cconj: []     -> <fatal-err(|"Cannot make conjunction from empty list.")>
+
+
+  nabl2--make-cexists: (vars, c) -> CExists(vars,c)
+  nabl2--make-cexists: ([], c)   -> c
+

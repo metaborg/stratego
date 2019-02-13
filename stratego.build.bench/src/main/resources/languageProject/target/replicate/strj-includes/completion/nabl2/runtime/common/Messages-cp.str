@@ -1,0 +1,100 @@
+module completion/nabl2/runtime/common/Messages-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/Messages-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Messages-cp
+  completion/nabl2/runtime/common/Native-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-MessageContent-Plhdr() -> <add-completions(
+                                     | ("Formatted", Formatted(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageContent-Plhdr() -> <add-completions(
+                                     | ( "Text"
+                                       , Text(
+                                           <try(inline-completions(|NaBL2-MessageContent-Plhdr()))> NaBL2-String-Plhdr()
+                                         )
+                                       )
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageContent-Plhdr() -> <add-completions(
+                                     | ( "Term"
+                                       , Term(
+                                           <try(inline-completions(|NaBL2-MessageContent-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                         )
+                                       )
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessageContent-Plhdr() -> <add-completions(|("Default", Default()))
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessagePosition-Plhdr() -> <add-completions(|("NoIndex", NoIndex()))
+                                      ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-MessagePosition-Plhdr() -> <add-completions(|("NAME", NAME()))
+                                      ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-String" -> <is-left-recursive> "NaBL2-MessageContent"
+    where <not(is-lexical-completion-sort)> "NaBL2-String"
+
+  is-right-recursive :
+    "NaBL2-String" -> <is-right-recursive> "NaBL2-MessageContent"
+    where <not(is-lexical-completion-sort)> "NaBL2-String"
+
+  is-NaBL2-MessageContent-completion-sort :
+    "NaBL2-String" -> <id>
+
+  is-left-recursive :
+    "NaBL2-CTerm" -> <is-left-recursive> "NaBL2-MessageContent"
+    where <not(is-lexical-completion-sort)> "NaBL2-CTerm"
+
+  is-right-recursive :
+    "NaBL2-CTerm" -> <is-right-recursive> "NaBL2-MessageContent"
+    where <not(is-lexical-completion-sort)> "NaBL2-CTerm"
+
+  is-NaBL2-MessageContent-completion-sort :
+    "NaBL2-CTerm" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-String-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessageContent-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-MessagePosition-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-TermIndex-Plhdr()

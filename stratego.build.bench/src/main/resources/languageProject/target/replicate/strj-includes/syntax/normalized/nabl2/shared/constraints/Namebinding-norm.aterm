@@ -1,0 +1,731 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/constraints/Namebinding-norm")
+, [ Imports(
+      [ Module(Unparameterized("normalized/nabl2/shared/common/Identifiers-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Messages-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Resolution-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/ScopeGraph-norm"))
+      ]
+    )
+  ]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"<-\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\60"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"|->\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\124"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\62"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"-\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\45"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"->\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\62"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"<=\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\60"))))
+              , CharClass(Simple(Present(Numeric("\\61"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"=\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\61"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"?=\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\63"))))
+              , CharClass(Simple(Present(Numeric("\\61"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"=>\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\61"))))
+              , CharClass(Simple(Present(Numeric("\\62"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"@\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\64"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"NAME\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\65"))))
+              , CharClass(Simple(Present(Numeric("\\77"))))
+              , CharClass(Simple(Present(Numeric("\\69"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"NAMES\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\65"))))
+              , CharClass(Simple(Present(Numeric("\\77"))))
+              , CharClass(Simple(Present(Numeric("\\69"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Occurrence\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\79"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\117"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Scope\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\112"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Constraint\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\67"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Message\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\77"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\103"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-ELabel\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\69"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\98"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-NLabel\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\98"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-PathLabel\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\80"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\104"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\98"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-CTerm\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\67"))))
+              , CharClass(Simple(Present(Numeric("\\84"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-MessagePosition\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\77"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\103"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\80"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"NAME\""), Lit("\"NAMES\"")))
+          , Rhs([Lit("\"NAME\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"NAME\""), Lit("\"NAMES\"")))
+          , Rhs([Lit("\"NAMES\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CGDecl"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-Occurrence"))
+              , Cf(Opt(Layout()))
+              , Lit("\"<-\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-MessagePosition"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CGRef"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-Occurrence"))
+              , Cf(Opt(Layout()))
+              , Lit("\"->\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-MessagePosition"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CResolve"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-CTerm"))
+              , Cf(Opt(Layout()))
+              , Lit("\"|->\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CTerm"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Message"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CGDirectEdge"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Lit("\"-\"")
+              , Cf(Sort("NaBL2-ELabel"))
+              , Lit("\"->\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-MessagePosition"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CGAssoc"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-Occurrence"))
+              , Cf(Opt(Layout()))
+              , Lit("\"=\"")
+              , Cf(Sort("NaBL2-NLabel"))
+              , Lit("\"=>\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-MessagePosition"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CGNamedEdge"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-Occurrence"))
+              , Cf(Opt(Layout()))
+              , Lit("\"<=\"")
+              , Cf(Sort("NaBL2-NLabel"))
+              , Lit("\"=\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Scope"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-MessagePosition"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("CAssoc"))
+          , Rhs(
+              [ Cf(Sort("NaBL2-CTerm"))
+              , Cf(Opt(Layout()))
+              , Lit("\"?=\"")
+              , Cf(Sort("NaBL2-NLabel"))
+              , Lit("\"=>\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-CTerm"))
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Message"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-ELabel"))
+          , Rhs([Cf(Sort("NaBL2-PathLabel"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-NLabel"))
+          , Rhs([Cf(Sort("NaBL2-PathLabel"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CTerm")), Constructor("NAMETerm"))
+          , Rhs([Lit("\"NAME\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-MessagePosition")), Constructor("NAMEPosition"))
+          , Rhs(
+              [Lit("\"@\""), Cf(Opt(Layout())), Lit("\"NAMES\"")]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-Keyword"))
+          , Rhs([Lex(Alt(Lit("\"NAME\""), Lit("\"NAMES\"")))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"NAMES\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"NAME\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"@\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProduction(
+            Cf(Alt(Lit("\"NAME\""), Lit("\"NAMES\"")))
+          , Rhs([Lex(Alt(Lit("\"NAME\""), Lit("\"NAMES\"")))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Keyword"))
+          , Rhs([Lex(Sort("NaBL2-Keyword"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Occurrence")), Constructor("NaBL2-Occurrence-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Occurrence\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Scope")), Constructor("NaBL2-Scope-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Scope\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Constraint")), Constructor("NaBL2-Constraint-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Constraint\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Message")), Constructor("NaBL2-Message-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Message\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-ELabel")), Constructor("NaBL2-ELabel-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-ELabel\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-NLabel")), Constructor("NaBL2-NLabel-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-NLabel\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-PathLabel")), Constructor("NaBL2-PathLabel-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-PathLabel\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-CTerm")), Constructor("NaBL2-CTerm-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-CTerm\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-MessagePosition")), Constructor("NaBL2-MessagePosition-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-MessagePosition\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Restrictions(
+        [ Follow(
+            [Lit("\"$NaBL2-Occurrence\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Scope\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Constraint\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Message\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-ELabel\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-NLabel\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-PathLabel\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"NAMES\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Numeric("\\39")
+                      , Conc(
+                          Range(Numeric("\\48"), Numeric("\\57"))
+                        , Conc(
+                            Range(Numeric("\\65"), Numeric("\\90"))
+                          , Conc(Numeric("\\95"), Range(Numeric("\\97"), Numeric("\\122")))
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-CTerm\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-MessagePosition\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

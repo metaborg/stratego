@@ -1,0 +1,471 @@
+module pp/nabl2/shared/common/ScopeGraph-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/ScopeGraph-sig
+
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+imports
+  pp/nabl2/shared/common/AST-pp
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/Identifiers-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Scope
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Occurrence
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CTerm
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Namespace
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-NamespaceRef
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Scope>
+    where <?"NaBL2-Scope"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Occurrence>
+    where <?"NaBL2-Occurrence"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CTerm>
+    where <?"NaBL2-CTerm"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Namespace>
+    where <?"NaBL2-Namespace"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-NamespaceRef>
+    where <?"NaBL2-NamespaceRef"> sort
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-Scope)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CVar) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CTerm)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Scope) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    Occurrence(t1__, t2__, t3__) -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [ t1__'
+                                        , S("{")
+                                        , t2__'
+                                        , t3__'
+                                        , S("}")
+                                        ]
+                                      )
+                                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-NamespaceRef) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+    with t3__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-OccurrenceIndex) <+ pp-one-Z(prettyprint-completion-aux)> t3__
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?Occurrence(_, _, _)
+
+  NaBL2-get-indent :
+    ( t@Occurrence(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Occurrence"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    ( t@Occurrence(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Occurrence"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    ( t@Occurrence(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Occurrence"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           case ?3 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-Occurrence)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CVar) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CTerm)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Occurrence) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-Namespace :
+    Namespace(t1__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [t1__']
+                         )
+                       ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-NamespaceId) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-Namespace =
+    ?Namespace(_)
+
+  NaBL2-get-indent :
+    (t@Namespace(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Namespace"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Namespace(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Namespace"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Namespace(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Namespace"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-NamespaceRef)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-Namespace) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    DefaultNamespace() -> [ H(
+                              []
+                            , [S("")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-NamespaceRef =
+    ?DefaultNamespace()
+
+  NaBL2-get-indent :
+    (t@DefaultNamespace(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-NamespaceRef"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@DefaultNamespace(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-NamespaceRef"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@DefaultNamespace(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-NamespaceRef"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Scope =
+    fail
+
+  is-NaBL2-NaBL2-Occurrence =
+    fail
+
+  is-NaBL2-NaBL2-CTerm =
+    fail
+
+  is-NaBL2-NaBL2-Namespace =
+    fail
+
+  is-NaBL2-NaBL2-NamespaceRef =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Scope> h
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Occurrence> h
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CTerm> h
+
+  prettyprint-NaBL2-NaBL2-Namespace :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Namespace> h
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-NamespaceRef> h
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-Scope")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-OccurrenceIndex :
+    NaBL2-OccurrenceIndex-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-OccurrenceIndex")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-OccurrenceIndex =
+    ?NaBL2-OccurrenceIndex-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CVar")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Occurrence")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-NamespaceId :
+    NaBL2-NamespaceId-Plhdr() -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-NamespaceId")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-NamespaceId =
+    ?NaBL2-NamespaceId-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Namespace :
+    NaBL2-Namespace-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-Namespace")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-Namespace =
+    ?NaBL2-Namespace-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    NaBL2-NamespaceRef-Plhdr() -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-NamespaceRef")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-NamespaceRef =
+    ?NaBL2-NamespaceRef-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Scope :
+    NaBL2-Scope-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-Scope")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-Scope =
+    ?NaBL2-Scope-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-OccurrenceIndex :
+    NaBL2-OccurrenceIndex-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-OccurrenceIndex")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-OccurrenceIndex =
+    ?NaBL2-OccurrenceIndex-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CVar")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Occurrence :
+    NaBL2-Occurrence-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Occurrence")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Occurrence =
+    ?NaBL2-Occurrence-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-NamespaceId :
+    NaBL2-NamespaceId-Plhdr(_) -> [ H(
+                                      [SOpt(HS(), "0")]
+                                    , [S("$NaBL2-NamespaceId")]
+                                    )
+                                  ]
+
+  is-NaBL2-NaBL2-NamespaceId =
+    ?NaBL2-NamespaceId-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-Namespace :
+    NaBL2-Namespace-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Namespace")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Namespace =
+    ?NaBL2-Namespace-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    NaBL2-NamespaceRef-Plhdr(_) -> [ H(
+                                       [SOpt(HS(), "0")]
+                                     , [S("$NaBL2-NamespaceRef")]
+                                     )
+                                   ]
+
+  is-NaBL2-NaBL2-NamespaceRef =
+    ?NaBL2-NamespaceRef-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-NamespaceRef :
+    NaBL2-NamespaceRef-Opt-Plhdr() -> [ H(
+                                          []
+                                        , [S("")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-NamespaceRef =
+    ?NaBL2-NamespaceRef-Opt-Plhdr()

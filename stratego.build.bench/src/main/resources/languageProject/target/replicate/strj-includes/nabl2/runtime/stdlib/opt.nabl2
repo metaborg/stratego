@@ -1,0 +1,62 @@
+module nabl2/runtime/stdlib/opt
+
+signature
+
+  constraint generator
+
+    Opt0     [[ optA ^ () ]]
+    Opt0(X)  [[ optA ^ () ]]
+    Opt0t    [[ optA ^ () : t ]]
+    Opt0t(X) [[ optA ^ () : t ]]
+
+    Opt1     [[ optA ^ (b) ]]
+    Opt1(X)  [[ optA ^ (b) ]]
+    Opt1t    [[ optA ^ (b) : t ]]
+    Opt1t(X) [[ optA ^ (b) : t ]]
+
+    Opt2     [[ optA ^ (b, c) ]]
+    Opt2(X)  [[ optA ^ (b, c) ]]
+    Opt2t    [[ optA ^ (b, c) : t ]]
+    Opt2t(X) [[ optA ^ (b, c) : t ]]
+
+rules
+
+  Opt0[[ opt ^ () ]] := Opt0(default)[[ opt ^ () ]].
+
+  Opt0(X)[[ None() ^ () ]].
+  Opt0(X)[[ Some(x) ^ () ]] := X[[ x ^ () ]].
+
+rules
+
+  Opt0t[[ opt ^ () : t ]] := Opt0t(default)[[ opt ^ () : t ]].
+
+  Opt0t(X)[[ None() ^ () : _ ]].
+  Opt0t(X)[[ Some(x) ^ () : t ]] := X[[ x ^ () : t ]].
+
+rules
+
+  Opt1[[ opt ^ (s) ]] := Opt1(default)[[ opt ^ (s) ]].
+
+  Opt1(X)[[ None() ^ (s) ]].
+  Opt1(X)[[ Some(x) ^ (s) ]] := X[[ x ^ (s) ]].
+
+rules
+
+  Opt1t[[ opt ^ (s) : t ]] := Opt1t(default)[[ opt ^ (s) : t ]].
+
+  Opt1t(X)[[ None() ^ (s) : _ ]].
+  Opt1t(X)[[ Some(x) ^ (s) : t ]] := X[[ x ^ (s) : t ]].
+
+rules
+
+  Opt2[[ opt ^ (s1, s2) ]] := Opt2(default)[[ opt ^ (s1, s2) ]].
+
+  Opt2(X)[[ None() ^ (s1, s2) ]].
+  Opt2(X)[[ Some(x) ^ (s1, s2) ]] := X[[ x ^ (s1, s2) ]].
+
+rules
+
+  Opt2t[[ opt ^ (s1, s2) : t ]] := Opt2t(default)[[ opt ^ (s1, s2) : t ]].
+
+  Opt2t(X)[[ None() ^ (s1, s2) : _ ]].
+  Opt2t(X)[[ Some(x) ^ (s1, s2) : t ]] := X[[ x ^ (s1, s2) : t ]].

@@ -1,0 +1,30 @@
+module nabl2/runtime/prelude/list
+
+strategies
+  
+  // n-ary zip 
+  nabl2--zipN: t -> [<ListToTuple> hd* | <ListToTuple;nabl2--zipN> tl*]
+    where ls* := <TupleToList> t;
+          hd* := <map(Hd)> ls*;
+          tl* := <map(Tl)> ls*
+
+  nabl2--zipN: t -> []
+    where <TupleToList;map(?[])> t
+
+
+  // merge two sorted lists, merge is stable, i.e. for equal elements,
+  // the elements in the left list come before the elements in the right
+  // list
+  nabl2--merge-sorted(lt): ([x|x*], [y|y*]) -> z*
+    with if <lt> (x,y) then
+           ![x|<nabl2--merge-sorted(lt)> (x*,[y|y*])]
+         else
+           ![y|<nabl2--merge-sorted(lt)> ([x|x*],y*)]
+         end => z*
+ 
+  nabl2--merge-sorted(lt): (x*, []) -> x*
+
+  nabl2--merge-sorted(lt): ([], y*) -> y*
+ 
+  nabl2--flatten-list =
+    foldr(![], (is-list<+MkSingleton,id); conc)

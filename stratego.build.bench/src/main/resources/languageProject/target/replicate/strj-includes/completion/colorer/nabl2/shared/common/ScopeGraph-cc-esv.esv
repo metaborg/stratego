@@ -1,0 +1,16 @@
+module completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/AST-cc-esv
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+  completion/colorer/nabl2/shared/common/Identifiers-cc-esv
+
+colorer
+  _.NaBL2-Scope-Plhdr           : gray   
+  _.NaBL2-OccurrenceIndex-Plhdr : gray   
+  _.NaBL2-CVar-Plhdr            : gray   
+  _.NaBL2-CTerm-Plhdr           : gray   
+  _.NaBL2-Occurrence-Plhdr      : gray   
+  _.NaBL2-NamespaceId-Plhdr     : gray   
+  _.NaBL2-Namespace-Plhdr       : gray   
+  _.NaBL2-NamespaceRef-Plhdr    : gray   

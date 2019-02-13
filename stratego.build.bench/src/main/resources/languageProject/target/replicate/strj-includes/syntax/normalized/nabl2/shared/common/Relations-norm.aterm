@@ -1,0 +1,1050 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/common/Relations-norm")
+, [Imports([Module(Unparameterized("normalized/nabl2/shared/common/Identifiers-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Lit("\"`\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\96"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"!\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\33"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"<\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\60"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"?\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\63"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\".\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\46"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\",\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\44"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"=\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\61"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"+\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\43"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"-\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\45"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"]\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\93"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\")\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\41"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"[\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\91"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"(\"")
+          , Rhs([CharClass(Simple(Present(Numeric("\\40"))))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"lub\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\117"))))
+              , CharClass(Simple(Present(Numeric("\\98"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"glb\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\103"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\98"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"reflexive\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\120"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"irreflexive\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\120"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"symmetric\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"anti-symmetric\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"transitive\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"anti-transitive\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Reflexivity\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\120"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Symmetry\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\83"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\109"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Transitivity\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\84"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\118"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\121"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-RelationId\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\73"))))
+              , CharClass(Simple(Present(Numeric("\\100"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-RelationRef\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\102"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Relation\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\82"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\108"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\111"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-VariancePattern\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\86"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\80"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\116"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Variances\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\86"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              , CharClass(Simple(Present(Numeric("\\115"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lit("\"$NaBL2-Variance\"")
+          , Rhs(
+              [ CharClass(Simple(Present(Numeric("\\36"))))
+              , CharClass(Simple(Present(Numeric("\\78"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\66"))))
+              , CharClass(Simple(Present(Numeric("\\76"))))
+              , CharClass(Simple(Present(Numeric("\\50"))))
+              , CharClass(Simple(Present(Numeric("\\45"))))
+              , CharClass(Simple(Present(Numeric("\\86"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\114"))))
+              , CharClass(Simple(Present(Numeric("\\105"))))
+              , CharClass(Simple(Present(Numeric("\\97"))))
+              , CharClass(Simple(Present(Numeric("\\110"))))
+              , CharClass(Simple(Present(Numeric("\\99"))))
+              , CharClass(Simple(Present(Numeric("\\101"))))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+          , Rhs([Cf(Sort("NaBL2-Variance"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+          , Rhs(
+              [ Cf(IterSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+              , Cf(Opt(Layout()))
+              , Lit("\",\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Variance"))
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterStarSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+          , Rhs([])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(IterStarSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+          , Rhs([Cf(IterSep(Sort("NaBL2-Variance"), Lit("\",\"")))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"lub\""), Lit("\"glb\"")))
+          , Rhs([Lit("\"lub\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Alt(Lit("\"lub\""), Lit("\"glb\"")))
+          , Rhs([Lit("\"glb\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"reflexive\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"irreflexive\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"symmetric\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"anti-symmetric\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"transitive\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs([Lit("\"anti-transitive\"")])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Opt(Layout()))
+          , Rhs([Cf(Layout())])
+          , NoAttrs()
+          )
+        , SdfProduction(Cf(Opt(Layout())), Rhs([]), NoAttrs())
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Reflexivity")), Constructor("Reflexive"))
+          , Rhs([Lit("\"reflexive\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Reflexivity")), Constructor("Irreflexive"))
+          , Rhs([Lit("\"irreflexive\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Symmetry")), Constructor("Symmetric"))
+          , Rhs([Lit("\"symmetric\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Symmetry")), Constructor("AntiSymmetric"))
+          , Rhs([Lit("\"anti-symmetric\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Transitivity")), Constructor("Transitive"))
+          , Rhs([Lit("\"transitive\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Transitivity")), Constructor("AntiTransitive"))
+          , Rhs([Lit("\"anti-transitive\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Relation")), Constructor("Relation"))
+          , Rhs([Cf(Sort("NaBL2-RelationId"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationRef")), Constructor("DefaultRelation"))
+          , Rhs([])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-RelationRef"))
+          , Rhs([Cf(Sort("NaBL2-Relation"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationRef")), Constructor("ExtRelation"))
+          , Rhs(
+              [Lit("\"`\""), Lex(Sort("NaBL2-StrategyId")), Lit("\"`\"")]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-RelationBuildOp"))
+          , Rhs(
+              [Lit("\"<\""), Cf(Sort("NaBL2-RelationRef")), Lit("\"!\"")]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-RelationCheckOp"))
+          , Rhs(
+              [Lit("\"<\""), Cf(Sort("NaBL2-RelationRef")), Lit("\"?\"")]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationFunction")), Constructor("Lub"))
+          , Rhs([Cf(Sort("NaBL2-OpRelation")), Lit("\"lub\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationFunction")), Constructor("Glb"))
+          , Rhs([Cf(Sort("NaBL2-OpRelation")), Lit("\"glb\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-OpRelation")), Constructor("DefaultRelation"))
+          , Rhs([])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-OpRelation")), Constructor("Relation"))
+          , Rhs([Lex(Sort("NaBL2-RelationId")), Lit("\".\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-VariancePattern")), Constructor("ListVariant"))
+          , Rhs(
+              [ Lit("\"[\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Variance"))
+              , Cf(Opt(Layout()))
+              , Lit("\"]\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-VariancePattern")), Constructor("TupleVariant"))
+          , Rhs(
+              [ Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(IterStarSep(Sort("NaBL2-Variance"), Lit("\",\"")))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Variances"))
+          , Rhs([Cf(IterStarSep(Sort("NaBL2-Variance"), Lit("\",\"")))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-VariancePattern")), Constructor("OpVariant"))
+          , Rhs(
+              [ Lex(Sort("NaBL2-OpId"))
+              , Lit("\"(\"")
+              , Cf(Opt(Layout()))
+              , Cf(Sort("NaBL2-Variances"))
+              , Cf(Opt(Layout()))
+              , Lit("\")\"")
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Variance")), Constructor("Invar"))
+          , Rhs([Lit("\"=\"")])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Variance")), Constructor("Covar"))
+          , Rhs([Lit("\"+\""), Cf(Sort("NaBL2-RelationRef"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Variance")), Constructor("Contravar"))
+          , Rhs([Lit("\"-\""), Cf(Sort("NaBL2-RelationRef"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-Keyword"))
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"reflexive\"")
+                  , Alt(
+                      Lit("\"irreflexive\"")
+                    , Alt(
+                        Lit("\"symmetric\"")
+                      , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Lex(Sort("NaBL2-FunctionId"))
+          , Rhs([Lex(Alt(Lit("\"lub\""), Lit("\"glb\"")))])
+          , Attrs([Reject()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"]\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\")\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"reflexive\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"irreflexive\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"symmetric\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"anti-symmetric\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"transitive\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"anti-transitive\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"[\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProductionWithCons(
+            SortCons(Lit("\"(\""), Constructor("INSERTION"))
+          , Rhs([])
+          , Attrs([Term(Default(Fun(Unquoted("recover"))))])
+          )
+        , SdfProduction(
+            Cf(Alt(Lit("\"lub\""), Lit("\"glb\"")))
+          , Rhs([Lex(Alt(Lit("\"lub\""), Lit("\"glb\"")))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-FunctionId"))
+          , Rhs([Lex(Sort("NaBL2-FunctionId"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(
+              Alt(
+                Lit("\"reflexive\"")
+              , Alt(
+                  Lit("\"irreflexive\"")
+                , Alt(
+                    Lit("\"symmetric\"")
+                  , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                  )
+                )
+              )
+            )
+          , Rhs(
+              [ Lex(
+                  Alt(
+                    Lit("\"reflexive\"")
+                  , Alt(
+                      Lit("\"irreflexive\"")
+                    , Alt(
+                        Lit("\"symmetric\"")
+                      , Alt(Lit("\"anti-symmetric\""), Alt(Lit("\"transitive\""), Lit("\"anti-transitive\"")))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Keyword"))
+          , Rhs([Lex(Sort("NaBL2-Keyword"))])
+          , NoAttrs()
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Reflexivity")), Constructor("NaBL2-Reflexivity-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Reflexivity\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Symmetry")), Constructor("NaBL2-Symmetry-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Symmetry\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Transitivity")), Constructor("NaBL2-Transitivity-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Transitivity\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationId")), Constructor("NaBL2-RelationId-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-RelationId\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-RelationRef")), Constructor("NaBL2-RelationRef-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-RelationRef\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Relation")), Constructor("NaBL2-Relation-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Relation\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-VariancePattern")), Constructor("NaBL2-VariancePattern-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-VariancePattern\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Variances")), Constructor("NaBL2-Variances-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Variances\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProductionWithCons(
+            SortCons(Cf(Sort("NaBL2-Variance")), Constructor("NaBL2-Variance-Plhdr"))
+          , Rhs([Lit("\"$NaBL2-Variance\"")])
+          , Attrs([Placeholder()])
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Restrictions(
+        [ Follow(
+            [Lit("\"$NaBL2-Reflexivity\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Symmetry\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Transitivity\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-RelationId\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-RelationRef\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Relation\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-VariancePattern\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Variances\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        , Follow(
+            [Lit("\"$NaBL2-Variance\"")]
+          , List(
+              [ CharClass(
+                  Simple(
+                    Present(
+                      Conc(
+                        Range(Numeric("\\65"), Numeric("\\90"))
+                      , Range(Numeric("\\97"), Numeric("\\122"))
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

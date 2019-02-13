@@ -1,0 +1,1714 @@
+module nabl2/runtime/stdlib/map
+
+imports
+  signatures/nabl2/shared/-
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+  nabl2/shared/-
+  signatures/nabl2/runtime/-
+  signatures/nabl2/runtime/analysis/-
+  signatures/nabl2/runtime/common/-
+  nabl2/runtime/-
+  nabl2/runtime/analysis/-
+  nabl2/runtime/prelude/-
+  nabl2/runtime/stdlib/-
+
+
+rules
+
+
+rules
+
+
+rules
+
+
+rules
+
+  nabl2--generate-constraint-Map0-rule(|):
+    (nabl2_source, term108@xs, args73) -> constraint56
+    with(id)
+    with(Params(params63@()) := args73
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ ()"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args73
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term108
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term108
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params63
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint56 := CConj(
+                           CAstProperty(<nabl2--get-ast-index> term108, Params(), ())
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map0-rule(nabl2--generate-constraint-default-rule)|"Map0")> (nabl2_source, xs, Params(()))
+                         ))
+
+  nabl2--generate-constraint-Map0-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term109@[x|xs], args74) -> constraint57
+    with(id)
+    with(Params(params64@()) := args74
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ ()"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args74
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term109
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term109
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params64
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint57 := CConj(
+                           CAstProperty(<nabl2--get-ast-index> term109, Params(), ())
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, Params(()))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map0-rule(nabl2--generate-constraint-X-rule)|"Map0")> (nabl2_source, xs, Params(()))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map0-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term110@[], args75) -> constraint58
+    with(id)
+    with(Params(params65@()) := args75
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ ()"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args75
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term110
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term110
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params65
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint58 := CConj(
+                           CAstProperty(<nabl2--get-ast-index> term110, Params(), ())
+                         , CTrue(<nabl2--get-ast-index> term110)
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map0t-rule(|):
+    (nabl2_source, term111@xs, args70) -> constraint53
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params60@(), type33) := args70
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type33"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args70
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term111
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term111
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params60
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type33
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint53 := CConj(
+                           CEqual(
+                             type33
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term111)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term111, Type(), type33)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term111, Params(), ())
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map0t-rule(nabl2--generate-constraint-default-rule)|"Map0t")> (nabl2_source, xs, ParamsAndType((), ty))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map0t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term112@[x|xs], args71) -> constraint54
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params61@(), type34) := args71
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type34"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args71
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term112
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term112
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params61
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type34
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint54 := CConj(
+                           CEqual(
+                             type34
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term112)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term112, Type(), type34)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term112, Params(), ())
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, ParamsAndType((), ty))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map0t-rule(nabl2--generate-constraint-X-rule)|"Map0t")> (nabl2_source, xs, ParamsAndType((), ty))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map0t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term113@[], args72) -> constraint55
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(ParamsAndType(params62@(), type35) := args72
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type35"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args72
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term113
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term113
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params62
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type35
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint55 := CConj(
+                           CEqual(
+                             type35
+                           , wld1
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term113)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term113, Type(), type35)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term113, Params(), ())
+                             , CTrue(<nabl2--get-ast-index> term113)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map0T-rule(|):
+    (nabl2_source, term114@xs, args67) -> constraint50
+    with(tys := <nabl2--fresh-var(|nabl2_source)> "tys" ; id)
+    with(ParamsAndType(params57@(), type36) := args67
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type36"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args67
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term114
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term114
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params57
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type36
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint50 := CConj(
+                           CEqual(
+                             type36
+                           , tys
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term114)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term114, Type(), type36)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term114, Params(), ())
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map0T-rule(nabl2--generate-constraint-default-rule)|"Map0T")> (nabl2_source, xs, ParamsAndType((), tys))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map0T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term115@[x|xs], args68) -> constraint51
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty"
+         ; tys := <nabl2--fresh-var(|nabl2_source)> "tys"
+         ; id)
+    with(ParamsAndType(params58@(), type37) := args68
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type37"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args68
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term115
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term115
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params58
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type37
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint51 := CConj(
+                           CEqual(
+                             type37
+                           , CListTail([ty], tys)
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term115)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term115, Type(), type37)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term115, Params(), ())
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, ParamsAndType((), ty))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map0T-rule(nabl2--generate-constraint-X-rule)|"Map0T")> (nabl2_source, xs, ParamsAndType((), tys))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map0T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term116@[], args69) -> constraint52
+    with(id)
+    with(ParamsAndType(params59@(), type38) := args69
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ () : type38"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args69
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term116
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map0T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term116
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params59
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type38
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint52 := CConj(
+                           CEqual(
+                             type38
+                           , CList([])
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term116)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term116, Type(), type38)
+                           , CConj(
+                               CAstProperty(<nabl2--get-ast-index> term116, Params(), ())
+                             , CTrue(<nabl2--get-ast-index> term116)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map1-rule(|):
+    (nabl2_source, term117@xs, args64) -> constraint47
+    with(id)
+    with(Params(params54@(s)) := args64
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args64
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term117
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term117
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params54
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint47 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term117
+                           , Params()
+                           , (s)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-default-rule)|"Map1")> (nabl2_source, xs, Params((s)))
+                         ))
+
+  nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term118@[x|xs], args65) -> constraint48
+    with(id)
+    with(Params(params55@(s)) := args65
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args65
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term118
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term118
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params55
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint48 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term118
+                           , Params()
+                           , (s)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, Params((s)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-X-rule)|"Map1")> (nabl2_source, xs, Params((s)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term119@[], args66) -> constraint49
+    with(id)
+    with(Params(params56@(s)) := args66
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args66
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term119
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term119
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params56
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint49 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term119
+                           , Params()
+                           , (s)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term119)
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map1t-rule(|):
+    (nabl2_source, term120@xs, args61) -> constraint44
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params51@(s), type39) := args61
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type39"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args61
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term120
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term120
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params51
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type39
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint44 := CConj(
+                           CEqual(
+                             type39
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term120)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term120, Type(), type39)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term120
+                               , Params()
+                               , (s)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map1t-rule(nabl2--generate-constraint-default-rule)|"Map1t")> (nabl2_source, xs, ParamsAndType((s), ty))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map1t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term121@[x|xs], args62) -> constraint45
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params52@(s), type40) := args62
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type40"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args62
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term121
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term121
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params52
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type40
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint45 := CConj(
+                           CEqual(
+                             type40
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term121)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term121, Type(), type40)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term121
+                               , Params()
+                               , (s)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, ParamsAndType((s), ty))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map1t-rule(nabl2--generate-constraint-X-rule)|"Map1t")> (nabl2_source, xs, ParamsAndType((s), ty))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map1t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term122@[], args63) -> constraint46
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(ParamsAndType(params53@(s), type41) := args63
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type41"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args63
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term122
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term122
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params53
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type41
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint46 := CConj(
+                           CEqual(
+                             type41
+                           , wld1
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term122)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term122, Type(), type41)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term122
+                               , Params()
+                               , (s)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term122)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map1T-rule(|):
+    (nabl2_source, term123@xs, args58) -> constraint41
+    with(tys := <nabl2--fresh-var(|nabl2_source)> "tys" ; id)
+    with(ParamsAndType(params48@(s), type42) := args58
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type42"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args58
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term123
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term123
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params48
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type42
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint41 := CConj(
+                           CEqual(
+                             type42
+                           , tys
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term123)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term123, Type(), type42)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term123
+                               , Params()
+                               , (s)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map1T-rule(nabl2--generate-constraint-default-rule)|"Map1T")> (nabl2_source, xs, ParamsAndType((s), tys))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map1T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term124@[x|xs], args59) -> constraint42
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty"
+         ; tys := <nabl2--fresh-var(|nabl2_source)> "tys"
+         ; id)
+    with(ParamsAndType(params49@(s), type43) := args59
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type43"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args59
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term124
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term124
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params49
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type43
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint42 := CConj(
+                           CEqual(
+                             type43
+                           , CListTail([ty], tys)
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term124)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term124, Type(), type43)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term124
+                               , Params()
+                               , (s)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, ParamsAndType((s), ty))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map1T-rule(nabl2--generate-constraint-X-rule)|"Map1T")> (nabl2_source, xs, ParamsAndType((s), tys))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map1T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term125@[], args60) -> constraint43
+    with(id)
+    with(ParamsAndType(params50@(s), type44) := args60
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s) : type44"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args60
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term125
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map1T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term125
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params50
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type44
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint43 := CConj(
+                           CEqual(
+                             type44
+                           , CList([])
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term125)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term125, Type(), type44)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term125
+                               , Params()
+                               , (s)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term125)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map2-rule(|):
+    (nabl2_source, term126@xs, args55) -> constraint38
+    with(id)
+    with(Params(params45@(s1, s2)) := args55
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args55
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term126
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term126
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params45
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint38 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term126
+                           , Params()
+                           , (s1, s2)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map2-rule(nabl2--generate-constraint-default-rule)|"Map2")> (nabl2_source, xs, Params((s1, s2)))
+                         ))
+
+  nabl2--generate-constraint-Map2-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term127@[x|xs], args56) -> constraint39
+    with(id)
+    with(Params(params46@(s1, s2)) := args56
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args56
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term127
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term127
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params46
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint39 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term127
+                           , Params()
+                           , (s1, s2)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> (nabl2_source, x, Params((s1, s2)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map2-rule(nabl2--generate-constraint-X-rule)|"Map2")> (nabl2_source, xs, Params((s1, s2)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map2-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term128@[], args57) -> constraint40
+    with(id)
+    with(Params(params47@(s1, s2)) := args57
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args57
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term128
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term128
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params47
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint40 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term128
+                           , Params()
+                           , (s1, s2)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term128)
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map2t-rule(|):
+    (nabl2_source, term129@xs, args52) -> constraint35
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params42@(s1, s2), type45) := args52
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type45"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args52
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term129
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term129
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params42
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type45
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint35 := CConj(
+                           CEqual(
+                             type45
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term129)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term129, Type(), type45)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term129
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map2t-rule(nabl2--generate-constraint-default-rule)|"Map2t")> ( nabl2_source
+                                                                                                                                                    , xs
+                                                                                                                                                    , ParamsAndType((s1, s2), ty)
+                                                                                                                                                    )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map2t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term130@[x|xs], args53) -> constraint36
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(params43@(s1, s2), type46) := args53
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type46"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args53
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term130
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term130
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params43
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type46
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint36 := CConj(
+                           CEqual(
+                             type46
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term130)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term130, Type(), type46)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term130
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> ( nabl2_source
+                                                                                                     , x
+                                                                                                     , ParamsAndType((s1, s2), ty)
+                                                                                                     )
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map2t-rule(nabl2--generate-constraint-X-rule)|"Map2t")> ( nabl2_source
+                                                                                                                                                , xs
+                                                                                                                                                , ParamsAndType((s1, s2), ty)
+                                                                                                                                                )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map2t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term131@[], args54) -> constraint37
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(ParamsAndType(params44@(s1, s2), type47) := args54
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type47"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args54
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term131
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term131
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params44
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type47
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint37 := CConj(
+                           CEqual(
+                             type47
+                           , wld1
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term131)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term131, Type(), type47)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term131
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term131)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map2T-rule(|):
+    (nabl2_source, term132@xs, args49) -> constraint32
+    with(tys := <nabl2--fresh-var(|nabl2_source)> "tys" ; id)
+    with(ParamsAndType(params39@(s1, s2), type48) := args49
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type48"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args49
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term132
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term132
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params39
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type48
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint32 := CConj(
+                           CEqual(
+                             type48
+                           , tys
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term132)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term132, Type(), type48)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term132
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map2T-rule(nabl2--generate-constraint-default-rule)|"Map2T")> ( nabl2_source
+                                                                                                                                                    , xs
+                                                                                                                                                    , ParamsAndType((s1, s2), tys)
+                                                                                                                                                    )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map2T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term133@[x|xs], args50) -> constraint33
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty"
+         ; tys := <nabl2--fresh-var(|nabl2_source)> "tys"
+         ; id)
+    with(ParamsAndType(params40@(s1, s2), type49) := args50
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type49"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args50
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term133
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term133
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params40
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type49
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint33 := CConj(
+                           CEqual(
+                             type49
+                           , CListTail([ty], tys)
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term133)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term133, Type(), type49)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term133
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> ( nabl2_source
+                                                                                                     , x
+                                                                                                     , ParamsAndType((s1, s2), ty)
+                                                                                                     )
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map2T-rule(nabl2--generate-constraint-X-rule)|"Map2T")> ( nabl2_source
+                                                                                                                                                , xs
+                                                                                                                                                , ParamsAndType((s1, s2), tys)
+                                                                                                                                                )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map2T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term134@[], args51) -> constraint34
+    with(id)
+    with(ParamsAndType(params41@(s1, s2), type50) := args51
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2) : type50"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args51
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term134
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map2T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term134
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params41
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type50
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint34 := CConj(
+                           CEqual(
+                             type50
+                           , CList([])
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term134)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term134, Type(), type50)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term134
+                               , Params()
+                               , (s1, s2)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term134)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map3-rule(|):
+    (nabl2_source, term135@xs, args46) -> constraint29
+    with(id)
+    with(Params(params36@(s1, s2, s3)) := args46
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args46
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term135
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term135
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params36
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint29 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term135
+                           , Params()
+                           , (s1, s2, s3)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map3-rule(nabl2--generate-constraint-default-rule)|"Map3")> ( nabl2_source
+                                                                                                                                              , xs
+                                                                                                                                              , Params((s1, s2, s3))
+                                                                                                                                              )
+                         ))
+
+  nabl2--generate-constraint-Map3-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term136@[x|xs], args47) -> constraint30
+    with(id)
+    with(Params(params37@(s1, s2, s3)) := args47
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args47
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term136
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term136
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params37
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint30 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term136
+                           , Params()
+                           , (s1, s2, s3)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> ( nabl2_source
+                                                                                                 , x
+                                                                                                 , Params((s1, s2, s3))
+                                                                                                 )
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map3-rule(nabl2--generate-constraint-X-rule)|"Map3")> ( nabl2_source
+                                                                                                                                          , xs
+                                                                                                                                          , Params((s1, s2, s3))
+                                                                                                                                          )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map3-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term137@[], args48) -> constraint31
+    with(id)
+    with(Params(params38@(s1, s2, s3)) := args48
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args48
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term137
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term137
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params38
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint31 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term137
+                           , Params()
+                           , (s1, s2, s3)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term137)
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map3t-rule(|):
+    (nabl2_source, term138@xs, args43) -> constraint26
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(
+           params33@(s1, s2, s3)
+         , type51
+         ) := args43
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type51"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args43
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term138
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term138
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params33
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type51
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint26 := CConj(
+                           CEqual(
+                             type51
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term138)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term138, Type(), type51)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term138
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map3t-rule(nabl2--generate-constraint-default-rule)|"Map3t")> ( nabl2_source
+                                                                                                                                                    , xs
+                                                                                                                                                    , ParamsAndType((s1, s2, s3), ty)
+                                                                                                                                                    )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map3t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term139@[x|xs], args44) -> constraint27
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty" ; id)
+    with(ParamsAndType(
+           params34@(s1, s2, s3)
+         , type52
+         ) := args44
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type52"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args44
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term139
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term139
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params34
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type52
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint27 := CConj(
+                           CEqual(
+                             type52
+                           , ty
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term139)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term139, Type(), type52)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term139
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> ( nabl2_source
+                                                                                                     , x
+                                                                                                     , ParamsAndType((s1, s2, s3), ty)
+                                                                                                     )
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map3t-rule(nabl2--generate-constraint-X-rule)|"Map3t")> ( nabl2_source
+                                                                                                                                                , xs
+                                                                                                                                                , ParamsAndType((s1, s2, s3), ty)
+                                                                                                                                                )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map3t-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term140@[], args45) -> constraint28
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(ParamsAndType(
+           params35@(s1, s2, s3)
+         , type53
+         ) := args45
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type53"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args45
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term140
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3t"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term140
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params35
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type53
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint28 := CConj(
+                           CEqual(
+                             type53
+                           , wld1
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term140)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term140, Type(), type53)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term140
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term140)
+                             )
+                           )
+                         ))
+
+
+rules
+
+  nabl2--generate-constraint-Map3T-rule(|):
+    (nabl2_source, term141@xs, args40) -> constraint23
+    with(tys := <nabl2--fresh-var(|nabl2_source)> "tys" ; id)
+    with(ParamsAndType(
+           params30@(s1, s2, s3)
+         , type54
+         ) := args40
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type54"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args40
+                               , " when matching "
+                               , "xs"
+                               , " with "
+                               , <pp-NaBL2-Term> term141
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term141
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params30
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type54
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint23 := CConj(
+                           CEqual(
+                             type54
+                           , tys
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term141)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term141, Type(), type54)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term141
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Map3T-rule(nabl2--generate-constraint-default-rule)|"Map3T")> ( nabl2_source
+                                                                                                                                                    , xs
+                                                                                                                                                    , ParamsAndType((s1, s2, s3), tys)
+                                                                                                                                                    )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map3T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term142@[x|xs], args41) -> constraint24
+    with(ty := <nabl2--fresh-var(|nabl2_source)> "ty"
+         ; tys := <nabl2--fresh-var(|nabl2_source)> "tys"
+         ; id)
+    with(ParamsAndType(
+           params31@(s1, s2, s3)
+         , type55
+         ) := args41
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type55"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args41
+                               , " when matching "
+                               , "[x|xs]"
+                               , " with "
+                               , <pp-NaBL2-Term> term142
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term142
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params31
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type55
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint24 := CConj(
+                           CEqual(
+                             type55
+                           , CListTail([ty], tys)
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term142)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term142, Type(), type55)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term142
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-X-rule|"X")> ( nabl2_source
+                                                                                                     , x
+                                                                                                     , ParamsAndType((s1, s2, s3), ty)
+                                                                                                     )
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map3T-rule(nabl2--generate-constraint-X-rule)|"Map3T")> ( nabl2_source
+                                                                                                                                                , xs
+                                                                                                                                                , ParamsAndType((s1, s2, s3), tys)
+                                                                                                                                                )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Map3T-rule(nabl2--generate-constraint-X-rule|):
+    (nabl2_source, term143@[], args42) -> constraint25
+    with(id)
+    with(ParamsAndType(
+           params32@(s1, s2, s3)
+         , type56
+         ) := args42
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s1, s2, s3) : type56"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args42
+                               , " when matching "
+                               , "[]"
+                               , " with "
+                               , <pp-NaBL2-Term> term143
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Map3T"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term143
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params32
+                              , " : "
+                              , <pp-NaBL2-objlangterm> type56
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint25 := CConj(
+                           CEqual(
+                             type56
+                           , CList([])
+                           , Message(Error(), Default(), <nabl2--get-ast-index> term143)
+                           )
+                         , CConj(
+                             CAstProperty(<nabl2--get-ast-index> term143, Type(), type56)
+                           , CConj(
+                               CAstProperty(
+                                 <nabl2--get-ast-index> term143
+                               , Params()
+                               , (s1, s2, s3)
+                               )
+                             , CTrue(<nabl2--get-ast-index> term143)
+                             )
+                           )
+                         ))

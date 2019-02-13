@@ -1,0 +1,7 @@
+module nabl2/shared/main
+
+imports
+
+  signatures/nabl2/shared/-
+  pp/nabl2/shared/-
+  nabl2/shared/-

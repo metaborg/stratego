@@ -1,0 +1,13 @@
+module completion/nabl2/Runtime-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/Runtime-sig
+
+
+imports
+  completion/nabl2/runtime/Main-cp

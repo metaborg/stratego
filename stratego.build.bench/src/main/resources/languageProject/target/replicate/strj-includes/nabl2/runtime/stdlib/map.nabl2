@@ -1,0 +1,146 @@
+module nabl2/runtime/stdlib/map
+
+signature
+
+  constraint generator
+
+    Map0     [[ list(a) ^ ()     ]]
+    Map0(X)  [[ list(a) ^ ()     ]]
+    Map0t    [[ list(a) ^ () : t ]]
+    Map0t(X) [[ list(a) ^ () : t ]]
+    Map0T    [[ list(a) ^ () : list(t) ]]
+    Map0T(X) [[ list(a) ^ () : list(t) ]]
+
+    Map1     [[ list(a) ^ (b)     ]]
+    Map1(X)  [[ list(a) ^ (b)     ]]
+    Map1t    [[ list(a) ^ (b) : t ]]
+    Map1t(X) [[ list(a) ^ (b) : t ]]
+    Map1T    [[ list(a) ^ (b) : list(t) ]]
+    Map1T(X) [[ list(a) ^ (b) : list(t) ]]
+
+    Map2     [[ list(a) ^ (b,c)     ]]
+    Map2(X)  [[ list(a) ^ (b,c)     ]]
+    Map2t    [[ list(a) ^ (b,c) : t ]]
+    Map2t(X) [[ list(a) ^ (b,c) : t ]]
+    Map2T    [[ list(a) ^ (b,c) : list(t) ]]
+    Map2T(X) [[ list(a) ^ (b,c) : list(t) ]]
+
+rules
+
+  Map0[[ xs ^ () ]] := Map0(default)[[ xs ^ () ]].
+
+  Map0(X)[[ [x|xs] ^ () ]] :=
+    X[[ x ^ () ]],
+    Map0(X)[[ xs ^ () ]].
+
+  Map0(X)[[ [] ^ () ]].
+
+rules
+
+  Map0t[[ xs ^ () : ty ]] := Map0t(default)[[ xs ^ () : ty ]].
+
+  Map0t(X)[[ [x|xs] ^ () : ty ]] :=
+    X[[ x ^ () : ty ]],
+    Map0t(X)[[ xs ^ () : ty ]].
+
+  Map0t(X)[[ [] ^ () : _ ]].
+
+rules
+
+  Map0T[[ xs ^ () : tys ]] := Map0T(default)[[ xs ^ () : tys ]].
+
+  Map0T(X)[[ [x|xs] ^ () : [ty|tys] ]] :=
+    X[[ x ^ () : ty ]],
+    Map0T(X)[[ xs ^ () : tys ]].
+
+  Map0T(X)[[ [] ^ () : [] ]].
+
+rules
+
+  Map1[[ xs ^ (s) ]] := Map1(default)[[ xs ^ (s) ]].
+
+  Map1(X)[[ [x|xs] ^ (s) ]] :=
+    X[[ x ^ (s) ]],
+    Map1(X)[[ xs ^ (s) ]].
+
+  Map1(X)[[ [] ^ (s) ]].
+
+rules
+
+  Map1t[[ xs ^ (s) : ty ]] := Map1t(default)[[ xs ^ (s) : ty ]].
+
+  Map1t(X)[[ [x|xs] ^ (s) : ty ]] :=
+    X[[ x ^ (s) : ty ]],
+    Map1t(X)[[ xs ^ (s) : ty ]].
+
+  Map1t(X)[[ [] ^ (s) : _ ]].
+
+rules
+
+  Map1T[[ xs ^ (s) : tys ]] := Map1T(default)[[ xs ^ (s) : tys ]].
+
+  Map1T(X)[[ [x|xs] ^ (s) : [ty|tys] ]] :=
+    X[[ x ^ (s) : ty ]],
+    Map1T(X)[[ xs ^ (s) : tys ]].
+
+  Map1T(X)[[ [] ^ (s) : [] ]].
+
+rules
+
+  Map2[[ xs ^ (s1, s2) ]] := Map2(default)[[ xs ^ (s1, s2) ]].
+
+  Map2(X)[[ [x|xs] ^ (s1, s2) ]] :=
+    X[[ x ^ (s1, s2) ]],
+    Map2(X)[[ xs ^ (s1, s2) ]].
+
+  Map2(X)[[ [] ^ (s1, s2) ]].
+
+rules
+
+  Map2t[[ xs ^ (s1, s2) : ty ]] := Map2t(default)[[ xs ^ (s1, s2) : ty ]].
+
+  Map2t(X)[[ [x|xs] ^ (s1, s2) : ty ]] :=
+    X[[ x ^ (s1, s2) : ty ]],
+    Map2t(X)[[ xs ^ (s1, s2) : ty ]].
+
+  Map2t(X)[[ [] ^ (s1, s2) : _ ]].
+
+rules
+
+  Map2T[[ xs ^ (s1, s2) : tys ]] := Map2T(default)[[ xs ^ (s1, s2) : tys ]].
+
+  Map2T(X)[[ [x|xs] ^ (s1, s2) : [ty|tys] ]] :=
+    X[[ x ^ (s1, s2) : ty ]],
+    Map2T(X)[[ xs ^ (s1, s2) : tys ]].
+
+  Map2T(X)[[ [] ^ (s1, s2) : [] ]].
+
+rules
+
+  Map3[[ xs ^ (s1, s2, s3) ]] := Map3(default)[[ xs ^ (s1, s2, s3) ]].
+
+  Map3(X)[[ [x|xs] ^ (s1, s2, s3) ]] :=
+    X[[ x ^ (s1, s2, s3) ]],
+    Map3(X)[[ xs ^ (s1, s2, s3) ]].
+
+  Map3(X)[[ [] ^ (s1, s2, s3) ]].
+
+rules
+
+  Map3t[[ xs ^ (s1, s2, s3) : ty ]] := Map3t(default)[[ xs ^ (s1, s2, s3) : ty ]].
+
+  Map3t(X)[[ [x|xs] ^ (s1, s2, s3) : ty ]] :=
+    X[[ x ^ (s1, s2, s3) : ty ]],
+    Map3t(X)[[ xs ^ (s1, s2, s3) : ty ]].
+
+  Map3t(X)[[ [] ^ (s1, s2, s3) : _ ]].
+
+rules
+
+  Map3T[[ xs ^ (s1, s2, s3) : tys ]] := Map3T(default)[[ xs ^ (s1, s2, s3) : tys ]].
+
+  Map3T(X)[[ [x|xs] ^ (s1, s2, s3) : [ty|tys] ]] :=
+    X[[ x ^ (s1, s2, s3) : ty ]],
+    Map3T(X)[[ xs ^ (s1, s2, s3) : tys ]].
+
+  Map3T(X)[[ [] ^ (s1, s2, s3) : [] ]].

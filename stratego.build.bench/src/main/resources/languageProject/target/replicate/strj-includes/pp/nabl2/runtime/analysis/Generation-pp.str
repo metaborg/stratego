@@ -1,0 +1,330 @@
+module pp/nabl2/runtime/analysis/Generation-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+imports
+  pp/nabl2/shared/common/CTerms-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-AnalysisResult
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CGenArgs
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CGenParams
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-AnalysisResult>
+    where <?"NaBL2-AnalysisResult"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CGenArgs>
+    where <?"NaBL2-CGenArgs"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CGenParams>
+    where <?"NaBL2-CGenParams"> sort
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    Params(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S("params "), t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CGenArgs) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?Params(_)
+
+  NaBL2-get-indent :
+    (t@Params(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Params(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Params(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-AnalysisResult"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-CGenArgs :
+    Params(t1__) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [t1__']
+                      )
+                    ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CGenParams) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-CGenArgs =
+    ?Params(_)
+
+  NaBL2-get-indent :
+    (t@Params(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@Params(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@Params(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-CGenArgs :
+    ParamsAndType(t1__, t2__) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [t1__', S(" : "), t2__']
+                                   )
+                                 ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CGenParams) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-CGenArgs =
+    ?ParamsAndType(_, _)
+
+  NaBL2-get-indent :
+    (t@ParamsAndType(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@ParamsAndType(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@ParamsAndType(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CGenArgs"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-CGenParams :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [ S("^ (")
+                , t1__'
+                , S(")")
+                ]
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CGenParams)
+    where t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-CTerm|",")
+                    <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CGenParams :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [ S("^ (")
+                , t1__'
+                , S(")")
+                ]
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CGenParams)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    fail
+
+  is-NaBL2-NaBL2-CGenArgs =
+    fail
+
+  is-NaBL2-NaBL2-CGenParams =
+    fail
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-AnalysisResult> h
+
+  prettyprint-NaBL2-NaBL2-CGenArgs :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CGenArgs> h
+
+  prettyprint-NaBL2-NaBL2-CGenParams :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CGenParams> h
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr() -> [ H(
+                                        [SOpt(HS(), "0")]
+                                      , [S("$NaBL2-AnalysisResult")]
+                                      )
+                                    ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CGenArgs :
+    NaBL2-CGenArgs-Plhdr() -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , [S("$NaBL2-CGenArgs")]
+                                )
+                              ]
+
+  is-NaBL2-NaBL2-CGenArgs =
+    ?NaBL2-CGenArgs-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CGenParams :
+    NaBL2-CGenParams-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-CGenParams")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-CGenParams =
+    ?NaBL2-CGenParams-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-AnalysisResult :
+    NaBL2-AnalysisResult-Plhdr(_) -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-AnalysisResult")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-AnalysisResult =
+    ?NaBL2-AnalysisResult-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CGenArgs :
+    NaBL2-CGenArgs-Plhdr(_) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$NaBL2-CGenArgs")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-CGenArgs =
+    ?NaBL2-CGenArgs-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CGenParams :
+    NaBL2-CGenParams-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-CGenParams")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-CGenParams =
+    ?NaBL2-CGenParams-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Opt-Plhdr() -> [ H(
+                                   []
+                                 , [S("")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Opt-Plhdr()

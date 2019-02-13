@@ -1,0 +1,81 @@
+module pp/nabl2/runtime/common/Native-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/common/Native-sig
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Int
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Real
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-String
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Term
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Int>
+    where <?"NaBL2-Int"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Real>
+    where <?"NaBL2-Real"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-String>
+    where <?"NaBL2-String"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Term>
+    where <?"NaBL2-Term"> sort
+
+  prettyprint-NaBL2-NaBL2-Int =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Real =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-String =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Term =
+    ![S(<is-string>)]
+
+  prettyprint-NaBL2-NaBL2-Int :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Int> h
+
+  prettyprint-NaBL2-NaBL2-Real :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Real> h
+
+  prettyprint-NaBL2-NaBL2-String :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-String> h
+
+  prettyprint-NaBL2-NaBL2-Term :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Term> h

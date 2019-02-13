@@ -1,0 +1,8 @@
+module signatures/nabl2/shared/common/AST-sig
+
+signature
+  sorts
+    NaBL2-TermIndex
+
+  constructors
+    

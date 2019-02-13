@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
+    public static final String id = "StrIncrBack";
+
     public static final class Input implements Serializable {
         final Collection<STask<?>> frontEndTasks;
         final File projectLocation;
@@ -127,8 +129,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             execContext.require(t, InconsequentialOutputStamper.Companion.getInstance());
         }
 
-        long startTime = System.nanoTime();
-
         final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
         for(File strategyContrib : input.strategyContributions) {
             execContext.require(strategyContrib, FileSystemStampers.INSTANCE.getHash());
@@ -142,8 +142,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 overlayPaths.add(overlayFile.toPath());
             }
         }
-
-        logger.debug("Hashchecks took: {} ns", System.nanoTime() - startTime);
 
         // Pack the directory into a single strategy
         final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
@@ -192,8 +190,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             execContext.provide(new File(fileName));
         });
 
-        long buildDuration = System.nanoTime() - startTime;
-        logger.debug("Backend task took: {} ns", buildDuration);
         return None.getInstance();
     }
 
@@ -207,7 +203,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     @Override public String getId() {
-        return StrIncrBack.class.getCanonicalName();
+        return id;
     }
 
     @Override public Serializable key(Input input) {
@@ -215,18 +211,18 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     @Override public String desc(Input input) {
-        return this.getId() + "(" + input + ")";
+        return TaskDef.DefaultImpls.desc(this, input);
     }
 
     @Override public String desc(Input input, int maxLength) {
-        return desc(input);
+        return TaskDef.DefaultImpls.desc(this, input, maxLength);
     }
 
     @Override public Task<Input, None> createTask(Input input) {
-        return new Task<>(this, input);
+        return TaskDef.DefaultImpls.createTask(this, input);
     }
 
     @Override public STask<Input> createSerializableTask(Input input) {
-        return new STask<>(this.getId(), input);
+        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 }

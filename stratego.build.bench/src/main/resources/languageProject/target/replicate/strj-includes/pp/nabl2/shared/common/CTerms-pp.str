@@ -1,0 +1,300 @@
+module pp/nabl2/shared/common/CTerms-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CTerm
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CTerms
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CList
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CTerm>
+    where <?"NaBL2-CTerm"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CTerms>
+    where <?"NaBL2-CTerms"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CList>
+    where <?"NaBL2-CList"> sort
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CTerm)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CVar) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CTerm)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CList) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CTerms :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CTerms)
+    where t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-CTerm|", ")
+                    <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CList :
+    t1__ -> [ H(
+                [SOpt(HS(), "0")]
+              , [t1__']
+              )
+            ]
+    where not(is-NaBL2-NaBL2-CList)
+    where t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CVar) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  prettyprint-NaBL2-NaBL2-CList :
+    CList(t1__) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [ S("[")
+                       , t1__'
+                       , S("]")
+                       ]
+                     )
+                   ]
+    with t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-CTerm|", ")
+                   <+ pp-one-Z(prettyprint-completion-aux)> t1__
+
+  is-NaBL2-NaBL2-CList =
+    ?CList(_)
+
+  NaBL2-get-indent :
+    (t@CList(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@CList(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             separator := ", "
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@CList(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-CList :
+    CListTail(t1__, t2__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [ S("[")
+                                 , t1__'
+                                 , S("|")
+                                 , t2__'
+                                 , S("]")
+                                 ]
+                               )
+                             ]
+    with t1__' := <pp-H-list(prettyprint-NaBL2-NaBL2-CTerm|", ")
+                   <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CList) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-CList =
+    ?CListTail(_, _)
+
+  NaBL2-get-indent :
+    (t@CListTail(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@CListTail(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             separator := ", "
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@CListTail(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CList"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-CTerm =
+    fail
+
+  is-NaBL2-NaBL2-CTerms =
+    fail
+
+  is-NaBL2-NaBL2-CList =
+    fail
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CTerm> h
+
+  prettyprint-NaBL2-NaBL2-CTerms :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CTerms> h
+
+  prettyprint-NaBL2-NaBL2-CList :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CList> h
+
+  prettyprint-NaBL2-NaBL2-CTerms :
+    NaBL2-CTerms-Plhdr() -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerms")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerms =
+    ?NaBL2-CTerms-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CVar")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CList :
+    NaBL2-CList-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CList")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CList =
+    ?NaBL2-CList-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerms :
+    NaBL2-CTerms-Plhdr(_) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-CTerms")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-CTerms =
+    ?NaBL2-CTerms-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CVar")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CList :
+    NaBL2-CList-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CList")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CList =
+    ?NaBL2-CList-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Opt-Plhdr() -> [ H(
+                                   []
+                                 , [S("")]
+                                 )
+                               ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Opt-Plhdr()

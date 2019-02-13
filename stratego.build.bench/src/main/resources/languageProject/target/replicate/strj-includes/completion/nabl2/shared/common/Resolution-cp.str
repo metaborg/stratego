@@ -1,0 +1,378 @@
+module completion/nabl2/shared/common/Resolution-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Resolution-sig
+
+
+imports
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Label-Plhdr() -> <add-completions(
+                            | ( "Label"
+                              , Label(
+                                  <try(inline-completions(|NaBL2-Label-Plhdr()))> NaBL2-LabelId-Plhdr()
+                                )
+                              )
+                            )
+                            ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-PathLabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-Label-Plhdr()
+    where <not(is-expanded)> (NaBL2-PathLabel-Plhdr(), NaBL2-Label-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-PathLabel-Plhdr(), NaBL2-Label-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-PathLabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-BuiltinPathLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-PathLabel-Plhdr(), NaBL2-BuiltinPathLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-PathLabel-Plhdr(), NaBL2-BuiltinPathLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-BuiltinPathLabel-Plhdr() -> <add-completions(|("P", P()))
+                                       ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-BuiltinPathLabel-Plhdr() -> <add-completions(|("I", I()))
+                                       ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AnyLabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-PathLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-AnyLabel-Plhdr(), NaBL2-PathLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-AnyLabel-Plhdr(), NaBL2-PathLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-AnyLabel-Plhdr() -> <suggest-completions(|completions)> NaBL2-BuiltinAnyLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-AnyLabel-Plhdr(), NaBL2-BuiltinAnyLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-AnyLabel-Plhdr(), NaBL2-BuiltinAnyLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-BuiltinAnyLabel-Plhdr() -> <add-completions(|("D", D()))
+                                      ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Step-Plhdr() -> <add-completions(
+                           | ( "D"
+                             , D(
+                                 <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Scope-Plhdr()
+                               , <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                               )
+                             )
+                           )
+                           ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Step-Plhdr() -> <add-completions(
+                           | ( "E"
+                             , E(
+                                 <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Scope-Plhdr()
+                               , <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-PathLabel-Plhdr()
+                               )
+                             )
+                           )
+                           ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Step-Plhdr() -> <add-completions(
+                           | ( "N"
+                             , N(
+                                 <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Scope-Plhdr()
+                               , <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-PathLabel-Plhdr()
+                               , <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                               , <try(inline-completions(|NaBL2-Step-Plhdr()))> NaBL2-Path-Plhdr()
+                               )
+                             )
+                           )
+                           ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(|("Empty", Empty()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(|("Epsilon", Epsilon()))
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <suggest-completions(|completions)> NaBL2-PathLabel-Plhdr()
+    where <not(is-expanded)> (NaBL2-LabelRE-Plhdr(), NaBL2-PathLabel-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-LabelRE-Plhdr(), NaBL2-PathLabel-Plhdr()) -> <id>
+            )
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(
+                              | ( "Closure"
+                                , Closure(
+                                    <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(
+                              | ( "Concat"
+                                , Concat(
+                                    <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(
+                              | ( "And"
+                                , And(
+                                    <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelRE-Plhdr() -> <add-completions(
+                              | ( "Or"
+                                , Or(
+                                    <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                                  )
+                                )
+                              )
+                              ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-LabelOrder-Plhdr() -> <add-completions(
+                                 | ( "Lt"
+                                   , Lt(
+                                       <try(inline-completions(|NaBL2-LabelOrder-Plhdr()))> NaBL2-AnyLabel-Plhdr()
+                                     , <try(inline-completions(|NaBL2-LabelOrder-Plhdr()))> NaBL2-AnyLabel-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-LabelId" -> <is-left-recursive> "NaBL2-Label"
+    where <not(is-lexical-completion-sort)> "NaBL2-LabelId"
+
+  is-right-recursive :
+    "NaBL2-LabelId" -> <is-right-recursive> "NaBL2-Label"
+    where <not(is-lexical-completion-sort)> "NaBL2-LabelId"
+
+  is-NaBL2-Label-completion-sort :
+    "NaBL2-LabelId" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Label" -> <is-left-recursive> "NaBL2-PathLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-Label"
+
+  is-right-recursive :
+    "NaBL2-Label" -> <is-right-recursive> "NaBL2-PathLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-Label"
+
+  is-NaBL2-PathLabel-completion-sort :
+    "NaBL2-Label" -> <id>
+
+  is-left-recursive :
+    "NaBL2-BuiltinPathLabel" -> <is-left-recursive> "NaBL2-PathLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-BuiltinPathLabel"
+
+  is-right-recursive :
+    "NaBL2-BuiltinPathLabel" -> <is-right-recursive> "NaBL2-PathLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-BuiltinPathLabel"
+
+  is-NaBL2-PathLabel-completion-sort :
+    "NaBL2-BuiltinPathLabel" -> <id>
+
+  is-left-recursive :
+    "NaBL2-PathLabel" -> <is-left-recursive> "NaBL2-AnyLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-right-recursive :
+    "NaBL2-PathLabel" -> <is-right-recursive> "NaBL2-AnyLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-NaBL2-AnyLabel-completion-sort :
+    "NaBL2-PathLabel" -> <id>
+
+  is-left-recursive :
+    "NaBL2-BuiltinAnyLabel" -> <is-left-recursive> "NaBL2-AnyLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-BuiltinAnyLabel"
+
+  is-right-recursive :
+    "NaBL2-BuiltinAnyLabel" -> <is-right-recursive> "NaBL2-AnyLabel"
+    where <not(is-lexical-completion-sort)> "NaBL2-BuiltinAnyLabel"
+
+  is-NaBL2-AnyLabel-completion-sort :
+    "NaBL2-BuiltinAnyLabel" -> <id>
+
+  suggest-completions-left-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ("Closure", Closure(orig-term))
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  suggest-completions-left-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "Concat"
+                            , Concat(
+                                orig-term
+                              , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  suggest-completions-left-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "And"
+                            , And(
+                                orig-term
+                              , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  is-left-recursive :
+    "NaBL2-LabelRE" -> <id>
+
+  suggest-completions-left-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "Or"
+                            , Or(
+                                orig-term
+                              , <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  suggest-completions-right-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "Concat"
+                            , Concat(
+                                <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              , orig-term
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  suggest-completions-right-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "And"
+                            , And(
+                                <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              , orig-term
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  is-right-recursive :
+    "NaBL2-LabelRE" -> <id>
+
+  suggest-completions-right-rec(|completions):
+    (sort, orig-term) -> <add-completions(
+                          | ( "Or"
+                            , Or(
+                                <try(inline-completions(|NaBL2-LabelRE-Plhdr()))> NaBL2-LabelRE-Plhdr()
+                              , orig-term
+                              )
+                            )
+                          )
+                          ; fail> completions
+    where <is-NaBL2-LabelRE-completion-sort> sort
+
+  is-NaBL2-LabelRE-completion-sort :
+    "NaBL2-LabelRE" -> <id>
+
+  is-left-recursive :
+    "NaBL2-PathLabel" -> <is-left-recursive> "NaBL2-LabelRE"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-right-recursive :
+    "NaBL2-PathLabel" -> <is-right-recursive> "NaBL2-LabelRE"
+    where <not(is-lexical-completion-sort)> "NaBL2-PathLabel"
+
+  is-NaBL2-LabelRE-completion-sort :
+    "NaBL2-PathLabel" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-LabelId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Label-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-BuiltinPathLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnyLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-BuiltinAnyLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Step-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Scope-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-PathLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Path-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-PathLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-LabelRE-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-LabelOrder-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnyLabel-Plhdr()

@@ -1,0 +1,53 @@
+Module(
+  Unparameterized("normalized/nabl2/shared/common/Main-norm")
+, [ Imports(
+      [ Module(Unparameterized("normalized/nabl2/shared/common/AST-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/CTerms-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Identifiers-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Messages-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Names-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Resolution-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/ScopeGraph-norm"))
+      , Module(Unparameterized("normalized/nabl2/shared/common/Sorts-norm"))
+      ]
+    )
+  ]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

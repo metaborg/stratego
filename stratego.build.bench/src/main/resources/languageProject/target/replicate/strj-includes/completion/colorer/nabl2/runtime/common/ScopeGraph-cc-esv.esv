@@ -1,0 +1,13 @@
+module completion/colorer/nabl2/runtime/common/ScopeGraph-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/AST-cc-esv
+  completion/colorer/nabl2/shared/common/Resolution-cc-esv
+  completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
+  completion/colorer/nabl2/runtime/common/Native-cc-esv
+
+colorer
+  _.NaBL2-String-Plhdr          : gray   
+  _.NaBL2-TermIndex-Plhdr       : gray   
+  _.NaBL2-Scope-Plhdr           : gray   
+  _.NaBL2-OccurrenceIndex-Plhdr : gray   

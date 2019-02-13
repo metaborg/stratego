@@ -1,0 +1,222 @@
+module pp/nabl2/shared/constraints/Symbolic-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/shared/constraints/Symbolic-sig
+
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Messages-sig
+
+
+imports
+  pp/nabl2/shared/common/CTerms-pp
+  pp/nabl2/shared/common/Messages-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-Constraint
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-Constraint>
+    where <?"NaBL2-Constraint"> sort
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CGoal(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("?- ")
+                             , t1__'
+                             , S(" ")
+                             , t2__'
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-MessagePosition) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CGoal(_, _)
+
+  NaBL2-get-indent :
+    (t@CGoal(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@CGoal(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@CGoal(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    CFact(t1__, t2__) -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [ S("!- ")
+                             , t1__'
+                             , S(" ")
+                             , t2__'
+                             ]
+                           )
+                         ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-CTerm) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-MessagePosition) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-Constraint =
+    ?CFact(_, _)
+
+  NaBL2-get-indent :
+    (t@CFact(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@CFact(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@CFact(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-Constraint"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-Constraint =
+    fail
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-Constraint> h
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr() -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$NaBL2-Constraint")]
+                                  )
+                                ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-MessagePosition :
+    NaBL2-MessagePosition-Plhdr() -> [ H(
+                                         [SOpt(HS(), "0")]
+                                       , [S("$NaBL2-MessagePosition")]
+                                       )
+                                     ]
+
+  is-NaBL2-NaBL2-MessagePosition =
+    ?NaBL2-MessagePosition-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-Constraint :
+    NaBL2-Constraint-Plhdr(_) -> [ H(
+                                     [SOpt(HS(), "0")]
+                                   , [S("$NaBL2-Constraint")]
+                                   )
+                                 ]
+
+  is-NaBL2-NaBL2-Constraint =
+    ?NaBL2-Constraint-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-MessagePosition :
+    NaBL2-MessagePosition-Plhdr(_) -> [ H(
+                                          [SOpt(HS(), "0")]
+                                        , [S("$NaBL2-MessagePosition")]
+                                        )
+                                      ]
+
+  is-NaBL2-NaBL2-MessagePosition =
+    ?NaBL2-MessagePosition-Plhdr(_)

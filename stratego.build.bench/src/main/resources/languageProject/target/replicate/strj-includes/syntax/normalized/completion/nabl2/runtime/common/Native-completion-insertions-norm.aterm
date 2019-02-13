@@ -1,0 +1,68 @@
+Module(
+  Unparameterized("normalized/completion/nabl2/runtime/common/Native-completion-insertions-norm")
+, [Imports([Module(Unparameterized("normalized/nabl2/runtime/common/Native-norm"))])]
+, [ SDFSection(
+      Kernel(
+        [ SdfProduction(Lex(Sort("COMPLETION-INSERTION")), Rhs([]), NoAttrs())
+        , SdfProduction(
+            Cf(Sort("COMPLETION-INSERTION"))
+          , Rhs([Lex(Sort("COMPLETION-INSERTION"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Term"))
+          , Rhs([Lex(Sort("NaBL2-Term"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-String"))
+          , Rhs([Lex(Sort("NaBL2-String"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Real"))
+          , Rhs([Lex(Sort("NaBL2-Real"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Sort("NaBL2-Int"))
+          , Rhs([Lex(Sort("NaBL2-Int"))])
+          , NoAttrs()
+          )
+        , SdfProduction(
+            Cf(Layout())
+          , Rhs([Cf(Layout()), Cf(Layout())])
+          , Attrs([Assoc(Left())])
+          )
+        , SdfProduction(
+            FileStart()
+          , Rhs([Start(), CharClass(Simple(Present(Numeric("\\256"))))])
+          , NoAttrs()
+          )
+        ]
+      )
+    )
+  , SDFSection(
+      Priorities(
+        [ Assoc(
+            SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          , Left()
+          , SimpleGroup(
+              SdfProduction(
+                Cf(Layout())
+              , Rhs([Cf(Layout()), Cf(Layout())])
+              , NoAttrs()
+              )
+            )
+          )
+        ]
+      )
+    )
+  ]
+)

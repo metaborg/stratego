@@ -1,0 +1,48 @@
+module completion/nabl2/runtime/common/ScopeGraph-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/ScopeGraph-sig
+
+
+imports
+  completion/nabl2/shared/common/AST-cp
+  completion/nabl2/shared/common/Resolution-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+  completion/nabl2/runtime/common/Native-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Scope-Plhdr() -> <add-completions(
+                            | ( "Scope"
+                              , Scope(
+                                  <try(inline-completions(|NaBL2-Scope-Plhdr()))> NaBL2-String-Plhdr()
+                                , <try(inline-completions(|NaBL2-Scope-Plhdr()))> NaBL2-String-Plhdr()
+                                )
+                              )
+                            )
+                            ; fail> completions
+
+  null-constructor-completion-sort :
+    "NaBL2-OccurrenceIndex" -> NoIndex()
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-String-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-TermIndex-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Scope-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-OccurrenceIndex-Plhdr()

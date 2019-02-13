@@ -1,0 +1,6 @@
+module nabl2/shared/completion
+
+imports
+
+  completion/nabl2/shared/-
+ 

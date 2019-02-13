@@ -1,0 +1,215 @@
+module pp/nabl2/runtime/common/CTerms-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libstratego-sglr
+  signatures/nabl2/runtime/common/CTerms-sig
+
+
+imports
+  signatures/nabl2/runtime/common/Native-sig
+
+
+imports
+  pp/nabl2/runtime/common/Native-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-NaBL2
+
+  prettyprint-NaBL2 =
+    fail
+
+  prettyprint-NaBL2(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-NaBL2-start-symbols
+
+  prettyprint-NaBL2-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CVar
+
+  prettyprint-NaBL2 =
+    prettyprint-NaBL2-NaBL2-CTerm
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CVar>
+    where <?"NaBL2-CVar"> sort
+
+  prettyprint-NaBL2(|sort):
+    t -> <prettyprint-NaBL2-NaBL2-CTerm>
+    where <?"NaBL2-CTerm"> sort
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    CVar(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [ S("?")
+                            , t1__'
+                            , S("-")
+                            , t2__'
+                            ]
+                          )
+                        ]
+    with t1__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-String) <+ pp-one-Z(prettyprint-completion-aux)> t1__
+    with t2__' := <pp-one-Z(prettyprint-NaBL2-NaBL2-String) <+ pp-one-Z(prettyprint-completion-aux)> t2__
+
+  is-NaBL2-NaBL2-CVar =
+    ?CVar(_, _)
+
+  NaBL2-get-indent :
+    (t@CVar(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CVar"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@CVar(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CVar"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@CVar(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CVar"> sort
+    with switch !index
+           case ?1 :
+             ws := ""
+           case ?2 :
+             ws := ""
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NAME() -> [ H(
+                  [SOpt(HS(), "0")]
+                , [S("NAME")]
+                )
+              ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NAME()
+
+  NaBL2-get-indent :
+    (t@NAME(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CTerm"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  NaBL2-get-separator :
+    (t@NAME(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CTerm"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  NaBL2-get-leading-ws :
+    (t@NAME(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"NaBL2-CTerm"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-NaBL2-NaBL2-CVar =
+    fail
+
+  is-NaBL2-NaBL2-CTerm =
+    fail
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CVar> h
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    amb([h|hs]) -> <prettyprint-NaBL2-NaBL2-CTerm> h
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr() -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$NaBL2-CVar")]
+                            )
+                          ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-String :
+    NaBL2-String-Plhdr() -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-String")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-String =
+    ?NaBL2-String-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CTerm")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr()
+
+  prettyprint-NaBL2-NaBL2-CVar :
+    NaBL2-CVar-Plhdr(_) -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$NaBL2-CVar")]
+                             )
+                           ]
+
+  is-NaBL2-NaBL2-CVar =
+    ?NaBL2-CVar-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-String :
+    NaBL2-String-Plhdr(_) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , [S("$NaBL2-String")]
+                               )
+                             ]
+
+  is-NaBL2-NaBL2-String =
+    ?NaBL2-String-Plhdr(_)
+
+  prettyprint-NaBL2-NaBL2-CTerm :
+    NaBL2-CTerm-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$NaBL2-CTerm")]
+                              )
+                            ]
+
+  is-NaBL2-NaBL2-CTerm =
+    ?NaBL2-CTerm-Plhdr(_)

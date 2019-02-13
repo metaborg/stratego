@@ -1,0 +1,101 @@
+module signatures/nabl2/runtime/analysis/Debug-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/constraints/Base-sig
+
+
+signature
+  constructors
+    Constraints                     : List(NaBL2-Constraint) -> NaBL2-AnalysisResult
+    NaBL2-AnalysisResult-Plhdr      : NaBL2-AnalysisResult
+    NaBL2-Constraint-Plhdr          : NaBL2-Constraint
+    NaBL2-AnalysisResult-Plhdr      : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-Constraint-Plhdr          : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-Constraint-Opt-Plhdr      : NaBL2-Constraint
+    ScopeGraph                      : List(NaBL2-ScopeEntry) -> NaBL2-AnalysisResult
+    Scope                           : NaBL2-Scope * List(NaBL2-ScopePartEntry) -> NaBL2-ScopeEntry
+    Decls                           : List(NaBL2-DeclEntry) -> NaBL2-ScopePartEntry
+    Refs                            : List(NaBL2-RefEntry) -> NaBL2-ScopePartEntry
+    DirectEdges                     : List(NaBL2-DirectEntry) -> NaBL2-ScopePartEntry
+    ImportEdges                     : List(NaBL2-ImportEntry) -> NaBL2-ScopePartEntry
+    AssocEdges                      : List(NaBL2-AssocEntry) -> NaBL2-ScopePartEntry
+    Decl                            : NaBL2-Occurrence * NaBL2-DeclType -> NaBL2-DeclEntry
+    Ref                             : NaBL2-Occurrence -> NaBL2-RefEntry
+    DirectEdge                      : NaBL2-PathLabel * NaBL2-Scope -> NaBL2-DirectEntry
+    ImportEdge                      : NaBL2-PathLabel * NaBL2-Occurrence -> NaBL2-ImportEntry
+    AssocEdge                       : NaBL2-PathLabel * NaBL2-Occurrence -> NaBL2-AssocEntry
+    Type                            : NaBL2-CTerm -> NaBL2-DeclType
+    NoType                          : NaBL2-DeclType
+    NaBL2-AnalysisResult-Plhdr      : NaBL2-AnalysisResult
+    NaBL2-ScopeEntry-Plhdr          : NaBL2-ScopeEntry
+    NaBL2-ScopePartEntry-Plhdr      : NaBL2-ScopePartEntry
+    NaBL2-DeclEntry-Plhdr           : NaBL2-DeclEntry
+    NaBL2-RefEntry-Plhdr            : NaBL2-RefEntry
+    NaBL2-DirectEntry-Plhdr         : NaBL2-DirectEntry
+    NaBL2-Scope-Plhdr               : NaBL2-Scope
+    NaBL2-ImportEntry-Plhdr         : NaBL2-ImportEntry
+    NaBL2-AssocEntry-Plhdr          : NaBL2-AssocEntry
+    NaBL2-PathLabel-Plhdr           : NaBL2-PathLabel
+    NaBL2-Occurrence-Plhdr          : NaBL2-Occurrence
+    NaBL2-CTerm-Plhdr               : NaBL2-CTerm
+    NaBL2-DeclType-Plhdr            : NaBL2-DeclType
+    NaBL2-AnalysisResult-Plhdr      : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-ScopeEntry-Plhdr          : COMPLETION-INSERTION -> NaBL2-ScopeEntry
+    NaBL2-ScopePartEntry-Plhdr      : COMPLETION-INSERTION -> NaBL2-ScopePartEntry
+    NaBL2-DeclEntry-Plhdr           : COMPLETION-INSERTION -> NaBL2-DeclEntry
+    NaBL2-RefEntry-Plhdr            : COMPLETION-INSERTION -> NaBL2-RefEntry
+    NaBL2-DirectEntry-Plhdr         : COMPLETION-INSERTION -> NaBL2-DirectEntry
+    NaBL2-Scope-Plhdr               : COMPLETION-INSERTION -> NaBL2-Scope
+    NaBL2-ImportEntry-Plhdr         : COMPLETION-INSERTION -> NaBL2-ImportEntry
+    NaBL2-AssocEntry-Plhdr          : COMPLETION-INSERTION -> NaBL2-AssocEntry
+    NaBL2-PathLabel-Plhdr           : COMPLETION-INSERTION -> NaBL2-PathLabel
+    NaBL2-Occurrence-Plhdr          : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-CTerm-Plhdr               : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-DeclType-Plhdr            : COMPLETION-INSERTION -> NaBL2-DeclType
+    NaBL2-ScopeEntry-Opt-Plhdr      : NaBL2-ScopeEntry
+    NaBL2-ScopePartEntry-Opt-Plhdr  : NaBL2-ScopePartEntry
+    NaBL2-DeclEntry-Opt-Plhdr       : NaBL2-DeclEntry
+    NaBL2-RefEntry-Opt-Plhdr        : NaBL2-RefEntry
+    NaBL2-DirectEntry-Opt-Plhdr     : NaBL2-DirectEntry
+    NaBL2-ImportEntry-Opt-Plhdr     : NaBL2-ImportEntry
+    NaBL2-AssocEntry-Opt-Plhdr      : NaBL2-AssocEntry
+    NaBL2-DeclType-Opt-Plhdr        : NaBL2-DeclType
+    Unifier                         : List(NaBL2-UnifierEntry) -> NaBL2-AnalysisResult
+                                    : NaBL2-CVar * NaBL2-CTerm -> NaBL2-UnifierEntry
+    NaBL2-AnalysisResult-Plhdr      : NaBL2-AnalysisResult
+    NaBL2-UnifierEntry-Plhdr        : NaBL2-UnifierEntry
+    NaBL2-CVar-Plhdr                : NaBL2-CVar
+    NaBL2-CTerm-Plhdr               : NaBL2-CTerm
+    NaBL2-AnalysisResult-Plhdr      : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-UnifierEntry-Plhdr        : COMPLETION-INSERTION -> NaBL2-UnifierEntry
+    NaBL2-CVar-Plhdr                : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-CTerm-Plhdr               : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-UnifierEntry-Opt-Plhdr    : NaBL2-UnifierEntry
+    NameResolution                  : List(NaBL2-ResolutionEntry) -> NaBL2-AnalysisResult
+                                    : NaBL2-Occurrence * NaBL2-ResolutionResult -> NaBL2-ResolutionEntry
+    NoResolution                    : NaBL2-ResolutionResult
+    Resolution                      : List(NaBL2-ResolutionPath) -> NaBL2-ResolutionResult
+                                    : NaBL2-Occurrence * NaBL2-Path -> NaBL2-ResolutionPath
+    NaBL2-AnalysisResult-Plhdr      : NaBL2-AnalysisResult
+    NaBL2-ResolutionEntry-Plhdr     : NaBL2-ResolutionEntry
+    NaBL2-ResolutionResult-Plhdr    : NaBL2-ResolutionResult
+    NaBL2-ResolutionPath-Plhdr      : NaBL2-ResolutionPath
+    NaBL2-Occurrence-Plhdr          : NaBL2-Occurrence
+    NaBL2-Path-Plhdr                : NaBL2-Path
+    NaBL2-AnalysisResult-Plhdr      : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-ResolutionEntry-Plhdr     : COMPLETION-INSERTION -> NaBL2-ResolutionEntry
+    NaBL2-ResolutionResult-Plhdr    : COMPLETION-INSERTION -> NaBL2-ResolutionResult
+    NaBL2-ResolutionPath-Plhdr      : COMPLETION-INSERTION -> NaBL2-ResolutionPath
+    NaBL2-Occurrence-Plhdr          : COMPLETION-INSERTION -> NaBL2-Occurrence
+    NaBL2-Path-Plhdr                : COMPLETION-INSERTION -> NaBL2-Path
+    NaBL2-ResolutionEntry-Opt-Plhdr : NaBL2-ResolutionEntry
+    NaBL2-ResolutionPath-Opt-Plhdr  : NaBL2-ResolutionPath
+    SymbolicConstraints             : List(NaBL2-CTerm) * List(NaBL2-CTerm) -> NaBL2-AnalysisResult
+    NaBL2-AnalysisResult-Plhdr      : NaBL2-AnalysisResult
+    NaBL2-CTerm-Plhdr               : NaBL2-CTerm
+    NaBL2-AnalysisResult-Plhdr      : COMPLETION-INSERTION -> NaBL2-AnalysisResult
+    NaBL2-CTerm-Plhdr               : COMPLETION-INSERTION -> NaBL2-CTerm
+    NaBL2-CTerm-Opt-Plhdr           : NaBL2-CTerm

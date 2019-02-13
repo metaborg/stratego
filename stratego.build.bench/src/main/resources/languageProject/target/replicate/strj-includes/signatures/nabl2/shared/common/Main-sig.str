@@ -1,0 +1,16 @@
+module signatures/nabl2/shared/common/Main-sig
+
+imports
+  signatures/nabl2/shared/common/AST-sig
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/Names-sig
+  signatures/nabl2/shared/common/Resolution-sig
+  signatures/nabl2/shared/common/ScopeGraph-sig
+  signatures/nabl2/shared/common/Sorts-sig
+
+
+signature
+  constructors
+    

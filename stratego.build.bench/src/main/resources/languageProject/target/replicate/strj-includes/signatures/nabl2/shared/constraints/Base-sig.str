@@ -1,0 +1,25 @@
+module signatures/nabl2/shared/constraints/Base-sig
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+  signatures/nabl2/shared/common/Messages-sig
+  signatures/nabl2/shared/common/CTerms-sig
+
+
+signature
+  constructors
+    CTrue                       : NaBL2-MessagePosition -> NaBL2-Constraint
+    CFalse                      : NaBL2-Message -> NaBL2-Constraint
+    CConj                       : NaBL2-Constraint * NaBL2-Constraint -> NaBL2-Constraint
+    CExists                     : List(NaBL2-CVar) * NaBL2-Constraint -> NaBL2-Constraint
+    CNew                        : List(NaBL2-CVar) * NaBL2-MessagePosition -> NaBL2-Constraint
+    NaBL2-Message-Plhdr         : NaBL2-Message
+    NaBL2-Constraint-Plhdr      : NaBL2-Constraint
+    NaBL2-CVar-Plhdr            : NaBL2-CVar
+    NaBL2-MessagePosition-Plhdr : NaBL2-MessagePosition
+    NaBL2-Message-Plhdr         : COMPLETION-INSERTION -> NaBL2-Message
+    NaBL2-Constraint-Plhdr      : COMPLETION-INSERTION -> NaBL2-Constraint
+    NaBL2-CVar-Plhdr            : COMPLETION-INSERTION -> NaBL2-CVar
+    NaBL2-MessagePosition-Plhdr : COMPLETION-INSERTION -> NaBL2-MessagePosition
+                                : String -> NaBL2-ConstraintPriority
+                                : String -> NaBL2-Keyword

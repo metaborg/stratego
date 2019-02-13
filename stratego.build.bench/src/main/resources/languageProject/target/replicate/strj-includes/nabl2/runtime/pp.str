@@ -1,0 +1,115 @@
+module nabl2/runtime/pp
+
+imports
+
+  libstratego-gpp
+
+  libspoofax/editor/completion/interface
+  libspoofax/sdf/pp
+
+  nabl2/api
+
+  pp/nabl2/shared/common/-
+  pp/nabl2/shared/constraints/-
+  nabl2/shared/-
+
+  pp/nabl2/runtime/analysis/-
+  pp/nabl2/runtime/common/-
+  pp/-
+
+rules
+
+  pp-NaBL2-CTerm          = pp-NaBL2(prettyprint-NaBL2-NaBL2-CTerm)
+  pp-NaBL2-Term           = pp-NaBL2(prettyprint-NaBL2-NaBL2-Term)
+  pp-NaBL2-CGenArgs       = pp-NaBL2(prettyprint-NaBL2-NaBL2-CGenArgs)
+  pp-NaBL2-Constraint     = pp-NaBL2(prettyprint-NaBL2-NaBL2-Constraint)
+  pp-NaBL2-CVar           = pp-NaBL2(prettyprint-NaBL2-NaBL2-CVar)
+  pp-NaBL2-PathLabel      = pp-NaBL2(prettyprint-NaBL2-NaBL2-PathLabel)
+
+  pp-NaBL2-AnalysisResult = pp-NaBL2(prettyprint-NaBL2-NaBL2-AnalysisResult)
+
+rules
+
+  pp-NaBL2-objlangterm    = pp-NaBL2(
+      catch-with(
+        nabl2-prettyprint-hook
+      , ?(msg,trm,trace);
+        <warn(|$[Pretty printing with nabl2-prettyprint-hook failed: [msg]])> trm;
+        <reverse;list-loop(<fprintnl> (stderr(), ["\t", <id>]))> trace;
+        fail
+      )
+   <+ prettyprint-NaBL2-NaBL2-CTerm
+  )
+
+  nabl2-prettyprint-term =
+    prettyprint-NaBL2-NaBL2-CVar
+ <+ prettyprint-NaBL2-NaBL2-CList
+ <+ nabl2--actual-CTerm; prettyprint-NaBL2-NaBL2-CTerm
+
+rules // Special rules
+
+  pp-H-list(pp) = prettyprint-NaBL2-NaBL2-CVar
+  pp-H-list(pp|sep) = prettyprint-NaBL2-NaBL2-CVar
+
+  pp-V-list(pp) = prettyprint-NaBL2-NaBL2-CVar
+  pp-V-list(pp|sep) = prettyprint-NaBL2-NaBL2-CVar
+
+  pp-HV-list(pp) = prettyprint-NaBL2-NaBL2-CVar
+  pp-HV-list(pp|sep) = prettyprint-NaBL2-NaBL2-CVar
+
+  pp-HZ-list(pp) = prettyprint-NaBL2-NaBL2-CVar
+  pp-HZ-list(pp|sep) = prettyprint-NaBL2-NaBL2-CVar
+
+  prettyprint-NaBL2-NaBL2-Name:
+    _ -> [S("?")]
+    where is-SDF-placeholder
+
+  prettyprint-NaBL2-NaBL2-Int =
+    ![S(<is-int;int-to-string>)]
+
+  prettyprint-NaBL2-NaBL2-Real =
+    ![S(<is-real;real-to-string(|2)>)]
+
+  prettyprint-NaBL2-NaBL2-List(pp): t -> [ H( [SOpt(HS(),"0")]
+                                      , [S("["),t',S("]")] ) ]
+    where is-list
+    with t' := <pp-H-list(pp|",")> t
+
+rules // Terms
+
+  prettyprint-NaBL2-primitive = ![S(<is-int;int-to-string>)]
+  prettyprint-NaBL2-primitive = ![S(<is-real;real-to-string(|2)>)]
+  prettyprint-NaBL2-primitive = ![S($["[<is-string>]"])]
+
+  prettyprint-NaBL2-NaBL2-Term = prettyprint-NaBL2-primitive
+  prettyprint-NaBL2-NaBL2-Term = prettyprint-NaBL2-NaBL2-List(prettyprint-NaBL2-NaBL2-Term)
+  prettyprint-NaBL2-NaBL2-Term: c#(a*) -> [ H( [SOpt(HS(),"0")]
+                                        , [S(c),S("("),a',S(")")] ) ]
+    with a' := <pp-H-list(prettyprint-NaBL2-NaBL2-Term|",")> a*
+
+rules // CTerms
+
+  prettyprint-NaBL2-NaBL2-CTerm = prettyprint-NaBL2-primitive
+  prettyprint-NaBL2-NaBL2-CTerm = prettyprint-NaBL2-NaBL2-List(prettyprint-NaBL2-NaBL2-CTerm)
+  prettyprint-NaBL2-NaBL2-CTerm: c#(a*) -> [ H( [SOpt(HS(),"0")]
+                                        , [S(c),S("("),a',S(")")] ) ]
+    where not(nabl2--actual-CTerm)
+    with a' := <pp-H-list(prettyprint-NaBL2-NaBL2-CTerm|",")> a*
+
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-CVar
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-CList
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-CTerm
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-Occurrence
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-Scope
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-Names
+  nabl2--actual-CTerm = is-NaBL2-NaBL2-SetExpr
+
+rules
+
+  prettyprint-NaBL2-api-term =
+    nabl2-prettyprint-term
+
+  prettyprint-NaBL2-api-term(|sort) =
+    where(<string-starts-with(|"NaBL2")> sort);
+    nabl2-prettyprint-term
+

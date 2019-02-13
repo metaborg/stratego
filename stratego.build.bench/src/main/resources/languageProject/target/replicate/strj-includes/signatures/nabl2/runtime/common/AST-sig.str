@@ -1,0 +1,17 @@
+module signatures/nabl2/runtime/common/AST-sig
+
+imports
+  signatures/nabl2/shared/common/CTerms-sig
+  signatures/nabl2/runtime/common/Native-sig
+  signatures/nabl2/runtime/analysis/Generation-sig
+
+
+signature
+  constructors
+    TermIndex             : NaBL2-String * NaBL2-Int -> NaBL2-TermIndex
+    NaBL2-TermIndex-Plhdr : NaBL2-TermIndex
+    NaBL2-String-Plhdr    : NaBL2-String
+    NaBL2-Int-Plhdr       : NaBL2-Int
+    NaBL2-TermIndex-Plhdr : COMPLETION-INSERTION -> NaBL2-TermIndex
+    NaBL2-String-Plhdr    : COMPLETION-INSERTION -> NaBL2-String
+    NaBL2-Int-Plhdr       : COMPLETION-INSERTION -> NaBL2-Int

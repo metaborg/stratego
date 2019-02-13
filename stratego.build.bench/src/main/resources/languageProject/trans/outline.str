@@ -1,0 +1,19 @@
+module outline
+
+imports
+  
+  signatures/incremental-sig
+  libspoofax/editor/outline
+
+overlays
+
+  A() = "outline.str"
+
+rules
+  
+  editor-outline:
+    (_, _, ast, path, project-path) -> outline
+    where
+      outline := <simple-label-outline(to-outline-label)> ast
+  
+  to-outline-label = fail

@@ -1,0 +1,85 @@
+module nabl2/runtime/interpreter/util
+
+imports
+
+  nabl2/runtime/interpreter/scopegraph-api
+
+signature
+
+  arrows // Auxiliary functions
+    filterOccsByNamespace(List(Occurrence), Namespace) --> List(Occurrence)
+    filterOccsByName(List(Occurrence), Name) --> List(Occurrence)
+    declOfPath(List(Step)) --> Occurrence
+    importedOf(Scope, Label) --> List(Occurrence)
+    edgesOf(Scope, Label) --> List(Scope)
+    NaBL2 |- declsOf(Scope, Namespace) --> List(Occurrence)
+    NaBL2 |- declOfRef(Occurrence) --> Occurrence
+    NaBL2 |- assocScopeOf(Occurrence, Label) --> Scope
+
+rules
+
+  filterOccsByNamespace([], _) --> []
+  
+  filterOccsByNamespace([o|os], ns) --> [o|os']
+  where
+    namespaceOf(o) --> ns';
+    ns == ns';
+    filterOccsByNamespace(os, ns) --> os'
+    
+  filterOccsByNamespace([o|os], ns) --> filterOccsByNamespace(os, ns)
+  where
+    namespaceOf(o) --> ns';
+    ns != ns'
+  
+  filterOccsByName([], _) --> []
+  
+  filterOccsByName([o|os], n) --> [o|os']
+  where
+    nameOf(o) --> n';
+    n' == n;
+    filterOccsByName(os, n) --> os'
+  
+  filterOccsByName([o|os], n) --> filterOccsByName(os, n)
+  where
+    nameOf(o) --> n';
+    n' != n
+    
+rules    
+ 
+  declOfRef(o:Occurrence) --> declOfPath(p)
+  where
+    pathOf(o) --> p
+
+rules
+
+  declOfPath([p|ps]) --> o
+  where
+    case p of {
+      D(_, o) ->
+      otherwise ->
+        declOfPath(ps) --> o
+    }
+
+rules
+
+  declsOf(s, ns) /* :(Scope * Namespace) */ --> filterOccsByNamespace(declsOf(s), ns)
+
+  assocScopeOf(d, l) /* :(Occurrence * Label) */ --> s
+  where
+    assocsOf(d) --> assocs;
+    assocs[l] => [s]
+  
+  importedOf(s, l) --> os
+  where
+    importsOf(s) --> import-edges;
+    case import-edges[l?] of {
+      false ->
+        [] : List(Occurrence) => os
+      true ->
+        import-edges[l] => os
+    }
+  
+  edgesOf(s, l) --> edges[l]
+  where
+    edgesOf(s) --> edges
+  

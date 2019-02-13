@@ -9,7 +9,6 @@ import mb.pie.api.stamp.output.InconsequentialOutputStamper;
 import mb.stratego.build.util.CommonPaths;
 
 import com.google.inject.Inject;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextException;
@@ -38,19 +37,20 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.io.binary.TermReader;
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.JarURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,13 +59,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
+    public static final String id = StrIncrFront.class.getCanonicalName();
+
     public static final class Input implements Serializable {
         final File projectLocation;
-        final File inputFile;
+        final URL inputFile;
         final String projectName;
         final Collection<STask<?>> originTasks;
 
-        Input(File projectLocation, File inputFile, String projectName, Collection<STask<?>> originTasks) {
+        Input(File projectLocation, URL inputFile, String projectName, Collection<STask<?>> originTasks) {
             this.projectLocation = projectLocation;
             this.inputFile = inputFile;
             this.projectName = projectName;
@@ -105,18 +107,49 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     public static final class Output implements Serializable {
         final String moduleName;
+        /**
+         * Strategy-name to file with CTree definition of that strategy
+         */
         final Map<String, File> strategyFiles;
-        final Map<String, Set<String>> strategyConstrFiles;
+        /**
+         * Cified-strategy-names defined in this module
+         */
+        final Set<String> strategies;
+        /**
+         * Cified-strategy-names referred to in this module
+         */
+        final Set<String> usedStrategies;
+        /**
+         * Strategy-name to constructor_arity names that were used in the body
+         */
+        final Map<String, Set<String>> strategyConstrs;
+        /**
+         * Overlay_arity names to file with CTree definition of that overlay
+         */
         final Map<String, File> overlayFiles;
+        /**
+         * Imports in this module (normal, library or wildcard)
+         */
         final List<Import> imports;
+        /**
+         * Constructor_arity names used in this module
+         */
+        final Set<String> constrs;
 
-        Output(String moduleName, Map<String, File> strategyFiles, Map<String, Set<String>> strategyConstrFiles,
-            Map<String, File> overlayFiles, List<Import> imports) {
+        Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
+            Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
-            this.strategyConstrFiles = strategyConstrFiles;
+            this.strategies = strategies;
+            this.usedStrategies = usedStrategies;
+            this.strategyConstrs = strategyConstrs;
             this.overlayFiles = overlayFiles;
             this.imports = imports;
+            this.constrs = constrs;
+        }
+
+        @Override public String toString() {
+            return "StrIncrFront$Output(" + moduleName + ')';
         }
 
         @Override public boolean equals(Object o) {
@@ -131,39 +164,41 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 return false;
             if(!strategyFiles.equals(output.strategyFiles))
                 return false;
-            if(!strategyConstrFiles.equals(output.strategyConstrFiles))
+            if(!usedStrategies.equals(output.usedStrategies))
                 return false;
-            //noinspection SimplifiableIfStatement
+            if(!strategyConstrs.equals(output.strategyConstrs))
+                return false;
             if(!overlayFiles.equals(output.overlayFiles))
                 return false;
-            return imports.equals(output.imports);
+            //noinspection SimplifiableIfStatement
+            if(!imports.equals(output.imports))
+                return false;
+            return constrs.equals(output.constrs);
         }
 
         @Override public int hashCode() {
             int result = moduleName.hashCode();
             result = 31 * result + strategyFiles.hashCode();
-            result = 31 * result + strategyConstrFiles.hashCode();
+            result = 31 * result + usedStrategies.hashCode();
+            result = 31 * result + strategyConstrs.hashCode();
             result = 31 * result + overlayFiles.hashCode();
             result = 31 * result + imports.hashCode();
+            result = 31 * result + constrs.hashCode();
             return result;
-        }
-
-        @Override public String toString() {
-            return "StrIncrFront$Output(" + moduleName + ')';
         }
     }
 
     public static final class Import implements Serializable {
         public enum ImportType {
-            normal, wildcard
+            normal, wildcard, library
         }
 
-        final ImportType importType;
-        final String importString;
+        final ImportType type;
+        final String path;
 
-        Import(ImportType importType, String importString) {
-            this.importType = importType;
-            this.importString = importString;
+        Import(ImportType type, String path) {
+            this.type = type;
+            this.path = path;
         }
 
         static Import normal(String importString) {
@@ -174,37 +209,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             return new Import(ImportType.wildcard, importString);
         }
 
-        Set<File> resolveImport(Collection<File> includeDirs) throws IOException {
-            Set<File> result = new HashSet<>();
-            for(File dir : includeDirs) {
-                switch(importType) {
-                    case normal: {
-                        final Path strPath = dir.toPath().resolve(importString + ".str");
-                        final Path rtreePath = dir.toPath().resolve(importString + ".rtree");
-                        if(Files.exists(rtreePath)) {
-                            result.add(rtreePath.toFile());
-                        } else if(Files.exists(strPath)) {
-                            result.add(strPath.toFile());
-                        }
-                        break;
-                    }
-                    case wildcard: {
-                        final Path path = dir.toPath().resolve(importString);
-                        if(Files.exists(path)) {
-                            final @Nullable File[] strFiles = path.toFile()
-                                .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
-                            if(strFiles == null) {
-                                throw new IOException("Reading file list in directory failed for directory: " + path);
-                            }
-                            result.addAll(Arrays.asList(strFiles));
-                        }
-                        break;
-                    }
-                    default:
-                        throw new IOException("Missing case for ImportType: " + importType);
-                }
-            }
-            return result;
+        static Import library(String libraryName) {
+            assert StrIncrFrontLib.builtinLibraries.contains(libraryName);
+            return new Import(ImportType.library, libraryName);
         }
 
         static Import fromTerm(IStrategoTerm importTerm) throws IOException {
@@ -214,7 +221,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             final IStrategoAppl appl = (IStrategoAppl) importTerm;
             switch(appl.getName()) {
                 case "Import":
-                    return normal(Tools.javaStringAt(appl, 0));
+                    String importString = Tools.javaStringAt(appl, 0);
+                    if(StrIncrFrontLib.builtinLibraries.contains(importString)) {
+                        return library(importString);
+                    } else {
+                        return normal(importString);
+                    }
                 case "ImportWildcard":
                     return wildcard(Tools.javaStringAt(appl, 0));
                 default:
@@ -231,19 +243,19 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             Import anImport = (Import) o;
 
             //noinspection SimplifiableIfStatement
-            if(importType != anImport.importType)
+            if(type != anImport.type)
                 return false;
-            return importString.equals(anImport.importString);
+            return path.equals(anImport.path);
         }
 
         @Override public int hashCode() {
-            int result = importType.hashCode();
-            result = 31 * result + importString.hashCode();
+            int result = type.hashCode();
+            result = 31 * result + path.hashCode();
             return result;
         }
 
         @Override public String toString() {
-            return "Import{" + "importType=" + importType + ", importString='" + importString + '\'' + '}';
+            return "Import(" + type + ", '" + path + '\'' + ')';
         }
     }
 
@@ -263,10 +275,10 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
 
     @Inject public StrIncrFront(IResourceService resourceService, IProjectService projectService,
-        ILanguageIdentifierService languageIdentifierService,
-        IDialectService dialectService, ILanguageService languageService, ITermFactoryService termFactoryService,
-        IContextService contextService, IStrategoCommon strategoCommon, ISourceTextService sourceTextService,
-        ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
+        ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
+        ILanguageService languageService, ITermFactoryService termFactoryService, IContextService contextService,
+        IStrategoCommon strategoCommon, ISourceTextService sourceTextService, ISpoofaxUnitService unitService,
+        ISpoofaxSyntaxService syntaxService) {
         this.resourceService = resourceService;
         this.projectService = projectService;
         this.languageIdentifierService = languageIdentifierService;
@@ -287,7 +299,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         final FileObject location = resourceService.resolve(input.projectLocation);
-        final FileObject resource = resourceService.resolve(input.inputFile);
+        URI inputURI;
+        try {
+            inputURI = input.inputFile.toURI();
+        } catch(URISyntaxException e) {
+            throw new ExecException(e);
+        }
+        final FileObject resource = resourceService.resolve(inputURI);
         final IStrategoTerm result;
         try {
             result = runStrategoCompileBuilder(resource, input.projectName, location);
@@ -295,22 +313,38 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             throw new ExecException(e);
         }
 
-        execContext.require(input.inputFile);
-
-
+        if(input.inputFile.getProtocol().equals("jar")) {
+            JarURLConnection c;
+            try {
+                c = ((JarURLConnection) input.inputFile.openConnection());
+            } catch(IOException e) {
+                throw new ExecException(e);
+            }
+            try(FileSystem fs = FileSystems
+                .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
+                execContext.require(fs.getPath(c.getEntryName()));
+            } catch(IOException e) {
+                throw new ExecException(e);
+            }
+        } else {
+            execContext.require(new File(inputURI));
+        }
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
-        final IStrategoList importsTerm = Tools.listAt(result, 2);
-        final IStrategoList usedConstrList = Tools.listAt(result, 3);
-        final IStrategoList overlayList = Tools.listAt(result, 4);
+        final IStrategoList cifiedStratNameList = Tools.listAt(result, 2);
+        final IStrategoList usedStrategyList = Tools.listAt(result, 3);
+        final IStrategoList importsTerm = Tools.listAt(result, 4);
+        final IStrategoList constrList = Tools.listAt(result, 5);
+        final IStrategoList usedConstrList = Tools.listAt(result, 6);
+        final IStrategoList overlayList = Tools.listAt(result, 7);
         assert
             strategyList.size() == usedConstrList.size() :
             "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size ("
                 + usedConstrList.size() + ")";
 
         final Map<String, File> strategyFiles = new HashMap<>();
-        final Map<String, Set<String>> strategyConstrFiles = new HashMap<>();
+        final Map<String, Set<String>> strategyConstrs = new HashMap<>();
         for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator =
             usedConstrList.iterator(); strategyIterator.hasNext(); ) {
             String strategy = Tools.asJavaString(strategyIterator.next());
@@ -320,28 +354,40 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
-            strategyConstrFiles.put(strategy, usedConstrs);
+            strategyConstrs.put(strategy, usedConstrs);
 
-            @Nullable File file = resourceService.localPath(
-                CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
+            @Nullable File file = resourceService
+                .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
             assert file != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-            execContext.provide(resourceService.localPath(CommonPaths
-                .strSepCompConstrListFile(location, input.projectName, moduleName, strategy)));
+            execContext.provide(resourceService
+                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy)));
             strategyFiles.put(strategy, file);
             execContext.provide(file);
+        }
+        final Set<String> strategies = new HashSet<>();
+        for(IStrategoTerm cifiedStratName : cifiedStratNameList) {
+            strategies.add(Tools.asJavaString(cifiedStratName));
         }
         final Map<String, File> overlayFiles = new HashMap<>();
         for(IStrategoTerm overlayTerm : overlayList) {
             String overlayName = Tools.asJavaString(overlayTerm);
-            @Nullable File file = resourceService.localPath(CommonPaths
-                .strSepCompOverlayFile(location, input.projectName, moduleName, overlayName));
+            @Nullable File file = resourceService
+                .localPath(CommonPaths.strSepCompOverlayFile(location, input.projectName, moduleName, overlayName));
             assert file != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
             overlayFiles.put(overlayName, file);
             execContext.provide(file);
         }
+        final Set<String> constrs = new HashSet<>(constrList.size() * 2);
+        for(IStrategoTerm constr : constrList) {
+            constrs.add(Tools.asJavaString(constr));
+        }
+        final Set<String> usedStrategies = new HashSet<>(usedStrategyList.size() * 2);
+        for(IStrategoTerm usedStrategy : usedStrategyList) {
+            usedStrategies.add(Tools.asJavaString(usedStrategy));
+        }
 
-        execContext.provide(resourceService
-            .localPath(CommonPaths.strSepCompBoilerplateFile(location, input.projectName, moduleName)));
+        execContext.provide(
+            resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, input.projectName, moduleName)));
 
         final List<Import> imports = new ArrayList<>(importsTerm.size());
         for(IStrategoTerm importTerm : importsTerm) {
@@ -352,11 +398,10 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
 
-        return new Output(moduleName, strategyFiles, strategyConstrFiles, overlayFiles, imports);
+        return new Output(moduleName, strategyFiles, strategies, usedStrategies, strategyConstrs, overlayFiles, imports, constrs);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)
-        throws IOException {
+    private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation) throws IOException {
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(resource);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         final IStrategoTerm ast;
@@ -370,8 +415,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             if(stratego != null && extension.equals("rtree")) {
                 strategoLang = stratego.activeImpl();
                 // support *.rtree (StrategoSugar AST)
-                ast = termFactoryService.getGeneric()
-                    .parseFromString(readInputStream(resource.getContent().getInputStream()));
+                ast = new TermReader(termFactoryService.getGeneric())
+                    .parseFromStream(resource.getContent().getInputStream());
 
             } else {
                 throw new IOException(
@@ -386,7 +431,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     private IStrategoTerm transform(FileObject resource, String projectName, FileObject projectLocation,
         @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws IOException {
-        final @Nullable IProject project = projectService.get(projectLocation);
+        final @Nullable IProject project = projectService.get(projectLocation.resolveFile("metaborg.yaml"));
         assert project != null : "Could not find project in location: " + projectLocation;
         if(!contextService.available(strategoLang)) {
             throw new IOException("Cannot create stratego transformation context");
@@ -399,7 +444,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
         final ITermFactory f = termFactoryService.getGeneric();
         final String projectPath = transformContext.project().location().toString();
-        final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
+        final IStrategoTerm inputTerm;
+        inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         try {
             @Nullable IStrategoTerm result =
                 strategoCommon.invoke(strategoLang, transformContext, inputTerm, COMPILE_STRATEGY_NAME);
@@ -413,8 +459,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     }
 
     private IStrategoTerm parse(FileObject resource, @Nullable ILanguageImpl strategoDialect,
-        ILanguageImpl strategoLang)
-        throws IOException {
+        ILanguageImpl strategoLang) throws IOException {
         if(strategoDialect != null) {
             final @Nullable SyntaxFacet syntaxFacet = strategoDialect.facet(SyntaxFacet.class);
             assert syntaxFacet != null : "Cannot get Syntax Facet from (non-null) Stratego dialect";
@@ -445,21 +490,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         return ast;
     }
 
-    /**
-     * source: https://stackoverflow.com/a/35446009
-     */
-    private static String readInputStream(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while((length = inputStream.read(buffer)) != -1) {
-            result.write(buffer, 0, length);
-        }
-        return result.toString(StandardCharsets.UTF_8.name());
-    }
-
     @Override public String getId() {
-        return StrIncrFront.class.getCanonicalName();
+        return id;
     }
 
     @Override public Serializable key(Input input) {
@@ -467,19 +499,19 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     }
 
     @Override public String desc(Input input) {
-        return this.getId() + "(" + input + ")";
+        return TaskDef.DefaultImpls.desc(this, input);
     }
 
     @Override public String desc(Input input, int maxLength) {
-        return desc(input);
+        return TaskDef.DefaultImpls.desc(this, input, maxLength);
     }
 
-    @Override public Task<Input, Output> createTask(Input input) {
-        return new Task<>(this, input);
+    @Override public Task<Input, StrIncrFront.Output> createTask(Input input) {
+        return TaskDef.DefaultImpls.createTask(this, input);
     }
 
     @Override public STask<Input> createSerializableTask(Input input) {
-        return new STask<>(this.getId(), input);
+        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 
 }

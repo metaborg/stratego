@@ -1,0 +1,18 @@
+module signatures/nabl2/shared/constraints/Main-sig
+
+imports
+  signatures/nabl2/shared/constraints/AST-sig
+  signatures/nabl2/shared/constraints/Base-sig
+  signatures/nabl2/shared/constraints/Equality-sig
+  signatures/nabl2/shared/constraints/Functions-sig
+  signatures/nabl2/shared/constraints/Namebinding-sig
+  signatures/nabl2/shared/constraints/Polymorphism-sig
+  signatures/nabl2/shared/constraints/Properties-sig
+  signatures/nabl2/shared/constraints/Relations-sig
+  signatures/nabl2/shared/constraints/Sets-sig
+  signatures/nabl2/shared/constraints/Symbolic-sig
+
+
+signature
+  constructors
+    

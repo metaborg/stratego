@@ -1,0 +1,8 @@
+module completion/colorer/nabl2/runtime/analysis/Main-cc-esv
+
+imports
+  completion/colorer/nabl2/runtime/analysis/Debug-cc-esv
+  completion/colorer/nabl2/runtime/analysis/Generation-cc-esv
+
+colorer
+  

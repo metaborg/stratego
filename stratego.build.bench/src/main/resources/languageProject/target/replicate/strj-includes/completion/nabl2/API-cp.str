@@ -1,0 +1,13 @@
+module completion/nabl2/API-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/API-sig
+
+
+imports
+  completion/nabl2/shared/common/ScopeGraph-cp

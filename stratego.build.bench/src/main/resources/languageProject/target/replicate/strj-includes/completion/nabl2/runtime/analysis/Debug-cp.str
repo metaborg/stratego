@@ -1,0 +1,267 @@
+module completion/nabl2/runtime/analysis/Debug-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/analysis/Debug-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/ScopeGraph-cp
+  completion/nabl2/shared/common/Resolution-cp
+  completion/nabl2/shared/constraints/Base-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ("Constraints", Constraints(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ("ScopeGraph", ScopeGraph(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopeEntry-Plhdr() -> <add-completions(
+                                 | ( "Scope"
+                                   , Scope(
+                                       <try(inline-completions(|NaBL2-ScopeEntry-Plhdr()))> NaBL2-Scope-Plhdr()
+                                     , CURSOR_ELEMENT()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopePartEntry-Plhdr() -> <add-completions(
+                                     | ("Decls", Decls(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopePartEntry-Plhdr() -> <add-completions(
+                                     | ("Refs", Refs(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopePartEntry-Plhdr() -> <add-completions(
+                                     | ("DirectEdges", DirectEdges(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopePartEntry-Plhdr() -> <add-completions(
+                                     | ("ImportEdges", ImportEdges(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ScopePartEntry-Plhdr() -> <add-completions(
+                                     | ("AssocEdges", AssocEdges(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-DeclEntry-Plhdr() -> <add-completions(
+                                | ( "Decl"
+                                  , Decl(
+                                      <try(inline-completions(|NaBL2-DeclEntry-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                    , <try(inline-completions(|NaBL2-DeclEntry-Plhdr()))> NaBL2-DeclType-Plhdr()
+                                    )
+                                  )
+                                )
+                                ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-RefEntry-Plhdr() -> <add-completions(
+                               | ( "Ref"
+                                 , Ref(
+                                     <try(inline-completions(|NaBL2-RefEntry-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-DirectEntry-Plhdr() -> <add-completions(
+                                  | ( "DirectEdge"
+                                    , DirectEdge(
+                                        <try(inline-completions(|NaBL2-DirectEntry-Plhdr()))> NaBL2-PathLabel-Plhdr()
+                                      , <try(inline-completions(|NaBL2-DirectEntry-Plhdr()))> NaBL2-Scope-Plhdr()
+                                      )
+                                    )
+                                  )
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ImportEntry-Plhdr() -> <add-completions(
+                                  | ( "ImportEdge"
+                                    , ImportEdge(
+                                        <try(inline-completions(|NaBL2-ImportEntry-Plhdr()))> NaBL2-PathLabel-Plhdr()
+                                      , <try(inline-completions(|NaBL2-ImportEntry-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                      )
+                                    )
+                                  )
+                                  ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AssocEntry-Plhdr() -> <add-completions(
+                                 | ( "AssocEdge"
+                                   , AssocEdge(
+                                       <try(inline-completions(|NaBL2-AssocEntry-Plhdr()))> NaBL2-PathLabel-Plhdr()
+                                     , <try(inline-completions(|NaBL2-AssocEntry-Plhdr()))> NaBL2-Occurrence-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-DeclType-Plhdr() -> <add-completions(
+                               | ( "Type"
+                                 , Type(
+                                     <try(inline-completions(|NaBL2-DeclType-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+  null-constructor-completion-sort :
+    "NaBL2-DeclType" -> NoType()
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ("Unifier", Unifier(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ("NameResolution", NameResolution(CURSOR_ELEMENT()))
+                                     )
+                                     ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ResolutionResult-Plhdr() -> <add-completions(|("NoResolution", NoResolution()))
+                                       ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-ResolutionResult-Plhdr() -> <add-completions(
+                                       | ("Resolution", Resolution(CURSOR_ELEMENT()))
+                                       )
+                                       ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-AnalysisResult-Plhdr() -> <add-completions(
+                                     | ( "SymbolicConstraints"
+                                       , SymbolicConstraints(CURSOR_ELEMENT(), CURSOR_ELEMENT())
+                                       )
+                                     )
+                                     ; fail> completions
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-Occurrence" -> <is-left-recursive> "NaBL2-RefEntry"
+    where <not(is-lexical-completion-sort)> "NaBL2-Occurrence"
+
+  is-right-recursive :
+    "NaBL2-Occurrence" -> <is-right-recursive> "NaBL2-RefEntry"
+    where <not(is-lexical-completion-sort)> "NaBL2-Occurrence"
+
+  is-NaBL2-RefEntry-completion-sort :
+    "NaBL2-Occurrence" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ScopeEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ScopePartEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-DeclEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-RefEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-DirectEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Scope-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ImportEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AssocEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-PathLabel-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-DeclType-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-UnifierEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CVar-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ResolutionEntry-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ResolutionResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-ResolutionPath-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Occurrence-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Path-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-AnalysisResult-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()

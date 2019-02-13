@@ -1,0 +1,66 @@
+module completion/nabl2/shared/common/Identifiers-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/common/Identifiers-sig
+
+
+rules
+
+  is-lexical-completion-sort :
+    "NaBL2-INT" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-ID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-LCID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-UCID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-STRID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-STRLCID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-STRUCID" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-VarId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-OpId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-SortId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-NamespaceId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-PropertyId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-RelationId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-FunctionId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-ProjectionId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-StrategyId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-LabelId" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-BuiltinLabel" -> <id>

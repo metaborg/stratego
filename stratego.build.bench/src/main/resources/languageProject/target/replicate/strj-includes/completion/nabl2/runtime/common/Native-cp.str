@@ -1,0 +1,24 @@
+module completion/nabl2/runtime/common/Native-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/runtime/common/Native-sig
+
+
+rules
+
+  is-lexical-completion-sort :
+    "NaBL2-Int" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-Real" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-String" -> <id>
+
+  is-lexical-completion-sort :
+    "NaBL2-Term" -> <id>

@@ -1,0 +1,25 @@
+module signatures/nabl2/shared/common/Identifiers-sig
+
+signature
+  sorts
+    NaBL2-Keyword
+
+  constructors
+     : String -> NaBL2-INT
+     : String -> NaBL2-ID
+     : String -> NaBL2-LCID
+     : String -> NaBL2-UCID
+     : String -> NaBL2-STRID
+     : String -> NaBL2-STRLCID
+     : String -> NaBL2-STRUCID
+     : String -> NaBL2-VarId
+     : String -> NaBL2-OpId
+     : String -> NaBL2-SortId
+     : String -> NaBL2-NamespaceId
+     : String -> NaBL2-PropertyId
+     : String -> NaBL2-RelationId
+     : String -> NaBL2-FunctionId
+     : String -> NaBL2-ProjectionId
+     : String -> NaBL2-StrategyId
+     : String -> NaBL2-LabelId
+     : String -> NaBL2-BuiltinLabel

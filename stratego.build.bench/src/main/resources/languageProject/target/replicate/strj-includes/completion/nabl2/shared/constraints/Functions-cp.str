@@ -1,0 +1,95 @@
+module completion/nabl2/shared/constraints/Functions-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Functions-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Identifiers-cp
+  completion/nabl2/shared/common/Messages-cp
+
+
+rules
+
+  suggest-completions(|completions):
+    NaBL2-Constraint-Plhdr() -> <add-completions(
+                                 | ( "CEval"
+                                   , CEval(
+                                       <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-FunctionRef-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-CTerm-Plhdr()
+                                     , <try(inline-completions(|NaBL2-Constraint-Plhdr()))> NaBL2-Message-Plhdr()
+                                     )
+                                   )
+                                 )
+                                 ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-Function-Plhdr() -> <add-completions(
+                               | ( "Function"
+                                 , Function(
+                                     <try(inline-completions(|NaBL2-Function-Plhdr()))> NaBL2-FunctionId-Plhdr()
+                                   )
+                                 )
+                               )
+                               ; fail> completions
+
+  suggest-completions(|completions):
+    NaBL2-FunctionRef-Plhdr() -> <suggest-completions(|completions)> NaBL2-Function-Plhdr()
+    where <not(is-expanded)> (NaBL2-FunctionRef-Plhdr(), NaBL2-Function-Plhdr())
+          ; rules (
+              is-expanded :
+                (NaBL2-FunctionRef-Plhdr(), NaBL2-Function-Plhdr()) -> <id>
+            )
+
+
+rules
+
+  is-left-recursive :
+    "NaBL2-FunctionId" -> <is-left-recursive> "NaBL2-Function"
+    where <not(is-lexical-completion-sort)> "NaBL2-FunctionId"
+
+  is-right-recursive :
+    "NaBL2-FunctionId" -> <is-right-recursive> "NaBL2-Function"
+    where <not(is-lexical-completion-sort)> "NaBL2-FunctionId"
+
+  is-NaBL2-Function-completion-sort :
+    "NaBL2-FunctionId" -> <id>
+
+  is-left-recursive :
+    "NaBL2-Function" -> <is-left-recursive> "NaBL2-FunctionRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Function"
+
+  is-right-recursive :
+    "NaBL2-Function" -> <is-right-recursive> "NaBL2-FunctionRef"
+    where <not(is-lexical-completion-sort)> "NaBL2-Function"
+
+  is-NaBL2-FunctionRef-completion-sort :
+    "NaBL2-Function" -> <id>
+
+
+rules
+
+  is-SDF-placeholder =
+    ?NaBL2-Constraint-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-CTerm-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Message-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-FunctionId-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-FunctionRef-Plhdr()
+
+  is-SDF-placeholder =
+    ?NaBL2-Function-Plhdr()

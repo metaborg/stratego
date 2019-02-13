@@ -1,0 +1,161 @@
+module nabl2/runtime/analysis/generation
+
+imports
+
+  nabl2/api
+
+  libspoofax/editor/completion/interface
+
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+  nabl2/shared/-
+
+  signatures/nabl2/runtime/common/-
+  nabl2/runtime/analysis/-
+  nabl2/runtime/prelude/-
+  nabl2/runtime/pp
+
+signature
+
+  constructors
+    Params        : Term -> Args
+    ParamsAndType : Term * Term -> Args
+    CFGParams     : Term -> Args
+    CFGParams     : Term
+
+rules // top-level functions that are called during analysis
+
+  nabl2-debug-constraint-generation-hook = fail
+
+  nabl2--generate-constraint-init(|source) = nabl2--with-fresh(!"-",
+    ?term;
+    <nabl2--generate-constraint-init-rule(|)> (source, term)
+  )
+ <+ fatal-err(|"Cannot find init rule")
+
+  nabl2--generate-constraint-file(|source,args) = nabl2--with-fresh(!"-",
+       ?term;
+       nabl2_constraint    := <nabl2--generate-constraint(nabl2--generate-constraint-default-rule|"default")> (source, term, args);
+       flowspec_constraint := <nabl2-generate-flowspec-constraint(|term)> (source, term, args);
+       !CConj(nabl2_constraint, flowspec_constraint)
+  )
+ <+ fatal-err(|"Cannot find constraint rule")
+
+  nabl2--generate-constraint-completion = nabl2--with-fresh(!"-",
+       ?(source, term, args);
+       <nabl2--generate-constraint(nabl2--generate-constraint-default-rule|"default")> ($[[source]#completion], term, args)
+  )
+ <+ fatal-err(|"Cannot find constraint rule")
+
+  nabl2-generate-flowspec-constraint(|term) =
+    nabl2--generate-constraint-placeholder
+ <+ nabl2--generate-constraint-default-cfg-rule
+ <+ !CTrue(<nabl2--get-ast-index> term)
+
+rules
+
+  nabl2--custom-default-e-label = fail
+  nabl2--custom-default-n-label = fail
+
+  nabl2--default-e-label = nabl2--custom-default-e-label <+ !P()
+  nabl2--default-n-label = nabl2--custom-default-n-label <+ !I()
+
+  nabl2--fresh-var(|source): n -> CVar(source, n')
+    with n' := <nabl2--fresh> n
+
+  nabl2--local-var(|source): n -> CVar(source, n)
+
+  nabl2--occurrence-index-of =
+    nabl2--is-var
+ <+ nabl2--get-ast-index
+ <+ fatal-err(|"Occurrence position must be a term or a scope variable")
+
+rules
+
+  // signatures of the generated rules
+  nabl2--generate-constraint-init-rule = fail
+  nabl2--generate-constraint-default-rule(|) = fail
+  nabl2--generate-constraint-default-cfg-rule(|) = fail
+  nabl2--transform-occurrences = fail
+
+  // error throwing wrappers for recursive invocations
+  nabl2--generate-constraint(s|name) =
+    nabl2--error-no-index
+ <+ nabl2--generate-constraint-placeholder
+ <+ s
+ <+ nabl2--generate-constraint-missing(|name)
+
+  nabl2--error-no-index:
+      (source,term,args) -> constraint
+    where <not(nabl2--get-ast-index)> term
+    with msg := $[Constraint generator traverses over non-AST node [<pp-NaBL2-Term> term]];
+         if nabl2-debug-constraint-generation-hook then
+           warn(|msg)
+         end;
+         constraint := CFalse(Message(Error(),msg,NoIndex()))
+
+  nabl2--generate-constraint-placeholder:
+      (source,term,args) -> <nabl2--make-cconj> constraint*
+    where <is-SDF-placeholder> term
+    with index := <nabl2--get-ast-index> term;
+         if ParamsAndType(params,type) := args then
+           constraint* := [CAstProperty(index, Params(), params),
+                           CAstProperty(index, Type(), type)]
+         else if Params(params) := args then
+           constraint* := [CAstProperty(index, Params(), params)]
+         end end
+
+  nabl2--generate-constraint-missing(|name):
+      (source,term,args) -> <nabl2--make-cconj> [ast-constraint*, constraint]
+    with index := <nabl2--get-ast-index> term;
+         if ParamsAndType(params,type) := args then
+           ast-constraint* := [CAstProperty(index, Params(), params),
+                               CAstProperty(index, Type(), type)];
+           msg := ${Missing constraint generation rule: {name} [[ {<nabl2--pp-flat-term> term} {<nabl2--pp-flat-args> args} ]]};
+           if nabl2-debug-constraint-generation-hook then
+             warn(|msg)
+           end;
+           constraint := CFalse(Message(Warning(),msg,index))
+         else if Params(params) := args then
+           ast-constraint* := [CAstProperty(index, Params(), params)];
+           msg := ${Missing constraint generation rule: {name} [[ {<nabl2--pp-flat-term> term} {<nabl2--pp-flat-args> args} ]]};
+           if nabl2-debug-constraint-generation-hook then
+             warn(|msg)
+           end;
+           constraint := CFalse(Message(Warning(),msg,index))
+         else if CFGParams(params) := args then
+           ast-constraint* := [CAstProperty(index, CFGParams(), params)];
+           msg := ${Missing flowspec cfg rule: {name} {<nabl2--pp-flat-term> term}};
+           //if nabl2-debug-constraint-generation-hook then
+             warn(|msg);
+           //end;
+           constraint := CFalse(Message(Warning(),msg,index))
+         end end end
+
+rules
+
+  nabl2--pp-flat-term: c#(a*) -> $[[c]([as])] 
+    where not(is-list)
+    with as := <map(!"_");separate-by(|",");concat-strings> a*
+
+  nabl2--pp-flat-term: c#(a*) -> ${[{as}]} 
+    where is-list
+    with as := <map(!"_");separate-by(|",");concat-strings> a*
+
+  nabl2--pp-flat-args: Params(a*) -> $[^ ([p])]
+    with if <is-tuple> a* then
+      p := <TupleToList;map(!"_");separate-by(|",");concat-strings> a*
+    else
+      p := "_"
+    end
+
+  nabl2--pp-flat-args: ParamsAndType(a*,_) -> $[[p] : _]
+    with p := <nabl2--pp-flat-args> Params(a*)
+
+  nabl2--pp-term-sig: a* -> ${[{a'}]}
+    where is-list
+    with a' := <map(nabl2--pp-term-sig);separate-by(|",");concat-strings> a*
+
+  nabl2--pp-term-sig: c#(a*) -> $[[c]([a'])]
+    where not(is-list)
+    with a' := <map(!"_");separate-by(|",");concat-strings> a*

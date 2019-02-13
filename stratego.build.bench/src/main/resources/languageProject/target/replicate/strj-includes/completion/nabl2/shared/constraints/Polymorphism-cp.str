@@ -1,0 +1,20 @@
+module completion/nabl2/shared/constraints/Polymorphism-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/nabl2/shared/constraints/Polymorphism-sig
+
+
+imports
+  completion/nabl2/shared/common/CTerms-cp
+  completion/nabl2/shared/common/Messages-cp
+
+
+rules
+
+  is-lexical-completion-sort :
+    "NaBL2-Keyword" -> <id>

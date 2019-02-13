@@ -1,0 +1,140 @@
+module nabl2/runtime/interpreter/scopegraph-impl
+
+imports
+
+  nabl2/runtime/interpreter/scopegraph-api
+
+signature
+
+  constructors
+    Scope : String * String -> Scope
+
+  constructors
+    Occurrence : Namespace * Name * TermIndex -> Occurrence
+ 
+  sorts TermIndex constructors
+    TermIndex : String * Int -> TermIndex 
+ 
+  sorts ScopeGraph ScopeEntry DeclEntry RefEntry constructors
+    G : Map(Scope, ScopeEntry)     // scopes
+      * Map(Occurrence, DeclEntry) // decls
+      * Map(Occurrence, RefEntry)  // refs
+      -> ScopeGraph
+
+    SE : List(Occurrence)             // decls
+       * List(Occurrence)             // refs
+       * Map(Label, List(Scope))      // direct edges
+       * Map(Label, List(Occurrence)) // import edges
+       -> ScopeEntry
+
+    DE : List(Scope)             // decl scope
+       * Map(Label, List(Scope)) // assoc scopes
+       -> DeclEntry
+ 
+    RE : List(Scope)             // ref scope
+       -> RefEntry
+ 
+  sort aliases
+    NameResolution = Map(Occurrence, (Occurrence * Path))
+    DeclTypes      = Map(Occurrence, Type)
+ 
+  sorts Property constructors
+    Type     : Property
+    Params   : Property
+    Property : String -> Property
+ 
+  native operators
+    nabl2_init    : AST -> NaBL2
+    nabl2_indexOf : AST -> TermIndex
+
+  constructors
+    NaBL2 : ScopeGraph * NameResolution * DeclTypes -> NaBL2
+ 
+  arrows
+    mkOccurrenceHavingIndex(String, Name, TermIndex) --> Occurrence
+    
+rules
+
+  initNaBL2(t) --> nabl2_init(t)
+ 
+rules // occurrences
+
+  mkOccurrence(t:Name) --> Occurrence(ns,t,idx)
+    where DefaultNamespace() => ns;
+          nabl2_indexOf(t) => idx
+
+  mkOccurrence(ns, t) /* :(String * Name) */--> Occurrence(ns',t,idx)
+    where Namespace(ns) => ns';
+          nabl2_indexOf(t) => idx
+
+  mkOccurrence(ns, t, o) /* :(String * Name * AST) */ --> Occurrence(ns',t,idx)
+    where Namespace(ns) => ns';
+          nabl2_indexOf(o) => idx
+
+  mkOccurrenceHavingIndex(ns, t, idx) --> Occurrence(ns', t, idx)
+    where Namespace(ns) => ns'
+
+  namespaceOf(Occurrence(ns,_,_)) --> ns
+
+  nameOf(Occurrence(_,n,_)) --> n
+
+rules // scope graph
+
+  newScope(s, decls, refs, edges, importz) :: NaBL2 NaBL2(G(ss, ds, rs), nr, dt)
+    --> s :: NaBL2 NaBL2(G({s |--> SE(decls, refs, edges, importz), ss}, ds, rs), nr, dt)
+
+  setType(o, ty) :: NaBL2 NaBL2(G(ss, ds, rs), nr, dt)
+    --> o :: NaBL2 NaBL2(G(ss, ds, rs), nr, {o |--> ty, dt})
+
+  NaBL2 NaBL2(G(ss,_,_),_,_) |- declsOf(s:Scope) --> ds
+    where case ss[s?] of {
+      true ->
+        ss[s] => SE(ds,_,_,_)
+      false ->
+        [] => ds
+    }
+
+  NaBL2 NaBL2(G(ss,_,_),_,_) |- edgesOf(s:Scope) --> es
+    where case ss[s?] of {
+      true ->
+        ss[s] => SE(_,_,es,_)
+      false ->
+        {} => es
+    }
+
+  NaBL2 NaBL2(G(ss,_,_),_,_) |- importsOf(s:Scope) --> ir
+    where case ss[s?] of {
+      true ->
+        ss[s] => SE(_,_,_,ir)
+      false ->
+        {} => ir
+    }
+
+
+  NaBL2 NaBL2(G(_,ds,_),_,_) |- scopeOfDecl(d:Occurrence) --> s
+    where case ds[d?] of {
+      true ->
+        ds[d] => DE([s],_)
+    }
+
+  NaBL2 NaBL2(G(_,ds,_),_,_) |- assocsOf(d:Occurrence) --> assocs
+    where case ds[d?] of {
+      true ->
+        ds[d] => DE(_,assocs)
+      false ->
+        {} => assocs
+    }
+
+  NaBL2 NaBL2(G(_,_,rs),_,_) |- scopeOfRef(r:Occurrence) --> s
+    where case rs[r?] of {
+      true ->
+        rs[r] => RE([s])
+    }
+
+  NaBL2 NaBL2(_,_,dt) |- typeOf(o:Occurrence) --> t
+    where dt[o] => t
+
+rules // name resolution
+
+  NaBL2 NaBL2(_,nr,_) |- pathOf(r:Occurrence) --> p
+    where nr[r] => (_, p)

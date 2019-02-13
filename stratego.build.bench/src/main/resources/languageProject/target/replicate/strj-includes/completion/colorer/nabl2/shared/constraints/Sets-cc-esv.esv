@@ -1,0 +1,12 @@
+module completion/colorer/nabl2/shared/constraints/Sets-cc-esv
+
+imports
+  completion/colorer/nabl2/shared/common/Messages-cc-esv
+  completion/colorer/nabl2/shared/common/Sets-cc-esv
+  completion/colorer/nabl2/shared/common/CTerms-cc-esv
+
+colorer
+  _.NaBL2-Constraint-Plhdr : gray   
+  _.NaBL2-CTerm-Plhdr      : gray   
+  _.NaBL2-CSet-Plhdr       : gray   
+  _.NaBL2-Message-Plhdr    : gray   
