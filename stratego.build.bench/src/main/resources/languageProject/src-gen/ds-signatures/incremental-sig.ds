@@ -1,0 +1,10 @@
+module ds-signatures/incremental-sig
+
+imports ds-signatures/Common-sig
+
+signature
+    sorts
+      Start
+    constructors
+      Empty : Start 
+      Blank : Start 

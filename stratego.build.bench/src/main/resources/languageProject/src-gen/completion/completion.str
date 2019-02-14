@@ -1,0 +1,56 @@
+module completion
+
+imports
+  
+  libspoofax/editor/completion/-
+  completion/incremental-cp
+  pp/-
+  pp
+ 
+  
+rules
+
+  pp-partial-incremental-string(|sort) = fail
+  pp-partial-incremental-string = fail
+  parenthesize-incremental = fail
+  incremental-get-indent = fail
+  incremental-get-leading-ws = fail
+  incremental-get-separator = fail
+
+  
+  get-proposals-empty-program-incremental                         = ?(sort, _); 
+                                                                 get-proposals-empty-program(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-left-recursive-incremental                        = ?(sort, _); 
+                                                                 get-proposals-left-recursive(pp-partial-incremental-string, parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-right-recursive-incremental                       = ?(sort, _); 
+                                                                 get-proposals-right-recursive(pp-partial-incremental-string, parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-placeholder-incremental                           = ?(sort, _, _, _);
+                                                                 get-proposals-placeholder(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-optional-incremental                              = ?(sort, _, _);
+                                                                 get-proposals-optional(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-list-incremental                                  = ?(sort, _, _, _);
+                                                                 get-proposals-list(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-incorrect-programs-incremental                    = ?(sort, _, _, _, _);
+                                                                 get-proposals-incorrect-programs(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-incorrect-programs-nested-incremental             = ?(sort, _, _, _, _, _);
+                                                                 get-proposals-incorrect-programs-nested(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)
+  get-proposals-incorrect-programs-single-placeholder-incremental = ?(sort, _, _, _, _, _, _);
+                                                                 get-proposals-incorrect-programs-single-placeholder(pp-partial-incremental-string(|sort), parenthesize-incremental, 
+                                                                                             incremental-get-indent, incremental-get-leading-ws, 
+                                                                                             incremental-get-separator)

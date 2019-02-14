@@ -1,0 +1,29 @@
+module completion/incremental-cp
+
+imports
+  libstratego-gpp
+  libspoofax/editor/completion/-
+
+
+imports
+  signatures/incremental-sig
+
+
+imports
+  completion/Common-cp
+
+
+rules
+
+  null-constructor-completion-sort :
+    "Start" -> Empty()
+
+  suggest-completions(|completions):
+    Start-Plhdr() -> <add-completions(|("Blank", Blank()))
+                      ; fail> completions
+
+
+rules
+
+  is-SDF-placeholder =
+    ?Start-Plhdr()

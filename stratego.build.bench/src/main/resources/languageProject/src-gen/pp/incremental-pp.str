@@ -1,0 +1,181 @@
+module pp/incremental-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libspoofax/term/annotation
+  libstratego-sglr
+  libstratego-sglr
+  signatures/incremental-sig
+
+
+imports
+  signatures/Common-sig
+
+
+imports
+  pp/Common-pp
+
+
+strategies
+  prettyprint-example =
+    prettyprint-incremental
+
+  prettyprint-incremental =
+    fail
+
+  prettyprint-incremental(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-incremental-start-symbols
+
+  prettyprint-incremental-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-incremental-start-symbols =
+    prettyprint-incremental-Start
+
+
+strategies
+  prettyprint-incremental =
+    prettyprint-incremental-Start
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-Start>
+    where <?"Start"> sort
+
+  prettyprint-incremental-Start :
+    Empty() -> [ H(
+                   []
+                 , [S("")]
+                 )
+               ]
+
+  is-incremental-Start =
+    ?Empty()
+
+  incremental-get-indent :
+    (t@Empty(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  incremental-get-separator :
+    (t@Empty(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  incremental-get-leading-ws :
+    (t@Empty(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  check-nonterminal-isEmpty =
+    ?Empty()
+
+  prettyprint-incremental-Start :
+    Blank() -> [ H(
+                   [SOpt(HS(), "0")]
+                 , t1__'
+                 )
+               ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("This")
+                                   , S(" ")
+                                   , S("file")
+                                   , S(" ")
+                                   , S("was")
+                                   , S(" ")
+                                   , S("intentionally")
+                                   , S(" ")
+                                   , S("left")
+                                   , S(" ")
+                                   , S("blank.")
+                                   ]
+
+  is-incremental-Start =
+    ?Blank()
+
+  incremental-get-indent :
+    (t@Blank(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  incremental-get-separator :
+    (t@Blank(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  incremental-get-leading-ws :
+    (t@Blank(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  is-incremental-Start =
+    fail
+
+  prettyprint-incremental-Start :
+    amb([h|hs]) -> <prettyprint-incremental-Start> h
+
+  prettyprint-incremental-Start :
+    Start-Plhdr() -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("$Start")]
+                       )
+                     ]
+
+  is-incremental-Start =
+    ?Start-Plhdr()
+
+  prettyprint-incremental-Start :
+    Start-Plhdr(_) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("$Start")]
+                        )
+                      ]
+
+  is-incremental-Start =
+    ?Start-Plhdr(_)
+
+  prettyprint-incremental-Start :
+    Start-Opt-Plhdr() -> [ H(
+                             []
+                           , [S("")]
+                           )
+                         ]
+
+  is-incremental-Start =
+    ?Start-Opt-Plhdr()

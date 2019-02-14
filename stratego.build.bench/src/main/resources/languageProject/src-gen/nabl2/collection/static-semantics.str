@@ -1,0 +1,88 @@
+module static-semantics
+
+imports
+  signatures/nabl2/shared/-
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+  nabl2/shared/-
+  signatures/nabl2/runtime/-
+  signatures/nabl2/runtime/analysis/-
+  signatures/nabl2/runtime/common/-
+  nabl2/runtime/-
+  nabl2/runtime/analysis/-
+  nabl2/runtime/prelude/-
+  nabl2/runtime/stdlib/-
+
+
+rules
+
+
+rules
+
+
+rules
+
+
+imports
+  signatures/-
+
+
+rules
+
+  prettyprint-incremental(|sort) =
+    prettyprint-NaBL2-api-term(|sort)
+
+  prettyprint-incremental-NaBL2Scope(|) =
+    prettyprint-NaBL2-api-term
+
+  prettyprint-incremental-NaBL2Occurrence(|) =
+    prettyprint-NaBL2-api-term
+
+  nabl2--generate-constraint-init-rule(|):
+    (nabl2_source, term0@wld1) -> (args0, constraint0)
+    with(s := <nabl2--fresh-var(|nabl2_source)> "s" ; id)
+    with(args0 := Params((s)))
+    with(constraint0 := CNew([s], <nabl2--get-ast-index> term0))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> ["init ^ ", <pp-NaBL2-CTerm> (s)]
+           )
+         end)
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term1@Empty(), args1) -> constraint1
+    with(id)
+    with(Params(params12@(s)) := args1
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (s)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args1
+                               , " when matching "
+                               , "Empty()"
+                               , " with "
+                               , <pp-NaBL2-Term> term1
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term1
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params12
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint1 := CConj(
+                          CAstProperty(
+                            <nabl2--get-ast-index> term1
+                          , Params()
+                          , (s)
+                          )
+                        , CFalse(
+                            Message(Note(), "Specify name binding and typing rules in static-semantics.nabl2", <nabl2--get-ast-index> term1)
+                          )
+                        ))

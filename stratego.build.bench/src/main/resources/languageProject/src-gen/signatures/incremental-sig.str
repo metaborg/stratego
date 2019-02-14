@@ -1,0 +1,13 @@
+module signatures/incremental-sig
+
+imports
+  signatures/Common-sig
+
+
+signature
+  constructors
+    Empty           : Start
+    Blank           : Start
+    Start-Plhdr     : Start
+    Start-Plhdr     : COMPLETION-INSERTION -> Start
+    Start-Opt-Plhdr : Start

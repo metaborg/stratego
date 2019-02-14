@@ -1,7 +1,9 @@
 /.cache
 /bin
-/src-gen
+/src-gen/stratego-java
+/src-gen/stratego_sugar
 /target
+!/target/replicate/strj-includes
 
 /.classpath
 /.project

@@ -1,0 +1,148 @@
+module pp/Common-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libspoofax/term/annotation
+  libstratego-sglr
+  libstratego-sglr
+  signatures/Common-sig
+
+
+strategies
+  prettyprint-example =
+    prettyprint-incremental
+
+  prettyprint-incremental =
+    fail
+
+  prettyprint-incremental(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-incremental-start-symbols
+
+  prettyprint-incremental-start-symbols =
+    fail
+
+
+strategies
+  prettyprint-incremental =
+    prettyprint-incremental-ID
+
+  prettyprint-incremental =
+    prettyprint-incremental-INT
+
+  prettyprint-incremental =
+    prettyprint-incremental-STRING
+
+  prettyprint-incremental =
+    prettyprint-incremental-StringChar
+
+  prettyprint-incremental =
+    prettyprint-incremental-BackSlashChar
+
+  prettyprint-incremental =
+    prettyprint-incremental-CommentChar
+
+  prettyprint-incremental =
+    prettyprint-incremental-InsideComment
+
+  prettyprint-incremental =
+    prettyprint-incremental-NewLineEOF
+
+  prettyprint-incremental =
+    prettyprint-incremental-EOF
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-ID>
+    where <?"ID"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-INT>
+    where <?"INT"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-STRING>
+    where <?"STRING"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-StringChar>
+    where <?"StringChar"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-BackSlashChar>
+    where <?"BackSlashChar"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-CommentChar>
+    where <?"CommentChar"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-InsideComment>
+    where <?"InsideComment"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-NewLineEOF>
+    where <?"NewLineEOF"> sort
+
+  prettyprint-incremental(|sort):
+    t -> <prettyprint-incremental-EOF>
+    where <?"EOF"> sort
+
+  prettyprint-incremental-ID =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-INT =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-STRING =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-StringChar =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-BackSlashChar =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-CommentChar =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-InsideComment =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-NewLineEOF =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-EOF =
+    ![S(<is-string>)]
+
+  prettyprint-incremental-ID :
+    amb([h|hs]) -> <prettyprint-incremental-ID> h
+
+  prettyprint-incremental-INT :
+    amb([h|hs]) -> <prettyprint-incremental-INT> h
+
+  prettyprint-incremental-STRING :
+    amb([h|hs]) -> <prettyprint-incremental-STRING> h
+
+  prettyprint-incremental-StringChar :
+    amb([h|hs]) -> <prettyprint-incremental-StringChar> h
+
+  prettyprint-incremental-BackSlashChar :
+    amb([h|hs]) -> <prettyprint-incremental-BackSlashChar> h
+
+  prettyprint-incremental-CommentChar :
+    amb([h|hs]) -> <prettyprint-incremental-CommentChar> h
+
+  prettyprint-incremental-InsideComment :
+    amb([h|hs]) -> <prettyprint-incremental-InsideComment> h
+
+  prettyprint-incremental-NewLineEOF :
+    amb([h|hs]) -> <prettyprint-incremental-NewLineEOF> h
+
+  prettyprint-incremental-EOF :
+    amb([h|hs]) -> <prettyprint-incremental-EOF> h

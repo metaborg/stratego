@@ -1,0 +1,13 @@
+module signatures/Common-sig
+
+signature
+  constructors
+     : String -> ID
+     : String -> INT
+     : String -> STRING
+     : String -> StringChar
+     : String -> BackSlashChar
+     : String -> CommentChar
+     : String -> InsideComment
+     : String -> NewLineEOF
+     : String -> EOF

@@ -1,0 +1,7 @@
+module completion/colorer/incremental-cc-esv
+
+imports
+  completion/colorer/Common-cc-esv
+
+colorer
+  _.Start-Plhdr : gray   

@@ -1,0 +1,14 @@
+module ds-signatures/Common-sig
+
+signature
+    sorts
+    sort aliases
+      ID = String
+      INT = String
+      STRING = String
+      StringChar = String
+      BackSlashChar = String
+      CommentChar = String
+      InsideComment = String
+      NewLineEOF = String
+      EOF = String

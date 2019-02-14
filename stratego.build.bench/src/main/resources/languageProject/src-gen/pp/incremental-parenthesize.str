@@ -1,0 +1,18 @@
+module pp/incremental-parenthesize
+
+imports
+  libstratego-lib
+  signatures/-
+
+
+strategies
+  io-incremental-parenthesize =
+    io-wrap(id)
+
+  parenthesize-incremental =
+    id
+
+
+signature
+  constructors
+    Parenthetical : Unknown -> Unknown
