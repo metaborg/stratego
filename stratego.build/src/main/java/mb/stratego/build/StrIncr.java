@@ -18,7 +18,6 @@ import org.metaborg.util.cmd.Arguments;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -130,42 +129,56 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return new Module(path, Type.source);
         }
 
-        static Set<Module> resolveWildcards(Collection<StrIncrFront.Import> imports, Collection<File> includeDirs,
-            File projectLocation) throws IOException {
+        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports, Collection<File> includeDirs,
+            File projectLocation) throws ExecException {
             final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p).toString());
             final Set<Module> result = new HashSet<>(imports.size() * 2);
             for(StrIncrFront.Import anImport : imports) {
                 switch(anImport.type) {
-                    case normal:
+                    case normal: {
+                        boolean foundSomethingToImport = false;
                         for(File dir : includeDirs) {
                             final Path strPath = dir.toPath().resolve(anImport.path + ".str");
                             final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
                             if(Files.exists(rtreePath)) {
+                                foundSomethingToImport = true;
                                 result.add(module.apply(rtreePath));
                             } else if(Files.exists(strPath)) {
+                                foundSomethingToImport = true;
                                 result.add(module.apply(strPath));
                             }
                         }
+                        if(!foundSomethingToImport) {
+                            execContext.getLogger().warn("Could not find any module corresponding to import " + anImport.path, null);
+                        }
                         break;
-                    case wildcard:
+                    }
+                    case wildcard: {
+                        boolean foundSomethingToImport = false;
                         for(File dir : includeDirs) {
                             final Path path = dir.toPath().resolve(anImport.path);
                             if(Files.exists(path)) {
                                 final @Nullable File[] strFiles = path.toFile()
                                     .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
                                 if(strFiles == null) {
-                                    throw new IOException(
+                                    throw new ExecException(
                                         "Reading file list in directory failed for directory: " + path);
                                 }
                                 for(File strFile : strFiles) {
+                                    foundSomethingToImport = true;
                                     result.add(module.apply(strFile.toPath()));
                                 }
                             }
                         }
+                        if(!foundSomethingToImport) {
+                            execContext.getLogger().warn("Could not find any module corresponding to import " + anImport.path + "/-", null);
+                        }
                         break;
-                    case library:
+                    }
+                    case library: {
                         result.add(Module.library(anImport.path));
                         break;
+                    }
                 }
             }
             return result;
@@ -326,18 +339,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             // resolving imports
-            try {
-                final Set<Module> expandedImports =
-                    Module.resolveWildcards(theImports, input.includeDirs, input.projectLocation);
-                for(Module m : expandedImports) {
-                    getOrInitialize(imports, module.path, HashSet::new).add(m.path);
-                }
-                expandedImports.removeAll(seen);
-                workList.addAll(expandedImports);
-                seen.addAll(expandedImports);
-            } catch(IOException e) {
-                throw new ExecException(e);
+            final Set<Module> expandedImports =
+                Module.resolveWildcards(execContext, theImports, input.includeDirs, input.projectLocation);
+            for(Module m : expandedImports) {
+                getOrInitialize(imports, module.path, HashSet::new).add(m.path);
             }
+            expandedImports.removeAll(seen);
+            workList.addAll(expandedImports);
+            seen.addAll(expandedImports);
         } while(!workList.isEmpty());
 
         // CHECK: constructor/strategy uses have definition which is imported

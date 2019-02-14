@@ -137,7 +137,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Set<String> constrs;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
-            Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs) {
+            Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
+            Set<String> constrs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategies = strategies;
@@ -210,7 +211,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         static Import library(String libraryName) {
-            assert StrIncrFrontLib.builtinLibraries.contains(libraryName);
+            assert StrIncrFrontLib.builtinLibraries.contains(libraryName) || StrIncrFrontLib.builtinLibraries
+                .contains("lib" + libraryName);
             return new Import(ImportType.library, libraryName);
         }
 
@@ -398,10 +400,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
 
-        return new Output(moduleName, strategyFiles, strategies, usedStrategies, strategyConstrs, overlayFiles, imports, constrs);
+        return new Output(moduleName, strategyFiles, strategies, usedStrategies, strategyConstrs, overlayFiles, imports,
+            constrs);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation) throws IOException {
+    private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)
+        throws IOException {
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(resource);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         final IStrategoTerm ast;

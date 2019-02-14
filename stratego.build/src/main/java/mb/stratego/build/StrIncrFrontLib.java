@@ -24,14 +24,14 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     static final Set<String> builtinLibraries = new HashSet<>();
 
     static {
-        builtinLibraries.add("stratego-lib");
-        builtinLibraries.add("stratego-sglr");
-        builtinLibraries.add("stratego-gpp");
-        builtinLibraries.add("stratego-xtc");
-        builtinLibraries.add("stratego-aterm");
-        builtinLibraries.add("stratego-sdf");
-        builtinLibraries.add("strc");
-        builtinLibraries.add("java-front");
+        builtinLibraries.add("libstratego-lib");
+        builtinLibraries.add("libstratego-sglr");
+        builtinLibraries.add("libstratego-gpp");
+        builtinLibraries.add("libstratego-xtc");
+        builtinLibraries.add("libstratego-aterm");
+        builtinLibraries.add("libstratego-sdf");
+        builtinLibraries.add("libstrc");
+        builtinLibraries.add("libjava-front");
     }
 
     static final class Input implements Serializable {
@@ -158,28 +158,37 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
 
     private static IStrategoTerm getBuiltinLibrary(String libraryName) throws ExecException {
         switch(libraryName) {
-            case "stratego-lib": {
+            case "stratego-lib":
+            case "libstrategolib":
+            case "libstratego-lib": {
                 return Main.getLibstrategolibRtree();
             }
-            case "stratego-sglr": {
+            case "stratego-sglr":
+            case "libstratego-sglr": {
                 return Main.getLibstrategosglrRtree();
             }
-            case "stratego-gpp": {
+            case "stratego-gpp":
+            case "libstratego-gpp": {
                 return Main.getLibstrategogppRtree();
             }
-            case "stratego-xtc": {
+            case "stratego-xtc":
+            case "libstratego-xtc": {
                 return Main.getLibstrategoxtcRtree();
             }
-            case "stratego-aterm": {
+            case "stratego-aterm":
+            case "libstratego-aterm": {
                 return Main.getLibstrategoatermRtree();
             }
-            case "stratego-sdf": {
+            case "stratego-sdf":
+            case "libstratego-sdf": {
                 return Main.getLibstrategosdfRtree();
             }
-            case "strc": {
+            case "strc":
+            case "libstrc": {
                 return Main.getLibstrcRtree();
             }
             case "java-front":
+            case "libjava-front":
                 return Main.getLibjavafrontRtree();
         }
         throw new ExecException("Library was not one of the 8 built-in libraries: " + libraryName);
