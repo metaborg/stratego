@@ -12,44 +12,142 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.compat.override.strc_compat.Main;
+import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFront.Output> {
+public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFrontLib.Output> {
     public static final String id = StrIncrFrontLib.class.getCanonicalName();
-    static final Set<String> builtinLibraries = new HashSet<>();
-
-    static {
-        builtinLibraries.add("libstratego-lib");
-        builtinLibraries.add("libstratego-sglr");
-        builtinLibraries.add("libstratego-gpp");
-        builtinLibraries.add("libstratego-xtc");
-        builtinLibraries.add("libstratego-aterm");
-        builtinLibraries.add("libstratego-sdf");
-        builtinLibraries.add("libstrc");
-        builtinLibraries.add("libjava-front");
-    }
 
     static final class Input implements Serializable {
-        final String libraryName;
+        final BuiltinLibrary library;
 
-        Input(String libraryName) {
-            this.libraryName = libraryName;
+        Input(BuiltinLibrary library) {
+            this.library = library;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Input input = (Input) o;
+
+            return library.equals(input.library);
+        }
+
+        @Override public int hashCode() {
+            return library.hashCode();
+        }
+
+        @Override public String toString() {
+            return "Input(" + library + ')';
         }
     }
 
-    @Override public StrIncrFront.Output exec(ExecContext execContext, Input input)
+    static final class Output implements Serializable {
+        final Set<String> strategies;
+        final Set<String> constrs;
+
+        Output(Set<String> strategies, Set<String> constrs) {
+            this.strategies = strategies;
+            this.constrs = constrs;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            //noinspection SimplifiableIfStatement
+            if(!strategies.equals(output.strategies))
+                return false;
+            return constrs.equals(output.constrs);
+        }
+
+        @Override public int hashCode() {
+            int result = strategies.hashCode();
+            result = 31 * result + constrs.hashCode();
+            return result;
+        }
+
+        @Override public String toString() {
+            return "Output("  + strategies + ", " + constrs + ')';
+        }
+    }
+
+    enum BuiltinLibrary {
+        StrategoLib("stratego-lib"),
+        StrategoSglr("stratego-sglr"),
+        StrategoGpp("stratego-gpp"),
+        StrategoXtc("stratego-xtc"),
+        StrategoAterm("stratego-aterm"),
+        StrategoSdf("stratego-sdf"),
+        Strc("strc"),
+        JavaFront("java-front");
+
+        public final String libString;
+        public final String cmdArgString;
+
+        BuiltinLibrary(String cmdArgString) {
+            this.cmdArgString = cmdArgString;
+            this.libString = "lib" + cmdArgString;
+        }
+
+        static @Nullable BuiltinLibrary fromString(String name) {
+            switch(name) {
+                case "stratego-lib":
+                case "libstrategolib":
+                case "libstratego-lib": {
+                    return StrategoLib;
+                }
+                case "stratego-sglr":
+                case "libstratego-sglr": {
+                    return StrategoSglr;
+                }
+                case "stratego-gpp":
+                case "libstratego-gpp": {
+                    return StrategoGpp;
+                }
+                case "stratego-xtc":
+                case "libstratego-xtc": {
+                    return StrategoXtc;
+                }
+                case "stratego-aterm":
+                case "libstratego-aterm": {
+                    return StrategoAterm;
+                }
+                case "stratego-sdf":
+                case "libstratego-sdf": {
+                    return StrategoSdf;
+                }
+                case "strc":
+                case "libstrc": {
+                    return Strc;
+                }
+                case "java-front":
+                case "libjava-front": {
+                    return JavaFront;
+                }
+            }
+            return null;
+        }
+    }
+
+    @Override public Output exec(ExecContext execContext, Input input)
         throws ExecException, InterruptedException {
-        IStrategoTerm ast = getBuiltinLibrary(input.libraryName);
+        IStrategoTerm ast = getBuiltinLibrary(input.library);
         Set<String> constrs = new HashSet<>();
         Set<String> strategies = new HashSet<>();
         extractInformation(ast, constrs, strategies);
-        return new StrIncrFront.Output(input.libraryName, Collections.emptyMap(), strategies, Collections.emptySet(),
-            Collections.emptyMap(), Collections.emptyMap(), Collections.emptyList(), constrs);
+        return new Output(strategies, constrs);
     }
 
     private void extractInformation(IStrategoTerm ast, Set<String> constrs, Set<String> strategyConstrs)
@@ -156,42 +254,26 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
     }
 
-    private static IStrategoTerm getBuiltinLibrary(String libraryName) throws ExecException {
-        switch(libraryName) {
-            case "stratego-lib":
-            case "libstrategolib":
-            case "libstratego-lib": {
+    private static IStrategoTerm getBuiltinLibrary(BuiltinLibrary library) throws ExecException {
+        switch(library) {
+            case StrategoLib:
                 return Main.getLibstrategolibRtree();
-            }
-            case "stratego-sglr":
-            case "libstratego-sglr": {
+            case StrategoSglr:
                 return Main.getLibstrategosglrRtree();
-            }
-            case "stratego-gpp":
-            case "libstratego-gpp": {
+            case StrategoGpp:
                 return Main.getLibstrategogppRtree();
-            }
-            case "stratego-xtc":
-            case "libstratego-xtc": {
+            case StrategoXtc:
                 return Main.getLibstrategoxtcRtree();
-            }
-            case "stratego-aterm":
-            case "libstratego-aterm": {
+            case StrategoAterm:
                 return Main.getLibstrategoatermRtree();
-            }
-            case "stratego-sdf":
-            case "libstratego-sdf": {
+            case StrategoSdf:
                 return Main.getLibstrategosdfRtree();
-            }
-            case "strc":
-            case "libstrc": {
+            case Strc:
                 return Main.getLibstrcRtree();
-            }
-            case "java-front":
-            case "libjava-front":
+            case JavaFront:
                 return Main.getLibjavafrontRtree();
         }
-        throw new ExecException("Library was not one of the 8 built-in libraries: " + libraryName);
+        throw new ExecException("Library was not one of the 8 built-in libraries: " + library);
     }
 
     @Override public String getId() {
@@ -199,7 +281,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     }
 
     @Override public Serializable key(Input input) {
-        return input.libraryName;
+        return input.library;
     }
 
     @Override public String desc(Input input) {
@@ -210,7 +292,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         return TaskDef.DefaultImpls.desc(this, input, maxLength);
     }
 
-    @Override public Task<Input, StrIncrFront.Output> createTask(Input input) {
+    @Override public Task<Input, Output> createTask(Input input) {
         return TaskDef.DefaultImpls.createTask(this, input);
     }
 

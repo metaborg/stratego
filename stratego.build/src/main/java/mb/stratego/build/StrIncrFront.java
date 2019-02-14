@@ -57,9 +57,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
     public static final String id = StrIncrFront.class.getCanonicalName();
+    private static final Pattern stripArityPattern = Pattern.compile("^(\\w+)_\\d+_\\d+$");
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -120,6 +123,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Set<String> usedStrategies;
         /**
+         * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument
+         * to other strategy)
+         */
+        final Set<String> ambStratUsed;
+        /**
          * Strategy-name to constructor_arity names that were used in the body
          */
         final Map<String, Set<String>> strategyConstrs;
@@ -137,12 +145,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Set<String> constrs;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
-            Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
-            Set<String> constrs) {
+            Set<String> ambStratUsed, Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles,
+            List<Import> imports, Set<String> constrs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategies = strategies;
             this.usedStrategies = usedStrategies;
+            this.ambStratUsed = ambStratUsed;
             this.strategyConstrs = strategyConstrs;
             this.overlayFiles = overlayFiles;
             this.imports = imports;
@@ -165,7 +174,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 return false;
             if(!strategyFiles.equals(output.strategyFiles))
                 return false;
+            if(!strategies.equals(output.strategies))
+                return false;
             if(!usedStrategies.equals(output.usedStrategies))
+                return false;
+            if(!ambStratUsed.equals(output.ambStratUsed))
                 return false;
             if(!strategyConstrs.equals(output.strategyConstrs))
                 return false;
@@ -180,7 +193,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         @Override public int hashCode() {
             int result = moduleName.hashCode();
             result = 31 * result + strategyFiles.hashCode();
+            result = 31 * result + strategies.hashCode();
             result = 31 * result + usedStrategies.hashCode();
+            result = 31 * result + ambStratUsed.hashCode();
             result = 31 * result + strategyConstrs.hashCode();
             result = 31 * result + overlayFiles.hashCode();
             result = 31 * result + imports.hashCode();
@@ -211,8 +226,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         static Import library(String libraryName) {
-            assert StrIncrFrontLib.builtinLibraries.contains(libraryName) || StrIncrFrontLib.builtinLibraries
-                .contains("lib" + libraryName);
+            assert StrIncrFrontLib.BuiltinLibrary.fromString(libraryName) != null;
             return new Import(ImportType.library, libraryName);
         }
 
@@ -224,7 +238,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             switch(appl.getName()) {
                 case "Import":
                     String importString = Tools.javaStringAt(appl, 0);
-                    if(StrIncrFrontLib.builtinLibraries.contains(importString)) {
+                    if(StrIncrFrontLib.BuiltinLibrary.fromString(importString) != null) {
                         return library(importString);
                     } else {
                         return normal(importString);
@@ -336,17 +350,18 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final IStrategoList strategyList = Tools.listAt(result, 1);
         final IStrategoList cifiedStratNameList = Tools.listAt(result, 2);
         final IStrategoList usedStrategyList = Tools.listAt(result, 3);
-        final IStrategoList importsTerm = Tools.listAt(result, 4);
-        final IStrategoList constrList = Tools.listAt(result, 5);
-        final IStrategoList usedConstrList = Tools.listAt(result, 6);
-        final IStrategoList overlayList = Tools.listAt(result, 7);
+        final IStrategoList cifiedAmbStratsUsed = Tools.listAt(result, 4);
+        final IStrategoList importsTerm = Tools.listAt(result, 5);
+        final IStrategoList constrList = Tools.listAt(result, 6);
+        final IStrategoList usedConstrList = Tools.listAt(result, 7);
+        final IStrategoList overlayList = Tools.listAt(result, 8);
         assert
             strategyList.size() == usedConstrList.size() :
             "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size ("
                 + usedConstrList.size() + ")";
 
-        final Map<String, File> strategyFiles = new HashMap<>();
-        final Map<String, Set<String>> strategyConstrs = new HashMap<>();
+        final Map<String, File> strategyFiles = new HashMap<>(strategyList.size() * 2);
+        final Map<String, Set<String>> strategyConstrs = new HashMap<>(strategyList.size() * 2);
         for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator =
             usedConstrList.iterator(); strategyIterator.hasNext(); ) {
             String strategy = Tools.asJavaString(strategyIterator.next());
@@ -366,11 +381,16 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             strategyFiles.put(strategy, file);
             execContext.provide(file);
         }
-        final Set<String> strategies = new HashSet<>();
+        final Set<String> strategies = new HashSet<>(cifiedStratNameList.size() * 2);
         for(IStrategoTerm cifiedStratName : cifiedStratNameList) {
             strategies.add(Tools.asJavaString(cifiedStratName));
         }
-        final Map<String, File> overlayFiles = new HashMap<>();
+        final Set<String> ambStratUsed = new HashSet<>(cifiedAmbStratsUsed.size() * 2);
+        for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
+            assert Tools.asJavaString(cifiedAmbStratUsed).endsWith("_0_0");
+            ambStratUsed.add(stripArity(Tools.asJavaString(cifiedAmbStratUsed)));
+        }
+        final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
         for(IStrategoTerm overlayTerm : overlayList) {
             String overlayName = Tools.asJavaString(overlayTerm);
             @Nullable File file = resourceService
@@ -400,8 +420,22 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
 
-        return new Output(moduleName, strategyFiles, strategies, usedStrategies, strategyConstrs, overlayFiles, imports,
-            constrs);
+        return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
+            overlayFiles, imports, constrs);
+    }
+
+    static String stripArity(String s) throws ExecException {
+        if(s.substring(s.length() - 4, s.length()).matches("^_\\d_\\d$")) {
+            return s.substring(0, s.length() - 4);
+        }
+        if(s.substring(s.length() - 5, s.length()).matches("^_\\d+_\\d+$")) {
+            return s.substring(0, s.length() - 5);
+        }
+        Matcher m = stripArityPattern.matcher(s);
+        if(!m.matches()) {
+            throw new ExecException("Frontend returned stratego strategy name that does not conform to cified name");
+        }
+        return m.group(0);
     }
 
     private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)

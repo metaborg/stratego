@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -129,8 +130,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return new Module(path, Type.source);
         }
 
-        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports, Collection<File> includeDirs,
-            File projectLocation) throws ExecException {
+        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
+            Collection<File> includeDirs, File projectLocation) throws ExecException {
             final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p).toString());
             final Set<Module> result = new HashSet<>(imports.size() * 2);
             for(StrIncrFront.Import anImport : imports) {
@@ -149,7 +150,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             }
                         }
                         if(!foundSomethingToImport) {
-                            execContext.getLogger().warn("Could not find any module corresponding to import " + anImport.path, null);
+                            execContext.getLogger()
+                                .warn("Could not find any module corresponding to import " + anImport.path, null);
                         }
                         break;
                     }
@@ -171,7 +173,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             }
                         }
                         if(!foundSomethingToImport) {
-                            execContext.getLogger().warn("Could not find any module corresponding to import " + anImport.path + "/-", null);
+                            execContext.getLogger()
+                                .warn("Could not find any module corresponding to import " + anImport.path + "/-",
+                                    null);
                         }
                         break;
                     }
@@ -256,7 +260,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         seen.add(inputModule);
 
         final List<File> boilerplateFiles = new ArrayList<>();
-        final List<STask<?>> allFrontEndTasks = new ArrayList<>();
+        final List<STask<?>> frontSourceTasks = new ArrayList<>();
         final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(StrIncrFront.Import.library(builtinLib));
@@ -267,6 +271,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Set<String>> imports = new HashMap<>();
         // Module-path to strategy-names used
         final Map<String, Set<String>> usedStrategies = new HashMap<>();
+        // Module-path to strategy-names-without-arity used in ambiguous call position
+        final Map<String, Set<String>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
         // Module-path to  visible when imported (transitive closure of strategy definitions)
@@ -287,24 +293,27 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         do {
             final Module module = workList.remove();
-            final String projectName = projectName(module.path);
-            final Task<?, StrIncrFront.Output> task;
-            switch(module.type) {
-                case source:
-                    final StrIncrFront.Input frontInput =
-                        new StrIncrFront.Input(input.projectLocation, module.resolve(input.projectLocation), projectName,
-                            input.originTasks);
-                    task = strIncrFront.createTask(frontInput);
-                    break;
-                case library:
-                    final StrIncrFrontLib.Input frontLibInput =
-                        new StrIncrFrontLib.Input(module.path);
-                    task = strIncrFrontLib.createTask(frontLibInput);
-                    break;
-                default:
-                    throw new ExecException("Internal error: Unhandled Module.Type variant " + module.type);
+
+            if(module.type == Module.Type.library) {
+                final StrIncrFrontLib.Input frontLibInput =
+                    new StrIncrFrontLib.Input(Objects.requireNonNull(StrIncrFrontLib.BuiltinLibrary.fromString(module.path)));
+                Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
+                StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
+                registerStrategyDefinitions(visibleStrategies, module.path, frontLibOutput.strategies);
+                registerConstructorDefinitions(visibleConstructors, module, frontLibOutput.constrs,
+                    Collections.emptySet());
+                continue;
             }
+
+            final String projectName = projectName(module.path);
+            final StrIncrFront.Input frontInput =
+                new StrIncrFront.Input(input.projectLocation, module.resolve(input.projectLocation), projectName,
+                    input.originTasks);
+            final Task<?, StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
+            frontSourceTasks.add(task.toSTask());
             final StrIncrFront.Output frontOutput = execContext.require(task);
+            boilerplateFiles.add(resourceService
+                .localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, frontOutput.moduleName)));
             final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
             theImports.addAll(defaultImports);
 
@@ -313,18 +322,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 getOrInitialize(usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
             }
             usedStrategies.put(module.path, frontOutput.usedStrategies);
-            visibleStrategies.put(module.path, frontOutput.strategies);
-            {
-                Set<String> visConstrs = new HashSet<>(frontOutput.constrs);
-                visConstrs.addAll(frontOutput.overlayFiles.keySet());
-                visibleConstructors.put(module.path, visConstrs);
-            }
+            usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
+            registerStrategyDefinitions(visibleStrategies, module.path, frontOutput.strategies);
+            registerConstructorDefinitions(visibleConstructors, module, frontOutput.constrs,
+                frontOutput.overlayFiles.keySet());
 
 
             // shuffling output for backend
-            allFrontEndTasks.add(task.toSTask());
-            boilerplateFiles.add(resourceService
-                .localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, frontOutput.moduleName)));
             for(Map.Entry<String, File> gen : frontOutput.strategyFiles.entrySet()) {
                 String strategyName = gen.getKey();
                 getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
@@ -350,8 +354,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         } while(!workList.isEmpty());
 
         // CHECK: constructor/strategy uses have definition which is imported
-        staticCheck(execContext, mainFileModulePath, imports, usedStrategies, usedConstructors, visibleStrategies,
-            visibleConstructors);
+        staticCheck(execContext, mainFileModulePath, imports, usedStrategies, usedAmbStrategies, usedConstructors,
+            visibleStrategies, visibleConstructors);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
@@ -388,7 +392,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         assert strSrcGenDir
             != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
         StrIncrBack.Input backEndInput =
-            new StrIncrBack.Input(allFrontEndTasks, input.projectLocation, null, strSrcGenDir, boilerplateFiles,
+            new StrIncrBack.Input(frontSourceTasks, input.projectLocation, null, strSrcGenDir, boilerplateFiles,
                 Collections.emptyList(), input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs,
                 true);
         execContext.require(strIncrBack.createTask(backEndInput));
@@ -396,10 +400,22 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return None.getInstance();
     }
 
+    private static void registerConstructorDefinitions(Map<String, Set<String>> visibleConstructors, Module module,
+        Set<String> constrs, Set<String> overlays) {
+        Set<String> visConstrs = new HashSet<>(constrs);
+        visConstrs.addAll(overlays);
+        visibleConstructors.put(module.path, visConstrs);
+    }
+
+    private static void registerStrategyDefinitions(Map<String, Set<String>> visibleStrategies, String path,
+        Set<String> strategies) {
+        visibleStrategies.put(path, strategies);
+    }
+
     private static void staticCheck(ExecContext execContext, String mainFileModulePath,
         Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
-        Map<String, Set<String>> usedConstructors, Map<String, Set<String>> visibleStrategies,
-        Map<String, Set<String>> visibleConstructors) throws ExecException {
+        Map<String, Set<String>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
+        Map<String, Set<String>> visibleStrategies, Map<String, Set<String>> visibleConstructors) throws ExecException {
         boolean checkOk = true;
         final Deque<Set<String>> sccs = Algorithms
             .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
@@ -434,6 +450,33 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     checkOk = false;
                     execContext.getLogger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
+                }
+                Set<String> theUsedAmbStrategies =
+                    new HashSet<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptySet()));
+                theUsedAmbStrategies
+                    .removeIf(theUsedAmbStrategy -> theVisibleStrategies.contains(theUsedAmbStrategy + "_0_0"));
+                if(!theUsedAmbStrategies.isEmpty()) {
+                    Map<String, Integer> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
+                    for(String theVisibleStrategy : theVisibleStrategies) {
+                        String stripped = StrIncrFront.stripArity(theVisibleStrategy);
+                        differentArityDefinitions
+                            .put(stripped, differentArityDefinitions.getOrDefault(stripped, 0) + 1);
+                    }
+                    for(String usedAmbStrategy : theUsedAmbStrategies) {
+                        switch(differentArityDefinitions.getOrDefault(usedAmbStrategy, 0)) {
+                            case 0:
+                                execContext.getLogger().error(
+                                    "In module " + moduleName + ": Cannot find strategy " + usedAmbStrategy
+                                        + " in ambiguous call position", null);
+                                break;
+                            case 1:
+                                break;
+                            default:
+                                execContext.getLogger().error(
+                                    "In module " + moduleName + ": Call to strategy " + usedAmbStrategy
+                                        + " is ambiguous, multiple arities possible. ", null);
+                        }
+                    }
                 }
             }
         }
