@@ -1,0 +1,71 @@
+module stratego/sugar/terms-desugar
+
+imports
+
+  signatures/stratego/sugar/terms-sig
+  signatures/stratego/core/terms-sig
+
+// rethink this first
+
+//rules
+//
+//  strt--desugar-cong-term-to-build-Term:
+//    BuildDefault(t) -> <strt--desugar-cong-term-to-build-Term> t
+//
+//  strt--desugar-term-to-build-Term(nn) = strt--desugar-build-Term(nn)
+//
+//  strt--desugar-cong-term-to-build-PreTerm:
+//    BuildDefaultPT(t) -> <strt--desugar-cong-term-to-build-PreTerm> t
+//
+//  strt--desugar-term-to-build-PreTerm(nn) = strt--desugar-build-PreTerm(nn)
+//
+//rules
+//
+//  strt--desugar-Term:
+//    AnnoList(pt, t*) -> Anno(pt, <strt--desugar-Term-list-to-PreTerm> t*)
+//
+//  strt--desugar-Term-list-to-PreTerm =
+//    foldr(
+//      !Op("Nil", [])
+//    , \(trm, tail) ->
+//        Op("Cons", [trm, <strt--desugar-Term-to-PreTerm> tail])\)
+//
+//  strt--desugar-Term-to-PreTerm = !Anno(<id>, Op("Nil", []))
+//
+//  strt--desugar-Term:
+//    NoAnnoList(pt) -> Anno(pt, Op("Nil", []))
+//
+//  strt--desugar-build-Term(nn):
+//    a@App(str, trm) -> (tv, [(tv, a)])
+//  with
+//    tv := Var(<nn> "lift_app_in_build_m")
+//
+//  strt--desugar-build-Term(nn):
+//    a@RootApp(str) -> (tv, [(tv, a)])
+//  with
+//    tv := Var(<nn> "lift_app_in_build_m")
+//
+//  strt--desugar-build-Term(nn) =
+//    !(<strt--desugar-Term>, [])
+//
+//rules
+//
+//  strt--desugar-PreTerm:
+//    Char(c) -> Int(<strt--desugar-Char> c)
+//
+//  strt--desugar-Char: "'\\''" -> "39"
+//  strt--desugar-Char: "'\\n'" -> "10"
+//  strt--desugar-Char: "'\\t'" -> "9"
+//  strt--desugar-Char: "'\\r'" -> "13"
+//  strt--desugar-Char: "'\\ '" -> "32"
+//  strt--desugar-Char = explode-string; ?[39, <int-to-string>, 39]
+//
+//  // App / RootApp
+//  strt--desugar-build-PreTerm(nn) =
+//    strt--desugar-build-Term(nn)
+//
+//  strt--desugar-build-Term(nn) =
+//    !(<strt--desugar-PreTerm>, [])
+//
+//  strt--desugar-PreTerm:
+//    Tuple([trm]) -> 
