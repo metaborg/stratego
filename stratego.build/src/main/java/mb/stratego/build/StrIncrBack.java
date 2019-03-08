@@ -116,8 +116,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         }
     }
 
-    private static final ILogger logger = LoggerUtils.logger(StrIncrBack.class);
-
     private final IResourceService resourceService;
 
     @Inject public StrIncrBack(IResourceService resourceService) {

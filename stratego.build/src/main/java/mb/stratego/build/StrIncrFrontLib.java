@@ -45,7 +45,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
 
         @Override public String toString() {
-            return "Input(" + library + ')';
+            return "StrIncrFrontLib$Input(" + library + ')';
         }
     }
 
@@ -79,11 +79,11 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
 
         @Override public String toString() {
-            return "Output("  + strategies + ", " + constrs + ')';
+            return "StrIncrFrontLib$Output("  + strategies + ", " + constrs + ')';
         }
     }
 
-    enum BuiltinLibrary {
+    public enum BuiltinLibrary {
         StrategoLib("stratego-lib"),
         StrategoSglr("stratego-sglr"),
         StrategoGpp("stratego-gpp"),
@@ -101,7 +101,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
             this.libString = "lib" + cmdArgString;
         }
 
-        static @Nullable BuiltinLibrary fromString(String name) {
+        public static @Nullable BuiltinLibrary fromString(String name) {
             switch(name) {
                 case "stratego-lib":
                 case "libstrategolib":

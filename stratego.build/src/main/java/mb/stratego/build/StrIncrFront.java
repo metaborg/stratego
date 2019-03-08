@@ -111,36 +111,36 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     public static final class Output implements Serializable {
         final String moduleName;
         /**
-         * Strategy-name to file with CTree definition of that strategy
+         * Strategy-name to file with CTree definition of that strategy [static linking]
          */
         final Map<String, File> strategyFiles;
         /**
-         * Cified-strategy-names defined in this module
+         * Cified-strategy-names defined in this module [name checks]
          */
         final Set<String> strategies;
         /**
-         * Cified-strategy-names referred to in this module
+         * Cified-strategy-names referred to in this module [name checks]
          */
         final Set<String> usedStrategies;
         /**
          * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument
-         * to other strategy)
+         * to other strategy) [name checks]
          */
         final Set<String> ambStratUsed;
         /**
-         * Strategy-name to constructor_arity names that were used in the body
+         * Strategy-name to constructor_arity names that were used in the body [name checks]
          */
         final Map<String, Set<String>> strategyConstrs;
         /**
-         * Overlay_arity names to file with CTree definition of that overlay
+         * Overlay_arity names to file with CTree definition of that overlay [static linking / name checks]
          */
         final Map<String, File> overlayFiles;
         /**
-         * Imports in this module (normal, library or wildcard)
+         * Imports in this module (normal, library or wildcard) [import tracking / name checks]
          */
         final List<Import> imports;
         /**
-         * Constructor_arity names used in this module
+         * Constructor_arity names used in this module [name checks]
          */
         final Set<String> constrs;
 
@@ -287,7 +287,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private final ISpoofaxUnitService unitService;
     private final ISpoofaxSyntaxService syntaxService;
 
-    private static final String COMPILE_STRATEGY_NAME = "clean-and-compile-module";
+    private static final String COMPILE_STRATEGY_NAME = "compile-module";
     private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
 
     @Inject public StrIncrFront(IResourceService resourceService, IProjectService projectService,
@@ -439,7 +439,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     }
 
     private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)
-        throws IOException {
+        throws ExecException, IOException {
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(resource);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         final IStrategoTerm ast;
@@ -457,7 +457,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                     .parseFromStream(resource.getContent().getInputStream());
 
             } else {
-                throw new IOException(
+                throw new ExecException(
                     "Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
             }
         } else {
@@ -468,17 +468,17 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     }
 
     private IStrategoTerm transform(FileObject resource, String projectName, FileObject projectLocation,
-        @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws IOException {
+        @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws ExecException, IOException {
         final @Nullable IProject project = projectService.get(projectLocation.resolveFile("metaborg.yaml"));
         assert project != null : "Could not find project in location: " + projectLocation;
         if(!contextService.available(strategoLang)) {
-            throw new IOException("Cannot create stratego transformation context");
+            throw new ExecException("Cannot create stratego transformation context");
         }
         final IContext transformContext;
         try {
             transformContext = contextService.get(resource, project, strategoLang);
         } catch(ContextException e) {
-            throw new IOException("Cannot create stratego transformation context", e);
+            throw new ExecException("Cannot create stratego transformation context", e);
         }
         final ITermFactory f = termFactoryService.getGeneric();
         final String projectPath = transformContext.project().location().toString();
@@ -488,16 +488,16 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             @Nullable IStrategoTerm result =
                 strategoCommon.invoke(strategoLang, transformContext, inputTerm, COMPILE_STRATEGY_NAME);
             if(result == null) {
-                throw new IOException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
+                throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
             }
             return result;
         } catch(MetaborgException e) {
-            throw new IOException("Transformation failed", e);
+            throw new ExecException("Transformation failed", e);
         }
     }
 
     private IStrategoTerm parse(FileObject resource, @Nullable ILanguageImpl strategoDialect,
-        ILanguageImpl strategoLang) throws IOException {
+        ILanguageImpl strategoLang) throws ExecException, IOException {
         if(strategoDialect != null) {
             final @Nullable SyntaxFacet syntaxFacet = strategoDialect.facet(SyntaxFacet.class);
             assert syntaxFacet != null : "Cannot get Syntax Facet from (non-null) Stratego dialect";
@@ -519,11 +519,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         try {
             parseResult = syntaxService.parse(inputUnit);
         } catch(ParseException e) {
-            throw new IOException("Cannot parse stratego file " + resource, e);
+            throw new ExecException("Cannot parse stratego file " + resource, e);
         }
         ast = parseResult.ast();
         if(!parseResult.valid() || !parseResult.success() || ast == null) {
-            throw new IOException("Cannot parse stratego file " + resource);
+            throw new ExecException("Cannot parse stratego file " + resource + ": parsing failed with" + (!parseResult.valid() ? " errors" : (!parseResult.success()) ? "out errors" : " ast == null"));
         }
         return ast;
     }

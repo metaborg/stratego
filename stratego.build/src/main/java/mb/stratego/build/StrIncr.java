@@ -42,7 +42,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
-    public static String id = "StrIncr";
+    public static final String id = "StrIncr";
 
     public static final class Input implements Serializable {
         final URL inputFile;
@@ -126,13 +126,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return new Module(path, Type.library);
         }
 
-        public static Module source(String path) {
-            return new Module(path, Type.source);
+        public static Module source(Path path) {
+            return new Module(path.normalize().toString(), Type.source);
         }
 
         static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
             Collection<File> includeDirs, File projectLocation) throws ExecException {
-            final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p).toString());
+            final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p));
             final Set<Module> result = new HashSet<>(imports.size() * 2);
             for(StrIncrFront.Import anImport : imports) {
                 switch(anImport.type) {
@@ -252,7 +252,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Module inputModule;
         try {
             inputModule =
-                Module.source(input.projectLocation.toPath().relativize(Paths.get(input.inputFile.toURI())).toString());
+                Module.source(input.projectLocation.toPath().relativize(Paths.get(input.inputFile.toURI())));
         } catch(URISyntaxException e) {
             throw new ExecException(e);
         }

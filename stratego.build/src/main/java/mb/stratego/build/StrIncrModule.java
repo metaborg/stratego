@@ -9,14 +9,14 @@ import javax.inject.Singleton;
 
 public class StrIncrModule extends TaskDefsModule {
     @Override public void bindTaskDefs(Binder binder, MapBinder<String, TaskDef<?, ?>> mapBinder) {
-        // TODO: extract method for binding a class
-        binder.bind(StrIncr.class).in(Singleton.class);
-        mapBinder.addBinding(StrIncr.id).to(StrIncr.class);
+        bindTaskDef(binder, mapBinder, StrIncr.id,      StrIncr.class);
+        bindTaskDef(binder, mapBinder, StrIncrFront.id, StrIncrFront.class);
+        bindTaskDef(binder, mapBinder, StrIncrBack.id,  StrIncrBack.class);
+    }
 
-        binder.bind(StrIncrFront.class).in(Singleton.class);
-        mapBinder.addBinding(StrIncrFront.id).to(StrIncrFront.class);
-
-        binder.bind(StrIncrBack.class).in(Singleton.class);
-        mapBinder.addBinding(StrIncrBack.id).to(StrIncrBack.class);
+    private void bindTaskDef(Binder binder, MapBinder<String, TaskDef<?, ?>> mapBinder, String id,
+            Class<? extends TaskDef<?, ?>> c) {
+        binder.bind(c).in(Singleton.class);
+        mapBinder.addBinding(id).to(c);
     }
 }
