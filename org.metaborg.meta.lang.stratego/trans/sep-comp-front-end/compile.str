@@ -45,10 +45,11 @@ strategies
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
-  clean-and-compile-module: (project-path, project-name, ast) -> result
+  compile-module: (project-path, project-name, ast) -> <compile-module(|project-path, project-name)> ast
+
+  clean-and-compile-module: (project-path, project-name, ast) -> <compile-module>
   with
     <clean-module(|project-path)> ast
-  ; result := <compile-module(|project-path, project-name)> ast
 
 rules
 
@@ -110,30 +111,31 @@ strategies
 // commented: Don't add to VarToConst which is used in pre-desugar to turn variables into nullary constructors if the variable matches that nullary constructor name. 
 //          ; try(DeclareVarToConst)
           ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
-          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
+// commented: Used in check-constructors, which requires global info on constructors [DONE IN JAVA]
+//          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
           ; try(where(m-MkCongDef; m-add-def))
         )
 
 // commented: [MOVED TO BACKEND] where we have access to all overlays
 //      // desugar and check overlays
 //
-//      ; m-transform-overlays(id
-//          ; pre-desugar
-//          ; check-overlay
+      ; m-transform-overlays(id
+          ; pre-desugar
+          ; check-overlay
 //          ; try(DeclareVarToConst)
-//        )
+        )
 //
-//      ; m-transform-overlays(id
-//          ; m-variables-to-constructors-in-def
-//          ; pre-desugar
-//// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
-////          ; not(def-use-def)
-//          ; not(check-where-with)
-//          ; raise-annotations
+      ; m-transform-overlays(id
+//// commented: Nullary constructors feature, off in separate compilation
+////          ; m-variables-to-constructors-in-def
+          ; pre-desugar
+          ; not(def-use-def)
+          ; not(check-where-with)
+          ; raise-annotations
 //          ; GenerateCheckRule
 //          ; DeclareExpandOverlay
-//          ; where(Overlay-to-Congdef; m-add-def)
-//        )
+          ; where(Overlay-to-Congdef; m-add-def)
+        )
 
 // commented: checks if used constructor with such an arity exists. Therefore needs global information [DONE IN JAVA]
 //      ; m-transform-overlays(
@@ -157,7 +159,7 @@ strategies
           map(id
             ; stratego-desugar
             ; raise-annotations
-//            ; not(def-use-def)
+            ; not(def-use-def)
 // commented: [DONE IN JAVA]
 //            ; not(check-constructors)
 // commented: [MOVED TO BACKEND]
