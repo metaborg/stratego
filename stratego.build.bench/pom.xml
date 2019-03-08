@@ -31,6 +31,14 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -53,10 +61,10 @@
         </dependencies>
         <executions>
           <execution>
-            <id>copy-stratego-language</id>
+            <id>unpack-stratego-language</id>
             <phase>compile</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>unpack</goal>
             </goals>
             <configuration>
               <artifactItems>
@@ -68,13 +76,82 @@
                   <destFileName>stratego.spoofax-language</destFileName>
                 </artifactItem>
               </artifactItems>
-              <outputDirectory>${project.build.outputDirectory}/</outputDirectory>
+              <outputDirectory>${project.build.outputDirectory}/stratego.lang/</outputDirectory>
             </configuration>
           </execution>
         </executions>
         <configuration>
           <overWriteReleases>true</overWriteReleases>
           <overWriteSnapshots>true</overWriteSnapshots>
+        </configuration>
+      </plugin>
+      <!-- Create an executable JAR -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>mb.stratego.build.bench.Main</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Testing if the code is runnable, and if the shaded JAR is runnable -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>test-executable</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>mb.stratego.build.bench.Main</argument>
+                <argument>-h</argument>
+              </arguments>
+              <outputFile>${null-device}</outputFile>
+            </configuration>
+          </execution>
+          <execution>
+            <id>test-shaded-jar-executable</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-jar</argument>
+                <argument>${project.build.directory}/${project.artifactId}.jar</argument>
+                <argument>-h</argument>
+              </arguments>
+              <outputFile>${null-device}</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Skip installation of executable -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
