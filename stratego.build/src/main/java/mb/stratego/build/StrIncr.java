@@ -80,11 +80,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             if(!inputFile.equals(input.inputFile))
                 return false;
-            if(!javaPackageName.equals(input.javaPackageName))
+            if(javaPackageName != null ? !javaPackageName.equals(input.javaPackageName) : input.javaPackageName != null)
                 return false;
             if(!includeDirs.equals(input.includeDirs))
                 return false;
-            if(!cacheDir.equals(input.cacheDir))
+            if(!builtinLibs.equals(input.builtinLibs))
+                return false;
+            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
                 return false;
             if(!extraArgs.equals(input.extraArgs))
                 return false;
@@ -98,9 +100,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         @Override public int hashCode() {
             int result = inputFile.hashCode();
-            result = 31 * result + javaPackageName.hashCode();
+            result = 31 * result + (javaPackageName != null ? javaPackageName.hashCode() : 0);
             result = 31 * result + includeDirs.hashCode();
-            result = 31 * result + cacheDir.hashCode();
+            result = 31 * result + builtinLibs.hashCode();
+            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
             result = 31 * result + extraArgs.hashCode();
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + originTasks.hashCode();
