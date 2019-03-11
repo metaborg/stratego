@@ -3,6 +3,7 @@ package mb.stratego.build.bench;
 import mb.stratego.build.StrIncrFrontLib;
 
 import org.metaborg.util.cmd.Arguments;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -10,192 +11,218 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-class StrategoArguments {
-    final String[] original;
+@SuppressWarnings({ "FieldCanBeLocal", "MismatchedQueryAndUpdateOfCollection", "unused" }) class StrategoArguments {
+    private final String[] original;
     final Arguments extraArguments = new Arguments();
 
-    String inputFile = null;
-    String outputFile = null;
-    private String mainStrategy = null;
-    private boolean clean = false;
-    List<String> includeDirs = new ArrayList<>();
-    private int stacktracing = 1;
-    private Map<String, String> constants = new HashMap<>();
-    private boolean shareConstructors = true;
-    private int optimizationLevel = 0;
-    String javaPackageName = null;
-    EnumSet<StrIncrFrontLib.BuiltinLibrary> builtinLibraries = EnumSet.noneOf(StrIncrFrontLib.BuiltinLibrary.class);
-    private List<String> otherLibraries = new ArrayList<>();
-    private boolean isLibrary = false;
-    private boolean produceAst = false;
-    private boolean produceCore = false;
-    private boolean singleStrategy = false;
-    private boolean boilerplate = false;
-    private boolean preferStr = false;
-    private String defaultSyntax = null;
-    String cacheDir = null;
-    private boolean fusion = true;
-    private boolean asFix = false;
-    private boolean xSepCompTool = false;
-    private int verbose = 1;
-    private int keep = 0;
-    private int statistics = 0;
-    boolean showHelp = false;
-    boolean showVersion = false;
-    private EnumSet<StrategoWarningCategory> showWarnings = EnumSet.of(StrategoWarningCategory.DebugArguments, StrategoWarningCategory.ObsoleteStrategyCalls, StrategoWarningCategory.LowerCaseConstructors);
+    final String inputFile;
+    final String outputFile;
+    private final @Nullable String mainStrategy;
+    private final boolean clean;
+    final List<String> includeDirs;
+    private final int stacktracing;
+    private final Map<String, String> constants;
+    private final boolean shareConstructors;
+    private final int optimizationLevel;
+    final @Nullable String javaPackageName;
+    final EnumSet<StrIncrFrontLib.BuiltinLibrary> builtinLibraries;
+    private final List<String> otherLibraries;
+    private final boolean isLibrary;
+    private final boolean produceAst;
+    private final boolean produceCore;
+    private final boolean singleStrategy;
+    private final boolean boilerplate;
+    private final boolean preferStr;
+    private final @Nullable String defaultSyntax;
+    final @Nullable String cacheDir;
+    private final boolean fusion;
+    private final boolean asFix;
+    private final boolean xSepCompTool;
+    private final int verbose;
+    private final int keep;
+    private final int statistics;
+    final boolean showHelp;
+    final boolean showVersion;
+    private final EnumSet<StrategoWarningCategory> showWarnings;
 
     private StrategoArguments(String[] args) {
         this.original = args;
-    }
 
-    static StrategoArguments fromArgs(String[] args) {
-        StrategoArguments result = new StrategoArguments(args);
-        EnumSet<StrategoWarningCategory> showWarnings = null;
+        @Nullable String inputFile = null;
+        @Nullable String outputFile = null;
+        @Nullable String mainStrategy = null;
+        boolean clean = false;
+        List<String> includeDirs = new ArrayList<>();
+        int stacktracing = 1;
+        Map<String, String> constants = new HashMap<>();
+        boolean shareConstructors = true;
+        int optimizationLevel = 0;
+        @Nullable String javaPackageName = null;
+        EnumSet<StrIncrFrontLib.BuiltinLibrary> builtinLibraries = EnumSet.noneOf(StrIncrFrontLib.BuiltinLibrary.class);
+        List<String> otherLibraries = new ArrayList<>();
+        boolean isLibrary = false;
+        boolean produceAst = false;
+        boolean produceCore = false;
+        boolean singleStrategy = false;
+        boolean boilerplate = false;
+        boolean preferStr = false;
+        @Nullable String defaultSyntax = null;
+        @Nullable String cacheDir = null;
+        boolean fusion = true;
+        boolean asFix = false;
+        boolean xSepCompTool = false;
+        int verbose = 1;
+        int keep = 0;
+        int statistics = 0;
+        boolean showHelp = false;
+        boolean showVersion = false;
+
+        @Nullable EnumSet<StrategoWarningCategory> showWarnings = null;
         for(int i = 0, argsLength = args.length; i < argsLength; i++) {
             String arg = args[i];
             switch(arg) {
                 case "--input":
                 case "-i":
                     i++;
-                    result.inputFile = args[i];
+                    inputFile = args[i];
                     break;
                 case "--output":
                 case "-o":
                     i++;
-                    result.outputFile = args[i];
+                    outputFile = args[i];
                     break;
                 case "--main":
                 case "-m":
                     i++;
-                    result.mainStrategy = args[i];
-                    result.extraArguments.add("-m", args[i]);
+                    mainStrategy = args[i];
+                    this.extraArguments.add("-m", args[i]);
                     break;
                 case "--clean":
-                    result.clean = true;
-                    result.extraArguments.add(args[i]);
+                    clean = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "-I":
                 case "--Include":
                     i++;
-                    result.includeDirs.add(args[i]);
+                    includeDirs.add(args[i]);
                     break;
                 case "stacktrace":
                 case "-s":
                     i++;
-                    result.stacktracing = Integer.parseInt(args[i]);
-                    result.extraArguments.add("-s", args[i]);
+                    stacktracing = Integer.parseInt(args[i]);
+                    this.extraArguments.add("-s", args[i]);
                     break;
                 case "-D":
                     i++;
                     String[] nv = args[i].split("=", 2);
                     assert nv.length == 2;
-                    result.constants.put(nv[0], nv[1]);
-                    result.extraArguments.add("-D", args[i]);
+                    constants.put(nv[0], nv[1]);
+                    this.extraArguments.add("-D", args[i]);
                     break;
                 case "-sc":
                     i++;
                     if(Objects.equals(args[i], "off")) {
-                        result.shareConstructors = false;
+                        shareConstructors = false;
                     }
-                    result.extraArguments.add("-sc", args[i]);
+                    this.extraArguments.add("-sc", args[i]);
                     break;
                 case "-O":
                     i++;
-                    result.optimizationLevel = Integer.parseInt(args[i]);
-                    result.extraArguments.add("-O", args[i]);
+                    optimizationLevel = Integer.parseInt(args[i]);
+                    this.extraArguments.add("-O", args[i]);
                     break;
                 case "-p":
                     i++;
-                    result.javaPackageName = args[i];
+                    javaPackageName = args[i];
                     break;
                 case "-la":
                     i++;
-                    StrIncrFrontLib.BuiltinLibrary lib = StrIncrFrontLib.BuiltinLibrary.fromString(args[i]);
+                    @Nullable StrIncrFrontLib.BuiltinLibrary lib = StrIncrFrontLib.BuiltinLibrary.fromString(args[i]);
                     if(lib != null) {
-                        result.builtinLibraries.add(lib);
+                        builtinLibraries.add(lib);
                     } else {
-                        result.otherLibraries.add(args[i]);
-                        result.extraArguments.add("-la", args[i]);
+                        otherLibraries.add(args[i]);
+                        this.extraArguments.add("-la", args[i]);
                     }
                     break;
                 case "--library":
-                    result.isLibrary = true;
-                    result.extraArguments.add(args[i]);
+                    isLibrary = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--ast":
-                    result.produceAst = true;
-                    result.extraArguments.add(args[i]);
+                    produceAst = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "-F":
-                    result.produceCore = true;
-                    result.extraArguments.add(args[i]);
+                    produceCore = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--single-strategy":
-                    result.singleStrategy = true;
-                    result.extraArguments.add(args[i]);
+                    singleStrategy = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--boilerplate":
-                    result.boilerplate = true;
-                    result.extraArguments.add(args[i]);
+                    boilerplate = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--prefer-str":
-                    result.preferStr = true;
-                    result.extraArguments.add(args[i]);
+                    preferStr = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--default-syntax":
                     i++;
-                    result.defaultSyntax = args[i];
-                    result.extraArguments.add("--default-syntax", args[i]);
+                    defaultSyntax = args[i];
+                    this.extraArguments.add("--default-syntax", args[i]);
                     break;
                 case "--cache-dir":
                     i++;
-                    result.cacheDir = args[i];
-                    result.extraArguments.add("--cache-dir", args[i]);
+                    cacheDir = args[i];
+                    this.extraArguments.add("--cache-dir", args[i]);
                     break;
                 case "--fusion":
-                    result.fusion = false;
-                    result.extraArguments.add(args[i]);
+                    fusion = false;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--asfix":
-                    result.asFix = true;
-                    result.extraArguments.add(args[i]);
+                    asFix = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--Xsep-comp-tool":
-                    result.xSepCompTool = true;
-                    result.extraArguments.add(args[i]);
+                    xSepCompTool = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "-S":
                 case "--silent":
-                    result.verbose = 0;
-                    result.extraArguments.add(args[i]);
+                    verbose = 0;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "--verbose":
                     i++;
-                    result.verbose = Integer.parseInt(args[i]);
-                    result.extraArguments.add("--verbose", args[i]);
+                    verbose = Integer.parseInt(args[i]);
+                    this.extraArguments.add("--verbose", args[i]);
                     break;
                 case "-k":
                 case "--keep":
                     i++;
-                    result.keep = Integer.parseInt(args[i]);
-                    result.extraArguments.add("--keep", args[i]);
+                    keep = Integer.parseInt(args[i]);
+                    this.extraArguments.add("--keep", args[i]);
                     break;
                 case "--statistics":
                     i++;
-                    result.statistics = Integer.parseInt(args[i]);
-                    result.extraArguments.add("--statistics", args[i]);
+                    statistics = Integer.parseInt(args[i]);
+                    this.extraArguments.add("--statistics", args[i]);
                     break;
                 case "-h":
                 case "-?":
                 case "--help":
-                    result.showHelp = true;
-                    result.extraArguments.add(args[i]);
+                    showHelp = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "-v":
                 case "--version":
                 case "--about":
-                    result.showVersion = true;
-                    result.extraArguments.add(args[i]);
+                    showVersion = true;
+                    this.extraArguments.add(args[i]);
                     break;
                 case "-W":
                 case "--warning":
@@ -223,12 +250,45 @@ class StrategoArguments {
                             showWarnings.add(StrategoWarningCategory.LowerCaseConstructors);
                             break;
                     }
-                    result.extraArguments.add("-W", args[i]);
-            }
-            if(showWarnings != null) {
-                result.showWarnings = showWarnings;
+                    this.extraArguments.add("-W", args[i]);
             }
         }
-        return result;
+        assert inputFile != null;
+        this.inputFile = inputFile;
+        assert outputFile != null;
+        this.outputFile = outputFile;
+        this.mainStrategy = mainStrategy;
+        this.clean = clean;
+        this.includeDirs = includeDirs;
+        this.stacktracing = stacktracing;
+        this.constants = constants;
+        this.shareConstructors = shareConstructors;
+        this.optimizationLevel = optimizationLevel;
+        this.javaPackageName = javaPackageName;
+        this.builtinLibraries = builtinLibraries;
+        this.otherLibraries = otherLibraries;
+        this.isLibrary = isLibrary;
+        this.produceAst = produceAst;
+        this.produceCore = produceCore;
+        this.singleStrategy = singleStrategy;
+        this.boilerplate = boilerplate;
+        this.preferStr = preferStr;
+        this.defaultSyntax = defaultSyntax;
+        this.cacheDir = cacheDir;
+        this.fusion = fusion;
+        this.asFix = asFix;
+        this.xSepCompTool = xSepCompTool;
+        this.verbose = verbose;
+        this.keep = keep;
+        this.statistics = statistics;
+        this.showHelp = showHelp;
+        this.showVersion = showVersion;
+        this.showWarnings = showWarnings != null ? showWarnings : EnumSet
+            .of(StrategoWarningCategory.DebugArguments, StrategoWarningCategory.ObsoleteStrategyCalls,
+                StrategoWarningCategory.LowerCaseConstructors);
+    }
+
+    static StrategoArguments fromArgs(String[] args) {
+        return new StrategoArguments(args);
     }
 }

@@ -15,7 +15,6 @@ import mb.stratego.build.StrIncr;
 import mb.stratego.build.StrIncrFrontLib;
 import mb.stratego.build.StrIncrModule;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -91,8 +90,8 @@ public class Main {
         Spoofax spoofax =
             new Spoofax(new NullEditorSingleFileProject(), new StrIncrModule(), new GuiceTaskDefsModule());
 
-        spoofax.languageDiscoveryService.languageFromDirectory(
-            spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
+        spoofax.languageDiscoveryService
+            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
 
         GuiceTaskDefs guiceTaskDefs = spoofax.injector.getInstance(GuiceTaskDefs.class);
 
@@ -124,9 +123,9 @@ public class Main {
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
         StrIncr.Input strIncrInput =
             new StrIncr.Input(inputFile.toURL(), strategoArguments.javaPackageName, includeDirs, builtinLibs,
-                Paths.get(strategoArguments.cacheDir).toFile(), strategoArguments.extraArguments,
-                Paths.get(strategoArguments.outputFile).toFile(), Collections.emptyList(),
-                Paths.get(strategoArguments.inputFile).getParent().getParent().toFile());
+                strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(),
+                strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
+                Collections.emptyList(), Paths.get(strategoArguments.inputFile).getParent().getParent().toFile());
         pie.getTopDownExecutor().newSession().requireInitial(strIncr.createTask(strIncrInput));
 
         pie.close();
@@ -136,8 +135,8 @@ public class Main {
         Spoofax spoofax =
             new Spoofax(new NullEditorConfigBasedProject(), new StrIncrModule(), new GuiceTaskDefsModule());
 
-        spoofax.languageDiscoveryService.languageFromDirectory(
-            spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
+        spoofax.languageDiscoveryService
+            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
 
         GuiceTaskDefs guiceTaskDefs = spoofax.injector.getInstance(GuiceTaskDefs.class);
 
@@ -176,8 +175,9 @@ public class Main {
          -la java-front
          -la incremental.strategies
         */
-        spoofax.resourceService.resolve("/tmp/stratego.build.bench/").copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/languageProject").toURI()),
-            FileSelectorUtils.all());
+        spoofax.resourceService.resolve("/tmp/stratego.build.bench/")
+            .copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/languageProject").toURI()),
+                FileSelectorUtils.all());
         Path projectLocation = Paths.get("/tmp/stratego.build.bench/");
 
         URI inputFile = projectLocation.resolve("trans/incremental.str").toUri();

@@ -46,17 +46,17 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     public static final class Input implements Serializable {
         final URL inputFile;
-        final String javaPackageName;
+        final @Nullable String javaPackageName;
         final Collection<File> includeDirs;
         final Collection<String> builtinLibs;
-        final File cacheDir;
+        final @Nullable File cacheDir;
         final Arguments extraArgs;
         final File outputPath;
         final Collection<STask<?>> originTasks;
         final File projectLocation;
 
-        public Input(URL inputFile, String javaPackageName, Collection<File> includeDirs,
-            Collection<String> builtinLibs, File cacheDir, Arguments extraArgs, File outputPath,
+        public Input(URL inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
+            Collection<String> builtinLibs, @Nullable File cacheDir, Arguments extraArgs, File outputPath,
             Collection<STask<?>> originTasks, File projectLocation) {
             this.inputFile = inputFile;
             this.javaPackageName = javaPackageName;
