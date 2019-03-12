@@ -15,6 +15,10 @@ import mb.stratego.build.StrIncr;
 import mb.stratego.build.StrIncrFrontLib;
 import mb.stratego.build.StrIncrModule;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.resource.ResourceChangeKind;
+import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -27,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Main {
@@ -40,7 +45,10 @@ public class Main {
 
     private static void run(StrategoArguments strategoArguments) throws Exception {
         if(strategoArguments.showHelp) {
-            System.out.println("\n" + "Options:\n" + "   -i f|--input f   Read input from f\n"
+            // @formatter:off
+            System.out.println("\n"
+                + "Options:\n"
+                + "   -i f|--input f   Read input from f\n"
                 + "   -o f|--output f  Write output to f\n"
                 + "   --main f | -m f    Main strategy to compile (default: main)\n"
                 + "   --clean            Remove all existing Java files in the output directory\n"
@@ -48,11 +56,15 @@ public class Main {
                 + "   --stacktrace i | -s i  Enable stacktracing (0 = no, 1 = always [default], 2 = only if assertions (java -ea) enabled for a class)\n"
                 + "   -D name=value      Define a constant value strategy\n"
                 + "   -sc <on|off>       Assume all term constructors are shared (default: on)\n"
-                + "   -O n               Optimization level (0 = no optimization)\n" + "\n" + "   Library options:\n"
-                + "\n" + "   -p <name>          Set package name <name> (should be unique for each library)\n"
+                + "   -O n               Optimization level (0 = no optimization)\n"
+                + "\n"
+                + "   Library options:\n"
+                + "\n"
+                + "   -p <name>          Set package name <name> (should be unique for each library)\n"
                 + "   -la <name>         Include library in package <name>\n"
                 + "   --library | --lib  Build a library instead of an application\n" + "\n"
-                + "   Configuration of the Stratego compiler:\n" + "\n"
+                + "   Configuration of the Stratego compiler:\n"
+                + "\n"
                 + "   --ast              Produce abstract syntax tree of packed program\n"
                 + "   -F                 Produce core after front-end\n"
                 + "   --single-strategy    Generate from a single strategy definition\n"
@@ -63,13 +75,16 @@ public class Main {
                 + "   --fusion           Toggle specialize applications of innermost (default: on)\n"
                 + "   --asfix            Concrete syntax parts are not imploded\n"
                 + "   --Xsep-comp-tool  Compile based on sep-comp-tool (experimental)\n" + "\n"
-                + "   General options:\n" + "\n" + "   -S|--silent      Silent execution (same as --verbose 0)\n"
+                + "   General options:\n"
+                + "\n"
+                + "   -S|--silent      Silent execution (same as --verbose 0)\n"
                 + "   --verbose i      Verbosity level i (default 1)\n"
                 + "                    ( i as a number or as a verbosity descriptor:\n"
                 + "                      emergency, alert, critical, error,\n"
                 + "                      warning, notice, info, debug, vomit )\n"
                 + "   -k i | --keep i  Keep intermediates (default 0)\n"
-                + "   --statistics i   Print statistics (default 0 = none)\n" + "   -h | --help        Show help\n"
+                + "   --statistics i   Print statistics (default 0 = none)\n"
+                + "   -h | --help        Show help\n"
                 + "   -v | --version     Display program's version\n"
                 + "   -W,--warning C   Report warnings falling in category C. Categories:\n"
                 + "                      all                      all categories\n"
@@ -80,7 +95,9 @@ public class Main {
                 + "                      lower-case-constructors  lower-case constructors [ on ]\n" + "\n"
                 + "   -h|-?|--help     Display usage information\n"
                 + "   --about          Display information about this program\n"
-                + "   --version        Same as --about\n" + "\n" + "Description:");
+                + "   --version        Same as --about\n"
+                + "\n" + "Description:");
+            // @formatter:on
             System.exit(0);
         } else if(strategoArguments.showVersion) {
             System.out.println("STRJ ${version}\n");
@@ -112,8 +129,13 @@ public class Main {
 
         List<File> includeDirs = new ArrayList<>(strategoArguments.builtinLibraries.size());
         for(String includeDir : strategoArguments.includeDirs) {
-            includeDirs.add(Paths.get(includeDir).toFile());
+            final File include = Paths.get(includeDir).toFile();
+            includeDirs.add(include);
+            discoverDialects(spoofax, include.getAbsolutePath());
         }
+
+        spoofax.languageDiscoveryService
+            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
 
         List<String> builtinLibs = new ArrayList<>(strategoArguments.builtinLibraries.size());
         for(StrIncrFrontLib.BuiltinLibrary builtinLibrary : strategoArguments.builtinLibraries) {
@@ -121,14 +143,27 @@ public class Main {
         }
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
+
+        final Path projectLocation = Paths.get(strategoArguments.inputFile).getParent().getParent();
+
+        final List<String> constants = new ArrayList<>(strategoArguments.constants.size());
+        for(Map.Entry<String, String> e : strategoArguments.constants.entrySet()) {
+            constants.add(e.getKey() + '=' + e.getValue());
+        }
         StrIncr.Input strIncrInput =
             new StrIncr.Input(inputFile.toURL(), strategoArguments.javaPackageName, includeDirs, builtinLibs,
-                strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(),
+                strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(), constants,
                 strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
-                Collections.emptyList(), Paths.get(strategoArguments.inputFile).getParent().getParent().toFile());
+                Collections.emptyList(), projectLocation.toFile());
         pie.getTopDownExecutor().newSession().requireInitial(strIncr.createTask(strIncrInput));
 
         pie.close();
+    }
+
+    private static void discoverDialects(Spoofax spoofax, String projectLocation) throws FileSystemException {
+        final FileObject location = spoofax.resourceService.resolve(projectLocation);
+        spoofax.dialectProcessor.update(location, ResourceUtils
+            .toChanges(ResourceUtils.find(location, new SpecialIgnoresSelector()), ResourceChangeKind.Create));
     }
 
     private static void run() throws Exception {
@@ -216,8 +251,8 @@ public class Main {
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
         StrIncr.Input strIncrInput =
-            new StrIncr.Input(inputFile.toURL(), javaPackageName, includeDirs, builtinLibs, cacheDir, extraArgs,
-                outputFile, Collections.emptyList(), projectLocation.toFile());
+            new StrIncr.Input(inputFile.toURL(), javaPackageName, includeDirs, builtinLibs, cacheDir,
+                Collections.emptyList(), extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         pie.getTopDownExecutor().newSession().requireInitial(strIncr.createTask(strIncrInput));
 
         // We can do a bottom up build with a changeset

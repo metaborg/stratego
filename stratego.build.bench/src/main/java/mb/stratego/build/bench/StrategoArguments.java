@@ -21,7 +21,7 @@ import java.util.Objects;
     private final boolean clean;
     final List<String> includeDirs;
     private final int stacktracing;
-    private final Map<String, String> constants;
+    final Map<String, String> constants;
     private final boolean shareConstructors;
     private final int optimizationLevel;
     final @Nullable String javaPackageName;
@@ -117,7 +117,6 @@ import java.util.Objects;
                     String[] nv = args[i].split("=", 2);
                     assert nv.length == 2;
                     constants.put(nv[0], nv[1]);
-                    this.extraArguments.add("-D", args[i]);
                     break;
                 case "-sc":
                     i++;
