@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
@@ -50,19 +49,21 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Collection<File> includeDirs;
         final Collection<String> builtinLibs;
         final @Nullable File cacheDir;
+        final List<String> constants;
         final Arguments extraArgs;
         final File outputPath;
         final Collection<STask<?>> originTasks;
         final File projectLocation;
 
         public Input(URL inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
-            Collection<String> builtinLibs, @Nullable File cacheDir, Arguments extraArgs, File outputPath,
-            Collection<STask<?>> originTasks, File projectLocation) {
+            Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
+            File outputPath, Collection<STask<?>> originTasks, File projectLocation) {
             this.inputFile = inputFile;
             this.javaPackageName = javaPackageName;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;
             this.cacheDir = cacheDir;
+            this.constants = constants;
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
             this.originTasks = originTasks;
@@ -88,6 +89,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 return false;
             if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
                 return false;
+            if(!constants.equals(input.constants))
+                return false;
             if(!extraArgs.equals(input.extraArgs))
                 return false;
             if(!outputPath.equals(input.outputPath))
@@ -104,6 +107,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             result = 31 * result + includeDirs.hashCode();
             result = 31 * result + builtinLibs.hashCode();
             result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
+            result = 31 * result + constants.hashCode();
             result = 31 * result + extraArgs.hashCode();
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + originTasks.hashCode();
@@ -129,13 +133,20 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return new Module(path, Type.library);
         }
 
-        public static Module source(Path path) {
-            return new Module(path.normalize().toString(), Type.source);
+        /**
+         * Create source module with a normalized, relative path from the projectLocation to the module file. This
+         * should give us a unique string to use to identify the module file within this pipeline.
+         * @param projectLocationPath
+         * @param path
+         * @return
+         */
+        public static Module source(Path projectLocationPath, Path path) {
+            return new Module(projectLocationPath.relativize(path.toAbsolutePath().normalize()).toString(),
+                Type.source);
         }
 
         static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
-            Collection<File> includeDirs, File projectLocation) throws ExecException {
-            final Function<Path, Module> module = p -> Module.source(projectLocation.toPath().relativize(p));
+            Collection<File> includeDirs, Path projectLocation) throws ExecException {
             final Set<Module> result = new HashSet<>(imports.size() * 2);
             for(StrIncrFront.Import anImport : imports) {
                 switch(anImport.type) {
@@ -146,10 +157,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
                             if(Files.exists(rtreePath)) {
                                 foundSomethingToImport = true;
-                                result.add(module.apply(rtreePath));
+                                result.add(source(projectLocation, rtreePath));
                             } else if(Files.exists(strPath)) {
                                 foundSomethingToImport = true;
-                                result.add(module.apply(strPath));
+                                result.add(source(projectLocation, strPath));
                             }
                         }
                         if(!foundSomethingToImport) {
@@ -171,7 +182,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                                 }
                                 for(File strFile : strFiles) {
                                     foundSomethingToImport = true;
-                                    result.add(module.apply(strFile.toPath()));
+                                    Path p = strFile.toPath();
+                                    result.add(source(projectLocation, p));
                                 }
                             }
                         }
@@ -191,9 +203,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return result;
         }
 
-        public URL resolve(File projectLocation) {
+        public URL resolve(Path projectLocation) {
             try {
-                return projectLocation.toPath().resolve(path).toUri().toURL();
+                return projectLocation.resolve(path).normalize().toUri().toURL();
             } catch(MalformedURLException e) {
                 // Shouldn't happen because any path can be expressed as a URL
                 throw new RuntimeException(e);
@@ -247,15 +259,16 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(t);
         }
 
-        final FileObject location = resourceService.resolve(input.projectLocation);
+        final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
+        final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
+        final File projectLocationFile = resourceService.localFile(projectLocation);
 
         // FRONTEND
         final Set<Module> seen = new HashSet<>();
         final Deque<Module> workList = new ArrayDeque<>();
         final Module inputModule;
         try {
-            inputModule =
-                Module.source(input.projectLocation.toPath().relativize(Paths.get(input.inputFile.toURI())));
+            inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
         } catch(URISyntaxException e) {
             throw new ExecException(e);
         }
@@ -269,7 +282,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             defaultImports.add(StrIncrFront.Import.library(builtinLib));
         }
 
-        final String mainFileModulePath = inputModule.path;
         // Module-path to module-path
         final Map<String, Set<String>> imports = new HashMap<>();
         // Module-path to strategy-names used
@@ -298,8 +310,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final Module module = workList.remove();
 
             if(module.type == Module.Type.library) {
-                final StrIncrFrontLib.Input frontLibInput =
-                    new StrIncrFrontLib.Input(Objects.requireNonNull(StrIncrFrontLib.BuiltinLibrary.fromString(module.path)));
+                final StrIncrFrontLib.Input frontLibInput = new StrIncrFrontLib.Input(
+                    Objects.requireNonNull(StrIncrFrontLib.BuiltinLibrary.fromString(module.path)));
                 Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
                 StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
                 registerStrategyDefinitions(visibleStrategies, module.path, frontLibOutput.strategies);
@@ -310,13 +322,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             final String projectName = projectName(module.path);
             final StrIncrFront.Input frontInput =
-                new StrIncrFront.Input(input.projectLocation, module.resolve(input.projectLocation), projectName,
+                new StrIncrFront.Input(projectLocationFile, module.resolve(projectLocationPath), projectName,
                     input.originTasks);
             final Task<?, StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSTask());
             final StrIncrFront.Output frontOutput = execContext.require(task);
-            boilerplateFiles.add(resourceService
-                .localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, frontOutput.moduleName)));
+            boilerplateFiles.add(resourceService.localPath(
+                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
             final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
             theImports.addAll(defaultImports);
 
@@ -347,7 +359,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             // resolving imports
             final Set<Module> expandedImports =
-                Module.resolveWildcards(execContext, theImports, input.includeDirs, input.projectLocation);
+                Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
             for(Module m : expandedImports) {
                 getOrInitialize(imports, module.path, HashSet::new).add(m.path);
             }
@@ -365,7 +377,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final List<STask<?>> backEndOrigin = new ArrayList<>(strategyOrigins.size());
             backEndOrigin.addAll(strategyOrigins.get(strategyName));
             final @Nullable File strategyDir =
-                resourceService.localPath(CommonPaths.strSepCompStrategyDir(location, strategyName));
+                resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final List<File> strategyOverlayFiles = new ArrayList<>();
@@ -385,19 +397,19 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 args.add("-la", builtinLib);
             }
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(backEndOrigin, input.projectLocation, strategyName, strategyDir,
+                new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])), strategyOverlayFiles,
-                    input.javaPackageName, input.outputPath, input.cacheDir, args, false);
+                    input.javaPackageName, input.outputPath, input.cacheDir, Collections.emptyList(), args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
-        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(location));
+        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
         assert strSrcGenDir
             != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
         StrIncrBack.Input backEndInput =
-            new StrIncrBack.Input(frontSourceTasks, input.projectLocation, null, strSrcGenDir, boilerplateFiles,
-                Collections.emptyList(), input.javaPackageName, input.outputPath, input.cacheDir, input.extraArgs,
-                true);
+            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, boilerplateFiles,
+                Collections.emptyList(), input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
+                input.extraArgs, true);
         execContext.require(strIncrBack.createTask(backEndInput));
 
         return None.getInstance();

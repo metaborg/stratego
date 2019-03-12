@@ -18,8 +18,6 @@ import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -45,12 +43,13 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final @Nullable String packageName;
         final File outputPath;
         final @Nullable File cacheDir;
+        final List<String> constants;
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> constructorsUsed, @Nullable String packageName,
-            File outputPath, @Nullable File cacheDir, Arguments extraArgs, boolean isBoilerplate) {
+            File outputPath, @Nullable File cacheDir, List<String> constants, Arguments extraArgs, boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;
@@ -60,6 +59,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             this.packageName = packageName;
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
+            this.constants = constants;
             this.extraArgs = extraArgs;
             this.isBoilerplate = isBoilerplate;
         }
@@ -94,8 +94,10 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 return false;
             if(!outputPath.equals(input.outputPath))
                 return false;
-            //noinspection SimplifiableIfStatement
             if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
+                return false;
+            //noinspection SimplifiableIfStatement
+            if(!constants.equals(input.constants))
                 return false;
             return extraArgs.equals(input.extraArgs);
         }
@@ -110,6 +112,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
+            result = 31 * result + constants.hashCode();
             result = 31 * result + extraArgs.hashCode();
             result = 31 * result + (isBoilerplate ? 1 : 0);
             return result;
@@ -165,6 +168,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         if(input.cacheDir != null) {
             arguments.addFile("--cache-dir", input.cacheDir);
+        }
+
+        if(input.isBoilerplate) {
+            for(String constant : input.constants) {
+                arguments.add("-D", constant);
+            }
         }
         arguments.addAll(input.extraArgs);
 

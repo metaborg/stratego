@@ -469,7 +469,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     private IStrategoTerm transform(FileObject resource, String projectName, FileObject projectLocation,
         @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws ExecException, IOException {
-        final @Nullable IProject project = projectService.get(projectLocation.resolveFile("metaborg.yaml"));
+        final @Nullable IProject project = projectService.get(projectLocation);
         assert project != null : "Could not find project in location: " + projectLocation;
         if(!contextService.available(strategoLang)) {
             throw new ExecException("Cannot create stratego transformation context");
