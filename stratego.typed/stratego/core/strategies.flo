@@ -1,0 +1,112 @@
+module stratego/core/strategies
+
+imports
+  stratego/core/terms
+  external
+    signatures/stratego/core/-
+
+control-flow rules
+
+  root SDefT(_, sargs, targs, body) =
+    start -> sargs -> targs -> body -> end
+
+  root ExtSDefInl(_, sargs, targs, body) =
+    start -> sargs -> targs -> body -> end
+
+  root ExtSDef(_, sargs, targs) =
+    start -> sargs -> targs -> end
+
+  node VarDec(_, _)
+
+
+  Let(defs, body) =
+    entry -> defs -> body -> exit
+
+  SDefT(_, sargs, targs, body) =
+    entry -> exit,
+    entry -> sargs -> targs -> body -> exit
+
+  CallT(_, sargs, targs) =
+    entry -> targs -> this -> exit,
+                      this -> sargs -> exit // *
+
+  CallDynamic(t, sargs, targs) =
+    entry -> t -> targs -> this -> exit,
+                           this -> sargs -> exit // *
+
+
+  ParenStrat(s) =
+    entry -> s -> exit
+
+  node Fail()
+  node Id()
+
+  ProceedT(sargs, targs) =
+    entry -> targs -> this -> exit, 
+                      this -> sargs -> exit // *
+
+  node ProceedNoArgs()
+
+  Match(t) =
+    entry -> t -> this -> exit
+
+  Build(t) =
+    entry -> t -> this -> exit
+
+  Scope(_, body) =
+    entry -> this -> body -> exit
+
+  Seq(first, second) =
+    entry -> first -> second -> exit
+
+  GuardedLChoice(c, t, e) =
+    entry -> c -> t -> exit,
+    entry -> e -> exit // **
+
+  PrimT(_, sargs, targs) =
+    entry -> targs -> this -> exit,
+                      this -> sargs -> exit // *
+
+  Some(s) =
+    entry -> this -> exit,
+             this -> s -> exit // *
+
+  One(s) =
+    entry -> this -> exit,
+             this -> s -> exit // *
+
+  All(s) =
+    entry -> this -> exit,
+             this -> s -> exit // *
+
+  node ImportTerm(_)
+
+// *  This adds conditionally executing strategies that are strategy arguments. For interpreter-like
+//    analyses you would need more context for the "current term" and multiple strategy
+//    arguments are not guaranteed to be executed either not at all or all once. For now it's
+//    easier to do this than to figure out some way to express the effect in user defined functions
+//    on the this node of these calls.
+
+// ** Note how c is not executed before e as that part is backtracked. It would be interesting
+//    to find a way to model that the part was executed and backtracked which preserves
+//    side-effects but not binding and current term effects.
+
+properties
+
+  reachingDefinitions: MaySet(string * Option(position))
+
+property rules
+
+  reachingDefinitions(_.start) = {}
+
+  reachingDefinitions(prev -> v@VarDec(n, _)) =
+    reachingDefinitions(prev) \/ {(n, Some(position(v)))}
+
+  reachingDefinitions(prev -> m@Match(pattern)) =
+    { (n, p) | (n, p) <- rdprev, !(n in pv && p == None()) }
+    \/ { (nm, Some(position(m))) | nm <- pv, (nm, None()) in rdprev }
+  where rdprev = reachingDefinitions(prev)
+        pv = patternVars(pattern)
+
+  reachingDefinitions(prev -> Scope(names, _)) =
+    reachingDefinitions(prev) \/ { (n, None()) | n <- Set.fromList(names) }

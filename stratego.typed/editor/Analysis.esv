@@ -7,4 +7,10 @@ imports
 
 language
 
-  observer : editor-analyze (constraint)
+  observer : editor-analyze (constraint)// (multifile)
+
+menus
+
+  menu: "Analyze more" (openeditor)
+    
+    action: "Annotate bound/unbound" = annotate-bound-unbound-builder

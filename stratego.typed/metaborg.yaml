@@ -6,11 +6,13 @@ dependencies:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.lang:${metaborgVersion}
+  - org.metaborg:flowspec.lang:${metaborgVersion}
 #  - org.metaborg:dynsem:${metaborgVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.shared:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.nabl2.runtime:${metaborgVersion}
+  - org.metaborg:flowspec.lang:${metaborgVersion}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar
@@ -24,7 +26,7 @@ language:
     placeholder:
       prefix: "$"
   stratego:
-    format: ctree
+    format: jar
     args:
     - -la
     - stratego-lib

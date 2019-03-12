@@ -7,6 +7,8 @@ imports
   outline
   analysis
   compile
+  flowspec/api
+  annotate-bound-unbound
 
 rules // Debugging
   
@@ -27,7 +29,12 @@ rules // Debugging
     ; filename := <guarantee-extension(|"comp.aterm")> path
     ; result   := <compile-module(|project-path)> node
 
-    
+  annotate-bound-unbound-builder:
+    (ast, _, _, path, _) -> (filename, ast')
+    with
+      a := <flowspec-get-ast-analysis> ast
+    ; ast' := <annotate-bound-unbound(|a)> ast
+    ; filename := <guarantee-extension(|"abu.aterm")> path
 //      generate-nabl2:
 //    (node, _, ast@Module(name,_), path, project-path) -> (filename, result)
 //    with

@@ -1,14 +1,15 @@
-package mb.stratego.typed.pack;
+package mb.stratego.compiler.pack.cmd;
 
 import java.nio.file.Path;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-import mb.stratego.typed.pack.arguments.Arguments;
-import mb.stratego.typed.pack.arguments.Boilerplate;
-import mb.stratego.typed.pack.arguments.SharedArguments;
-import mb.stratego.typed.pack.arguments.SingleStrategy;
+import mb.stratego.compiler.pack.cmd.arguments.Arguments;
+import mb.stratego.compiler.pack.cmd.arguments.Boilerplate;
+import mb.stratego.compiler.pack.cmd.arguments.SharedArguments;
+import mb.stratego.compiler.pack.cmd.arguments.SingleStrategy;
+import mb.stratego.compiler.pack.Packer;
 
 public class Main {
     private static final ILogger logger = LoggerUtils.logger(Main.class);

@@ -1,15 +1,70 @@
 module analysis
 
 imports nabl2/api
+imports flowspec/api
 imports static-semantics
 imports pp
+imports libspoofax/stratego/debug
+imports signatures/stratego/core/-
+imports nabl2/shared/-
+imports flowspec/stratego/core/core
 
-rules // Analysis
+rules // Analysis 
+
+//  flowspec-debug-profile = debug
 
   editor-analyze = nabl2-analyze(id)
 
-rules // Debugging
+  nabl2-custom-analysis-unit-hook:
+    (resource, ast, custom-initial-result) -> (resource, ast)
+
+  nabl2-custom-analysis-final-hook(|a):
+    (_, _, custom-unit-results) -> (errors, warnings, notes, custom-final-result)
+  with asts     := <map(\(ast-resource, ast) -> <nabl2--index-ast(|ast-resource)> ast\)> custom-unit-results // workaround for https://yellowgrass.org/issue/NaBL2/54
+  where
+     (with(custom-final-result := <flowspec-analyze(|a)> asts)
+     < errors   := <collect-in-build(unbound-var(|a)|custom-final-result)> asts
+       ; warnings := <collect-in-build(maybe-unbound-var(|a)|custom-final-result)> asts
+       ; notes    := []
+     + errors := []
+       ; warnings := []
+       ; notes := []
+     )
+
+  benchmark-flowspec-analysis: (ast, a) -> <flowspec-analyze(|a)> ast
+
+  benchmark-flowspec-analysis2: (ast, a) -> result
+  where cfg := <flowspec--create-cfg(flowspec--register-cfg-toplevel|a)> ast
+      ; result := <flowspec--solve(|cfg, <flowspec--prop-names>)> ast
   
+  test-flowspec-analysis: (ast, a) -> <nabl2-erase-ast-indices> ast'
+  where
+    a' := <benchmark-flowspec-analysis> (ast, a)
+  ; ast' := <annotate-bound-unbound(|a')> ast
+
+  test-flowspec-analysis2: (ast, a) -> <nabl2-erase-ast-indices> ast'
+  where
+    a' := <benchmark-flowspec-analysis2> (ast, a)
+  ; ast' := <annotate-bound-unbound(|a')> ast
+
+  benchmark-flowspec-cfg-create: (ast, a) -> <flowspec--create-cfg(flowspec--register-cfg-toplevel|a)> ast
+
+  collect-in-build(s|a) = collect-all(?Build(<id>); collect-all(s, conc), conc); concat
+
+  unbound-var(|a): v@Var(_) -> (v, "Variable is unbound")
+  where
+    rd-set := <flowspec-get-property-pre(|a, "reachingDefinitions")> v
+  ; [None()] := <flowspec-set-lookup(?(v, _))> rd-set
+
+  maybe-unbound-var(|a): v@Var(_) -> (v, "Variable may be unbound")
+  where
+    rd-set := <flowspec-get-property-pre(|a, "reachingDefinitions")> v
+  ; rd := <flowspec-set-lookup(?(v, _))> rd-set
+  ; <fetch(?None())> rd
+  ; <fetch(?Some(_))> rd
+
+rules // Debugging
+
   // Prints the abstract syntax ATerm of a selection.
   debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"aterm")> path
