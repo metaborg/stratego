@@ -45,7 +45,7 @@ strategies
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
-  compile-module: (project-path, project-name, ast) -> <compile-module(|project-path, project-name)> ast
+  compile-module: (project-path, project-name, ast) -> <MetaExplode; compile-module(|project-path, project-name)> ast
 
   clean-and-compile-module: (project-path, project-name, ast) -> <compile-module>
   with
