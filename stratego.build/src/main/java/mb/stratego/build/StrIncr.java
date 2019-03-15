@@ -136,9 +136,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         /**
          * Create source module with a normalized, relative path from the projectLocation to the module file. This
          * should give us a unique string to use to identify the module file within this pipeline.
-         * @param projectLocationPath
-         * @param path
-         * @return
          */
         public static Module source(Path projectLocationPath, Path path) {
             return new Module(projectLocationPath.relativize(path.toAbsolutePath().normalize()).toString(),
@@ -203,7 +200,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return result;
         }
 
-        public URL resolve(Path projectLocation) {
+        URL resolveFrom(Path projectLocation) {
             try {
                 return projectLocation.resolve(path).normalize().toUri().toURL();
             } catch(MalformedURLException e) {
@@ -314,7 +311,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Objects.requireNonNull(StrIncrFrontLib.BuiltinLibrary.fromString(module.path)));
                 Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
                 StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
-                registerStrategyDefinitions(visibleStrategies, module.path, frontLibOutput.strategies);
+                registerStrategyDefinitions(visibleStrategies, module, frontLibOutput.strategies);
                 registerConstructorDefinitions(visibleConstructors, module, frontLibOutput.constrs,
                     Collections.emptySet());
                 continue;
@@ -322,7 +319,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             final String projectName = projectName(module.path);
             final StrIncrFront.Input frontInput =
-                new StrIncrFront.Input(projectLocationFile, module.resolve(projectLocationPath), projectName,
+                new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
             final Task<?, StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSTask());
@@ -338,7 +335,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
             usedStrategies.put(module.path, frontOutput.usedStrategies);
             usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-            registerStrategyDefinitions(visibleStrategies, module.path, frontOutput.strategies);
+            registerStrategyDefinitions(visibleStrategies, module, frontOutput.strategies);
             registerConstructorDefinitions(visibleConstructors, module, frontOutput.constrs,
                 frontOutput.overlayFiles.keySet());
 
@@ -369,7 +366,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         } while(!workList.isEmpty());
 
         // CHECK: constructor/strategy uses have definition which is imported
-        staticCheck(execContext, mainFileModulePath, imports, usedStrategies, usedAmbStrategies, usedConstructors,
+        staticCheck(execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies, usedConstructors,
             visibleStrategies, visibleConstructors);
 
         // BACKEND
@@ -422,9 +419,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleConstructors.put(module.path, visConstrs);
     }
 
-    private static void registerStrategyDefinitions(Map<String, Set<String>> visibleStrategies, String path,
+    private static void registerStrategyDefinitions(Map<String, Set<String>> visibleStrategies, Module module,
         Set<String> strategies) {
-        visibleStrategies.put(path, strategies);
+        visibleStrategies.put(module.path, strategies);
     }
 
     private static void staticCheck(ExecContext execContext, String mainFileModulePath,

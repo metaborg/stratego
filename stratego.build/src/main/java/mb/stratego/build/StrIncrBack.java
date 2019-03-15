@@ -39,7 +39,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final @Nullable String strategyName;
         final File strategyDir;
         final Collection<File> strategyContributions;
-        final Collection<File> constructorsUsed;
+        final Collection<File> overlayContributions;
         final @Nullable String packageName;
         final File outputPath;
         final @Nullable File cacheDir;
@@ -48,14 +48,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final boolean isBoilerplate;
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
-            Collection<File> strategyContributions, Collection<File> constructorsUsed, @Nullable String packageName,
+            Collection<File> strategyContributions, Collection<File> overlayContributions, @Nullable String packageName,
             File outputPath, @Nullable File cacheDir, List<String> constants, Arguments extraArgs, boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;
             this.strategyDir = strategyDir;
             this.strategyContributions = strategyContributions;
-            this.constructorsUsed = constructorsUsed;
+            this.overlayContributions = overlayContributions;
             this.packageName = packageName;
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
@@ -88,7 +88,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 return false;
             if(!strategyContributions.equals(input.strategyContributions))
                 return false;
-            if(!constructorsUsed.equals(input.constructorsUsed))
+            if(!overlayContributions.equals(input.overlayContributions))
                 return false;
             if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
                 return false;
@@ -108,7 +108,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             result = 31 * result + (strategyName != null ? strategyName.hashCode() : 0);
             result = 31 * result + strategyDir.hashCode();
             result = 31 * result + strategyContributions.hashCode();
-            result = 31 * result + constructorsUsed.hashCode();
+            result = 31 * result + overlayContributions.hashCode();
             result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
@@ -136,12 +136,10 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             contributionPaths.add(strategyContrib.toPath());
         }
 
-        final List<Path> overlayPaths = new ArrayList<>(input.constructorsUsed.size());
-        for(File overlayFile : input.constructorsUsed) {
+        final List<Path> overlayPaths = new ArrayList<>(input.overlayContributions.size());
+        for(File overlayFile : input.overlayContributions) {
             execContext.require(overlayFile, FileSystemStampers.INSTANCE.getHash());
-            if(overlayFile.exists()) {
-                overlayPaths.add(overlayFile.toPath());
-            }
+            overlayPaths.add(overlayFile.toPath());
         }
 
         // Pack the directory into a single strategy
