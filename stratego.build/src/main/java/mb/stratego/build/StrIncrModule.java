@@ -1,22 +1,30 @@
 package mb.stratego.build;
 
 import mb.pie.api.TaskDef;
-import mb.pie.taskdefs.guice.TaskDefsModule;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
+import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
-import javax.inject.Singleton;
 
-public class StrIncrModule extends TaskDefsModule {
-    @Override public void bindTaskDefs(Binder binder, MapBinder<String, TaskDef<?, ?>> mapBinder) {
-        bindTaskDef(binder, mapBinder, StrIncr.id,      StrIncr.class);
-        bindTaskDef(binder, mapBinder, StrIncrFront.id, StrIncrFront.class);
-        bindTaskDef(binder, mapBinder, StrIncrBack.id,  StrIncrBack.class);
+public class StrIncrModule extends AbstractModule {
+    @Override public void configure() {
+        MapBinder<String, TaskDef<?, ?>> taskDefsBinder = MapBinder.newMapBinder(binder(), new TypeLiteral<String>() {
+        }, new TypeLiteral<TaskDef<?, ?>>() {
+        });
+        this.bindTaskDefs(binder(), taskDefsBinder);
     }
 
-    private void bindTaskDef(Binder binder, MapBinder<String, TaskDef<?, ?>> mapBinder, String id,
-            Class<? extends TaskDef<?, ?>> c) {
-        binder.bind(c).in(Singleton.class);
-        mapBinder.addBinding(id).to(c);
+    private void bindTaskDefs(Binder binder, MapBinder<String, TaskDef<?, ?>> mapBinder) {
+        bindTaskDef(StrIncr.class, binder, mapBinder, StrIncr.id);
+        bindTaskDef(StrIncrFront.class, binder, mapBinder, StrIncrFront.id);
+        bindTaskDef(StrIncrBack.class, binder, mapBinder, StrIncrBack.id);
+    }
+
+    private <B extends TaskDef<?, ?>> void bindTaskDef(Class<B> clazz, Binder binder,
+        MapBinder<String, TaskDef<?, ?>> builderBinder, String id) {
+        binder.bind(clazz).in(Singleton.class);
+        builderBinder.addBinding(id).to(clazz);
     }
 }

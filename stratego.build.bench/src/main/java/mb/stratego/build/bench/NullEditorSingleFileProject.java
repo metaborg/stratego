@@ -2,7 +2,6 @@ package mb.stratego.build.bench;
 
 import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.editor.NullEditorRegistry;
-import org.metaborg.core.project.ConfigBasedProjectService;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.project.SingleFileProjectService;
 import org.metaborg.spoofax.core.SpoofaxModule;

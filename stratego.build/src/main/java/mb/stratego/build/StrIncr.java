@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -161,7 +160,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             }
                         }
                         if(!foundSomethingToImport) {
-                            execContext.getLogger()
+                            execContext.logger()
                                 .warn("Could not find any module corresponding to import " + anImport.path, null);
                         }
                         break;
@@ -185,7 +184,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             }
                         }
                         if(!foundSomethingToImport) {
-                            execContext.getLogger()
+                            execContext.logger()
                                 .warn("Could not find any module corresponding to import " + anImport.path + "/-",
                                     null);
                         }
@@ -200,13 +199,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return result;
         }
 
-        URL resolveFrom(Path projectLocation) {
-            try {
-                return projectLocation.resolve(path).normalize().toUri().toURL();
-            } catch(MalformedURLException e) {
-                // Shouldn't happen because any path can be expressed as a URL
-                throw new RuntimeException(e);
-            }
+        URL resolveFrom(Path projectLocation) throws MalformedURLException {
+            return projectLocation.resolve(path).normalize().toUri().toURL();
         }
 
         @Override public boolean equals(Object o) {
@@ -244,7 +238,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         this.strIncrBack = strIncrBack;
     }
 
-    @Override public None exec(ExecContext execContext, Input input) throws ExecException, InterruptedException {
+    @Override public None exec(ExecContext execContext, Input input) throws Exception {
         /*
          * Note that we require the sdf tasks here to force it to generated needed str files. We then discover those in
          * this method with a directory search, and start a front-end task for each. Every front-end task also depends
@@ -263,12 +257,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // FRONTEND
         final Set<Module> seen = new HashSet<>();
         final Deque<Module> workList = new ArrayDeque<>();
-        final Module inputModule;
-        try {
-            inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
-        } catch(URISyntaxException e) {
-            throw new ExecException(e);
-        }
+        final Module inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
         workList.add(inputModule);
         seen.add(inputModule);
 
@@ -409,7 +398,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 input.extraArgs, true);
         execContext.require(strIncrBack.createTask(backEndInput));
 
-        return None.getInstance();
+        return None.instance;
     }
 
     private static void registerConstructorDefinitions(Map<String, Set<String>> visibleConstructors, Module module,
@@ -451,7 +440,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                         theVisibleConstructors);
                 if(!unresolvedConstructors.isEmpty()) {
                     checkOk = false;
-                    execContext.getLogger()
+                    execContext.logger()
                         .error("In module " + moduleName + ": Cannot find constructors " + unresolvedConstructors,
                             null);
                 }
@@ -460,7 +449,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                         theVisibleStrategies);
                 if(!unresolvedStrategies.isEmpty()) {
                     checkOk = false;
-                    execContext.getLogger()
+                    execContext.logger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
                 Set<String> theUsedAmbStrategies =
@@ -477,14 +466,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     for(String usedAmbStrategy : theUsedAmbStrategies) {
                         switch(differentArityDefinitions.getOrDefault(usedAmbStrategy, 0)) {
                             case 0:
-                                execContext.getLogger().error(
+                                execContext.logger().error(
                                     "In module " + moduleName + ": Cannot find strategy " + usedAmbStrategy
                                         + " in ambiguous call position", null);
                                 break;
                             case 1:
                                 break;
                             default:
-                                execContext.getLogger().error(
+                                execContext.logger().error(
                                     "In module " + moduleName + ": Call to strategy " + usedAmbStrategy
                                         + " is ambiguous, multiple arities possible. ", null);
                         }
@@ -513,21 +502,5 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     @Override public Serializable key(Input input) {
         return input.inputFile;
-    }
-
-    @Override public String desc(Input input) {
-        return TaskDef.DefaultImpls.desc(this, input);
-    }
-
-    @Override public String desc(Input input, int maxLength) {
-        return TaskDef.DefaultImpls.desc(this, input, maxLength);
-    }
-
-    @Override public Task<Input, None> createTask(Input input) {
-        return TaskDef.DefaultImpls.createTask(this, input);
-    }
-
-    @Override public STask<Input> createSerializableTask(Input input) {
-        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 }

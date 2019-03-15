@@ -2,8 +2,6 @@ package mb.stratego.build;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.STask;
-import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -79,11 +77,12 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
 
         @Override public String toString() {
-            return "StrIncrFrontLib$Output("  + strategies + ", " + constrs + ')';
+            return "StrIncrFrontLib$Output(" + strategies + ", " + constrs + ')';
         }
     }
 
     public enum BuiltinLibrary {
+        // @formatter:off
         StrategoLib("stratego-lib"),
         StrategoSglr("stratego-sglr"),
         StrategoGpp("stratego-gpp"),
@@ -92,6 +91,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         StrategoSdf("stratego-sdf"),
         Strc("strc"),
         JavaFront("java-front");
+        // @formatter:on
 
         public final String libString;
         public final String cmdArgString;
@@ -141,8 +141,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
     }
 
-    @Override public Output exec(ExecContext execContext, Input input)
-        throws ExecException, InterruptedException {
+    @Override public Output exec(ExecContext execContext, Input input) throws Exception {
         IStrategoTerm ast = getBuiltinLibrary(input.library);
         Set<String> constrs = new HashSet<>();
         Set<String> strategies = new HashSet<>();
@@ -282,21 +281,5 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
 
     @Override public Serializable key(Input input) {
         return input.library;
-    }
-
-    @Override public String desc(Input input) {
-        return TaskDef.DefaultImpls.desc(this, input);
-    }
-
-    @Override public String desc(Input input, int maxLength) {
-        return TaskDef.DefaultImpls.desc(this, input, maxLength);
-    }
-
-    @Override public Task<Input, Output> createTask(Input input) {
-        return TaskDef.DefaultImpls.createTask(this, input);
-    }
-
-    @Override public STask<Input> createSerializableTask(Input input) {
-        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 }

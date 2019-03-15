@@ -1,12 +1,11 @@
 package mb.stratego.build.bench;
 
-import kotlin.Unit;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
 import mb.pie.api.ResourceKey;
 import mb.pie.api.TaskKey;
 import mb.pie.api.exec.BottomUpExecutor;
-import mb.pie.api.fs.ResourceKt;
+import mb.pie.api.fs.ResourceUtil;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.logger.StreamLogger;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
@@ -260,13 +259,12 @@ public class Main {
         Set<ResourceKey> changedResources = new HashSet<>();
         BottomUpExecutor bottomUpExecutor = pie.getBottomUpExecutor();
         bottomUpExecutor.setObserver(new TaskKey(strIncr.getId(), strIncr.key(strIncrInput)), s -> {
-            // Use jmh blackhole here to make sure nothing is optimized away
-            return Unit.INSTANCE;
+            // FIXME: Use jmh blackhole here to make sure nothing is optimized away
         });
         bottomUpExecutor.requireBottomUp(changedResources);
 
         System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
-        changedResources.add(ResourceKt.toResourceKey(new File(inputFile)));
+        changedResources.add(ResourceUtil.toResourceKey(new File(inputFile)));
         bottomUpExecutor.requireBottomUp(changedResources);
 
         pie.close();

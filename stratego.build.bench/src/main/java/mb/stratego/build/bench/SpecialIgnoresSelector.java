@@ -1,7 +1,6 @@
 package mb.stratego.build.bench;
 
 import org.apache.commons.vfs2.FileSelectInfo;
-import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 
 /**

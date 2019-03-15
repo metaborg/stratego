@@ -1,10 +1,8 @@
 package mb.stratego.build;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
-import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.pie.api.fs.stamp.FileSystemStampers;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
@@ -20,12 +18,10 @@ import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.util.cmd.Arguments;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -49,7 +45,8 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> overlayContributions, @Nullable String packageName,
-            File outputPath, @Nullable File cacheDir, List<String> constants, Arguments extraArgs, boolean isBoilerplate) {
+            File outputPath, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
+            boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;
@@ -125,33 +122,29 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         this.resourceService = resourceService;
     }
 
-    @Override public None exec(ExecContext execContext, Input input) throws ExecException, InterruptedException {
+    @Override public None exec(ExecContext execContext, Input input) throws Exception {
         for(STask<?> t : input.frontEndTasks) {
-            execContext.require(t, InconsequentialOutputStamper.Companion.getInstance());
+            execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
         final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
         for(File strategyContrib : input.strategyContributions) {
-            execContext.require(strategyContrib, FileSystemStampers.INSTANCE.getHash());
+            execContext.require(strategyContrib, FileSystemStampers.hash());
             contributionPaths.add(strategyContrib.toPath());
         }
 
         final List<Path> overlayPaths = new ArrayList<>(input.overlayContributions.size());
         for(File overlayFile : input.overlayContributions) {
-            execContext.require(overlayFile, FileSystemStampers.INSTANCE.getHash());
+            execContext.require(overlayFile, FileSystemStampers.hash());
             overlayPaths.add(overlayFile.toPath());
         }
 
         // Pack the directory into a single strategy
         final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
-        try {
-            if(input.isBoilerplate) {
-                Packer.packBoilerplate(contributionPaths, packedFile);
-            } else {
-                Packer.packStrategy(overlayPaths, contributionPaths, packedFile);
-            }
-        } catch(IOException e) {
-            throw new ExecException(e);
+        if(input.isBoilerplate) {
+            Packer.packBoilerplate(contributionPaths, packedFile);
+        } else {
+            Packer.packStrategy(overlayPaths, contributionPaths, packedFile);
         }
 
         // Call Stratego compiler
@@ -189,13 +182,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
                 .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
 
-        Arrays.stream(result.errLog.split(System.lineSeparator()))
-            .filter(line -> line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)).forEach(line -> {
-            String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length());
-            execContext.provide(new File(fileName));
-        });
+        for(String line : result.errLog.split(System.lineSeparator())) {
+            if(line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
+                String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length());
+                execContext.provide(new File(fileName));
+            }
+        }
 
-        return None.getInstance();
+        return None.instance;
     }
 
     private ResourceAgentTracker newResourceTracker(File baseFile, String... excludePatterns) {
@@ -213,21 +207,5 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
     @Override public Serializable key(Input input) {
         return input.strategyDir;
-    }
-
-    @Override public String desc(Input input) {
-        return TaskDef.DefaultImpls.desc(this, input);
-    }
-
-    @Override public String desc(Input input, int maxLength) {
-        return TaskDef.DefaultImpls.desc(this, input, maxLength);
-    }
-
-    @Override public Task<Input, None> createTask(Input input) {
-        return TaskDef.DefaultImpls.createTask(this, input);
-    }
-
-    @Override public STask<Input> createSerializableTask(Input input) {
-        return TaskDef.DefaultImpls.createSerializableTask(this, input);
     }
 }
