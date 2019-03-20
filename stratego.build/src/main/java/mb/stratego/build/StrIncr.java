@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
-    public static final String id = "StrIncr";
+    public static final String id = StrIncr.class.getCanonicalName();
 
     public static final class Input implements Serializable {
         final URL inputFile;
@@ -454,6 +454,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
                 Set<String> theUsedAmbStrategies =
                     new HashSet<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptySet()));
+                // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
                 theUsedAmbStrategies
                     .removeIf(theUsedAmbStrategy -> theVisibleStrategies.contains(theUsedAmbStrategy + "_0_0"));
                 if(!theUsedAmbStrategies.isEmpty()) {

@@ -12,6 +12,10 @@
     <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
+  <properties>
+    <pie-version>0.4.2</pie-version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
@@ -26,7 +30,7 @@
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>pie.store.lmdb</artifactId>
-      <version>0.4.0</version>
+      <version>${pie-version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>

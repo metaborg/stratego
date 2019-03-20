@@ -8,9 +8,12 @@ import mb.pie.api.exec.BottomUpExecutor;
 import mb.pie.api.fs.ResourceUtil;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.logger.StreamLogger;
+import mb.pie.runtime.taskdefs.MapTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.stratego.build.StrIncr;
+import mb.stratego.build.StrIncrBack;
+import mb.stratego.build.StrIncrFront;
 import mb.stratego.build.StrIncrFrontLib;
 import mb.stratego.build.StrIncrModule;
 

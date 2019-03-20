@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
-    public static final String id = "StrIncrBack";
+    public static final String id = StrIncrBack.class.getCanonicalName();
 
     public static final class Input implements Serializable {
         final Collection<STask<?>> frontEndTasks;
