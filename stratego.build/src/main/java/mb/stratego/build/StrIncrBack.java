@@ -169,7 +169,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         arguments.addAll(input.extraArgs);
 
         final ResourceAgentTracker tracker =
-            newResourceTracker(input.projectLocation, Pattern.quote("[ strj | info ]") + ".*",
+            newResourceTracker(new File(System.getProperty("user.dir")), Pattern.quote("[ strj | info ]") + ".*",
                 Pattern.quote("[ strj | error ] Compilation failed") + ".*",
                 Pattern.quote("[ strj | warning ] Nullary constructor") + ".*",
                 Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
