@@ -470,16 +470,16 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     private IStrategoTerm parse(FileObject resource, @Nullable ILanguageImpl strategoDialect,
         ILanguageImpl strategoLang) throws Exception {
+        @Nullable SyntaxFacet syntaxFacet = null;
+        @Nullable String dialectName = null;
         if(strategoDialect != null) {
-            final @Nullable SyntaxFacet syntaxFacet = strategoDialect.facet(SyntaxFacet.class);
+            syntaxFacet = strategoDialect.facet(SyntaxFacet.class);
+            dialectName = dialectService.dialectName(strategoDialect);
             assert syntaxFacet != null : "Cannot get Syntax Facet from (non-null) Stratego dialect";
-            final @Nullable String dialectName = dialectService.dialectName(strategoDialect);
             assert dialectName != null : "Cannot get dialect name from (non-null) Stratego dialect";
             // Get dialect with stratego imploder setting
             final ILanguageImpl adaptedStrategoDialect =
                 dialectService.update(dialectName, syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
-            // Update registered dialect back to old one.
-            dialectService.update(dialectName, syntaxFacet);
             strategoDialect = adaptedStrategoDialect;
         }
 
@@ -493,6 +493,10 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             throw new ExecException(
                 "Cannot parse stratego file " + resource + ": parsing failed with" + (!parseResult.valid() ? " errors" :
                     (!parseResult.success()) ? "out errors" : " ast == null"));
+        }
+        if(strategoDialect != null) {
+            // Update registered dialect back to old one.
+            dialectService.update(dialectName, syntaxFacet);
         }
         return ast;
     }
