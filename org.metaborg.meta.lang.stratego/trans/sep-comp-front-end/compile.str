@@ -215,7 +215,7 @@ strategies
 
   m-split-definitions = id
     ; where(id
-      ; m-get-all-definitions
+      ; m-get-all-local-definitions
       ; map(!(<m-def-signature;Fst>, <id>))
       ; ?localDef*
     )
