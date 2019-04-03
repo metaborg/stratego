@@ -152,6 +152,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             final Path strPath = dir.toPath().resolve(anImport.path + ".str");
                             final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
                             if(Files.exists(rtreePath)) {
+                                // TODO: Check if Module or Specification.
+                                //       (Module is handled by StrIncrFront, Specification by StrIncrFrontLib)
                                 foundSomethingToImport = true;
                                 result.add(source(projectLocation, rtreePath));
                             } else if(Files.exists(strPath)) {

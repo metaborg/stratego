@@ -424,7 +424,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         throws Exception {
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(resource);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
-        final IStrategoTerm ast;
+        IStrategoTerm ast;
         if(strategoLang == null) {
             strategoLang = strategoDialect;
             strategoDialect = null;
@@ -435,9 +435,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             if(stratego != null && extension.equals("rtree")) {
                 strategoLang = stratego.activeImpl();
                 // support *.rtree (StrategoSugar AST)
-                ast = new TermReader(termFactoryService.getGeneric())
+                final ITermFactory factory = termFactoryService.getGeneric();
+                ast = new TermReader(factory)
                     .parseFromStream(resource.getContent().getInputStream());
-
+                // TODO: Move this case to StrIncrFrontLib. See also TODO in Module#resolveWildcards
+                if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Specification") && ast.getSubtermCount() == 1) {
+                    final String baseName = resource.getName().getBaseName();
+                    ast = factory.makeAppl(factory.makeConstructor("Module", 2), factory.makeString(
+                        baseName.substring(0, baseName.length() - ".rtree".length())), ast.getSubterm(0));
+                }
             } else {
                 throw new ExecException(
                     "Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
@@ -478,9 +484,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             assert syntaxFacet != null : "Cannot get Syntax Facet from (non-null) Stratego dialect";
             assert dialectName != null : "Cannot get dialect name from (non-null) Stratego dialect";
             // Get dialect with stratego imploder setting
-            final ILanguageImpl adaptedStrategoDialect =
+            strategoDialect =
                 dialectService.update(dialectName, syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
-            strategoDialect = adaptedStrategoDialect;
         }
 
         // PARSE
