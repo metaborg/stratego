@@ -24,7 +24,7 @@ rules
     SDefT(x, args1, args2, s) -> SDefT(x, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
-        ; s' := <annotate-local-args(|<map(?VarDec(<id>,_))> args1)> s
+        ; s' := <annotate-local-args(!$[[x]$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
 
   RenameSDef2 :
     ExtSDef(_, _, _) -> <id>
@@ -33,7 +33,7 @@ rules
     ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(x, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
-        ; s' := <annotate-local-args(|<map(?VarDec(<id>,_))> args1)> s
+        ; s' := <annotate-local-args(!$[[x]$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
 
   RenameCall2 : 
     CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
@@ -53,14 +53,23 @@ rules
   rename-var-manual:
     (x,(n,m)) -> <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m]
 
-  annotate-local-args(|larg*) = alltd(annotate-local-arg(|larg*))
+  annotate-local-args(rename-local|larg*,letdef*) = alltd(preserve-annos(annotate-local-arg(rename-local|larg*,letdef*)))
 
-  annotate-local-arg(|larg*): Let(sdeft*, body) -> Let(sdeft*, body')
+  annotate-local-arg(rename-local|larg*,letdef*): Let(sdeft*, body) -> Let(sdeft'*, body')
   with id
-    ; def* := <map(?SDefT(<id>, _, _, _))> sdeft*
-    ; body' := <annotate-local-args(|[larg*, def*])> body
+    ; def* := <map(?SDefT(<id>, _, _, _);split(rm-annotations, rename-local))> sdeft*
+    ; letdef'* := [def*,letdef*]
+    ; body' := <annotate-local-args(rename-local|larg*, letdef'*)> body
+    ; sdeft'* := <map({args1, arg*:
+        SDefT(rename-local, ?args1, id, id)
+      ; where(arg* := <map(?VarDec(<id>,_))> args1)
+      ; SDefT(id, id, id, annotate-local-args(rename-local|[larg*, arg*], letdef'*))})> sdeft*
 
-  annotate-local-arg(|larg*): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  annotate-local-arg(rename-local|larg*,letdef*): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
   where id
     ; <getfirst(?x)> larg*
     ; y := <add-annotation(|LocalArg())> x
+
+  annotate-local-arg(rename-local|larg*,letdef*): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  where id
+    ; y := <lookup;add-annotation(|LocalArg())> (x{}, letdef*)
