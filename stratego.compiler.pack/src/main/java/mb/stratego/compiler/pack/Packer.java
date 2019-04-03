@@ -86,8 +86,9 @@ public class Packer {
 
             String next_line = "";
             for(Path inputFile : overlayPaths) {
-                write(outChannel, next_line);
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                    if(inChannel.size() == 0) continue;
+                    write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
                 next_line = "\n,";
@@ -97,8 +98,9 @@ public class Packer {
 
             next_line = "";
             for(Path inputFile : strategyPaths) {
-                write(outChannel, next_line);
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                    if(inChannel.size() == 0) continue;
+                    write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
                 next_line = "\n,";
@@ -137,8 +139,9 @@ public class Packer {
             String next_line = "";
             for(Path inputFile : paths) {
                 num_defs++;
-                write(outChannel, next_line);
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+                    if(inChannel.size() == 0) continue;
+                    write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
                 next_line = "\n,";
