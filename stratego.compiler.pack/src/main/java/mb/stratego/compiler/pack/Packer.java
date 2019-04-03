@@ -153,7 +153,8 @@ public class Packer {
     private static Predicate<? super Path> relevantFiles(final Path outputFile) {
         return f -> {
             try {
-                return f.getFileName().toString().endsWith(".aterm") && !Files.isSameFile(f, outputFile);
+                return Files.exists(f) && f.getFileName().toString().endsWith(".aterm")
+                    && !Files.isSameFile(f, outputFile) && Files.size(f) != 0;
             } catch(IOException e) {
                 throw new RuntimeException(e);
             }
