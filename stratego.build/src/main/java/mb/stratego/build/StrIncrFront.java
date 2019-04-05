@@ -119,9 +119,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Set<String> usedStrategies;
         /**
          * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument
-         * to other strategy) [name checks]
+         * to other strategy) to strategy-names where the ambiguous call occurs [name checks]
          */
-        final Set<String> ambStratUsed;
+        final Map<String, Set<String>> ambStratUsed;
         /**
          * Strategy-name to constructor_arity names that were used in the body [name checks]
          */
@@ -140,7 +140,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Set<String> constrs;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
-            Set<String> ambStratUsed, Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles,
+            Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles,
             List<Import> imports, Set<String> constrs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
@@ -221,7 +221,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         static Import library(String libraryName) {
-            assert StrIncrFrontLib.BuiltinLibrary.fromString(libraryName) != null;
+            assert Library.Builtin.isBuiltinLibrary(libraryName);
             return new Import(ImportType.library, libraryName);
         }
 
@@ -233,7 +233,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             switch(appl.getName()) {
                 case "Import":
                     String importString = Tools.javaStringAt(appl, 0);
-                    if(StrIncrFrontLib.BuiltinLibrary.fromString(importString) != null) {
+                    if(Library.Builtin.isBuiltinLibrary(importString)) {
                         return library(importString);
                     } else {
                         return normal(importString);
@@ -367,10 +367,16 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(IStrategoTerm cifiedStratName : cifiedStratNameList) {
             strategies.add(Tools.asJavaString(cifiedStratName));
         }
-        final Set<String> ambStratUsed = new HashSet<>(cifiedAmbStratsUsed.size() * 2);
+        final Map<String, Set<String>> ambStratUsed = new HashMap<>(cifiedAmbStratsUsed.size() * 2);
         for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
-            assert Tools.asJavaString(cifiedAmbStratUsed).endsWith("_0_0");
-            ambStratUsed.add(stripArity(Tools.asJavaString(cifiedAmbStratUsed)));
+            final String ambName = Tools.javaStringAt(cifiedAmbStratUsed, 0);
+            assert ambName.endsWith("_0_0");
+            final IStrategoList useSites = Tools.listAt(cifiedAmbStratUsed, 1);
+            Set<String> occurrences = new HashSet<>();
+            for(IStrategoTerm useSite : useSites) {
+                occurrences.add(Tools.javaString(useSite));
+            }
+            ambStratUsed.put(stripArity(ambName), occurrences);
         }
         final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
         for(IStrategoTerm overlayTerm : overlayList) {
@@ -438,11 +444,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 final ITermFactory factory = termFactoryService.getGeneric();
                 ast = new TermReader(factory)
                     .parseFromStream(resource.getContent().getInputStream());
-                // TODO: Move this case to StrIncrFrontLib. See also TODO in Module#resolveWildcards
-                if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Specification") && ast.getSubtermCount() == 1) {
-                    final String baseName = resource.getName().getBaseName();
-                    ast = factory.makeAppl(factory.makeConstructor("Module", 2), factory.makeString(
-                        baseName.substring(0, baseName.length() - ".rtree".length())), ast.getSubterm(0));
+                if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module") && ast.getSubtermCount() == 2)) {
+                    throw new ExecException("Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes. )");
                 }
             } else {
                 throw new ExecException(

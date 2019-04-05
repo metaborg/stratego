@@ -1,6 +1,6 @@
 package mb.stratego.build.bench;
 
-import mb.stratego.build.StrIncrFrontLib;
+import mb.stratego.build.Library;
 
 import org.metaborg.util.cmd.Arguments;
 import javax.annotation.Nullable;
@@ -25,7 +25,7 @@ import java.util.Objects;
     private final boolean shareConstructors;
     private final int optimizationLevel;
     final @Nullable String javaPackageName;
-    final EnumSet<StrIncrFrontLib.BuiltinLibrary> builtinLibraries;
+    final EnumSet<Library.Builtin> builtinLibraries;
     private final List<String> otherLibraries;
     private final boolean isLibrary;
     private final boolean produceAst;
@@ -58,7 +58,7 @@ import java.util.Objects;
         boolean shareConstructors = true;
         int optimizationLevel = 0;
         @Nullable String javaPackageName = null;
-        EnumSet<StrIncrFrontLib.BuiltinLibrary> builtinLibraries = EnumSet.noneOf(StrIncrFrontLib.BuiltinLibrary.class);
+        EnumSet<Library.Builtin> builtinLibraries = EnumSet.noneOf(Library.Builtin.class);
         List<String> otherLibraries = new ArrayList<>();
         boolean isLibrary = false;
         boolean produceAst = false;
@@ -136,7 +136,7 @@ import java.util.Objects;
                     break;
                 case "-la":
                     i++;
-                    @Nullable StrIncrFrontLib.BuiltinLibrary lib = StrIncrFrontLib.BuiltinLibrary.fromString(args[i]);
+                    Library.Builtin lib = Library.Builtin.fromString(args[i]);
                     if(lib != null) {
                         builtinLibraries.add(lib);
                     } else {

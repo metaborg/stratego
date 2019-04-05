@@ -5,12 +5,12 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.lang.compat.override.strc_compat.Main;
-import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,9 +21,9 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     public static final String id = StrIncrFrontLib.class.getCanonicalName();
 
     static final class Input implements Serializable {
-        final BuiltinLibrary library;
+        final Library library;
 
-        Input(BuiltinLibrary library) {
+        Input(Library library) {
             this.library = library;
         }
 
@@ -81,68 +81,14 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
     }
 
-    public enum BuiltinLibrary {
-        // @formatter:off
-        StrategoLib("stratego-lib"),
-        StrategoSglr("stratego-sglr"),
-        StrategoGpp("stratego-gpp"),
-        StrategoXtc("stratego-xtc"),
-        StrategoAterm("stratego-aterm"),
-        StrategoSdf("stratego-sdf"),
-        Strc("strc"),
-        JavaFront("java-front");
-        // @formatter:on
+    private final ITermFactoryService termFactoryService;
 
-        public final String libString;
-        public final String cmdArgString;
-
-        BuiltinLibrary(String cmdArgString) {
-            this.cmdArgString = cmdArgString;
-            this.libString = "lib" + cmdArgString;
-        }
-
-        public static @Nullable BuiltinLibrary fromString(String name) {
-            switch(name) {
-                case "stratego-lib":
-                case "libstrategolib":
-                case "libstratego-lib": {
-                    return StrategoLib;
-                }
-                case "stratego-sglr":
-                case "libstratego-sglr": {
-                    return StrategoSglr;
-                }
-                case "stratego-gpp":
-                case "libstratego-gpp": {
-                    return StrategoGpp;
-                }
-                case "stratego-xtc":
-                case "libstratego-xtc": {
-                    return StrategoXtc;
-                }
-                case "stratego-aterm":
-                case "libstratego-aterm": {
-                    return StrategoAterm;
-                }
-                case "stratego-sdf":
-                case "libstratego-sdf": {
-                    return StrategoSdf;
-                }
-                case "strc":
-                case "libstrc": {
-                    return Strc;
-                }
-                case "java-front":
-                case "libjava-front": {
-                    return JavaFront;
-                }
-            }
-            return null;
-        }
+    @Inject public StrIncrFrontLib(ITermFactoryService termFactoryService) {
+        this.termFactoryService = termFactoryService;
     }
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
-        IStrategoTerm ast = getBuiltinLibrary(input.library);
+        IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
         Set<String> constrs = new HashSet<>();
         Set<String> strategies = new HashSet<>();
         extractInformation(ast, constrs, strategies);
@@ -251,28 +197,6 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
             strategyConstrs
                 .add(cify(Tools.javaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount());
         }
-    }
-
-    private static IStrategoTerm getBuiltinLibrary(BuiltinLibrary library) throws ExecException {
-        switch(library) {
-            case StrategoLib:
-                return Main.getLibstrategolibRtree();
-            case StrategoSglr:
-                return Main.getLibstrategosglrRtree();
-            case StrategoGpp:
-                return Main.getLibstrategogppRtree();
-            case StrategoXtc:
-                return Main.getLibstrategoxtcRtree();
-            case StrategoAterm:
-                return Main.getLibstrategoatermRtree();
-            case StrategoSdf:
-                return Main.getLibstrategosdfRtree();
-            case Strc:
-                return Main.getLibstrcRtree();
-            case JavaFront:
-                return Main.getLibjavafrontRtree();
-        }
-        throw new ExecException("Library was not one of the 8 built-in libraries: " + library);
     }
 
     @Override public String getId() {

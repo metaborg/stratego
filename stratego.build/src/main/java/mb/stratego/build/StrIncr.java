@@ -16,8 +16,10 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,7 +37,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -142,7 +143,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
-            Collection<File> includeDirs, Path projectLocation) throws ExecException {
+            Collection<File> includeDirs, Path projectLocation) throws ExecException, IOException {
             final Set<Module> result = new HashSet<>(imports.size() * 2);
             for(StrIncrFront.Import anImport : imports) {
                 switch(anImport.type) {
@@ -152,13 +153,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                             final Path strPath = dir.toPath().resolve(anImport.path + ".str");
                             final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
                             if(Files.exists(rtreePath)) {
-                                // TODO: Check if Module or Specification.
-                                //       (Module is handled by StrIncrFront, Specification by StrIncrFrontLib)
                                 foundSomethingToImport = true;
-                                result.add(source(projectLocation, rtreePath));
+                                if(isLibraryRTree(rtreePath)) {
+                                    result.add(Module.library(rtreePath.toString()));
+                                } else {
+                                    result.add(Module.source(projectLocation, rtreePath));
+                                }
                             } else if(Files.exists(strPath)) {
                                 foundSomethingToImport = true;
-                                result.add(source(projectLocation, strPath));
+                                result.add(Module.source(projectLocation, strPath));
                             }
                         }
                         if(!foundSomethingToImport) {
@@ -181,7 +184,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                                 for(File strFile : strFiles) {
                                     foundSomethingToImport = true;
                                     Path p = strFile.toPath();
-                                    result.add(source(projectLocation, p));
+                                    result.add(Module.source(projectLocation, p));
                                 }
                             }
                         }
@@ -199,6 +202,18 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
             return result;
+        }
+
+        /**
+         * Check if file starts with Specification/1 instead of Module/2
+         * @param rtreePath Path to the file
+         * @return if file starts with Specification/1
+         * @throws IOException on file system trouble
+         */
+        private static boolean isLibraryRTree(Path rtreePath) throws IOException {
+            char[] chars = new char[4];
+            BufferedReader r = Files.newBufferedReader(rtreePath);
+            return r.read(chars) != -1 && Arrays.equals(chars, "Spec".toCharArray());
         }
 
         URL resolveFrom(Path projectLocation) throws MalformedURLException {
@@ -298,8 +313,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final Module module = workList.remove();
 
             if(module.type == Module.Type.library) {
-                final StrIncrFrontLib.Input frontLibInput = new StrIncrFrontLib.Input(
-                    Objects.requireNonNull(StrIncrFrontLib.BuiltinLibrary.fromString(module.path)));
+                final StrIncrFrontLib.Input frontLibInput =
+                    new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
                 Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
                 StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
                 registerStrategyDefinitions(visibleStrategies, module, frontLibOutput.strategies);
