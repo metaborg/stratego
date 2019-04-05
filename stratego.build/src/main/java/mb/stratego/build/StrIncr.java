@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
@@ -206,6 +208,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         /**
          * Check if file starts with Specification/1 instead of Module/2
+         *
          * @param rtreePath Path to the file
          * @return if file starts with Specification/1
          * @throws IOException on file system trouble
@@ -289,8 +292,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Set<String>> imports = new HashMap<>();
         // Module-path to strategy-names used
         final Map<String, Set<String>> usedStrategies = new HashMap<>();
-        // Module-path to strategy-names-without-arity used in ambiguous call position
-        final Map<String, Set<String>> usedAmbStrategies = new HashMap<>();
+        // Module-path to strategy-names-without-arity used in ambiguous call position to strategy-names where the calls occur
+        final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
         // Module-path to  visible when imported (transitive closure of strategy definitions)
@@ -372,8 +375,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         } while(!workList.isEmpty());
 
         // CHECK: constructor/strategy uses have definition which is imported
-        staticCheck(execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies, usedConstructors,
-            visibleStrategies, visibleConstructors);
+        // Strategy-name (where the call occurs) to strategy-name (amb call) to strategy-name (amb call resolves to)
+        final Map<String, SortedMap<String, String>> ambStratResolution =
+            staticCheck(execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies, usedConstructors,
+                visibleStrategies, visibleConstructors);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
@@ -402,7 +407,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])), strategyOverlayFiles,
-                    input.javaPackageName, input.outputPath, input.cacheDir, Collections.emptyList(), args, false);
+                    ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap()), input.javaPackageName,
+                    input.outputPath, input.cacheDir, Collections.emptyList(), args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
@@ -411,7 +417,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
         StrIncrBack.Input backEndInput =
             new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, boilerplateFiles,
-                Collections.emptyList(), input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
+                Collections.emptyList(), null, input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
                 input.extraArgs, true);
         execContext.require(strIncrBack.createTask(backEndInput));
 
@@ -430,10 +436,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static void staticCheck(ExecContext execContext, String mainFileModulePath,
-        Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
-        Map<String, Set<String>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
+    private static Map<String, SortedMap<String, String>> staticCheck(ExecContext execContext,
+        String mainFileModulePath, Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
+        Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> visibleStrategies, Map<String, Set<String>> visibleConstructors) throws ExecException {
+        final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
         boolean checkOk = true;
         final Deque<Set<String>> sccs = Algorithms
             .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
@@ -469,26 +476,34 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     execContext.logger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
-                Set<String> theUsedAmbStrategies =
-                    new HashSet<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptySet()));
+                Map<String, Set<String>> theUsedAmbStrategies =
+                    new HashMap<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
                 // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
-                theUsedAmbStrategies
-                    .removeIf(theUsedAmbStrategy -> theVisibleStrategies.contains(theUsedAmbStrategy + "_0_0"));
+                theUsedAmbStrategies.keySet()
+                    .removeIf(usedAmbStrategy -> theVisibleStrategies.contains(usedAmbStrategy + "_0_0"));
                 if(!theUsedAmbStrategies.isEmpty()) {
-                    Map<String, Integer> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
+                    Map<String, Set<String>> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
                     for(String theVisibleStrategy : theVisibleStrategies) {
                         String stripped = StrIncrFront.stripArity(theVisibleStrategy);
-                        differentArityDefinitions
-                            .put(stripped, differentArityDefinitions.getOrDefault(stripped, 0) + 1);
+                        getOrInitialize(differentArityDefinitions, stripped, HashSet::new).add(theVisibleStrategy);
                     }
-                    for(String usedAmbStrategy : theUsedAmbStrategies) {
-                        switch(differentArityDefinitions.getOrDefault(usedAmbStrategy, 0)) {
+                    for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
+                        String usedAmbStrategy = entry.getKey();
+                        final Set<String> defs =
+                            differentArityDefinitions.getOrDefault(usedAmbStrategy, Collections.emptySet());
+                        switch(defs.size()) {
                             case 0:
                                 execContext.logger().error(
                                     "In module " + moduleName + ": Cannot find strategy " + usedAmbStrategy
                                         + " in ambiguous call position", null);
                                 break;
                             case 1:
+                                final String resolvedDef = defs.iterator().next();
+                                final String fullName = usedAmbStrategy + "_0_0";
+                                for(String useSite : entry.getValue()) {
+                                    getOrInitialize(ambStratResolution, useSite, TreeMap::new)
+                                        .put(fullName, resolvedDef);
+                                }
                                 break;
                             default:
                                 execContext.logger().error(
@@ -502,6 +517,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         if(!checkOk) {
             throw new ExecException("Name resolution check failed. ");
         }
+        return ambStratResolution;
     }
 
     private static String projectName(String inputFile) {

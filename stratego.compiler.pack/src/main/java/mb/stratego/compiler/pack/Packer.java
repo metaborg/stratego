@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 // import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -19,6 +22,8 @@ public class Packer {
     private static final String SPEC_START = "Specification([Signature([Constructors([])]), Overlays([\n";
     private static final String SPEC_MIDDLE = "\n]), Strategies([\n";
     private static final String SPEC_END = "\n])])";
+    public static final String ANNO_START = "\n{";
+    public static final String ANNO_END = "}";
 
     /**
      * Packs StrategoCore strategy definitions in a directory into a single strategy definition in a file
@@ -26,6 +31,7 @@ public class Packer {
      * @param strategyDir
      *            Directory that only includes .aterm files with the strategy bodies
      * @param outputFile
+     *            Path of the outputFile
      * @param strategyName
      *            The strategy name to use for the strategy definition
      * @throws IOException
@@ -38,9 +44,10 @@ public class Packer {
                 strategyName + ".ctree");
         }
         try(Stream<Path> strategyFiles = Files.list(strategyDir).filter(relevantFiles(outputFile))) {
-            Iterable<Path> strategyIterable = () -> strategyFiles.iterator();
+            Iterable<Path> strategyIterable = strategyFiles::iterator;
             Iterable<Path> overlayIterable = Iterables2.empty();
-            packStrategy(overlayIterable, strategyIterable, outputFile);
+            final Map<String, String> ambStrategyResolution = Collections.emptyMap();
+            packStrategy(overlayIterable, strategyIterable, ambStrategyResolution, outputFile);
         }
     }
 
@@ -50,6 +57,7 @@ public class Packer {
      * @param inputDir
      *            Directory that only includes .aterm files with the strategy definitions
      * @param outputFile
+     *            Path of the outputFile
      * @throws IOException
      *             When there is a file system problem or no aterm files were found
      */
@@ -58,7 +66,7 @@ public class Packer {
             outputFile = Paths.get(inputDir.getParent().toString(), "stratego.compiler.pack", "boilerplate.ctree");
         }
         try(Stream<Path> inputFiles = Files.list(inputDir).filter(relevantFiles(outputFile))) {
-            Iterable<Path> iterable = () -> inputFiles.iterator();
+            Iterable<Path> iterable = inputFiles::iterator;
             packBoilerplate(iterable, outputFile);
         }
     }
@@ -69,10 +77,11 @@ public class Packer {
      * @param strategyPaths
      *            Paths that only include .aterm files with the strategy bodies
      * @param outputFile
+     *            Path of the outputFile
      * @throws IOException
      *             When there is a file system problem
      */
-    public static void packStrategy(Iterable<Path> overlayPaths, Iterable<Path> strategyPaths, Path outputFile)
+    public static void packStrategy(Iterable<Path> overlayPaths, Iterable<Path> strategyPaths, Map<String, String> ambStrategyResolution, Path outputFile)
         throws IOException {
         Files.createDirectories(outputFile.getParent());
 
@@ -105,12 +114,28 @@ public class Packer {
                 }
                 next_line = "\n,";
             }
-            if(next_line == "") {
+            if(Objects.equals(next_line, "")) {
                 // When there are no relevant files, close the file
                 break openFile;
             }
 
             write(outChannel, SPEC_END);
+            if(!ambStrategyResolution.isEmpty()) {
+                next_line = "";
+                write(outChannel, ANNO_START);
+                for(Map.Entry<String, String> entry : ambStrategyResolution.entrySet()) {
+                    write(outChannel, next_line);
+
+                    write(outChannel, "(\"");
+                    write(outChannel, entry.getKey());
+                    write(outChannel, "\",\"");
+                    write(outChannel, entry.getValue());
+                    write(outChannel, "\")");
+
+                    next_line = "\n,";
+                }
+                write(outChannel, ANNO_END);
+            }
             return; // success
         }
         // Break to here when there are no relevant files; clean up incomplete file
@@ -124,6 +149,7 @@ public class Packer {
      * @param paths
      *            Paths that only include .aterm files with the strategy definitions
      * @param outputFile
+     *            Path of the outputFile
      * @throws IOException
      *             When there is a file system problem or no aterm files were found
      */

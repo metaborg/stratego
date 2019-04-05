@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.regex.Pattern;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
@@ -36,6 +37,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final File strategyDir;
         final Collection<File> strategyContributions;
         final Collection<File> overlayContributions;
+        final @Nullable SortedMap<String, String> ambStrategyResolution;
         final @Nullable String packageName;
         final File outputPath;
         final @Nullable File cacheDir;
@@ -44,15 +46,16 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final boolean isBoilerplate;
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
-            Collection<File> strategyContributions, Collection<File> overlayContributions, @Nullable String packageName,
-            File outputPath, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
-            boolean isBoilerplate) {
+            Collection<File> strategyContributions, Collection<File> overlayContributions,
+            @Nullable SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
+            @Nullable File cacheDir, List<String> constants, Arguments extraArgs, boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;
             this.strategyDir = strategyDir;
             this.strategyContributions = strategyContributions;
             this.overlayContributions = overlayContributions;
+            this.ambStrategyResolution = ambStrategyResolution;
             this.packageName = packageName;
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
@@ -144,8 +147,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         if(input.isBoilerplate) {
             Packer.packBoilerplate(contributionPaths, packedFile);
         } else {
-            Packer.packStrategy(overlayPaths, contributionPaths, packedFile);
+            Packer.packStrategy(overlayPaths, contributionPaths, input.ambStrategyResolution, packedFile);
         }
+        execContext.provide(packedFile.toFile());
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation

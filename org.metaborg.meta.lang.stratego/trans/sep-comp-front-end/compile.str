@@ -133,6 +133,7 @@ strategies
           ; not(check-where-with)
           ; raise-annotations
 //          ; GenerateCheckRule
+// commented: [MOVED TO BACKEND]
 //          ; DeclareExpandOverlay
           ; where(Overlay-to-Congdef; m-add-def)
         )
