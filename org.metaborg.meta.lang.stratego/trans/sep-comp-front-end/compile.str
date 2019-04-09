@@ -10,7 +10,7 @@ overlays
   LANGNAME() = "stratego_sugar"
 
 signature constructors
-  AmbCall : Term -> Term
+  AmbCall : Term * Term -> Term
 
 strategies
 
@@ -32,16 +32,28 @@ strategies
 strategies
 
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> combined-defs, cifiedDefNames, usedStrategies, ambcalls, <mapconcat(?Imports(<id>))> imps, <map(Fst)> constrs, usedConstrs, <map(Fst)> olays)
+    Module(m, defs) ->
+      ( m
+      , <map(Fst)> combined-defs
+      , cifiedDefNames
+      , usedStrategies
+      , ambcalls
+      , <mapconcat(?Imports(<id>))> imps
+      , <map(Fst)> constrs
+      , usedConstrs
+      , <map(Fst)> olays
+      , <map(!(<Fst>, <Snd>))> congs
+      )
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; (defs3, constrs, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
+      ; (defs3, constrs, olays, congs) := <strip-annos;frontend-sep-comp> Specification(defs2)
       ; cifiedDefNames := <map(Snd; \SDefT(name, sargs, targs, _) -> $[[<cify> name]_[<length> sargs]_[<length> targs]]\)> defs3
       ; combined-defs := <combine-defs> defs3
       ; usedConstrs := <map(?(_, <extract-used-constructors>))> combined-defs
       ; (ambcalls, usedStrategies) := <extract-used-strategies> combined-defs
       ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
+      ; <map(Third;store-combined-defs(|project-path, project-name, m))> congs
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
@@ -61,9 +73,9 @@ rules
   extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
   // Annotate used strategies in ambiguous call position
   extract-used-strategies =
-    bottomup(try(CallT(id, map(try(CallT(SVar(!AmbCall(<id>)), ?[], ?[]))), id)))
-  ; free-vars(Add2, Bind1 + Bind2 + Bind3 + Bind5 + Bind7 + Bind9, sboundin, (try(?AmbCall(<id>)),id); eq)
-  ; partition(?AmbCall(<id>))
+    alltd({SDefT(?name, ?sargs, ?targs, where(n := $[[<cify> name]_[<length> sargs]_[<length> targs]]);bottomup(try(CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id))))})
+  ; free-vars(Add2, Bind1 + Bind2 + Bind3 + Bind5 + Bind7 + Bind9, sboundin, (try(?AmbCall(<id>, _)),id); eq)
+  ; partition(\AmbCall(ambcall, defUsing) -> (ambcall, defUsing)\)
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
@@ -113,7 +125,7 @@ strategies
           ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
 // commented: Used in check-constructors, which requires global info on constructors [DONE IN JAVA]
 //          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
-          ; try(where(m-MkCongDef; m-add-def))
+          ; try(where(m-MkCongDef; where({sig := <m-def-signature>; rules(SepCompCong : sig)}); m-add-def))
         )
 
 // commented: [MOVED TO BACKEND] where we have access to all overlays
@@ -217,7 +229,7 @@ strategies
   m-split-definitions = id
     ; where(id
       ; m-get-all-local-definitions
-      ; map(!(<m-def-signature;Fst>, <id>))
+      ; filter(!(<m-def-signature;not(SepCompCong);Fst>, <id>))
       ; ?localDef*
     )
     ; where(id
@@ -230,8 +242,15 @@ strategies
       ; map(!(<m-overlay-signature;!$[[<Fst>]_[<Snd>]]>, <id>))
       ; ?overlay*
     )
-    ; !(localDef*, constr*, overlay*)
+    ; where(id
+      ; bagof-SepCompCong
+      ; filter(!(<Fst>, <strategy-sig-to-string>, <bagof-ModDefinition>))
+      ; ?cong*
+    )
+    ; !(localDef*, constr*, overlay*, cong*)
 
   constr-sig-to-string = (is-string, is-int); !$[[<Fst>]_[<Snd>]]
   constr-sig-to-string: (Q(c), len) -> $[[<escape> c]_[len]]
   constr-sig-to-string: (Inj(), 0) -> <fail>
+
+  strategy-sig-to-string = !$[[<Fst;cify>]_[<Snd>]_[<Third>]]
