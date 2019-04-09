@@ -126,7 +126,7 @@ public class Main {
 
         URI inputFile = Paths.get(strategoArguments.inputFile).toUri();
 
-        List<File> includeDirs = new ArrayList<>(strategoArguments.builtinLibraries.size());
+        List<File> includeDirs = new ArrayList<>(strategoArguments.includeDirs.size());
         for(String includeDir : strategoArguments.includeDirs) {
             final File include = Paths.get(includeDir).toFile();
             includeDirs.add(include);
