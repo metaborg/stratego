@@ -344,6 +344,16 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Collections.emptySet());
                 externalStrategies.addAll(frontLibOutput.strategies);
                 externalConstructors.addAll(frontLibOutput.constrs);
+
+                final Set<String> overlappingStrategies =
+                    Sets.intersection(externalStrategies, frontLibOutput.strategies);
+                if(!overlappingStrategies.isEmpty()) {
+                    throw new ExecException("Overlapping external strategy definitions: " + overlappingStrategies);
+                }
+                Set<String> overlappingConstructors = Sets.intersection(externalConstructors, frontLibOutput.constrs);
+                if(!overlappingConstructors.isEmpty()) {
+                    throw new ExecException("Overlapping external strategy definitions: " + overlappingConstructors);
+                }
                 continue;
             }
 
