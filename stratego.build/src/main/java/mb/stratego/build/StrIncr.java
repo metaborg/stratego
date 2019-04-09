@@ -304,8 +304,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
-        // Module-path to  strategy-names defined here
+        // Module-path to strategy-names defined here
         final Map<String, Set<String>> definedStrategies = new HashMap<>();
+        // Module-path to strategy-names defined here as congruences
+        final Map<String, Set<String>> definedCongruences = new HashMap<>();
         // External strategies that will be imported in Java
         final Set<String> externalStrategies = new HashSet<>();
         // Module-path to constructor_arity names defined there
@@ -313,14 +315,18 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // External constructors that will be imported in Java
         final Set<String> externalConstructors = new HashSet<>();
 
-        // Strategy-name to file with CTree definition of that strategy
+        // Strategy-name to files with CTree definition of that strategy
         final Map<String, Set<File>> strategyFiles = new HashMap<>();
+        // Strategy-name of congruence to file with CTree definition of that strategy
+        final Map<String, File> congrFiles = new HashMap<>();
         // Strategy-name to constructor_arity names that were used in the body
         final Map<String, Set<String>> strategyConstrs = new HashMap<>();
         // Overlay_arity name to file with CTree definition of that overlay
         final Map<String, Set<File>> overlayFiles = new HashMap<>();
         // Strategy-name to set of tasks that contributed strategy definitions
         final Map<String, List<STask<?>>> strategyOrigins = new HashMap<>();
+        // Strategy-name to task that created strategy definitions
+        final Map<String, STask<?>> congrOrigin = new HashMap<>();
         // Overlay_arity names to set of tasks that contributed overlay definitions
         final Map<String, List<STask<?>>> overlayOrigins = new HashMap<>();
 
@@ -360,6 +366,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             usedStrategies.put(module.path, frontOutput.usedStrategies);
             usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
             registerStrategyDefinitions(definedStrategies, module, frontOutput.strategies);
+            registerStrategyDefinitions(definedCongruences, module, frontOutput.congrs);
             registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
                 frontOutput.overlayFiles.keySet());
 
@@ -367,10 +374,17 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             // shuffling output for backend
             for(Map.Entry<String, File> gen : frontOutput.strategyFiles.entrySet()) {
                 String strategyName = gen.getKey();
-                getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
+                // ensure the strategy is a key in the strategyFiles map
+                getOrInitialize(strategyFiles, strategyName, HashSet::new);
+                if(frontOutput.congrs.contains(strategyName)) {
+                    congrFiles.put(strategyName, gen.getValue());
+                    congrOrigin.put(strategyName, task.toSTask());
+                } else {
+                    getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
+                    getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
+                }
                 getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(strategyName));
-                getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
             }
             for(Map.Entry<String, File> gen : frontOutput.overlayFiles.entrySet()) {
                 final String overlayName = gen.getKey();
@@ -398,35 +412,48 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
-            // TODO: filter strategyOrigins on congruence defs (only one or zero if there's a non-congruence def)
-            final List<STask<?>> backEndOrigin = new ArrayList<>(strategyOrigins.size());
-            backEndOrigin.addAll(strategyOrigins.get(strategyName));
+            final List<File> strategyContributions;
+            final List<STask<?>> backEndOrigin;
+            final List<File> strategyOverlayFiles = new ArrayList<>();
+            if(strategyFiles.get(strategyName).isEmpty()) {
+                if(externalConstructors.contains(strategyName)) {
+                    // Don't generate congruences for constructors if a library already defined one
+                    continue;
+                }
+                strategyContributions = Collections.singletonList(congrFiles.get(strategyName));
+                //noinspection ArraysAsListWithZeroOrOneArgument
+                backEndOrigin = Arrays.asList(congrOrigin.get(strategyName));
+            } else {
+                strategyContributions = Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0]));
+                backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
+                // TODO: track which overlays use which other overlays and include those too
+                for(String overlayName : strategyConstrs.get(strategyName)) {
+                    final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
+                    if(theOverlayFiles != null) {
+                        strategyOverlayFiles.addAll(theOverlayFiles);
+                    }
+                    final List<STask<?>> overlayOriginBuilder = overlayOrigins.get(overlayName);
+                    if(overlayOriginBuilder != null) {
+                        backEndOrigin.addAll(overlayOriginBuilder);
+                    }
+                }
+            }
+
             final @Nullable File strategyDir =
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
-            final List<File> strategyOverlayFiles = new ArrayList<>();
-            // TODO: track which overlays use which other overlays and include those too
-            for(String overlayName : strategyConstrs.get(strategyName)) {
-                final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
-                if(theOverlayFiles != null) {
-                    strategyOverlayFiles.addAll(theOverlayFiles);
-                }
-                final List<STask<?>> overlayOriginBuilder = overlayOrigins.get(overlayName);
-                if(overlayOriginBuilder != null) {
-                    backEndOrigin.addAll(overlayOriginBuilder);
-                }
-            }
             final Arguments args = new Arguments();
             args.addAll(input.extraArgs);
             for(String builtinLib : input.builtinLibs) {
                 args.add("-la", builtinLib);
             }
+            final SortedMap<String, String> ambStrategyResolution =
+                staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
-                    Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])), strategyOverlayFiles,
-                    staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap()),
-                    input.javaPackageName, input.outputPath, input.cacheDir, Collections.emptyList(), input.includeDirs, args, false);
+                    strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
+                    input.outputPath, input.cacheDir, Collections.emptyList(), input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
@@ -506,11 +533,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
                 Set<String> strategiesOverlapWithExternal =
-                    Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()), externalStrategies);
+                    Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()),
+                        externalStrategies);
                 if(!strategiesOverlapWithExternal.isEmpty()) {
                     checkOk = false;
-                    execContext.logger()
-                        .error("In module " + moduleName + ": Illegal overlap with external strategies " + strategiesOverlapWithExternal, null);
+                    execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
+                        + strategiesOverlapWithExternal, null);
                 }
                 // TODO: Check override/extend strategies _do_ overlap with visible external strategies
                 Map<String, Set<String>> theUsedAmbStrategies =
