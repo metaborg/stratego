@@ -135,7 +135,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final List<Import> imports;
         /**
-         * Constructor_arity names used in this module [name checks]
+         * Constructor_arity names defined in this module [name checks]
          */
         final Set<String> constrs;
 
@@ -371,12 +371,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
             final String ambName = Tools.javaStringAt(cifiedAmbStratUsed, 0);
             assert ambName.endsWith("_0_0");
-            final IStrategoList useSites = Tools.listAt(cifiedAmbStratUsed, 1);
-            Set<String> occurrences = new HashSet<>();
-            for(IStrategoTerm useSite : useSites) {
-                occurrences.add(Tools.javaString(useSite));
-            }
-            ambStratUsed.put(stripArity(ambName), occurrences);
+            final String useSite = Tools.javaStringAt(cifiedAmbStratUsed, 1);
+            StrIncr.getOrInitialize(ambStratUsed, stripArity(ambName), HashSet::new).add(useSite);
         }
         final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
         for(IStrategoTerm overlayTerm : overlayList) {

@@ -42,13 +42,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final File outputPath;
         final @Nullable File cacheDir;
         final List<String> constants;
+        final Collection<File> includeDirs;
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> overlayContributions,
             @Nullable SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
-            @Nullable File cacheDir, List<String> constants, Arguments extraArgs, boolean isBoilerplate) {
+            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;
@@ -60,6 +61,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
             this.constants = constants;
+            this.includeDirs = includeDirs;
             this.extraArgs = extraArgs;
             this.isBoilerplate = isBoilerplate;
         }
@@ -161,6 +163,10 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             arguments.add("--single-strategy");
         }
 
+        for(File includeDir : input.includeDirs) {
+            arguments.add("-I", includeDir);
+        }
+
         if(input.cacheDir != null) {
             arguments.addFile("--cache-dir", input.cacheDir);
         }
@@ -175,7 +181,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final ResourceAgentTracker tracker =
             newResourceTracker(new File(System.getProperty("user.dir")), Pattern.quote("[ strj | info ]") + ".*",
                 Pattern.quote("[ strj | error ] Compilation failed") + ".*",
-                Pattern.quote("[ strj | warning ] Nullary constructor") + ".*",
                 Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
                 Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
                 Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*",

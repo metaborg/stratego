@@ -244,6 +244,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
     }
 
+    public static final class StaticCheckOutput {
+        final Map<String, SortedMap<String, String>> ambStratResolution;
+
+        StaticCheckOutput(Map<String, SortedMap<String, String>> ambStratResolution) {
+            this.ambStratResolution = ambStratResolution;
+        }
+    }
+
     private final IResourceService resourceService;
 
     private final StrIncrFront strIncrFront;
@@ -296,10 +304,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
-        // Module-path to  visible when imported (transitive closure of strategy definitions)
-        final Map<String, Set<String>> visibleStrategies = new HashMap<>();
-        // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
-        final Map<String, Set<String>> visibleConstructors = new HashMap<>();
+        // Module-path to  strategy-names defined here
+        final Map<String, Set<String>> definedStrategies = new HashMap<>();
+        // External strategies that will be imported in Java
+        final Set<String> externalStrategies = new HashSet<>();
+        // Module-path to constructor_arity names defined there
+        final Map<String, Set<String>> definedConstructors = new HashMap<>();
+        // External constructors that will be imported in Java
+        final Set<String> externalConstructors = new HashSet<>();
 
         // Strategy-name to file with CTree definition of that strategy
         final Map<String, Set<File>> strategyFiles = new HashMap<>();
@@ -318,11 +330,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             if(module.type == Module.Type.library) {
                 final StrIncrFrontLib.Input frontLibInput =
                     new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
-                Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
-                StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
-                registerStrategyDefinitions(visibleStrategies, module, frontLibOutput.strategies);
-                registerConstructorDefinitions(visibleConstructors, module, frontLibOutput.constrs,
+                final Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task =
+                    strIncrFrontLib.createTask(frontLibInput);
+                final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
+                registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
+                registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
                     Collections.emptySet());
+                externalStrategies.addAll(frontLibOutput.strategies);
+                externalConstructors.addAll(frontLibOutput.constrs);
                 continue;
             }
 
@@ -344,8 +359,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
             usedStrategies.put(module.path, frontOutput.usedStrategies);
             usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-            registerStrategyDefinitions(visibleStrategies, module, frontOutput.strategies);
-            registerConstructorDefinitions(visibleConstructors, module, frontOutput.constrs,
+            registerStrategyDefinitions(definedStrategies, module, frontOutput.strategies);
+            registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
                 frontOutput.overlayFiles.keySet());
 
 
@@ -376,12 +391,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         // CHECK: constructor/strategy uses have definition which is imported
         // Strategy-name (where the call occurs) to strategy-name (amb call) to strategy-name (amb call resolves to)
-        final Map<String, SortedMap<String, String>> ambStratResolution =
+        // TODO: track which overlays use which other overlays and check that there are no cycles there
+        final StaticCheckOutput staticCheckOutput =
             staticCheck(execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies, usedConstructors,
-                visibleStrategies, visibleConstructors);
+                definedStrategies, definedConstructors, externalStrategies, externalConstructors);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
+            // TODO: filter strategyOrigins on congruence defs (only one or zero if there's a non-congruence def)
             final List<STask<?>> backEndOrigin = new ArrayList<>(strategyOrigins.size());
             backEndOrigin.addAll(strategyOrigins.get(strategyName));
             final @Nullable File strategyDir =
@@ -389,6 +406,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final List<File> strategyOverlayFiles = new ArrayList<>();
+            // TODO: track which overlays use which other overlays and include those too
             for(String overlayName : strategyConstrs.get(strategyName)) {
                 final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
                 if(theOverlayFiles != null) {
@@ -407,8 +425,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0])), strategyOverlayFiles,
-                    ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap()), input.javaPackageName,
-                    input.outputPath, input.cacheDir, Collections.emptyList(), args, false);
+                    staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap()),
+                    input.javaPackageName, input.outputPath, input.cacheDir, Collections.emptyList(), input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
@@ -418,7 +436,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         StrIncrBack.Input backEndInput =
             new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, boilerplateFiles,
                 Collections.emptyList(), null, input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
-                input.extraArgs, true);
+                input.includeDirs, input.extraArgs, true);
         execContext.require(strIncrBack.createTask(backEndInput));
 
         return None.instance;
@@ -436,11 +454,22 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static Map<String, SortedMap<String, String>> staticCheck(ExecContext execContext,
-        String mainFileModulePath, Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
+    private static StaticCheckOutput staticCheck(ExecContext execContext, String mainFileModulePath,
+        Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
-        Map<String, Set<String>> visibleStrategies, Map<String, Set<String>> visibleConstructors) throws ExecException {
+        Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
+        Set<String> externalStrategies, Set<String> externalConstructors) throws ExecException {
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
+        // Module-path to  visible when imported (transitive closure of strategy definitions)
+        final Map<String, Set<String>> visibleStrategies = new HashMap<>(definedStrategies);
+        for(Map.Entry<String, Set<String>> entry : visibleStrategies.entrySet()) {
+            entry.setValue(new HashSet<>(entry.getValue()));
+        }
+        // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
+        final Map<String, Set<String>> visibleConstructors = new HashMap<>(definedConstructors);
+        for(Map.Entry<String, Set<String>> entry : visibleConstructors.entrySet()) {
+            entry.setValue(new HashSet<>(entry.getValue()));
+        }
         boolean checkOk = true;
         final Deque<Set<String>> sccs = Algorithms
             .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
@@ -476,6 +505,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     execContext.logger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
+                Set<String> strategiesOverlapWithExternal =
+                    Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()), externalStrategies);
+                if(!strategiesOverlapWithExternal.isEmpty()) {
+                    checkOk = false;
+                    execContext.logger()
+                        .error("In module " + moduleName + ": Illegal overlap with external strategies " + strategiesOverlapWithExternal, null);
+                }
+                // TODO: Check override/extend strategies _do_ overlap with visible external strategies
                 Map<String, Set<String>> theUsedAmbStrategies =
                     new HashMap<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
                 // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
@@ -518,14 +555,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             throw new ExecException("Name resolution check failed. ");
         }
         return ambStratResolution;
+        return new StaticCheckOutput(ambStratResolution);
     }
 
     private static String projectName(String inputFile) {
-        // TODO: *can* we get the project name somehow?
+        // *can* we get the project name somehow? This is probably more portable for non-project based compilation
         return Integer.toString(inputFile.hashCode());
     }
 
-    private static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
+    static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
         map.computeIfAbsent(key, ignore -> initialize.get());
         return map.get(key);
     }
