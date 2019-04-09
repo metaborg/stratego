@@ -88,15 +88,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     }
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
-        IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
-        Set<String> constrs = new HashSet<>();
-        Set<String> strategies = new HashSet<>();
-        extractInformation(ast, constrs, strategies);
-        return new Output(strategies, constrs);
-    }
-
-    private void extractInformation(IStrategoTerm ast, Set<String> constrs, Set<String> strategyConstrs)
-        throws ExecException {
+        final IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
         // Expected: Specification([Signature([Constructors([...])]), Strategies([...])])
         if(!(Tools.isTermAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {
             throw new ExecException(
@@ -128,11 +120,13 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
                 + "Expected Specification([Signature([Constructors([...])]), Strategies([...])]), but got: " + ast
                 .toString(3));
         }
-        extractConstrs(Tools.listAt(constructorsTerm, 0), constrs);
-        extractStrategies(Tools.listAt(strategiesTerm, 0), strategyConstrs);
+        final Set<String> constrs = extractConstrs(Tools.listAt(constructorsTerm, 0));
+        final Set<String> strategies = extractStrategies(Tools.listAt(strategiesTerm, 0));
+        return new Output(strategies, constrs);
     }
 
-    private void extractConstrs(IStrategoList extConstrTerms, Set<String> constrs) throws ExecException {
+    private Set<String> extractConstrs(IStrategoList extConstrTerms) throws ExecException {
+        final Set<String> constrs = new HashSet<>();
         for(IStrategoTerm extConstrTerm : extConstrTerms) {
             if(Tools.isTermAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
@@ -177,9 +171,11 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
                 "Malformed built-in library AST. " + "Expected constructor declaration but got: " + extConstrTerm
                     .toString(0));
         }
+        return constrs;
     }
 
-    private void extractStrategies(IStrategoList extSDefTerms, Set<String> strategyConstrs) throws ExecException {
+    private Set<String> extractStrategies(IStrategoList extSDefTerms) throws ExecException {
+        final Set<String> strategyConstrs = new HashSet<>();
         for(IStrategoTerm extSDefTerm : extSDefTerms) {
             if(!(Tools.isTermAppl(extSDefTerm) && Tools.hasConstructor((IStrategoAppl) extSDefTerm, "ExtSDef", 3))) {
                 throw new ExecException(
@@ -197,6 +193,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
             strategyConstrs
                 .add(cify(Tools.javaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount());
         }
+        return strategyConstrs;
     }
 
     @Override public String getId() {
