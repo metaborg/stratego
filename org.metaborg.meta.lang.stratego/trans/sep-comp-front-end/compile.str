@@ -35,7 +35,7 @@ strategies
     Module(m, defs) ->
       ( m
       , <map(Fst)> combined-defs
-      , cifiedDefNames
+      , <map(Snd; split(try(?AnnoDef(_, <id>)); sdeft-to-cified-name, ?AnnoDef(<id>, _) <+ ![]))> defs3
       , usedStrategies
       , ambcalls
       , <mapconcat(?Imports(<id>))> imps
@@ -48,7 +48,6 @@ strategies
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; (defs3, constrs, olays, congs) := <strip-annos;frontend-sep-comp> Specification(defs2)
-      ; cifiedDefNames := <map(Snd; \SDefT(name, sargs, targs, _) -> $[[<cify> name]_[<length> sargs]_[<length> targs]]\)> defs3
       ; combined-defs := <combine-defs> defs3
       ; usedConstrs := <map(?(_, <extract-used-constructors>))> combined-defs
       ; (ambcalls, usedStrategies) := <extract-used-strategies> combined-defs
@@ -73,7 +72,10 @@ rules
   extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
   // Annotate used strategies in ambiguous call position
   extract-used-strategies =
-    alltd({SDefT(?name, ?sargs, ?targs, where(n := $[[<cify> name]_[<length> sargs]_[<length> targs]]);bottomup(try(CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id))))})
+    alltd({ where(sdeft-to-cified-name;?n)
+          ; SDefT(id, id, id, bottomup(try(
+              CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id))))
+          })
   ; free-vars(Add2, Bind1 + Bind2 + Bind3 + Bind5 + Bind7 + Bind9, sboundin, (try(?AmbCall(<id>, _)),id); eq)
   ; partition(\AmbCall(ambcall, defUsing) -> (ambcall, defUsing)\)
 
@@ -191,17 +193,18 @@ strategies
           ; [RenameSDef2]
         )
 
-      ; m-transform-external-defs(id
-          ; if ?[_,_|_] then
-              warn(|"multiple external definitions with same signature")
-            ; [id | ![]] // Cannot reuse dyn rule when already used in library
-            end
-          ; [ id
-             ; RenameSDef2
-             ; desugar-DefaultVarDec
-             ; strename
-            ]
-        )
+// commented: [DONE IN JAVA]
+//      ; m-transform-external-defs(id
+//          ; if ?[_,_|_] then
+//              warn(|"multiple external definitions with same signature")
+//            ; [id | ![]] // Cannot reuse dyn rule when already used in library
+//            end
+//          ; [ id
+//             ; RenameSDef2
+//             ; desugar-DefaultVarDec
+//             ; strename
+//            ]
+//        )
 
       ; m-transform-local-defs(
           [rename-calls2
@@ -254,3 +257,5 @@ strategies
   constr-sig-to-string: (Inj(), 0) -> <fail>
 
   strategy-sig-to-string = !$[[<Fst;cify>]_[<Snd>]_[<Third>]]
+  sdeft-to-cified-name: SDefT(n, sargs, targs, _) ->
+    <strategy-sig-to-string> (n, <length> sargs, <length> targs)

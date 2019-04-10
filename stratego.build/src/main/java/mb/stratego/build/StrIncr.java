@@ -298,22 +298,24 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         // Module-path to module-path
         final Map<String, Set<String>> imports = new HashMap<>();
-        // Module-path to strategy-names used
+        // Module-path to cified-strategy-names used
         final Map<String, Set<String>> usedStrategies = new HashMap<>();
-        // Module-path to strategy-names-without-arity used in ambiguous call position to strategy-names where the calls occur
+        // Module-path to cified-strategy-names-without-arity used in ambiguous call position to cified-strategy-names where the calls occur
         final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
-        // Module-path to strategy-names defined here
+        // Module-path to cified-strategy-names defined here
         final Map<String, Set<String>> definedStrategies = new HashMap<>();
-        // Module-path to strategy-names defined here as congruences
+        // Module-path to cified-strategy-names defined here as congruences
         final Map<String, Set<String>> definedCongruences = new HashMap<>();
-        // External strategies that will be imported in Java
+        // External cified-strategy-names that will be imported in Java
         final Set<String> externalStrategies = new HashSet<>();
         // Module-path to constructor_arity names defined there
         final Map<String, Set<String>> definedConstructors = new HashMap<>();
         // External constructors that will be imported in Java
         final Set<String> externalConstructors = new HashSet<>();
+        // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it.
+        final Set<String> strategyNeedsExternal = new HashSet<>();
 
         // Strategy-name to files with CTree definition of that strategy
         final Map<String, Set<File>> strategyFiles = new HashMap<>();
@@ -330,6 +332,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Overlay_arity names to set of tasks that contributed overlay definitions
         final Map<String, List<STask<?>>> overlayOrigins = new HashMap<>();
 
+        boolean checkOk = true;
+
         do {
             final Module module = workList.remove();
 
@@ -342,18 +346,23 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
                 registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
                     Collections.emptySet());
-                externalStrategies.addAll(frontLibOutput.strategies);
-                externalConstructors.addAll(frontLibOutput.constrs);
 
                 final Set<String> overlappingStrategies =
                     Sets.intersection(externalStrategies, frontLibOutput.strategies);
                 if(!overlappingStrategies.isEmpty()) {
-                    throw new ExecException("Overlapping external strategy definitions: " + overlappingStrategies);
+                    checkOk = false;
+                    execContext.logger()
+                        .error("Overlapping external strategy definitions: " + overlappingStrategies, null);
                 }
                 Set<String> overlappingConstructors = Sets.intersection(externalConstructors, frontLibOutput.constrs);
                 if(!overlappingConstructors.isEmpty()) {
-                    throw new ExecException("Overlapping external strategy definitions: " + overlappingConstructors);
+                    checkOk = false;
+                    execContext.logger()
+                        .error("Overlapping external strategy definitions: " + overlappingConstructors, null);
                 }
+
+                externalStrategies.addAll(frontLibOutput.strategies);
+                externalConstructors.addAll(frontLibOutput.constrs);
                 continue;
             }
 
@@ -379,6 +388,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             registerStrategyDefinitions(definedCongruences, module, frontOutput.congrs);
             registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
                 frontOutput.overlayFiles.keySet());
+            strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
 
 
             // shuffling output for backend
@@ -417,8 +427,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Strategy-name (where the call occurs) to strategy-name (amb call) to strategy-name (amb call resolves to)
         // TODO: track which overlays use which other overlays and check that there are no cycles there
         final StaticCheckOutput staticCheckOutput =
-            staticCheck(execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies, usedConstructors,
-                definedStrategies, definedConstructors, externalStrategies, externalConstructors);
+            staticCheck(checkOk, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
+                usedConstructors, definedStrategies, definedConstructors, externalStrategies, strategyNeedsExternal);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
@@ -491,11 +501,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static StaticCheckOutput staticCheck(ExecContext execContext, String mainFileModulePath,
+    private static StaticCheckOutput staticCheck(boolean checkOk, ExecContext execContext, String mainFileModulePath,
         Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
-        Set<String> externalStrategies, Set<String> externalConstructors) throws ExecException {
+        Set<String> externalStrategies, Set<String> strategyNeedsExternal) throws ExecException {
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
         // Module-path to  visible when imported (transitive closure of strategy definitions)
         final Map<String, Set<String>> visibleStrategies = new HashMap<>(definedStrategies);
@@ -507,7 +517,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(Map.Entry<String, Set<String>> entry : visibleConstructors.entrySet()) {
             entry.setValue(new HashSet<>(entry.getValue()));
         }
-        boolean checkOk = true;
+        Set<String> strategyNeedsExternalNonOverlap = Sets.difference(strategyNeedsExternal, externalStrategies);
+        if(!strategyNeedsExternalNonOverlap.isEmpty()) {
+            checkOk = false;
+            execContext.logger()
+                .error("Cannot find external strategies for override/extend " + strategyNeedsExternalNonOverlap, null);
+        }
         final Deque<Set<String>> sccs = Algorithms
             .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
         for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
@@ -550,7 +565,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
                         + strategiesOverlapWithExternal, null);
                 }
-                // TODO: Check override/extend strategies _do_ overlap with visible external strategies
                 Map<String, Set<String>> theUsedAmbStrategies =
                     new HashMap<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
                 // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.

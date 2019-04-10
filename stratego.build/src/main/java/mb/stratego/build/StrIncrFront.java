@@ -119,7 +119,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Set<String> usedStrategies;
         /**
          * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument
-         * to other strategy) to strategy-names where the ambiguous call occurs [name checks]
+         * to other strategy) to cified-strategy-names where the ambiguous call occurs [name checks]
          */
         final Map<String, Set<String>> ambStratUsed;
         /**
@@ -139,13 +139,19 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Set<String> constrs;
         /**
-         * Strategy-name of a generated congruence (also added to the strategies field)
+         * Cified-strategy-name of a generated congruence (also added to the strategies field) [static linking]
          */
         final Set<String> congrs;
+        /**
+         * Cified-strategy-names of strategies that need a corresponding strategy in a library
+         * because it overrides or extends it. [name checks]
+         */
+        final Set<String> strategyNeedsExternal;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
-            Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs, Map<String, File> overlayFiles,
-            List<Import> imports, Set<String> constrs, Set<String> congrs) {
+            Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
+            Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
+            Set<String> strategyNeedsExternal) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategies = strategies;
@@ -156,6 +162,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             this.imports = imports;
             this.constrs = constrs;
             this.congrs = congrs;
+            this.strategyNeedsExternal = strategyNeedsExternal;
         }
 
         @Override public String toString() {
@@ -370,8 +377,23 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             execContext.provide(strategyFile);
         }
         final Set<String> strategies = new HashSet<>(cifiedStratNameList.size() * 2);
-        for(IStrategoTerm cifiedStratName : cifiedStratNameList) {
-            strategies.add(Tools.asJavaString(cifiedStratName));
+        final Set<String> strategyNeedsExternal = new HashSet<>();
+        for(IStrategoTerm cifiedStratNamePair : cifiedStratNameList) {
+            final String cifiedStratName = Tools.javaStringAt(cifiedStratNamePair, 0);
+            strategies.add(cifiedStratName);
+            IStrategoList annos = Tools.listAt(cifiedStratNamePair, 1);
+            loop:
+            for(IStrategoTerm anno : annos) {
+                if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
+                    String annoName = ((IStrategoAppl) anno).getName();
+                    switch(annoName) {
+                        case "Override":
+                        case "Extend":
+                            strategyNeedsExternal.add(cifiedStratName);
+                            break loop;
+                    }
+                }
+            }
         }
         final Map<String, Set<String>> ambStratUsed = new HashMap<>(cifiedAmbStratsUsed.size() * 2);
         for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
@@ -424,7 +446,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
-            overlayFiles, imports, constrs, congrs);
+            overlayFiles, imports, constrs, congrs, strategyNeedsExternal);
     }
 
     static String stripArity(String s) throws ExecException {
@@ -457,10 +479,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 strategoLang = stratego.activeImpl();
                 // support *.rtree (StrategoSugar AST)
                 final ITermFactory factory = termFactoryService.getGeneric();
-                ast = new TermReader(factory)
-                    .parseFromStream(resource.getContent().getInputStream());
-                if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module") && ast.getSubtermCount() == 2)) {
-                    throw new ExecException("Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes. )");
+                ast = new TermReader(factory).parseFromStream(resource.getContent().getInputStream());
+                if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
+                    && ast.getSubtermCount() == 2)) {
+                    throw new ExecException(
+                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes. )");
                 }
             } else {
                 throw new ExecException(
