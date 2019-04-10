@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -446,21 +447,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     // Don't generate congruences for constructors if a library already defined one
                     continue;
                 }
-                strategyContributions = Collections.singletonList(congrFiles.get(strategyName));
-                //noinspection ArraysAsListWithZeroOrOneArgument
-                backEndOrigin = Arrays.asList(congrOrigin.get(strategyName));
+                strategyContributions = Collections.singletonList(Objects.requireNonNull(congrFiles.get(strategyName)));
+                backEndOrigin = Collections.singletonList(Objects.requireNonNull(congrOrigin.get(strategyName)));
             } else {
                 strategyContributions = Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0]));
                 backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
                 for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
-                    final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
-                    if(theOverlayFiles != null) {
-                        strategyOverlayFiles.addAll(theOverlayFiles);
-                    }
-                    final List<STask<?>> overlayOriginBuilder = overlayOrigins.get(overlayName);
-                    if(overlayOriginBuilder != null) {
-                        backEndOrigin.addAll(overlayOriginBuilder);
-                    }
+                    strategyOverlayFiles.addAll(overlayFiles.getOrDefault(overlayName, Collections.emptySet()));
+                    backEndOrigin.addAll(overlayOrigins.getOrDefault(overlayName, Collections.emptyList()));
                 }
             }
 
@@ -496,7 +490,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private static Iterable<String> requiredOverlays(String strategyName, Map<String, Set<String>> strategyConstrs,
         Map<String, Set<String>> overlayConstrs) {
-        final Deque<String> workList = new ArrayDeque<>(strategyConstrs.get(strategyName));
+        final Deque<String> workList = new ArrayDeque<>(strategyConstrs.getOrDefault(strategyName, Collections.emptySet()));
         workList.retainAll(overlayConstrs.keySet());
         final Set<String> seenOverlays = new HashSet<>(workList);
         while(!workList.isEmpty()) {
@@ -554,7 +548,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
         overlaySccs.removeIf(s -> {
             String overlayName = s.iterator().next();
-            return s.size() == 1 && !(overlayConstrs.get(overlayName).contains(overlayName));
+            return s.size() == 1 && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet()).contains(overlayName));
         });
         if(!overlaySccs.isEmpty()) {
             checkOk = false;
