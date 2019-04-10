@@ -147,11 +147,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          * because it overrides or extends it. [name checks]
          */
         final Set<String> strategyNeedsExternal;
+        /**
+         * Overlay_arity names to constructor_arity names used. [static linking / name checks]
+         */
+        final Map<String, Set<String>> overlayConstrs;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
-            Set<String> strategyNeedsExternal) {
+            Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategies = strategies;
@@ -163,6 +167,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             this.constrs = constrs;
             this.congrs = congrs;
             this.strategyNeedsExternal = strategyNeedsExternal;
+            this.overlayConstrs = overlayConstrs;
         }
 
         @Override public String toString() {
@@ -403,14 +408,22 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             StrIncr.getOrInitialize(ambStratUsed, stripArity(ambName), HashSet::new).add(useSite);
         }
         final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
-        for(IStrategoTerm overlayTerm : overlayList) {
-            String overlayName = Tools.asJavaString(overlayTerm);
+        final Map<String, Set<String>> overlayConstrs = new HashMap<>(overlayList.size() * 2);
+        for(IStrategoTerm overlayPair : overlayList) {
+            String overlayName = Tools.javaStringAt(overlayPair, 0);
             @Nullable File overlayFile = resourceService
                 .localPath(CommonPaths.strSepCompOverlayFile(location, input.projectName, moduleName, overlayName));
             assert overlayFile
                 != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
             overlayFiles.put(overlayName, overlayFile);
             execContext.provide(overlayFile);
+
+            IStrategoList usedConstrTerms = Tools.listAt(overlayPair, 1);
+            Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
+            for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
+                usedConstrs.add(Tools.asJavaString(usedConstrTerm));
+            }
+            overlayConstrs.put(overlayName, usedConstrs);
         }
         final Set<String> constrs = new HashSet<>(constrList.size() * 2);
         for(IStrategoTerm constr : constrList) {
@@ -446,7 +459,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
-            overlayFiles, imports, constrs, congrs, strategyNeedsExternal);
+            overlayFiles, imports, constrs, congrs, strategyNeedsExternal, overlayConstrs);
     }
 
     static String stripArity(String s) throws ExecException {

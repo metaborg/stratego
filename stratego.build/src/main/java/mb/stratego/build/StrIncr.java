@@ -323,6 +323,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, File> congrFiles = new HashMap<>();
         // Strategy-name to constructor_arity names that were used in the body
         final Map<String, Set<String>> strategyConstrs = new HashMap<>();
+        // Overlay_arity names to constructor_arity names used
+        final Map<String, Set<String>> overlayConstrs = new HashMap<>();
         // Overlay_arity name to file with CTree definition of that overlay
         final Map<String, Set<File>> overlayFiles = new HashMap<>();
         // Strategy-name to set of tasks that contributed strategy definitions
@@ -411,6 +413,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
                 getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSTask());
             }
+            for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
+                final String overlayName = gen.getKey();
+                getOrInitialize(overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
+            }
 
             // resolving imports
             final Set<Module> expandedImports =
@@ -425,10 +431,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         // CHECK: constructor/strategy uses have definition which is imported
         // Strategy-name (where the call occurs) to strategy-name (amb call) to strategy-name (amb call resolves to)
-        // TODO: track which overlays use which other overlays and check that there are no cycles there
         final StaticCheckOutput staticCheckOutput =
             staticCheck(checkOk, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
-                usedConstructors, definedStrategies, definedConstructors, externalStrategies, strategyNeedsExternal);
+                usedConstructors, definedStrategies, definedConstructors, externalStrategies, strategyNeedsExternal,
+                overlayConstrs);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
@@ -446,8 +452,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             } else {
                 strategyContributions = Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0]));
                 backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
-                // TODO: track which overlays use which other overlays and include those too
-                for(String overlayName : strategyConstrs.get(strategyName)) {
+                for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
                     final Set<File> theOverlayFiles = overlayFiles.get(overlayName);
                     if(theOverlayFiles != null) {
                         strategyOverlayFiles.addAll(theOverlayFiles);
@@ -489,6 +494,23 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return None.instance;
     }
 
+    private static Iterable<String> requiredOverlays(String strategyName, Map<String, Set<String>> strategyConstrs,
+        Map<String, Set<String>> overlayConstrs) {
+        final Deque<String> workList = new ArrayDeque<>(strategyConstrs.get(strategyName));
+        workList.retainAll(overlayConstrs.keySet());
+        final Set<String> seenOverlays = new HashSet<>(workList);
+        while(!workList.isEmpty()) {
+            String overlay = workList.pop();
+            seenOverlays.add(overlay);
+
+            Set<String> usedConstrs = overlayConstrs.getOrDefault(overlay, new HashSet<>());
+            usedConstrs.retainAll(overlayConstrs.keySet());
+            usedConstrs.removeAll(seenOverlays);
+            workList.addAll(usedConstrs);
+        }
+        return seenOverlays;
+    }
+
     private static void registerConstructorDefinitions(Map<String, Set<String>> visibleConstructors, Module module,
         Set<String> constrs, Set<String> overlays) {
         Set<String> visConstrs = new HashSet<>(constrs);
@@ -505,7 +527,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
-        Set<String> externalStrategies, Set<String> strategyNeedsExternal) throws ExecException {
+        Set<String> externalStrategies, Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs)
+        throws ExecException {
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
         // Module-path to  visible when imported (transitive closure of strategy definitions)
         final Map<String, Set<String>> visibleStrategies = new HashMap<>(definedStrategies);
@@ -517,12 +540,30 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(Map.Entry<String, Set<String>> entry : visibleConstructors.entrySet()) {
             entry.setValue(new HashSet<>(entry.getValue()));
         }
+
+        // CHECK that extending and/or overriding strategies have an external strategy to extend and/or override
         Set<String> strategyNeedsExternalNonOverlap = Sets.difference(strategyNeedsExternal, externalStrategies);
         if(!strategyNeedsExternalNonOverlap.isEmpty()) {
             checkOk = false;
             execContext.logger()
                 .error("Cannot find external strategies for override/extend " + strategyNeedsExternalNonOverlap, null);
         }
+
+        // CHECK that overlays do not cyclically use each other
+        final Deque<Set<String>> overlaySccs =
+            Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
+        overlaySccs.removeIf(s -> {
+            String overlayName = s.iterator().next();
+            return s.size() == 1 && !(overlayConstrs.get(overlayName).contains(overlayName));
+        });
+        if(!overlaySccs.isEmpty()) {
+            checkOk = false;
+            for(Set<String> overlayScc : overlaySccs) {
+                execContext.logger().error("Overlays have a cyclic dependency " + overlayScc, null);
+            }
+        }
+
+        // CHECK that names can be resolved
         final Deque<Set<String>> sccs = Algorithms
             .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
         for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {

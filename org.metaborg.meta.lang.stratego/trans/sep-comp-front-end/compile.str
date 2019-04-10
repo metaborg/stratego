@@ -41,7 +41,7 @@ strategies
       , <mapconcat(?Imports(<id>))> imps
       , <map(Fst)> constrs
       , usedConstrs
-      , <map(Fst)> olays
+      , <map(split(Fst, Snd;extract-used-constructors))> olays
       , <map(!(<Fst>, <Snd>))> congs
       )
     with id
