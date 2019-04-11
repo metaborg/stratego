@@ -34,25 +34,23 @@ strategies
   compile-module(|project-path, project-name):
     Module(m, defs) ->
       ( m
-      , <map(Fst)> combined-defs
+      , <map((id, extract-used-constructors))> combined-defs
       , <map(Snd; split(try(?AnnoDef(_, <id>)); sdeft-to-cified-name, ?AnnoDef(<id>, _) <+ ![]))> defs3
       , usedStrategies
       , ambcalls
       , <mapconcat(?Imports(<id>))> imps
       , <map(Fst)> constrs
-      , usedConstrs
       , <map(split(Fst, Snd;extract-used-constructors))> olays
-      , <map(!(<Fst>, <Snd>))> congs
+      , <map(!(<Fst>, <Snd>, <Third;extract-used-constructors>))> congs
       )
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; (defs3, constrs, olays, congs) := <strip-annos;frontend-sep-comp> Specification(defs2)
       ; combined-defs := <combine-defs> defs3
-      ; usedConstrs := <map(?(_, <extract-used-constructors>))> combined-defs
       ; (ambcalls, usedStrategies) := <extract-used-strategies> combined-defs
       ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
-      ; <map(Third;store-combined-defs(|project-path, project-name, m))> congs
+      ; <map(!(<Fst>, <Third>);store-combined-defs(|project-path, project-name, m))> congs
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
@@ -246,7 +244,7 @@ strategies
       ; ?overlay*
     )
     ; where(id
-      ; bagof-SepCompCong
+      ; dr-all-keys(|"SepCompCong")
       ; filter(!(<Fst>, <strategy-sig-to-string>, <bagof-ModDefinition>))
       ; ?cong*
     )

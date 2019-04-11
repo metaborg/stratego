@@ -48,7 +48,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -151,11 +150,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          * Overlay_arity names to constructor_arity names used. [static linking / name checks]
          */
         final Map<String, Set<String>> overlayConstrs;
+        /**
+         * Strategy-name to file with CTree definition of that congruence [static linking]
+         */
+        final Map<String, File> congrFiles;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
-            Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs) {
+            Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.strategies = strategies;
@@ -168,6 +171,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             this.congrs = congrs;
             this.strategyNeedsExternal = strategyNeedsExternal;
             this.overlayConstrs = overlayConstrs;
+            this.congrFiles = congrFiles;
         }
 
         @Override public String toString() {
@@ -348,21 +352,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final IStrategoList cifiedAmbStratsUsed = Tools.listAt(result, 4);
         final IStrategoList importsTerm = Tools.listAt(result, 5);
         final IStrategoList constrList = Tools.listAt(result, 6);
-        final IStrategoList usedConstrList = Tools.listAt(result, 7);
-        final IStrategoList overlayList = Tools.listAt(result, 8);
-        final IStrategoList congrList = Tools.listAt(result, 9);
-        assert
-            strategyList.size() == usedConstrList.size() :
-            "Inconsistent compiler: strategy list size (" + strategyList.size() + ") != used constructors list size ("
-                + usedConstrList.size() + ")";
+        final IStrategoList overlayList = Tools.listAt(result, 7);
+        final IStrategoList congrList = Tools.listAt(result, 8);
 
         final Map<String, File> strategyFiles = new HashMap<>(strategyList.size() * 2);
         final Map<String, Set<String>> strategyConstrs = new HashMap<>(strategyList.size() * 2);
-        for(Iterator<IStrategoTerm> strategyIterator = strategyList.iterator(), usedConstrIterator =
-            usedConstrList.iterator(); strategyIterator.hasNext(); ) {
-            String strategy = Tools.asJavaString(strategyIterator.next());
+        for(IStrategoTerm strategyPair : strategyList) {
+            String strategy = Tools.javaStringAt(strategyPair, 0);
 
-            IStrategoTerm usedConstrTerms = usedConstrIterator.next();
+            IStrategoList usedConstrTerms = Tools.listAt(strategyPair, 1);
             Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
@@ -433,17 +431,25 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(IStrategoTerm usedStrategy : usedStrategyList) {
             usedStrategies.add(Tools.asJavaString(usedStrategy));
         }
-        Set<String> congrs = new HashSet<>();
+        final Set<String> congrs = new HashSet<>();
+        final Map<String, File> congrFiles = new HashMap<>();
         for(IStrategoTerm congrPair : congrList) {
             String congrName = Tools.javaStringAt(congrPair, 0);
             String cifiedCongrName = Tools.javaStringAt(congrPair, 1);
-            strategies.add(cifiedCongrName);
+
+            IStrategoList usedConstrTerms = Tools.listAt(congrPair, 2);
+            Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
+            for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
+                usedConstrs.add(Tools.asJavaString(usedConstrTerm));
+            }
+            strategyConstrs.put(congrName, usedConstrs);
+
             congrs.add(cifiedCongrName);
             final @Nullable File congrFile = resourceService
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, congrName));
             assert congrFile
                 != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-            strategyFiles.put(congrName, congrFile);
+            congrFiles.put(congrName, congrFile);
             execContext.provide(congrFile);
         }
 
@@ -459,7 +465,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
-            overlayFiles, imports, constrs, congrs, strategyNeedsExternal, overlayConstrs);
+            overlayFiles, imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
     }
 
     static String stripArity(String s) throws ExecException {

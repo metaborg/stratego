@@ -15,6 +15,7 @@ import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.core.Interpreter;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +46,8 @@ import java.util.function.Supplier;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
+    private static final HashSet<String> ALWAYS_DEFINED =
+        new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
 
     public static final class Input implements Serializable {
         final URL inputFile;
@@ -251,6 +254,22 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         StaticCheckOutput(Map<String, SortedMap<String, String>> ambStratResolution) {
             this.ambStratResolution = ambStratResolution;
         }
+
+        @Override public String toString() {
+            if(!ambStratResolution.isEmpty()) {
+                final StringBuilder b = new StringBuilder();
+                for(Map.Entry<String, SortedMap<String, String>> stringSortedMapEntry : ambStratResolution.entrySet()) {
+                    b.append("  In module ").append(stringSortedMapEntry.getKey()).append(":\n");
+                    for(Map.Entry<String, String> stringStringEntry : stringSortedMapEntry.getValue().entrySet()) {
+                        b.append("    ").append(stringStringEntry.getKey()).append(" -> ")
+                            .append(stringStringEntry.getValue()).append("\n");
+                    }
+                }
+                return b.toString();
+            } else {
+                return "  (none)";
+            }
+        }
     }
 
     private final IResourceService resourceService;
@@ -361,7 +380,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 if(!overlappingConstructors.isEmpty()) {
                     checkOk = false;
                     execContext.logger()
-                        .error("Overlapping external strategy definitions: " + overlappingConstructors, null);
+                        .error("Overlapping external constructor definitions: " + overlappingConstructors, null);
                 }
 
                 externalStrategies.addAll(frontLibOutput.strategies);
@@ -399,15 +418,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 String strategyName = gen.getKey();
                 // ensure the strategy is a key in the strategyFiles map
                 getOrInitialize(strategyFiles, strategyName, HashSet::new);
-                if(frontOutput.congrs.contains(strategyName)) {
-                    congrFiles.put(strategyName, gen.getValue());
-                    congrOrigin.put(strategyName, task.toSTask());
-                } else {
-                    getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
-                    getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
-                }
+                getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
+                getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
                 getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(strategyName));
+            }
+            for(Map.Entry<String, File> gen : frontOutput.congrFiles.entrySet()) {
+                congrFiles.put(gen.getKey(), gen.getValue());
+                congrOrigin.put(gen.getKey(), task.toSTask());
             }
             for(Map.Entry<String, File> gen : frontOutput.overlayFiles.entrySet()) {
                 final String overlayName = gen.getKey();
@@ -434,8 +452,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Strategy-name (where the call occurs) to strategy-name (amb call) to strategy-name (amb call resolves to)
         final StaticCheckOutput staticCheckOutput =
             staticCheck(checkOk, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
-                usedConstructors, definedStrategies, definedConstructors, externalStrategies, strategyNeedsExternal,
-                overlayConstrs);
+                usedConstructors, definedStrategies, definedConstructors, definedCongruences, externalStrategies,
+                strategyNeedsExternal, overlayConstrs);
+
+        execContext.logger().debug("Renaming:\n" + staticCheckOutput);
 
         // BACKEND
         for(String strategyName : strategyFiles.keySet()) {
@@ -444,7 +464,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final List<File> strategyOverlayFiles = new ArrayList<>();
             if(strategyFiles.get(strategyName).isEmpty()) {
                 if(externalConstructors.contains(strategyName)) {
-                    // Don't generate congruences for constructors if a library already defined one
+                    execContext.logger().debug(
+                        "Dropping congruence for " + strategyName + "in favour of external definition in library. ");
                     continue;
                 }
                 strategyContributions = Collections.singletonList(Objects.requireNonNull(congrFiles.get(strategyName)));
@@ -467,8 +488,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             for(String builtinLib : input.builtinLibs) {
                 args.add("-la", builtinLib);
             }
-            final SortedMap<String, String> ambStrategyResolution =
-                staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
+            final SortedMap<String, String> ambStrategyResolution = staticCheckOutput.ambStratResolution
+                .getOrDefault(Interpreter.cify(strategyName), Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
@@ -490,7 +511,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private static Iterable<String> requiredOverlays(String strategyName, Map<String, Set<String>> strategyConstrs,
         Map<String, Set<String>> overlayConstrs) {
-        final Deque<String> workList = new ArrayDeque<>(strategyConstrs.getOrDefault(strategyName, Collections.emptySet()));
+        final Deque<String> workList =
+            new ArrayDeque<>(strategyConstrs.getOrDefault(strategyName, Collections.emptySet()));
         workList.retainAll(overlayConstrs.keySet());
         final Set<String> seenOverlays = new HashSet<>(workList);
         while(!workList.isEmpty()) {
@@ -521,13 +543,16 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
-        Set<String> externalStrategies, Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs)
-        throws ExecException {
+        Map<String, Set<String>> definedCongruences, Set<String> externalStrategies, Set<String> strategyNeedsExternal,
+        Map<String, Set<String>> overlayConstrs) throws ExecException {
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
         // Module-path to  visible when imported (transitive closure of strategy definitions)
         final Map<String, Set<String>> visibleStrategies = new HashMap<>(definedStrategies);
         for(Map.Entry<String, Set<String>> entry : visibleStrategies.entrySet()) {
             entry.setValue(new HashSet<>(entry.getValue()));
+        }
+        for(Map.Entry<String, Set<String>> entry : definedCongruences.entrySet()) {
+            getOrInitialize(visibleStrategies, entry.getKey(), HashSet::new).addAll(entry.getValue());
         }
         // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
         final Map<String, Set<String>> visibleConstructors = new HashMap<>(definedConstructors);
@@ -548,7 +573,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
         overlaySccs.removeIf(s -> {
             String overlayName = s.iterator().next();
-            return s.size() == 1 && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet()).contains(overlayName));
+            return s.size() == 1 && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet())
+                .contains(overlayName));
         });
         if(!overlaySccs.isEmpty()) {
             checkOk = false;
@@ -592,9 +618,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     execContext.logger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
-                Set<String> strategiesOverlapWithExternal =
+                Set<String> strategiesOverlapWithExternal = Sets.difference(
                     Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()),
-                        externalStrategies);
+                        externalStrategies), ALWAYS_DEFINED);
                 if(!strategiesOverlapWithExternal.isEmpty()) {
                     checkOk = false;
                     execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
@@ -625,7 +651,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                                 final String resolvedDef = defs.iterator().next();
                                 final String fullName = usedAmbStrategy + "_0_0";
                                 for(String useSite : entry.getValue()) {
-                                    getOrInitialize(ambStratResolution, useSite, TreeMap::new)
+                                    getOrInitialize(ambStratResolution, StrIncrFront.stripArity(useSite), TreeMap::new)
                                         .put(fullName, resolvedDef);
                                 }
                                 break;
