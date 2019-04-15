@@ -37,7 +37,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final File strategyDir;
         final Collection<File> strategyContributions;
         final Collection<File> overlayContributions;
-        final @Nullable SortedMap<String, String> ambStrategyResolution;
+        final SortedMap<String, String> ambStrategyResolution;
         final @Nullable String packageName;
         final File outputPath;
         final @Nullable File cacheDir;
@@ -48,7 +48,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> overlayContributions,
-            @Nullable SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
+            SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
             @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;

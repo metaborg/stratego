@@ -24,6 +24,15 @@ public interface Library extends Serializable {
         return new RTree(resourceService.resolve(name).getURL());
     }
 
+    static String normalizeBuiltin(String name) {
+        final @Nullable Builtin b = Builtin.fromString(name);
+        if(b == null) {
+            return name;
+        } else {
+            return b.libString;
+        }
+    }
+
     enum Builtin implements Library {
         // @formatter:off
         StrategoLib("stratego-lib"),

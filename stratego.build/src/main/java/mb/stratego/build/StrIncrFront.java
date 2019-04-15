@@ -51,12 +51,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
     public static final String id = StrIncrFront.class.getCanonicalName();
-    private static final Pattern stripArityPattern = Pattern.compile("^(\\w+)_\\d+_\\d+$");
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -242,8 +239,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         static Import library(String libraryName) {
-            assert Library.Builtin.isBuiltinLibrary(libraryName);
-            return new Import(ImportType.library, libraryName);
+            return new Import(ImportType.library, Library.normalizeBuiltin(libraryName));
         }
 
         static Import fromTerm(IStrategoTerm importTerm) throws IOException {
@@ -401,9 +397,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Map<String, Set<String>> ambStratUsed = new HashMap<>(cifiedAmbStratsUsed.size() * 2);
         for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
             final String ambName = Tools.javaStringAt(cifiedAmbStratUsed, 0);
-            assert ambName.endsWith("_0_0");
+            if(!ambName.endsWith("_0_0")) {
+                throw new ExecException("Bug in Strategy sep comp frontend: Ambiguous call name didn't end with _0_0");
+            }
             final String useSite = Tools.javaStringAt(cifiedAmbStratUsed, 1);
-            StrIncr.getOrInitialize(ambStratUsed, stripArity(ambName), HashSet::new).add(useSite);
+            StrIncr.getOrInitialize(ambStratUsed, ambName.substring(0, ambName.length()-4), HashSet::new).add(useSite);
         }
         final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
         final Map<String, Set<String>> overlayConstrs = new HashMap<>(overlayList.size() * 2);
@@ -435,16 +433,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final Map<String, File> congrFiles = new HashMap<>();
         for(IStrategoTerm congrPair : congrList) {
             String congrName = Tools.javaStringAt(congrPair, 0);
-            String cifiedCongrName = Tools.javaStringAt(congrPair, 1);
 
-            IStrategoList usedConstrTerms = Tools.listAt(congrPair, 2);
+            IStrategoList usedConstrTerms = Tools.listAt(congrPair, 1);
             Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
-            strategyConstrs.put(congrName, usedConstrs);
+            strategyConstrs.put(StrIncr.constrStripArity(congrName), usedConstrs);
 
-            congrs.add(cifiedCongrName);
+            congrs.add(congrName + "_0");
             final @Nullable File congrFile = resourceService
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, congrName));
             assert congrFile
@@ -466,20 +463,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
             overlayFiles, imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
-    }
-
-    static String stripArity(String s) throws ExecException {
-        if(s.substring(s.length() - 4, s.length()).matches("^_\\d_\\d$")) {
-            return s.substring(0, s.length() - 4);
-        }
-        if(s.substring(s.length() - 5, s.length()).matches("^_\\d+_\\d+$")) {
-            return s.substring(0, s.length() - 5);
-        }
-        Matcher m = stripArityPattern.matcher(s);
-        if(!m.matches()) {
-            throw new ExecException("Frontend returned stratego strategy name that does not conform to cified name");
-        }
-        return m.group(0);
     }
 
     private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)

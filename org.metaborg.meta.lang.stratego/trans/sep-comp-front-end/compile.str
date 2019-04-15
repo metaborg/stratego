@@ -40,8 +40,8 @@ strategies
       , ambcalls
       , <mapconcat(?Imports(<id>))> imps
       , <map(Fst)> constrs
-      , <map(split(Fst, Snd;extract-used-constructors))> olays
-      , <map(!(<Fst>, <Snd>, <Third;extract-used-constructors>))> congs
+      , <map((id, extract-used-constructors))> olays
+      , <map((id, extract-used-constructors))> congs
       )
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
@@ -50,7 +50,7 @@ strategies
       ; combined-defs := <combine-defs> defs3
       ; (ambcalls, usedStrategies) := <extract-used-strategies> combined-defs
       ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
-      ; <map(!(<Fst>, <Third>);store-combined-defs(|project-path, project-name, m))> congs
+      ; <map(store-combined-defs(|project-path, project-name, m))> congs
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
@@ -67,7 +67,7 @@ rules
   def-to-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
   def-to-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
 
-  extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
+  extract-used-constructors = collect-all(\Op(c,t*) -> <constr-sig-to-string> (c, <length> t*) where not("" := c)\)
   // Annotate used strategies in ambiguous call position
   extract-used-strategies =
     alltd({ where(sdeft-to-cified-name;?n)
@@ -245,7 +245,7 @@ strategies
     )
     ; where(id
       ; dr-all-keys(|"SepCompCong")
-      ; filter(!(<Fst>, <strategy-sig-to-string>, <bagof-ModDefinition>))
+      ; filter(!(<!(<Fst>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition>))
       ; ?cong*
     )
     ; !(localDef*, constr*, overlay*, cong*)
