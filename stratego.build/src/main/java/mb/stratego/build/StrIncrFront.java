@@ -102,13 +102,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     public static final class Output implements Serializable {
         final String moduleName;
         /**
-         * Strategy-name to file with CTree definition of that strategy [static linking]
+         * Cified-strategy-name to file with CTree definition of that strategy [static linking]
          */
         final Map<String, File> strategyFiles;
-        /**
-         * Cified-strategy-names defined in this module [name checks]
-         */
-        final Set<String> strategies;
         /**
          * Cified-strategy-names referred to in this module [name checks]
          */
@@ -119,7 +115,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Map<String, Set<String>> ambStratUsed;
         /**
-         * Strategy-name to constructor_arity names that were used in the body [name checks]
+         * Cified-strategy-name to constructor_arity names that were used in the body [name checks]
          */
         final Map<String, Set<String>> strategyConstrs;
         /**
@@ -135,7 +131,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Set<String> constrs;
         /**
-         * Cified-strategy-name of a generated congruence (also added to the strategies field) [static linking]
+         * Cified-strategy-name of a generated congruence [static linking]
          */
         final Set<String> congrs;
         /**
@@ -148,17 +144,16 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Map<String, Set<String>> overlayConstrs;
         /**
-         * Strategy-name to file with CTree definition of that congruence [static linking]
+         * Constructor_arity to file with CTree definition of that congruence [static linking]
          */
         final Map<String, File> congrFiles;
 
-        Output(String moduleName, Map<String, File> strategyFiles, Set<String> strategies, Set<String> usedStrategies,
+        Output(String moduleName, Map<String, File> strategyFiles, Set<String> usedStrategies,
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
             Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
-            this.strategies = strategies;
             this.usedStrategies = usedStrategies;
             this.ambStratUsed = ambStratUsed;
             this.strategyConstrs = strategyConstrs;
@@ -187,8 +182,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 return false;
             if(!strategyFiles.equals(output.strategyFiles))
                 return false;
-            if(!strategies.equals(output.strategies))
-                return false;
             if(!usedStrategies.equals(output.usedStrategies))
                 return false;
             if(!ambStratUsed.equals(output.ambStratUsed))
@@ -206,7 +199,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         @Override public int hashCode() {
             int result = moduleName.hashCode();
             result = 31 * result + strategyFiles.hashCode();
-            result = 31 * result + strategies.hashCode();
             result = 31 * result + usedStrategies.hashCode();
             result = 31 * result + ambStratUsed.hashCode();
             result = 31 * result + strategyConstrs.hashCode();
@@ -343,25 +335,36 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
-        final IStrategoList cifiedStratNameList = Tools.listAt(result, 2);
-        final IStrategoList usedStrategyList = Tools.listAt(result, 3);
-        final IStrategoList cifiedAmbStratsUsed = Tools.listAt(result, 4);
-        final IStrategoList importsTerm = Tools.listAt(result, 5);
-        final IStrategoList constrList = Tools.listAt(result, 6);
-        final IStrategoList overlayList = Tools.listAt(result, 7);
-        final IStrategoList congrList = Tools.listAt(result, 8);
+        final IStrategoList usedStrategyList = Tools.listAt(result, 2);
+        final IStrategoList ambStratsUsed = Tools.listAt(result, 3);
+        final IStrategoList importsTerm = Tools.listAt(result, 4);
+        final IStrategoList constrList = Tools.listAt(result, 5);
+        final IStrategoList overlayList = Tools.listAt(result, 6);
+        final IStrategoList congrList = Tools.listAt(result, 7);
 
         final Map<String, File> strategyFiles = new HashMap<>(strategyList.size() * 2);
         final Map<String, Set<String>> strategyConstrs = new HashMap<>(strategyList.size() * 2);
-        for(IStrategoTerm strategyPair : strategyList) {
-            String strategy = Tools.javaStringAt(strategyPair, 0);
+        final Set<String> strategyNeedsExternal = new HashSet<>();
+        for(IStrategoTerm strategyTriple : strategyList) {
+            String strategy = Tools.javaStringAt(strategyTriple, 0);
 
-            IStrategoList usedConstrTerms = Tools.listAt(strategyPair, 1);
+            IStrategoList usedConstrTerms = Tools.listAt(strategyTriple, 1);
             Set<String> usedConstrs = new HashSet<>(usedConstrTerms.getSubtermCount());
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
             strategyConstrs.put(strategy, usedConstrs);
+
+            IStrategoList annos = Tools.listAt(strategyTriple, 2);
+            for(IStrategoTerm anno : annos) {
+                if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
+                    String annoName = ((IStrategoAppl) anno).getName();
+                    if(annoName.equals("Override") || annoName.equals("Extend")) {
+                        strategyNeedsExternal.add(strategy);
+                        break;
+                    }
+                }
+            }
 
             final @Nullable File strategyFile = resourceService
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
@@ -375,33 +378,14 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             strategyFiles.put(strategy, strategyFile);
             execContext.provide(strategyFile);
         }
-        final Set<String> strategies = new HashSet<>(cifiedStratNameList.size() * 2);
-        final Set<String> strategyNeedsExternal = new HashSet<>();
-        for(IStrategoTerm cifiedStratNamePair : cifiedStratNameList) {
-            final String cifiedStratName = Tools.javaStringAt(cifiedStratNamePair, 0);
-            strategies.add(cifiedStratName);
-            IStrategoList annos = Tools.listAt(cifiedStratNamePair, 1);
-            loop:
-            for(IStrategoTerm anno : annos) {
-                if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
-                    String annoName = ((IStrategoAppl) anno).getName();
-                    switch(annoName) {
-                        case "Override":
-                        case "Extend":
-                            strategyNeedsExternal.add(cifiedStratName);
-                            break loop;
-                    }
-                }
-            }
-        }
-        final Map<String, Set<String>> ambStratUsed = new HashMap<>(cifiedAmbStratsUsed.size() * 2);
-        for(IStrategoTerm cifiedAmbStratUsed : cifiedAmbStratsUsed) {
-            final String ambName = Tools.javaStringAt(cifiedAmbStratUsed, 0);
+        final Map<String, Set<String>> ambStratUsed = new HashMap<>(ambStratsUsed.size() * 2);
+        for(IStrategoTerm ambStratUse : ambStratsUsed) {
+            final String ambName = Tools.javaStringAt(ambStratUse, 0);
             if(!ambName.endsWith("_0_0")) {
                 throw new ExecException("Bug in Strategy sep comp frontend: Ambiguous call name didn't end with _0_0");
             }
-            final String useSite = Tools.javaStringAt(cifiedAmbStratUsed, 1);
-            StrIncr.getOrInitialize(ambStratUsed, ambName.substring(0, ambName.length()-4), HashSet::new).add(useSite);
+            final String useSite = Tools.javaStringAt(ambStratUse, 1);
+            StrIncr.getOrInitialize(ambStratUsed, ambName, HashSet::new).add(useSite);
         }
         final Map<String, File> overlayFiles = new HashMap<>(overlayList.size() * 2);
         final Map<String, Set<String>> overlayConstrs = new HashMap<>(overlayList.size() * 2);
@@ -439,7 +423,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             for(IStrategoTerm usedConstrTerm : usedConstrTerms) {
                 usedConstrs.add(Tools.asJavaString(usedConstrTerm));
             }
-            strategyConstrs.put(StrIncr.constrStripArity(congrName), usedConstrs);
+            strategyConstrs.put(congrName, usedConstrs);
 
             congrs.add(congrName + "_0");
             final @Nullable File congrFile = resourceService
@@ -461,8 +445,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             imports.add(Import.fromTerm(importTerm));
         }
 
-        return new Output(moduleName, strategyFiles, strategies, usedStrategies, ambStratUsed, strategyConstrs,
-            overlayFiles, imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
+        return new Output(moduleName, strategyFiles, usedStrategies, ambStratUsed, strategyConstrs, overlayFiles,
+            imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
     }
 
     private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)

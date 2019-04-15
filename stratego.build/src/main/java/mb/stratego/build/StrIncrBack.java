@@ -49,7 +49,8 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> overlayContributions,
             SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
-            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
+            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
+            boolean isBoilerplate) {
             this.frontEndTasks = frontEndTasks;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName;

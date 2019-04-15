@@ -34,8 +34,7 @@ strategies
   compile-module(|project-path, project-name):
     Module(m, defs) ->
       ( m
-      , <map((id, extract-used-constructors))> combined-defs
-      , <map(Snd; split(try(?AnnoDef(_, <id>)); sdeft-to-cified-name, ?AnnoDef(<id>, _) <+ ![]))> defs3
+      , <map(!(<Fst>, <Snd;extract-used-constructors>, <Snd;?AnnoDef(<id>, _) <+ ![]>))> defs3
       , usedStrategies
       , ambcalls
       , <mapconcat(?Imports(<id>))> imps
@@ -47,10 +46,9 @@ strategies
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
       ; (defs3, constrs, olays, congs) := <strip-annos;frontend-sep-comp> Specification(defs2)
-      ; combined-defs := <combine-defs> defs3
-      ; (ambcalls, usedStrategies) := <extract-used-strategies> combined-defs
-      ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
-      ; <map(store-combined-defs(|project-path, project-name, m))> congs
+      ; (ambcalls, usedStrategies) := <extract-used-strategies> defs3
+      ; <map(store-def(|project-path, project-name, m))> defs3
+      ; <map(store-def(|project-path, project-name, m))> congs
       ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
       ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
 
@@ -70,10 +68,11 @@ rules
   extract-used-constructors = collect-all(\Op(c,t*) -> <constr-sig-to-string> (c, <length> t*) where not("" := c)\)
   // Annotate used strategies in ambiguous call position
   extract-used-strategies =
-    alltd({ where(sdeft-to-cified-name;?n)
-          ; SDefT(id, id, id, bottomup(try(
-              CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id))))
-          })
+    alltd({
+      SDefT(?n, id, id, bottomup(try(
+        CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id)
+      )))
+    })
   ; free-vars(Add2, Bind1 + Bind2 + Bind3 + Bind5 + Bind7 + Bind9, sboundin, (try(?AmbCall(<id>, _)),id); eq)
   ; partition(\AmbCall(ambcall, defUsing) -> (ambcall, defUsing)\)
 
@@ -91,6 +90,12 @@ rules
 
   store-combined-defs(|project-path, project-name, m):
     (f, def*) -> <store-defs-comma-sep(|project-path, project-name, $[[LANGNAME()]/[f]], m)> def*
+
+  store-def(|project-path, project-name, m):
+    (f, 'def) -> file
+  with id
+    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
+    ; <WriteToFile(fprint)> (file, 'def)
 
   store-decls(|project-path, project-name, m) =
     store-defs-comma-sep(|project-path, project-name, LANGNAME(), m)
@@ -119,9 +124,8 @@ strategies
       // desugar and check constructors
 
       ; m-transform-constructors(id
-          ; pre-desugar
 // commented: Don't add to VarToConst which is used in pre-desugar to turn variables into nullary constructors if the variable matches that nullary constructor name. 
-//          ; try(DeclareVarToConst)
+//          ; pre-desugar; try(DeclareVarToConst)
           ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
 // commented: Used in check-constructors, which requires global info on constructors [DONE IN JAVA]
 //          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
@@ -135,12 +139,11 @@ strategies
           ; pre-desugar
           ; check-overlay
 //          ; try(DeclareVarToConst)
-        )
+//        )
 //
-      ; m-transform-overlays(id
+//      ; m-transform-overlays(id
 //// commented: Nullary constructors feature, off in separate compilation
-////          ; m-variables-to-constructors-in-def
-          ; pre-desugar
+////          ; m-variables-to-constructors-in-def; pre-desugar
           ; not(def-use-def)
           ; not(check-where-with)
           ; raise-annotations
@@ -184,12 +187,12 @@ strategies
             ; desugar-def
             ; check-patterns
           )
-        )
-
-      ; m-transform-local-defs(id
-          ; ![<joindefs>] 
-          ; [RenameSDef2]
-        )
+//        )
+//
+//      ; m-transform-local-defs(id
+          ; joindefs
+          ; rename-sdef2
+//        )
 
 // commented: [DONE IN JAVA]
 //      ; m-transform-external-defs(id
@@ -198,17 +201,18 @@ strategies
 //            ; [id | ![]] // Cannot reuse dyn rule when already used in library
 //            end
 //          ; [ id
-//             ; RenameSDef2
+//             ; rename-sdef2
 //             ; desugar-DefaultVarDec
 //             ; strename
 //            ]
 //        )
 
-      ; m-transform-local-defs(
-          [rename-calls2
-           ; simplify
-           ; define-congruences-def
-          ]
+//      ; m-transform-local-defs(id
+          ; rename-calls2
+          ; simplify
+          ; define-congruences-def
+          ; split-large-term-builds
+          ; ![<id>]
         )
 
 // commented: Can't tell if unused without global information
@@ -245,7 +249,7 @@ strategies
     )
     ; where(id
       ; dr-all-keys(|"SepCompCong")
-      ; filter(!(<!(<Fst>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition>))
+      ; filter(!(<!(<Fst>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition;?[<id>]>))
       ; ?cong*
     )
     ; !(localDef*, constr*, overlay*, cong*)
@@ -254,6 +258,5 @@ strategies
   constr-sig-to-string: (Q(c), len) -> $[[<escape> c]_[len]]
   constr-sig-to-string: (Inj(), 0) -> <fail>
 
-  strategy-sig-to-string = !$[[<Fst;cify>]_[<Snd>]_[<Third>]]
   sdeft-to-cified-name: SDefT(n, sargs, targs, _) ->
     <strategy-sig-to-string> (n, <length> sargs, <length> targs)

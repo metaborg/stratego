@@ -143,7 +143,8 @@ public class Main {
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
 
-        final Path projectLocation = Paths.get(strategoArguments.inputFile).toAbsolutePath().normalize().getParent().getParent();
+        final Path projectLocation =
+            Paths.get(strategoArguments.inputFile).toAbsolutePath().normalize().getParent().getParent();
 
         final List<String> constants = new ArrayList<>(strategoArguments.constants.size());
         for(Map.Entry<String, String> e : strategoArguments.constants.entrySet()) {
