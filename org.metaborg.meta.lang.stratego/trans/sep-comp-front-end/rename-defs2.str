@@ -55,6 +55,12 @@ rules
 
   annotate-local-args(rename-local|larg*,letdef*) = alltd(preserve-annos(annotate-local-arg(rename-local|larg*,letdef*)))
 
+  annotate-local-arg(rename-local|larg*,letdef*): Rec(name, body) -> Rec(name, body')
+  with id
+    ; name' := <rename-local> name
+    ; letdef'* := [(name, name')|letdef*]
+    ; body' := <annotate-local-args(rename-local|larg*, letdef'*)> body
+
   annotate-local-arg(rename-local|larg*,letdef*): Let(sdeft*, body) -> Let(sdeft'*, body')
   with id
     ; def* := <map(?SDefT(<id>, _, _, _);split(rm-annotations, rename-local))> sdeft*
