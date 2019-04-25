@@ -1,0 +1,7 @@
+module test
+
+language StrategoGradual
+
+test parse [[
+
+]] parse succeeds

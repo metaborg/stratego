@@ -1,0 +1,10 @@
+---
+id: org.metaborg:stratego.gradual.example:0.1.0-SNAPSHOT
+name: StrategoGradual
+dependencies:
+  compile:
+  - org.metaborg:stratego.gradual:0.1.0-SNAPSHOT
+debug:
+  typesmart: false
+build:
+  useBuildSystemSpec: true
