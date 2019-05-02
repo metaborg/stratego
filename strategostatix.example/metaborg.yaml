@@ -1,0 +1,10 @@
+---
+id: org.metaborg:strategostatix.example:0.1.0-SNAPSHOT
+name: stratego-statix
+dependencies:
+  compile:
+  - org.metaborg:strategostatix:0.1.0-SNAPSHOT
+debug:
+  typesmart: false
+build:
+  useBuildSystemSpec: true

@@ -1,0 +1,7 @@
+module test
+
+language stratego-statix
+
+test parse [[
+
+]] parse succeeds

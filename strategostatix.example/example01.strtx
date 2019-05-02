@@ -1,0 +1,14 @@
+module example01
+
+signature
+  sorts Exp String Int
+  constructors
+    Var  : String -> Exp 
+    Int  : Int -> Exp
+    Plus : Exp * Exp -> Exp
+    
+    plus : Int * Int -> Int
+     
+rules
+
+  eval : Plus(Int(i), Int(j)) -> Int(plus(i, j))

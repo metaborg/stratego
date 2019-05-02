@@ -1,0 +1,9 @@
+---
+id: org.metaborg:strategostatix.test:0.1.0-SNAPSHOT
+name: stratego-statix
+dependencies:
+  compile:
+  - org.metaborg:strategostatix:0.1.0-SNAPSHOT
+  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
+build:
+  useBuildSystemSpec: true

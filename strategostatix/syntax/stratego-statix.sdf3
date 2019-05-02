@@ -1,0 +1,57 @@
+module stratego-statix
+
+imports Common
+
+context-free start-symbols Module
+
+context-free syntax
+  
+  Module.Module = <
+    module <ID>
+    
+    <{Section "\n\n"}*>
+  >
+  
+context-free syntax // signatures 
+
+  Section.Signature = <
+    signature
+      <{SigSection "\n"}*>
+  >
+  
+  SigSection.Sorts = <
+    sorts <{ID " "}*>
+  >
+  
+  SigSection.Constructors = <
+    constructors
+      <{ConsDecl "\n"}*>
+  >
+  
+  ConsDecl.ConsDecl = [
+    [ID] : [{Sort " * "}*] -> [Sort]
+  ]
+  
+  Sort.Sort = ID
+
+context-free syntax // rules
+
+  Section.Rules = <
+    rules
+      <Rule*>
+  >
+  
+  Rule.Rule = [
+    [ID] : [Term] -> [Term]
+  ]
+  
+context-free syntax // terms 
+
+  Term.Var = ID
+  
+  Term.Op = <<ID>(<{Term ","}*>)>
+  
+template options 
+
+  ID = keyword {reject}
+  

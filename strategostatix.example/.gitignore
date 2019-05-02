@@ -1,0 +1,10 @@
+/bin
+/target
+
+/.classpath
+/.project
+/.settings
+/.factorypath
+
+/.polyglot.metaborg.yaml
+
