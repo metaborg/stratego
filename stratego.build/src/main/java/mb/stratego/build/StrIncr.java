@@ -49,7 +49,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
     private static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
-    private static final Pattern stripArityPattern = Pattern.compile("^(\\w+)_\\d+_\\d+$");
+    static final Pattern stripArityPattern = Pattern.compile("(\\w+)_\\d+_\\d+");
 
     public static final class Input implements Serializable {
         final URL inputFile;
@@ -60,12 +60,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final List<String> constants;
         final Arguments extraArgs;
         final File outputPath;
-        final Collection<STask<?>> originTasks;
+        final Collection<STask> originTasks;
         final File projectLocation;
 
         public Input(URL inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
             Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
-            File outputPath, Collection<STask<?>> originTasks, File projectLocation) {
+            File outputPath, Collection<STask> originTasks, File projectLocation) {
             this.inputFile = inputFile;
             this.javaPackageName = javaPackageName;
             this.includeDirs = includeDirs;
@@ -301,7 +301,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
          * _files_ change, we need the front-end to depend on the sdf tasks with a simple stamper that allows the
          * execution of the sdf task to be ignored.
          */
-        for(final STask<?> t : input.originTasks) {
+        for(final STask t : input.originTasks) {
             execContext.require(t);
         }
 
@@ -317,7 +317,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         seen.add(inputModule);
 
         final List<File> boilerplateFiles = new ArrayList<>();
-        final List<STask<?>> frontSourceTasks = new ArrayList<>();
+        final List<STask> frontSourceTasks = new ArrayList<>();
         final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(StrIncrFront.Import.library(builtinLib));
@@ -327,7 +327,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Set<String>> imports = new HashMap<>();
         // Module-path to cified-strategy-names used
         final Map<String, Set<String>> usedStrategies = new HashMap<>();
-        // Module-path to cified-strategy-names-without-arity used in ambiguous call position to cified-strategy-names where the calls occur
+        // Module-path to cified-strategy-name used in ambiguous call position to cified-strategy-names where the calls occur
         final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
         // Module-path to constructor_arity names used
         final Map<String, Set<String>> usedConstructors = new HashMap<>();
@@ -355,11 +355,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Overlay_arity name to file with CTree definition of that overlay
         final Map<String, Set<File>> overlayFiles = new HashMap<>();
         // Cified-strategy-name to set of tasks that contributed strategy definitions
-        final Map<String, List<STask<?>>> strategyOrigins = new HashMap<>();
+        final Map<String, List<STask>> strategyOrigins = new HashMap<>();
         // Cified-strategy-name to task that created strategy definitions
-        final Map<String, STask<?>> congrOrigin = new HashMap<>();
+        final Map<String, STask> congrOrigin = new HashMap<>();
         // Overlay_arity names to set of tasks that contributed overlay definitions
-        final Map<String, List<STask<?>>> overlayOrigins = new HashMap<>();
+        final Map<String, List<STask>> overlayOrigins = new HashMap<>();
 
         boolean checkOk = true;
 
@@ -369,7 +369,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             if(module.type == Module.Type.library) {
                 final StrIncrFrontLib.Input frontLibInput =
                     new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
-                final Task<StrIncrFrontLib.Input, StrIncrFrontLib.Output> task =
+                final Task<StrIncrFrontLib.Output> task =
                     strIncrFrontLib.createTask(frontLibInput);
                 final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
                 registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
@@ -383,13 +383,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     execContext.logger()
                         .error("Overlapping external strategy definitions: " + overlappingStrategies, null);
                 }
-                // TODO: overlapping external constructors are fine right?
-                //                Set<String> overlappingConstructors = Sets.intersection(externalConstructors, frontLibOutput.constrs);
-                //                if(!overlappingConstructors.isEmpty()) {
-                //                    checkOk = false;
-                //                    execContext.logger()
-                //                        .error("Overlapping external constructor definitions: " + overlappingConstructors, null);
-                //                }
 
                 externalStrategies.addAll(frontLibOutput.strategies);
                 externalConstructors.addAll(frontLibOutput.constrs);
@@ -400,8 +393,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final StrIncrFront.Input frontInput =
                 new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final Task<?, StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
-            frontSourceTasks.add(task.toSTask());
+            final Task<StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
+            frontSourceTasks.add(task.toSerializableTask());
             final StrIncrFront.Output frontOutput = execContext.require(task);
             boilerplateFiles.add(resourceService.localPath(
                 CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
@@ -427,21 +420,21 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 // ensure the strategy is a key in the strategyFiles map
                 getOrInitialize(strategyFiles, strategyName, HashSet::new);
                 getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
-                getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSTask());
+                getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSerializableTask());
                 getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(strategyName));
             }
             for(Map.Entry<String, File> gen : frontOutput.congrFiles.entrySet()) {
                 final String congrName = gen.getKey();
                 congrFiles.put(congrName, gen.getValue());
-                congrOrigin.put(congrName, task.toSTask());
+                congrOrigin.put(congrName, task.toSerializableTask());
                 getOrInitialize(strategyConstrs, congrName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(congrName));
             }
             for(Map.Entry<String, File> gen : frontOutput.overlayFiles.entrySet()) {
                 final String overlayName = gen.getKey();
                 getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
-                getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSTask());
+                getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSerializableTask());
             }
             for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
                 final String overlayName = gen.getKey();
@@ -475,7 +468,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
         for(String strategyName : strategyFiles.keySet()) {
             final List<File> strategyContributions;
-            final List<STask<?>> backEndOrigin;
+            final List<STask> backEndOrigin;
             final List<File> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0]));
             backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
@@ -493,7 +486,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
-                    input.outputPath, input.cacheDir, Collections.emptyList(), input.includeDirs, args, false);
+                    input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
@@ -508,7 +501,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 continue;
             }
             final List<File> strategyContributions;
-            final List<STask<?>> backEndOrigin;
+            final List<STask> backEndOrigin;
             final List<File> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = Collections.singletonList(congrFile);
             backEndOrigin = new ArrayList<>();
@@ -525,7 +518,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, congrName, strategyDir, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                    input.cacheDir, Collections.emptyList(), input.includeDirs, args, false);
+                    input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
         }
         // boilerplate task
@@ -706,16 +699,16 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     private static String stripArity(String s) throws ExecException {
-        if(s.substring(s.length() - 4, s.length()).matches("^_\\d_\\d$")) {
+        if(s.substring(s.length() - 4, s.length()).matches("_\\d_\\d")) {
             return s.substring(0, s.length() - 4);
         }
-        if(s.substring(s.length() - 5, s.length()).matches("^_\\d+_\\d+$")) {
+        if(s.substring(s.length() - 5, s.length()).matches("_\\d+_\\d+")) {
             return s.substring(0, s.length() - 5);
         }
         Matcher m = stripArityPattern.matcher(s);
         if(!m.matches()) {
             throw new ExecException(
-                "Frontend returned stratego strategy name that does not conform to cified name: " + s);
+                "Frontend returned stratego strategy name that does not conform to cified name: '" + s + "'");
         }
         return m.group(0);
     }

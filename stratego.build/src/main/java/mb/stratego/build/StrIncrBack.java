@@ -1,11 +1,12 @@
 package mb.stratego.build;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.pie.api.fs.stamp.FileSystemStampers;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
+import mb.pie.api.stamp.resource.FileSystemStampers;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
@@ -31,7 +32,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     public static final String id = StrIncrBack.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final Collection<STask<?>> frontEndTasks;
+        final Collection<STask> frontEndTasks;
         final File projectLocation;
         final @Nullable String strategyName;
         final File strategyDir;
@@ -46,7 +47,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
-        Input(Collection<STask<?>> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
+        Input(Collection<STask> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
             Collection<File> strategyContributions, Collection<File> overlayContributions,
             SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
             @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
@@ -129,7 +130,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
-        for(STask<?> t : input.frontEndTasks) {
+        for(STask t : input.frontEndTasks) {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
@@ -172,10 +173,11 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             arguments.addFile("--cache-dir", input.cacheDir);
         }
 
-        if(input.isBoilerplate) {
-            for(String constant : input.constants) {
-                arguments.add("-D", constant);
-            }
+        for(String constant : input.constants) {
+            // Needed in boilerplate for generating a strategy (e.g. $C$O$N$S$T$A$N$T_0_0), needed in single-strategy
+            //  to turn e.g. prim("CONSTANT") into Build(theconstantvalue), in the example where you give pass
+            //  -DCONSTANT=theconstantvalue.
+            arguments.add("-D", constant);
         }
         arguments.addAll(input.extraArgs);
 
@@ -191,6 +193,10 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final StrategoExecutor.ExecutionResult result =
             new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
                 .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
+
+        if(!result.success) {
+            throw new ExecException("Call to strj failed", result.exception);
+        }
 
         for(String line : result.errLog.split(System.lineSeparator())) {
             if(line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {

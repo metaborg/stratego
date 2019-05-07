@@ -12,15 +12,15 @@
   </parent>
 
   <properties>
-    <pie-version>0.4.2</pie-version>
+    <pie-version>0.5.2</pie-version>
   </properties>
 
   <dependencies>
     <dependency>
-    <groupId>org.metaborg</groupId>
-    <artifactId>pie.runtime</artifactId>
-    <version>${pie-version}</version>
-  </dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>pie.runtime</artifactId>
+      <version>${pie-version}</version>
+    </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>pie.taskdefs.guice</artifactId>

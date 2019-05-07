@@ -25,7 +25,7 @@ rules
     where <length> args1 => n
         ; <length> args2 => m
         ; s' := <annotate-local-args(!$[[<cify> x]$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
-        ; <strategy-sig-to-string>(x, (n,m)) => y
+        ; <strategy-sig-to-string>(x, n, m) => y
 
   RenameSDef2 :
     ExtSDef(_, _, _) -> <id>
@@ -35,7 +35,7 @@ rules
     where <length> args1 => n
         ; <length> args2 => m
         ; s' := <annotate-local-args(!$[[<cify> x]$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
-        ; <strategy-sig-to-string>(x, (n,m)) => y
+        ; <strategy-sig-to-string>(x, n, m) => y
 
   RenameCall2 : 
     CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
@@ -49,14 +49,14 @@ rules
       ; not(<get-annotation(?LocalArg())> x)
       ; <length> ss => n
       ; <length> ts => m
-      ; <strategy-sig-to-string>(x, (n,m)) => y
+      ; <strategy-sig-to-string>(x, n, m) => y
 
 
   strategy-sig-to-string = !$[[<Fst;cify>]_[<Snd>]_[<Third>]]
 
   annotate-local-args(rename-local|larg*,letdef*) = alltd(preserve-annos(annotate-local-arg(rename-local|larg*,letdef*)))
 
-  annotate-local-arg(rename-local|larg*,letdef*): Rec(name, body) -> Rec(name, body')
+  annotate-local-arg(rename-local|larg*,letdef*): Rec(name, body) -> Rec(name', body')
   with id
     ; name' := <rename-local> name
     ; letdef'* := [(name, name')|letdef*]

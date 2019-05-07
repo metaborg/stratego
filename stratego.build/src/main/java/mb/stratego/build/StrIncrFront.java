@@ -59,9 +59,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final File projectLocation;
         final URL inputFile;
         final String projectName;
-        final Collection<STask<?>> originTasks;
+        final Collection<STask> originTasks;
 
-        Input(File projectLocation, URL inputFile, String projectName, Collection<STask<?>> originTasks) {
+        Input(File projectLocation, URL inputFile, String projectName, Collection<STask> originTasks) {
             this.projectLocation = projectLocation;
             this.inputFile = inputFile;
             this.projectName = projectName;
@@ -314,7 +314,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
-        for(final STask<?> t : input.originTasks) {
+        for(final STask t : input.originTasks) {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
@@ -382,7 +382,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(IStrategoTerm ambStratUse : ambStratsUsed) {
             final String ambName = Tools.javaStringAt(ambStratUse, 0);
             if(!ambName.endsWith("_0_0")) {
-                throw new ExecException("Bug in Strategy sep comp frontend: Ambiguous call name didn't end with _0_0");
+                // Inner strategies that were lifted don't have any arity info in their name and aren't ambiguous uses
+                if(!StrIncr.stripArityPattern.matcher(ambName).matches()) {
+                    continue;
+                }
+                throw new ExecException("Bug in Strategy sep comp frontend: Ambiguous call name '" + ambName + "' didn't end with _0_0.");
             }
             final String useSite = Tools.javaStringAt(ambStratUse, 1);
             StrIncr.getOrInitialize(ambStratUsed, ambName, HashSet::new).add(useSite);
@@ -413,8 +417,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(IStrategoTerm usedStrategy : usedStrategyList) {
             usedStrategies.add(Tools.asJavaString(usedStrategy));
         }
-        final Set<String> congrs = new HashSet<>();
-        final Map<String, File> congrFiles = new HashMap<>();
+        final Set<String> congrs = new HashSet<>(congrList.size() * 2);
+        final Map<String, File> congrFiles = new HashMap<>(congrList.size() * 2);
         for(IStrategoTerm congrPair : congrList) {
             String congrName = Tools.javaStringAt(congrPair, 0);
 
@@ -469,7 +473,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
                     throw new ExecException(
-                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes. )");
+                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes). Found: \n" + ast.toString(2));
                 }
             } else {
                 throw new ExecException(

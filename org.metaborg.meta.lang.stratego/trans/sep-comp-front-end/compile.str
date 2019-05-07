@@ -95,7 +95,7 @@ rules
     (f, 'def) -> file
   with id
     ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
-    ; <WriteToFile(fprint)> (file, 'def)
+    ; <WriteToTextFile> (file, 'def)
 
   store-decls(|project-path, project-name, m) =
     store-defs-comma-sep(|project-path, project-name, LANGNAME(), m)
@@ -211,7 +211,6 @@ strategies
           ; rename-calls2
           ; simplify
           ; define-congruences-def
-          ; split-large-term-builds
           ; ![<id>]
         )
 
@@ -244,19 +243,20 @@ strategies
     )
     ; where(id
       ; m-get-all-overlays
-      ; map(!(<m-overlay-signature;!$[[<Fst>]_[<Snd>]]>, <id>))
+      ; map(!(<m-overlay-signature;constr-sig-to-string>, <id>))
       ; ?overlay*
     )
     ; where(id
       ; dr-all-keys(|"SepCompCong")
-      ; filter(!(<!(<Fst>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition;?[<id>]>))
+      ; map(!( <!(<Fst>, <Snd>);constr-sig-to-string>
+             , <bagof-ModDefinition;(?[<id>] <+ debug(!"Found multiple definitions for congruence");!1;exit)>
+             )
+           )
       ; ?cong*
     )
+    // TODO: export LeftHandSide dynamic rule for LHS check of dynamic rules
     ; !(localDef*, constr*, overlay*, cong*)
 
   constr-sig-to-string = (is-string, is-int); !$[[<Fst>]_[<Snd>]]
   constr-sig-to-string: (Q(c), len) -> $[[<escape> c]_[len]]
   constr-sig-to-string: (Inj(), 0) -> <fail>
-
-  sdeft-to-cified-name: SDefT(n, sargs, targs, _) ->
-    <strategy-sig-to-string> (n, <length> sargs, <length> targs)
