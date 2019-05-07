@@ -1,15 +1,16 @@
 package mb.stratego.build.bench;
 
+import mb.pie.api.None;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
-import mb.pie.api.ResourceKey;
-import mb.pie.api.TaskKey;
-import mb.pie.api.exec.BottomUpExecutor;
-import mb.pie.api.fs.ResourceUtil;
+import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.logger.StreamLogger;
+import mb.pie.store.lmdb.LMDBStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
+import mb.resource.ResourceKey;
+import mb.resource.fs.FSPath;
 import mb.stratego.build.Library;
 import mb.stratego.build.StrIncr;
 import mb.stratego.build.StrIncrModule;
@@ -116,7 +117,7 @@ public class Main {
         final PieBuilder pieBuilder = new PieBuilderImpl();
 
         // file system store
-        //        LMDBStoreKt.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
+        LMDBStore.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
 
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
@@ -156,7 +157,7 @@ public class Main {
                 strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(), constants,
                 strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
                 Collections.emptyList(), projectLocation.toFile());
-        pie.getTopDownExecutor().newSession().requireInitial(strIncr.createTask(strIncrInput));
+        pie.newSession().requireTopDown(strIncr.createTask(strIncrInput));
 
         pie.close();
     }
@@ -180,7 +181,7 @@ public class Main {
         final PieBuilder pieBuilder = new PieBuilderImpl();
 
         // file system store
-        //        LMDBStoreKt.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
+        //        LMDBStore.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
 
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
@@ -254,20 +255,20 @@ public class Main {
         StrIncr.Input strIncrInput =
             new StrIncr.Input(inputFile.toURL(), javaPackageName, includeDirs, builtinLibs, cacheDir,
                 Collections.emptyList(), extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
-        pie.getTopDownExecutor().newSession().requireInitial(strIncr.createTask(strIncrInput));
+        final Task<None> compileTask = strIncr.createTask(strIncrInput);
+        pie.newSession().requireTopDown(compileTask);
 
         // We can do a bottom up build with a changeset
         System.out.println("\n\n\nEmpty Change Set BottomUp\n\n\n");
         Set<ResourceKey> changedResources = new HashSet<>();
-        BottomUpExecutor bottomUpExecutor = pie.getBottomUpExecutor();
-        bottomUpExecutor.setObserver(new TaskKey(strIncr.getId(), strIncr.key(strIncrInput)), s -> {
+        pie.setObserver(compileTask, s -> {
             // FIXME: Use jmh blackhole here to make sure nothing is optimized away
         });
-        bottomUpExecutor.requireBottomUp(changedResources);
+        pie.newSession().requireBottomUp(changedResources);
 
         System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
-        changedResources.add(ResourceUtil.toResourceKey(new File(inputFile)));
-        bottomUpExecutor.requireBottomUp(changedResources);
+        changedResources.add(new FSPath(new File(inputFile)));
+        pie.newSession().requireBottomUp(changedResources);
 
         pie.close();
     }
