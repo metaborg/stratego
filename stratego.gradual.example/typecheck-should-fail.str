@@ -1,0 +1,25 @@
+module typecheck-should-fail
+
+signature
+  sorts Var
+  constructors
+    Var  : String -> Exp
+
+rules
+  // It should be possible for a static typechecker to check this program and see
+  // that it is not typed correctly.
+  // my-strategy calls my-other-strategy with argument (?, ?)
+  // my-other-strategy only accepts type Var(?)
+  my-strategy = ?(ast, x); !(ast, x); my-other-strategy
+  my-other-strategy = ?Var(1); !$[this is a string] // ? -> string
+  
+  // int-to-string : int -> string
+  my-failing-strategy = ?Var(x); !x; int-to-string
+  
+  // The following can be typechecked by a static typechecker and see that this is
+  // not typed correctly.
+  // int-to-string has signature int -> string
+  // Var(x) asserts that x is a string.
+  my-failing-strategy2: Var(x) -> x' // Var(String) -> int
+  where
+    x' := <int-to-string> x
