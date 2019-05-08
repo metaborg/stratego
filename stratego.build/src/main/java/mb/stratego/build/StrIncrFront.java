@@ -370,11 +370,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
             assert strategyFile
                 != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-            final @Nullable File constrFile = resourceService
-                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy));
-            assert constrFile
-                != null : "Bug in strSepCompConstrListFile or the arguments thereof: returned path is not a file";
-            execContext.provide(constrFile);
+//            final @Nullable File constrFile = resourceService
+//                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy));
+//            assert constrFile
+//                != null : "Bug in strSepCompConstrListFile or the arguments thereof: returned path is not a file";
+//            execContext.provide(constrFile);
             strategyFiles.put(strategy, strategyFile);
             execContext.provide(strategyFile);
         }
