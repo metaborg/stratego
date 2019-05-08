@@ -6,6 +6,7 @@ import mb.pie.api.PieBuilder;
 import mb.pie.api.PieSession;
 import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
+import mb.pie.runtime.layer.ValidationLayer;
 import mb.pie.runtime.logger.StreamLogger;
 import mb.pie.store.lmdb.LMDBStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
@@ -125,7 +126,7 @@ public class Main {
         pieBuilder.withLogger(StreamLogger.verbose());
         // We always need to do a topDown build first as a clean build.
 
-        URI inputFile = Paths.get(strategoArguments.inputFile).toUri();
+        File inputFile = Paths.get(strategoArguments.inputFile).toFile();
 
         List<File> includeDirs = new ArrayList<>(strategoArguments.includeDirs.size());
         for(String includeDir : strategoArguments.includeDirs) {
@@ -153,7 +154,7 @@ public class Main {
         }
         try(final Pie pie = pieBuilder.build()) {
             StrIncr.Input strIncrInput =
-                new StrIncr.Input(inputFile.toURL(), strategoArguments.javaPackageName, includeDirs, builtinLibs,
+                new StrIncr.Input(inputFile, strategoArguments.javaPackageName, includeDirs, builtinLibs,
                     strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(),
                     constants, strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
                     Collections.emptyList(), projectLocation.toFile());
@@ -187,6 +188,15 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
+        // FIXME: extremely slow but maybe useful for debugging the failures.
+        pieBuilder.withLayer(logger -> {
+            final ValidationLayer layer = new ValidationLayer(logger);
+            layer.options.keyObject = true;
+            layer.options.inputObject = true;
+            layer.options.outputObject = true;
+            layer.options.throwWarnings = true;
+            return layer;
+        });
 
         // We always need to do a topDown build first as a clean build.
         /* This is the strj command for non-incremental build from which we derive the StrIncr.Input arguments:
@@ -217,7 +227,7 @@ public class Main {
                 FileSelectorUtils.all());
         Path projectLocation = Paths.get("/tmp/stratego.build.bench/");
 
-        URI inputFile = projectLocation.resolve("trans/incremental.str").toUri();
+        File inputFile = projectLocation.resolve("trans/incremental.str").toFile();
 
         File outputFile = projectLocation.resolve("src-gen/stratego-java/incremental/trans/Main.java").toFile();
 
@@ -253,7 +263,7 @@ public class Main {
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
         StrIncr.Input strIncrInput =
-            new StrIncr.Input(inputFile.toURL(), javaPackageName, includeDirs, builtinLibs, cacheDir,
+            new StrIncr.Input(inputFile, javaPackageName, includeDirs, builtinLibs, cacheDir,
                 Collections.emptyList(), extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         final Task<None> compileTask = strIncr.createTask(strIncrInput);
         try(final Pie pie = pieBuilder.build()) {
@@ -272,7 +282,7 @@ public class Main {
             }
 
             System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
-            changedResources.add(new FSPath(new File(inputFile)));
+            changedResources.add(new FSPath(inputFile));
             try(final PieSession session = pie.newSession()) {
                 session.requireBottomUp(changedResources);
             }

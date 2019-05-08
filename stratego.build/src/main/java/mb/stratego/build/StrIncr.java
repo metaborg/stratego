@@ -22,7 +22,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +51,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     static final Pattern stripArityPattern = Pattern.compile("(\\w+)_\\d+_\\d+");
 
     public static final class Input implements Serializable {
-        final URL inputFile;
+        final File inputFile;
         final @Nullable String javaPackageName;
         final Collection<File> includeDirs;
         final Collection<String> builtinLibs;
@@ -63,7 +62,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Collection<STask> originTasks;
         final File projectLocation;
 
-        public Input(URL inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
+        public Input(File inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
             Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
             File outputPath, Collection<STask> originTasks, File projectLocation) {
             this.inputFile = inputFile;
@@ -225,8 +224,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             return r.read(chars) != -1 && Arrays.equals(chars, "Spec".toCharArray());
         }
 
-        URL resolveFrom(Path projectLocation) throws MalformedURLException {
-            return projectLocation.resolve(path).normalize().toUri().toURL();
+        String resolveFrom(Path projectLocation) throws MalformedURLException {
+            return projectLocation.resolve(path).normalize().toAbsolutePath().toString();
         }
 
         @Override public boolean equals(Object o) {

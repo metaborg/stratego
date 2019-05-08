@@ -38,14 +38,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,19 +51,19 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     public static final class Input implements Serializable {
         final File projectLocation;
-        final URL inputFile;
+        final String inputFileString;
         final String projectName;
         final Collection<STask> originTasks;
 
-        Input(File projectLocation, URL inputFile, String projectName, Collection<STask> originTasks) {
+        Input(File projectLocation, String inputFileString, String projectName, Collection<STask> originTasks) {
             this.projectLocation = projectLocation;
-            this.inputFile = inputFile;
+            this.inputFileString = inputFileString;
             this.projectName = projectName;
             this.originTasks = originTasks;
         }
 
         @Override public String toString() {
-            return "StrIncrFront$Input(" + inputFile + ')';
+            return "StrIncrFront$Input(" + inputFileString + ')';
         }
 
         @Override public boolean equals(Object o) {
@@ -82,7 +76,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
             if(!projectLocation.equals(input.projectLocation))
                 return false;
-            if(!inputFile.equals(input.inputFile))
+            if(!inputFileString.equals(input.inputFileString))
                 return false;
             //noinspection SimplifiableIfStatement
             if(!projectName.equals(input.projectName))
@@ -92,7 +86,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         @Override public int hashCode() {
             int result = projectLocation.hashCode();
-            result = 31 * result + inputFile.hashCode();
+            result = 31 * result + inputFileString.hashCode();
             result = 31 * result + projectName.hashCode();
             result = 31 * result + originTasks.hashCode();
             return result;
@@ -319,19 +313,20 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         final FileObject location = resourceService.resolve(input.projectLocation);
-        URI inputURI = input.inputFile.toURI();
-        final FileObject resource = resourceService.resolve(inputURI);
-        final IStrategoTerm result = runStrategoCompileBuilder(resource, input.projectName, location);
+        final FileObject inputFile = resourceService.resolve(input.inputFileString);
+        final IStrategoTerm result = runStrategoCompileBuilder(inputFile, input.projectName, location);
 
-        if(input.inputFile.getProtocol().equals("jar")) {
-            JarURLConnection c = ((JarURLConnection) input.inputFile.openConnection());
-            try(FileSystem fs = FileSystems
-                .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
-                execContext.require(fs.getPath(c.getEntryName()));
-            }
-        } else {
-            execContext.require(new File(inputURI));
-        }
+        execContext.require(resourceService.localFile(inputFile));
+        // TODO: reinstate support for files from within a jar? Where was this used again?
+//        if(inputURI.getScheme().equals("jar")) {
+//            JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
+//            try(FileSystem fs = FileSystems
+//                .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
+//                execContext.require(fs.getPath(c.getEntryName()));
+//            }
+//        } else {
+//            execContext.require(new File(inputURI));
+//        }
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
@@ -453,9 +448,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(FileObject resource, String projectName, FileObject projectLocation)
+    private IStrategoTerm runStrategoCompileBuilder(FileObject inputFile, String projectName, FileObject projectLocation)
         throws Exception {
-        @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(resource);
+        @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(inputFile);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         IStrategoTerm ast;
         if(strategoLang == null) {
@@ -464,12 +459,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
         if(strategoLang == null) {
             @Nullable ILanguage stratego = languageService.getLanguage(STRATEGO_LANG_NAME);
-            String extension = resource.getName().getExtension();
+            String extension = inputFile.getName().getExtension();
             if(stratego != null && extension.equals("rtree")) {
                 strategoLang = stratego.activeImpl();
                 // support *.rtree (StrategoSugar AST)
                 final ITermFactory factory = termFactoryService.getGeneric();
-                ast = new TermReader(factory).parseFromStream(resource.getContent().getInputStream());
+                ast = new TermReader(factory).parseFromStream(inputFile.getContent().getInputStream());
                 if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
                     throw new ExecException(
@@ -481,19 +476,19 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         } else {
             // parse *.str file
-            ast = parse(resource, strategoDialect, strategoLang);
+            ast = parse(inputFile, strategoDialect, strategoLang);
         }
-        return transform(resource, projectName, projectLocation, strategoLang, ast);
+        return transform(inputFile, projectName, projectLocation, strategoLang, ast);
     }
 
-    private IStrategoTerm transform(FileObject resource, String projectName, FileObject projectLocation,
+    private IStrategoTerm transform(FileObject inputFile, String projectName, FileObject projectLocation,
         @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws Exception {
         final @Nullable IProject project = projectService.get(projectLocation);
         assert project != null : "Could not find project in location: " + projectLocation;
         if(!contextService.available(strategoLang)) {
             throw new ExecException("Cannot create stratego transformation context");
         }
-        final IContext transformContext = contextService.get(resource, project, strategoLang);
+        final IContext transformContext = contextService.get(inputFile, project, strategoLang);
         final ITermFactory f = termFactoryService.getGeneric();
         final String projectPath = transformContext.project().location().toString();
         final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
@@ -505,7 +500,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         return result;
     }
 
-    private IStrategoTerm parse(FileObject resource, @Nullable ILanguageImpl strategoDialect,
+    private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
         ILanguageImpl strategoLang) throws Exception {
         @Nullable SyntaxFacet syntaxFacet = null;
         @Nullable String dialectName = null;
@@ -521,13 +516,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         // PARSE
         final @Nullable IStrategoTerm ast;
-        final String text = sourceTextService.text(resource);
-        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(resource, text, strategoLang, strategoDialect);
+        final String text = sourceTextService.text(inputFile);
+        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLang, strategoDialect);
         final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit);
         ast = parseResult.ast();
         if(!parseResult.valid() || !parseResult.success() || ast == null) {
             throw new ExecException(
-                "Cannot parse stratego file " + resource + ": parsing failed with" + (!parseResult.valid() ? " errors" :
+                "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!parseResult.valid() ? " errors" :
                     (!parseResult.success()) ? "out errors" : " ast == null"));
         }
         if(strategoDialect != null) {
@@ -542,7 +537,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     }
 
     @Override public Serializable key(Input input) {
-        return input.inputFile;
+        return input.inputFileString;
     }
 
 }

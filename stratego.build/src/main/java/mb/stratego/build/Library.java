@@ -21,7 +21,7 @@ public interface Library extends Serializable {
         if(builtinLibrary != null) {
             return builtinLibrary;
         }
-        return new RTree(resourceService.resolve(name).getURL());
+        return new RTree(resourceService.resolve(name).getURL().toString());
     }
 
     static String normalizeBuiltin(String name) {
@@ -142,14 +142,14 @@ public interface Library extends Serializable {
     }
 
     class RTree implements Library {
-        private final URL name;
+        private final String name;
 
-        RTree(URL name) {
+        RTree(String name) {
             this.name = name;
         }
 
         @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
-            return new TermReader(factory).parseFromStream(name.openStream());
+            return new TermReader(factory).parseFromStream(new URL(name).openStream());
         }
     }
 }
