@@ -3,6 +3,7 @@ package mb.stratego.build.bench;
 import mb.pie.api.None;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
+import mb.pie.api.PieSession;
 import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.logger.StreamLogger;
@@ -122,8 +123,6 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
-        final Pie pie = pieBuilder.build();
-
         // We always need to do a topDown build first as a clean build.
 
         URI inputFile = Paths.get(strategoArguments.inputFile).toUri();
@@ -135,8 +134,8 @@ public class Main {
             discoverDialects(spoofax, include.getAbsolutePath());
         }
 
-        spoofax.languageDiscoveryService
-            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
+        spoofax.languageDiscoveryService.languageFromDirectory(
+            spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
 
         List<String> builtinLibs = new ArrayList<>(strategoArguments.builtinLibraries.size());
         for(Library.Builtin builtinLibrary : strategoArguments.builtinLibraries) {
@@ -152,14 +151,16 @@ public class Main {
         for(Map.Entry<String, String> e : strategoArguments.constants.entrySet()) {
             constants.add(e.getKey() + '=' + e.getValue());
         }
-        StrIncr.Input strIncrInput =
-            new StrIncr.Input(inputFile.toURL(), strategoArguments.javaPackageName, includeDirs, builtinLibs,
-                strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(), constants,
-                strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
-                Collections.emptyList(), projectLocation.toFile());
-        pie.newSession().requireTopDown(strIncr.createTask(strIncrInput));
-
-        pie.close();
+        try(final Pie pie = pieBuilder.build()) {
+            StrIncr.Input strIncrInput =
+                new StrIncr.Input(inputFile.toURL(), strategoArguments.javaPackageName, includeDirs, builtinLibs,
+                    strategoArguments.cacheDir == null ? null : Paths.get(strategoArguments.cacheDir).toFile(),
+                    constants, strategoArguments.extraArguments, Paths.get(strategoArguments.outputFile).toFile(),
+                    Collections.emptyList(), projectLocation.toFile());
+            try(final PieSession session = pie.newSession()) {
+                session.requireTopDown(strIncr.createTask(strIncrInput));
+            }
+        }
     }
 
     private static void discoverDialects(Spoofax spoofax, String projectLocation) throws FileSystemException {
@@ -186,7 +187,6 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
-        final Pie pie = pieBuilder.build();
 
         // We always need to do a topDown build first as a clean build.
         /* This is the strj command for non-incremental build from which we derive the StrIncr.Input arguments:
@@ -256,20 +256,26 @@ public class Main {
             new StrIncr.Input(inputFile.toURL(), javaPackageName, includeDirs, builtinLibs, cacheDir,
                 Collections.emptyList(), extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         final Task<None> compileTask = strIncr.createTask(strIncrInput);
-        pie.newSession().requireTopDown(compileTask);
+        try(final Pie pie = pieBuilder.build()) {
+            try(final PieSession session = pie.newSession()) {
+                session.requireTopDown(compileTask);
+            }
 
-        // We can do a bottom up build with a changeset
-        System.out.println("\n\n\nEmpty Change Set BottomUp\n\n\n");
-        Set<ResourceKey> changedResources = new HashSet<>();
-        pie.setObserver(compileTask, s -> {
-            // FIXME: Use jmh blackhole here to make sure nothing is optimized away
-        });
-        pie.newSession().requireBottomUp(changedResources);
+            // We can do a bottom up build with a changeset
+            System.out.println("\n\n\nEmpty Change Set BottomUp\n\n\n");
+            Set<ResourceKey> changedResources = new HashSet<>();
+            pie.setObserver(compileTask, s -> {
+                // FIXME: Use jmh blackhole here to make sure nothing is optimized away
+            });
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(changedResources);
+            }
 
-        System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
-        changedResources.add(new FSPath(new File(inputFile)));
-        pie.newSession().requireBottomUp(changedResources);
-
-        pie.close();
+            System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
+            changedResources.add(new FSPath(new File(inputFile)));
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(changedResources);
+            }
+        }
     }
 }
