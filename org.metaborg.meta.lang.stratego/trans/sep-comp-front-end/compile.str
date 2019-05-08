@@ -4,6 +4,7 @@ imports libstrc
 imports sep-comp-front-end/misc
 imports sep-comp-front-end/dr-scoping
 imports sep-comp-front-end/rename-defs2
+imports sep-comp-front-end/split-large-term-builds
 
 overlays
 
@@ -129,7 +130,17 @@ strategies
           ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
 // commented: Used in check-constructors, which requires global info on constructors [DONE IN JAVA]
 //          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
-          ; try(where(m-MkCongDef; where({sig := <m-def-signature>; rules(SepCompCong : sig)}); m-add-def))
+          // m-MkCongDef fails when the signature already exists (from a strategy), so we need to pass this info to Java to check if we should include this congruence
+          ; try(where(
+              m-MkCongDef
+            ; where({
+                sig@(name, n, m) := <m-def-signature>
+                // pre-renaming as RenameSDef2 will do, so it matches ModDefinition key when SepCompCong is queried at the end
+              ; renamed-sig := (<strategy-sig-to-string> sig, n, m)
+              ; rules(SepCompCong : renamed-sig -> name)
+            })
+            ; m-add-def
+          ))
         )
 
 // commented: [MOVED TO BACKEND] where we have access to all overlays
@@ -139,9 +150,9 @@ strategies
           ; pre-desugar
           ; check-overlay
 //          ; try(DeclareVarToConst)
-//        )
-//
-//      ; m-transform-overlays(id
+        )
+
+      ; m-transform-overlays(id
 //// commented: Nullary constructors feature, off in separate compilation
 ////          ; m-variables-to-constructors-in-def; pre-desugar
           ; not(def-use-def)
@@ -150,6 +161,8 @@ strategies
 //          ; GenerateCheckRule
 // commented: [MOVED TO BACKEND]
 //          ; DeclareExpandOverlay
+          // We don't register this as a SepCompCong, because it is unconditionally added whereas
+          //  m-MkCongDef fails when a definition of the same name already exists. 
           ; where(Overlay-to-Congdef; m-add-def)
         )
 
@@ -186,13 +199,15 @@ strategies
             ; strename
             ; desugar-def
             ; check-patterns
+            ; split-large-term-builds
           )
-//        )
-//
-//      ; m-transform-local-defs(id
+        )
+
+      ; m-transform-local-defs(id
           ; joindefs
           ; rename-sdef2
-//        )
+          ; ![<id>]
+        )
 
 // commented: [DONE IN JAVA]
 //      ; m-transform-external-defs(id
@@ -207,12 +222,11 @@ strategies
 //            ]
 //        )
 
-//      ; m-transform-local-defs(id
+      ; m-transform-local-defs([id
           ; rename-calls2
           ; simplify
           ; define-congruences-def
-          ; ![<id>]
-        )
+        ])
 
 // commented: Can't tell if unused without global information
 //      ; if-lib(remove-unused-external-defs, remove-unused-defs)
@@ -248,10 +262,7 @@ strategies
     )
     ; where(id
       ; dr-all-keys(|"SepCompCong")
-      ; map(!( <!(<Fst>, <Snd>);constr-sig-to-string>
-             , <bagof-ModDefinition;(?[<id>] <+ debug(!"Found multiple definitions for congruence");!1;exit)>
-             )
-           )
+      ; map(!(<!(<SepCompCong>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition;?[<id>]>))
       ; ?cong*
     )
     // TODO: export LeftHandSide dynamic rule for LHS check of dynamic rules
