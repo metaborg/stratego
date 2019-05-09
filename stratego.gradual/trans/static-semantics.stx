@@ -1,12 +1,117 @@
 module static-semantics
 
 signature
-  sorts Start
+  sorts Section SigSection Module ConsDecl Sort Rule Term
   constructors
-    Empty : Start
-
+    Module       : string * list(Section) -> Module
+    Signature    : list(SigSection) -> Section
+    Sorts        : list(string) -> SigSection
+    Constructors : list(ConsDecl) -> SigSection
+    ConsDecl     : string * list(Sort) * Sort -> ConsDecl
+    Sort         : string -> Sort
+    Rules        : list(Rule) -> Section
+    Rule         : string * Term * Term -> Rule
+    Var          : string -> Term
+    Op           : string * list(Term) -> Term
+    
+  sorts TYPE
+  constructors
+    SRT : occurrence -> TYPE
+    FUN : list(TYPE) * TYPE -> TYPE
+    DYN : TYPE
+  
+  namespaces
+    Sort : string
+    Cons : string
+    Var : string
+    Rule : string
+    
+  relations
+    typeOfSort : occurrence -> TYPE
+    typeOfCons : occurrence -> TYPE
+    typeOfVar  : occurrence -> TYPE
+    typeOfTerm : occurrence -> TYPE
+    typeOfRule : occurrence -> TYPE
+    
+  name-resolution 
+    labels P
+    
 rules
 
-  programOK : Start
+  moduleOk : Module
 
-  programOK(Empty()).
+  moduleOk(Module(x, sections)) :- {s}
+    new s,
+    sectionsOk(s, sections).
+
+  sectionOk : scope * Section
+  sectionsOk maps sectionOk(*, list(*))
+  
+rules // signatures
+  
+  sectionOk(s, Signature(sigsections)) :- sigSectionsOk(s, sigsections).
+  
+  sigSectionOk: scope * SigSection
+  sigSectionsOk maps sigSectionOk(*, list(*))
+  
+  sigSectionOk(s, Sorts(srts)) :- sortsOk(s, srts).
+  
+  sortOk : scope * string 
+  sortsOk maps sortOk(*, list(*)) 
+  
+  sortOk(s, srt) :- {d}
+    d == Sort{srt@srt},
+    s -> d with typeOfSort SRT(d).
+  
+  sigSectionOk(s, Constructors(cdecls)) :- 
+    consDeclsOk(s, cdecls).
+    
+  consDeclOk : scope * ConsDecl 
+  consDeclsOk maps consDeclOk(*, list(*))
+  
+  consDeclOk(s, ConsDecl(c, srts, srt)) :- {ts t}
+    typeOfSorts(s, srts) == ts,
+    typeOfSort(s, srt) == t,
+    s -> Cons{c@c} with typeOfCons FUN(ts, t).
+  
+  typeOfSort : scope * Sort -> TYPE
+  typeOfSorts maps typeOfSort(*, list(*)) = list(*)
+  
+  typeOfSort(s, Sort(srt)) = t :- {p d}
+    typeOfSort of Sort{srt@srt} in s |-> [(p, (d, t))].    
+  
+rules // rules 
+
+  sectionOk(s, Rules(rs)) :- rulesOk(s, rs).
+  
+  ruleOk : scope * Rule
+  rulesOk maps ruleOk(*, list(*))
+  
+  ruleOk(s, Rule(f, trm1, trm2)) :- {s_r t1 t2}
+    new s_r, s_r -P-> s,
+    typeOfMatchTerm(s_r, trm1) == t1,
+    typeOfBuildTerm(s_r, trm2) == t2,
+    s -> Rule{f@f} with typeOfRule FUN([t1], t2).
+  
+  
+  typeOfMatchTerm : scope * Term -> TYPE
+  typeOfMatchTerms maps typeOfMatchTerm(*, list(*)) = list(*)
+  
+  typeOfMatchTerm(s, Var(x)) = t :-
+   s -> Var{x@x} with typeOfVar t.
+  
+  typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts}
+    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
+    typeOfMatchTerms(s, trms) == ts.
+  
+
+  typeOfBuildTerm : scope * Term -> TYPE
+  typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
+  
+  typeOfBuildTerm(s, Var(x)) = t :- {p d}
+   typeOfVar of Var{x@x} in s |-> [(p, (d, t))].
+  
+  typeOfBuildTerm(s, Op(c, trms)) = t :- {p d ts}
+    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
+    typeOfBuildTerms(s, trms) == ts.
+  

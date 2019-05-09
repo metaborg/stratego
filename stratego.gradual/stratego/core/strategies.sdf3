@@ -1,0 +1,116 @@
+module stratego/core/strategies
+
+imports
+  stratego/core/terms
+  stratego/core/constants
+  stratego/core/signatures
+  stratego/core/identifiers
+
+  sorts Def
+  context-free syntax
+    Def = <<StrategyDef>>
+    
+    SVar.SVar = <<Id>>
+    
+    Strategy.Let = <
+      let <Def*> 
+        in <Strategy> 
+       end
+    >
+        
+    Strategy.CallT = 
+      <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
+      
+    Strategy.CallDynamic = 
+      <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)>
+    
+  sorts StrategyDef
+  context-free syntax
+    StrategyDef.SDefT = <
+      <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) = 
+         <Strategy>
+    >
+  
+    Def.AnnoDef = 
+      <<Anno+> <StrategyDef>>
+  
+    StrategyDef.ExtSDefInl = <
+      external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) = 
+         <Strategy>
+    >
+  
+    StrategyDef.ExtSDef = 
+      <external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+  
+//    StrategyDef.ExtSDef = 
+//      <external <EmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)> 
+  
+
+  sorts EmptyId
+  lexical syntax 
+    EmptyId =
+
+  sorts Anno  
+  context-free syntax
+    Anno.Extend = <extend>
+    Anno.Override = <override>
+    Anno.Internal = <internal>
+    %%  "sealed"      -> Anno {cons("Sealed")}
+    %%  "extensible"  -> Anno {cons("Extensible")}
+    %%  "overridable" -> Anno {cons("Overridable")}
+
+  template options
+    Id = keyword {reject}
+    keyword -/- [a-zA-Z0-9\'\-\_]
+    
+//  lexical syntax   
+//    "extend"      -> Keyword
+//    "override"    -> Keyword
+//    "internal"    -> Keyword
+//    "sealed"      -> Keyword
+//    "extensible"  -> Keyword
+//    "overridable" -> Keyword
+
+//  lexical restrictions 
+//    "extend"
+//    "override"
+//    "internal"
+//    "sealed"
+//    "extensible"
+//    "overridable" -/- [a-zA-Z0-9\'\-\_]
+
+  sorts Typedid
+  context-free syntax
+    Typedid.VarDec = <<ID> : <Type>>
+
+
+  sorts Strategy SVar StrategyParen StrategyMid 
+  context-free syntax
+	  StrategyParen.ParenStrat = <(<Strategy>)>
+	  Strategy.Fail  = <fail>
+	  Strategy.Id    = <id>
+	  Strategy.ProceedT = <proceed ( <{Strategy ", "}*> | <{Term ", "}*> )> {prefer}
+	  Strategy.ProceedNoArgs = <proceed> {prefer}
+	  Strategy.Match = <?<Term>>
+	  Strategy.Build = <!<Term>>
+	  Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
+	  Strategy.Seq   = <<Strategy>; <Strategy>> {right}
+	  Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}
+	  StrategyMid    = <<Strategy>>
+	  Strategy.PrimT = <prim( <String> , <{Strategy ", "}*> | <{Term ", "}*> )>
+	  Strategy.Some  = <some( <Strategy> )>
+	  Strategy.One   = <one( <Strategy> )>
+	  Strategy.All   = <all( <Strategy> )>
+	  
+  context-free priorities
+    { Strategy.Build
+      Strategy.Match
+    }
+  > Strategy.Seq
+  > {right: 
+     Strategy.GuardedLChoice }
+
+  context-free syntax
+    Strategy.ImportTerm = <import-term ( <ModName> )>
+    
+    

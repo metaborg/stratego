@@ -1,0 +1,41 @@
+module stratego/sugar/rules
+
+  imports 
+    stratego/core/identifiers
+    stratego/core/signatures
+    stratego/core/terms
+    stratego/core/strategies
+    stratego/sugar/terms
+    stratego/sugar/strategies
+
+  sorts RuleDef
+  
+  context-free syntax
+    RuleDef.RDefNoArgs = 
+      <<Id> : 
+         <Rule>>
+    
+    Def.AnnoDef = 
+      <<Anno+> <RuleDef>>
+    
+    RuleDef.RDef = 
+      <<Id>(<{Typedid ", "}*>) : 
+         <Rule>>
+    
+    RuleDef.RDefT = 
+      <<Id> ( <{Typedid ", "}*> | <{Typedid ", "}*>) : 
+         <Rule>>
+
+  sorts Rule RuleCond
+  
+  context-free syntax
+//    Rule.RuleNoCond = [[Term] -> [Term]] // backward comp.
+//    
+//    Rule.Rule = [[Term] -> [Term] where [Strategy]]  // backward comp.
+    
+    Rule.Rule = [[Term] -> [Term] [RuleCond*]] //{avoid}
+    
+    RuleCond.WhereClause = <where <Strategy>>
+    RuleCond.WithClause = <with <Strategy>>
+  
+
