@@ -1,4 +1,0 @@
-module stratego/sugar/sugar
-
-imports 
-  stratego/sugar/rules
