@@ -1,6 +1,6 @@
 module Stratego-Amb
 
-imports StrategoTyped
+imports StrategoGradual
 imports stratego/core/identifiers
 
 context-free syntax
