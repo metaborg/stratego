@@ -188,15 +188,15 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
-        // FIXME: extremely slow but maybe useful for debugging the failures.
-        pieBuilder.withLayer(logger -> {
-            final ValidationLayer layer = new ValidationLayer(logger);
-            layer.options.keyObject = true;
-            layer.options.inputObject = true;
-            layer.options.outputObject = true;
-            layer.options.throwWarnings = true;
-            return layer;
-        });
+//        // N.B. extremely slow but maybe useful for debugging the failures.
+//        pieBuilder.withLayer((taskDefs, logger) -> {
+//            final ValidationLayer.ValidationOptions options = new ValidationLayer.ValidationOptions();
+//            options.checkKeyObjects = true;
+//            options.checkInputObjects = true;
+//            options.checkOutputObjects = true;
+//            options.throwWarnings = true;
+//            return new ValidationLayer(options, taskDefs, logger);
+//        });
 
         // We always need to do a topDown build first as a clean build.
         /* This is the strj command for non-incremental build from which we derive the StrIncr.Input arguments:

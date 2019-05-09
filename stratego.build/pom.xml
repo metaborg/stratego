@@ -12,7 +12,7 @@
   </parent>
 
   <properties>
-    <pie-version>0.5.2</pie-version>
+    <pie-version>0.5.3</pie-version>
   </properties>
 
   <dependencies>
