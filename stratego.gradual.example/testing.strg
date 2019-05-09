@@ -9,4 +9,5 @@ signature
 rules
   my-blah: Var(x) -> Blah(x)
   
-   
+  my-other-blah: x -> Blah(x)
+  

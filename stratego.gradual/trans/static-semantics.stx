@@ -14,7 +14,8 @@ signature
     SortNoArgs   : string -> Sort
     Rules        : list(Def) -> Section
     RDefNoArgs   : string * Rule -> Def
-    Rule         : string * Term * Term -> Rule
+    Rule         : Term * Term * list(string) -> Rule
+    NoAnnoList   : Term -> Term
     Var          : string -> Term
     Op           : string * list(Term) -> Term
     
@@ -83,7 +84,7 @@ rules // signatures
   sigSectionOk(s, Constructors(cdecls)) = Constructors(cdecls) :- 
     consDeclsOk(s, cdecls).
     
-  consDeclOk : scope * OpDecl 
+  consDeclOk : scope * OpDecl
   consDeclsOk maps consDeclOk(*, list(*))
   
   consDeclOk(s, OpDecl(c, FunType(srts, srt))) :- {ts t}
@@ -99,13 +100,13 @@ rules // signatures
   
 rules // rules 
 
-  sectionOk(s, Rules(rs)) = Rules(rs).// :- 
-    // rulesOk(s, rs).
+  sectionOk(s, Rules(rs)) = Rules(rs') :- 
+    rulesOk(s, rs) == rs'.
   
-  ruleOk : scope * Rule
-  rulesOk maps ruleOk(*, list(*))
+  ruleOk : scope * Def -> Def
+  rulesOk maps ruleOk(*, list(*)) = list(*)
   
-  ruleOk(s, Rule(f, trm1, trm2)) :- {s_r t1 t2}
+  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond))  :- {s_r t1 t2}
     new s_r, s_r -P-> s,
     typeOfMatchTerm(s_r, trm1) == t1,
     typeOfBuildTerm(s_r, trm2) == t2,
@@ -115,24 +116,29 @@ rules // rules
   typeOfMatchTerm : scope * Term -> TYPE
   typeOfMatchTerms maps typeOfMatchTerm(*, list(*)) = list(*)
   
+  typeOfMatchTerm(s, NoAnnoList(term)) = t :-
+    typeOfMatchTerm(s, term) == t.
+  
   typeOfMatchTerm(s, Var(x)) = t :-
    s -> Var{x@x} with typeOfVar t.
   
   typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
     typeOfMatchTerms(s, trms) == ts.
-  
 
   typeOfBuildTerm : scope * Term -> TYPE
   typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
   
+  typeOfBuildTerm(s, NoAnnoList(term)) = t :-
+    typeOfBuildTerm(s, term) == t.
+  
   typeOfBuildTerm(s, Var(x)) = t :- {p d t'}
    typeOfVar of Var{x@x} in s |-> [(p, (d, t'))],
    t == t'.
-//  
-//  typeOfBuildTerm(s, t, Op(c, trms)) = (insertCastTrm(t', t, Op(c, trms')), t) :- {p d ts}
-//    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts', t)))],
-//    typeOfBuildTerms(s, ts, trms) == (trms', ts).
+
+  typeOfBuildTerm(s, Op(c, trms)) = t :- {p d ts}
+    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
+    typeOfBuildTerms(s, trms) == ts.
 //    
 //  insertCastTrm : TYPE * TYPE * Term -> Term 
 //  
