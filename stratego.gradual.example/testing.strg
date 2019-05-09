@@ -1,0 +1,12 @@
+module testing
+
+signature
+  sorts Exp String
+  constructors
+    Var  : String -> Exp
+    Blah : String -> Exp
+
+rules
+  my-blah: Var(x) -> Blah(x)
+  
+   

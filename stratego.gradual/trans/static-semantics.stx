@@ -1,15 +1,19 @@
 module static-semantics
 
 signature
-  sorts Section SigSection Module ConsDecl Sort Rule Term
+  sorts Section SigSection Module OpDecl Sort Rule Term Type Def
+        ConstType
   constructors
     Module       : string * list(Section) -> Module
     Signature    : list(SigSection) -> Section
-    Sorts        : list(string) -> SigSection
-    Constructors : list(ConsDecl) -> SigSection
-    ConsDecl     : string * list(Sort) * Sort -> ConsDecl
-    Sort         : string -> Sort
-    Rules        : list(Rule) -> Section
+    Sorts        : list(Sort) -> SigSection
+    Constructors : list(OpDecl) -> SigSection
+    OpDecl       : string * Type -> OpDecl
+    FunType      : list(Type) * Type -> Type
+    ConstType    : Sort -> Type
+    SortNoArgs   : string -> Sort
+    Rules        : list(Def) -> Section
+    RDefNoArgs   : string * Rule -> Def
     Rule         : string * Term * Term -> Rule
     Var          : string -> Term
     Op           : string * list(Term) -> Term
@@ -35,54 +39,68 @@ signature
     
   name-resolution 
     labels P
-    
-rules
 
-  moduleOk : Module
+rules 
 
-  moduleOk(Module(x, sections)) :- {s}
-    new s,
-    sectionsOk(s, sections).
-
-  sectionOk : scope * Section
-  sectionsOk maps sectionOk(*, list(*))
+  insertCasts : Module -> Module
   
+  insertCasts(m) = m' :- moduleOkC(m) == m'.
+    
+rules moduleOk : Module 
+
+  moduleOk(m) :- {m'} moduleOkC(m) == m'.
+
+  moduleOkC : Module -> Module
+
+  moduleOkC(Module(x, sections)) = Module(x, sections') :- {s}
+    new s,
+    sectionsOk(s, sections) == sections'.
+
+rules 
+
+  sectionOk  : scope * Section -> Section
+  sectionsOk maps sectionOk(*, list(*)) = list(*)
+  
+
 rules // signatures
   
-  sectionOk(s, Signature(sigsections)) :- sigSectionsOk(s, sigsections).
+  sectionOk(s, Signature(sigsections)) = Signature(sigsections') :-
+    sigSectionsOk(s, sigsections) == sigsections'.
   
-  sigSectionOk: scope * SigSection
-  sigSectionsOk maps sigSectionOk(*, list(*))
+  sigSectionOk: scope * SigSection -> SigSection
+  sigSectionsOk maps sigSectionOk(*, list(*)) = list(*)
   
-  sigSectionOk(s, Sorts(srts)) :- sortsOk(s, srts).
+  sigSectionOk(s, Sorts(srts)) = Sorts(srts) :- 
+    sortsOk(s, srts).
   
-  sortOk : scope * string 
+  sortOk : scope * Sort 
   sortsOk maps sortOk(*, list(*)) 
   
-  sortOk(s, srt) :- {d}
+  sortOk(s, SortNoArgs(srt)) :- {d}
     d == Sort{srt@srt},
     s -> d with typeOfSort SRT(d).
   
-  sigSectionOk(s, Constructors(cdecls)) :- 
+  sigSectionOk(s, Constructors(cdecls)) = Constructors(cdecls) :- 
     consDeclsOk(s, cdecls).
     
-  consDeclOk : scope * ConsDecl 
+  consDeclOk : scope * OpDecl 
   consDeclsOk maps consDeclOk(*, list(*))
   
-  consDeclOk(s, ConsDecl(c, srts, srt)) :- {ts t}
+  consDeclOk(s, OpDecl(c, FunType(srts, srt))) :- {ts t}
     typeOfSorts(s, srts) == ts,
     typeOfSort(s, srt) == t,
     s -> Cons{c@c} with typeOfCons FUN(ts, t).
   
-  typeOfSort : scope * Sort -> TYPE
+  typeOfSort : scope * Type -> TYPE
   typeOfSorts maps typeOfSort(*, list(*)) = list(*)
   
-  typeOfSort(s, Sort(srt)) = t :- {p d}
+  typeOfSort(s, ConstType(SortNoArgs(srt))) = t :- {p d}
     typeOfSort of Sort{srt@srt} in s |-> [(p, (d, t))].    
   
 rules // rules 
 
-  sectionOk(s, Rules(rs)) :- rulesOk(s, rs).
+  sectionOk(s, Rules(rs)) = Rules(rs).// :- 
+    // rulesOk(s, rs).
   
   ruleOk : scope * Rule
   rulesOk maps ruleOk(*, list(*))
@@ -108,10 +126,18 @@ rules // rules
   typeOfBuildTerm : scope * Term -> TYPE
   typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
   
-  typeOfBuildTerm(s, Var(x)) = t :- {p d}
-   typeOfVar of Var{x@x} in s |-> [(p, (d, t))].
-  
-  typeOfBuildTerm(s, Op(c, trms)) = t :- {p d ts}
-    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
-    typeOfBuildTerms(s, trms) == ts.
-  
+  typeOfBuildTerm(s, Var(x)) = t :- {p d t'}
+   typeOfVar of Var{x@x} in s |-> [(p, (d, t'))],
+   t == t'.
+//  
+//  typeOfBuildTerm(s, t, Op(c, trms)) = (insertCastTrm(t', t, Op(c, trms')), t) :- {p d ts}
+//    typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts', t)))],
+//    typeOfBuildTerms(s, ts, trms) == (trms', ts).
+//    
+//  insertCastTrm : TYPE * TYPE * Term -> Term 
+//  
+//  insertCastTrm(t, t, trm) = trm.
+//  
+//  insertCastTrm(DYN(), t, trm) = trm. 
+    // todo : create call to cast/check strategy for t
+    

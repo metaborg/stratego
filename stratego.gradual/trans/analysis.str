@@ -8,7 +8,7 @@ imports
 
 rules // Analysis
 
-  editor-analyze = stx-editor-analyze(id|"static-semantics", "programOK")
+  editor-analyze = stx-editor-analyze(id|"static-semantics", "moduleOk")
 
 rules // Editor Services
 
