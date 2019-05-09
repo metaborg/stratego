@@ -11,9 +11,11 @@ module stratego/sugar/rules
   sorts RuleDef
   
   context-free syntax
-    RuleDef.RDefNoArgs = 
-      <<Id> : 
-         <Rule>>
+    RuleDef.RDefNoArgs = <
+      <Id> : 
+         <Rule>
+
+    >
     
     Def.AnnoDef = 
       <<Anno+> <RuleDef>>

@@ -7,12 +7,15 @@ imports
   sorts Sdecl
   context-free syntax
   
-    Sdecl.Sorts = 
-      <sorts <Sort*>>
+    Sdecl.Sorts = <
+      sorts <Sort*>
       
-    Sdecl.Constructors = 
-      <constructors 
-         <Opdecl*>>
+    >
+
+    Sdecl.Constructors = <
+      constructors 
+        <Opdecl*>
+    >
 
   sorts Sort
   context-free syntax
@@ -22,9 +25,18 @@ imports
 
   sorts Opdecl
   context-free syntax
-    Opdecl.OpDecl    = <<Id> : <Type>>
-    Opdecl.OpDeclQ   = <<String> : <Type>>
-    Opdecl.OpDeclInj = <: <Type>>
+    Opdecl.OpDecl    = <
+      <Id> : <Type>
+
+    >
+    Opdecl.OpDeclQ   = <
+      <String> : <Type>
+
+    >
+    Opdecl.OpDeclInj = <
+      : <Type>
+
+    >
     
     Opdecl.ExtOpDecl    = <external <Id> : <Type>>
     Opdecl.ExtOpDeclQ   = <external <String> : <Type>>
