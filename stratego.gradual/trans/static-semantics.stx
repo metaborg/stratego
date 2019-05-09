@@ -1,8 +1,8 @@
 module static-semantics
 
 signature
-  sorts Section SigSection Module OpDecl Sort Rule Term Type Def
-        ConstType
+  sorts Section SigSection Module OpDecl Sort Rule Term Type Def RuleCond
+        ConstType Strategy SVar
   constructors
     Module       : string * list(Section) -> Module
     Signature    : list(SigSection) -> Section
@@ -14,7 +14,12 @@ signature
     SortNoArgs   : string -> Sort
     Rules        : list(Def) -> Section
     RDefNoArgs   : string * Rule -> Def
-    Rule         : Term * Term * list(string) -> Rule
+    Rule         : Term * Term * list(RuleCond) -> Rule
+    WhereClause  : Strategy -> RuleCond
+    WithClause   : Strategy -> RuleCond
+    BA           : Strategy * Term -> Strategy
+    CallNoArgs   : SVar -> Strategy
+    SVar         : string -> SVar
     NoAnnoList   : Term -> Term
     Var          : string -> Term
     Op           : string * list(Term) -> Term
@@ -106,12 +111,16 @@ rules // rules
   ruleOk : scope * Def -> Def
   rulesOk maps ruleOk(*, list(*)) = list(*)
   
-  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond))  :- {s_r t1 t2}
+  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond'))  :- {s_r t1 t2}
     new s_r, s_r -P-> s,
     typeOfMatchTerm(s_r, trm1) == t1,
     typeOfBuildTerm(s_r, trm2) == t2,
+    insertCast(s, cond) == cond',
     s -> Rule{f@f} with typeOfRule FUN([t1], t2).
   
+  insertCast : scope * list(RuleCond) -> list(RuleCond)
+  insertCast(s, cond) = cond' :-
+    [WithClause(BA(CallNoArgs(SVar("is-string")), Var("x"))) | cond] == cond'.
   
   typeOfMatchTerm : scope * Term -> TYPE
   typeOfMatchTerms maps typeOfMatchTerm(*, list(*)) = list(*)
