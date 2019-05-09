@@ -1,0 +1,28 @@
+module example02
+
+signature
+  sorts Exp String Int
+  constructors
+    Var   : String -> Exp
+    Int   : Int -> Exp
+    Neg   : Exp -> Exp
+    Plus  : Exp * Exp -> Exp
+    Minus : Exp * Exp -> Exp
+    
+rules
+  
+  desugar : // Exp -> Exp
+    Minus(e1, e2) -> Plus(e1, Neg(e2))
+  
+strategies
+  // Dyn -> Dyn
+  topdown(s) = ?s ; my-all(topdown(s))
+  
+  // Dyn -> Dyn
+  try(s) = s <+ id 
+  
+  // Dyn -> Dyn
+  desugar-all = topdown(try(desugar))
+  
+  // all is a keyword
+  my-all(s) : c#(ts) -> c#(<map(s)> ts)
