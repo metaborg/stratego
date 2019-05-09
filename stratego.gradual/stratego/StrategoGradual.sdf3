@@ -1,4 +1,4 @@
-module StrategoTyped
+module StrategoGradual
 
 imports 
   stratego/sugar/sugar
