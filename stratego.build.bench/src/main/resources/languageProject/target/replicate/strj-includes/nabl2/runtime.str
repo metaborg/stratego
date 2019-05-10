@@ -1,6 +1,0 @@
-module nabl2/runtime
-
-imports
-
-  nabl2/shared
-  nabl2/runtime/main

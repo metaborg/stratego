@@ -1,7 +1,0 @@
-module nabl2shared
-
-imports
-
-  libstratego-lib
-
-  nabl2/shared

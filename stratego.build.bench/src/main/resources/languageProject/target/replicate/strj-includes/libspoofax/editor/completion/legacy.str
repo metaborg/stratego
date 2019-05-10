@@ -1,8 +1,0 @@
-module libspoofax/editor/completion/legacy
-
-signature
-
-  constructors
-
-    COMPLETION : String -> Term
-    NOCONTEXT  : Term   -> Term

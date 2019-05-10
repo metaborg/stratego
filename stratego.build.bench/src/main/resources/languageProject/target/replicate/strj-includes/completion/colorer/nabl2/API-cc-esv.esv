@@ -1,7 +1,0 @@
-module completion/colorer/nabl2/API-cc-esv
-
-imports
-  completion/colorer/nabl2/shared/common/ScopeGraph-cc-esv
-
-colorer
-  
