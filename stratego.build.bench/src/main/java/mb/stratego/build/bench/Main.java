@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class Main {
+    @SuppressWarnings("WeakerAccess") public static final String TMPDIR = System.getProperty("java.io.tmpdir");
+
     public static void main(String[] args) throws Exception {
         if(args.length == 0) {
             run();
@@ -117,7 +119,7 @@ public class Main {
         final PieBuilder pieBuilder = new PieBuilderImpl();
 
         // file system store
-        LMDBStore.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
+        LMDBStore.withLMDBStore(pieBuilder, Paths.get(TMPDIR, "lmdb").toFile());
 
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
@@ -181,7 +183,7 @@ public class Main {
         final PieBuilder pieBuilder = new PieBuilderImpl();
 
         // file system store
-        //        LMDBStore.withLMDBStore(pieBuilder, new File("/tmp/lmdb"));
+        //        LMDBStore.withLMDBStore(pieBuilder, Paths.get(TMPDIR, "lmdb").toFile());
 
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
@@ -220,10 +222,10 @@ public class Main {
          -la java-front
          -la incremental.strategies
         */
-        spoofax.resourceService.resolve("/tmp/stratego.build.bench/")
+        Path projectLocation = Paths.get(TMPDIR, "stratego.build.bench");
+        spoofax.resourceService.resolve(projectLocation.toString())
             .copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/languageProject").toURI()),
                 FileSelectorUtils.all());
-        Path projectLocation = Paths.get("/tmp/stratego.build.bench/");
 
         File inputFile = projectLocation.resolve("trans/incremental.str").toFile();
 
