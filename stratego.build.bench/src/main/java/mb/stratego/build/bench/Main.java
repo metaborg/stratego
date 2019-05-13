@@ -6,7 +6,6 @@ import mb.pie.api.PieBuilder;
 import mb.pie.api.PieSession;
 import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.layer.ValidationLayer;
 import mb.pie.runtime.logger.StreamLogger;
 import mb.pie.store.lmdb.LMDBStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
@@ -25,7 +24,6 @@ import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.resource.FileSelectorUtils;
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -135,8 +133,8 @@ public class Main {
             discoverDialects(spoofax, include.getAbsolutePath());
         }
 
-        spoofax.languageDiscoveryService.languageFromDirectory(
-            spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
+        spoofax.languageDiscoveryService
+            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
 
         List<String> builtinLibs = new ArrayList<>(strategoArguments.builtinLibraries.size());
         for(Library.Builtin builtinLibrary : strategoArguments.builtinLibraries) {
@@ -188,15 +186,15 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
-//        // N.B. extremely slow but maybe useful for debugging the failures.
-//        pieBuilder.withLayer((taskDefs, logger) -> {
-//            final ValidationLayer.ValidationOptions options = new ValidationLayer.ValidationOptions();
-//            options.checkKeyObjects = true;
-//            options.checkInputObjects = true;
-//            options.checkOutputObjects = true;
-//            options.throwWarnings = true;
-//            return new ValidationLayer(options, taskDefs, logger);
-//        });
+        //        // N.B. extremely slow but maybe useful for debugging the failures.
+        //        pieBuilder.withLayer((taskDefs, logger) -> {
+        //            final ValidationLayer.ValidationOptions options = new ValidationLayer.ValidationOptions();
+        //            options.checkKeyObjects = true;
+        //            options.checkInputObjects = true;
+        //            options.checkOutputObjects = true;
+        //            options.throwWarnings = true;
+        //            return new ValidationLayer(options, taskDefs, logger);
+        //        });
 
         // We always need to do a topDown build first as a clean build.
         /* This is the strj command for non-incremental build from which we derive the StrIncr.Input arguments:
@@ -263,8 +261,8 @@ public class Main {
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
         StrIncr.Input strIncrInput =
-            new StrIncr.Input(inputFile, javaPackageName, includeDirs, builtinLibs, cacheDir,
-                Collections.emptyList(), extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
+            new StrIncr.Input(inputFile, javaPackageName, includeDirs, builtinLibs, cacheDir, Collections.emptyList(),
+                extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         final Task<None> compileTask = strIncr.createTask(strIncrInput);
         try(final Pie pie = pieBuilder.build()) {
             try(final PieSession session = pie.newSession()) {

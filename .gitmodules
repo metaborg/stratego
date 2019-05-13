@@ -1,0 +1,3 @@
+[submodule "stratego.build.bench/src/main/resources"]
+	path = stratego.build.bench/src/main/resources
+	url = git@github.com:Apanatshka/sep-comp-bench-project.git
