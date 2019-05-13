@@ -318,15 +318,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         execContext.require(resourceService.localFile(inputFile));
         // TODO: reinstate support for files from within a jar? Where was this used again?
-//        if(inputURI.getScheme().equals("jar")) {
-//            JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
-//            try(FileSystem fs = FileSystems
-//                .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
-//                execContext.require(fs.getPath(c.getEntryName()));
-//            }
-//        } else {
-//            execContext.require(new File(inputURI));
-//        }
+        //        if(inputURI.getScheme().equals("jar")) {
+        //            JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
+        //            try(FileSystem fs = FileSystems
+        //                .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
+        //                execContext.require(fs.getPath(c.getEntryName()));
+        //            }
+        //        } else {
+        //            execContext.require(new File(inputURI));
+        //        }
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList strategyList = Tools.listAt(result, 1);
@@ -365,11 +365,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
             assert strategyFile
                 != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-//            final @Nullable File constrFile = resourceService
-//                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy));
-//            assert constrFile
-//                != null : "Bug in strSepCompConstrListFile or the arguments thereof: returned path is not a file";
-//            execContext.provide(constrFile);
+            //            final @Nullable File constrFile = resourceService
+            //                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy));
+            //            assert constrFile
+            //                != null : "Bug in strSepCompConstrListFile or the arguments thereof: returned path is not a file";
+            //            execContext.provide(constrFile);
             strategyFiles.put(strategy, strategyFile);
             execContext.provide(strategyFile);
         }
@@ -381,7 +381,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 if(!StrIncr.stripArityPattern.matcher(ambName).matches()) {
                     continue;
                 }
-                throw new ExecException("Bug in Strategy sep comp frontend: Ambiguous call name '" + ambName + "' didn't end with _0_0.");
+                throw new ExecException(
+                    "Bug in Strategy sep comp frontend: Ambiguous call name '" + ambName + "' didn't end with _0_0.");
             }
             final String useSite = Tools.javaStringAt(ambStratUse, 1);
             StrIncr.getOrInitialize(ambStratUsed, ambName, HashSet::new).add(useSite);
@@ -448,8 +449,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(FileObject inputFile, String projectName, FileObject projectLocation)
-        throws Exception {
+    private IStrategoTerm runStrategoCompileBuilder(FileObject inputFile, String projectName,
+        FileObject projectLocation) throws Exception {
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(inputFile);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         IStrategoTerm ast;
@@ -468,7 +469,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
                     throw new ExecException(
-                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes). Found: \n" + ast.toString(2));
+                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes). Found: \n"
+                            + ast.toString(2));
                 }
             } else {
                 throw new ExecException(
@@ -522,8 +524,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         ast = parseResult.ast();
         if(!parseResult.valid() || !parseResult.success() || ast == null) {
             throw new ExecException(
-                "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!parseResult.valid() ? " errors" :
-                    (!parseResult.success()) ? "out errors" : " ast == null"));
+                "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!parseResult.valid() ?
+                    " errors" : (!parseResult.success()) ? "out errors" : " ast == null"));
         }
         if(strategoDialect != null) {
             // Update registered dialect back to old one.

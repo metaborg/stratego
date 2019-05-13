@@ -10,7 +10,9 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -88,6 +90,10 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     }
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
+        final @Nullable File fileToRead = input.library.fileToRead();
+        if(fileToRead != null) {
+            execContext.require(fileToRead);
+        }
         final IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
         // Expected: Specification([Signature([Constructors([...])]), Strategies([...])])
         if(!(Tools.isTermAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {

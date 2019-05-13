@@ -9,12 +9,15 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.lang.compat.override.strc_compat.Main;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public interface Library extends Serializable {
     IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException;
+    @Nullable File fileToRead() throws MalformedURLException;
 
     static Library fromString(IResourceService resourceService, String name) throws FileSystemException {
         final @Nullable Builtin builtinLibrary = Builtin.fromString(name);
@@ -51,6 +54,10 @@ public interface Library extends Serializable {
         Builtin(String cmdArgString) {
             this.cmdArgString = cmdArgString;
             this.libString = "lib" + cmdArgString;
+        }
+
+        @Override public @Nullable File fileToRead() {
+            return null;
         }
 
         @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException {
@@ -142,14 +149,28 @@ public interface Library extends Serializable {
     }
 
     class RTree implements Library {
-        private final String name;
+        private final String pathURLString;
 
-        RTree(String name) {
-            this.name = name;
+        RTree(String pathURLString) {
+            this.pathURLString = pathURLString;
+        }
+
+        @Override public @Nullable File fileToRead() throws MalformedURLException {
+            URL url = new URL(pathURLString);
+            if(url.getProtocol().equals("jar")) {
+                url = new URL(url.getPath());
+            }
+            if(url.getProtocol().equals("file")) {
+                return new File(url.getPath().split("!", 2)[0].split("/", 2)[1]);
+            }
+            /* This will probably fail with an exception, but that's fine because we don't know how to handle
+             *  non-jar/file protocols.
+             */
+            return new File(url.toString());
         }
 
         @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
-            return new TermReader(factory).parseFromStream(new URL(name).openStream());
+            return new TermReader(factory).parseFromStream(new URL(pathURLString).openStream());
         }
     }
 }

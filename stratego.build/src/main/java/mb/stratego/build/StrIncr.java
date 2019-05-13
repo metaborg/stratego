@@ -321,6 +321,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(StrIncrFront.Import.library(builtinLib));
         }
+        // depend on the include directories in which we search for str and rtree files
+        for(File includeDir : input.includeDirs) {
+            execContext.require(includeDir);
+        }
 
         // Module-path to module-path
         final Map<String, Set<String>> imports = new HashMap<>();
@@ -368,8 +372,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             if(module.type == Module.Type.library) {
                 final StrIncrFrontLib.Input frontLibInput =
                     new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
-                final Task<StrIncrFrontLib.Output> task =
-                    strIncrFrontLib.createTask(frontLibInput);
+                final Task<StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
                 final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
                 registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
                 registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
@@ -662,7 +665,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Map<String, Set<String>> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
                     for(String theVisibleStrategy : theVisibleStrategies) {
                         String ambCallVersion = stripArity(theVisibleStrategy) + "_0_0";
-                        getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new).add(theVisibleStrategy);
+                        getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new)
+                            .add(theVisibleStrategy);
                     }
                     for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
                         final String usedAmbStrategy = entry.getKey();
@@ -690,10 +694,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
         }
-        if(!checkOk) {
-            throw new ExecException("Name resolution check failed. ");
-        }
-        return ambStratResolution;
+        //if(!checkOk) {
+        //    throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+        //}
         return new StaticCheckOutput(ambStratResolution);
     }
 
