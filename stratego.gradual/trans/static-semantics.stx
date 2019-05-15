@@ -99,7 +99,7 @@ rules // signatures
     s -> Cons{c@c} with typeOfCons FUN(ts, t).
     
   consDeclOk(s, OpDecl(c, ConstType(srt))) :- {t}
-  	typeOfSort(s, srt) == t,
+  	typeOfSort(s, ConstType(srt)) == t,
   	s -> Cons{c@c} with typeOfCons FUN([], t).
   
   typeOfSort : scope * Type -> TYPE
