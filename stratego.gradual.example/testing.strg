@@ -1,13 +1,25 @@
 module testing
 
 signature
-  sorts Exp String
+  sorts Exp String Int Bla
   constructors
+    b    : Int -> Bla
     Var  : String -> Exp
-    Blah : String -> Exp
+    Blah : String * Int -> Exp
+    Eh   : Bla -> Exp
+   	Meh  : Exp -> Exp
+   	Multi: Int * String * Bla * Exp -> Exp
+    
 
 rules
-  my-blah: Var(x) -> Blah(x)
+
+  new-blah: a -> Var(a)
   
-  my-other-blah: x -> Blah(x)
+  my-blah1: (a,b) -> Blah(a, b)
+	
   
+  my-blah: Blah(a,b) -> Eh(z)
+  where
+	  z := b(b);
+	  y := Var(a)
+   

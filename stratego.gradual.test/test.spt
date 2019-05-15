@@ -2,6 +2,56 @@ module test
 
 language StrategoGradual
 
-test parse [[
+fixture [[
+	module testing
+	
+	signature
+	  sorts Exp String Int Bla
+	  constructors
+	    Blah : String * Int -> Exp
+	    Var  : String -> Exp
+	    Bb   : Int -> Bla
+	    Eh   : Bla -> Exp
+	    Meh  : Exp -> Exp
+	    Multi: Int * String * Bla * Exp -> Exp
+	
+	rules
+		[[...]] 
+]]
 
-]] parse succeeds
+test where_simple_variable_resolution [[
+  
+  my-blah: Blah(a,b) -> Eh(z)
+  where
+	  z := Bb(b);
+	  y := Var(a)
+   
+]] analysis succeeds
+
+test where_simple_variable_resolution [[
+  
+  my-blah: Blah(a,b) -> Meh(y)
+  where
+	  z := Bb(b);
+	  y := Eh(z)
+	  
+]] analysis succeeds
+
+test where_simple_variable_resolution [[
+  
+  my-blah: Blah(a,b) -> Eh(y)
+  where
+	  z := Bb(b);
+	  y := Var(a)
+	  
+]] analysis fails
+
+test where_simple_variable_resolution [[
+	
+	my-blah: (a,b) -> Multi(a, b, c, d)
+	where
+		c = Bb(a);
+		d = Blah(b,a)
+
+]] analysis succeeds
+

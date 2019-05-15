@@ -23,6 +23,8 @@ signature
     NoAnnoList   : Term -> Term
     Var          : string -> Term
     Op           : string * list(Term) -> Term
+    Seq			 : Strategy * Strategy -> Strategy
+    Assign       : Term * Term -> Strategy
     
   sorts TYPE
   constructors
@@ -49,7 +51,6 @@ signature
 rules 
 
   insertCasts : Module -> Module
-  
   insertCasts(m) = m' :- moduleOkC(m) == m'.
     
 rules moduleOk : Module 
@@ -96,6 +97,10 @@ rules // signatures
     typeOfSorts(s, srts) == ts,
     typeOfSort(s, srt) == t,
     s -> Cons{c@c} with typeOfCons FUN(ts, t).
+    
+  consDeclOk(s, OpDecl(c, ConstType(srt))) :- {t}
+  	typeOfSort(s, srt) == t,
+  	s -> Cons{c@c} with typeOfCons FUN([], t).
   
   typeOfSort : scope * Type -> TYPE
   typeOfSorts maps typeOfSort(*, list(*)) = list(*)
@@ -115,12 +120,34 @@ rules // rules
     new s_r, s_r -P-> s,
     typeOfMatchTerm(s_r, trm1) == t1,
     typeOfBuildTerm(s_r, trm2) == t2,
-    insertCast(s, cond) == cond',
+    checkConds(s_r, cond) == cond',
     s -> Rule{f@f} with typeOfRule FUN([t1], t2).
+    
+  checkCond: scope * RuleCond -> RuleCond
+  checkConds maps checkCond(*, list(*)) = list(*)
   
-  insertCast : scope * list(RuleCond) -> list(RuleCond)
+  insertCast : scope * RuleCond -> RuleCond
   insertCast(s, cond) = cond' :-
-    [WithClause(BA(CallNoArgs(SVar("is-string")), Var("x"))) | cond] == cond'.
+    WithClause(BA(CallNoArgs(SVar("is-string")), Var("x"))) == cond'.
+  
+  checkCond(s, WhereClause(str)) = WhereClause(str') :-
+  	checkStrategy(s, str) == str'.
+  	  	
+  checkCond(s, WithClause(str)) = WithClause(str') :-
+  	checkStrategy(s, str) == str'.
+  
+  checkStrategy: scope * Strategy -> Strategy
+ 
+  checkStrategy(s, Seq(str1,str2)) = Seq(str1, str2) :- {t1 t2}
+  	checkStrategy(s, str1) == t1,
+  	checkStrategy(s, str2) == t2.
+  
+  checkStrategy(s, Assign(Var(x), sth)) = Assign(Var(x), sth) :- {t}
+  	typeOfBuildTerm(s, sth) == t,
+  	s -> Var{x@x} with typeOfVar t.
+  	//typeOfVar of Var{x@x} in s |-> [(p, (d, t))],
+  
+  typeOfTerm: scope * Term -> TYPE
   
   typeOfMatchTerm : scope * Term -> TYPE
   typeOfMatchTerms maps typeOfMatchTerm(*, list(*)) = list(*)
