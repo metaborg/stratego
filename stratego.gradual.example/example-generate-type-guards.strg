@@ -1,0 +1,12 @@
+module testing
+
+signature
+  sorts Exp String Int Bla
+  constructors
+    b    : Int -> Bla
+    Var  : String -> Exp
+    Blah : String * Int -> Exp
+    Eh   : Bla -> Exp
+   	Meh  : Exp -> Exp
+   	Multi: Int * String * Bla * Exp -> Exp
+    

@@ -14,6 +14,8 @@ signature
     SortNoArgs   : string -> Sort
     Rules        : list(Def) -> Section
     RDefNoArgs   : string * Rule -> Def
+    SDefNoArgs   : string * Strategy -> Def
+    SDefTypeCheck: string * Strategy -> Def
     Rule         : Term * Term * list(RuleCond) -> Rule
     WhereClause  : Strategy -> RuleCond
     WithClause   : Strategy -> RuleCond
@@ -25,12 +27,16 @@ signature
     Op           : string * list(Term) -> Term
     Seq			 : Strategy * Strategy -> Strategy
     Assign       : Term * Term -> Strategy
+    Match        : Term -> Strategy
+    Id           : Term
+    Wld          : Term
     
   sorts TYPE
   constructors
     SRT : occurrence -> TYPE
     FUN : list(TYPE) * TYPE -> TYPE
     DYN : TYPE
+  
   
   namespaces
     Sort : string
@@ -59,9 +65,16 @@ rules moduleOk : Module
 
   moduleOkC : Module -> Module
 
-  moduleOkC(Module(x, sections)) = Module(x, sections') :- {s}
+  moduleOkC(Module(x, sections)) = Module(x, sections'') :- {s typechecks sections'}
     new s,
-    sectionsOk(s, sections) == sections'.
+    sectionsOk(s, sections) == sections',
+    insertTypeCheckSections(s, sections) == typechecks,
+    sections'' == concatenate(sections', [typechecks]).
+
+  concatenate : list(Section) * list(Section) -> list(Section)
+  concatenate([s], s2) = s3 :- s3 == [s|s2].
+  concatenate([s|s1], s2) = s3 :- s3 == [s|concatenate(s1, s2)].
+  
 
 rules 
 
@@ -106,7 +119,7 @@ rules // signatures
   typeOfSorts maps typeOfSort(*, list(*)) = list(*)
   
   typeOfSort(s, ConstType(SortNoArgs(srt))) = t :- {p d}
-    typeOfSort of Sort{srt@srt} in s |-> [(p, (d, t))].    
+    typeOfSort of Sort{srt@srt} in s |-> [(p, (d, t))].
   
 rules // rules 
 
@@ -115,6 +128,9 @@ rules // rules
   
   ruleOk : scope * Def -> Def
   rulesOk maps ruleOk(*, list(*)) = list(*)
+  
+  ruleOk(s, SDefNoArgs(f, rules)) = SDefNoArgs(f, rules).
+  ruleOk(s, SDefTypeCheck(f, rules)) = SDefTypeCheck(f, rules).
   
   ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond'))  :- {s_r t1 t2}
     new s_r, s_r -P-> s,
@@ -175,11 +191,31 @@ rules // rules
   typeOfBuildTerm(s, Op(c, trms)) = t :- {p d ts}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
     typeOfBuildTerms(s, trms) == ts.
-//    
-//  insertCastTrm : TYPE * TYPE * Term -> Term 
-//  
-//  insertCastTrm(t, t, trm) = trm.
-//  
-//  insertCastTrm(DYN(), t, trm) = trm. 
-    // todo : create call to cast/check strategy for t
     
+rules // insertTypeChecks
+
+  insertTypeCheckSection : scope * Section -> Section
+  insertTypeCheckSections maps insertTypeCheckSection(*, list(*)) = *
+  
+  insertTypeCheckSection(s, Signature(sigSec)) = Rules(rs) :-
+    insertTypeCheckSigSections(s, sigSec) == rs.
+  
+  insertTypeCheckSection(s, Rules(rs)) = nil.
+  
+  insertTypeCheckSigSection : scope * SigSection -> list(Def)
+  insertTypeCheckSigSections maps insertTypeCheckSigSection(*, list(*)) = *
+  
+  insertTypeCheckSigSection(s, Sorts(sorts)) = nil.
+  insertTypeCheckSigSection(s, Constructors(cons)) = def :-
+    insertTypeCheckCons(s, cons) == def.
+    
+  insertTypeCheckCon : scope * OpDecl -> Def
+  insertTypeCheckCons maps insertTypeCheckCon(*, list(*)) = list(*)
+  
+  insertTypeCheckCon(s, OpDecl(c, FunType(srts, ConstType(SortNoArgs(typ))))) = strat :- {args}
+    toWlds(srts) == args,
+    strat == SDefTypeCheck(typ, Match(NoAnnoList(Op(c, args)))).
+
+  toWld : Type -> Term
+  toWlds maps toWld(list(*)) = list(*)
+  toWld(ConstType(SortNoArgs(srt))) = Wld().

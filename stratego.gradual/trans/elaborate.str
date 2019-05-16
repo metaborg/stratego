@@ -2,10 +2,16 @@ module elaborate
 
 imports
   signatures/-
+  signatures/sugar/-
   analysis
   statixruntime
   pp
   //desugar
+  
+  signature sorts SDefTypeCheck
+  constructors 
+    SDefTypeCheck : ID * Strategy -> Def
+    SDefNoArgs : ID * Strategy -> Def
 
 rules
 
@@ -29,6 +35,13 @@ rules
     where 
       indexed-ast := <stx-index-ast(|path)> ast; 
       ast' := <stx-evaluate(|"static-semantics", "insertCasts")> [indexed-ast]
+      
+  transform-casts = topdown(try(transform-cast))
+  
+  transform-cast : SDefTypeCheck(typ, strat) -> SDefNoArgs(typ', strat)
+  where typ' := <conc-strings> ("strategoGradual--is-a-", typ)
+  
+  transform-cast = fail
     
   menu-source-elaborate:
       (source-ast, _, _, path, project-path) -> (filename, elaborated-ast)
@@ -52,5 +65,5 @@ rules
       filename := <guarantee-extension(|"elaborated.strg")> path
     ; desugared-ast := <desugar-all> source-ast
     ; analyzed-ast := <insertCasts(|path)> desugared-ast
-    ; elaborated-ast := <elaborate> analyzed-ast
+    ; elaborated-ast := <elaborate;transform-casts> analyzed-ast
     ; pretty-printed := <pp-StrategoGradual-string> elaborated-ast
