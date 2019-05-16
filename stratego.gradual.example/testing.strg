@@ -13,14 +13,21 @@ signature
 rules
   // is a function from Int * ID to Multi
 
+  // Int -> Bla
   testing: a -> b(a)
+  id_ : b(a) -> b(a)
 
+  // Tup(Int, ID) -> Exp 
   new-blah: (a,c) -> Multi(a,c,z,y)
   where
   	y := Blah(a,c);
-  	z := <testing> a
+  	
+  	// Int -> (Bla ->) Exp
+  	z := <testing;id_> a
 
 
+  // Bla -> Exp
+  whatever: a -> Eh(a)
   my-blah1: (a,b) -> Blah(a, b)
   
   my-blah: Blah(a,b) -> Eh(z)
