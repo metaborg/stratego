@@ -6,31 +6,42 @@ signature
   constructors
     Module       : string * list(Section) -> Module
     Signature    : list(SigSection) -> Section
+    Rules        : list(Def) -> Section
+    
     Sorts        : list(Sort) -> SigSection
     Constructors : list(OpDecl) -> SigSection
     OpDecl       : string * Type -> OpDecl
+    
     FunType      : list(Type) * Type -> Type
     ConstType    : Sort -> Type
+    
     SortNoArgs   : string -> Sort
-    Rules        : list(Def) -> Section
     RDefNoArgs   : string * Rule -> Def
     Rule         : Term * Term * list(RuleCond) -> Rule
+    
     WhereClause  : Strategy -> RuleCond
     WithClause   : Strategy -> RuleCond
+    
     BA           : Strategy * Term -> Strategy
     CallNoArgs   : SVar -> Strategy
-    SVar         : string -> SVar
-    NoAnnoList   : Term -> Term
-    Var          : string -> Term
-    Op           : string * list(Term) -> Term
     Seq			 : Strategy * Strategy -> Strategy
     Assign       : Term * Term -> Strategy
+    
+    SVar         : string -> SVar
+    
+    NoAnnoList   : Term -> Term
+    Var          : string -> Term
+    Tuple		 : list(Term) -> Term
+    Op           : string * list(Term) -> Term
+    App			 : Strategy * Term -> Term
     
   sorts TYPE
   constructors
     SRT : occurrence -> TYPE
     FUN : list(TYPE) * TYPE -> TYPE
+    TUP : list(TYPE) -> TYPE
     DYN : TYPE
+    CAST: TYPE * TYPE -> TYPE
   
   namespaces
     Sort : string
@@ -122,7 +133,7 @@ rules // rules
     typeOfBuildTerm(s_r, trm2) == t2,
     checkConds(s_r, cond) == cond',
     s -> Rule{f@f} with typeOfRule FUN([t1], t2).
-    
+   
   checkCond: scope * RuleCond -> RuleCond
   checkConds maps checkCond(*, list(*)) = list(*)
   
@@ -161,12 +172,19 @@ rules // rules
   typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
     typeOfMatchTerms(s, trms) == ts.
+   
+  typeOfMatchTerm(s, Tuple(trms)) = TUP(ts) :- 
+  	typeOfMatchTerms(s, trms) == ts.
 
   typeOfBuildTerm : scope * Term -> TYPE
   typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
   
   typeOfBuildTerm(s, NoAnnoList(term)) = t :-
     typeOfBuildTerm(s, term) == t.
+    
+  typeOfBuildTerm(s, App(CallNoArgs(SVar(str)), term)) = t :- {p d t1 t2}
+  	typeOfRule of Rule{str@str} in s |-> [(p, (d, FUN([t1], t2)))],
+  	typeOfBuildTerm(s, term) == t1.
   
   typeOfBuildTerm(s, Var(x)) = t :- {p d t'}
    typeOfVar of Var{x@x} in s |-> [(p, (d, t'))],
