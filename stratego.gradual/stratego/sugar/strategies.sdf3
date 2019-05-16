@@ -13,6 +13,8 @@ imports
     StrategyDef.SDefNoArgs = <
       <Id> = 
          <Strategy>
+    
+    
     >
          
     StrategyDef.SDef = <
