@@ -1,0 +1,15 @@
+module stratego/sugar/gradual
+imports
+  stratego/core/terms
+  stratego/core/identifiers
+  stratego/sugar/constants
+  stratego/sugar/strategies
+
+  sorts CastTerm 
+  context-free syntax
+    Term.CastTerm = [[Term] : [TYPE] => [TYPE]]
+    
+  sorts TYPE 
+  context-free syntax
+    TYPE.SRT = [SRT([ID])]
+    TYPE.DYN = [DYN]

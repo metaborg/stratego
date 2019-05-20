@@ -11,4 +11,6 @@ signature
      
 rules
 
-eval : Plus(Int(i), Int(j)) -> Int(plus(i, j))
+eval : i -> Int(i)
+
+eval2 : Var(i) -> Var(i)

@@ -12,5 +12,7 @@ imports
   stratego/sugar/rules
   stratego/sugar/dynamic-rules
   stratego/sugar/overlays
+  
+  stratego/sugar/gradual
 
  

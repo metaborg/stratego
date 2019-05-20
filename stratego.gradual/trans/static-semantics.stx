@@ -43,7 +43,7 @@ signature
     
   sorts TYPE
   constructors
-    SRT : occurrence -> TYPE
+    SRT : string -> TYPE
     FUN : list(TYPE) * TYPE -> TYPE
     TUP : list(TYPE) -> TYPE
     DYN : TYPE
@@ -76,10 +76,11 @@ rules
   consistent(DYN(), T).
   consistent(T, DYN).
   
+  consistentL maps consistent(list(*), list(*))
+  
   cast: Term * TYPE * TYPE -> Term
   cast(e, T, T) = e.
-  cast(e, T1, T2) = CastTerm(e, T1, T2) :-
-  	consistent(T1, T2).
+  cast(e, T1, T2) = CastTerm(e, T1, T2).
     
 rules moduleOk : Module 
 
@@ -89,9 +90,9 @@ rules moduleOk : Module
 
   moduleOkC(Module(x, sections)) = Module(x, sections'') :- {s typechecks sections'}
     new s,
-    sectionsOk(s, sections) == sections',
-    insertTypeCheckSections(s, sections) == typechecks,
-    sections'' == concatenate(sections', [typechecks]).
+    sectionsOk(s, sections) == sections''.//,
+//    insertTypeCheckSections(s, sections) == typechecks,
+//    sections'' == concatenate(sections', [typechecks]).
 
   concatenate : list(Section) * list(Section) -> list(Section)
   concatenate([s], s2) = s3 :- s3 == [s|s2].
@@ -120,7 +121,7 @@ rules // signatures
   
   sortOk(s, SortNoArgs(srt)) :- {d}
     d == Sort{srt@srt},
-    s -> d with typeOfSort SRT(d).
+    s -> d with typeOfSort SRT(srt).
   
   sigSectionOk(s, Constructors(cdecls)) = Constructors(cdecls) :- 
     consDeclsOk(s, cdecls).
@@ -154,10 +155,10 @@ rules // rules
   ruleOk(s, SDefNoArgs(f, rules)) = SDefNoArgs(f, rules).
   ruleOk(s, SDefTypeCheck(f, rules)) = SDefTypeCheck(f, rules).
   
-  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond'))  :- {s_r t1 t2 trm}
+  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2', cond'))  :- {s_r t1 t2}
     new s_r, s_r -P-> s,
     typeOfMatchTerm(s_r, trm1) == t1,
-    typeOfBuildTerm(s_r, trm2) == (trm, t2),
+    typeOfBuildTerm(s_r, trm2) == (trm2', t2),
     checkConds(s_r, cond) == cond',
     s -> Rule{f@f} with typeOfRule FUN([t1], t2).
    
@@ -201,6 +202,9 @@ rules // rules
   typeOfMatchTerm : scope * Term -> TYPE
   typeOfMatchTerms maps typeOfMatchTerm(*, list(*)) = list(*)
   
+  typeOfMatchTerm(s, NoAnnoList(Var(x))) = DYN() :-
+    s -> Var{x@x} with typeOfVar DYN().  
+  
   typeOfMatchTerm(s, NoAnnoList(term)) = t :-
     typeOfMatchTerm(s, term) == t.
   
@@ -208,15 +212,14 @@ rules // rules
    s -> Var{x@x} with typeOfVar t,
    t == DYN().
   
-  typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts}
+  typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts ts'}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
-    typeOfMatchTerms(s, trms) == ts.
+    typeOfMatchTerms(s, trms) == ts', consistentL(ts, ts').
    
   typeOfMatchTerm(s, Tuple(trms)) = TUP(ts) :- 
   	typeOfMatchTerms(s, trms) == ts.
 
   typeOfBuildTerm : scope * Term -> (Term * TYPE)
-  //typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
   typeOfBuildTerms: scope * list(Term) -> (list(Term) * list(TYPE))
   
   
