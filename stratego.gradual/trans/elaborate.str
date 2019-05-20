@@ -12,6 +12,7 @@ imports
   constructors 
     SDefTypeCheck : ID * Strategy -> Def
     SDefNoArgs : ID * Strategy -> Def
+    CastTerm : Term * TYPE * TYPE -> TERM
 
 rules
 

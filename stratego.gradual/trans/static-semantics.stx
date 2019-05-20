@@ -83,7 +83,7 @@ rules
   cast(e, T1, T2) = CastTerm(e, T1, T2).
     
 rules moduleOk : Module 
-
+ 
   moduleOk(m) :- {m'} moduleOkC(m) == m'.
 
   moduleOkC : Module -> Module
@@ -231,8 +231,8 @@ rules // rules
     typeOfBuildTerms(s, terms) == (terms', types).
   
   
-  typeOfBuildTerm(s, NoAnnoList(term)) = t :-
-    typeOfBuildTerm(s, term) == t.
+  typeOfBuildTerm(s, NoAnnoList(term)) = (NoAnnoList(term'), t) :-
+    typeOfBuildTerm(s, term) == (term', t).
     
   typeOfBuildTerm(s, App(CallNoArgs(SVar(str)), term)) = t :- {p d t1 t2}
   	typeOfRule of Rule{str@str} in s |-> [(p, (d, FUN([t1], t2)))],
