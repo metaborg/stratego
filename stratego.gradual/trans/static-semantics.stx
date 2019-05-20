@@ -29,6 +29,7 @@ signature
    
     SVar         : string -> SVar
     
+    CastTerm     : Term * TYPE * TYPE -> Term
     NoAnnoList   : Term -> Term
     Var          : string -> Term
     Tuple		 : list(Term) -> Term
@@ -70,6 +71,15 @@ rules
 
   insertCasts : Module -> Module
   insertCasts(m) = m' :- moduleOkC(m) == m'.
+  
+  consistent: TYPE * TYPE
+  consistent(DYN(), T).
+  consistent(T, DYN).
+  
+  cast: Term * TYPE * TYPE -> Term
+  cast(e, T, T) = e.
+  cast(e, T1, T2) = CastTerm(e, T1, T2) :-
+  	consistent(T1, T2).
     
 rules moduleOk : Module 
 
@@ -144,10 +154,10 @@ rules // rules
   ruleOk(s, SDefNoArgs(f, rules)) = SDefNoArgs(f, rules).
   ruleOk(s, SDefTypeCheck(f, rules)) = SDefTypeCheck(f, rules).
   
-  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond'))  :- {s_r t1 t2}
+  ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2, cond'))  :- {s_r t1 t2 trm}
     new s_r, s_r -P-> s,
     typeOfMatchTerm(s_r, trm1) == t1,
-    typeOfBuildTerm(s_r, trm2) == t2,
+    typeOfBuildTerm(s_r, trm2) == (trm, t2),
     checkConds(s_r, cond) == cond',
     s -> Rule{f@f} with typeOfRule FUN([t1], t2).
    
@@ -181,8 +191,8 @@ rules // rules
   	checkStrategy(s, str1) == t1,
   	checkStrategy(s, str2) == t2.
   
-  checkStrategy(s, Assign(Var(x), sth)) = Assign(Var(x), sth) :- {t}
-  	typeOfBuildTerm(s, sth) == t,
+  checkStrategy(s, Assign(Var(x), sth)) = Assign(Var(x), sth) :- {t trm}
+  	typeOfBuildTerm(s, sth) == (trm, t),
   	s -> Var{x@x} with typeOfVar t.
   	//typeOfVar of Var{x@x} in s |-> [(p, (d, t))],
   
@@ -195,7 +205,8 @@ rules // rules
     typeOfMatchTerm(s, term) == t.
   
   typeOfMatchTerm(s, Var(x)) = t :-
-   s -> Var{x@x} with typeOfVar t.
+   s -> Var{x@x} with typeOfVar t,
+   t == DYN().
   
   typeOfMatchTerm(s, Op(c, trms)) = t :- {p d ts}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
@@ -204,27 +215,37 @@ rules // rules
   typeOfMatchTerm(s, Tuple(trms)) = TUP(ts) :- 
   	typeOfMatchTerms(s, trms) == ts.
 
-  typeOfBuildTerm : scope * Term -> TYPE
-  typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
+  typeOfBuildTerm : scope * Term -> (Term * TYPE)
+  //typeOfBuildTerms maps typeOfBuildTerm(*, list(*)) = list(*)
+  typeOfBuildTerms: scope * list(Term) -> (list(Term) * list(TYPE))
+  
+  
+  typeOfBuildTerms(s, [term]) = ([trm], [ty]) :-
+  	typeOfBuildTerm(s, term) == (trm, ty).
+  	
+  typeOfBuildTerms(s, [hd|terms]) = ([hd'|terms'], [t|types]) :-
+    typeOfBuildTerm(s, hd) == (hd', t),
+    typeOfBuildTerms(s, terms) == (terms', types).
+  
   
   typeOfBuildTerm(s, NoAnnoList(term)) = t :-
     typeOfBuildTerm(s, term) == t.
     
   typeOfBuildTerm(s, App(CallNoArgs(SVar(str)), term)) = t :- {p d t1 t2}
   	typeOfRule of Rule{str@str} in s |-> [(p, (d, FUN([t1], t2)))],
-  	typeOfBuildTerm(s, term) == t1.
+  	typeOfBuildTerm(s, term) == (term, t1).
   	
-  typeOfBuildTerm(s, App(Seq(str1, str2), term)) = t' :- {t}
+  typeOfBuildTerm(s, App(Seq(str1, str2), term)) = (term', t') :- {t}
   	typeOfStrategy(s, Seq(str1, str2)) == FUN([t], t'),
-  	typeOfBuildTerm(s, term) == t.
+  	typeOfBuildTerm(s, term) == (term', t).
   
-  typeOfBuildTerm(s, Var(x)) = t :- {p d t'}
+  typeOfBuildTerm(s, Var(x)) = (trm, t) :- {p d t'}
    typeOfVar of Var{x@x} in s |-> [(p, (d, t'))],
-   t == t'.
+   cast(Var(x), t', t) == trm.
 
-  typeOfBuildTerm(s, Op(c, trms)) = t :- {p d ts}
+  typeOfBuildTerm(s, Op(c, trms)) = (Op(c, trms'), t) :- {p d ts}
     typeOfCons of Cons{c@c} in s |-> [(p, (d, FUN(ts, t)))],
-    typeOfBuildTerms(s, trms) == ts.
+    typeOfBuildTerms(s, trms) == (trms', ts).
     
 rules // insertTypeChecks
 
