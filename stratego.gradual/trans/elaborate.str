@@ -53,7 +53,7 @@ rules
     ; debug(!"b: ")
     ; analyzed-ast := <insertCasts(|path)> desugared-ast
     ; debug(!"c: ")
-    ; elaborated-ast := <elaborate> analyzed-ast
+    ; elaborated-ast := <elaborate;strip-annos> analyzed-ast
     ; debug(!"d: ")
     
   desugar-all = id

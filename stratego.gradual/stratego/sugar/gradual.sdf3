@@ -6,12 +6,9 @@ imports
   stratego/sugar/strategies
 
   context-free syntax
-    PreTerm.CastTerm = [[PreTerm] : [TYPE] => [TYPE]]
+    Term.CastTerm = [[Term] : [TYPE] => [TYPE]]
     
   sorts TYPE
   context-free syntax
     TYPE.SRT = [SRT([Id])]
     TYPE.DYN = [DYN]
-
-  context-free priorities
-    PreTerm.CastTerm > PreTerm.Explode
