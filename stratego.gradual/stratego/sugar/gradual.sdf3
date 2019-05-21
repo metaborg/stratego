@@ -10,5 +10,5 @@ imports
     
   sorts TYPE
   context-free syntax
-    TYPE.SRT = [SRT([Id])]
-    TYPE.DYN = [DYN]
+    TYPE.SRT = Id
+    TYPE.DYN = [?]
