@@ -18,7 +18,7 @@ signature
     SortNoArgs   : string -> Sort
     RDefNoArgs   : string * Rule -> Def
     SDefNoArgs   : string * Strategy -> Def
-    SDefTypeCheck: string * Strategy -> Def
+    SDefTypeCheck: string * string * list(Type) -> Def
     Rule         : Term * Term * list(RuleCond) -> Rule
     
     WhereClause  : Strategy -> RuleCond
@@ -74,13 +74,13 @@ rules
   
   consistent: TYPE * TYPE
   consistent(DYN(), T).
-  consistent(T, DYN).
+  consistent(T, DYN()).
   
   consistentL maps consistent(list(*), list(*))
   
   cast: Term * TYPE * TYPE -> Term
   cast(e, T, T) = e.
-  cast(e, T1, T2) = CastTerm(e, T1, T2).
+  cast(e, T1, T2) = CastTerm(e, T1, T2) :- consistent(T1, T2).
     
 rules moduleOk : Module 
  
@@ -90,9 +90,9 @@ rules moduleOk : Module
 
   moduleOkC(Module(x, sections)) = Module(x, sections'') :- {s typechecks sections'}
     new s,
-    sectionsOk(s, sections) == sections''.//,
-//    insertTypeCheckSections(s, sections) == typechecks,
-//    sections'' == concatenate(sections', [typechecks]).
+    sectionsOk(s, sections) == sections',
+    insertTypeCheckSections(s, sections) == typechecks,
+    sections'' == concatenate(sections', [typechecks]).
 
   concatenate : list(Section) * list(Section) -> list(Section)
   concatenate([s], s2) = s3 :- s3 == [s|s2].
@@ -153,7 +153,7 @@ rules // rules
   rulesOk maps ruleOk(*, list(*)) = list(*)
   
   ruleOk(s, SDefNoArgs(f, rules)) = SDefNoArgs(f, rules).
-  ruleOk(s, SDefTypeCheck(f, rules)) = SDefTypeCheck(f, rules).
+  ruleOk(s, SDefTypeCheck(f, c, rules)) = SDefTypeCheck(f, c, rules).
   
   ruleOk(s, RDefNoArgs(f, Rule(trm1, trm2, cond))) = RDefNoArgs(f, Rule(trm1, trm2', cond'))  :- {s_r t1 t2}
     new s_r, s_r -P-> s,
@@ -274,7 +274,7 @@ rules // insertTypeChecks
   
   insertTypeCheckCon(s, OpDecl(c, FunType(srts, ConstType(SortNoArgs(typ))))) = strat :- {args}
     toWlds(srts) == args,
-    strat == SDefTypeCheck(typ, Match(NoAnnoList(Op(c, args)))).
+    strat == SDefTypeCheck(typ, c, srts).//Match(NoAnnoList(Op(c, args)))).
 
   toWld : Type -> Term
   toWlds maps toWld(list(*)) = list(*)

@@ -5,8 +5,7 @@ menus
   menu: "Elaborate" (openeditor)
 
     action: "Elaborate source AST" = menu-source-elaborate (source)
-    action: "Elaborate source" = menu-source-elaborate-pp
-    action: "Tranform casts" = menu-source-transform-casts-pp
-    
-//    action: "Elaborate analyzed AST" = menu-analyzed-elaborate  
-// action: "Elaborate analyzed" = menu-analyzed-elaborate-pp
+    action: "Elaborate source (all steps)" = menu-source-elaborate-pp
+    action: "1. Insert casts" = menu-source-insert-casts-pp
+    action: "2. Tranform casts" = menu-source-transform-casts-pp
+    action: "3. Insert Stratego type checks" = menu-source-insert-typechecks-pp

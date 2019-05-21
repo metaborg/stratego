@@ -6,79 +6,78 @@ imports
   analysis
   statixruntime
   pp
-  //desugar
   
-  signature sorts SDefTypeCheck
+  signature
   constructors 
-    SDefTypeCheck : ID * Strategy -> Def
+    SDefTypeCheck : ID * ID * List(Type) -> Def
     SDefNoArgs : ID * Strategy -> Def
     CastTerm : Term * TYPE * TYPE -> TERM
 
-rules
+rules // insert casts
 
-//  menu-analyzed-elaborate:
-//      (analyzed-ast, _, _, path, project-path) -> (filename, elaborated-ast)
-//    with
-//      filename := <guarantee-extension(|"elaborated.aterm")> path
-//    ; elaborated-ast := <elaborate> analyzed-ast
-//
-//  menu-analyzed-elaborate-pp:
-//      (analyzed-ast, _, _, path, project-path) -> (filename, pretty-printed)
-//    with
-//      filename := <guarantee-extension(|"elaborated.glc")> path
-//    ; elaborated-ast := <elaborate> analyzed-ast
-//    ; pretty-printed := <pp-gtlc-string> Elaborate(analyzed-ast, elaborated-ast)
-
-  insertCasts = insertCasts(|"")
+  insert-casts = insert-casts(|"")
   
-  insertCasts(|path) :
-    ast -> ast'
+  insert-casts(|path) :
+      ast -> ast'
     where 
       indexed-ast := <stx-index-ast(|path)> ast; 
       ast' := <stx-evaluate(|"static-semantics", "insertCasts")> [indexed-ast]
-      
-  transform-type-checks = topdown(try(transform-type-check))
+
+rules // insert type checks
+
+  insert-typechecks = topdown(try(insert-typecheck))
   
-  transform-type-check : SDefTypeCheck(typ, strat) -> SDefNoArgs(typ', strat)
-  where typ' := <conc-strings> ("strategoGradual--is-a-", typ)
+  insert-typecheck :
+      SDefTypeCheck(typ, name, args) -> RDefNoArgs(typ', Rule(op, op, []))
+    where 
+      typ' := <conc-strings> ("strategoGradual--is-a-", typ)
+    ; args' := <map(insert-typecheck-arg)> args
+    ; op := NoAnnoList(Op(name, args'))
   
-  transform-type-check = fail
+  insert-typecheck-arg = !Var(<newname> "sg_")
+
+rules // cast terms
 
   transform-cast-terms = topdown(try(transform-cast-term))
   
-  transform-cast-term : CastTerm(e, _, SRT(t)) -> App(CallNoArgs(SVar(name)), e)
-  where
-    name := <conc-strings> ("strategoGradual--is-a-", t)
-  
+  transform-cast-term :
+      CastTerm(e, _, SRT(t)) -> App(CallNoArgs(SVar(name)), e)
+    where
+      name := <conc-strings> ("strategoGradual--is-a-", t)
+
+rules // menu items
+
   menu-source-elaborate:
       (source-ast, _, _, path, project-path) -> (filename, elaborated-ast)
     with
       filename := <guarantee-extension(|"elaborated.aterm")> path
-    ; debug(!"a: ")
-    ; desugared-ast := <desugar-all> source-ast
-    ; debug(!"b: ")
-    ; analyzed-ast := <insertCasts(|path)> desugared-ast
-    ; debug(!"c: ")
-    ; elaborated-ast := <elaborate;strip-annos> analyzed-ast
-    ; debug(!"d: ")
-    
-  desugar-all = id
-
-  elaborate = id 
+    ; analyzed-ast := <insert-casts(|path)> source-ast
+    ; elaborated-ast := <insert-typechecks;strip-annos> analyzed-ast
  
-  menu-source-elaborate-pp:
+  menu-source-insert-casts-pp:
       (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
     with
       filename := <guarantee-extension(|"elaborated.strg")> path
-    ; desugared-ast := <desugar-all> source-ast
-    ; analyzed-ast := <insertCasts(|path)> desugared-ast
-    ; elaborated-ast := <elaborate;transform-type-checks> analyzed-ast
-    ; pretty-printed := <pp-StrategoGradual-string> elaborated-ast
+    ; transformed-ast := <insert-casts(|path)> source-ast
+    ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
     
   menu-source-transform-casts-pp:
       (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
     with
       filename := <guarantee-extension(|"cst.strg")> path
-    ; desugared-ast := <desugar-all> source-ast
-    ; transformed-ast := <transform-cast-terms> desugared-ast
+    ; transformed-ast := <transform-cast-terms> source-ast
+    ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
+    
+  menu-source-insert-typechecks-pp:
+      (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
+    with
+      filename := <guarantee-extension(|"tchk.strg")> path
+    ; transformed-ast := <insert-typechecks> source-ast
+    ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
+    
+  menu-source-elaborate-pp:
+      (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
+    with
+      filename := <guarantee-extension(|"el.strg")> path
+    ; transformed-ast := <insert-casts(|path);transform-cast-terms;insert-typechecks> source-ast
     ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
