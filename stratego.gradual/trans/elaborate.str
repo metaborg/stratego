@@ -27,7 +27,7 @@ rules // insert type checks
       ast -> ast''
     where
       indexed-ast := <stx-index-ast(|path)> ast
-    ; ast' := <stx-evaluate(|"static-semantics", "insertTypechecks")> [indexed-ast]
+    ; ast' := <stx-evaluate(|"static-semantics", "insertTypeChecks")> [indexed-ast]
     ; ast'' := <transform-typechecks> ast'
 
   transform-typechecks = topdown(try(transform-typecheck))
@@ -56,8 +56,8 @@ rules // menu items
       (source-ast, _, _, path, project-path) -> (filename, elaborated-ast)
     with
       filename := <guarantee-extension(|"elaborated.aterm")> path
-    ; analyzed-ast := <insert-casts(|path)> source-ast
-    ; elaborated-ast := <insert-typechecks;strip-annos> analyzed-ast
+    ; analyzed-ast := <insert-casts(|path);insert-typechecks(|path)> source-ast
+    ; elaborated-ast := <strip-annos> analyzed-ast
  
   menu-source-insert-casts-pp:
       (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
