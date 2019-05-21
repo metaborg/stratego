@@ -6,6 +6,7 @@ menus
 
     action: "Elaborate source AST" = menu-source-elaborate (source)
     action: "Elaborate source" = menu-source-elaborate-pp
+    action: "Tranform casts" = menu-source-transform-casts-pp
     
 //    action: "Elaborate analyzed AST" = menu-analyzed-elaborate  
 // action: "Elaborate analyzed" = menu-analyzed-elaborate-pp

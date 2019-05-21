@@ -37,13 +37,19 @@ rules
       indexed-ast := <stx-index-ast(|path)> ast; 
       ast' := <stx-evaluate(|"static-semantics", "insertCasts")> [indexed-ast]
       
-  transform-casts = topdown(try(transform-cast))
+  transform-type-checks = topdown(try(transform-type-check))
   
-  transform-cast : SDefTypeCheck(typ, strat) -> SDefNoArgs(typ', strat)
+  transform-type-check : SDefTypeCheck(typ, strat) -> SDefNoArgs(typ', strat)
   where typ' := <conc-strings> ("strategoGradual--is-a-", typ)
   
-  transform-cast = fail
-    
+  transform-type-check = fail
+
+  transform-cast-terms = topdown(try(transform-cast-term))
+  
+  transform-cast-term : CastTerm(e, _, SRT(t)) -> App(CallNoArgs(SVar(name)), e)
+  where
+    name := <conc-strings> ("strategoGradual--is-a-", t)
+  
   menu-source-elaborate:
       (source-ast, _, _, path, project-path) -> (filename, elaborated-ast)
     with
@@ -66,5 +72,13 @@ rules
       filename := <guarantee-extension(|"elaborated.strg")> path
     ; desugared-ast := <desugar-all> source-ast
     ; analyzed-ast := <insertCasts(|path)> desugared-ast
-    ; elaborated-ast := <elaborate;transform-casts> analyzed-ast
+    ; elaborated-ast := <elaborate;transform-type-checks> analyzed-ast
     ; pretty-printed := <pp-StrategoGradual-string> elaborated-ast
+    
+  menu-source-transform-casts-pp:
+      (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
+    with
+      filename := <guarantee-extension(|"cst.strg")> path
+    ; desugared-ast := <desugar-all> source-ast
+    ; transformed-ast := <transform-cast-terms> desugared-ast
+    ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
