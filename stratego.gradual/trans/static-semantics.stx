@@ -72,6 +72,11 @@ rules
   insertCasts : Module -> Module
   insertCasts(m) = m' :- moduleOkC(m) == m'.
   
+  insertTypeChecks : Module -> Module
+  insertTypeChecks(Module(x, sections)) = Module(x, sections') :- {typechecks}
+    insertTypeCheckSections(sections) == typechecks,
+    sections' == concatenate(sections, [typechecks]).
+    
   consistent: TYPE * TYPE
   consistent(DYN(), T).
   consistent(T, DYN()).
@@ -88,11 +93,9 @@ rules moduleOk : Module
 
   moduleOkC : Module -> Module
 
-  moduleOkC(Module(x, sections)) = Module(x, sections'') :- {s typechecks sections'}
+  moduleOkC(Module(x, sections)) = Module(x, sections') :- {s}
     new s,
-    sectionsOk(s, sections) == sections',
-    insertTypeCheckSections(s, sections) == typechecks,
-    sections'' == concatenate(sections', [typechecks]).
+    sectionsOk(s, sections) == sections'.
 
   concatenate : list(Section) * list(Section) -> list(Section)
   concatenate([s], s2) = s3 :- s3 == [s|s2].
@@ -254,28 +257,22 @@ rules // rules
     
 rules // insertTypeChecks
 
-  insertTypeCheckSection : scope * Section -> Section
-  insertTypeCheckSections maps insertTypeCheckSection(*, list(*)) = *
+  insertTypeCheckSection : Section -> Section
+  insertTypeCheckSections maps insertTypeCheckSection(list(*)) = *
   
-  insertTypeCheckSection(s, Signature(sigSec)) = Rules(rs) :-
-    insertTypeCheckSigSections(s, sigSec) == rs.
+  insertTypeCheckSection(Signature(sigSec)) = Rules(rs) :-
+    insertTypeCheckSigSections(sigSec) == rs.
   
-  insertTypeCheckSection(s, Rules(rs)) = nil.
+  insertTypeCheckSection(Rules(rs)) = nil.
   
-  insertTypeCheckSigSection : scope * SigSection -> list(Def)
-  insertTypeCheckSigSections maps insertTypeCheckSigSection(*, list(*)) = *
+  insertTypeCheckSigSection : SigSection -> list(Def)
+  insertTypeCheckSigSections maps insertTypeCheckSigSection(list(*)) = *
   
-  insertTypeCheckSigSection(s, Sorts(sorts)) = nil.
-  insertTypeCheckSigSection(s, Constructors(cons)) = def :-
-    insertTypeCheckCons(s, cons) == def.
+  insertTypeCheckSigSection(Sorts(sorts)) = nil.
+  insertTypeCheckSigSection(Constructors(cons)) = def :-
+    insertTypeCheckCons(cons) == def.
     
-  insertTypeCheckCon : scope * OpDecl -> Def
-  insertTypeCheckCons maps insertTypeCheckCon(*, list(*)) = list(*)
+  insertTypeCheckCon : OpDecl -> Def
+  insertTypeCheckCons maps insertTypeCheckCon(list(*)) = list(*)
   
-  insertTypeCheckCon(s, OpDecl(c, FunType(srts, ConstType(SortNoArgs(typ))))) = strat :- {args}
-    toWlds(srts) == args,
-    strat == SDefTypeCheck(typ, c, srts).//Match(NoAnnoList(Op(c, args)))).
-
-  toWld : Type -> Term
-  toWlds maps toWld(list(*)) = list(*)
-  toWld(ConstType(SortNoArgs(srt))) = Wld().
+  insertTypeCheckCon(OpDecl(c, FunType(srts, ConstType(SortNoArgs(typ))))) = SDefTypeCheck(typ, c, srts).

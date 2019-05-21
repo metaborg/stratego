@@ -10,8 +10,6 @@ imports
   signature
   constructors 
     SDefTypeCheck : ID * ID * List(Type) -> Def
-    SDefNoArgs : ID * Strategy -> Def
-    CastTerm : Term * TYPE * TYPE -> TERM
 
 rules // insert casts
 
@@ -20,14 +18,21 @@ rules // insert casts
   insert-casts(|path) :
       ast -> ast'
     where 
-      indexed-ast := <stx-index-ast(|path)> ast; 
-      ast' := <stx-evaluate(|"static-semantics", "insertCasts")> [indexed-ast]
+      indexed-ast := <stx-index-ast(|path)> ast
+    ; ast' := <stx-evaluate(|"static-semantics", "insertCasts")> [indexed-ast]
 
 rules // insert type checks
 
-  insert-typechecks = topdown(try(insert-typecheck))
+  insert-typechecks(|path) :
+      ast -> ast''
+    where
+      indexed-ast := <stx-index-ast(|path)> ast
+    ; ast' := <stx-evaluate(|"static-semantics", "insertTypechecks")> [indexed-ast]
+    ; ast'' := <transform-typechecks> ast'
+
+  transform-typechecks = topdown(try(transform-typecheck))
   
-  insert-typecheck :
+  transform-typecheck :
       SDefTypeCheck(typ, name, args) -> RDefNoArgs(typ', Rule(op, op, []))
     where 
       typ' := <conc-strings> ("strategoGradual--is-a-", typ)
@@ -72,12 +77,12 @@ rules // menu items
       (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
     with
       filename := <guarantee-extension(|"tchk.strg")> path
-    ; transformed-ast := <insert-typechecks> source-ast
+    ; transformed-ast := <insert-typechecks(|path)> source-ast
     ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
     
   menu-source-elaborate-pp:
       (source-ast, _, _, path, project-path) -> (filename, pretty-printed)
     with
       filename := <guarantee-extension(|"el.strg")> path
-    ; transformed-ast := <insert-casts(|path);transform-cast-terms;insert-typechecks> source-ast
+    ; transformed-ast := <insert-casts(|path);insert-typechecks(|path);transform-cast-terms> source-ast
     ; pretty-printed := <pp-StrategoGradual-string> transformed-ast
