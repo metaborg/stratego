@@ -161,9 +161,9 @@ strategies
           ; pre-desugar
           ; check-overlay
 //          ; try(DeclareVarToConst)
-        )
+        /*)
 
-      ; m-transform-overlays(id
+      ; m-transform-overlays(id*/
 //// commented: Nullary constructors feature, off in separate compilation
 ////          ; m-variables-to-constructors-in-def; pre-desugar
           ; not(def-use-def)
@@ -212,9 +212,9 @@ strategies
             ; check-patterns
             ; split-large-term-builds
           )
-        )
+        /*)
 
-      ; m-transform-local-defs(id
+      ; m-transform-local-defs(id*/
           ; joindefs
           ; rename-sdef2
           ; ![<id>]
