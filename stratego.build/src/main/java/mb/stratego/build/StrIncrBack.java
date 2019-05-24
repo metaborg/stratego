@@ -13,6 +13,8 @@ import mb.stratego.compiler.pack.Packer;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.util.RandomAccessMode;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
@@ -20,13 +22,16 @@ import org.metaborg.util.cmd.Arguments;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.regex.Pattern;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     public static final String id = StrIncrBack.class.getCanonicalName();
@@ -134,30 +139,34 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
-        final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
+//        final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
         for(File strategyContrib : input.strategyContributions) {
             execContext.require(strategyContrib, FileSystemStampers.hash());
-            contributionPaths.add(strategyContrib.toPath());
+//            contributionPaths.add(strategyContrib.toPath());
         }
-
-        final List<Path> overlayPaths = new ArrayList<>(input.overlayContributions.size());
+//
+//        final List<Path> overlayPaths = new ArrayList<>(input.overlayContributions.size());
         for(File overlayFile : input.overlayContributions) {
             execContext.require(overlayFile, FileSystemStampers.hash());
-            overlayPaths.add(overlayFile.toPath());
+//            overlayPaths.add(overlayFile.toPath());
         }
 
         // Pack the directory into a single strategy
-        final Path packedFile = Paths.get(input.strategyDir.toString(), "packed$.ctree");
+        final FileObject packedFile = resourceService.resolve(URI.create("ram://" + input.strategyDir.getAbsolutePath() + "/packed$.ctree"));
+        long startTime = System.nanoTime();
         if(input.isBoilerplate) {
-            Packer.packBoilerplate(contributionPaths, packedFile);
+            Packer.packBoilerplate(input.strategyContributions, packedFile);
         } else {
-            Packer.packStrategy(overlayPaths, contributionPaths, input.ambStrategyResolution, packedFile);
+            Packer.packStrategy(input.overlayContributions, input.strategyContributions, input.ambStrategyResolution, packedFile);
         }
-        execContext.provide(packedFile.toFile());
+        execContext.logger().debug(
+            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+//        execContext.provide(packedFile.toFile());
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().addFile("-i", packedFile.toFile()).addFile("-o", input.outputPath)
+        final Arguments arguments = new Arguments().add("-i", packedFile.getPublicURIString()).addFile("-o", input.outputPath)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
@@ -181,18 +190,22 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         }
         arguments.addAll(input.extraArgs);
 
-        final ResourceAgentTracker tracker =
-            newResourceTracker(new File(System.getProperty("user.dir")), Pattern.quote("[ strj | info ]") + ".*",
+        final ResourceAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")));
+        /*, Pattern.quote("[ strj | info ]") + ".*",
                 Pattern.quote("[ strj | error ] Compilation failed") + ".*",
                 Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
                 Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
                 Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*",
                 Pattern.quote("* warning (escaping-var-id):") + ".*",
-                Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));
+                Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));*/
 
+        startTime = System.nanoTime();
         final StrategoExecutor.ExecutionResult result =
             new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
                 .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
+        execContext.logger().debug(
+            "\"BackEnd task stratego code took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);

@@ -280,11 +280,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private final IResourceService resourceService;
 
-    private final StrIncrFront strIncrFront;
+    private final StrIncrFront2 strIncrFront;
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    @Inject public StrIncr(IResourceService resourceService, StrIncrFront2 strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
@@ -303,6 +303,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(final STask t : input.originTasks) {
             execContext.require(t);
         }
+
+        execContext.logger().debug("Starting time measurement");
+        long startTime = System.nanoTime();
 
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
         final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
@@ -366,7 +369,17 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         boolean checkOk = true;
 
+        long frontEndStartTime;
+        long frontEndTime = 0;
+        long frontEndLibTime = 0;
+        long shuffleStartTime;
+        long shuffleTime = 0;
+        long shuffleLibTime = 0;
+        long numberOfFETasks = 0;
+        long numberOfFELibTasks = 0;
         do {
+            frontEndStartTime = System.nanoTime();
+
             final Module module = workList.remove();
 
             if(module.type == Module.Type.library) {
@@ -374,6 +387,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
                 final Task<StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
                 final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
+
+                shuffleStartTime = System.nanoTime();
+                frontEndLibTime += shuffleStartTime - frontEndStartTime;
+
                 registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
                 registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
                     Collections.emptySet());
@@ -388,18 +405,27 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
                 externalStrategies.addAll(frontLibOutput.strategies);
                 externalConstructors.addAll(frontLibOutput.constrs);
+
+                shuffleLibTime += System.nanoTime() - shuffleStartTime;
+
+                numberOfFELibTasks++;
                 continue;
             }
+            numberOfFETasks++;
 
             final String projectName = projectName(module.path);
-            final StrIncrFront.Input frontInput =
-                new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
+            final StrIncrFront2.Input frontInput =
+                new StrIncrFront2.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final Task<StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
+            final Task<StrIncrFront2.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSerializableTask());
-            final StrIncrFront.Output frontOutput = execContext.require(task);
+            final StrIncrFront2.Output frontOutput = execContext.require(task);
             boilerplateFiles.add(resourceService.localPath(
                 CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
+
+            shuffleStartTime = System.nanoTime();
+            frontEndTime += shuffleStartTime - frontEndStartTime;
+
             final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
             theImports.addAll(defaultImports);
 
@@ -452,7 +478,18 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             expandedImports.removeAll(seen);
             workList.addAll(expandedImports);
             seen.addAll(expandedImports);
+
+            shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
+
+        long betweenFrontAndCheck = System.nanoTime();
+        execContext.logger().debug("\"Frontends overall took\", " + (betweenFrontAndCheck - startTime));
+        execContext.logger().debug("\"Purely str file frontend tasks took\", " + frontEndTime);
+        execContext.logger().debug("\"Purely libs took\", " + frontEndLibTime);
+        execContext.logger().debug("\"Shuffling information and tracking imports took\", " + shuffleTime);
+        execContext.logger().debug("\"Shuffling information in libs took\", " + shuffleLibTime);
+        execContext.logger().debug("\"Number of FrontEnd tasks\", " + numberOfFETasks);
+        execContext.logger().debug("\"Number of FrontEndLib tasks\", " + numberOfFELibTasks);
 
         // CHECK: constructor/strategy uses have definition which is imported
         final StaticCheckOutput staticCheckOutput =
@@ -460,9 +497,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 usedConstructors, definedStrategies, definedConstructors, definedCongruences, externalStrategies,
                 strategyNeedsExternal, overlayConstrs);
 
+        long betweenCheckAndBack = System.nanoTime();
+        execContext.logger().debug("\"Static check overall took\", " + (betweenCheckAndBack - betweenFrontAndCheck));
+
         execContext.logger().debug("Renaming:\n" + staticCheckOutput);
 
         // BACKEND
+        long numberOfBETasks = 0;
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(String builtinLib : input.builtinLibs) {
@@ -490,6 +531,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
                     input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
+            numberOfBETasks++;
         }
         for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
             String congrName = entry.getKey();
@@ -522,6 +564,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
+            numberOfBETasks++;
         }
         // boilerplate task
         final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
@@ -532,6 +575,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                 input.cacheDir, input.constants, input.includeDirs, args, true);
         execContext.require(strIncrBack.createTask(backEndInput));
+        numberOfBETasks++;
+
+        long finishTime = System.nanoTime();
+        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
+        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
+        execContext.logger().debug("\"Full Stratego incremental build took\", " + (finishTime - startTime));
 
         return None.instance;
     }

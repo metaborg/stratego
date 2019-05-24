@@ -2,6 +2,7 @@ package mb.stratego.build;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
@@ -9,9 +10,11 @@ import mb.stratego.build.util.CommonPaths;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
@@ -20,30 +23,44 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
-import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
+import org.metaborg.spoofax.core.syntax.IParseTableProvider;
+import org.metaborg.spoofax.core.syntax.IParserConfig;
 import org.metaborg.spoofax.core.syntax.ImploderImplementation;
+import org.metaborg.spoofax.core.syntax.JSGLR1FileParseTableProvider;
+import org.metaborg.spoofax.core.syntax.JSGLR1I;
+import org.metaborg.spoofax.core.syntax.JSGLR2FileParseTableProvider;
+import org.metaborg.spoofax.core.syntax.JSGLR2I;
+import org.metaborg.spoofax.core.syntax.JSGLRI;
+import org.metaborg.spoofax.core.syntax.ParserConfig;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
+import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 import org.spoofax.terms.io.binary.TermReader;
+import org.strategoxt.HybridInterpreter;
+import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
@@ -278,32 +295,31 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private final ILanguageIdentifierService languageIdentifierService;
     private final IDialectService dialectService;
     private final ILanguageService languageService;
+    private final IStrategoRuntimeService strategoRuntimeService;
     private final ITermFactoryService termFactoryService;
     private final IContextService contextService;
     private final IStrategoCommon strategoCommon;
     private final ISourceTextService sourceTextService;
-    private final ISpoofaxUnitService unitService;
-    private final ISpoofaxSyntaxService syntaxService;
+    private static final Map<String, ParserConfig> parserConfigs = new HashMap<>();
 
     private static final String COMPILE_STRATEGY_NAME = "compile-module";
     private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
 
     @Inject public StrIncrFront(IResourceService resourceService, IProjectService projectService,
         ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
-        ILanguageService languageService, ITermFactoryService termFactoryService, IContextService contextService,
-        IStrategoCommon strategoCommon, ISourceTextService sourceTextService, ISpoofaxUnitService unitService,
-        ISpoofaxSyntaxService syntaxService) {
+        ILanguageService languageService, IStrategoRuntimeService strategoRuntimeService,
+        ITermFactoryService termFactoryService, IContextService contextService, IStrategoCommon strategoCommon,
+        ISourceTextService sourceTextService) {
         this.resourceService = resourceService;
         this.projectService = projectService;
         this.languageIdentifierService = languageIdentifierService;
         this.dialectService = dialectService;
         this.languageService = languageService;
+        this.strategoRuntimeService = strategoRuntimeService;
         this.termFactoryService = termFactoryService;
         this.contextService = contextService;
         this.strategoCommon = strategoCommon;
         this.sourceTextService = sourceTextService;
-        this.unitService = unitService;
-        this.syntaxService = syntaxService;
     }
 
 
@@ -314,7 +330,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         final FileObject location = resourceService.resolve(input.projectLocation);
         final FileObject inputFile = resourceService.resolve(input.inputFileString);
-        final IStrategoTerm result = runStrategoCompileBuilder(inputFile, input.projectName, location);
+        final long startTime = System.nanoTime();
+        final IStrategoTerm result =
+            runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
+        execContext.logger().debug(
+            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
+                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         execContext.require(resourceService.localFile(inputFile));
         // TODO: reinstate support for files from within a jar? Where was this used again?
@@ -365,11 +386,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 .localPath(CommonPaths.strSepCompStrategyFile(location, input.projectName, moduleName, strategy));
             assert strategyFile
                 != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-            //            final @Nullable File constrFile = resourceService
-            //                .localPath(CommonPaths.strSepCompConstrListFile(location, input.projectName, moduleName, strategy));
-            //            assert constrFile
-            //                != null : "Bug in strSepCompConstrListFile or the arguments thereof: returned path is not a file";
-            //            execContext.provide(constrFile);
             strategyFiles.put(strategy, strategyFile);
             execContext.provide(strategyFile);
         }
@@ -449,8 +465,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             imports, constrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(FileObject inputFile, String projectName,
+    private IStrategoTerm runStrategoCompileBuilder(Logger logger, FileObject inputFile, String projectName,
         FileObject projectLocation) throws Exception {
+        final long startTime = System.nanoTime();
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(inputFile);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         IStrategoTerm ast;
@@ -480,11 +497,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             // parse *.str file
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
-        return transform(inputFile, projectName, projectLocation, strategoLang, ast);
+        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
+        return transform(logger, inputFile, projectName, projectLocation, strategoLang, ast);
     }
 
-    private IStrategoTerm transform(FileObject inputFile, String projectName, FileObject projectLocation,
+    private IStrategoTerm transform(Logger logger, FileObject inputFile, String projectName, FileObject projectLocation,
         @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws Exception {
+        final long startTime = System.nanoTime();
         final @Nullable IProject project = projectService.get(projectLocation);
         assert project != null : "Could not find project in location: " + projectLocation;
         if(!contextService.available(strategoLang)) {
@@ -494,44 +513,114 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final ITermFactory f = termFactoryService.getGeneric();
         final String projectPath = transformContext.project().location().toString();
         final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
+        final long beforeStrategoCommonCall = System.nanoTime();
+        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
+        final HybridInterpreter interpreter = strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
+        interpreter.getContext().setContextObject(transformContext);
+        interpreter.getCompiledContext().setContextObject(transformContext);
         @Nullable IStrategoTerm result =
-            strategoCommon.invoke(strategoLang, transformContext, inputTerm, COMPILE_STRATEGY_NAME);
+            strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
+        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
         if(result == null) {
             throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
         }
         return result;
     }
 
-    private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
-        ILanguageImpl strategoLang) throws Exception {
-        @Nullable SyntaxFacet syntaxFacet = null;
-        @Nullable String dialectName = null;
-        if(strategoDialect != null) {
-            syntaxFacet = strategoDialect.facet(SyntaxFacet.class);
-            dialectName = dialectService.dialectName(strategoDialect);
-            assert syntaxFacet != null : "Cannot get Syntax Facet from (non-null) Stratego dialect";
-            assert dialectName != null : "Cannot get dialect name from (non-null) Stratego dialect";
-            // Get dialect with stratego imploder setting
-            strategoDialect =
-                dialectService.update(dialectName, syntaxFacet.withImploderSetting(ImploderImplementation.stratego));
+    private static ILanguageComponent getComponent(@Nullable ILanguageImpl language) throws ExecException {
+        if(language != null) {
+            for(ILanguageComponent component : language.components()) {
+                if(component.facet(StrategoRuntimeFacet.class) == null) {
+                    continue;
+                }
+                return component;
+            }
         }
+        throw new ExecException("Could not find StrategoRuntime component for Stratego.lang");
+    }
 
-        // PARSE
-        final @Nullable IStrategoTerm ast;
-        final String text = sourceTextService.text(inputFile);
-        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLang, strategoDialect);
-        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit);
-        ast = parseResult.ast();
-        if(!parseResult.valid() || !parseResult.success() || ast == null) {
-            throw new ExecException(
-                "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!parseResult.valid() ?
-                    " errors" : (!parseResult.success()) ? "out errors" : " ast == null"));
-        }
+    private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
+        ILanguageImpl strategoLang) throws ParseException, ExecException {
+        final ImploderImplementation imploder;
+        final ILanguageImpl langImpl;
         if(strategoDialect != null) {
-            // Update registered dialect back to old one.
-            dialectService.update(dialectName, syntaxFacet);
+            langImpl = strategoDialect;
+            imploder = ImploderImplementation.stratego;
+        } else {
+            langImpl = strategoLang;
+            imploder = ImploderImplementation.java;
         }
-        return ast;
+        final ITermFactory termFactory = termFactoryService.get(strategoLang, null, false);
+
+        final IParserConfig config = getParserConfig(findParseTable(langImpl), imploder);
+        try {
+            final String inputText = sourceTextService.text(inputFile);
+            final JSGLRI<?> parser;
+
+            if(imploder == ImploderImplementation.java) {
+                parser = new JSGLR2I(config, termFactory, strategoLang, null, inputFile, inputText, false, false);
+            } else {
+                final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
+                parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect, inputFile, inputText);
+            }
+
+            final ParseContrib contrib = parser.parse(null);
+
+            if(!contrib.valid || !contrib.success || contrib.ast == null) {
+                throw new ExecException(
+                    "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!contrib.valid ? " errors" :
+                        (!contrib.success) ? "out errors" : " ast == null"));
+            }
+
+            return contrib.ast;
+        } catch(IOException | ParseTableReadException | InvalidParseTableException e) {
+            throw new ParseException(null, e);
+        }
+    }
+
+    private IParserConfig getParserConfig(FileObject parseTable, ImploderImplementation imploder)
+        throws ParseException {
+        if(parserConfigs.containsKey(parseTable.toString())) {
+            return parserConfigs.get(parseTable.toString());
+        }
+        final ITermFactory termFactory =
+            termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
+        final IParseTableProvider provider;
+        if(imploder == ImploderImplementation.java) {
+            provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
+        } else {
+            provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
+        }
+        final ParserConfig config = new ParserConfig("Module", provider, imploder);
+        parserConfigs.put(parseTable.toString(), config);
+        return config;
+    }
+
+    private static FileObject findParseTable(ILanguageImpl lang) throws ParseException {
+        final SyntaxFacet facet = Objects.requireNonNull(lang.facet(SyntaxFacet.class));
+        @Nullable FileObject parseTable = null;
+        if(facet.parseTable == null) {
+            try {
+                boolean multipleTables = false;
+                for(ILanguageComponent component : lang.components()) {
+                    if(component.config().sdfEnabled()) {
+                        if(component.config().parseTable() != null) {
+                            if(multipleTables) {
+                                throw new ParseException(null);
+                            }
+
+                            parseTable = component.location().resolveFile(component.config().parseTable());
+                            multipleTables = true;
+                        }
+                    }
+                }
+            } catch(FileSystemException e) {
+                throw new ParseException(null, e);
+            }
+        } else {
+            parseTable = facet.parseTable;
+        }
+        return Objects.requireNonNull(parseTable);
     }
 
     @Override public String getId() {
