@@ -1,29 +1,36 @@
 package mb.stratego.compiler.pack;
 
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.util.iterators.Iterables2;
+import javax.annotation.Nullable;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-// import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
-import org.metaborg.util.iterators.Iterables2;
+// import java.util.Arrays;
 
 public class Packer {
     private static final String SPEC_START = "Specification([Signature([Constructors([])]), Overlays([\n";
     private static final String SPEC_MIDDLE = "\n]), Strategies([\n";
     private static final String SPEC_END = "\n])])";
-    public static final String ANNO_START = "\n{";
-    public static final String ANNO_END = "}";
+    private static final String ANNO_START = "\n{";
+    private static final String ANNO_END = "}";
+    private static final int BUFFER = 8192;
 
     /**
      * Packs StrategoCore strategy definitions in a directory into a single strategy definition in a file
@@ -73,7 +80,7 @@ public class Packer {
 
     /**
      * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
-     * 
+     *
      * @param strategyPaths
      *            Paths that only include .aterm files with the strategy bodies
      * @param outputFile
@@ -144,6 +151,94 @@ public class Packer {
     }
 
     /**
+     * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
+     *
+     * @param strategyPaths
+     *            Paths that only include .aterm files with the strategy bodies
+     * @param outputFile
+     *            Path of the outputFile
+     * @throws IOException
+     *             When there is a file system problem
+     */
+    public static void packStrategy(Iterable<File> overlayPaths, Iterable<File> strategyPaths, Map<String, String> ambStrategyResolution, FileObject outputFile)
+        throws IOException {
+        if(!outputFile.exists()) {
+            outputFile.createFile();
+        }
+
+        openFile:
+        try(final OutputStream outputStream = outputFile.getContent().getOutputStream()) {
+            try(final OutputStream fos = new BufferedOutputStream(outputStream)) {
+                byte[] buf = new byte[BUFFER];
+
+                fos.write(SPEC_START.getBytes());
+
+
+                String next_line = "";
+                for(File inputFile : overlayPaths) {
+                    try(final InputStream inputStream = new FileInputStream(inputFile)) {
+                        if(inputFile.length() == 0)
+                            continue;
+                        fos.write(next_line.getBytes());
+                        try(final InputStream fis = new BufferedInputStream(inputStream)) {
+                            int i;
+                            while((i = fis.read(buf)) != -1) {
+                                fos.write(buf, 0, i);
+                            }
+                        }
+                    }
+                    next_line = "\n,";
+                }
+
+                fos.write(SPEC_MIDDLE.getBytes());
+
+                next_line = "";
+                for(File inputFile : strategyPaths) {
+                    try(final InputStream inputStream = new FileInputStream(inputFile)) {
+                        if(inputFile.length() == 0)
+                            continue;
+                        fos.write(next_line.getBytes());
+
+                        try(final InputStream fis = new BufferedInputStream(inputStream)) {
+                            int i;
+                            while((i = fis.read(buf)) != -1) {
+                                fos.write(buf, 0, i);
+                            }
+                        }
+                    }
+                    next_line = "\n,";
+                }
+                if(Objects.equals(next_line, "")) {
+                    // When there are no relevant files, close the file
+                    break openFile;
+                }
+
+                fos.write(SPEC_END.getBytes());
+                if(!ambStrategyResolution.isEmpty()) {
+                    next_line = "";
+                    fos.write(ANNO_START.getBytes());
+                    for(Map.Entry<String, String> entry : ambStrategyResolution.entrySet()) {
+                        fos.write(next_line.getBytes());
+
+                        fos.write("(\"".getBytes());
+                        fos.write(entry.getKey().getBytes());
+                        fos.write("\",\"".getBytes());
+                        fos.write(entry.getValue().getBytes());
+                        fos.write("\")".getBytes());
+
+                        next_line = "\n,";
+                    }
+                    fos.write(ANNO_END.getBytes());
+                }
+                return; // success
+            }
+        }
+        // Break to here when there are no relevant files; clean up incomplete file
+        outputFile.delete();
+        throw new IOException("Input directory does not contain aterm files");
+    }
+
+    /**
      * Packs Strategy definitions of some paths into a single CTree definition in a file
      * 
      * @param paths
@@ -176,6 +271,54 @@ public class Packer {
                 throw new IOException("Input directory does not contain aterm files");
             }
             write(outChannel, SPEC_END);
+        }
+    }
+
+    /**
+     * Packs Strategy definitions of some paths into a single CTree definition in a file
+     *
+     * @param paths
+     *            Paths that only include .aterm files with the strategy definitions
+     * @param outputFile
+     *            Path of the outputFile
+     * @throws IOException
+     *             When there is a file system problem or no aterm files were found
+     */
+    public static void packBoilerplate(Iterable<File> paths, FileObject outputFile) throws IOException {
+        if(!outputFile.exists()) {
+            outputFile.createFile();
+        }
+
+        try(final OutputStream outputStream = outputFile.getContent().getOutputStream()) {
+            try(final OutputStream fos = new BufferedOutputStream(outputStream)) {
+                byte[] buf = new byte[BUFFER];
+
+                fos.write(SPEC_START.getBytes());
+                fos.write(SPEC_MIDDLE.getBytes());
+
+                int num_defs = 0;
+                String next_line = "";
+                for(File inputFile : paths) {
+                    num_defs++;
+                    try(final InputStream inputStream = new FileInputStream(inputFile)) {
+                        if(inputFile.length() == 0)
+                            continue;
+                        fos.write(next_line.getBytes());
+                        try(final InputStream fis = new BufferedInputStream(inputStream)) {
+                            int i;
+                            while((i = fis.read(buf)) != -1) {
+                                fos.write(buf, 0, i);
+                            }
+                        }
+                    }
+                    next_line = "\n,";
+                }
+                if(num_defs == 0) {
+                    throw new IOException("Input directory does not contain aterm files");
+                }
+
+                fos.write(SPEC_END.getBytes());
+            }
         }
     }
 
