@@ -332,6 +332,9 @@ exports
     Term "#" "(" Term ")" 	 -> PreTerm {cons("Explode")}
   > PreTerm "{" {Term ","}* "}"	 -> Term {cons("AnnoList")}
   > Var "@" Term 		 -> Term {cons("As")}
+  context-free priorities
+    PreTerm         -> Term {cons("NoAnnoList")}
+  > Var "@" PreTerm -> PreTerm {cons("As")}
 
 module Stratego-Sugar-Signatures
 imports
@@ -433,6 +436,7 @@ exports
 
   context-free priorities
     Term "#" "(" Term ")" 	 -> PreTerm {cons("Explode")}
+  > PreTerm "{^" PreTerm "}"   -> Term {cons("Anno")}
   > Var "@" Term 		 -> Term {cons("As")}
 
 module Stratego-Core-Strategies
