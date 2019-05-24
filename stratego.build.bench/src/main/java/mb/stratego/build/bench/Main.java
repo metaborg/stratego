@@ -267,12 +267,15 @@ public class Main {
                 extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         final Task<None> compileTask = strIncr.createTask(strIncrInput);
         try(final Pie pie = pieBuilder.build()) {
+            long startTime = System.nanoTime();
             try(final PieSession session = pie.newSession()) {
                 session.requireTopDown(compileTask);
             }
+            long buildTime = System.nanoTime();
+            System.out.println("\"First run took\", " + (buildTime - startTime));
+            startTime = buildTime;
 
             // We can do a bottom up build with a changeset
-            System.out.println("\n\n\nEmpty Change Set BottomUp\n\n\n");
             Set<ResourceKey> changedResources = new HashSet<>();
             pie.setObserver(compileTask, s -> {
                 // FIXME: Use jmh blackhole here to make sure nothing is optimized away
@@ -280,12 +283,16 @@ public class Main {
             try(final PieSession session = pie.newSession()) {
                 session.requireBottomUp(changedResources);
             }
+            buildTime = System.nanoTime();
+            System.out.println("\"Empty change set bottomup took\", " + (buildTime - startTime));
+            startTime = buildTime;
 
-            System.out.println("\n\n\nMain File Change Set BottomUp (No change in file)\n\n\n");
             changedResources.add(new FSPath(inputFile));
             try(final PieSession session = pie.newSession()) {
                 session.requireBottomUp(changedResources);
             }
+            buildTime = System.nanoTime();
+            System.out.println("\"Main file touched bottomup took\", " + (buildTime - startTime));
         }
     }
 }
