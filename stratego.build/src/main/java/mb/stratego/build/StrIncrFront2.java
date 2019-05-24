@@ -380,7 +380,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             storeOverlay(execContext, location, moduleName, overlayName, overlayASTList, factory, overlayFiles,
                 input.projectName);
             final HashSet<String> usedConstrs = new HashSet<>();
-            collectUsedNames(B.list((IStrategoTerm[]) overlayASTList.toArray()), usedConstrs);
+            collectUsedNames(B.list(overlayASTList.toArray(new IStrategoAppl[0])), usedConstrs);
             overlayConstrs.put(overlayName, usedConstrs);
         }
 

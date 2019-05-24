@@ -21,12 +21,12 @@ public class CollectUsedConstrsTermVisitor extends TermVisitor {
         if(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "Op", 2)) {
             if(Tools.isTermString(term.getSubterm(0))) {
                 if(!Tools.javaStringAt(term, 0).equals("")) {
-                    usedConstrs.add(Tools.javaStringAt(term, 0) + Tools.javaIntAt(term, 1));
+                    usedConstrs.add(Tools.javaStringAt(term, 0) + Tools.listAt(term, 1).size());
                 }
             } else {
                 usedConstrs.add(
                     strategoEscape(Tools.javaStringAt(Tools.<IStrategoTerm>termAt(term, 0), 0)) + Tools
-                        .javaIntAt(term, 1));
+                        .listAt(term, 1).size());
             }
         }
     }
