@@ -24,8 +24,14 @@ import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.resource.FileSelectorUtils;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -297,6 +303,16 @@ public class Main {
             }
             buildTime = System.nanoTime();
             System.out.println("\"Main file touched bottomup took\", " + (buildTime - startTime));
+
+            changedResources = new HashSet<>();
+            for(Path path : Files.newDirectoryStream(projectLocation.resolve("trans"), "*.str")) {
+                changedResources.add(new FSPath(path));
+            }
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(changedResources);
+            }
+            buildTime = System.nanoTime();
+            System.out.println("\"All source files touched bottomup took\", " + (buildTime - startTime));
         }
     }
 
@@ -425,6 +441,35 @@ public class Main {
             }
             buildTime = System.nanoTime();
             System.out.println("\"Main file touched bottomup took\", " + (buildTime - startTime));
+
+            final Set<ResourceKey> sourceChangedResources = new HashSet<>();
+            Files.walkFileTree(projectLocation.resolve("trans"), new SimpleFileVisitor<Path>() {
+                @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if(file.endsWith(".str")) {
+                        sourceChangedResources.add(new FSPath(file));
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(sourceChangedResources);
+            }
+            buildTime = System.nanoTime();
+            System.out.println("\"All source files touched bottomup took\", " + (buildTime - startTime));
+
+            Files.walkFileTree(projectLocation.resolve("src-gen"), new SimpleFileVisitor<Path>() {
+                @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if(file.endsWith(".str")) {
+                        sourceChangedResources.add(new FSPath(file));
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(sourceChangedResources);
+            }
+            buildTime = System.nanoTime();
+            System.out.println("\"All source/src-gen files touched bottomup took\", " + (buildTime - startTime));
         }
     }
 }
