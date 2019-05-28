@@ -1,5 +1,6 @@
 package mb.stratego.build;
 
+import mb.flowspec.terms.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.None;
@@ -15,6 +16,10 @@ import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.strj.strj;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
@@ -48,7 +53,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
     private static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
-    static final Pattern stripArityPattern = Pattern.compile("(\\w+)_\\d+_\\d+");
+    static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
+    private static final IStrategoConstructor constType = strj.init().getFactory().makeConstructor("ConstType", 1);
+    private static final IStrategoConstructor sort = strj.init().getFactory().makeConstructor("Sort", 2);
+    private static final IStrategoAppl A_TERM = B.appl(sort, B.string("ATerm"), B.list());
+    private static final IStrategoConstructor varDec = strj.init().getFactory().makeConstructor("VarDec", 2);
+    private static final IStrategoConstructor funType = strj.init().getFactory().makeConstructor("FunType", 2);
+    private static final IStrategoTerm newSVar = B.appl(varDec, B.string("a"), B.appl(funType, A_TERM, A_TERM));
+    private static final IStrategoTerm newTVar = B.appl(varDec, B.string("a"), B.appl(constType, A_TERM));
 
     public static final class Input implements Serializable {
         final File inputFile;
@@ -284,7 +296,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, StrIncrFront2 strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    @Inject
+    public StrIncr(IResourceService resourceService, StrIncrFront2 strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
@@ -318,7 +331,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         workList.add(inputModule);
         seen.add(inputModule);
 
-        final List<File> boilerplateFiles = new ArrayList<>();
         final List<STask> frontSourceTasks = new ArrayList<>();
         final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
@@ -350,16 +362,16 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it.
         final Set<String> strategyNeedsExternal = new HashSet<>();
 
-        // Cified-strategy-name to files with CTree definition of that strategy
-        final Map<String, Set<File>> strategyFiles = new HashMap<>();
-        // Constructor_arity of congruence to file with CTree definition of that strategy
-        final Map<String, File> congrFiles = new HashMap<>();
+        // Cified-strategy-name to definitions of that strategy
+        final Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
+        // Constructor_arity of congruence to definition of that strategy
+        final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
         // Cified-strategy-name to constructor_arity names that were used in the body
         final Map<String, Set<String>> strategyConstrs = new HashMap<>();
         // Overlay_arity names to constructor_arity names used
         final Map<String, Set<String>> overlayConstrs = new HashMap<>();
-        // Overlay_arity name to file with CTree definition of that overlay
-        final Map<String, Set<File>> overlayFiles = new HashMap<>();
+        // Overlay_arity name to definition of that overlay
+        final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
         // Cified-strategy-name to set of tasks that contributed strategy definitions
         final Map<String, List<STask>> strategyOrigins = new HashMap<>();
         // Cified-strategy-name to task that created strategy definitions
@@ -420,8 +432,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final Task<StrIncrFront2.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSerializableTask());
             final StrIncrFront2.Output frontOutput = execContext.require(task);
-            boilerplateFiles.add(resourceService.localPath(
-                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
+            //            boilerplateFiles.add(resourceService.localPath(
+            //                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
 
             shuffleStartTime = System.nanoTime();
             frontEndTime += shuffleStartTime - frontEndStartTime;
@@ -443,25 +455,24 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
 
             // shuffling output for backend
-            for(Map.Entry<String, File> gen : frontOutput.strategyFiles.entrySet()) {
+            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
                 String strategyName = gen.getKey();
                 // ensure the strategy is a key in the strategyFiles map
-                getOrInitialize(strategyFiles, strategyName, HashSet::new);
-                getOrInitialize(strategyFiles, strategyName, HashSet::new).add(gen.getValue());
+                getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
                 getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSerializableTask());
                 getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(strategyName));
             }
-            for(Map.Entry<String, File> gen : frontOutput.congrFiles.entrySet()) {
+            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
                 final String congrName = gen.getKey();
-                congrFiles.put(congrName, gen.getValue());
+                congrASTs.put(congrName, gen.getValue());
                 congrOrigin.put(congrName, task.toSerializableTask());
                 getOrInitialize(strategyConstrs, congrName, HashSet::new)
                     .addAll(frontOutput.strategyConstrs.get(congrName));
             }
-            for(Map.Entry<String, File> gen : frontOutput.overlayFiles.entrySet()) {
+            for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
                 final String overlayName = gen.getKey();
-                getOrInitialize(overlayFiles, overlayName, HashSet::new).add(gen.getValue());
+                getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
                 getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSerializableTask());
             }
             for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
@@ -509,14 +520,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(String builtinLib : input.builtinLibs) {
             args.add("-la", builtinLib);
         }
-        for(String strategyName : strategyFiles.keySet()) {
-            final List<File> strategyContributions;
+        for(String strategyName : strategyASTs.keySet()) {
+            final List<IStrategoAppl> strategyContributions;
             final List<STask> backEndOrigin;
-            final List<File> strategyOverlayFiles = new ArrayList<>();
-            strategyContributions = Arrays.asList(strategyFiles.get(strategyName).toArray(new File[0]));
+            final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
+            strategyContributions = strategyASTs.get(strategyName);
             backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
             for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
-                strategyOverlayFiles.addAll(overlayFiles.getOrDefault(overlayName, Collections.emptySet()));
+                strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
                 backEndOrigin.addAll(overlayOrigins.getOrDefault(overlayName, Collections.emptyList()));
             }
 
@@ -533,10 +544,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(strIncrBack.createTask(backEndInput));
             numberOfBETasks++;
         }
-        for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
+        for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
             String congrName = entry.getKey();
-            File congrFile = entry.getValue();
-            if(!strategyFiles.getOrDefault(congrName + "_0", Collections.emptySet()).isEmpty()) {
+            IStrategoAppl congrAST = entry.getValue();
+            if(!strategyASTs.getOrDefault(congrName + "_0", Collections.emptyList()).isEmpty()) {
                 continue;
             }
             if(externalConstructors.contains(congrName)) {
@@ -544,14 +555,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     .debug("Dropping congruence for " + congrName + " in favour of external definition in library. ");
                 continue;
             }
-            final List<File> strategyContributions;
+            final List<IStrategoAppl> strategyContributions;
             final List<STask> backEndOrigin;
-            final List<File> strategyOverlayFiles = new ArrayList<>();
-            strategyContributions = Collections.singletonList(congrFile);
+            final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
+            strategyContributions = Collections.singletonList(congrAST);
             backEndOrigin = new ArrayList<>();
             backEndOrigin.add(Objects.requireNonNull(congrOrigin.get(congrName)));
             for(String overlayName : requiredOverlays(congrName, strategyConstrs, overlayConstrs)) {
-                strategyOverlayFiles.addAll(overlayFiles.getOrDefault(overlayName, Collections.emptySet()));
+                strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
                 backEndOrigin.addAll(overlayOrigins.getOrDefault(overlayName, Collections.emptyList()));
             }
 
@@ -567,11 +578,24 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             numberOfBETasks++;
         }
         // boilerplate task
+        final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
+        final B b = new B(strj.init().getFactory());
+        for(String strategyName : strategyASTs.keySet()) {
+            final Matcher m = stripArityPattern.matcher(strategyName);
+            if(!m.matches()) {
+                throw new ExecException(
+                    "Frontend returned stratego strategy name that does not conform to cified name: '" + strategyName
+                        + "'");
+            }
+            final int svars = Integer.parseInt(m.group(2));
+            final int tvars = Integer.parseInt(m.group(3));
+            decls.add(sdefStub(b, strategyName, svars, tvars));
+        }
         final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
         assert strSrcGenDir
             != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
         StrIncrBack.Input backEndInput =
-            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, boilerplateFiles,
+            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls,
                 Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                 input.cacheDir, input.constants, input.includeDirs, args, true);
         execContext.require(strIncrBack.createTask(backEndInput));
@@ -749,6 +773,21 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return new StaticCheckOutput(ambStratResolution);
     }
 
+    private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) throws ExecException {
+        final IStrategoAppl newBody = b.applShared("Id");
+        final IStrategoTerm name = b.stringShared(strategyName);
+
+        final IStrategoTerm[] newSVarArray = new IStrategoTerm[svars];
+        Arrays.fill(newSVarArray, newSVar);
+        final IStrategoTerm newSVars = B.list(newSVarArray);
+
+        final IStrategoTerm[] newTVarArray = new IStrategoTerm[tvars];
+        Arrays.fill(newTVarArray, newTVar);
+        final IStrategoTerm newTVars = B.list(newTVarArray);
+
+        return b.applShared("SDefT", name, newSVars, newTVars, newBody);
+    }
+
     private static String stripArity(String s) throws ExecException {
         if(s.substring(s.length() - 4, s.length()).matches("_\\d_\\d")) {
             return s.substring(0, s.length() - 4);
@@ -761,7 +800,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             throw new ExecException(
                 "Frontend returned stratego strategy name that does not conform to cified name: '" + s + "'");
         }
-        return m.group(0);
+        return m.group(1);
     }
 
     private static String projectName(String inputFile) {

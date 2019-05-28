@@ -6,8 +6,7 @@ import org.spoofax.terms.attachments.VolatileTermAttachmentType;
 
 public class AmbUseAttachment extends AbstractTermAttachment {
     static final AmbUseAttachment INSTANCE = new AmbUseAttachment();
-    static final TermAttachmentType<AmbUseAttachment> TYPE =
-        new VolatileTermAttachmentType<>(AmbUseAttachment.class);
+    static final TermAttachmentType<AmbUseAttachment> TYPE = new VolatileTermAttachmentType<>(AmbUseAttachment.class);
 
     @Override public TermAttachmentType<AmbUseAttachment> getAttachmentType() {
         return TYPE;

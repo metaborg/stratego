@@ -1,7 +1,12 @@
 package mb.stratego.compiler.pack;
 
+import mb.flowspec.terms.B;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.iterators.Iterables2;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -16,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -34,21 +40,17 @@ public class Packer {
 
     /**
      * Packs StrategoCore strategy definitions in a directory into a single strategy definition in a file
-     * 
-     * @param strategyDir
-     *            Directory that only includes .aterm files with the strategy bodies
-     * @param outputFile
-     *            Path of the outputFile
-     * @param strategyName
-     *            The strategy name to use for the strategy definition
-     * @throws IOException
-     *             When there is a file system problem
+     *
+     * @param strategyDir  Directory that only includes .aterm files with the strategy bodies
+     * @param outputFile   Path of the outputFile
+     * @param strategyName The strategy name to use for the strategy definition
+     * @throws IOException When there is a file system problem
      */
     public static void packStrategy(Path strategyDir, @Nullable Path outputFile, String strategyName)
         throws IOException {
         if(outputFile == null) {
-            outputFile = Paths.get(strategyDir.getParent().getParent().toString(), "stratego.compiler.pack",
-                strategyName + ".ctree");
+            outputFile = Paths
+                .get(strategyDir.getParent().getParent().toString(), "stratego.compiler.pack", strategyName + ".ctree");
         }
         try(Stream<Path> strategyFiles = Files.list(strategyDir).filter(relevantFiles(outputFile))) {
             Iterable<Path> strategyIterable = strategyFiles::iterator;
@@ -60,13 +62,10 @@ public class Packer {
 
     /**
      * Packs Strategy definitions in a directory into a single CTree definition in a file
-     * 
-     * @param inputDir
-     *            Directory that only includes .aterm files with the strategy definitions
-     * @param outputFile
-     *            Path of the outputFile
-     * @throws IOException
-     *             When there is a file system problem or no aterm files were found
+     *
+     * @param inputDir   Directory that only includes .aterm files with the strategy definitions
+     * @param outputFile Path of the outputFile
+     * @throws IOException When there is a file system problem or no aterm files were found
      */
     public static void packBoilerplate(Path inputDir, @Nullable Path outputFile) throws IOException {
         if(outputFile == null) {
@@ -81,29 +80,29 @@ public class Packer {
     /**
      * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
      *
-     * @param strategyPaths
-     *            Paths that only include .aterm files with the strategy bodies
-     * @param outputFile
-     *            Path of the outputFile
-     * @throws IOException
-     *             When there is a file system problem
+     * @param strategyPaths Paths that only include .aterm files with the strategy bodies
+     * @param outputFile    Path of the outputFile
+     * @throws IOException When there is a file system problem
      */
-    public static void packStrategy(Iterable<Path> overlayPaths, Iterable<Path> strategyPaths, Map<String, String> ambStrategyResolution, Path outputFile)
-        throws IOException {
+    public static void packStrategy(Iterable<Path> overlayPaths, Iterable<Path> strategyPaths,
+        Map<String, String> ambStrategyResolution, Path outputFile) throws IOException {
         Files.createDirectories(outputFile.getParent());
 
         // We use the nio.Channel API here because it is supposed to be the fastest way
         // to append one file to another
         // This may need to be changed when using this tool inside Spoofax, dealing with
         // a virtual file system...
-        openFile: try(final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+        openFile:
+        try(final FileChannel outChannel = FileChannel
+            .open(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE)) {
             write(outChannel, SPEC_START);
 
             String next_line = "";
             for(Path inputFile : overlayPaths) {
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
-                    if(inChannel.size() == 0) continue;
+                    if(inChannel.size() == 0)
+                        continue;
                     write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
@@ -115,7 +114,8 @@ public class Packer {
             next_line = "";
             for(Path inputFile : strategyPaths) {
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
-                    if(inChannel.size() == 0) continue;
+                    if(inChannel.size() == 0)
+                        continue;
                     write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
@@ -153,15 +153,12 @@ public class Packer {
     /**
      * Packs StrategoCore strategy definition in some paths into a single strategy definition in a file
      *
-     * @param strategyPaths
-     *            Paths that only include .aterm files with the strategy bodies
-     * @param outputFile
-     *            Path of the outputFile
-     * @throws IOException
-     *             When there is a file system problem
+     * @param strategyPaths Paths that only include .aterm files with the strategy bodies
+     * @param outputFile    Path of the outputFile
+     * @throws IOException When there is a file system problem
      */
-    public static void packStrategy(Iterable<File> overlayPaths, Iterable<File> strategyPaths, Map<String, String> ambStrategyResolution, FileObject outputFile)
-        throws IOException {
+    public static void packStrategy(Iterable<File> overlayPaths, Iterable<File> strategyPaths,
+        Map<String, String> ambStrategyResolution, FileObject outputFile) throws IOException {
         if(!outputFile.exists()) {
             outputFile.createFile();
         }
@@ -240,19 +237,17 @@ public class Packer {
 
     /**
      * Packs Strategy definitions of some paths into a single CTree definition in a file
-     * 
-     * @param paths
-     *            Paths that only include .aterm files with the strategy definitions
-     * @param outputFile
-     *            Path of the outputFile
-     * @throws IOException
-     *             When there is a file system problem or no aterm files were found
+     *
+     * @param paths      Paths that only include .aterm files with the strategy definitions
+     * @param outputFile Path of the outputFile
+     * @throws IOException When there is a file system problem or no aterm files were found
      */
     public static void packBoilerplate(Iterable<Path> paths, Path outputFile) throws IOException {
         Files.createDirectories(outputFile.getParent());
 
-        try(final FileChannel outChannel = FileChannel.open(outputFile, StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+        try(final FileChannel outChannel = FileChannel
+            .open(outputFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+                StandardOpenOption.WRITE)) {
             write(outChannel, SPEC_START);
             write(outChannel, SPEC_MIDDLE);
 
@@ -261,7 +256,8 @@ public class Packer {
             for(Path inputFile : paths) {
                 num_defs++;
                 try(final FileChannel inChannel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
-                    if(inChannel.size() == 0) continue;
+                    if(inChannel.size() == 0)
+                        continue;
                     write(outChannel, next_line);
                     transferContents(inChannel, outChannel);
                 }
@@ -277,12 +273,9 @@ public class Packer {
     /**
      * Packs Strategy definitions of some paths into a single CTree definition in a file
      *
-     * @param paths
-     *            Paths that only include .aterm files with the strategy definitions
-     * @param outputFile
-     *            Path of the outputFile
-     * @throws IOException
-     *             When there is a file system problem or no aterm files were found
+     * @param paths      Paths that only include .aterm files with the strategy definitions
+     * @param outputFile Path of the outputFile
+     * @throws IOException When there is a file system problem or no aterm files were found
      */
     public static void packBoilerplate(Iterable<File> paths, FileObject outputFile) throws IOException {
         if(!outputFile.exists()) {
@@ -325,8 +318,8 @@ public class Packer {
     private static Predicate<? super Path> relevantFiles(final Path outputFile) {
         return f -> {
             try {
-                return Files.exists(f) && f.getFileName().toString().endsWith(".aterm")
-                    && !Files.isSameFile(f, outputFile) && Files.size(f) != 0;
+                return Files.exists(f) && f.getFileName().toString().endsWith(".aterm") && !Files
+                    .isSameFile(f, outputFile) && Files.size(f) != 0;
             } catch(IOException e) {
                 throw new RuntimeException(e);
             }
@@ -352,6 +345,41 @@ public class Packer {
         long total = bytes.length;
         while(transfered < total) {
             transfered += channel.write(buffer);
+        }
+    }
+
+
+    public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoAppl> strategyContributions) {
+        final B b = new B(f);
+        return b.applShared("Specification",
+            B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
+                b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+    }
+
+    public static IStrategoTerm packStrategy(ITermFactory f, Collection<IStrategoAppl> overlayContributions,
+        Collection<IStrategoAppl> strategyContributions, Map<String, String> ambStrategyResolution) {
+        final B b = new B(f);
+        final IStrategoTerm[] annos = new IStrategoTerm[ambStrategyResolution.size()];
+        int i = 0;
+        for(Map.Entry<String, String> entry : ambStrategyResolution.entrySet()) {
+            annos[i] = B.tuple(b.stringShared(entry.getKey()), b.stringShared(entry.getValue()));
+            i++;
+        }
+        final IStrategoAppl term;
+        if(overlayContributions.isEmpty()) {
+            term = b.applShared("Specification",
+                B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
+                    b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+        } else {
+            term = b.applShared("Specification",
+                B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
+                    b.applShared("Overlays", B.list(overlayContributions.toArray(new IStrategoTerm[0]))),
+                    b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+        }
+        if(ambStrategyResolution.isEmpty()) {
+            return term;
+        } else {
+            return f.annotateTerm(term, B.list(annos));
         }
     }
 }

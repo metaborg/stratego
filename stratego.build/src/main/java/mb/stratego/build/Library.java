@@ -17,6 +17,7 @@ import java.net.URL;
 
 public interface Library extends Serializable {
     IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException;
+
     @Nullable File fileToRead() throws MalformedURLException;
 
     static Library fromString(IResourceService resourceService, String name) throws FileSystemException {

@@ -20,7 +20,7 @@ public class StrategoExecutor {
         public final @Nullable IStrategoTerm result;
         public final @Nullable Exception exception;
 
-        ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception) {
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception) {
             this.success = success;
             this.outLog = outLog;
             this.errLog = errLog;
@@ -84,27 +84,33 @@ public class StrategoExecutor {
             name = strategy.getName();
         }
 
-        try {
-            if(!silent) {
-                log.info("Execute {} {}", name, arguments);
+        ExecutionResult result;
+        ret:
+        {
+            try {
+                if(!silent) {
+                    log.info("Execute {} {}", name, arguments);
+                }
+                context.setIOAgent(tracker.agent());
+                dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
+                final String[] args = getArgumentStrings(arguments);
+                context.invokeStrategyCLI(strategy, name, args);
+                result = new ExecutionResult(true, tracker.stdout(), tracker.stderr(), null);
+            } catch(StrategoExit e) {
+                if(e.getValue() == 0) {
+                    result = new ExecutionResult(true, tracker.stdout(), tracker.stderr(), e);
+                    break ret;
+                }
+                context.popOnExit(false);
+                if(!silent) {
+                    log.error("Executing {} failed: {}", name, e);
+                }
+                result = new ExecutionResult(false, tracker.stdout(), tracker.stderr(), e);
+            } finally {
+                dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
             }
-            context.setIOAgent(tracker.agent());
-            dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
-            final String[] args = getArgumentStrings(arguments);
-            context.invokeStrategyCLI(strategy, name, args);
-            return new ExecutionResult(true, tracker.stdout(), tracker.stderr(), null);
-        } catch(StrategoExit e) {
-            if(e.getValue() == 0) {
-                return new ExecutionResult(true, tracker.stdout(), tracker.stderr(), e);
-            }
-            context.popOnExit(false);
-            if(!silent) {
-                log.error("Executing {} failed: {}", name, e);
-            }
-            return new ExecutionResult(false, tracker.stdout(), tracker.stderr(), e);
-        } finally {
-            dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
         }
+        return result;
     }
 
 

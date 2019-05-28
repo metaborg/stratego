@@ -515,11 +515,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         final long beforeStrategoCommonCall = System.nanoTime();
         logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
-        final HybridInterpreter interpreter = strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
+        final HybridInterpreter interpreter =
+            strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
         interpreter.getContext().setContextObject(transformContext);
         interpreter.getCompiledContext().setContextObject(transformContext);
-        @Nullable IStrategoTerm result =
-            strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
+        @Nullable IStrategoTerm result = strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
         logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
         if(result == null) {
             throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);

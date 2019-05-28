@@ -25,8 +25,8 @@ public class CollectUsedConstrsTermVisitor extends TermVisitor {
                 }
             } else {
                 usedConstrs.add(
-                    strategoEscape(Tools.javaStringAt(Tools.<IStrategoTerm>termAt(term, 0), 0)) + Tools
-                        .listAt(term, 1).size());
+                    strategoEscape(Tools.javaStringAt(Tools.<IStrategoTerm>termAt(term, 0), 0)) + Tools.listAt(term, 1)
+                        .size());
             }
         }
     }

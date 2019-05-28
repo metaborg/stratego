@@ -42,29 +42,34 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ParseContrib;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr2.parsetable.ParseTableReadException;
-import org.spoofax.terms.StrategoConstructor;
+import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -171,15 +176,15 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         /**
          * Cified-strategy-name to CTree definition of that strategy [in-memory optimization]
          */
-        final transient Map<String, IStrategoAppl> strategyASTs;
+        transient Map<String, IStrategoAppl> strategyASTs;
         /**
          * Overlay_arity names to CTree definition of that strategy [in-memory optimization]
          */
-        final transient Map<String, List<IStrategoAppl>> overlayASTs;
+        transient Map<String, List<IStrategoAppl>> overlayASTs;
         /**
          * Constructor_arity names to CTree definition of that strategy [in-memory optimization]
          */
-        final transient Map<String, IStrategoAppl> congrASTs;
+        transient Map<String, IStrategoAppl> congrASTs;
 
         Output(String moduleName, Map<String, File> strategyFiles, Set<String> usedStrategies,
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
@@ -257,6 +262,77 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             result = 31 * result + congrFiles.hashCode();
             return result;
         }
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            writeASTs();
+            out.defaultWriteObject();
+        }
+
+        private void writeASTs() throws IOException {
+            for(Map.Entry<String, File> entry : strategyFiles.entrySet()) {
+                final IStrategoAppl strategyAST = strategyASTs.get(entry.getKey());
+                final File strategyFile = entry.getValue();
+
+                try(final OutputStream outputStream = new FileOutputStream(strategyFile)) {
+                    // N.B. unparseToFile(IStrategoTerm, OutputStream) buffers, so we don't
+                    new TAFTermReader(null).unparseToFile(strategyAST, outputStream);
+                }
+            }
+            for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
+                final IStrategoAppl congrAST = congrASTs.get(entry.getKey());
+                final File congrFile = entry.getValue();
+
+                try(final OutputStream outputStream = new FileOutputStream(congrFile)) {
+                    // N.B. unparseToFile(IStrategoTerm, OutputStream) buffers, so we don't
+                    new TAFTermReader(null).unparseToFile(congrAST, outputStream);
+                }
+            }
+            for(Map.Entry<String, File> entry : overlayFiles.entrySet()) {
+                final List<IStrategoAppl> overlayASTList = overlayASTs.get(entry.getKey());
+                final File overlayFile = entry.getValue();
+
+                try(final Writer writer = new BufferedWriter(new FileWriter(overlayFile))) {
+                    String sep = "";
+                    for(IStrategoAppl overlayAST : overlayASTList) {
+                        writer.write(sep);
+                        // N.B. unparseToFile(IStrategoTerm, Writer) doesn't buffer, so we can reuse our own buffer
+                        new TAFTermReader(null).unparseToFile(overlayAST, writer);
+                        sep = "\n";
+                    }
+                }
+            }
+        }
+
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            readASTs();
+        }
+
+        private void readASTs() throws IOException {
+            strategyASTs = new HashMap<>(strategyFiles.size() * 2);
+            final TAFTermReader tafTermReader = new TAFTermReader(new TermFactory());
+            for(Map.Entry<String, File> entry : strategyFiles.entrySet()) {
+                try(final InputStream is = new FileInputStream(entry.getValue())) {
+                    strategyASTs.put(entry.getKey(), (IStrategoAppl) tafTermReader.parseFromStream(is));
+                }
+            }
+            congrASTs = new HashMap<>(congrFiles.size() * 2);
+            for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
+                try(final InputStream is = new FileInputStream(entry.getValue())) {
+                    congrASTs.put(entry.getKey(), (IStrategoAppl) tafTermReader.parseFromStream(is));
+                }
+            }
+            overlayASTs = new HashMap<>(overlayFiles.size() * 2);
+            for(Map.Entry<String, File> entry : overlayFiles.entrySet()) {
+                try(final BufferedReader br = new BufferedReader(new FileReader(entry.getValue()))) {
+                    List<IStrategoAppl> overlayASTList = new ArrayList<>();
+                    for(String line; (line = br.readLine()) != null; ) {
+                        overlayASTList.add((IStrategoAppl) tafTermReader.parseFromString(line));
+                    }
+                    overlayASTs.put(entry.getKey(), overlayASTList);
+                }
+            }
+        }
     }
 
     private final IResourceService resourceService;
@@ -273,13 +349,6 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
 
     private static final String COMPILE_STRATEGY_NAME = "compile-module2";
     private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
-    private static final IStrategoConstructor varDec = new StrategoConstructor("VarDec", 2);
-    private static final IStrategoConstructor constType = new StrategoConstructor("ConstType", 1);
-    private static final IStrategoConstructor sort = new StrategoConstructor("Sort", 2);
-    private static final IStrategoConstructor funType = new StrategoConstructor("FunType", 2);
-    private static final IStrategoAppl A_TERM = B.appl(sort, B.string("ATerm"), B.list());
-    private static final IStrategoTerm newTVar = B.appl(varDec, B.string("a"), B.appl(constType, A_TERM));
-    private static final IStrategoTerm newSVar = B.appl(varDec, B.string("a"), B.appl(funType, A_TERM, A_TERM));
 
     @Inject public StrIncrFront2(IResourceService resourceService, IProjectService projectService,
         ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
@@ -332,32 +401,29 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         final IStrategoList congs = Tools.listAt(result, 4);
         final IStrategoList imps = Tools.listAt(result, 5);
 
-        final ITermFactory factory = termFactoryService.getGeneric();
-        final B b = new B(factory);
-
         final Map<String, IStrategoAppl> strategyASTs = new HashMap<>(defs3.size() * 2);
-        final List<IStrategoAppl> decls = new ArrayList<>(defs3.size());
         final Map<String, File> strategyFiles = new HashMap<>(defs3.size() * 2);
         final Map<String, Set<String>> strategyConstrs = new HashMap<>(defs3.size() * 2);
         final Set<String> strategyNeedsExternal = new HashSet<>();
         final Map<String, Set<String>> usedAmbStrats = new HashMap<>();
         final Set<String> usedStrats = new HashSet<>();
         for(IStrategoTerm defPair : defs3) {
-            final String strategy = Tools.javaStringAt(defPair, 0);
+            final String strategyName = Tools.javaStringAt(defPair, 0);
             final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);
-            strategyASTs.put(strategy, strategyAST);
+            strategyASTs.put(strategyName, strategyAST);
 
-            storeDef(execContext, location, moduleName, strategy, strategyAST, factory, strategyFiles,
-                input.projectName);
-            decls.add(toDecl(b, strategyAST));
+            storeDef(location, moduleName, strategyName, strategyFiles, input.projectName);
             final HashSet<String> usedConstrs = new HashSet<>();
             collectUsedNames(strategyAST, usedConstrs, usedStrats, usedAmbStrats);
-            strategyConstrs.put(strategy, usedConstrs);
+            strategyConstrs.put(strategyName, usedConstrs);
             if(needsExternal(strategyAST)) {
-                strategyNeedsExternal.add(strategy);
+                strategyNeedsExternal.add(strategyName);
             }
         }
-        storeDecls(execContext, location, moduleName, factory, decls, input.projectName);
+        final @Nullable File boilerplateFile =
+            resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, input.projectName, moduleName));
+        assert boilerplateFile
+            != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file";
 
         final Set<String> definedConstrs = new HashSet<>();
         for(IStrategoTerm constr : constrs) {
@@ -377,8 +443,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             final String overlayName = overlayPair.getKey();
             final List<IStrategoAppl> overlayASTList = overlayPair.getValue();
 
-            storeOverlay(execContext, location, moduleName, overlayName, overlayASTList, factory, overlayFiles,
-                input.projectName);
+            storeOverlay(location, moduleName, overlayName, overlayFiles, input.projectName);
             final HashSet<String> usedConstrs = new HashSet<>();
             collectUsedNames(B.list(overlayASTList.toArray(new IStrategoAppl[0])), usedConstrs);
             overlayConstrs.put(overlayName, usedConstrs);
@@ -391,8 +456,9 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             final String congrName = Tools.javaStringAt(congrPair, 0);
             final IStrategoAppl congrAST = Tools.applAt(congrPair, 1);
             congrs.add(congrName + "_0");
+            congrASTs.put(congrName, congrAST);
 
-            storeDef(execContext, location, moduleName, congrName, congrAST, factory, congrFiles, input.projectName);
+            storeDef(location, moduleName, congrName, congrFiles, input.projectName);
             final HashSet<String> usedConstrs = new HashSet<>();
             collectUsedNames(congrAST, usedConstrs, usedStrats, usedAmbStrats);
             strategyConstrs.put(congrName, usedConstrs);
@@ -440,90 +506,23 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         return false;
     }
 
-    private void storeDecls(ExecContext execContext, FileObject location, String moduleName, ITermFactory factory,
-        List<IStrategoAppl> decls, String projectName) throws IOException {
-        final @Nullable File boilerplateFile =
-            resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName));
-        assert boilerplateFile
-            != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file";
-        execContext.provide(boilerplateFile);
-        try(final Writer writer = new BufferedWriter(new FileWriter(boilerplateFile))) {
-            String sep = "";
-            for(IStrategoAppl decl : decls) {
-                writer.write(sep);
-                new TermReader(factory).unparseToFile(decl, writer);
-                sep = ", ";
-            }
-        }
-    }
-
-    private static IStrategoAppl toDecl(B b, IStrategoAppl strategyAST) throws ExecException {
-        if(Tools.hasConstructor(strategyAST, "AnnoDef", 2)) {
-            final IStrategoTerm annos = strategyAST.getSubterm(0);
-            final IStrategoAppl sdeft = sDefTtoDecl(b, Tools.applAt(strategyAST, 1));
-            return b.applShared("AnnoDef", annos, sdeft);
-        } else {
-            return sDefTtoDecl(b, strategyAST);
-        }
-    }
-
-    private static IStrategoAppl sDefTtoDecl(B b, IStrategoAppl strategyAST) throws ExecException {
-        if(Tools.hasConstructor(strategyAST, "SDefT", 4)) {
-            final IStrategoAppl newBody = b.applShared("Id");
-            final IStrategoTerm name = strategyAST.getSubterm(0);
-            final IStrategoTerm newSVars = buildShortSVar(Tools.listAt(strategyAST, 1).size());
-            final IStrategoTerm newTVars = buildShortTVar(Tools.listAt(strategyAST, 2).size());
-            return b.applShared("SDefT", name, newSVars, newTVars, newBody);
-        }
-        throw new ExecException("Expected SDefT/4 but got: " + strategyAST.toString(1));
-    }
-
-    private static IStrategoList buildShortTVar(int size) {
-        final IStrategoTerm[] newTVars = new IStrategoTerm[size];
-        Arrays.fill(newTVars, newTVar);
-        return B.list(newTVars);
-    }
-
-    private static IStrategoList buildShortSVar(int size) {
-        final IStrategoTerm[] newTVars = new IStrategoTerm[size];
-        Arrays.fill(newTVars, newSVar);
-        return B.list(newTVars);
-    }
-
-    private void storeDef(ExecContext execContext, FileObject location, String moduleName, String strategy,
-        IStrategoAppl strategyAST, ITermFactory factory, Map<String, File> strategyFiles, String projectName)
-        throws IOException {
+    private void storeDef(FileObject location, String moduleName, String strategy, Map<String, File> strategyFiles,
+        String projectName) throws IOException {
         final @Nullable File strategyFile =
             resourceService.localPath(CommonPaths.strSepCompStrategyFile(location, projectName, moduleName, strategy));
         assert strategyFile
             != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-        execContext.provide(strategyFile);
 
-        try(final OutputStream outputStream = new FileOutputStream(strategyFile)) {
-            // N.B. unparseToFile buffers, so we don't
-            new TermReader(factory).unparseToFile(strategyAST, outputStream);
-        }
         strategyFiles.put(strategy, strategyFile);
     }
 
-    private void storeOverlay(ExecContext execContext, FileObject location, String moduleName, String overlayName,
-        List<IStrategoAppl> overlayASTList, ITermFactory factory, Map<String, File> overlayFiles, String projectName)
-        throws IOException {
+    private void storeOverlay(FileObject location, String moduleName, String overlayName,
+        Map<String, File> overlayFiles, String projectName) throws IOException {
         final @Nullable File overlayFile = resourceService
             .localPath(CommonPaths.strSepCompOverlayFile(location, projectName, moduleName, overlayName));
         assert
             overlayFile != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-        overlayFiles.put(overlayName, overlayFile);
-        execContext.provide(overlayFile);
 
-        try(final Writer writer = new BufferedWriter(new FileWriter(overlayFile))) {
-            String sep = "";
-            for(IStrategoAppl overlayAST : overlayASTList) {
-                writer.write(sep);
-                new TermReader(factory).unparseToFile(overlayAST, writer);
-                sep = ", ";
-            }
-        }
         overlayFiles.put(overlayName, overlayFile);
     }
 

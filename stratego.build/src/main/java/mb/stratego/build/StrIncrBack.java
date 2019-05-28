@@ -1,37 +1,44 @@
 package mb.stratego.build;
 
+import mb.flowspec.terms.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.pie.api.stamp.output.InconsequentialOutputStamper;
-import mb.pie.api.stamp.resource.FileSystemStampers;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.util.RandomAccessMode;
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.StackSaver;
+import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.lang.Strategy;
+import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
+import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
+import org.strategoxt.strj.strj_sep_comp_0_0;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
+
+import static org.strategoxt.lang.Term.NO_STRATEGIES;
+import static org.strategoxt.lang.Term.NO_TERMS;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     public static final String id = StrIncrBack.class.getCanonicalName();
@@ -41,8 +48,8 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final File projectLocation;
         final @Nullable String strategyName;
         final File strategyDir;
-        final Collection<File> strategyContributions;
-        final Collection<File> overlayContributions;
+        final Collection<IStrategoAppl> strategyContributions;
+        final Collection<IStrategoAppl> overlayContributions;
         final SortedMap<String, String> ambStrategyResolution;
         final @Nullable String packageName;
         final File outputPath;
@@ -53,7 +60,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final boolean isBoilerplate;
 
         Input(Collection<STask> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
-            Collection<File> strategyContributions, Collection<File> overlayContributions,
+            Collection<IStrategoAppl> strategyContributions, Collection<IStrategoAppl> overlayContributions,
             SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
             @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
             boolean isBoilerplate) {
@@ -129,44 +136,35 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     private final IResourceService resourceService;
+    private final ITermFactoryService termFactoryService;
 
-    @Inject public StrIncrBack(IResourceService resourceService) {
+    @Inject public StrIncrBack(IResourceService resourceService, ITermFactoryService termFactoryService) {
         this.resourceService = resourceService;
+        this.termFactoryService = termFactoryService;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         for(STask t : input.frontEndTasks) {
-            execContext.require(t, InconsequentialOutputStamper.instance);
+            execContext.require(t);
         }
 
-//        final List<Path> contributionPaths = new ArrayList<>(input.strategyContributions.size());
-        for(File strategyContrib : input.strategyContributions) {
-            execContext.require(strategyContrib, FileSystemStampers.hash());
-//            contributionPaths.add(strategyContrib.toPath());
-        }
-//
-//        final List<Path> overlayPaths = new ArrayList<>(input.overlayContributions.size());
-        for(File overlayFile : input.overlayContributions) {
-            execContext.require(overlayFile, FileSystemStampers.hash());
-//            overlayPaths.add(overlayFile.toPath());
-        }
+        final ITermFactory factory = termFactoryService.getGeneric();
 
-        // Pack the directory into a single strategy
-        final FileObject packedFile = resourceService.resolve(URI.create("ram://" + input.strategyDir.getAbsolutePath() + "/packed$.ctree"));
         long startTime = System.nanoTime();
+        final IStrategoTerm ctree;
         if(input.isBoilerplate) {
-            Packer.packBoilerplate(input.strategyContributions, packedFile);
+            ctree = Packer.packBoilerplate(factory, input.strategyContributions);
         } else {
-            Packer.packStrategy(input.overlayContributions, input.strategyContributions, input.ambStrategyResolution, packedFile);
+            ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
+                input.ambStrategyResolution);
         }
         execContext.logger().debug(
             "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
                 .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
-//        execContext.provide(packedFile.toFile());
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", packedFile.getPublicURIString()).addFile("-o", input.outputPath)
+        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").addFile("-o", input.outputPath)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
@@ -200,9 +198,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));*/
 
         startTime = System.nanoTime();
-        final StrategoExecutor.ExecutionResult result =
-            new StrategoExecutor().withStrjContext().withStrategy(org.strategoxt.strj.main_0_0.instance)
-                .withTracker(tracker).withName("strj").setSilent(true).executeCLI(arguments);
+        final StrategoExecutor.ExecutionResult result = runStrj(execContext.logger(), ctree, arguments, tracker);
         execContext.logger().debug(
             "\"BackEnd task stratego code took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
                 .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
@@ -219,6 +215,58 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         }
 
         return None.instance;
+    }
+
+    @SuppressWarnings({ "PointlessBooleanExpression", "ConstantConditions" })
+    private StrategoExecutor.ExecutionResult runStrj(Logger logger, IStrategoTerm ctree, Arguments arguments,
+        ResourceAgentTracker tracker) {
+        final Context context = org.strategoxt.strj.strj.init();
+        final Strategy strategy = strj_sep_comp_0_0.instance;
+        final String name = "strj-sep-comp";
+        final boolean silent = true;
+
+        final ITermFactory factory = context.getFactory();
+        try {
+            if(!silent) {
+                logger.info("Execute " + name + " " + arguments);
+            }
+            context.setIOAgent(tracker.agent());
+            dr_scope_all_start_0_0.instance.invoke(context, factory.makeTuple());
+            IStrategoList input = buildInput(ctree, arguments, name);
+
+            // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
+            if(new Exception().getStackTrace().length > 20) {
+                new StackSaver(strategy).invokeStackFriendly(context, input, NO_STRATEGIES, NO_TERMS);
+            } else {
+                strategy.invoke(context, input);
+            }
+            return new StrategoExecutor.ExecutionResult(true, tracker.stdout(), tracker.stderr(), null);
+        } catch(StrategoExit e) {
+            if(e.getValue() == 0) {
+                return new StrategoExecutor.ExecutionResult(true, tracker.stdout(), tracker.stderr(), e);
+            }
+            context.popOnExit(false);
+            if(!silent) {
+                logger.error("Executing " + name + " failed: ", e);
+            }
+            return new StrategoExecutor.ExecutionResult(false, tracker.stdout(), tracker.stderr(), e);
+        } finally {
+            dr_scope_all_end_0_0.instance.invoke(context, factory.makeTuple());
+        }
+    }
+
+    private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {
+        List<String> strings = arguments.asStrings(null);
+        final IStrategoTerm[] args = new IStrategoTerm[strings.size() + 2];
+        args[0] = B.string(name);
+        args[1] = ctree;
+        int i = 2;
+        for(String string : strings) {
+            args[i] = B.string(string);
+            i++;
+        }
+
+        return B.list(args);
     }
 
     private ResourceAgentTracker newResourceTracker(File baseFile, String... excludePatterns) {

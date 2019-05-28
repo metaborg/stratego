@@ -100,8 +100,7 @@ public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
                                 continue;
                             }
                         }
-                        StrIncr.getOrInitialize(usedAmbStrats, ambName, HashSet::new)
-                            .add(currentTopLevelStrategyName);
+                        StrIncr.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);
                     }
                 }
             }
