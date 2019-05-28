@@ -12,6 +12,7 @@ import mb.stratego.build.util.CommonPaths;
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
@@ -567,9 +568,6 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         final long startTime = System.nanoTime();
         final @Nullable IProject project = projectService.get(projectLocation);
         assert project != null : "Could not find project in location: " + projectLocation;
-        if(!contextService.available(strategoLang)) {
-            throw new ExecException("Cannot create stratego transformation context");
-        }
         final IContext transformContext = contextService.get(inputFile, project, strategoLang);
         final ITermFactory f = termFactoryService.getGeneric();
         final String projectPath = transformContext.project().location().toString();
@@ -619,13 +617,13 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             final JSGLRI<?> parser;
 
             if(imploder == ImploderImplementation.java) {
-                parser = new JSGLR2I(config, termFactory, strategoLang, null, inputFile, inputText, false, false);
+                parser = new JSGLR2I(config, termFactory, strategoLang, null, JSGLRVersion.v2);
             } else {
                 final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-                parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect, inputFile, inputText);
+                parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect);
             }
 
-            final ParseContrib contrib = parser.parse(null);
+            final ParseContrib contrib = parser.parse(null, inputFile, inputText);
 
             if(!contrib.valid || !contrib.success || contrib.ast == null) {
                 throw new ExecException(
@@ -634,7 +632,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             }
 
             return contrib.ast;
-        } catch(IOException | ParseTableReadException | InvalidParseTableException e) {
+        } catch(IOException e) {
             throw new ParseException(null, e);
         }
     }

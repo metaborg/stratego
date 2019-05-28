@@ -39,13 +39,17 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if(args.length == 0) {
-            run();
+            runLanguageProject();
+        } else if(args.length == 1 && args[0].equals("languageProject")) {
+            runLanguageProject();
+        } else if(args.length == 1 && args[0].equals("tiger")) {
+            runTiger();
         } else {
-            run(StrategoArguments.fromArgs(args));
+            runLanguageProject(StrategoArguments.fromArgs(args));
         }
     }
 
-    private static void run(StrategoArguments strategoArguments) throws Exception {
+    private static void runLanguageProject(StrategoArguments strategoArguments) throws Exception {
         if(strategoArguments.showHelp) {
             // @formatter:off
             System.out.println("\n"
@@ -170,7 +174,7 @@ public class Main {
             .toChanges(ResourceUtils.find(location, new SpecialIgnoresSelector()), ResourceChangeKind.Create));
     }
 
-    private static void run() throws Exception {
+    private static void runLanguageProject() throws Exception {
         Spoofax spoofax =
             new Spoofax(new NullEditorConfigBasedProject(), new StrIncrModule(), new GuiceTaskDefsModule());
 
@@ -260,6 +264,134 @@ public class Main {
 
         Arguments extraArgs = new Arguments();
         extraArgs.add("-la", "incremental.strategies");
+
+        StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
+        StrIncr.Input strIncrInput =
+            new StrIncr.Input(inputFile, javaPackageName, includeDirs, builtinLibs, cacheDir, Collections.emptyList(),
+                extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
+        final Task<None> compileTask = strIncr.createTask(strIncrInput);
+        try(final Pie pie = pieBuilder.build()) {
+            long startTime = System.nanoTime();
+            try(final PieSession session = pie.newSession()) {
+                session.requireTopDown(compileTask);
+            }
+            long buildTime = System.nanoTime();
+            System.out.println("\"First run took\", " + (buildTime - startTime));
+            startTime = buildTime;
+
+            // We can do a bottom up build with a changeset
+            Set<ResourceKey> changedResources = new HashSet<>();
+            pie.setObserver(compileTask, s -> {
+                // FIXME: Use jmh blackhole here to make sure nothing is optimized away
+            });
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(changedResources);
+            }
+            buildTime = System.nanoTime();
+            System.out.println("\"Empty change set bottomup took\", " + (buildTime - startTime));
+            startTime = buildTime;
+
+            changedResources.add(new FSPath(inputFile));
+            try(final PieSession session = pie.newSession()) {
+                session.requireBottomUp(changedResources);
+            }
+            buildTime = System.nanoTime();
+            System.out.println("\"Main file touched bottomup took\", " + (buildTime - startTime));
+        }
+    }
+
+    private static void runTiger() throws Exception {
+        Spoofax spoofax =
+            new Spoofax(new NullEditorConfigBasedProject(), new StrIncrModule(), new GuiceTaskDefsModule());
+
+        spoofax.languageDiscoveryService
+            .languageFromDirectory(spoofax.resourceService.resolve(Main.class.getResource("/stratego.lang/").toURI()));
+
+        GuiceTaskDefs guiceTaskDefs = spoofax.injector.getInstance(GuiceTaskDefs.class);
+
+        // We need to create the PIE runtime, using a PieBuilderImpl.
+        final PieBuilder pieBuilder = new PieBuilderImpl();
+
+        // file system store
+        //        LMDBStore.withLMDBStore(pieBuilder, Paths.get(TMPDIR, "lmdb").toFile());
+
+        pieBuilder.withTaskDefs(guiceTaskDefs);
+        // For example purposes, we use verbose logging which will output to stdout.
+        pieBuilder.withLogger(StreamLogger.verbose());
+        //        // N.B. extremely slow but maybe useful for debugging the failures.
+        //        pieBuilder.withLayer((taskDefs, logger) -> {
+        //            final ValidationLayer.ValidationOptions options = new ValidationLayer.ValidationOptions();
+        //            options.checkKeyObjects = true;
+        //            options.checkInputObjects = true;
+        //            options.checkOutputObjects = true;
+        //            options.throwWarnings = true;
+        //            return new ValidationLayer(options, taskDefs, logger);
+        //        });
+
+        // We always need to do a topDown build first as a clean build.
+        /* This is the strj command for non-incremental build from which we derive the StrIncr.Input arguments:
+        strj
+        -i /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/trans/tiger.str
+        -o /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/src-gen/stratego-java/org/metaborg/lang/tiger/trans/Main.java
+        -p org.metaborg.lang.tiger.trans
+        --library
+        --clean
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/src-gen
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/trans
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/src-gen/nabl2/collection
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/src-gen/nabl2/dynsem
+        -I /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/target/replicate/strj-includes
+        --cache-dir /Users/jeff/Git/metaborg-tiger/org.metaborg.lang.tiger/target/stratego-cache
+        -la stratego-lib
+        -la stratego-sglr
+        -la stratego-gpp
+        -la stratego-xtc
+        -la stratego-aterm
+        -la stratego-sdf
+        -la strc
+        -la java-front
+        -la org.metaborg.lang.tiger.strategies
+        */
+        Path projectLocation = Paths.get(TMPDIR, "stratego.build.bench");
+        spoofax.resourceService.resolve(projectLocation.toString())
+            .copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/tiger").toURI()),
+                FileSelectorUtils.all());
+
+        File inputFile = projectLocation.resolve("trans/tiger.str").toFile();
+
+        File outputFile = projectLocation.resolve("src-gen/stratego-java/org/metaborg/lang/tiger/trans/Main.java").toFile();
+
+        String javaPackageName = "org.metaborg.lang.tiger.trans";
+
+        // @formatter:off
+        List<File> includeDirs = Arrays.asList(
+            projectLocation.resolve("src-gen").toFile(),
+            projectLocation.resolve("trans").toFile(),
+            projectLocation.toFile(),
+            projectLocation.resolve("src-gen/nabl2/collection").toFile(),
+            projectLocation.resolve("src-gen/nabl2/dynsem").toFile(),
+            projectLocation.resolve("target/replicate/strj-includes").toFile()
+        );
+        // @formatter:on
+
+        File cacheDir = projectLocation.resolve("target/stratego-cache").toFile();
+
+        // @formatter:off
+        List<String> builtinLibs = Arrays.asList(
+            "stratego-lib",
+            "stratego-sglr",
+            "stratego-gpp",
+            "stratego-xtc",
+            "stratego-aterm",
+            "stratego-sdf",
+            "strc",
+            "java-front"
+        );
+        // @formatter:on
+
+        Arguments extraArgs = new Arguments();
+        extraArgs.add("-la", "org.metaborg.lang.tiger.strategies");
 
         StrIncr strIncr = spoofax.injector.getInstance(StrIncr.class);
         StrIncr.Input strIncrInput =
