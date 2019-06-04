@@ -6,6 +6,7 @@ import mb.pie.api.PieBuilder;
 import mb.pie.api.PieSession;
 import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
+import mb.pie.runtime.layer.NoopLayer;
 import mb.pie.runtime.logger.StreamLogger;
 import mb.pie.store.lmdb.LMDBStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
@@ -18,11 +19,17 @@ import mb.stratego.build.StrIncrModule;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
-import org.metaborg.util.resource.FileSelectorUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -31,10 +38,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +51,8 @@ import java.util.Set;
 
 public class Main {
     private static final String TMPDIR = System.getProperty("java.io.tmpdir");
+    private static final String START_REV = "6add95c8dabfcc5631cd6a300c0f3b38fd9b5de9";
+    public static final String GIT_URI = "https://github.com/Apanatshka/sep-comp-bench-project.git";
 
     public static void main(String[] args) throws Exception {
         if(args.length == 0 || args.length == 1 && args[0].equals("languageProject")) {
@@ -217,22 +228,30 @@ public class Main {
         pieBuilder.withTaskDefs(guiceTaskDefs);
         // For example purposes, we use verbose logging which will output to stdout.
         pieBuilder.withLogger(StreamLogger.verbose());
-        //        // N.B. extremely slow but maybe useful for debugging the failures.
-        //        pieBuilder.withLayer((taskDefs, logger) -> {
-        //            final ValidationLayer.ValidationOptions options = new ValidationLayer.ValidationOptions();
-        //            options.checkKeyObjects = true;
-        //            options.checkInputObjects = true;
-        //            options.checkOutputObjects = true;
-        //            options.throwWarnings = true;
-        //            return new ValidationLayer(options, taskDefs, logger);
-        //        });
 
         // We always need to do a topDown build first as a clean build.
-        Path projectLocation = Paths.get(TMPDIR, "stratego.build.bench");
-        spoofax.resourceService.resolve(projectLocation.toString())
-            .copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/git-repo").toURI()),
-                FileSelectorUtils.all());
-        projectLocation = projectLocation.resolve(directory);
+        Path gitRepoPath = Paths.get(TMPDIR, "stratego.build.bench");
+        //        spoofax.resourceService.resolve(projectLocation.toString())
+        //            .copyFrom(spoofax.resourceService.resolve(Main.class.getResource("/git-repo").toURI()),
+        //                FileSelectorUtils.all());
+        //        {
+        //            final Path configPath = projectLocation.resolve(".git/config");
+        //            System.out.println("configPath: " + configPath + ", exists: " + Files.exists(configPath));
+        //            System.out.println("Text in file:\n" + Files.readAllLines(configPath));
+        //            FileBasedConfig c = new FileBasedConfig(configPath.toFile(), FS.detect());
+        //            c.load();
+        //            System.out.println(c.toText());
+        //            c.unset("core", "", "worktree");
+        //            System.out.println(c.toText());
+        //            c.save();
+        //        }
+        if(Files.exists(gitRepoPath)) {
+            deleteRecursive(gitRepoPath);
+        }
+        final Git git = Git.cloneRepository().setDirectory(gitRepoPath.toFile()).setURI(GIT_URI).call();
+        final Repository repository = git.getRepository();
+        git.checkout().setStartPoint(START_REV).setAllPaths(true).call();
+        final Path projectLocation = gitRepoPath.resolve(directory);
 
         final File inputFile = projectLocation.resolve("trans/" + mainFileName + ".str").toFile();
 
@@ -271,61 +290,95 @@ public class Main {
                 extraArgs, outputFile, Collections.emptyList(), projectLocation.toFile());
         final Task<None> compileTask = strIncr.createTask(strIncrInput);
         try(final Pie pie = pieBuilder.build()) {
+//            pieBuilder.withLayer((logger, taskDefs) -> new NoopLayer());
+
             long startTime = System.nanoTime();
             try(final PieSession session = pie.newSession()) {
                 session.requireTopDown(compileTask);
             }
             long buildTime = System.nanoTime();
             System.out.println("\"First run took\", " + (buildTime - startTime));
-            startTime = buildTime;
+            //            startTime = buildTime;
 
             // We can do a bottom up build with a changeset
-            Set<ResourceKey> changedResources = new HashSet<>();
-            pie.setObserver(compileTask, s -> {
-                // FIXME: Use jmh blackhole here to make sure nothing is optimized away
-            });
-            try(final PieSession session = pie.newSession()) {
-                session.requireBottomUp(changedResources);
-            }
-            buildTime = System.nanoTime();
-            System.out.println("\"Empty change set bottomup took\", " + (buildTime - startTime));
-            startTime = buildTime;
 
-            changedResources.add(new FSPath(inputFile));
-            try(final PieSession session = pie.newSession()) {
-                session.requireBottomUp(changedResources);
-            }
-            buildTime = System.nanoTime();
-            System.out.println("\"Main file touched bottomup took\", " + (buildTime - startTime));
+//            pie.setObserver(compileTask, s -> {
+//                // FIXME: Use jmh blackhole here to make sure nothing is optimized away
+//            });
 
-            final Set<ResourceKey> sourceChangedResources = new HashSet<>();
-            Files.walkFileTree(projectLocation.resolve("trans"), new SimpleFileVisitor<Path>() {
-                @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if(file.endsWith(".str")) {
-                        sourceChangedResources.add(new FSPath(file));
+            try(RevWalk walk = new RevWalk(repository)) {
+                final RevCommit startRev = walk.parseCommit(repository.resolve(START_REV));
+                final Deque<RevCommit> commits = new ArrayDeque<>();
+                walk.markStart(walk.parseCommit(repository.resolve("master")));
+                for(RevCommit rev : walk) {
+                    if(rev.equals(startRev)) {
+                        break;
                     }
-                    return FileVisitResult.CONTINUE;
+                    commits.push(rev);
                 }
-            });
-            try(final PieSession session = pie.newSession()) {
-                session.requireBottomUp(sourceChangedResources);
-            }
-            buildTime = System.nanoTime();
-            System.out.println("\"All source files touched bottomup took\", " + (buildTime - startTime));
+                RevCommit lastRev = startRev;
+                for(RevCommit rev : commits) {
+                    git.checkout().setStartPoint(rev).setAllPaths(true).call();
 
-            Files.walkFileTree(projectLocation.resolve("src-gen"), new SimpleFileVisitor<Path>() {
-                @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if(file.endsWith(".str")) {
-                        sourceChangedResources.add(new FSPath(file));
+                    final List<DiffEntry> diffEntries;
+                    try(final ObjectReader reader = repository.newObjectReader()) {
+                        diffEntries = git.diff().setShowNameAndStatusOnly(true)
+                            .setOldTree(new CanonicalTreeParser(null, reader, lastRev.getTree().getId())).call();
                     }
-                    return FileVisitResult.CONTINUE;
+                    final Set<ResourceKey> changedResources = new HashSet<>();
+                    for(DiffEntry diffEntry : diffEntries) {
+                        switch(diffEntry.getChangeType()) {
+                            case DELETE:
+                                addLocalResource(gitRepoPath, directory, changedResources, diffEntry.getOldPath());
+                                break;
+                            case ADD:
+                            case MODIFY:
+                            case COPY:
+                                addLocalResource(gitRepoPath, directory, changedResources, diffEntry.getNewPath());
+                                break;
+                            case RENAME:
+                                addLocalResource(gitRepoPath, directory, changedResources, diffEntry.getOldPath());
+                                addLocalResource(gitRepoPath, directory, changedResources, diffEntry.getNewPath());
+                                break;
+                            default:
+                                throw new Exception("Unknown ChangeType: " + diffEntry.getChangeType());
+                        }
+                    }
+                    System.out
+                        .println("Changeset size between " + lastRev + " and " + rev + ": " + changedResources.size());
+                    startTime = System.nanoTime();
+                    try(final PieSession session = pie.newSession()) {
+                        session.requireBottomUp(changedResources);
+                    }
+                    buildTime = System.nanoTime();
+                    System.out.println("\"From " + lastRev + " to " + rev + " took\", " + (buildTime - startTime));
+
+                    lastRev = rev;
                 }
-            });
-            try(final PieSession session = pie.newSession()) {
-                session.requireBottomUp(sourceChangedResources);
+
+                walk.dispose();
             }
-            buildTime = System.nanoTime();
-            System.out.println("\"All source/src-gen files touched bottomup took\", " + (buildTime - startTime));
         }
+    }
+
+    private static void addLocalResource(Path gitRepoPath, String directory, Set<ResourceKey> changedResources,
+        String path) {
+        if(path.startsWith(directory)) {
+            changedResources.add(new FSPath(gitRepoPath.resolve(path)));
+        }
+    }
+
+    private static void deleteRecursive(Path projectLocation) throws IOException {
+        Files.walkFileTree(projectLocation, new SimpleFileVisitor<Path>() {
+            @Override public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }

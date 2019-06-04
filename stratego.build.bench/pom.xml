@@ -37,6 +37,16 @@
       <artifactId>jsr305</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>5.3.1.201904271842-r</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+      <version>3.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -94,6 +104,57 @@
           <overWriteSnapshots>true</overWriteSnapshots>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-gitignores</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/git-repo</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.sourceDirectory}../resources/git-repo</directory>
+                  <includes>
+                    <include>languageProject/.gitignore</include>
+                    <include>tiger/.gitignore</include>
+                  </includes>
+                </resource>
+              </resources>
+              <addDefaultExcludes>false</addDefaultExcludes>
+              <includeEmptyDirs>true</includeEmptyDirs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-submodule-git-dir</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/git-repo/.git</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/../../.git/modules/stratego/modules/stratego.build.bench/src/main/resources/</directory>
+                </resource>
+              </resources>
+              <addDefaultExcludes>false</addDefaultExcludes>
+              <includeEmptyDirs>true</includeEmptyDirs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-jar-plugin</artifactId>-->
+        <!--<configuration>-->
+          <!--<addDefaultExcludes>false</addDefaultExcludes>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
       <!-- Create an executable JAR -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
