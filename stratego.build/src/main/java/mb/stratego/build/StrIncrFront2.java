@@ -46,8 +46,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr2.parsetable.ParseTableReadException;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.io.TAFTermReader;
@@ -214,56 +212,6 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             return "StrIncrFront$Output(" + moduleName + ')';
         }
 
-        @Override public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-
-            Output output = (Output) o;
-
-            if(!moduleName.equals(output.moduleName))
-                return false;
-            if(!strategyFiles.equals(output.strategyFiles))
-                return false;
-            if(!usedStrategies.equals(output.usedStrategies))
-                return false;
-            if(!ambStratUsed.equals(output.ambStratUsed))
-                return false;
-            if(!strategyConstrs.equals(output.strategyConstrs))
-                return false;
-            if(!overlayFiles.equals(output.overlayFiles))
-                return false;
-            if(!imports.equals(output.imports))
-                return false;
-            if(!constrs.equals(output.constrs))
-                return false;
-            if(!congrs.equals(output.congrs))
-                return false;
-            if(!strategyNeedsExternal.equals(output.strategyNeedsExternal))
-                return false;
-            //noinspection SimplifiableIfStatement
-            if(!overlayConstrs.equals(output.overlayConstrs))
-                return false;
-            return congrFiles.equals(output.congrFiles);
-        }
-
-        @Override public int hashCode() {
-            int result = moduleName.hashCode();
-            result = 31 * result + strategyFiles.hashCode();
-            result = 31 * result + usedStrategies.hashCode();
-            result = 31 * result + ambStratUsed.hashCode();
-            result = 31 * result + strategyConstrs.hashCode();
-            result = 31 * result + overlayFiles.hashCode();
-            result = 31 * result + imports.hashCode();
-            result = 31 * result + constrs.hashCode();
-            result = 31 * result + congrs.hashCode();
-            result = 31 * result + strategyNeedsExternal.hashCode();
-            result = 31 * result + overlayConstrs.hashCode();
-            result = 31 * result + congrFiles.hashCode();
-            return result;
-        }
-
         private void writeObject(ObjectOutputStream out) throws IOException {
             writeASTs();
             out.defaultWriteObject();
@@ -334,6 +282,65 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
                 }
             }
         }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            if(!moduleName.equals(output.moduleName))
+                return false;
+            if(!strategyFiles.equals(output.strategyFiles))
+                return false;
+            if(!usedStrategies.equals(output.usedStrategies))
+                return false;
+            if(!ambStratUsed.equals(output.ambStratUsed))
+                return false;
+            if(!strategyConstrs.equals(output.strategyConstrs))
+                return false;
+            if(!overlayFiles.equals(output.overlayFiles))
+                return false;
+            if(!imports.equals(output.imports))
+                return false;
+            if(!constrs.equals(output.constrs))
+                return false;
+            if(!congrs.equals(output.congrs))
+                return false;
+            if(!strategyNeedsExternal.equals(output.strategyNeedsExternal))
+                return false;
+            if(!overlayConstrs.equals(output.overlayConstrs))
+                return false;
+            if(!congrFiles.equals(output.congrFiles))
+                return false;
+            if(!strategyASTs.equals(output.strategyASTs))
+                return false;
+            //noinspection SimplifiableIfStatement
+            if(!overlayASTs.equals(output.overlayASTs))
+                return false;
+            return congrASTs.equals(output.congrASTs);
+        }
+
+        @Override public int hashCode() {
+            int result = moduleName.hashCode();
+            result = 31 * result + strategyFiles.hashCode();
+            result = 31 * result + usedStrategies.hashCode();
+            result = 31 * result + ambStratUsed.hashCode();
+            result = 31 * result + strategyConstrs.hashCode();
+            result = 31 * result + overlayFiles.hashCode();
+            result = 31 * result + imports.hashCode();
+            result = 31 * result + constrs.hashCode();
+            result = 31 * result + congrs.hashCode();
+            result = 31 * result + strategyNeedsExternal.hashCode();
+            result = 31 * result + overlayConstrs.hashCode();
+            result = 31 * result + congrFiles.hashCode();
+            result = 31 * result + strategyASTs.hashCode();
+            result = 31 * result + overlayASTs.hashCode();
+            result = 31 * result + congrASTs.hashCode();
+            return result;
+        }
     }
 
     private final IResourceService resourceService;
@@ -379,9 +386,9 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         final long startTime = System.nanoTime();
         final IStrategoTerm result =
             runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
-        execContext.logger().debug(
-            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
-                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
+//        execContext.logger().debug(
+//            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
+//                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         execContext.require(resourceService.localFile(inputFile));
         // TODO: reinstate support for files from within a jar? Where was this used again?
@@ -471,6 +478,9 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
                 imports.add(StrIncrFront.Import.fromTerm(importTerm));
             }
         }
+        execContext.logger().debug(
+            "\"Full FrontEnd task took\", " + (System.nanoTime() - startTime) + ", \""
+                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         return new Output(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
             definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, strategyASTs, overlayASTs,
@@ -559,7 +569,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             // parse *.str file
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
-        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
+//        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
         return transform(logger, inputFile, projectName, projectLocation, strategoLang, ast);
     }
 
@@ -573,13 +583,13 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
         final String projectPath = transformContext.project().location().toString();
         final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         final long beforeStrategoCommonCall = System.nanoTime();
-        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
+//        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
         final HybridInterpreter interpreter =
             strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
         interpreter.getContext().setContextObject(transformContext);
         interpreter.getCompiledContext().setContextObject(transformContext);
         @Nullable IStrategoTerm result = strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
-        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
+//        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
         if(result == null) {
             throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
         }

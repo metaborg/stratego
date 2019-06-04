@@ -106,14 +106,18 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 return false;
             if(!overlayContributions.equals(input.overlayContributions))
                 return false;
+            if(!ambStrategyResolution.equals(input.ambStrategyResolution))
+                return false;
             if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
                 return false;
             if(!outputPath.equals(input.outputPath))
                 return false;
             if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
                 return false;
-            //noinspection SimplifiableIfStatement
             if(!constants.equals(input.constants))
+                return false;
+            //noinspection SimplifiableIfStatement
+            if(!includeDirs.equals(input.includeDirs))
                 return false;
             return extraArgs.equals(input.extraArgs);
         }
@@ -125,10 +129,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             result = 31 * result + strategyDir.hashCode();
             result = 31 * result + strategyContributions.hashCode();
             result = 31 * result + overlayContributions.hashCode();
+            result = 31 * result + ambStrategyResolution.hashCode();
             result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
             result = 31 * result + constants.hashCode();
+            result = 31 * result + includeDirs.hashCode();
             result = 31 * result + extraArgs.hashCode();
             result = 31 * result + (isBoilerplate ? 1 : 0);
             return result;
@@ -150,7 +156,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         final ITermFactory factory = termFactoryService.getGeneric();
 
-        long startTime = System.nanoTime();
+        final long startTime = System.nanoTime();
         final IStrategoTerm ctree;
         if(input.isBoilerplate) {
             ctree = Packer.packBoilerplate(factory, input.strategyContributions);
@@ -158,9 +164,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
-        execContext.logger().debug(
-            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
-                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+//        execContext.logger().debug(
+//            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+//                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
@@ -197,11 +203,11 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 Pattern.quote("* warning (escaping-var-id):") + ".*",
                 Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));*/
 
-        startTime = System.nanoTime();
+        final long strategoStartTime = System.nanoTime();
         final StrategoExecutor.ExecutionResult result = runStrj(execContext.logger(), ctree, arguments, tracker);
-        execContext.logger().debug(
-            "\"BackEnd task stratego code took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
-                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+//        execContext.logger().debug(
+//            "\"BackEnd task stratego code took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
+//                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);
@@ -213,6 +219,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 execContext.provide(new File(fileName));
             }
         }
+        execContext.logger().debug(
+            "\"Full BackEnd task took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         return None.instance;
     }

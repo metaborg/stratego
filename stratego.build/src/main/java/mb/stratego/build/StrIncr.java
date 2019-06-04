@@ -317,7 +317,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(t);
         }
 
-        execContext.logger().debug("Starting time measurement");
+        //        execContext.logger().debug("Starting time measurement");
         long startTime = System.nanoTime();
 
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
@@ -494,13 +494,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         } while(!workList.isEmpty());
 
         long betweenFrontAndCheck = System.nanoTime();
-        execContext.logger().debug("\"Frontends overall took\", " + (betweenFrontAndCheck - startTime));
-        execContext.logger().debug("\"Purely str file frontend tasks took\", " + frontEndTime);
-        execContext.logger().debug("\"Purely libs took\", " + frontEndLibTime);
-        execContext.logger().debug("\"Shuffling information and tracking imports took\", " + shuffleTime);
-        execContext.logger().debug("\"Shuffling information in libs took\", " + shuffleLibTime);
-        execContext.logger().debug("\"Number of FrontEnd tasks\", " + numberOfFETasks);
-        execContext.logger().debug("\"Number of FrontEndLib tasks\", " + numberOfFELibTasks);
+        //        execContext.logger().debug("\"Frontends overall took\", " + (betweenFrontAndCheck - startTime));
+        //        execContext.logger().debug("\"Purely str file frontend tasks took\", " + frontEndTime);
+        //        execContext.logger().debug("\"Purely libs took\", " + frontEndLibTime);
+        //        execContext.logger().debug("\"Shuffling information and tracking imports took\", " + shuffleTime);
+        //        execContext.logger().debug("\"Shuffling information in libs took\", " + shuffleLibTime);
+        //        execContext.logger().debug("\"Number of FrontEnd tasks\", " + numberOfFETasks);
+        //        execContext.logger().debug("\"Number of FrontEndLib tasks\", " + numberOfFELibTasks);
 
         // CHECK: constructor/strategy uses have definition which is imported
         final StaticCheckOutput staticCheckOutput =
@@ -509,12 +509,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyNeedsExternal, overlayConstrs);
 
         long betweenCheckAndBack = System.nanoTime();
-        execContext.logger().debug("\"Static check overall took\", " + (betweenCheckAndBack - betweenFrontAndCheck));
+        //        execContext.logger().debug("\"Static check overall took\", " + (betweenCheckAndBack - betweenFrontAndCheck));
 
-        execContext.logger().debug("Renaming:\n" + staticCheckOutput);
+        //        execContext.logger().debug("Renaming:\n" + staticCheckOutput);
 
         // BACKEND
         long numberOfBETasks = 0;
+        long backEndTime = 0;
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(String builtinLib : input.builtinLibs) {
@@ -535,6 +536,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
+            long backendStartTime = System.nanoTime();
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
@@ -542,6 +544,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
                     input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
+            backEndTime += backendStartTime - System.nanoTime();
             numberOfBETasks++;
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
@@ -551,8 +554,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 continue;
             }
             if(externalConstructors.contains(congrName)) {
-                execContext.logger()
-                    .debug("Dropping congruence for " + congrName + " in favour of external definition in library. ");
+                //                execContext.logger()
+                //                    .debug("Dropping congruence for " + congrName + " in favour of external definition in library. ");
                 continue;
             }
             final List<IStrategoAppl> strategyContributions;
@@ -570,14 +573,40 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
+            long backendStartTime = System.nanoTime();
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, congrName, strategyDir, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
+            backEndTime += backendStartTime - System.nanoTime();
             numberOfBETasks++;
         }
         // boilerplate task
+        final List<IStrategoAppl> decls = declStubs(strategyASTs);
+        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
+        assert strSrcGenDir
+            != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
+        long backendStartTime = System.nanoTime();
+        StrIncrBack.Input backEndInput =
+            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls,
+                Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
+                input.cacheDir, input.constants, input.includeDirs, args, true);
+        execContext.require(strIncrBack.createTask(backEndInput));
+        backEndTime += backendStartTime - System.nanoTime();
+        numberOfBETasks++;
+
+        long finishTime = System.nanoTime();
+        //        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
+        //        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
+        execContext.logger().debug(
+            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
+                - backEndTime));
+
+        return None.instance;
+    }
+
+    private List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) throws ExecException {
         final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
         final B b = new B(strj.init().getFactory());
         for(String strategyName : strategyASTs.keySet()) {
@@ -591,22 +620,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final int tvars = Integer.parseInt(m.group(3));
             decls.add(sdefStub(b, strategyName, svars, tvars));
         }
-        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
-        assert strSrcGenDir
-            != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
-        StrIncrBack.Input backEndInput =
-            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls,
-                Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                input.cacheDir, input.constants, input.includeDirs, args, true);
-        execContext.require(strIncrBack.createTask(backEndInput));
-        numberOfBETasks++;
-
-        long finishTime = System.nanoTime();
-        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
-        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
-        execContext.logger().debug("\"Full Stratego incremental build took\", " + (finishTime - startTime));
-
-        return None.instance;
+        return decls;
     }
 
     private static Iterable<String> requiredOverlays(String strategyName, Map<String, Set<String>> strategyConstrs,
