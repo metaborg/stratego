@@ -781,9 +781,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
         }
-        //if(!checkOk) {
-        //    throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
-        //}
+        if(!checkOk) {
+            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+        }
         return new StaticCheckOutput(ambStratResolution);
     }
 
