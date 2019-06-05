@@ -12,10 +12,10 @@ strategies
 external nano-time-real(|)
 
 profile2(s|msg): t -> t'
-where nano-time-real => start-time
+where id //nano-time-real => start-time
 ; t' := <s> t
-; nano-time-real => end-time
-; <debug> $[[msg] [<subtr> (end-time, start-time)]]
+//; nano-time-real => end-time
+//; <debug> $[[msg] [<subtr> (end-time, start-time)]]
 
 overlays
 
