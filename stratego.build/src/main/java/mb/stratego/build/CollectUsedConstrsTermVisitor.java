@@ -21,7 +21,7 @@ public class CollectUsedConstrsTermVisitor extends TermVisitor {
         if(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "Op", 2)) {
             if(Tools.isTermString(term.getSubterm(0))) {
                 if(!Tools.javaStringAt(term, 0).equals("")) {
-                    usedConstrs.add(Tools.javaStringAt(term, 0) + Tools.listAt(term, 1).size());
+                    usedConstrs.add(Tools.javaStringAt(term, 0) + "_" + Tools.listAt(term, 1).size());
                 }
             } else {
                 usedConstrs.add(
@@ -32,6 +32,12 @@ public class CollectUsedConstrsTermVisitor extends TermVisitor {
     }
 
     private String strategoEscape(String s) {
-        return s.replace("\"", "\\\"").replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r");
+        //@formatter:off
+        return s
+            .replace("\"", "\\\"")
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r");
+        //@formatter:on
     }
 }
