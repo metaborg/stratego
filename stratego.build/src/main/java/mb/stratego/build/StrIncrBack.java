@@ -12,6 +12,7 @@ import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
 import com.google.inject.Inject;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
@@ -31,6 +32,7 @@ import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -171,6 +173,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
         final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").addFile("-o", input.outputPath)
+//            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
@@ -194,17 +197,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         }
         arguments.addAll(input.extraArgs);
 
-        final ResourceAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")));
-        /*, Pattern.quote("[ strj | info ]") + ".*",
-                Pattern.quote("[ strj | error ] Compilation failed") + ".*",
-                Pattern.quote("[ strj | warning ] No Stratego files found in directory") + ".*",
-                Pattern.quote("[ strj | warning ] Found more than one matching subdirectory found for") + ".*",
-                Pattern.quote(SpoofaxConstants.STRJ_INFO_WRITING_FILE) + ".*",
-                Pattern.quote("* warning (escaping-var-id):") + ".*",
-                Pattern.quote("          [\"") + ".*" + Pattern.quote("\"]"));*/
 
         final long strategoStartTime = System.nanoTime();
-        final StrategoExecutor.ExecutionResult result = runStrj(execContext.logger(), ctree, arguments, tracker);
+        final StrategoExecutor.ExecutionResult result = runStrj(execContext.logger(), ctree, arguments, true);
 //        execContext.logger().debug(
 //            "\"BackEnd task stratego code took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
 //                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
@@ -220,19 +215,17 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             }
         }
         execContext.logger().debug(
-            "\"Full BackEnd task took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+            "\"Full BackEnd task took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
                 .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         return None.instance;
     }
 
-    @SuppressWarnings({ "PointlessBooleanExpression", "ConstantConditions" })
-    private StrategoExecutor.ExecutionResult runStrj(Logger logger, IStrategoTerm ctree, Arguments arguments,
-        ResourceAgentTracker tracker) {
+    private StrategoExecutor.ExecutionResult runStrj(Logger logger, IStrategoTerm ctree, Arguments arguments, boolean silent) {
+        final ResourceAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")), silent);
         final Context context = org.strategoxt.strj.strj.init();
         final Strategy strategy = strj_sep_comp_0_0.instance;
         final String name = "strj-sep-comp";
-        final boolean silent = true;
 
         final ITermFactory factory = context.getFactory();
         try {
@@ -278,9 +271,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         return B.list(args);
     }
 
-    private ResourceAgentTracker newResourceTracker(File baseFile, String... excludePatterns) {
+    private ResourceAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
         final FileObject base = resourceService.resolve(baseFile);
-        final ResourceAgentTracker tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
+        final ResourceAgentTracker tracker;
+        if(silent) {
+            tracker = new ResourceAgentTracker(resourceService, base, new NullOutputStream(), new NullOutputStream());
+        } else {
+            tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
+        }
         final ResourceAgent agent = tracker.agent();
         agent.setAbsoluteWorkingDir(base);
         agent.setAbsoluteDefinitionDir(base);

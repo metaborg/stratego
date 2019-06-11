@@ -62,12 +62,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -221,6 +225,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             for(Map.Entry<String, File> entry : strategyFiles.entrySet()) {
                 final IStrategoAppl strategyAST = strategyASTs.get(entry.getKey());
                 final File strategyFile = entry.getValue();
+                ensureEmptyFileExists(strategyFile);
 
                 try(final OutputStream outputStream = new FileOutputStream(strategyFile)) {
                     // N.B. unparseToFile(IStrategoTerm, OutputStream) buffers, so we don't
@@ -230,6 +235,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             for(Map.Entry<String, File> entry : congrFiles.entrySet()) {
                 final IStrategoAppl congrAST = congrASTs.get(entry.getKey());
                 final File congrFile = entry.getValue();
+                ensureEmptyFileExists(congrFile);
 
                 try(final OutputStream outputStream = new FileOutputStream(congrFile)) {
                     // N.B. unparseToFile(IStrategoTerm, OutputStream) buffers, so we don't
@@ -239,6 +245,7 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
             for(Map.Entry<String, File> entry : overlayFiles.entrySet()) {
                 final List<IStrategoAppl> overlayASTList = overlayASTs.get(entry.getKey());
                 final File overlayFile = entry.getValue();
+                ensureEmptyFileExists(overlayFile);
 
                 try(final Writer writer = new BufferedWriter(new FileWriter(overlayFile))) {
                     String sep = "";
@@ -249,6 +256,19 @@ public class StrIncrFront2 implements TaskDef<StrIncrFront2.Input, StrIncrFront2
                         sep = "\n";
                     }
                 }
+            }
+        }
+
+        private static void ensureEmptyFileExists(File file) throws IOException {
+            if(file.exists()) {
+                Files.write(file.toPath(), new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                final File parentFile = file.getParentFile();
+                if(!parentFile.exists()) {
+                    Files.createDirectories(parentFile.toPath());
+                }
+                boolean created = file.createNewFile();
+                assert created;
             }
         }
 
