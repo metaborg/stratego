@@ -4,6 +4,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 
+import com.google.inject.Inject;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.core.Tools;
@@ -11,7 +12,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashSet;
