@@ -82,3 +82,21 @@ rules
   annotate-local-arg(rename-local|larg*,letdef*): CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
   where id
     ; y := <lookup;add-annotation(|LocalArg())> (x{}, letdef*)
+
+strategies
+
+  m-transform-local-defs2(s) = id
+    ; m-get-all-local-def-sigs
+    ; filter(not(m-transform-def2(s))
+             ; dbg(|"*** warning (m-transform-local-defs): "))
+    ; ?[]
+
+  m-transform-def2(s) =
+  { where(strategy-sig-to-string => cified-name)
+  ; where(id
+    ; bagof-ModDefinition
+    ; [m-rm-def|id]
+    ; scope-def-local-newname(s|cified-name)
+    ; map(m-add-def)
+    )
+  }
