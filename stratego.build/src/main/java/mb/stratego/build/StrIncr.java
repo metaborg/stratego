@@ -292,12 +292,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private final IResourceService resourceService;
 
-    private final StrIncrFront2 strIncrFront;
+    private final StrIncrFront strIncrFront;
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
     @Inject
-    public StrIncr(IResourceService resourceService, StrIncrFront2 strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
@@ -426,12 +426,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             numberOfFETasks++;
 
             final String projectName = projectName(module.path);
-            final StrIncrFront2.Input frontInput =
-                new StrIncrFront2.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
+            final StrIncrFront.Input frontInput =
+                new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final Task<StrIncrFront2.Output> task = strIncrFront.createTask(frontInput);
+            final Task<StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSerializableTask());
-            final StrIncrFront2.Output frontOutput = execContext.require(task);
+            final StrIncrFront.Output frontOutput = execContext.require(task);
             //            boilerplateFiles.add(resourceService.localPath(
             //                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
 
