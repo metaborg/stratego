@@ -194,9 +194,9 @@ strategies
 
       // transform and check local definitions
 
-      ; m-transform-local-defs2(map(id
+      ; m-transform-local-defs(map(id
           ; m-repair-types
-          ; pre-desugar
+          ; pre-desugar        
           ; raise-annotations
         ))
 
@@ -205,7 +205,7 @@ strategies
 // commented: checks if used strategy with such an arity exists. Therefore needs global information [DONE IN JAVA]
 //      ; check-calls
 
-      ; m-transform-local-defs2(
+      ; m-transform-local-defs(
           map(id
             ; stratego-desugar
             ; raise-annotations
@@ -243,7 +243,7 @@ strategies
 //            ]
 //        )
 
-      ; m-transform-local-defs2([id
+      ; m-transform-local-defs([id
           ; rename-calls2
           ; simplify
           ; define-congruences-def
