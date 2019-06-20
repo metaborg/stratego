@@ -1,7 +1,5 @@
 package mb.stratego.compiler.pack;
 
-import mb.flowspec.terms.B;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -27,8 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-// import java.util.Arrays;
 
 public class Packer {
     private static final String SPEC_START = "Specification([Signature([Constructors([])]), Overlays([\n";
@@ -350,36 +346,34 @@ public class Packer {
 
 
     public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoAppl> strategyContributions) {
-        final B b = new B(f);
-        return b.applShared("Specification",
-            B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
-                b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+        return f.makeAppl("Specification",
+            f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
+                f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
     }
 
     public static IStrategoTerm packStrategy(ITermFactory f, Collection<IStrategoAppl> overlayContributions,
         Collection<IStrategoAppl> strategyContributions, Map<String, String> ambStrategyResolution) {
-        final B b = new B(f);
         final IStrategoTerm[] annos = new IStrategoTerm[ambStrategyResolution.size()];
         int i = 0;
         for(Map.Entry<String, String> entry : ambStrategyResolution.entrySet()) {
-            annos[i] = B.tuple(b.stringShared(entry.getKey()), b.stringShared(entry.getValue()));
+            annos[i] = f.makeTuple(f.makeString(entry.getKey()), f.makeString(entry.getValue()));
             i++;
         }
         final IStrategoAppl term;
         if(overlayContributions.isEmpty()) {
-            term = b.applShared("Specification",
-                B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
-                    b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+            term = f.makeAppl("Specification",
+                f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
+                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
         } else {
-            term = b.applShared("Specification",
-                B.list(b.applShared("Signature", B.list(b.applShared("Constructors", B.list()))),
-                    b.applShared("Overlays", B.list(overlayContributions.toArray(new IStrategoTerm[0]))),
-                    b.applShared("Strategies", B.list(strategyContributions.toArray(new IStrategoTerm[0])))));
+            term = f.makeAppl("Specification",
+                f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
+                    f.makeAppl("Overlays", f.makeList(overlayContributions.toArray(new IStrategoTerm[0]))),
+                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
         }
         if(ambStrategyResolution.isEmpty()) {
             return term;
         } else {
-            return f.annotateTerm(term, B.list(annos));
+            return f.annotateTerm(term, f.makeList(annos));
         }
     }
 }
