@@ -26,9 +26,9 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.metaborg.spoofax.core.syntax.IParseTableProvider;
 import org.metaborg.spoofax.core.syntax.IParserConfig;
 import org.metaborg.spoofax.core.syntax.ImploderImplementation;
@@ -687,13 +687,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private static ILanguageComponent getComponent(@Nullable ILanguageImpl language) throws ExecException {
         if(language != null) {
             for(ILanguageComponent component : language.components()) {
-                if(component.facet(StrategoRuntimeFacet.class) == null) {
+                if(component.facet(DynamicClassLoadingFacet.class) == null) {
                     continue;
                 }
                 return component;
             }
         }
-        throw new ExecException("Could not find StrategoRuntime component for Stratego.lang");
+        throw new ExecException("Could not find DynamicClassLoading component for Stratego.lang");
     }
 
     private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
