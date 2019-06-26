@@ -10,21 +10,7 @@ imports
   analysis
   desugar
   outline
-
   sep-comp-front-end/compile
-
-strategies
-
-  clean-module-builder:
-    (node, _, _, path, project-path) -> ()
-    with <clean-module(|project-path)> node
-
-  compile-module-builder:
-    (node, _, _, path, project-path) -> result
-    with
-      clean-module-builder
-    ; project-name := <checksum> path
-    ; result := <compile-module(|project-path, project-name)> node
 
 rules
 

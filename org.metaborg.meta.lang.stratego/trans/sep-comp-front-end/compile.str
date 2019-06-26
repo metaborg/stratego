@@ -1,13 +1,28 @@
 module sep-comp-front-end/compile
 
-imports libstrc
-imports sep-comp-front-end/misc
-imports sep-comp-front-end/dr-scoping
-imports sep-comp-front-end/rename-defs2
+imports
+  libstrc
+  sep-comp-front-end/misc
+  sep-comp-front-end/dr-scoping
+  sep-comp-front-end/rename-defs2
+  sep-comp-front-end/split-large-term-builds
+
+strategies
+
+external nano-time-real(|)
+
+profile2(s|msg): t -> t'
+where id //nano-time-real => start-time
+; t' := <s> t
+//; nano-time-real => end-time
+//; <debug> $[[msg] [<subtr> (end-time, start-time)]]
 
 overlays
 
   LANGNAME() = "stratego_sugar"
+
+signature constructors
+  AmbCall : Term * Term -> Term
 
 strategies
 
@@ -15,6 +30,8 @@ strategies
     dollars-for-capitals;string-replace(|"/", "+");src-gen-file(|project-path, <dollars-for-capitals> base, extension)
 
 strategies
+
+  clean-module(|project-path) = ?Specification(_)
 
   clean-module(|project-path):
     Module(m, _) -> <id>
@@ -27,31 +44,59 @@ strategies
 strategies
 
   compile-module(|project-path, project-name):
-    Module(m, defs) -> (m, <map(Fst)> combined-defs, <mapconcat(?Imports(<id>))> imps, constrs, <map(Fst)> olays)
+    Module(m, defs) ->
+      ( m
+      , <map(!(<Fst>, <Snd;extract-used-constructors>, <Snd;?AnnoDef(<id>, _) <+ ![]>))> defs3
+      , usedStrategies
+      , ambcalls
+      , <mapconcat(?Imports(<id>))> imps
+      , <map(Fst)> constrs
+      , <map((id, extract-used-constructors))> olays
+      , <map((id, extract-used-constructors))> congs
+      )
     with id
       ; (imps, defs2) := <partition(?Imports(_))> defs
       ; <set-config> ("--library", ())
-      ; (defs3, olays) := <strip-annos;frontend-sep-comp> Specification(defs2)
-      ; combined-defs := <combine-defs> defs3
-      ; <map(store-combined-defs(|project-path, project-name, m))> combined-defs
-      ; <map(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
-      ; constrs := <map(?(_, <extract-used-constructors>))> combined-defs
-      ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays
+      ; (defs3, constrs, olays, congs) := <strip-annos;profile2(frontend-sep-comp|"\"frontend-sep-comp took\",")> Specification(defs2)
+      ; (ambcalls, usedStrategies) := <extract-used-strategies> defs3
+      ; profile2(<map(store-def(|project-path, project-name, m))> defs3
+      ; <map(store-def(|project-path, project-name, m))> congs
+      ; <filter(?(_, <def-to-decl>));store-decls(|project-path, project-name, m)> defs3
+      ; <combine-defs;map(store-overlay(|project-path, project-name, m))> olays|"\"compile-module io took\",")
 
-  clean-and-compile-module: (project-path, project-name, ast) -> result
+  compile-module: (project-path, project-name, ast) -> <profile2(MetaExplode; compile-module(|project-path, project-name)|"\"compile-module took\",")> ast
+
+  compile-module2(|project-path, project-name):
+    Module(m, defs) ->
+      (m, defs3, constrs, olays, congs, imps)
+    with id
+      ; (imps, defs2) := <partition(?Imports(_))> defs
+      ; <set-config> ("--library", ())
+      ; (defs3, constrs, olays, congs) := <strip-annos;profile2(frontend-sep-comp|"\"frontend-sep-comp took\",")> Specification(defs2)
+
+  compile-module2: (project-path, project-name, ast) -> <profile2(MetaExplode; compile-module2(|project-path, project-name)|"\"compile-module took\",")> ast
+
+  clean-and-compile-module: (project-path, project-name, ast) -> <compile-module>
   with
     <clean-module(|project-path)> ast
-  ; result := <compile-module(|project-path, project-name)> ast
 
 rules
 
   // Rename the arguments and body to something short, we just need a stub that the compiler
-  //  accepts for generating the InteropRegistrer
-
+  //  accepts for generating the InteropRegistrer. Fails on ExtSDef
   def-to-decl = SDefT(id, map(build-short-svar), map(build-short-tvar), !Id())
   def-to-decl = AnnoDef(id, SDefT(id, map(build-short-svar), map(build-short-tvar), !Id()))
 
-  extract-used-constructors = collect-all(\Op(c,t*) -> $[[c]_[<length> t*]] where not("" := c)\)
+  extract-used-constructors = collect-all(\Op(c,t*) -> <constr-sig-to-string> (c, <length> t*) where not("" := c)\)
+  // Annotate used strategies in ambiguous call position
+  extract-used-strategies =
+    alltd({
+      SDefT(?n, id, id, bottomup(try(
+        CallT(id, map(try(CallT(SVar(!AmbCall(<id>, n)), ?[], ?[]))), id)
+      )))
+    })
+  ; free-vars(Add2, Bind1 + Bind2 + Bind3 + Bind5 + Bind7 + Bind9, sboundin, (try(?AmbCall(<id>, _)),id); eq)
+  ; partition(\AmbCall(ambcall, defUsing) -> (ambcall, defUsing)\)
 
   build-short-tvar = !VarDec("a", ConstType(Sort("ATerm",[])))
   build-short-svar = !VarDec("a", FunType(Sort("ATerm",[]), Sort("ATerm",[])))
@@ -67,6 +112,12 @@ rules
 
   store-combined-defs(|project-path, project-name, m):
     (f, def*) -> <store-defs-comma-sep(|project-path, project-name, $[[LANGNAME()]/[f]], m)> def*
+
+  store-def(|project-path, project-name, m):
+    (f, 'def) -> file
+  with id
+    ; file := <module-src-gen-file(|project-path, $[[LANGNAME()]/[f]], ".aterm")> $[[project-name]&[m]]
+    ; <WriteToTextFile> (file, 'def)
 
   store-decls(|project-path, project-name, m) =
     store-defs-comma-sep(|project-path, project-name, LANGNAME(), m)
@@ -95,35 +146,48 @@ strategies
       // desugar and check constructors
 
       ; m-transform-constructors(id
-          ; pre-desugar
-          ; try(DeclareVarToConst)
+// commented: Don't add to VarToConst which is used in pre-desugar to turn variables into nullary constructors if the variable matches that nullary constructor name. 
+//          ; pre-desugar; try(DeclareVarToConst)
           ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
-          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
-          ; try(where(m-MkCongDef; m-add-def))
+// commented: Used in check-constructors, which requires global info on constructors [DONE IN JAVA]
+//          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
+          // m-MkCongDef fails when the signature already exists (from a strategy), so we need to pass this info to Java to check if we should include this congruence
+          ; try(where(
+              m-MkCongDef
+            ; where({
+                sig@(name, n, m) := <m-def-signature>
+                // pre-renaming as RenameSDef2 will do, so it matches ModDefinition key when SepCompCong is queried at the end
+              ; renamed-sig := (<strategy-sig-to-string> sig, n, m)
+              ; rules(SepCompCong : renamed-sig -> name)
+            })
+            ; m-add-def
+          ))
         )
 
-// commented: moved to backend where we have access to all overlays
+// commented: [MOVED TO BACKEND] where we have access to all overlays
 //      // desugar and check overlays
 //
-//      ; m-transform-overlays(id
-//          ; pre-desugar
-//          ; check-overlay
+      ; m-transform-overlays(id
+          ; pre-desugar
+          ; check-overlay
 //          ; try(DeclareVarToConst)
-//        )
-//
-//      ; m-transform-overlays(id
-//          ; m-variables-to-constructors-in-def
-//          ; pre-desugar
-//// commented: Test whether all variables used in builds are matched before. But variables can be nullary constructors or overlays. Therefore needs global information
-////          ; not(def-use-def)
-//          ; not(check-where-with)
-//          ; raise-annotations
-//          ; GenerateCheckRule
-//          ; DeclareExpandOverlay
-//          ; where(Overlay-to-Congdef; m-add-def)
-//        )
+        /*)
 
-// commented: checks if used constructor with such an arity exists. Therefore needs global information
+      ; m-transform-overlays(id*/
+//// commented: Nullary constructors feature, off in separate compilation
+////          ; m-variables-to-constructors-in-def; pre-desugar
+          ; not(def-use-def)
+          ; not(check-where-with)
+          ; raise-annotations
+//          ; GenerateCheckRule
+// commented: [MOVED TO BACKEND]
+//          ; DeclareExpandOverlay
+          // We don't register this as a SepCompCong, because it is unconditionally added whereas
+          //  m-MkCongDef fails when a definition of the same name already exists. 
+          ; where(Overlay-to-Congdef; m-add-def)
+        )
+
+// commented: checks if used constructor with such an arity exists. Therefore needs global information [DONE IN JAVA]
 //      ; m-transform-overlays(
 //          not(check-constructors)
 //        )
@@ -138,15 +202,17 @@ strategies
 
       ; m-lift-dynamic-rules-from-spec
 
-// commented: checks if used strategy with such an arity exists. Therefore needs global information
+// commented: checks if used strategy with such an arity exists. Therefore needs global information [DONE IN JAVA]
 //      ; check-calls
 
       ; m-transform-local-defs(
           map(id
             ; stratego-desugar
             ; raise-annotations
-//            ; not(def-use-def)
+            ; not(def-use-def)
+// commented: [DONE IN JAVA]
 //            ; not(check-constructors)
+// commented: [MOVED TO BACKEND]
 //            ; expand-overlays-in-def
             ; rules-to-sdefs-def
             ; desugar-list-matching
@@ -154,38 +220,43 @@ strategies
             ; strename
             ; desugar-def
             ; check-patterns
+            ; split-large-term-builds
           )
+        /*)
+
+      ; m-transform-local-defs(id*/
+          ; joindefs
+          ; rename-sdef2
+          ; ![<id>]
         )
 
-      ; m-transform-local-defs(id
-          ; ![<joindefs>] 
-          ; [RenameSDef2]
-        )
+// commented: [DONE IN JAVA]
+//      ; m-transform-external-defs(id
+//          ; if ?[_,_|_] then
+//              warn(|"multiple external definitions with same signature")
+//            ; [id | ![]] // Cannot reuse dyn rule when already used in library
+//            end
+//          ; [ id
+//             ; rename-sdef2
+//             ; desugar-DefaultVarDec
+//             ; strename
+//            ]
+//        )
 
-      ; m-transform-external-defs(id
-          ; if ?[_,_|_] then
-              warn(|"multiple external definitions with same signature")
-            ; [id | ![]] // Cannot reuse dyn rule when already used in library
-            end
-          ; [ id
-             ; RenameSDef2
-             ; desugar-DefaultVarDec
-             ; strename
-            ]
-        )
-
-      ; m-transform-local-defs(
-          [rename-calls2
-           ; simplify
-           ; define-congruences-def
-          ]
-        )
+      ; m-transform-local-defs([id
+          ; rename-calls2
+          ; simplify
+          ; define-congruences-def
+        ])
 
 // commented: Can't tell if unused without global information
 //      ; if-lib(remove-unused-external-defs, remove-unused-defs)
     )
 // commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
 //    ; tfc1(|"Stratego-Core", "fe-cong")
+
+  frontend-sep-comp-lib =
+    m-transform-split-definitions(id)
 
   m-transform-split-definitions(s) =
     dr-scope-all-verbose(id
@@ -197,17 +268,27 @@ strategies
   m-split-definitions = id
     ; where(id
       ; m-get-all-local-definitions
-      ; map(!(<m-def-signature;Fst>, <id>))
+      ; filter(!(<m-def-signature;not(SepCompCong);Fst>, <id>))
       ; ?localDef*
     )
-//    ; where(id
-//      ; m-get-all-constructors
-//      ; map(!(<m-constr-signature>, <id>))
-//      ; ?constructor*
-//    )
+    ; where(id
+      ; m-get-all-constructors
+      ; filter(!(<m-constr-signature;constr-sig-to-string>, <id>))
+      ; ?constr*
+    )
     ; where(id
       ; m-get-all-overlays
-      ; map(!(<m-overlay-signature;!$[[<Fst>]_[<Snd>]]>, <id>))
+      ; map(!(<m-overlay-signature;constr-sig-to-string>, <id>))
       ; ?overlay*
     )
-    ; !(localDef*, overlay*)
+    ; where(id
+      ; dr-all-keys(|"SepCompCong")
+      ; map(!(<!(<SepCompCong>, <Snd>);constr-sig-to-string>, <bagof-ModDefinition;?[<id>]>))
+      ; ?cong*
+    )
+    // TODO: export LeftHandSide dynamic rule for LHS check of dynamic rules
+    ; !(localDef*, constr*, overlay*, cong*)
+
+  constr-sig-to-string = (is-string, is-int); !$[[<Fst>]_[<Snd>]]
+  constr-sig-to-string: (Q(c), len) -> $[[<escape> c]_[len]]
+  constr-sig-to-string: (Inj(), 0) -> <fail>
