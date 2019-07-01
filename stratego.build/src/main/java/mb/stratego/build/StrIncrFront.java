@@ -12,7 +12,6 @@ import mb.stratego.build.util.CommonPaths;
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
@@ -26,6 +25,7 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
@@ -34,8 +34,6 @@ import org.metaborg.spoofax.core.syntax.IParserConfig;
 import org.metaborg.spoofax.core.syntax.ImploderImplementation;
 import org.metaborg.spoofax.core.syntax.JSGLR1FileParseTableProvider;
 import org.metaborg.spoofax.core.syntax.JSGLR1I;
-import org.metaborg.spoofax.core.syntax.JSGLR2FileParseTableProvider;
-import org.metaborg.spoofax.core.syntax.JSGLR2I;
 import org.metaborg.spoofax.core.syntax.JSGLRI;
 import org.metaborg.spoofax.core.syntax.ParserConfig;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -444,7 +442,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private static final Map<String, ParserConfig> parserConfigs = new HashMap<>();
 
     private static final String COMPILE_STRATEGY_NAME = "compile-module2";
-    private static final String STRATEGO_LANG_NAME = "Stratego-Sugar";
 
     @Inject public StrIncrFront(IResourceService resourceService, IProjectService projectService,
         ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
@@ -474,9 +471,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final long startTime = System.nanoTime();
         final IStrategoTerm result =
             runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
-//        execContext.logger().debug(
-//            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
-//                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
+        //        execContext.logger().debug(
+        //            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
+        //                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         execContext.require(resourceService.localFile(inputFile));
         // TODO: reinstate support for files from within a jar? Where was this used again?
@@ -567,8 +564,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
         execContext.logger().debug(
-            "\"Full FrontEnd task took\", " + (System.nanoTime() - startTime) + ", \""
-                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
+            "\"Full FrontEnd task took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation.toPath()
+                .relativize(Paths.get(input.inputFileString)) + "\"");
 
         return new Output(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
             definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, strategyASTs, overlayASTs,
@@ -636,7 +633,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             strategoDialect = null;
         }
         if(strategoLang == null) {
-            @Nullable ILanguage stratego = languageService.getLanguage(STRATEGO_LANG_NAME);
+            @Nullable ILanguage stratego = languageService.getLanguage(SpoofaxConstants.LANG_STRATEGO_NAME);
             String extension = inputFile.getName().getExtension();
             if(stratego != null && extension.equals("rtree")) {
                 strategoLang = stratego.activeImpl();
@@ -645,19 +642,23 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 ast = new TermReader(factory).parseFromStream(inputFile.getContent().getInputStream());
                 if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
-                    throw new ExecException(
-                        "Did not find Module/2 in RTree file. Bug in custom library detection? (If file contains Specification/1 with only external definitions, then yes). Found: \n"
-                            + ast.toString(2));
+                    if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Specification")
+                        && ast.getSubtermCount() == 1)) {
+                        throw new ExecException("Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
+                    } else {
+                        throw new ExecException("Bug in custom library detection. Please file a bug report and "
+                            + "turn off Stratego separate compilation for now as a work-around. ");
+                    }
                 }
             } else {
-                throw new ExecException(
-                    "Cannot find/load Stratego language. Please add source dependency on org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion} in metaborg.yaml");
+                throw new ExecException("Cannot find/load Stratego language. Please add a source dependency "
+                    + "'org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}' in your metaborg.yaml file. ");
             }
         } else {
             // parse *.str file
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
-//        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
+        //        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
         return transform(logger, inputFile, projectName, projectLocation, strategoLang, ast);
     }
 
@@ -671,13 +672,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final String projectPath = transformContext.project().location().toString();
         final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         final long beforeStrategoCommonCall = System.nanoTime();
-//        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
+        //        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
         final HybridInterpreter interpreter =
             strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
         interpreter.getContext().setContextObject(transformContext);
         interpreter.getCompiledContext().setContextObject(transformContext);
         @Nullable IStrategoTerm result = strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
-//        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
+        //        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
         if(result == null) {
             throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
         }
@@ -714,12 +715,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             final String inputText = sourceTextService.text(inputFile);
             final JSGLRI<?> parser;
 
-//            if(imploder == ImploderImplementation.java) {
-//                parser = new JSGLR2I(config, termFactory, strategoLang, null, JSGLRVersion.v2);
-//            } else {
-                final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-                parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect);
-//            }
+            //            if(imploder == ImploderImplementation.java) {
+            //                parser = new JSGLR2I(config, termFactory, strategoLang, null, JSGLRVersion.v2);
+            //            } else {
+            final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
+            parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect);
+            //            }
 
             final ParseContrib contrib = parser.parse(null, inputFile, inputText);
 
@@ -743,11 +744,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final ITermFactory termFactory =
             termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
         final IParseTableProvider provider;
-//        if(imploder == ImploderImplementation.java) {
-//            provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
-//        } else {
-            provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
-//        }
+        //        if(imploder == ImploderImplementation.java) {
+        //            provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
+        //        } else {
+        provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
+        //        }
         final ParserConfig config = new ParserConfig("Module", provider, imploder);
         parserConfigs.put(parseTable.toString(), config);
         return config;

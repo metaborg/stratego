@@ -599,9 +599,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         long finishTime = System.nanoTime();
         //        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
         //        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
-        execContext.logger().debug(
-            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
-                - backEndTime));
+//        execContext.logger().debug(
+//            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
+//                - backEndTime));
 
         return None.instance;
     }
