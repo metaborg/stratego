@@ -159,10 +159,10 @@ public interface Library extends Serializable {
         @Override public @Nullable File fileToRead() throws MalformedURLException {
             URL url = new URL(pathURLString);
             if(url.getProtocol().equals("jar")) {
-                url = new URL(url.getPath());
+                url = new URL(url.getPath().split("!", 2)[0]);
             }
             if(url.getProtocol().equals("file")) {
-                return new File(url.getPath().split("!", 2)[0].split("/", 2)[1]);
+                return new File(url.getPath());
             }
             /* This will probably fail with an exception, but that's fine because we don't know how to handle
              *  non-jar/file protocols.
