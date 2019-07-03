@@ -124,7 +124,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
     }
 
-    public static final class Output implements Serializable {
+    public static abstract class Output implements Serializable {
+        abstract @Nullable NormalOutput normalOutput();
+        abstract @Nullable FileRemovedOutput fileRemovedOutput();
+    }
+
+    public static final class NormalOutput extends Output {
         final String moduleName;
         /**
          * Cified-strategy-name to file with CTree definition of that strategy [static linking]
@@ -185,7 +190,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         transient Map<String, IStrategoAppl> congrASTs;
 
-        Output(String moduleName, Map<String, File> strategyFiles, Set<String> usedStrategies,
+        NormalOutput(String moduleName, Map<String, File> strategyFiles, Set<String> usedStrategies,
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
             Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles,
@@ -299,13 +304,21 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
 
+        @Override NormalOutput normalOutput() {
+            return this;
+        }
+
+        @Override FileRemovedOutput fileRemovedOutput() {
+            return null;
+        }
+
         @Override public boolean equals(Object o) {
             if(this == o)
                 return true;
             if(o == null || getClass() != o.getClass())
                 return false;
 
-            Output output = (Output) o;
+            NormalOutput output = (NormalOutput) o;
 
             if(!moduleName.equals(output.moduleName))
                 return false;
@@ -356,6 +369,21 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             result = 31 * result + overlayASTs.hashCode();
             result = 31 * result + congrASTs.hashCode();
             return result;
+        }
+    }
+
+    public static final class FileRemovedOutput extends Output {
+        public static final FileRemovedOutput instance = new FileRemovedOutput();
+
+        private FileRemovedOutput() {
+        }
+
+        @Nullable @Override NormalOutput normalOutput() {
+            return null;
+        }
+
+        @Override FileRemovedOutput fileRemovedOutput() {
+            return this;
         }
     }
 
@@ -468,12 +496,10 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         final FileObject location = resourceService.resolve(input.projectLocation);
         final FileObject inputFile = resourceService.resolve(input.inputFileString);
-        final long startTime = System.nanoTime();
-        final IStrategoTerm result =
-            runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
-        //        execContext.logger().debug(
-        //            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
-        //                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
+
+        if(!inputFile.exists()) {
+            return FileRemovedOutput.instance;
+        }
 
         execContext.require(resourceService.localFile(inputFile));
         // TODO: reinstate support for files from within a jar? Where was this used again?
@@ -486,6 +512,13 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         //        } else {
         //            execContext.require(new File(inputURI));
         //        }
+
+        final long startTime = System.nanoTime();
+        final IStrategoTerm result =
+            runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
+        //        execContext.logger().debug(
+        //            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
+        //                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList defs3 = Tools.listAt(result, 1);
@@ -567,7 +600,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             "\"Full FrontEnd task took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation.toPath()
                 .relativize(Paths.get(input.inputFileString)) + "\"");
 
-        return new Output(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
+        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
             definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, strategyASTs, overlayASTs,
             congrASTs);
     }

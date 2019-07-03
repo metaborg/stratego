@@ -296,8 +296,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject
-    public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
@@ -431,66 +430,69 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.originTasks);
             final Task<StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
             frontSourceTasks.add(task.toSerializableTask());
-            final StrIncrFront.Output frontOutput = execContext.require(task);
-            //            boilerplateFiles.add(resourceService.localPath(
-            //                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
+            final @Nullable StrIncrFront.NormalOutput frontOutput = execContext.require(task).normalOutput();
+            if(frontOutput != null) {
+                //            boilerplateFiles.add(resourceService.localPath(
+                //                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
 
-            shuffleStartTime = System.nanoTime();
-            frontEndTime += shuffleStartTime - frontEndStartTime;
+                shuffleStartTime = System.nanoTime();
+                frontEndTime += shuffleStartTime - frontEndStartTime;
 
-            final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
-            theImports.addAll(defaultImports);
+                final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
+                theImports.addAll(defaultImports);
 
-            // combining output for check
-            for(Set<String> usedConstrs : frontOutput.strategyConstrs.values()) {
-                getOrInitialize(usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
+                // combining output for check
+                for(Set<String> usedConstrs : frontOutput.strategyConstrs.values()) {
+                    getOrInitialize(usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
+                }
+                usedStrategies.put(module.path, frontOutput.usedStrategies);
+                usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
+                registerStrategyDefinitions(definedStrategies, module,
+                    new HashSet<>(frontOutput.strategyFiles.keySet()));
+                registerStrategyDefinitions(definedCongruences, module, frontOutput.congrs);
+                registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
+                    frontOutput.overlayFiles.keySet());
+                strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
+
+
+                // shuffling output for backend
+                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
+                    String strategyName = gen.getKey();
+                    // ensure the strategy is a key in the strategyFiles map
+                    getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
+                    getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSerializableTask());
+                    getOrInitialize(strategyConstrs, strategyName, HashSet::new)
+                        .addAll(frontOutput.strategyConstrs.get(strategyName));
+                }
+                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
+                    final String congrName = gen.getKey();
+                    congrASTs.put(congrName, gen.getValue());
+                    congrOrigin.put(congrName, task.toSerializableTask());
+                    getOrInitialize(strategyConstrs, congrName, HashSet::new)
+                        .addAll(frontOutput.strategyConstrs.get(congrName));
+                }
+                for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
+                    final String overlayName = gen.getKey();
+                    getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
+                    getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSerializableTask());
+                }
+                for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
+                    final String overlayName = gen.getKey();
+                    getOrInitialize(overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
+                }
+
+                // resolving imports
+                final Set<Module> expandedImports =
+                    Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
+                for(Module m : expandedImports) {
+                    getOrInitialize(imports, module.path, HashSet::new).add(m.path);
+                }
+                expandedImports.removeAll(seen);
+                workList.addAll(expandedImports);
+                seen.addAll(expandedImports);
+
+                shuffleTime += System.nanoTime() - shuffleStartTime;
             }
-            usedStrategies.put(module.path, frontOutput.usedStrategies);
-            usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-            registerStrategyDefinitions(definedStrategies, module, new HashSet<>(frontOutput.strategyFiles.keySet()));
-            registerStrategyDefinitions(definedCongruences, module, frontOutput.congrs);
-            registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
-                frontOutput.overlayFiles.keySet());
-            strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
-
-
-            // shuffling output for backend
-            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
-                String strategyName = gen.getKey();
-                // ensure the strategy is a key in the strategyFiles map
-                getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
-                getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSerializableTask());
-                getOrInitialize(strategyConstrs, strategyName, HashSet::new)
-                    .addAll(frontOutput.strategyConstrs.get(strategyName));
-            }
-            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
-                final String congrName = gen.getKey();
-                congrASTs.put(congrName, gen.getValue());
-                congrOrigin.put(congrName, task.toSerializableTask());
-                getOrInitialize(strategyConstrs, congrName, HashSet::new)
-                    .addAll(frontOutput.strategyConstrs.get(congrName));
-            }
-            for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
-                final String overlayName = gen.getKey();
-                getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
-                getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSerializableTask());
-            }
-            for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
-                final String overlayName = gen.getKey();
-                getOrInitialize(overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
-            }
-
-            // resolving imports
-            final Set<Module> expandedImports =
-                Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
-            for(Module m : expandedImports) {
-                getOrInitialize(imports, module.path, HashSet::new).add(m.path);
-            }
-            expandedImports.removeAll(seen);
-            workList.addAll(expandedImports);
-            seen.addAll(expandedImports);
-
-            shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
 
         long betweenFrontAndCheck = System.nanoTime();
@@ -599,9 +601,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         long finishTime = System.nanoTime();
         //        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
         //        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
-//        execContext.logger().debug(
-//            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
-//                - backEndTime));
+        //        execContext.logger().debug(
+        //            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
+        //                - backEndTime));
 
         return None.instance;
     }
@@ -781,9 +783,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
         }
-//        if(!checkOk) {
-//            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
-//        }
+        //        if(!checkOk) {
+        //            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+        //        }
         return new StaticCheckOutput(ambStratResolution);
     }
 
