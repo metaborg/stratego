@@ -502,6 +502,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
 
         execContext.require(resourceService.localFile(inputFile));
+        StrIncr.readStrategoFiles++;
         // TODO: reinstate support for files from within a jar? Where was this used again?
         //        if(inputURI.getScheme().equals("jar")) {
         //            JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
