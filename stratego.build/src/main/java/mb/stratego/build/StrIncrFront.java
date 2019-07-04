@@ -497,11 +497,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final FileObject location = resourceService.resolve(input.projectLocation);
         final FileObject inputFile = resourceService.resolve(input.inputFileString);
 
+        execContext.require(resourceService.localFile(inputFile));
         if(!inputFile.exists()) {
             return FileRemovedOutput.instance;
         }
 
-        execContext.require(resourceService.localFile(inputFile));
         StrIncr.readStrategoFiles++;
         // TODO: reinstate support for files from within a jar? Where was this used again?
         //        if(inputURI.getScheme().equals("jar")) {
