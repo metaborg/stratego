@@ -61,6 +61,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     private static final IStrategoConstructor funType = strj.init().getFactory().makeConstructor("FunType", 2);
     private static final IStrategoTerm newSVar = B.appl(varDec, B.string("a"), B.appl(funType, A_TERM, A_TERM));
     private static final IStrategoTerm newTVar = B.appl(varDec, B.string("a"), B.appl(constType, A_TERM));
+    public static Set<String> generatedJavaFiles = new HashSet<>();
 
     public static final class Input implements Serializable {
         final File inputFile;

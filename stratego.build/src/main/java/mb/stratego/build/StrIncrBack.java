@@ -211,6 +211,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         for(String line : result.errLog.split(System.lineSeparator())) {
             if(line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
                 String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
+                StrIncr.generatedJavaFiles.add(fileName);
                 execContext.provide(new File(fileName));
             }
         }
