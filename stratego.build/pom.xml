@@ -11,25 +11,19 @@
     <relativePath>../../releng/parent/java</relativePath>
   </parent>
 
-  <properties>
-    <pie-version>0.5.4</pie-version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>pie.runtime</artifactId>
-      <version>${pie-version}</version>
+      <artifactId>pie.taskdefs.guice</artifactId>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>pie.taskdefs.guice</artifactId>
-      <version>${pie-version}</version>
+      <artifactId>pie.api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <scope>provided</scope>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.util</artifactId>
+      <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
@@ -53,17 +47,38 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>stratego.compiler.pack</artifactId>
+      <artifactId>org.strategoxt.strj</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>make-permissive</artifactId>
+      <artifactId>stratego.compiler.pack</artifactId>
       <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>
