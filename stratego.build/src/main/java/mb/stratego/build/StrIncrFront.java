@@ -490,6 +490,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
+        StrIncr.executedFrontTasks++;
         for(final STask t : input.originTasks) {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
@@ -502,7 +503,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             return FileRemovedOutput.instance;
         }
 
-        StrIncr.readStrategoFiles++;
         // TODO: reinstate support for files from within a jar? Where was this used again?
         //        if(inputURI.getScheme().equals("jar")) {
         //            JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
