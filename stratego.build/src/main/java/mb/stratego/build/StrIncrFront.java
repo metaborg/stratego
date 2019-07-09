@@ -687,7 +687,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private static ILanguageComponent getComponent(@Nullable ILanguageImpl language) throws ExecException {
         if(language != null) {
             for(ILanguageComponent component : language.components()) {
-                if(component.facet(DynamicClassLoadingFacet.class) == null) {
+                if(!IStrategoCommon.hasStrategoFacets(component)) {
                     continue;
                 }
                 return component;
