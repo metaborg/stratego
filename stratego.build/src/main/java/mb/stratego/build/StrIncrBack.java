@@ -32,7 +32,6 @@ import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -166,14 +165,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
-//        execContext.logger().debug(
-//            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
-//                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+        //        execContext.logger().debug(
+        //            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
+        //                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
         final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").addFile("-o", input.outputPath)
-//            .add("--verbose", 3)
+            //            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
             arguments.add("--boilerplate");
@@ -199,10 +198,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
 
         final long strategoStartTime = System.nanoTime();
-        final StrategoExecutor.ExecutionResult result = runStrj(execContext.logger(), ctree, arguments, true);
-//        execContext.logger().debug(
-//            "\"BackEnd task stratego code took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
-//                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+        final StrategoExecutor.ExecutionResult result = runStrjStrategy(execContext.logger(), true,
+            newResourceTracker(new File(System.getProperty("user.dir")), true), strj_sep_comp_0_0.instance,
+            buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()));
+        //        execContext.logger().debug(
+        //            "\"BackEnd task stratego code took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
+        //                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);
@@ -222,37 +223,64 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         return None.instance;
     }
 
-    private StrategoExecutor.ExecutionResult runStrj(Logger logger, IStrategoTerm ctree, Arguments arguments, boolean silent) {
-        final ResourceAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")), silent);
+    public static StrategoExecutor.ExecutionResult runStrjStrategy(Logger logger, boolean silent,
+        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoList input) {
         final Context context = org.strategoxt.strj.strj.init();
-        final Strategy strategy = strj_sep_comp_0_0.instance;
-        final String name = "strj-sep-comp";
+        final String name = strategy.getName();
 
         final ITermFactory factory = context.getFactory();
-        try {
-            if(!silent) {
-                logger.info("Execute " + name + " " + arguments);
-            }
+        if(tracker != null) {
             context.setIOAgent(tracker.agent());
-            dr_scope_all_start_0_0.instance.invoke(context, factory.makeTuple());
-            IStrategoList input = buildInput(ctree, arguments, name);
+        }
+        dr_scope_all_start_0_0.instance.invoke(context, factory.makeTuple());
 
+        final long start = System.nanoTime();
+        try {
             // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
             if(new Exception().getStackTrace().length > 20) {
                 new StackSaver(strategy).invokeStackFriendly(context, input, NO_STRATEGIES, NO_TERMS);
             } else {
                 strategy.invoke(context, input);
             }
-            return new StrategoExecutor.ExecutionResult(true, tracker.stdout(), tracker.stderr(), null);
+            final long time = System.nanoTime() - start;
+            final String stdout;
+            final String stderr;
+            if(tracker != null) {
+                stdout = tracker.stdout();
+                stderr = tracker.stderr();
+            } else {
+                stdout = "";
+                stderr = "";
+            }
+            return new StrategoExecutor.ExecutionResult(true, stdout, stderr, null, time);
         } catch(StrategoExit e) {
+            final long time = System.nanoTime() - start;
             if(e.getValue() == 0) {
-                return new StrategoExecutor.ExecutionResult(true, tracker.stdout(), tracker.stderr(), e);
+                final String stdout;
+                final String stderr;
+                if(tracker != null) {
+                    stdout = tracker.stdout();
+                    stderr = tracker.stderr();
+                } else {
+                    stdout = "";
+                    stderr = "";
+                }
+                return new StrategoExecutor.ExecutionResult(true, stdout, stderr, e, time);
             }
             context.popOnExit(false);
             if(!silent) {
                 logger.error("Executing " + name + " failed: ", e);
             }
-            return new StrategoExecutor.ExecutionResult(false, tracker.stdout(), tracker.stderr(), e);
+            final String stdout;
+            final String stderr;
+            if(tracker != null) {
+                stdout = tracker.stdout();
+                stderr = tracker.stderr();
+            } else {
+                stdout = "";
+                stderr = "";
+            }
+            return new StrategoExecutor.ExecutionResult(false, stdout, stderr, e, time);
         } finally {
             dr_scope_all_end_0_0.instance.invoke(context, factory.makeTuple());
         }
@@ -269,6 +297,18 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             i++;
         }
 
+        return B.list(args);
+    }
+
+    public static IStrategoList buildInput(Arguments arguments, String name) {
+        final List<String> strings = arguments.asStrings(null);
+        final IStrategoTerm[] args = new IStrategoTerm[strings.size() + 1];
+        args[0] = B.string(name);
+        int i = 1;
+        for(String string : strings) {
+            args[i] = B.string(string);
+            i++;
+        }
         return B.list(args);
     }
 
