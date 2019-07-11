@@ -195,6 +195,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                         boolean foundSomethingToImport = false;
                         for(File dir : includeDirs) {
                             final Path path = dir.toPath().resolve(anImport.path);
+                            execContext.require(path);
                             if(Files.exists(path)) {
                                 final @Nullable File[] strFiles = path.toFile()
                                     .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
