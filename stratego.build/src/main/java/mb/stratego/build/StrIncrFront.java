@@ -490,7 +490,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
-        StrIncr.executedFrontTasks++;
+        BuildStats.executedFrontTasks++;
         for(final STask t : input.originTasks) {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
@@ -517,9 +517,6 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final long startTime = System.nanoTime();
         final IStrategoTerm result =
             runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
-        //        execContext.logger().debug(
-        //            "\"FrontEnd task stratego related code took\", " + (System.nanoTime() - startTime) + ", \""
-        //                + input.projectLocation.toPath().relativize(Paths.get(input.inputFileString)) + "\"");
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList defs3 = Tools.listAt(result, 1);
@@ -597,9 +594,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 imports.add(Import.fromTerm(importTerm));
             }
         }
-        execContext.logger().debug(
-            "\"Full FrontEnd task took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation.toPath()
-                .relativize(Paths.get(input.inputFileString)) + "\"");
+        BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
         return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
             definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, strategyASTs, overlayASTs,

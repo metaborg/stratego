@@ -33,7 +33,6 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
@@ -151,6 +150,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
+        BuildStats.executedBackTasks++;
         for(STask t : input.frontEndTasks) {
             execContext.require(t);
         }
@@ -165,9 +165,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
-        //        execContext.logger().debug(
-        //            "\"BackEnd task packing took\", " + (System.nanoTime() - startTime) + ", \"" + input.projectLocation
-        //                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
@@ -197,13 +194,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         arguments.addAll(input.extraArgs);
 
 
-        final long strategoStartTime = System.nanoTime();
         final StrategoExecutor.ExecutionResult result = runStrjStrategy(execContext.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), strj_sep_comp_0_0.instance,
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()));
-        //        execContext.logger().debug(
-        //            "\"BackEnd task stratego code took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
-        //                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);
@@ -212,13 +205,11 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         for(String line : result.errLog.split(System.lineSeparator())) {
             if(line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
                 String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
-                StrIncr.generatedJavaFiles.add(fileName);
+                BuildStats.generatedJavaFiles.add(fileName);
                 execContext.provide(new File(fileName));
             }
         }
-        execContext.logger().debug(
-            "\"Full BackEnd task took\", " + (System.nanoTime() - strategoStartTime) + ", \"" + input.projectLocation
-                .toPath().relativize(Paths.get(input.strategyDir.toString(), "packed$.ctree")) + "\"");
+        BuildStats.backTaskTime += System.nanoTime() - startTime;
 
         return None.instance;
     }

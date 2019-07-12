@@ -17,7 +17,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.strj.strj;
 import javax.annotation.Nullable;
@@ -53,16 +52,19 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
     private static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
+
     static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
-    private static final IStrategoConstructor constType = strj.init().getFactory().makeConstructor("ConstType", 1);
-    private static final IStrategoConstructor sort = strj.init().getFactory().makeConstructor("Sort", 2);
-    private static final IStrategoAppl A_TERM = B.appl(sort, B.string("ATerm"), B.list());
-    private static final IStrategoConstructor varDec = strj.init().getFactory().makeConstructor("VarDec", 2);
-    private static final IStrategoConstructor funType = strj.init().getFactory().makeConstructor("FunType", 2);
-    private static final IStrategoTerm newSVar = B.appl(varDec, B.string("a"), B.appl(funType, A_TERM, A_TERM));
-    private static final IStrategoTerm newTVar = B.appl(varDec, B.string("a"), B.appl(constType, A_TERM));
-    public static Set<String> generatedJavaFiles = new HashSet<>();
-    public static long executedFrontTasks = 0;
+
+    private static final IStrategoAppl A_TERM;
+    private static final IStrategoTerm newSVar;
+    private static final IStrategoTerm newTVar;
+
+    static {
+        final B b = new B(strj.init().getFactory());
+        A_TERM = b.applShared("Sort", B.string("ATerm"), B.list());
+        newSVar = b.applShared("VarDec", B.string("a"), b.applShared("FunType", A_TERM, A_TERM));
+        newTVar = b.applShared("VarDec", B.string("a"), b.applShared("ConstType", A_TERM));
+    }
 
     public static final class Input implements Serializable {
         final File inputFile;
@@ -271,9 +273,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final class StaticCheckOutput {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution;
+        final boolean staticNameCheck;
 
-        StaticCheckOutput(Map<String, SortedMap<String, String>> ambStratResolution) {
+        StaticCheckOutput(Map<String, SortedMap<String, String>> ambStratResolution, boolean staticNameCheck) {
             this.ambStratResolution = ambStratResolution;
+            this.staticNameCheck = staticNameCheck;
         }
 
         @Override public String toString() {
@@ -318,9 +322,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(final STask t : input.originTasks) {
             execContext.require(t);
         }
-
-        //        execContext.logger().debug("Starting time measurement");
-        long startTime = System.nanoTime();
 
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
         final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
@@ -381,19 +382,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Overlay_arity names to set of tasks that contributed overlay definitions
         final Map<String, List<STask>> overlayOrigins = new HashMap<>();
 
-        boolean checkOk = true;
+        boolean frontStaticCheck = true;
 
-        long frontEndStartTime;
-        long frontEndTime = 0;
-        long frontEndLibTime = 0;
         long shuffleStartTime;
-        long shuffleTime = 0;
-        long shuffleLibTime = 0;
-        long numberOfFETasks = 0;
-        long numberOfFELibTasks = 0;
         do {
-            frontEndStartTime = System.nanoTime();
-
             final Module module = workList.remove();
 
             if(module.type == Module.Type.library) {
@@ -403,7 +395,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
 
                 shuffleStartTime = System.nanoTime();
-                frontEndLibTime += shuffleStartTime - frontEndStartTime;
 
                 registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
                 registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
@@ -412,7 +403,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 final Set<String> overlappingStrategies =
                     Sets.difference(Sets.intersection(externalStrategies, frontLibOutput.strategies), ALWAYS_DEFINED);
                 if(!overlappingStrategies.isEmpty()) {
-                    checkOk = false;
+                    frontStaticCheck = false;
                     execContext.logger()
                         .error("Overlapping external strategy definitions: " + overlappingStrategies, null);
                 }
@@ -420,12 +411,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 externalStrategies.addAll(frontLibOutput.strategies);
                 externalConstructors.addAll(frontLibOutput.constrs);
 
-                shuffleLibTime += System.nanoTime() - shuffleStartTime;
+                BuildStats.shuffleLibTime += System.nanoTime() - shuffleStartTime;
 
-                numberOfFELibTasks++;
                 continue;
             }
-            numberOfFETasks++;
 
             final String projectName = projectName(module.path);
             final StrIncrFront.Input frontInput =
@@ -435,11 +424,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             frontSourceTasks.add(task.toSerializableTask());
             final @Nullable StrIncrFront.NormalOutput frontOutput = execContext.require(task).normalOutput();
             if(frontOutput != null) {
-                //            boilerplateFiles.add(resourceService.localPath(
-                //                CommonPaths.strSepCompBoilerplateFile(projectLocation, projectName, frontOutput.moduleName)));
-
                 shuffleStartTime = System.nanoTime();
-                frontEndTime += shuffleStartTime - frontEndStartTime;
 
                 final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
                 theImports.addAll(defaultImports);
@@ -494,32 +479,28 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 workList.addAll(expandedImports);
                 seen.addAll(expandedImports);
 
-                shuffleTime += System.nanoTime() - shuffleStartTime;
+                BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
             }
         } while(!workList.isEmpty());
 
-        long betweenFrontAndCheck = System.nanoTime();
-        //        execContext.logger().debug("\"Frontends overall took\", " + (betweenFrontAndCheck - startTime));
-        //        execContext.logger().debug("\"Purely str file frontend tasks took\", " + frontEndTime);
-        //        execContext.logger().debug("\"Purely libs took\", " + frontEndLibTime);
-        //        execContext.logger().debug("\"Shuffling information and tracking imports took\", " + shuffleTime);
-        //        execContext.logger().debug("\"Shuffling information in libs took\", " + shuffleLibTime);
-        //        execContext.logger().debug("\"Number of FrontEnd tasks\", " + numberOfFETasks);
-        //        execContext.logger().debug("\"Number of FrontEndLib tasks\", " + numberOfFELibTasks);
+        long preCheckTime = System.nanoTime();
 
         // CHECK: constructor/strategy uses have definition which is imported
         final StaticCheckOutput staticCheckOutput =
-            staticCheck(checkOk, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
+            staticCheck(frontStaticCheck, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
                 usedConstructors, definedStrategies, definedConstructors, definedCongruences, externalStrategies,
                 strategyNeedsExternal, overlayConstrs);
 
-        long betweenCheckAndBack = System.nanoTime();
-        //        execContext.logger().debug("\"Static check overall took\", " + (betweenCheckAndBack - betweenFrontAndCheck));
 
-        //        execContext.logger().debug("Renaming:\n" + staticCheckOutput);
+        if(!staticCheckOutput.staticNameCheck) {
+            // Commented during benchmarking, too many missing local imports to automatically fix.
+//            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+        }
+
+        BuildStats.checkTime = System.nanoTime() - preCheckTime;
 
         // BACKEND
-        long numberOfBETasks = 0;
+        long backEndStart = System.nanoTime();
         long backEndTime = 0;
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
@@ -550,7 +531,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
             backEndTime += backendStartTime - System.nanoTime();
-            numberOfBETasks++;
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
             String congrName = entry.getKey();
@@ -559,8 +539,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 continue;
             }
             if(externalConstructors.contains(congrName)) {
-                //                execContext.logger()
-                //                    .debug("Dropping congruence for " + congrName + " in favour of external definition in library. ");
+                execContext.logger()
+                    .info("Dropping congruence for " + congrName + " in favour of external definition in library. ");
                 continue;
             }
             final List<IStrategoAppl> strategyContributions;
@@ -585,28 +565,21 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             execContext.require(strIncrBack.createTask(backEndInput));
             backEndTime += backendStartTime - System.nanoTime();
-            numberOfBETasks++;
         }
         // boilerplate task
-        final List<IStrategoAppl> decls = declStubs(strategyASTs);
-        final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
-        assert strSrcGenDir
-            != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
-        long backendStartTime = System.nanoTime();
-        StrIncrBack.Input backEndInput =
-            new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls,
-                Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                input.cacheDir, input.constants, input.includeDirs, args, true);
-        execContext.require(strIncrBack.createTask(backEndInput));
-        backEndTime += backendStartTime - System.nanoTime();
-        numberOfBETasks++;
+        {
+            final List<IStrategoAppl> decls = declStubs(strategyASTs);
+            final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
+            assert strSrcGenDir != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
+            long backendStartTime = System.nanoTime();
+            StrIncrBack.Input backEndInput =
+                new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls, Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
+                    input.cacheDir, input.constants, input.includeDirs, args, true);
+            execContext.require(strIncrBack.createTask(backEndInput));
+            backEndTime += backendStartTime - System.nanoTime();
+        }
 
-        long finishTime = System.nanoTime();
-        //        execContext.logger().debug("\"Backends overall took\", " + (finishTime - betweenCheckAndBack));
-        //        execContext.logger().debug("\"Number of BackEnd tasks\", " + numberOfBETasks);
-        //        execContext.logger().debug(
-        //            "\"Full Stratego incremental build took\", " + (finishTime - startTime - frontEndTime - frontEndLibTime
-        //                - backEndTime));
+        BuildStats.backEndShuffleTime = System.nanoTime() - backEndStart - backEndTime;
 
         return None.instance;
     }
@@ -658,7 +631,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static StaticCheckOutput staticCheck(boolean checkOk, ExecContext execContext, String mainFileModulePath,
+    private static StaticCheckOutput staticCheck(boolean staticNameCheck, ExecContext execContext, String mainFileModulePath,
         Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
@@ -683,7 +656,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // CHECK that extending and/or overriding strategies have an external strategy to extend and/or override
         Set<String> strategyNeedsExternalNonOverlap = Sets.difference(strategyNeedsExternal, externalStrategies);
         if(!strategyNeedsExternalNonOverlap.isEmpty()) {
-            checkOk = false;
+            staticNameCheck = false;
             execContext.logger()
                 .error("Cannot find external strategies for override/extend " + strategyNeedsExternalNonOverlap, null);
         }
@@ -697,7 +670,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 .contains(overlayName));
         });
         if(!overlaySccs.isEmpty()) {
-            checkOk = false;
+            staticNameCheck = false;
             for(Set<String> overlayScc : overlaySccs) {
                 execContext.logger().error("Overlays have a cyclic dependency " + overlayScc, null);
             }
@@ -728,7 +701,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Sets.difference(usedConstructors.getOrDefault(moduleName, Collections.emptySet()),
                         theVisibleConstructors);
                 if(!unresolvedConstructors.isEmpty()) {
-                    checkOk = false;
+                    staticNameCheck = false;
                     execContext.logger()
                         .error("In module " + moduleName + ": Cannot find constructors " + unresolvedConstructors,
                             null);
@@ -737,7 +710,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Sets.difference(usedStrategies.getOrDefault(moduleName, Collections.emptySet()),
                         theVisibleStrategies);
                 if(!unresolvedStrategies.isEmpty()) {
-                    checkOk = false;
+                    staticNameCheck = false;
                     execContext.logger()
                         .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
                 }
@@ -745,7 +718,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()),
                         externalStrategies), ALWAYS_DEFINED);
                 if(!strategiesOverlapWithExternal.isEmpty()) {
-                    checkOk = false;
+                    staticNameCheck = false;
                     execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
                         + strategiesOverlapWithExternal, null);
                 }
@@ -786,10 +759,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
         }
-        //        if(!checkOk) {
-        //            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
-        //        }
-        return new StaticCheckOutput(ambStratResolution);
+        return new StaticCheckOutput(ambStratResolution, staticNameCheck);
     }
 
     private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) throws ExecException {

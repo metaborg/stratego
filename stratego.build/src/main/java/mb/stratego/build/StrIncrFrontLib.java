@@ -90,6 +90,8 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
     }
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
+        BuildStats.executedFrontLibTasks++;
+        final long startTime = System.nanoTime();
         final @Nullable File fileToRead = input.library.fileToRead();
         if(fileToRead != null) {
             execContext.require(fileToRead);
@@ -128,6 +130,8 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
         }
         final Set<String> constrs = extractConstrs(Tools.listAt(constructorsTerm, 0));
         final Set<String> strategies = extractStrategies(Tools.listAt(strategiesTerm, 0));
+
+        BuildStats.frontLibTaskTime += System.nanoTime() - startTime;
         return new Output(strategies, constrs);
     }
 
