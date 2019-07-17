@@ -5,7 +5,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.None;
-import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrategoExecutor;
@@ -44,10 +43,8 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     public static final String id = StrIncrBack.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final Collection<STask> frontEndTasks;
         final File projectLocation;
-        final @Nullable String strategyName;
-        final File strategyDir;
+        final String strategyName;
         final Collection<IStrategoAppl> strategyContributions;
         final Collection<IStrategoAppl> overlayContributions;
         final SortedMap<String, String> ambStrategyResolution;
@@ -59,15 +56,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
-        Input(Collection<STask> frontEndTasks, File projectLocation, @Nullable String strategyName, File strategyDir,
-            Collection<IStrategoAppl> strategyContributions, Collection<IStrategoAppl> overlayContributions,
-            SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
-            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
-            boolean isBoilerplate) {
-            this.frontEndTasks = frontEndTasks;
+        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoAppl> strategyContributions,
+            Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
+            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants,
+            Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
             this.projectLocation = projectLocation;
-            this.strategyName = strategyName;
-            this.strategyDir = strategyDir;
+            this.strategyName = strategyName == null ? "" : strategyName;
             this.strategyContributions = strategyContributions;
             this.overlayContributions = overlayContributions;
             this.ambStrategyResolution = ambStrategyResolution;
@@ -94,13 +88,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
             if(isBoilerplate != input.isBoilerplate)
                 return false;
-            if(!frontEndTasks.equals(input.frontEndTasks))
-                return false;
             if(!projectLocation.equals(input.projectLocation))
                 return false;
-            if(strategyName != null ? !strategyName.equals(input.strategyName) : input.strategyName != null)
-                return false;
-            if(!strategyDir.equals(input.strategyDir))
+            if(!strategyName.equals(input.strategyName))
                 return false;
             if(!strategyContributions.equals(input.strategyContributions))
                 return false;
@@ -123,10 +113,8 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         }
 
         @Override public int hashCode() {
-            int result = frontEndTasks.hashCode();
-            result = 31 * result + projectLocation.hashCode();
-            result = 31 * result + (strategyName != null ? strategyName.hashCode() : 0);
-            result = 31 * result + strategyDir.hashCode();
+            int result = projectLocation.hashCode();
+            result = 31 * result + strategyName.hashCode();
             result = 31 * result + strategyContributions.hashCode();
             result = 31 * result + overlayContributions.hashCode();
             result = 31 * result + ambStrategyResolution.hashCode();
@@ -151,9 +139,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedBackTasks++;
-        for(STask t : input.frontEndTasks) {
-            execContext.require(t);
-        }
 
         final ITermFactory factory = termFactoryService.getGeneric();
 
@@ -322,6 +307,6 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     @Override public Serializable key(Input input) {
-        return input.strategyDir;
+        return input.strategyName;
     }
 }

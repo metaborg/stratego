@@ -5,7 +5,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
-import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.CommonPaths;
@@ -40,7 +39,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -334,7 +332,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         workList.add(inputModule);
         seen.add(inputModule);
 
-        final List<STask> frontSourceTasks = new ArrayList<>();
         final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(StrIncrFront.Import.library(builtinLib));
@@ -375,12 +372,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, Set<String>> overlayConstrs = new HashMap<>();
         // Overlay_arity name to definition of that overlay
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
-        // Cified-strategy-name to set of tasks that contributed strategy definitions
-        final Map<String, List<STask>> strategyOrigins = new HashMap<>();
-        // Cified-strategy-name to task that created strategy definitions
-        final Map<String, STask> congrOrigin = new HashMap<>();
-        // Overlay_arity names to set of tasks that contributed overlay definitions
-        final Map<String, List<STask>> overlayOrigins = new HashMap<>();
 
         boolean frontStaticCheck = true;
 
@@ -391,8 +382,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             if(module.type == Module.Type.library) {
                 final StrIncrFrontLib.Input frontLibInput =
                     new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
-                final Task<StrIncrFrontLib.Output> task = strIncrFrontLib.createTask(frontLibInput);
-                final StrIncrFrontLib.Output frontLibOutput = execContext.require(task);
+                final StrIncrFrontLib.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
 
                 shuffleStartTime = System.nanoTime();
 
@@ -420,9 +410,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final StrIncrFront.Input frontInput =
                 new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final Task<StrIncrFront.Output> task = strIncrFront.createTask(frontInput);
-            frontSourceTasks.add(task.toSerializableTask());
-            final @Nullable StrIncrFront.NormalOutput frontOutput = execContext.require(task).normalOutput();
+            final @Nullable StrIncrFront.NormalOutput frontOutput =
+                execContext.require(strIncrFront, frontInput).normalOutput();
             if(frontOutput != null) {
                 shuffleStartTime = System.nanoTime();
 
@@ -448,21 +437,18 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     String strategyName = gen.getKey();
                     // ensure the strategy is a key in the strategyFiles map
                     getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
-                    getOrInitialize(strategyOrigins, strategyName, ArrayList::new).add(task.toSerializableTask());
                     getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                         .addAll(frontOutput.strategyConstrs.get(strategyName));
                 }
                 for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
                     final String congrName = gen.getKey();
                     congrASTs.put(congrName, gen.getValue());
-                    congrOrigin.put(congrName, task.toSerializableTask());
                     getOrInitialize(strategyConstrs, congrName, HashSet::new)
                         .addAll(frontOutput.strategyConstrs.get(congrName));
                 }
                 for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
                     final String overlayName = gen.getKey();
                     getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
-                    getOrInitialize(overlayOrigins, overlayName, ArrayList::new).add(task.toSerializableTask());
                 }
                 for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
                     final String overlayName = gen.getKey();
@@ -509,13 +495,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
         for(String strategyName : strategyASTs.keySet()) {
             final List<IStrategoAppl> strategyContributions;
-            final List<STask> backEndOrigin;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = strategyASTs.get(strategyName);
-            backEndOrigin = new ArrayList<>(strategyOrigins.get(strategyName));
             for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
                 strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
-                backEndOrigin.addAll(overlayOrigins.getOrDefault(overlayName, Collections.emptyList()));
             }
 
             final @Nullable File strategyDir =
@@ -525,9 +508,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
-                    strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
-                    input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
+                new StrIncrBack.Input(projectLocationFile, strategyName, strategyContributions, strategyOverlayFiles,
+                    ambStrategyResolution, input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
+                    input.includeDirs, args, false);
             final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
             backendTaskTime += backendTaskStartTime - System.nanoTime();
@@ -544,14 +527,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 continue;
             }
             final List<IStrategoAppl> strategyContributions;
-            final List<STask> backEndOrigin;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = Collections.singletonList(congrAST);
-            backEndOrigin = new ArrayList<>();
-            backEndOrigin.add(Objects.requireNonNull(congrOrigin.get(congrName)));
             for(String overlayName : requiredOverlays(congrName, strategyConstrs, overlayConstrs)) {
                 strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
-                backEndOrigin.addAll(overlayOrigins.getOrDefault(overlayName, Collections.emptyList()));
             }
 
             final @Nullable File strategyDir =
@@ -559,9 +538,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(backEndOrigin, projectLocationFile, congrName, strategyDir, strategyContributions,
-                    strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                    input.cacheDir, input.constants, input.includeDirs, args, false);
+                new StrIncrBack.Input(projectLocationFile, congrName, strategyContributions, strategyOverlayFiles,
+                    Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
+                    input.constants, input.includeDirs, args, false);
             final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
             backendTaskTime += backendTaskStartTime - System.nanoTime();
@@ -569,11 +548,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // boilerplate task
         {
             final List<IStrategoAppl> decls = declStubs(strategyASTs);
-            final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
-            assert strSrcGenDir != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
+            final @Nullable File strSrcGenDir =
+                resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
+            assert strSrcGenDir
+                != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls, Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                    input.cacheDir, input.constants, input.includeDirs, args, true);
+                new StrIncrBack.Input(projectLocationFile, null, decls, Collections.emptyList(),
+                    Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
+                    input.constants, input.includeDirs, args, true);
             final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
             backendTaskTime += backendTaskStartTime - System.nanoTime();
@@ -631,8 +613,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static StaticCheckOutput staticCheck(boolean staticNameCheck, ExecContext execContext, String mainFileModulePath,
-        Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
+    private static StaticCheckOutput staticCheck(boolean staticNameCheck, ExecContext execContext,
+        String mainFileModulePath, Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
         Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
         Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
         Map<String, Set<String>> definedCongruences, Set<String> externalStrategies, Set<String> strategyNeedsExternal,
