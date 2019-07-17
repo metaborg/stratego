@@ -13,7 +13,7 @@ public class BuildStats {
     public static long shuffleTime = 0;
     public static long shuffleLibTime = 0;
     public static long checkTime = 0;
-    public static long backEndShuffleTime = 0;
+    public static long shuffleBackendTime = 0;
     public static Set<String> generatedJavaFiles = new HashSet<>();
 
     // @formatter:off
@@ -26,7 +26,7 @@ public class BuildStats {
         + "\"Shuffle time\","
         + "\"Shuffle lib time\","
         + "\"Static check time\","
-        + "\"Backend shuffle time\"";
+        + "\"Shuffle backend time\"";
     // @formatter:on
 
     public static void reset() {
@@ -39,7 +39,7 @@ public class BuildStats {
         shuffleTime = 0;
         shuffleLibTime = 0;
         checkTime = 0;
-        backEndShuffleTime = 0;
+        shuffleBackendTime = 0;
         generatedJavaFiles.clear();
     }
 
@@ -51,7 +51,7 @@ public class BuildStats {
             + "," + shuffleTime
             + "," + shuffleLibTime
             + "," + checkTime
-            + "," + backEndShuffleTime;
+            + "," + shuffleBackendTime;
         // @formatter:on
     }
 }

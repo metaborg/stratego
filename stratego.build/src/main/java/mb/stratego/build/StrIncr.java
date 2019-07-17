@@ -500,8 +500,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
 
         // BACKEND
-        long backEndStart = System.nanoTime();
-        long backEndTime = 0;
+        final long backendStart = System.nanoTime();
+        long backendTaskTime = 0;
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(String builtinLib : input.builtinLibs) {
@@ -522,15 +522,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
-            long backendStartTime = System.nanoTime();
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, strategyName, strategyDir,
                     strategyContributions, strategyOverlayFiles, ambStrategyResolution, input.javaPackageName,
                     input.outputPath, input.cacheDir, input.constants, input.includeDirs, args, false);
+            final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
-            backEndTime += backendStartTime - System.nanoTime();
+            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
             String congrName = entry.getKey();
@@ -558,28 +558,28 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
-            long backendStartTime = System.nanoTime();
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(backEndOrigin, projectLocationFile, congrName, strategyDir, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
+            final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
-            backEndTime += backendStartTime - System.nanoTime();
+            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
         // boilerplate task
         {
             final List<IStrategoAppl> decls = declStubs(strategyASTs);
             final @Nullable File strSrcGenDir = resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
             assert strSrcGenDir != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
-            long backendStartTime = System.nanoTime();
             StrIncrBack.Input backEndInput =
                 new StrIncrBack.Input(frontSourceTasks, projectLocationFile, null, strSrcGenDir, decls, Collections.emptyList(), Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, true);
+            final long backendTaskStartTime = System.nanoTime();
             execContext.require(strIncrBack.createTask(backEndInput));
-            backEndTime += backendStartTime - System.nanoTime();
+            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
 
-        BuildStats.backEndShuffleTime = System.nanoTime() - backEndStart - backEndTime;
+        BuildStats.shuffleBackendTime = (System.nanoTime() - backendStart) - backendTaskTime;
 
         return None.instance;
     }
