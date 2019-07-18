@@ -486,14 +486,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
 
         // BACKEND
-        final long backendStart = System.nanoTime();
-        long backendTaskTime = 0;
+        long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
         for(String builtinLib : input.builtinLibs) {
             args.add("-la", builtinLib);
         }
+        BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
         for(String strategyName : strategyASTs.keySet()) {
+            backendStart = System.nanoTime();
             final List<IStrategoAppl> strategyContributions;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = strategyASTs.get(strategyName);
@@ -511,11 +512,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 new StrIncrBack.Input(projectLocationFile, strategyName, strategyContributions, strategyOverlayFiles,
                     ambStrategyResolution, input.javaPackageName, input.outputPath, input.cacheDir, input.constants,
                     input.includeDirs, args, false);
-            final long backendTaskStartTime = System.nanoTime();
+            BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
-            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
+            backendStart = System.nanoTime();
             String congrName = entry.getKey();
             IStrategoAppl congrAST = entry.getValue();
             if(!strategyASTs.getOrDefault(congrName + "_0", Collections.emptyList()).isEmpty()) {
@@ -541,12 +542,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 new StrIncrBack.Input(projectLocationFile, congrName, strategyContributions, strategyOverlayFiles,
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, false);
-            final long backendTaskStartTime = System.nanoTime();
+            BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
-            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
         // boilerplate task
         {
+            backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = declStubs(strategyASTs);
             final @Nullable File strSrcGenDir =
                 resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
@@ -556,12 +557,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 new StrIncrBack.Input(projectLocationFile, null, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
-            final long backendTaskStartTime = System.nanoTime();
+            BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
-            backendTaskTime += backendTaskStartTime - System.nanoTime();
         }
-
-        BuildStats.shuffleBackendTime = (System.nanoTime() - backendStart) - backendTaskTime;
 
         return None.instance;
     }
