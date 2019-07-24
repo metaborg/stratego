@@ -561,6 +561,19 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(strIncrBack.createTask(backEndInput));
         }
 
+        Map<Integer, Integer> modulesDefiningStrategy = BuildStats.modulesDefiningStrategy;
+        for(Map.Entry<String, List<IStrategoAppl>> strategyToASTs : strategyASTs.entrySet()) {
+            int modulesDefiningThisStrategy = strategyToASTs.getValue().size();
+            Integer count = modulesDefiningStrategy.getOrDefault(modulesDefiningThisStrategy, 0);
+            count = count + 1;
+            modulesDefiningStrategy.put(modulesDefiningThisStrategy, count);
+        }
+        {
+            Integer count = modulesDefiningStrategy.getOrDefault(1, 0);
+            count = count + congrASTs.size();
+            modulesDefiningStrategy.put(1, count);
+        }
+
         return None.instance;
     }
 

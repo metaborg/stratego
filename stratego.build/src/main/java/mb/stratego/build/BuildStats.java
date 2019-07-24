@@ -1,7 +1,10 @@
 package mb.stratego.build;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class BuildStats {
     public static long executedFrontTasks = 0;
@@ -15,6 +18,8 @@ public class BuildStats {
     public static long checkTime = 0;
     public static long shuffleBackendTime = 0;
     public static Set<String> generatedJavaFiles = new HashSet<>();
+    // no. of modules defining the strategy -> no. of distinct strategies that are defined by that many modules
+    public static Map<Integer, Integer> modulesDefiningStrategy = new TreeMap<>();
 
     // @formatter:off
     public static final String CSV_HEADER = "\"Frontend time\","
@@ -41,6 +46,7 @@ public class BuildStats {
         checkTime = 0;
         shuffleBackendTime = 0;
         generatedJavaFiles.clear();
+        modulesDefiningStrategy.clear();
     }
 
     public static String csv() {
