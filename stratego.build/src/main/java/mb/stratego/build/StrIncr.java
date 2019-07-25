@@ -498,6 +498,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final List<IStrategoAppl> strategyContributions;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
             strategyContributions = strategyASTs.get(strategyName);
+            int modulesDefiningThisStrategy = strategyContributions.size();
             for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
                 strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
@@ -514,6 +515,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
+
+            getOrInitialize(BuildStats.modulesDefiningStrategy, modulesDefiningThisStrategy, ArrayList::new).add(strategyName);
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
             backendStart = System.nanoTime();
@@ -544,6 +547,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
+
+            getOrInitialize(BuildStats.modulesDefiningStrategy, 1, ArrayList::new).add(congrName);
         }
         // boilerplate task
         {
@@ -559,19 +564,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
-        }
-
-        Map<Integer, Integer> modulesDefiningStrategy = BuildStats.modulesDefiningStrategy;
-        for(Map.Entry<String, List<IStrategoAppl>> strategyToASTs : strategyASTs.entrySet()) {
-            int modulesDefiningThisStrategy = strategyToASTs.getValue().size();
-            Integer count = modulesDefiningStrategy.getOrDefault(modulesDefiningThisStrategy, 0);
-            count = count + 1;
-            modulesDefiningStrategy.put(modulesDefiningThisStrategy, count);
-        }
-        {
-            Integer count = modulesDefiningStrategy.getOrDefault(1, 0);
-            count = count + congrASTs.size();
-            modulesDefiningStrategy.put(1, count);
         }
 
         return None.instance;
