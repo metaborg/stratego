@@ -3,11 +3,11 @@ package mb.stratego.build;
 import mb.flowspec.terms.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
 import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.LocallyUniqueStringTermFactory;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
@@ -66,7 +66,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -524,7 +523,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
         final long startTime = System.nanoTime();
         final IStrategoTerm result =
-            runStrategoCompileBuilder(execContext.logger(), inputFile, input.projectName, location);
+            runStrategoCompileBuilder(inputFile, input.projectName, location);
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList defs3 = Tools.listAt(result, 1);
@@ -659,9 +658,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         overlayFiles.put(overlayName, overlayFile);
     }
 
-    private IStrategoTerm runStrategoCompileBuilder(Logger logger, FileObject inputFile, String projectName,
+    private IStrategoTerm runStrategoCompileBuilder(FileObject inputFile, String projectName,
         FileObject projectLocation) throws Exception {
-        final long startTime = System.nanoTime();
         @Nullable ILanguageImpl strategoDialect = languageIdentifierService.identify(inputFile);
         @Nullable ILanguageImpl strategoLang = dialectService.getBase(strategoDialect);
         IStrategoTerm ast;
@@ -696,26 +694,21 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
         //        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
-        return transform(logger, inputFile, projectName, projectLocation, strategoLang, ast);
+        return transform(inputFile, projectName, projectLocation, strategoLang, ast);
     }
 
-    private IStrategoTerm transform(Logger logger, FileObject inputFile, String projectName, FileObject projectLocation,
+    private IStrategoTerm transform(FileObject inputFile, String projectName, FileObject projectLocation,
         @Nullable ILanguageImpl strategoLang, final IStrategoTerm ast) throws Exception {
-        final long startTime = System.nanoTime();
         final @Nullable IProject project = projectService.get(projectLocation);
         assert project != null : "Could not find project in location: " + projectLocation;
         final IContext transformContext = contextService.get(inputFile, project, strategoLang);
-        final ITermFactory f = termFactoryService.getGeneric();
-        final String projectPath = transformContext.project().location().toString();
-        final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
-        final long beforeStrategoCommonCall = System.nanoTime();
-        //        logger.debug("\"Getting project/context/factory took\", " + (beforeStrategoCommonCall - startTime));
         final HybridInterpreter interpreter =
             strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
-        interpreter.getContext().setContextObject(transformContext);
-        interpreter.getCompiledContext().setContextObject(transformContext);
+        final ITermFactory f = new LocallyUniqueStringTermFactory(interpreter.getCompiledContext().getFactory());
+        interpreter.getCompiledContext().setFactory(f);
+        final String projectPath = transformContext.project().location().toString();
+        final IStrategoTerm inputTerm = f.makeTuple(f.makeString(projectPath), f.makeString(projectName), ast);
         @Nullable IStrategoTerm result = strategoCommon.invoke(interpreter, inputTerm, COMPILE_STRATEGY_NAME);
-        //        logger.debug("\"StrategoCommon#invoke took\", " + (System.nanoTime() - beforeStrategoCommonCall));
         if(result == null) {
             throw new ExecException("Normal Stratego strategy failure during execution of " + COMPILE_STRATEGY_NAME);
         }
