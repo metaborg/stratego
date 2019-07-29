@@ -498,10 +498,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
         for(String strategyName : strategyASTs.keySet()) {
             backendStart = System.nanoTime();
-            final List<IStrategoAppl> strategyContributions;
+            /* TODO: don't use a set, it could in a very strange case affect the semantics of the Stratego problem
+                (side-effect, then failure, purposefully defined multiple times).
+               This set is used right now to eliminate overhead in the generated helper strategies of dynamic rules,
+               which should be defined once per rule-name but are defined once per rule-name per module. Fix that in a
+               principled way, then this can go back to a list.
+             */
+            final Set<IStrategoAppl> strategyContributions;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
-            strategyContributions = strategyASTs.get(strategyName);
-            int modulesDefiningThisStrategy = strategyContributions.size();
+            strategyContributions = new HashSet<>(strategyASTs.get(strategyName));
             for(String overlayName : requiredOverlays(strategyName, strategyConstrs, overlayConstrs)) {
                 strategyOverlayFiles.addAll(overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
