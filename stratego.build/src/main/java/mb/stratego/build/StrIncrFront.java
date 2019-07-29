@@ -177,6 +177,10 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
          */
         final Map<String, File> congrFiles;
         /**
+         * Cified-strategy-name to no. of separate definitions found in the file before merging [statistics]
+         */
+        final Map<String, Integer> noOfDefinitions;
+        /**
          * Cified-strategy-name to CTree definition of that strategy [in-memory optimization]
          */
         transient Map<String, IStrategoAppl> strategyASTs;
@@ -193,7 +197,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
             Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles,
-            Map<String, IStrategoAppl> strategyASTs, Map<String, List<IStrategoAppl>> overlayASTs,
+            Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs, Map<String, List<IStrategoAppl>> overlayASTs,
             Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
@@ -207,6 +211,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             this.strategyNeedsExternal = strategyNeedsExternal;
             this.overlayConstrs = overlayConstrs;
             this.congrFiles = congrFiles;
+            this.noOfDefinitions = noOfDefinitions;
             this.strategyASTs = strategyASTs;
             this.overlayASTs = overlayASTs;
             this.congrASTs = congrASTs;
@@ -531,6 +536,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final IStrategoList olays = Tools.listAt(result, 3);
         final IStrategoList congs = Tools.listAt(result, 4);
         final IStrategoList imps = Tools.listAt(result, 5);
+        final IStrategoList noOfDefs = Tools.listAt(result, 6);
 
         final Map<String, IStrategoAppl> strategyASTs = new HashMap<>(defs3.size() * 2);
         final Map<String, File> strategyFiles = new HashMap<>(defs3.size() * 2);
@@ -602,9 +608,15 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             }
         }
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
+        final Map<String, Integer> noOfDefinitions = new HashMap<>(noOfDefs.size() * 2);
+        for(IStrategoTerm noOfDef : noOfDefs) {
+            final String defName = Tools.javaStringAt(noOfDef, 0);
+            final int no = Tools.javaIntAt(noOfDef, 1);
+            noOfDefinitions.put(defName, no);
+        }
 
         return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
-            definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, strategyASTs, overlayASTs,
+            definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs,
             congrASTs);
     }
 
@@ -693,7 +705,14 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             // parse *.str file
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
-        //        logger.debug("\"Parsing took\", " + (System.nanoTime() - startTime));
+        if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
+                    && ast.getSubtermCount() == 2) {
+            final TermSizeTermVisitor termSizeTermVisitor = new TermSizeTermVisitor();
+            termSizeTermVisitor.visit(ast);
+            final String moduleName = Tools.javaStringAt(ast, 0);
+            BuildStats.moduleFrontendCTreeSize.put(moduleName, termSizeTermVisitor.size);
+        }
+
         return transform(inputFile, projectName, projectLocation, strategoLang, ast);
     }
 

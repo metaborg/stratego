@@ -413,6 +413,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final @Nullable StrIncrFront.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
             if(frontOutput != null) {
+                for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
+                    getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new).add(strategyNoOfDefs.getValue());
+                }
                 shuffleStartTime = System.nanoTime();
 
                 final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
@@ -515,8 +518,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
-
-            getOrInitialize(BuildStats.modulesDefiningStrategy, modulesDefiningThisStrategy, ArrayList::new).add(strategyName);
         }
         for(Map.Entry<String, IStrategoAppl> entry : congrASTs.entrySet()) {
             backendStart = System.nanoTime();
@@ -548,7 +549,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
 
-            getOrInitialize(BuildStats.modulesDefiningStrategy, 1, ArrayList::new).add(congrName);
+            getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
         }
         // boilerplate task
         {

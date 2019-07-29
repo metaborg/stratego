@@ -150,6 +150,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
+        BuildStats.strategyBackendCTreeSize.put(input.strategyName, getTermSize(ctree));
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
@@ -197,6 +198,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
         return None.instance;
+    }
+
+    private long getTermSize(IStrategoTerm ctree) {
+        final TermSizeTermVisitor termSizeTermVisitor = new TermSizeTermVisitor();
+        termSizeTermVisitor.visit(ctree);
+        return termSizeTermVisitor.size;
     }
 
     public static StrategoExecutor.ExecutionResult runStrjStrategy(Logger logger, boolean silent,

@@ -19,8 +19,10 @@ public class BuildStats {
     public static long checkTime = 0;
     public static long shuffleBackendTime = 0;
     public static Set<String> generatedJavaFiles = new HashSet<>();
-    // no. of modules defining the strategy -> no. of distinct strategies that are defined by that many modules
-    public static Map<Integer, List<String>> modulesDefiningStrategy = new TreeMap<>();
+    // strategy name -> no. for each module defining the strategy, which is how many definitions there were in that module
+    public static Map<String, List<Integer>> modulesDefiningStrategy = new TreeMap<>();
+    public static Map<String, Long> moduleFrontendCTreeSize = new HashMap<>();
+    public static Map<String, Long> strategyBackendCTreeSize = new HashMap<>();
 
     // @formatter:off
     public static final String CSV_HEADER = "\"Frontend time\","
@@ -48,6 +50,7 @@ public class BuildStats {
         shuffleBackendTime = 0;
         generatedJavaFiles.clear();
         modulesDefiningStrategy.clear();
+        strategyBackendCTreeSize.clear();
     }
 
     public static String csv() {
