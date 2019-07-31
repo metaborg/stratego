@@ -125,6 +125,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     public static abstract class Output implements Serializable {
         abstract @Nullable NormalOutput normalOutput();
+
         abstract @Nullable FileRemovedOutput fileRemovedOutput();
     }
 
@@ -197,8 +198,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
             Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles,
-            Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs, Map<String, List<IStrategoAppl>> overlayASTs,
-            Map<String, IStrategoAppl> congrASTs) {
+            Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
+            Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.usedStrategies = usedStrategies;
@@ -527,8 +528,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         //        }
 
         final long startTime = System.nanoTime();
-        final IStrategoTerm result =
-            runStrategoCompileBuilder(inputFile, input.projectName, location);
+        final IStrategoTerm result = runStrategoCompileBuilder(inputFile, input.projectName, location);
 
         final String moduleName = Tools.javaStringAt(result, 0);
         final IStrategoList defs3 = Tools.listAt(result, 1);
@@ -615,9 +615,9 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             noOfDefinitions.put(defName, no);
         }
 
-        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles, imports,
-            definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs,
-            congrASTs);
+        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles,
+            imports, definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, noOfDefinitions,
+            strategyASTs, overlayASTs, congrASTs);
     }
 
     /**
@@ -706,7 +706,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
         if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
-                    && ast.getSubtermCount() == 2) {
+            && ast.getSubtermCount() == 2) {
             final TermSizeTermVisitor termSizeTermVisitor = new TermSizeTermVisitor();
             termSizeTermVisitor.visit(ast);
             final String moduleName = Tools.javaStringAt(ast, 0);
@@ -773,10 +773,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
             final ParseContrib contrib = parser.parse(null, inputFile, inputText);
 
-            if(!contrib.valid || !contrib.success || contrib.ast == null) {
-                throw new ExecException(
-                    "Cannot parse stratego file " + inputFile + ": parsing failed with" + (!contrib.valid ? " errors" :
-                        (!contrib.success) ? "out errors" : " ast == null"));
+            if(!contrib.success || contrib.ast == null) {
+                throw new ExecException("Cannot parse stratego file " + inputFile + ": " + contrib.messages);
             }
 
             return contrib.ast;
