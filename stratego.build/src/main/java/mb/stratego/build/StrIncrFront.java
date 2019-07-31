@@ -698,8 +698,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                     }
                 }
             } else {
-                throw new ExecException("Cannot find/load Stratego language. Please add a source dependency "
-                    + "'org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}' in your metaborg.yaml file. ");
+                if(stratego == null || stratego.activeImpl() == null) {
+                    throw new ExecException("Cannot find/load Stratego language. Please add a source dependency " + "'org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}' in your metaborg.yaml file. ");
+                } else {
+                    throw new ExecException("Cannot find the right Stratego dialect for " + inputFile + ". Make sure the .tbl file of the dialect was made available via a -I commandline flag. ");
+                }
             }
         } else {
             // parse *.str file
