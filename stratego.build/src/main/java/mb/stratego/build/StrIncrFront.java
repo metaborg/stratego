@@ -11,7 +11,6 @@ import mb.stratego.build.util.LocallyUniqueStringTermFactory;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
@@ -29,16 +28,12 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.IStrategoCommon;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
-import org.metaborg.spoofax.core.syntax.IParseTableProvider;
-import org.metaborg.spoofax.core.syntax.IParserConfig;
+import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.syntax.ImploderImplementation;
-import org.metaborg.spoofax.core.syntax.JSGLR1FileParseTableProvider;
-import org.metaborg.spoofax.core.syntax.JSGLR1I;
-import org.metaborg.spoofax.core.syntax.JSGLRI;
-import org.metaborg.spoofax.core.syntax.ParserConfig;
-import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.unit.ParseContrib;
+import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -49,7 +44,6 @@ import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.HybridInterpreter;
-import org.strategoxt.lang.Context;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -73,7 +67,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
@@ -472,7 +465,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private final IContextService contextService;
     private final IStrategoCommon strategoCommon;
     private final ISourceTextService sourceTextService;
-    private static final Map<String, ParserConfig> parserConfigs = new HashMap<>();
+    private final ISpoofaxUnitService unitService;
+    private final ISpoofaxSyntaxService syntaxService;
 
     private static final String COMPILE_STRATEGY_NAME = "compile-module2";
 
@@ -480,7 +474,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
         ILanguageService languageService, IStrategoRuntimeService strategoRuntimeService,
         ITermFactoryService termFactoryService, IContextService contextService, IStrategoCommon strategoCommon,
-        ISourceTextService sourceTextService) {
+        ISourceTextService sourceTextService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService) {
         this.resourceService = resourceService;
         this.projectService = projectService;
         this.languageIdentifierService = languageIdentifierService;
@@ -491,6 +485,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         this.contextService = contextService;
         this.strategoCommon = strategoCommon;
         this.sourceTextService = sourceTextService;
+        this.unitService = unitService;
+        this.syntaxService = syntaxService;
     }
 
 
@@ -699,9 +695,11 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
                 }
             } else {
                 if(stratego == null || stratego.activeImpl() == null) {
-                    throw new ExecException("Cannot find/load Stratego language. Please add a source dependency " + "'org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}' in your metaborg.yaml file. ");
+                    throw new ExecException("Cannot find/load Stratego language. Please add a source dependency "
+                        + "'org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}' in your metaborg.yaml file. ");
                 } else {
-                    throw new ExecException("Cannot find the right Stratego dialect for " + inputFile + ". Make sure the .tbl file of the dialect was made available via a -I commandline flag. ");
+                    throw new ExecException("Cannot find the right Stratego dialect for " + inputFile
+                        + ". Make sure the .tbl file of the dialect was made available via a -I commandline flag. ");
                 }
             }
         } else {
@@ -751,84 +749,23 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
     private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
         ILanguageImpl strategoLang) throws ParseException, ExecException {
-        final ImploderImplementation imploder;
-        final ILanguageImpl langImpl;
-        if(strategoDialect != null) {
-            langImpl = strategoDialect;
-            imploder = ImploderImplementation.stratego;
-        } else {
-            langImpl = strategoLang;
-            imploder = ImploderImplementation.java;
-        }
-        final ITermFactory termFactory = termFactoryService.get(strategoLang, null, false);
+        final @Nullable ImploderImplementation overrideImploder =
+            strategoDialect == null ? null : ImploderImplementation.stratego;
 
-        final IParserConfig config = getParserConfig(findParseTable(langImpl), imploder);
+        final @Nullable IStrategoTerm ast;
+        final String text;
         try {
-            final String inputText = sourceTextService.text(inputFile);
-            final JSGLRI<?> parser;
-
-            //            if(imploder == ImploderImplementation.java) {
-            //                parser = new JSGLR2I(config, termFactory, strategoLang, null, JSGLRVersion.v2);
-            //            } else {
-            final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
-            parser = new JSGLR1I(config, termFactory, context, strategoLang, strategoDialect);
-            //            }
-
-            final ParseContrib contrib = parser.parse(null, inputFile, inputText);
-
-            if(!contrib.success || contrib.ast == null) {
-                throw new ExecException("Cannot parse stratego file " + inputFile + ": " + contrib.messages);
-            }
-
-            return contrib.ast;
+            text = sourceTextService.text(inputFile);
         } catch(IOException e) {
             throw new ParseException(null, e);
         }
-    }
-
-    private IParserConfig getParserConfig(FileObject parseTable, ImploderImplementation imploder)
-        throws ParseException {
-        if(parserConfigs.containsKey(parseTable.toString())) {
-            return parserConfigs.get(parseTable.toString());
+        final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLang, strategoDialect);
+        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, overrideImploder);
+        ast = parseResult.ast();
+        if(!parseResult.success() || ast == null) {
+            throw new ExecException("Cannot parse stratego file " + inputFile + ": " + parseResult.messages());
         }
-        final ITermFactory termFactory =
-            termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-        final IParseTableProvider provider;
-        //        if(imploder == ImploderImplementation.java) {
-        //            provider = new JSGLR2FileParseTableProvider(parseTable, termFactory);
-        //        } else {
-        provider = new JSGLR1FileParseTableProvider(parseTable, termFactory);
-        //        }
-        final ParserConfig config = new ParserConfig("Module", provider, imploder);
-        parserConfigs.put(parseTable.toString(), config);
-        return config;
-    }
-
-    private static FileObject findParseTable(ILanguageImpl lang) throws ParseException {
-        final SyntaxFacet facet = Objects.requireNonNull(lang.facet(SyntaxFacet.class));
-        @Nullable FileObject parseTable = null;
-        if(facet.parseTable == null) {
-            try {
-                boolean multipleTables = false;
-                for(ILanguageComponent component : lang.components()) {
-                    if(component.config().sdfEnabled()) {
-                        if(component.config().parseTable() != null) {
-                            if(multipleTables) {
-                                throw new ParseException(null);
-                            }
-
-                            parseTable = component.location().resolveFile(component.config().parseTable());
-                            multipleTables = true;
-                        }
-                    }
-                }
-            } catch(FileSystemException e) {
-                throw new ParseException(null, e);
-            }
-        } else {
-            parseTable = facet.parseTable;
-        }
-        return Objects.requireNonNull(parseTable);
+        return ast;
     }
 
     @Override public String getId() {
