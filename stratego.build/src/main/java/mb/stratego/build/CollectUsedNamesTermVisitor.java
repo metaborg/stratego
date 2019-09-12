@@ -20,6 +20,7 @@ public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
     private final Map<String, Set<String>> usedAmbStrats;
 
     private @Nullable String currentTopLevelStrategyName = null;
+    public int ambiguousStrategyNamesFound = 0;
 
     CollectUsedNamesTermVisitor(Set<String> usedConstrs, Set<String> usedStrats,
         Map<String, Set<String>> usedAmbStrats) {
@@ -101,6 +102,7 @@ public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
                             }
                         }
                         StrIncr.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);
+                        ambiguousStrategyNamesFound++;
                     }
                 }
             }
