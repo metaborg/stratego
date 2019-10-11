@@ -393,9 +393,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 final Set<String> overlappingStrategies =
                     Sets.difference(Sets.intersection(externalStrategies, frontLibOutput.strategies), ALWAYS_DEFINED);
                 if(!overlappingStrategies.isEmpty()) {
-                    frontStaticCheck = false;
+//                    frontStaticCheck = false;
                     execContext.logger()
-                        .error("Overlapping external strategy definitions: " + overlappingStrategies, null);
+                        .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
                 }
 
                 externalStrategies.addAll(frontLibOutput.strategies);
