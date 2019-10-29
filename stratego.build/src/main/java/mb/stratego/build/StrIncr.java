@@ -163,10 +163,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 Type.source);
         }
 
-        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
+        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrParseThenFront.Import> imports,
             Collection<File> includeDirs, Path projectLocation) throws ExecException, IOException {
             final Set<Module> result = new HashSet<>(imports.size() * 2);
-            for(StrIncrFront.Import anImport : imports) {
+            for(StrIncrParseThenFront.Import anImport : imports) {
                 switch(anImport.type) {
                     case normal: {
                         boolean foundSomethingToImport = false;
@@ -297,11 +297,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private final IResourceService resourceService;
 
-    private final StrIncrFront strIncrFront;
+    private final StrIncrParseThenFront strIncrFront;
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    @Inject public StrIncr(IResourceService resourceService, StrIncrParseThenFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
@@ -332,9 +332,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         workList.add(inputModule);
         seen.add(inputModule);
 
-        final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
+        final List<StrIncrParseThenFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
-            defaultImports.add(StrIncrFront.Import.library(builtinLib));
+            defaultImports.add(StrIncrParseThenFront.Import.library(builtinLib));
         }
         // depend on the include directories in which we search for str and rtree files
         for(File includeDir : input.includeDirs) {
@@ -407,10 +407,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final String projectName = projectName(module.path);
-            final StrIncrFront.Input frontInput =
-                new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
+            final StrIncrParseThenFront.Input frontInput =
+                new StrIncrParseThenFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final @Nullable StrIncrFront.NormalOutput frontOutput =
+            final @Nullable StrIncrParseThenFront.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
             if(frontOutput != null) {
                 for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
@@ -418,7 +418,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
                 shuffleStartTime = System.nanoTime();
 
-                final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
+                final List<StrIncrParseThenFront.Import> theImports = new ArrayList<>(frontOutput.imports);
                 theImports.addAll(defaultImports);
 
                 // combining output for check
