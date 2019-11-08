@@ -23,12 +23,17 @@ public class StrategoExecutor {
 
         public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
             long time) {
+            this(success, outLog, errLog, exception, time, null);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable IStrategoTerm result) {
             this.success = success;
             this.outLog = outLog;
             this.errLog = errLog;
             this.exception = exception;
             this.time = time;
-            this.result = null;
+            this.result = result;
         }
     }
 

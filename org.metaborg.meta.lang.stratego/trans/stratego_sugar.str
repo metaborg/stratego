@@ -10,7 +10,6 @@ imports
   analysis
   desugar
   outline
-  sep-comp-front-end/compile
 
 rules
 

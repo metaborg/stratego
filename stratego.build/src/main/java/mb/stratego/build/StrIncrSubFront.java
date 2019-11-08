@@ -7,37 +7,27 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.context.IContext;
-import org.metaborg.core.context.IContextService;
-import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.stratego.IStrategoCommon;
-import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
-import org.metaborg.spoofax.core.stratego.StrategoRuntimeFacet;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.HybridInterpreter;
+import org.strategoxt.lang.Strategy;
+import org.strategoxt.strc.compile_top_level_def_0_0;
+import org.strategoxt.strc.split_module_0_0;
 
 import com.google.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.util.LocallyUniqueStringTermFactory;
 import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.StrategoExecutor;
 
 public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSubFront.Output> {
     public static final String id = StrIncrSubFront.class.getCanonicalName();
 
     private final IResourceService resourceService;
-    private final IProjectService projectService;
-    private final IStrategoRuntimeService strategoRuntimeService;
-    private final IContextService contextService;
-    private final IStrategoCommon strategoCommon;
     ILanguageImpl strategoLang;
 
     public static final class Input implements Serializable {
@@ -115,6 +105,10 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
             this.result = result;
         }
 
+        @Override public String toString() {
+            return "StrIncrSubFront$Output";
+        }
+
         @Override public int hashCode() {
             final int prime = 31;
             int result = 1;
@@ -140,23 +134,17 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
     }
 
     public static enum InputType {
-        TopLevelDefinition("compile-top-level-def"),
-        Split("split-module"); // Split is for convenience, not because it *must* be cached
-        final String strategyName;
+        TopLevelDefinition(compile_top_level_def_0_0.instance),
+        Split(split_module_0_0.instance); // Split is for convenience, not because it *must* be cached
+        final Strategy strategy;
 
-        InputType(String strategyName) {
-            this.strategyName = strategyName;
+        InputType(Strategy strategy) {
+            this.strategy = strategy;
         }
     }
 
-    @Inject public StrIncrSubFront(IResourceService resourceService, IProjectService projectService,
-        IStrategoRuntimeService strategoRuntimeService, IContextService contextService,
-        IStrategoCommon strategoCommon) {
+    @Inject public StrIncrSubFront(IResourceService resourceService) {
         this.resourceService = resourceService;
-        this.projectService = projectService;
-        this.strategoRuntimeService = strategoRuntimeService;
-        this.contextService = contextService;
-        this.strategoCommon = strategoCommon;
     }
 
 
@@ -170,29 +158,15 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
 
 
     @Override public StrIncrSubFront.Output exec(ExecContext context, StrIncrSubFront.Input input) throws Exception {
-        FileObject inputFile = resourceService.resolve(input.inputFileString);
-        FileObject projectLocation = resourceService.resolve(input.projectLocation);
-        return new Output(transform(inputFile, projectLocation, input.ast, input.inputType.strategyName));
-    }
+        final StrategoExecutor.ExecutionResult result = runStrcStrategy(context.logger(), true,
+            newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy,
+            input.ast);
 
-    private IStrategoTerm transform(FileObject inputFile, FileObject projectLocation,
-        final IStrategoTerm ast, String strategyName) throws Exception {
-        final @Nullable IProject project = projectService.get(projectLocation);
-        assert project != null : "Could not find project in location: " + projectLocation;
-        final IContext transformContext = contextService.get(inputFile, project, strategoLang);
-        final HybridInterpreter interpreter =
-            strategoRuntimeService.runtime(getComponent(strategoLang), transformContext, false);
-        final ResourceAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")), true);
-        final ITermFactory f = new LocallyUniqueStringTermFactory(interpreter.getCompiledContext().getFactory());
-        interpreter.getCompiledContext().setFactory(f);
-        interpreter.setIOAgent(tracker.agent());
-        @Nullable IStrategoTerm result = strategoCommon.invoke(interpreter, ast, strategyName);
-        if(result == null) {
-            throw new ExecException("Normal Stratego strategy failure during execution of " + strategyName
-                + "\n\nstdout:\n\n" + tracker.stdout()
-                + "\n\nstderr:\n\n" + tracker.stderr());
+        if(!result.success) {
+            throw new ExecException("Call to strc frontend failed", result.exception);
         }
-        return result;
+
+        return new Output(result.result);
     }
 
     private ResourceAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
@@ -209,16 +183,9 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         return tracker;
     }
 
-    private static ILanguageComponent getComponent(@Nullable ILanguageImpl language) throws ExecException {
-        if(language != null) {
-            for(ILanguageComponent component : language.components()) {
-                if(component.facet(StrategoRuntimeFacet.class) == null) {
-                    continue;
-                }
-                return component;
-            }
-        }
-        throw new ExecException("Could not find StrategoRuntime component for Stratego.lang");
+    public static StrategoExecutor.ExecutionResult runStrcStrategy(Logger logger, boolean silent,
+    @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input) {
+        return StrIncrBack.runStrategy(logger, silent, tracker, strategy, input, org.strategoxt.strc.strc.init());
     }
 
 }

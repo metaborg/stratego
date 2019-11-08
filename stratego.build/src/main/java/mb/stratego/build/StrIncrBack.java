@@ -207,8 +207,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     public static StrategoExecutor.ExecutionResult runStrjStrategy(Logger logger, boolean silent,
-        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoList input) {
-        final Context context = org.strategoxt.strj.strj.init();
+    @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoList input) {
+        return runStrategy(logger, silent, tracker, strategy, input, org.strategoxt.strj.strj.init());
+    }
+
+    public static StrategoExecutor.ExecutionResult runStrategy(Logger logger, boolean silent,
+        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input, Context context) {
         final String name = strategy.getName();
 
         final ITermFactory factory = context.getFactory();
@@ -219,13 +223,17 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         final long start = System.nanoTime();
         try {
+            final IStrategoTerm result;
             // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
             if(new Exception().getStackTrace().length > 20) {
-                new StackSaver(strategy).invokeStackFriendly(context, input, NO_STRATEGIES, NO_TERMS);
+                result = new StackSaver(strategy).invokeStackFriendly(context, input, NO_STRATEGIES, NO_TERMS);
             } else {
-                strategy.invoke(context, input);
+                result = strategy.invoke(context, input);
             }
             final long time = System.nanoTime() - start;
+            if(!silent && result == null) {
+                logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
+            }
             final String stdout;
             final String stderr;
             if(tracker != null) {
@@ -235,7 +243,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 stdout = "";
                 stderr = "";
             }
-            return new StrategoExecutor.ExecutionResult(true, stdout, stderr, null, time);
+            return new StrategoExecutor.ExecutionResult(result != null, stdout, stderr, null, time, result);
         } catch(StrategoExit e) {
             final long time = System.nanoTime() - start;
             if(e.getValue() == 0) {
