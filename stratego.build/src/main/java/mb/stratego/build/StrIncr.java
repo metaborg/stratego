@@ -390,11 +390,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         if(strContextRef.get() == null) {
             strContext = new Context(new LocallyUniqueStringTermFactory(termFactoryService.getGeneric()));
             strContextRef = new WeakReference<>(strContext);
+            // This initialises both strj for the backend and strc for the frontend.
+            strj.init(strContext);
         } else {
             strContext = strContextRef.get();
         }
-        // This initialises both strj for the backend and strc for the frontend.
-        strj.init(strContext);
 
         long shuffleStartTime;
         do {
