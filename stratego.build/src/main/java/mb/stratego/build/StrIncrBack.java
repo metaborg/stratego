@@ -1,16 +1,16 @@
 package mb.stratego.build;
 
-import mb.flowspec.terms.B;
-import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
-import mb.pie.api.None;
-import mb.pie.api.TaskDef;
-import mb.stratego.build.util.ResourceAgentTracker;
-import mb.stratego.build.util.StrategoExecutor;
-import mb.stratego.compiler.pack.Packer;
+import static org.strategoxt.lang.Term.NO_STRATEGIES;
+import static org.strategoxt.lang.Term.NO_TERMS;
 
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.SortedMap;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
@@ -29,15 +29,19 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.SortedMap;
 
-import static org.strategoxt.lang.Term.NO_STRATEGIES;
-import static org.strategoxt.lang.Term.NO_TERMS;
+import com.google.inject.Inject;
+
+import mb.flowspec.terms.B;
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
+import mb.pie.api.None;
+import mb.pie.api.TaskDef;
+import mb.stratego.build.util.LocallyUniqueStringTermFactory;
+import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.StrategoExecutor;
+import mb.stratego.compiler.pack.Packer;
 
 public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     public static final String id = StrIncrBack.class.getCanonicalName();
@@ -55,11 +59,14 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final Collection<File> includeDirs;
         final Arguments extraArgs;
         final boolean isBoilerplate;
+        transient Context context;
 
-        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoAppl> strategyContributions,
-            Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
-            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants,
-            Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
+        Input(Context context, File projectLocation, @Nullable String strategyName,
+            Collection<IStrategoAppl> strategyContributions, Collection<IStrategoAppl> overlayContributions,
+            SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
+            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
+            boolean isBoilerplate) {
+            this.context = context;
             this.projectLocation = projectLocation;
             this.strategyName = strategyName == null ? "" : strategyName;
             this.strategyContributions = strategyContributions;
@@ -180,9 +187,9 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         arguments.addAll(input.extraArgs);
 
 
-        final StrategoExecutor.ExecutionResult result = runStrjStrategy(execContext.logger(), true,
+        final StrategoExecutor.ExecutionResult result = runLocallyUniqueStringStrategy(execContext.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), strj_sep_comp_0_0.instance,
-            buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()));
+            buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), input.context);
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);
@@ -206,13 +213,10 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         return termSizeTermVisitor.size;
     }
 
-    public static StrategoExecutor.ExecutionResult runStrjStrategy(Logger logger, boolean silent,
-    @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoList input) {
-        return runStrategy(logger, silent, tracker, strategy, input, org.strategoxt.strj.strj.init());
-    }
-
-    public static StrategoExecutor.ExecutionResult runStrategy(Logger logger, boolean silent,
+    public static StrategoExecutor.ExecutionResult runLocallyUniqueStringStrategy(Logger logger, boolean silent,
         @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input, Context context) {
+        LocallyUniqueStringTermFactory.resetUsedStringsInFactory(context);
+
         final String name = strategy.getName();
 
         final ITermFactory factory = context.getFactory();

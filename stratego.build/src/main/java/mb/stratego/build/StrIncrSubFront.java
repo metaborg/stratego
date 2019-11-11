@@ -3,14 +3,13 @@ package mb.stratego.build;
 import java.io.File;
 import java.io.Serializable;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strc.split_module_0_0;
@@ -19,7 +18,6 @@ import com.google.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrategoExecutor;
@@ -36,18 +34,20 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         final String cifiedName;
         final InputType inputType;
         final IStrategoTerm ast;
+        transient Context context;
 
-        public Input(File projectLocation, String inputFileString, String cifiedName, InputType inputType,
+        public Input(File projectLocation, String inputFileString, String cifiedName, Context context, InputType inputType,
             IStrategoTerm ast) {
             this.projectLocation = projectLocation;
             this.inputFileString = inputFileString;
             this.cifiedName = cifiedName;
+            this.context = context;
             this.inputType = inputType;
             this.ast = ast;
         }
 
         @Override public String toString() {
-            return "StrIncrFront$Input(" + inputType.name() + ", " + cifiedName + ')';
+            return "StrIncrSubFront$Input(" + inputType.name() + ", " + cifiedName + ')';
         }
 
 
@@ -158,9 +158,9 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
 
 
     @Override public StrIncrSubFront.Output exec(ExecContext context, StrIncrSubFront.Input input) throws Exception {
-        final StrategoExecutor.ExecutionResult result = runStrcStrategy(context.logger(), true,
-            newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy,
-            input.ast);
+        final StrategoExecutor.ExecutionResult result = StrIncrBack.runLocallyUniqueStringStrategy(context.logger(), true,
+            newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy, input.ast,
+            input.context);
 
         if(!result.success) {
             throw new ExecException("Call to strc frontend failed", result.exception);
@@ -181,11 +181,6 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         agent.setAbsoluteWorkingDir(base);
         agent.setAbsoluteDefinitionDir(base);
         return tracker;
-    }
-
-    public static StrategoExecutor.ExecutionResult runStrcStrategy(Logger logger, boolean silent,
-    @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input) {
-        return StrIncrBack.runStrategy(logger, silent, tracker, strategy, input, org.strategoxt.strc.strc.init());
     }
 
 }

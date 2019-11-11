@@ -51,6 +51,7 @@ import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.io.binary.TermReader;
+import org.strategoxt.lang.Context;
 
 import com.google.inject.Inject;
 
@@ -70,12 +71,14 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final String inputFileString;
         final String projectName;
         final Collection<STask> originTasks;
+        transient Context context;
 
-        Input(File projectLocation, String inputFileString, String projectName, Collection<STask> originTasks) {
+        Input(File projectLocation, String inputFileString, String projectName, Collection<STask> originTasks, Context context) {
             this.projectLocation = projectLocation;
             this.inputFileString = inputFileString;
             this.projectName = projectName;
             this.originTasks = originTasks;
+            this.context = context;
         }
 
         @Override public String toString() {
@@ -513,7 +516,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final IStrategoTerm ast = parseFile(inputFile, input.projectName, location);
 
         StrIncrSubFront.Input frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, input.inputFileString,
-            StrIncrSubFront.InputType.Split, ast);
+            input.context, StrIncrSubFront.InputType.Split, ast);
         final SplitResult splitResult = SplitResult.fromTerm(execContext.require(strIncrThenFront, frontInput).result);
         final String moduleName = splitResult.moduleName;
         final List<Import> imports = new ArrayList<>(splitResult.imports.size());
@@ -540,7 +543,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             String strategyName = e.getKey();
             IStrategoTerm strategyAST = e.getValue();
             frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, strategyName,
-                StrIncrSubFront.InputType.TopLevelDefinition, strategyAST);
+                input.context, StrIncrSubFront.InputType.TopLevelDefinition, strategyAST);
             stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, strategyASTs, strategyFiles,
                 strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, noOfDefinitions);
         }
@@ -548,7 +551,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             String consName = e.getKey();
             IStrategoTerm consAST = e.getValue();
             frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, consName,
-                StrIncrSubFront.InputType.TopLevelDefinition, consAST);
+                input.context, StrIncrSubFront.InputType.TopLevelDefinition, consAST);
             consFrontEnd(execContext, input, location, frontInput, moduleName, strategyConstrs, usedAmbStrats,
                 usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
         }
@@ -556,7 +559,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             String olayName = e.getKey();
             IStrategoTerm olayAST = e.getValue();
             frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, olayName,
-                StrIncrSubFront.InputType.TopLevelDefinition, olayAST);
+                input.context, StrIncrSubFront.InputType.TopLevelDefinition, olayAST);
             overlayFrontEnd(execContext, input, location, frontInput, moduleName, strategyASTs, strategyFiles,
                 strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, overlayASTs, noOfDefinitions);
         }
