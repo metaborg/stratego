@@ -1,14 +1,14 @@
 package mb.stratego.build.util;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.attachments.AbstractWrappedTermFactory;
-import org.strategoxt.lang.Context;
-
-import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * This TermFactory is similar to {@link org.spoofax.terms.TermFactory}, but has a local usedStrings set. Therefore the
@@ -55,14 +55,7 @@ public class LocallyUniqueStringTermFactory extends AbstractWrappedTermFactory {
         }
     }
 
-    /**
-     * Clears the usedStrings in the factory, so SSL_new and SSL_newname start over.
-     *
-     * @param context
-     * @throws ClassCastException if given a context with a term factory that isn't of this class
-     */
-    public static void resetUsedStringsInFactory(Context context) {
-        final LocallyUniqueStringTermFactory tf = (LocallyUniqueStringTermFactory) context.getFactory();
-        tf.usedStrings.clear();
+    public void clearUsedStrings() {
+        usedStrings.clear();
     }
 }

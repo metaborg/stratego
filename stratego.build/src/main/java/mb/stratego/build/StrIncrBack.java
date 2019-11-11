@@ -22,7 +22,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StackSaver;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
@@ -38,8 +37,8 @@ import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.util.LocallyUniqueStringTermFactory;
 import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
@@ -59,14 +58,11 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
         final Collection<File> includeDirs;
         final Arguments extraArgs;
         final boolean isBoilerplate;
-        transient Context context;
 
-        Input(Context context, File projectLocation, @Nullable String strategyName,
-            Collection<IStrategoAppl> strategyContributions, Collection<IStrategoAppl> overlayContributions,
-            SortedMap<String, String> ambStrategyResolution, @Nullable String packageName, File outputPath,
-            @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
-            boolean isBoilerplate) {
-            this.context = context;
+        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoAppl> strategyContributions,
+            Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
+            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants,
+            Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
             this.projectLocation = projectLocation;
             this.strategyName = strategyName == null ? "" : strategyName;
             this.strategyContributions = strategyContributions;
@@ -138,10 +134,12 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;
+    private final StrIncrContext strContext;
 
-    @Inject public StrIncrBack(IResourceService resourceService, ITermFactoryService termFactoryService) {
+    @Inject public StrIncrBack(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
+        this.strContext = strContext;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
@@ -189,7 +187,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
 
         final StrategoExecutor.ExecutionResult result = runLocallyUniqueStringStrategy(execContext.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), strj_sep_comp_0_0.instance,
-            buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), input.context);
+            buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
             throw new ExecException("Call to strj failed", result.exception);
@@ -214,25 +212,25 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     public static StrategoExecutor.ExecutionResult runLocallyUniqueStringStrategy(Logger logger, boolean silent,
-        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input, Context context) {
-        LocallyUniqueStringTermFactory.resetUsedStringsInFactory(context);
+        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
+        strContext.resetUsedStringsInFactory();
 
         final String name = strategy.getName();
 
-        final ITermFactory factory = context.getFactory();
+        final ITermFactory factory = strContext.getFactory();
         if(tracker != null) {
-            context.setIOAgent(tracker.agent());
+            strContext.setIOAgent(tracker.agent());
         }
-        dr_scope_all_start_0_0.instance.invoke(context, factory.makeTuple());
+        dr_scope_all_start_0_0.instance.invoke(strContext, factory.makeTuple());
 
         final long start = System.nanoTime();
         try {
             final IStrategoTerm result;
             // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
             if(new Exception().getStackTrace().length > 20) {
-                result = new StackSaver(strategy).invokeStackFriendly(context, input, NO_STRATEGIES, NO_TERMS);
+                result = new StackSaver(strategy).invokeStackFriendly(strContext, input, NO_STRATEGIES, NO_TERMS);
             } else {
-                result = strategy.invoke(context, input);
+                result = strategy.invoke(strContext, input);
             }
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
@@ -262,7 +260,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
                 }
                 return new StrategoExecutor.ExecutionResult(true, stdout, stderr, e, time);
             }
-            context.popOnExit(false);
+            strContext.popOnExit(false);
             if(!silent) {
                 logger.error("Executing " + name + " failed: ", e);
             }
@@ -277,7 +275,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
             }
             return new StrategoExecutor.ExecutionResult(false, stdout, stderr, e, time);
         } finally {
-            dr_scope_all_end_0_0.instance.invoke(context, factory.makeTuple());
+            dr_scope_all_end_0_0.instance.invoke(strContext, factory.makeTuple());
         }
     }
 

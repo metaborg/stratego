@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,11 +32,9 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.lang.Context;
 import org.strategoxt.strj.strj;
 
 import com.google.common.collect.Sets;
@@ -51,7 +48,6 @@ import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.CommonPaths;
-import mb.stratego.build.util.LocallyUniqueStringTermFactory;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
@@ -70,8 +66,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         newSVar = b.applShared("VarDec", B.string("a"), b.applShared("FunType", A_TERM, A_TERM));
         newTVar = b.applShared("VarDec", B.string("a"), b.applShared("ConstType", A_TERM));
     }
-
-    private static WeakReference<Context> strContextRef = new WeakReference<Context>(null);
 
     public static final class Input implements Serializable {
         final File inputFile;
@@ -305,16 +299,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     private final IResourceService resourceService;
-    private final ITermFactoryService termFactoryService;
 
     private final StrIncrFront strIncrFront;
     private final StrIncrFrontLib strIncrFrontLib;
     private final StrIncrBack strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
+    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
         StrIncrBack strIncrBack) {
         this.resourceService = resourceService;
-        this.termFactoryService = termFactoryService;
         this.strIncrFront = strIncrFront;
         this.strIncrFrontLib = strIncrFrontLib;
         this.strIncrBack = strIncrBack;
@@ -385,16 +377,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
 
         boolean frontStaticCheck = true;
-        
-        final Context strContext;
-        if(strContextRef.get() == null) {
-            strContext = new Context(new LocallyUniqueStringTermFactory(termFactoryService.getGeneric()));
-            strContextRef = new WeakReference<>(strContext);
-            // This initialises both strj for the backend and strc for the frontend.
-            strj.init(strContext);
-        } else {
-            strContext = strContextRef.get();
-        }
 
         long shuffleStartTime;
         do {
@@ -430,7 +412,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final String projectName = projectName(module.path);
             final StrIncrFront.Input frontInput =
                 new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
-                    input.originTasks, strContext);
+                    input.originTasks);
             final @Nullable StrIncrFront.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
             if(frontOutput != null) {
@@ -540,7 +522,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(strContext, projectLocationFile, strategyName, strategyContributions,
+                new StrIncrBack.Input(projectLocationFile, strategyName, strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -570,7 +552,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(strContext, projectLocationFile, congrName, strategyContributions,
+                new StrIncrBack.Input(projectLocationFile, congrName, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -587,7 +569,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strSrcGenDir
                 != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(strContext, projectLocationFile, null, decls, Collections.emptyList(),
+                new StrIncrBack.Input(projectLocationFile, null, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;

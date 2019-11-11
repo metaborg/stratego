@@ -9,7 +9,6 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strc.split_module_0_0;
@@ -20,13 +19,11 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 
 public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSubFront.Output> {
     public static final String id = StrIncrSubFront.class.getCanonicalName();
-
-    private final IResourceService resourceService;
-    ILanguageImpl strategoLang;
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -34,14 +31,12 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         final String cifiedName;
         final InputType inputType;
         final IStrategoTerm ast;
-        transient Context context;
 
-        public Input(File projectLocation, String inputFileString, String cifiedName, Context context, InputType inputType,
+        public Input(File projectLocation, String inputFileString, String cifiedName, InputType inputType,
             IStrategoTerm ast) {
             this.projectLocation = projectLocation;
             this.inputFileString = inputFileString;
             this.cifiedName = cifiedName;
-            this.context = context;
             this.inputType = inputType;
             this.ast = ast;
         }
@@ -143,8 +138,13 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         }
     }
 
-    @Inject public StrIncrSubFront(IResourceService resourceService) {
+    private final IResourceService resourceService;
+    private final StrIncrContext strContext;
+    ILanguageImpl strategoLang;
+
+    @Inject public StrIncrSubFront(IResourceService resourceService, StrIncrContext strContext) {
         this.resourceService = resourceService;
+        this.strContext = strContext;
     }
 
 
@@ -160,7 +160,7 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
     @Override public StrIncrSubFront.Output exec(ExecContext context, StrIncrSubFront.Input input) throws Exception {
         final StrategoExecutor.ExecutionResult result = StrIncrBack.runLocallyUniqueStringStrategy(context.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy, input.ast,
-            input.context);
+            strContext);
 
         if(!result.success) {
             throw new ExecException("Call to strc frontend failed", result.exception);
