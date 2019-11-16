@@ -16,9 +16,6 @@ public class StrIncrContext extends Context {
 
     /**
      * Clears the usedStrings in the factory, so SSL_new and SSL_newname start over.
-     *
-     * @param context
-     * @throws ClassCastException if given a context with a term factory that isn't of this class
      */
     public void resetUsedStringsInFactory() {
         factory.clearUsedStrings();

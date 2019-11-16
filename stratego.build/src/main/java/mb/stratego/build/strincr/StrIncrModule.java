@@ -7,7 +7,7 @@ import mb.stratego.build.util.StrIncrContext;
 
 public class StrIncrModule extends TaskDefsModule {
     @Override public void bindTaskDefs() {
-        bindTaskDef(Main.class, Main.id);
+        bindTaskDef(StrIncr.class, StrIncr.id);
         bindTaskDef(Frontend.class, Frontend.id);
         bindTaskDef(SubFrontend.class, SubFrontend.id);
         bindTaskDef(LibFrontend.class, LibFrontend.id);

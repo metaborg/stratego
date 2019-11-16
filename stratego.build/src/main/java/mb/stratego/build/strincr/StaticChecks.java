@@ -63,6 +63,8 @@ public class StaticChecks {
         public final Map<String, Set<String>> definedCongruences = new HashMap<>();
         // External cified-strategy-names that will be imported in Java
         public final Set<String> externalStrategies = new HashSet<>();
+        // External constructors that will be imported in Java
+        public final Set<String> externalConstructors = new HashSet<>();
         // Module-path to constructor_arity names defined there
         public final Map<String, Set<String>> definedConstructors = new HashMap<>();
         // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it.
