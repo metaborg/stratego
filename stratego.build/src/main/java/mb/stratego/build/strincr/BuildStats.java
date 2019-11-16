@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import java.util.HashMap;
 import java.util.HashSet;

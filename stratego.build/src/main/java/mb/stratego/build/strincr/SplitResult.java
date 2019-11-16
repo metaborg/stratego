@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +10,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.flowspec.terms.StrategoArrayList;
+import mb.stratego.build.util.Relation;
 
 public class SplitResult {
     public final String moduleName;
@@ -51,7 +52,7 @@ public class SplitResult {
         for(IStrategoTerm pair : assocList) {
             final String name = Tools.javaStringAt(pair, 0);
             final IStrategoTerm def = Tools.termAt(pair, 1);
-            StrIncr.getOrInitialize(resultMap, name, ArrayList::new).add(def);
+            Relation.getOrInitialize(resultMap, name, ArrayList::new).add(def);
         }
         return packMapValues(resultMap);
     }

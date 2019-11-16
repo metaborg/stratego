@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,15 +17,11 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -46,15 +42,11 @@ import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.Relation;
 
-public class StrIncr implements TaskDef<StrIncr.Input, None> {
-    public static final String id = StrIncr.class.getCanonicalName();
-    private static final HashSet<String> ALWAYS_DEFINED =
-        new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
-
-    static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
+public class Main implements TaskDef<Main.Input, None> {
+    public static final String id = Main.class.getCanonicalName();
 
     private static final IStrategoAppl A_TERM;
     private static final IStrategoTerm newSVar;
@@ -166,10 +158,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 Type.source);
         }
 
-        static Set<Module> resolveWildcards(ExecContext execContext, Collection<StrIncrFront.Import> imports,
+        static Set<Module> resolveWildcards(ExecContext execContext, Collection<Frontend.Import> imports,
             Collection<File> includeDirs, Path projectLocation) throws ExecException, IOException {
             final Set<Module> result = new HashSet<>(imports.size() * 2);
-            for(StrIncrFront.Import anImport : imports) {
+            for(Frontend.Import anImport : imports) {
                 switch(anImport.type) {
                     case normal: {
                         boolean foundSomethingToImport = false;
@@ -271,41 +263,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
     }
 
-    public static final class StaticCheckOutput {
-        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb call resolves to)
-        final Map<String, SortedMap<String, String>> ambStratResolution;
-        final boolean staticNameCheck;
-
-        StaticCheckOutput(Map<String, SortedMap<String, String>> ambStratResolution, boolean staticNameCheck) {
-            this.ambStratResolution = ambStratResolution;
-            this.staticNameCheck = staticNameCheck;
-        }
-
-        @Override public String toString() {
-            if(!ambStratResolution.isEmpty()) {
-                final StringBuilder b = new StringBuilder();
-                for(Map.Entry<String, SortedMap<String, String>> stringSortedMapEntry : ambStratResolution.entrySet()) {
-                    b.append("  In strategy ").append(stringSortedMapEntry.getKey()).append(":\n");
-                    for(Map.Entry<String, String> stringStringEntry : stringSortedMapEntry.getValue().entrySet()) {
-                        b.append("    ").append(stringStringEntry.getKey()).append(" -> ")
-                            .append(stringStringEntry.getValue()).append("\n");
-                    }
-                }
-                return b.toString();
-            } else {
-                return "  (none)";
-            }
-        }
-    }
-
     private final IResourceService resourceService;
 
-    private final StrIncrFront strIncrFront;
-    private final StrIncrFrontLib strIncrFrontLib;
-    private final StrIncrBack strIncrBack;
+    private final Frontend strIncrFront;
+    private final LibFrontend strIncrFrontLib;
+    private final Backend strIncrBack;
 
-    @Inject public StrIncr(IResourceService resourceService, StrIncrFront strIncrFront, StrIncrFrontLib strIncrFrontLib,
-        StrIncrBack strIncrBack) {
+    @Inject public Main(IResourceService resourceService, Frontend strIncrFront, LibFrontend strIncrFrontLib,
+        Backend strIncrBack) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
         this.strIncrFrontLib = strIncrFrontLib;
@@ -335,36 +300,19 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         workList.add(inputModule);
         seen.add(inputModule);
 
-        final List<StrIncrFront.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
+        final List<Frontend.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
-            defaultImports.add(StrIncrFront.Import.library(builtinLib));
+            defaultImports.add(Frontend.Import.library(builtinLib));
         }
         // depend on the include directories in which we search for str and rtree files
         for(File includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
+        
+        final StaticChecks.Data staticData = new StaticChecks.Data();
 
-        // Module-path to module-path
-        final Map<String, Set<String>> imports = new HashMap<>();
-        // Module-path to cified-strategy-names used
-        final Map<String, Set<String>> usedStrategies = new HashMap<>();
-        // Module-path to cified-strategy-name used in ambiguous call position to cified-strategy-names where the calls occur
-        final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
-        // Module-path to constructor_arity names used
-        final Map<String, Set<String>> usedConstructors = new HashMap<>();
-        // Module-path to cified-strategy-names defined here
-        final Map<String, Set<String>> definedStrategies = new HashMap<>();
-        // Module-path to cified-strategy-names defined here as congruences
-        final Map<String, Set<String>> definedCongruences = new HashMap<>();
-        // External cified-strategy-names that will be imported in Java
-        final Set<String> externalStrategies = new HashSet<>();
-        // Module-path to constructor_arity names defined there
-        final Map<String, Set<String>> definedConstructors = new HashMap<>();
         // External constructors that will be imported in Java
         final Set<String> externalConstructors = new HashSet<>();
-        // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it.
-        final Set<String> strategyNeedsExternal = new HashSet<>();
-
         // Cified-strategy-name to definitions of that strategy
         final Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
         // Constructor_arity of congruence to definition of that strategy
@@ -376,32 +324,29 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // Overlay_arity name to definition of that overlay
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
 
-        boolean frontStaticCheck = true;
-
         long shuffleStartTime;
         do {
             final Module module = workList.remove();
 
             if(module.type == Module.Type.library) {
-                final StrIncrFrontLib.Input frontLibInput =
-                    new StrIncrFrontLib.Input(Library.fromString(resourceService, module.path));
-                final StrIncrFrontLib.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
+                final LibFrontend.Input frontLibInput =
+                    new LibFrontend.Input(Library.fromString(resourceService, module.path));
+                final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
 
                 shuffleStartTime = System.nanoTime();
 
-                registerStrategyDefinitions(definedStrategies, module, frontLibOutput.strategies);
-                registerConstructorDefinitions(definedConstructors, module, frontLibOutput.constrs,
+                registerStrategyDefinitions(staticData.definedStrategies, module, frontLibOutput.strategies);
+                registerConstructorDefinitions(staticData.definedConstructors, module, frontLibOutput.constrs,
                     Collections.emptySet());
 
                 final Set<String> overlappingStrategies =
-                    Sets.difference(Sets.intersection(externalStrategies, frontLibOutput.strategies), ALWAYS_DEFINED);
+                    Sets.difference(Sets.intersection(staticData.externalStrategies, frontLibOutput.strategies), StaticChecks.ALWAYS_DEFINED);
                 if(!overlappingStrategies.isEmpty()) {
-//                    frontStaticCheck = false;
                     execContext.logger()
                         .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
                 }
 
-                externalStrategies.addAll(frontLibOutput.strategies);
+                staticData.externalStrategies.addAll(frontLibOutput.strategies);
                 externalConstructors.addAll(frontLibOutput.constrs);
 
                 BuildStats.shuffleLibTime += System.nanoTime() - shuffleStartTime;
@@ -410,63 +355,63 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final String projectName = projectName(module.path);
-            final StrIncrFront.Input frontInput =
-                new StrIncrFront.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
+            final Frontend.Input frontInput =
+                new Frontend.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
-            final @Nullable StrIncrFront.NormalOutput frontOutput =
+            final @Nullable Frontend.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
             if(frontOutput != null) {
                 for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
-                    getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
+                    Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
                         .add(strategyNoOfDefs.getValue());
                 }
                 shuffleStartTime = System.nanoTime();
 
-                final List<StrIncrFront.Import> theImports = new ArrayList<>(frontOutput.imports);
+                final List<Frontend.Import> theImports = new ArrayList<>(frontOutput.imports);
                 theImports.addAll(defaultImports);
 
                 // combining output for check
                 for(Set<String> usedConstrs : frontOutput.strategyConstrs.values()) {
-                    getOrInitialize(usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
+                    Relation.getOrInitialize(staticData.usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
                 }
-                usedStrategies.put(module.path, frontOutput.usedStrategies);
-                usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-                registerStrategyDefinitions(definedStrategies, module,
+                staticData.usedStrategies.put(module.path, frontOutput.usedStrategies);
+                staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
+                registerStrategyDefinitions(staticData.definedStrategies, module,
                     new HashSet<>(frontOutput.strategyFiles.keySet()));
-                registerStrategyDefinitions(definedCongruences, module, frontOutput.congrs);
-                registerConstructorDefinitions(definedConstructors, module, frontOutput.constrs,
+                registerStrategyDefinitions(staticData.definedCongruences, module, frontOutput.congrs);
+                registerConstructorDefinitions(staticData.definedConstructors, module, frontOutput.constrs,
                     frontOutput.overlayFiles.keySet());
-                strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
+                staticData.strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
 
 
                 // shuffling output for backend
                 for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
                     String strategyName = gen.getKey();
                     // ensure the strategy is a key in the strategyFiles map
-                    getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
-                    getOrInitialize(strategyConstrs, strategyName, HashSet::new)
+                    Relation.getOrInitialize(strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
+                    Relation.getOrInitialize(strategyConstrs, strategyName, HashSet::new)
                         .addAll(frontOutput.strategyConstrs.get(strategyName));
                 }
                 for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
                     final String congrName = gen.getKey();
                     congrASTs.put(congrName, gen.getValue());
-                    getOrInitialize(strategyConstrs, congrName, HashSet::new)
+                    Relation.getOrInitialize(strategyConstrs, congrName, HashSet::new)
                         .addAll(frontOutput.strategyConstrs.get(congrName));
                 }
                 for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
                     final String overlayName = gen.getKey();
-                    getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
+                    Relation.getOrInitialize(overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
                 }
                 for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
                     final String overlayName = gen.getKey();
-                    getOrInitialize(overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
+                    Relation.getOrInitialize(overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
                 }
 
                 // resolving imports
                 final Set<Module> expandedImports =
                     Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
                 for(Module m : expandedImports) {
-                    getOrInitialize(imports, module.path, HashSet::new).add(m.path);
+                    Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
                 }
                 expandedImports.removeAll(seen);
                 workList.addAll(expandedImports);
@@ -479,10 +424,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         long preCheckTime = System.nanoTime();
 
         // CHECK: constructor/strategy uses have definition which is imported
-        final StaticCheckOutput staticCheckOutput =
-            staticCheck(frontStaticCheck, execContext, inputModule.path, imports, usedStrategies, usedAmbStrategies,
-                usedConstructors, definedStrategies, definedConstructors, definedCongruences, externalStrategies,
-                strategyNeedsExternal, overlayConstrs);
+        final StaticChecks.Output staticCheckOutput =
+            StaticChecks.check(execContext, inputModule.path, staticData, overlayConstrs);
 
 
         if(!staticCheckOutput.staticNameCheck) {
@@ -521,8 +464,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
-            StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(projectLocationFile, strategyName, strategyContributions,
+            Backend.Input backEndInput =
+                new Backend.Input(projectLocationFile, strategyName, strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -551,14 +494,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
-            StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(projectLocationFile, congrName, strategyContributions,
+            Backend.Input backEndInput =
+                new Backend.Input(projectLocationFile, congrName, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
 
-            getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
+            Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
         }
         // boilerplate task
         {
@@ -568,8 +511,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
             assert strSrcGenDir
                 != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
-            StrIncrBack.Input backEndInput =
-                new StrIncrBack.Input(projectLocationFile, null, decls, Collections.emptyList(),
+            Backend.Input backEndInput =
+                new Backend.Input(projectLocationFile, null, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -583,7 +526,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
         final B b = new B(strj.init().getFactory());
         for(String strategyName : strategyASTs.keySet()) {
-            final Matcher m = stripArityPattern.matcher(strategyName);
+            final Matcher m = StaticChecks.stripArityPattern.matcher(strategyName);
             if(!m.matches()) {
                 throw new ExecException(
                     "Frontend returned stratego strategy name that does not conform to cified name: '" + strategyName
@@ -626,137 +569,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         visibleStrategies.put(module.path, strategies);
     }
 
-    private static StaticCheckOutput staticCheck(boolean staticNameCheck, ExecContext execContext,
-        String mainFileModulePath, Map<String, Set<String>> imports, Map<String, Set<String>> usedStrategies,
-        Map<String, Map<String, Set<String>>> usedAmbStrategies, Map<String, Set<String>> usedConstructors,
-        Map<String, Set<String>> definedStrategies, Map<String, Set<String>> definedConstructors,
-        Map<String, Set<String>> definedCongruences, Set<String> externalStrategies, Set<String> strategyNeedsExternal,
-        Map<String, Set<String>> overlayConstrs) throws ExecException {
-        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb call resolves to)
-        final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
-        // Module-path to  visible when imported (transitive closure of strategy definitions)
-        final Map<String, Set<String>> visibleStrategies = new HashMap<>(definedStrategies);
-        for(Map.Entry<String, Set<String>> entry : visibleStrategies.entrySet()) {
-            entry.setValue(new HashSet<>(entry.getValue()));
-        }
-        for(Map.Entry<String, Set<String>> entry : definedCongruences.entrySet()) {
-            getOrInitialize(visibleStrategies, entry.getKey(), HashSet::new).addAll(entry.getValue());
-        }
-        // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
-        final Map<String, Set<String>> visibleConstructors = new HashMap<>(definedConstructors);
-        for(Map.Entry<String, Set<String>> entry : visibleConstructors.entrySet()) {
-            entry.setValue(new HashSet<>(entry.getValue()));
-        }
-
-        // CHECK that extending and/or overriding strategies have an external strategy to extend and/or override
-        Set<String> strategyNeedsExternalNonOverlap = Sets.difference(strategyNeedsExternal, externalStrategies);
-        if(!strategyNeedsExternalNonOverlap.isEmpty()) {
-            staticNameCheck = false;
-            execContext.logger()
-                .error("Cannot find external strategies for override/extend " + strategyNeedsExternalNonOverlap, null);
-        }
-
-        // CHECK that overlays do not cyclically use each other
-        final Deque<Set<String>> overlaySccs =
-            Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
-        overlaySccs.removeIf(s -> {
-            String overlayName = s.iterator().next();
-            return s.size() == 1 && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet())
-                .contains(overlayName));
-        });
-        if(!overlaySccs.isEmpty()) {
-            staticNameCheck = false;
-            for(Set<String> overlayScc : overlaySccs) {
-                execContext.logger().error("Overlays have a cyclic dependency " + overlayScc, null);
-            }
-        }
-
-        // CHECK that names can be resolved
-        final Deque<Set<String>> sccs = Algorithms
-            .topoSCCs(Collections.singleton(mainFileModulePath), k -> imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
-            Set<String> scc = iterator.next();
-            Set<String> theVisibleStrategies = new HashSet<>();
-            Set<String> theVisibleConstructors = new HashSet<>();
-            for(String moduleName : scc) {
-                theVisibleConstructors.addAll(visibleConstructors.getOrDefault(moduleName, Collections.emptySet()));
-                theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, Collections.emptySet()));
-                for(String mod : imports.getOrDefault(moduleName, Collections.emptySet())) {
-                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, Collections.emptySet()));
-                    theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, Collections.emptySet()));
-                }
-            }
-            for(String moduleName : scc) {
-                if(Library.Builtin.isBuiltinLibrary(moduleName)) {
-                    continue;
-                }
-                visibleConstructors.put(moduleName, theVisibleConstructors);
-                visibleStrategies.put(moduleName, theVisibleStrategies);
-                Set<String> unresolvedConstructors =
-                    Sets.difference(usedConstructors.getOrDefault(moduleName, Collections.emptySet()),
-                        theVisibleConstructors);
-                if(!unresolvedConstructors.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger()
-                        .error("In module " + moduleName + ": Cannot find constructors " + unresolvedConstructors,
-                            null);
-                }
-                Set<String> unresolvedStrategies =
-                    Sets.difference(usedStrategies.getOrDefault(moduleName, Collections.emptySet()),
-                        theVisibleStrategies);
-                if(!unresolvedStrategies.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger()
-                        .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
-                }
-                Set<String> strategiesOverlapWithExternal = Sets.difference(
-                    Sets.intersection(definedStrategies.getOrDefault(moduleName, Collections.emptySet()),
-                        externalStrategies), ALWAYS_DEFINED);
-                if(!strategiesOverlapWithExternal.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
-                        + strategiesOverlapWithExternal, null);
-                }
-                Map<String, Set<String>> theUsedAmbStrategies =
-                    new HashMap<>(usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
-                // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
-                theUsedAmbStrategies.keySet().removeIf(theVisibleStrategies::contains);
-                if(!theUsedAmbStrategies.isEmpty()) {
-                    Map<String, Set<String>> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
-                    for(String theVisibleStrategy : theVisibleStrategies) {
-                        String ambCallVersion = stripArity(theVisibleStrategy) + "_0_0";
-                        getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new)
-                            .add(theVisibleStrategy);
-                    }
-                    for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
-                        final String usedAmbStrategy = entry.getKey();
-                        final Set<String> defs =
-                            differentArityDefinitions.getOrDefault(usedAmbStrategy, Collections.emptySet());
-                        switch(defs.size()) {
-                            case 0:
-                                execContext.logger().error(
-                                    "In module " + moduleName + ": Cannot find strategy " + usedAmbStrategy
-                                        + " in ambiguous call position", null);
-                                break;
-                            case 1:
-                                final String resolvedDef = defs.iterator().next();
-                                for(String useSite : entry.getValue()) {
-                                    getOrInitialize(ambStratResolution, useSite, TreeMap::new)
-                                        .put(usedAmbStrategy, resolvedDef);
-                                }
-                                break;
-                            default:
-                                execContext.logger().error(
-                                    "In module " + moduleName + ": Call to strategy " + usedAmbStrategy
-                                        + " is ambiguous, multiple arities possible. ", null);
-                        }
-                    }
-                }
-            }
-        }
-        return new StaticCheckOutput(ambStratResolution, staticNameCheck);
-    }
-
     private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) throws ExecException {
         final IStrategoAppl newBody = b.applShared("Id");
         final IStrategoTerm name = b.stringShared(strategyName);
@@ -772,29 +584,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return b.applShared("SDefT", name, newSVars, newTVars, newBody);
     }
 
-    private static String stripArity(String s) throws ExecException {
-        if(s.substring(s.length() - 4, s.length()).matches("_\\d_\\d")) {
-            return s.substring(0, s.length() - 4);
-        }
-        if(s.substring(s.length() - 5, s.length()).matches("_\\d+_\\d+")) {
-            return s.substring(0, s.length() - 5);
-        }
-        Matcher m = stripArityPattern.matcher(s);
-        if(!m.matches()) {
-            throw new ExecException(
-                "Frontend returned stratego strategy name that does not conform to cified name: '" + s + "'");
-        }
-        return m.group(1);
-    }
-
     private static String projectName(String inputFile) {
         // *can* we get the project name somehow? This is probably more portable for non-project based compilation
         return Integer.toString(inputFile.hashCode());
-    }
-
-    static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
-        map.computeIfAbsent(key, ignore -> initialize.get());
-        return map.get(key);
     }
 
     @Override public String getId() {

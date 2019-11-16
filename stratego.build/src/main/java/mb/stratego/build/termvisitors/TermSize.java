@@ -1,10 +1,10 @@
-package mb.stratego.build;
+package mb.stratego.build.termvisitors;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
 
-public class TermSizeTermVisitor extends TermVisitor {
-    long size = 0;
+public class TermSize extends TermVisitor {
+    public long size = 0;
 
     @Override public void preVisit(IStrategoTerm term) {
         size++;

@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.termvisitors;
 
 import org.spoofax.terms.attachments.AbstractTermAttachment;
 import org.spoofax.terms.attachments.TermAttachmentType;

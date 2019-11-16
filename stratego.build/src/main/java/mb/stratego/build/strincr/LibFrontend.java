@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -19,8 +19,8 @@ import java.util.Set;
 
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFrontLib.Output> {
-    public static final String id = StrIncrFrontLib.class.getCanonicalName();
+public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
+    public static final String id = LibFrontend.class.getCanonicalName();
 
     static final class Input implements Serializable {
         final Library library;
@@ -85,7 +85,7 @@ public class StrIncrFrontLib implements TaskDef<StrIncrFrontLib.Input, StrIncrFr
 
     private final ITermFactoryService termFactoryService;
 
-    @Inject public StrIncrFrontLib(ITermFactoryService termFactoryService) {
+    @Inject public LibFrontend(ITermFactoryService termFactoryService) {
         this.termFactoryService = termFactoryService;
     }
 

@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.termvisitors;
 
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -6,10 +6,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
 import java.util.Set;
 
-public class CollectUsedConstrsTermVisitor extends TermVisitor {
+public class UsedConstrs extends TermVisitor {
     private final Set<String> usedConstrs;
 
-    CollectUsedConstrsTermVisitor(Set<String> usedConstrs) {
+    public UsedConstrs(Set<String> usedConstrs) {
         this.usedConstrs = usedConstrs;
     }
 

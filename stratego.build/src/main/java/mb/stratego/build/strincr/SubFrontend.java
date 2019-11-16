@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import java.io.File;
 import java.io.Serializable;
@@ -22,8 +22,8 @@ import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 
-public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSubFront.Output> {
-    public static final String id = StrIncrSubFront.class.getCanonicalName();
+public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Output> {
+    public static final String id = SubFrontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -142,7 +142,7 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
     private final StrIncrContext strContext;
     ILanguageImpl strategoLang;
 
-    @Inject public StrIncrSubFront(IResourceService resourceService, StrIncrContext strContext) {
+    @Inject public SubFrontend(IResourceService resourceService, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.strContext = strContext;
     }
@@ -152,13 +152,13 @@ public class StrIncrSubFront implements TaskDef<StrIncrSubFront.Input, StrIncrSu
         return id;
     }
 
-    @Override public Serializable key(StrIncrSubFront.Input input) {
+    @Override public Serializable key(SubFrontend.Input input) {
         return input.inputFileString + ":" + input.cifiedName;
     }
 
 
-    @Override public StrIncrSubFront.Output exec(ExecContext context, StrIncrSubFront.Input input) throws Exception {
-        final StrategoExecutor.ExecutionResult result = StrIncrBack.runLocallyUniqueStringStrategy(context.logger(), true,
+    @Override public SubFrontend.Output exec(ExecContext context, SubFrontend.Input input) throws Exception {
+        final StrategoExecutor.ExecutionResult result = Backend.runLocallyUniqueStringStrategy(context.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy, input.ast,
             strContext);
 

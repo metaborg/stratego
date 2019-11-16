@@ -1,17 +1,22 @@
-package mb.stratego.build;
+package mb.stratego.build.termvisitors;
 
-import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
+import javax.annotation.Nullable;
+
+import org.spoofax.interpreter.core.Tools;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import mb.stratego.build.strincr.StaticChecks;
+import mb.stratego.build.util.Relation;
+
+public class UsedNames extends UsedConstrs {
 
     private final Deque<Set<String>> scopes = new ArrayDeque<>();
     private final Set<String> inScope = new HashSet<>();
@@ -22,7 +27,7 @@ public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
     private @Nullable String currentTopLevelStrategyName = null;
     public int ambiguousStrategyNamesFound = 0;
 
-    CollectUsedNamesTermVisitor(Set<String> usedConstrs, Set<String> usedStrats,
+    public UsedNames(Set<String> usedConstrs, Set<String> usedStrats,
         Map<String, Set<String>> usedAmbStrats) {
         super(usedConstrs);
 
@@ -97,11 +102,11 @@ public class CollectUsedNamesTermVisitor extends CollectUsedConstrsTermVisitor {
                         final String ambName = Tools.javaStringAt(Tools.applAt(sarg, 0), 0);
                         if(!ambName.endsWith("_0_0")) {
                             // Inner strategies that were lifted don't have any arity info in their name and aren't ambiguous uses
-                            if(!StrIncr.stripArityPattern.matcher(ambName).matches()) {
+                            if(!StaticChecks.stripArityPattern.matcher(ambName).matches()) {
                                 continue;
                             }
                         }
-                        StrIncr.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);
+                        Relation.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);
                         ambiguousStrategyNamesFound++;
                     }
                 }

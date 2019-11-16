@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import static org.strategoxt.lang.Term.NO_STRATEGIES;
 import static org.strategoxt.lang.Term.NO_TERMS;
@@ -37,13 +37,14 @@ import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
-public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
-    public static final String id = StrIncrBack.class.getCanonicalName();
+public class Backend implements TaskDef<Backend.Input, None> {
+    public static final String id = Backend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -136,7 +137,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     private final ITermFactoryService termFactoryService;
     private final StrIncrContext strContext;
 
-    @Inject public StrIncrBack(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrContext strContext) {
+    @Inject public Backend(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strContext = strContext;
@@ -206,7 +207,7 @@ public class StrIncrBack implements TaskDef<StrIncrBack.Input, None> {
     }
 
     private long getTermSize(IStrategoTerm ctree) {
-        final TermSizeTermVisitor termSizeTermVisitor = new TermSizeTermVisitor();
+        final TermSize termSizeTermVisitor = new TermSize();
         termSizeTermVisitor.visit(ctree);
         return termSizeTermVisitor.size;
     }

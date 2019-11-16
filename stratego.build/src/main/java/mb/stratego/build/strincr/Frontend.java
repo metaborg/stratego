@@ -1,4 +1,4 @@
-package mb.stratego.build;
+package mb.stratego.build.strincr;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -60,10 +60,14 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
+import mb.stratego.build.termvisitors.TermSize;
+import mb.stratego.build.termvisitors.UsedConstrs;
+import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.Relation;
 
-public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Output> {
-    public static final String id = StrIncrFront.class.getCanonicalName();
+public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
+    public static final String id = Frontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
         final File projectLocation;
@@ -456,14 +460,14 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
     private final ISourceTextService sourceTextService;
     private final ISpoofaxUnitService unitService;
     private final ISpoofaxSyntaxService syntaxService;
-    private final StrIncrSubFront strIncrSubFront;
+    private final SubFrontend strIncrSubFront;
 
     private ILanguageImpl strategoLang;
 
-    @Inject public StrIncrFront(IResourceService resourceService,
+    @Inject public Frontend(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
         ILanguageService languageService, ITermFactoryService termFactoryService, ISourceTextService sourceTextService,
-        ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService, StrIncrSubFront strIncrSubFront) {
+        ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService, SubFrontend strIncrSubFront) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.dialectService = dialectService;
@@ -512,8 +516,8 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         final long startTime = System.nanoTime();
         final IStrategoTerm ast = parseFile(inputFile, input.projectName, location);
 
-        StrIncrSubFront.Input frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, input.inputFileString,
-            StrIncrSubFront.InputType.Split, ast);
+        SubFrontend.Input frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, input.inputFileString,
+            SubFrontend.InputType.Split, ast);
         final SplitResult splitResult = SplitResult.fromTerm(execContext.require(strIncrSubFront, frontInput).result);
         final String moduleName = splitResult.moduleName;
         final List<Import> imports = new ArrayList<>(splitResult.imports.size());
@@ -539,24 +543,24 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         for(Map.Entry<String, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
             String strategyName = e.getKey();
             IStrategoTerm strategyAST = e.getValue();
-            frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, strategyName,
-                StrIncrSubFront.InputType.TopLevelDefinition, strategyAST);
+            frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, strategyName,
+                SubFrontend.InputType.TopLevelDefinition, strategyAST);
             stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, strategyASTs, strategyFiles,
                 strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, noOfDefinitions);
         }
         for(Map.Entry<String, IStrategoTerm> e : splitResult.consDefs.entrySet()) {
             String consName = e.getKey();
             IStrategoTerm consAST = e.getValue();
-            frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, consName,
-                StrIncrSubFront.InputType.TopLevelDefinition, consAST);
+            frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, consName,
+                SubFrontend.InputType.TopLevelDefinition, consAST);
             consFrontEnd(execContext, input, location, frontInput, moduleName, strategyConstrs, usedAmbStrats,
                 usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
         }
         for(Map.Entry<String, IStrategoTerm> e : splitResult.olayDefs.entrySet()) {
             String olayName = e.getKey();
             IStrategoTerm olayAST = e.getValue();
-            frontInput = new StrIncrSubFront.Input(input.projectLocation, input.inputFileString, olayName,
-                StrIncrSubFront.InputType.TopLevelDefinition, olayAST);
+            frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, olayName,
+                SubFrontend.InputType.TopLevelDefinition, olayAST);
             overlayFrontEnd(execContext, input, location, frontInput, moduleName, strategyASTs, strategyFiles,
                 strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, overlayASTs, noOfDefinitions);
         }
@@ -578,7 +582,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     private void overlayFrontEnd(ExecContext execContext, Input input, final FileObject location,
-        final StrIncrSubFront.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
+        final SubFrontend.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
         final Map<String, File> strategyFiles, final Map<String, Set<String>> strategyConstrs,
         final Set<String> strategyNeedsExternal, final Map<String, Set<String>> usedAmbStrats,
         final Set<String> usedStrats, final Map<String, List<IStrategoAppl>> overlayASTs,
@@ -594,7 +598,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
             final String overlayName = Tools.javaStringAt(overlayPair, 0);
             final IStrategoAppl overlayAST = Tools.applAt(overlayPair, 1);
 
-            StrIncr.getOrInitialize(overlayASTs, overlayName, ArrayList::new).add(overlayAST);
+            Relation.getOrInitialize(overlayASTs, overlayName, ArrayList::new).add(overlayAST);
         }
 
         for(IStrategoTerm defPair : defs3) {
@@ -620,7 +624,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     private void consFrontEnd(ExecContext execContext, Input input, final FileObject location,
-        final StrIncrSubFront.Input frontInput, final String moduleName, final Map<String, Set<String>> strategyConstrs,
+        final SubFrontend.Input frontInput, final String moduleName, final Map<String, Set<String>> strategyConstrs,
         final Map<String, Set<String>> usedAmbStrats, final Set<String> usedStrats, final Set<String> definedConstrs,
         final Map<String, IStrategoAppl> congrASTs, final Set<String> congrs, final Map<String, File> congrFiles,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException, IOException {
@@ -656,7 +660,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
 
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final FileObject location,
-        final StrIncrSubFront.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
+        final SubFrontend.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
         final Map<String, File> strategyFiles, final Map<String, Set<String>> strategyConstrs,
         final Set<String> strategyNeedsExternal, final Map<String, Set<String>> usedAmbStrats,
         final Set<String> usedStrats, final Map<String, Integer> noOfDefinitions)
@@ -698,12 +702,12 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
      */
     private void collectUsedNames(IStrategoTerm strategyAST, Set<String> usedConstrs, Set<String> usedStrats,
         Map<String, Set<String>> usedAmbStrats) {
-        final TermVisitor visitor = new CollectUsedNamesTermVisitor(usedConstrs, usedStrats, usedAmbStrats);
+        final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats);
         visitor.visit(strategyAST);
     }
 
     private void collectUsedNames(IStrategoTerm overlayASTList, Set<String> usedConstrs) {
-        final TermVisitor visitor = new CollectUsedConstrsTermVisitor(usedConstrs);
+        final TermVisitor visitor = new UsedConstrs(usedConstrs);
         visitor.visit(overlayASTList);
     }
 
@@ -787,7 +791,7 @@ public class StrIncrFront implements TaskDef<StrIncrFront.Input, StrIncrFront.Ou
         }
         if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
             && ast.getSubtermCount() == 2) {
-            final TermSizeTermVisitor termSizeTermVisitor = new TermSizeTermVisitor();
+            final TermSize termSizeTermVisitor = new TermSize();
             termSizeTermVisitor.visit(ast);
             final String moduleName = Tools.javaStringAt(ast, 0);
             BuildStats.moduleFrontendCTreeSize.put(moduleName, termSizeTermVisitor.size);
