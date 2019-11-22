@@ -2,14 +2,18 @@ package mb.stratego.build.termvisitors;
 
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
-import java.util.Set;
+import org.spoofax.terms.attachments.OriginAttachment;
+
+import mb.flowspec.terms.B;
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class UsedConstrs extends TermVisitor {
-    private final Set<String> usedConstrs;
+    private final StringSetWithPositions usedConstrs;
 
-    public UsedConstrs(Set<String> usedConstrs) {
+    public UsedConstrs(StringSetWithPositions usedConstrs) {
         this.usedConstrs = usedConstrs;
     }
 
@@ -20,13 +24,19 @@ public class UsedConstrs extends TermVisitor {
     void registerConsUse(IStrategoTerm term) {
         if(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "Op", 2)) {
             if(Tools.isTermString(term.getSubterm(0))) {
-                if(!Tools.javaStringAt(term, 0).equals("")) {
-                    usedConstrs.add(Tools.javaStringAt(term, 0) + "_" + Tools.listAt(term, 1).size());
+                final IStrategoString nameAST = Tools.stringAt(term, 0);
+                final String name = nameAST.stringValue();
+                if(!name.equals("")) {
+                    final IStrategoString cifiedName =
+                        B.string(name + "_" + Tools.listAt(term, 1).size());
+                    cifiedName.putAttachment(nameAST.getAttachment(OriginAttachment.TYPE));
+                    usedConstrs.add(cifiedName);
                 }
             } else {
-                usedConstrs.add(
-                    strategoEscape(Tools.javaStringAt(Tools.<IStrategoTerm>termAt(term, 0), 0)) + Tools.listAt(term, 1)
-                        .size());
+                final IStrategoString nameAST = Tools.stringAt(Tools.<IStrategoTerm>termAt(term, 0), 0);
+                final IStrategoString cifiedName = B.string(strategoEscape(nameAST.stringValue()) + Tools.listAt(term, 1).size());
+                cifiedName.putAttachment(nameAST.getAttachment(OriginAttachment.TYPE));
+                usedConstrs.add(cifiedName);
             }
         }
     }

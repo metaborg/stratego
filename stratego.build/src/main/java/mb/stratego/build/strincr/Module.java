@@ -44,10 +44,10 @@ public final class Module implements Serializable {
             Type.source);
     }
 
-    static Set<Module> resolveWildcards(ExecContext execContext, Collection<Frontend.Import> imports,
+    static Set<Module> resolveWildcards(ExecContext execContext, Collection<Import> imports,
         Collection<File> includeDirs, Path projectLocation) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
-        for(Frontend.Import anImport : imports) {
+        for(Import anImport : imports) {
             switch(anImport.type) {
                 case normal: {
                     boolean foundSomethingToImport = false;

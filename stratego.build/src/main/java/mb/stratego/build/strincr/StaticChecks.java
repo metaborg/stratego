@@ -1,11 +1,13 @@
 package mb.stratego.build.strincr;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -14,21 +16,25 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.spoofax.interpreter.terms.IStrategoString;
+
 import com.google.common.collect.Sets;
 
-import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
 import mb.stratego.build.util.Algorithms;
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class StaticChecks {
     public static final class Output {
-        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb call resolves to)
+        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
+        // call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution;
-        final boolean staticNameCheck;
+        final List<ErrorMessage> messages;
 
-        Output(Map<String, SortedMap<String, String>> ambStratResolution, boolean staticNameCheck) {
+        Output(Map<String, SortedMap<String, String>> ambStratResolution, List<ErrorMessage> messages) {
             this.ambStratResolution = ambStratResolution;
-            this.staticNameCheck = staticNameCheck;
+            this.messages = messages;
         }
 
         @Override public String toString() {
@@ -46,60 +52,188 @@ public class StaticChecks {
                 return "  (none)";
             }
         }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((ambStratResolution == null) ? 0 : ambStratResolution.hashCode());
+            result = prime * result + ((messages == null) ? 0 : messages.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Output other = (Output) obj;
+            if(ambStratResolution == null) {
+                if(other.ambStratResolution != null)
+                    return false;
+            } else if(!ambStratResolution.equals(other.ambStratResolution))
+                return false;
+            if(messages == null) {
+                if(other.messages != null)
+                    return false;
+            } else if(!messages.equals(other.messages))
+                return false;
+            return true;
+        }
     }
 
     public static final class Data {
         // Module-path to module-path
         public final Map<String, Set<String>> imports = new HashMap<>();
-        // Module-path to cified-strategy-names used
-        public final Map<String, Set<String>> usedStrategies = new HashMap<>();
-        // Module-path to cified-strategy-name used in ambiguous call position to cified-strategy-names where the calls occur
+        // Module-path to cified-strategy-names used (to AST names of actual use)
+        public final Map<String, StringSetWithPositions> usedStrategies = new HashMap<>();
+        // Module-path to cified-strategy-name used in ambiguous call position to cified-strategy-names where the calls
+        // occur
         public final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
-        // Module-path to constructor_arity names used
-        public final Map<String, Set<String>> usedConstructors = new HashMap<>();
-        // Module-path to cified-strategy-names defined here
-        public final Map<String, Set<String>> definedStrategies = new HashMap<>();
+        // Module-path to cified-strategy-name used in ambiguous call position (to AST names of actual use)
+        public final Map<String, StringSetWithPositions> ambStratPositions = new HashMap<>();
+        // Module-path to constructor_arity names used (to AST names of actual use)
+        public final Map<String, StringSetWithPositions> usedConstructors = new HashMap<>();
+        // Module-path to cified-strategy-names defined here (to AST names of actual definitions)
+        public final Map<String, StringSetWithPositions> definedStrategies = new HashMap<>();
         // Module-path to cified-strategy-names defined here as congruences
         public final Map<String, Set<String>> definedCongruences = new HashMap<>();
         // External cified-strategy-names that will be imported in Java
-        public final Set<String> externalStrategies = new HashSet<>();
+        public final StringSetWithPositions externalStrategies = new StringSetWithPositions();
         // External constructors that will be imported in Java
-        public final Set<String> externalConstructors = new HashSet<>();
-        // Module-path to constructor_arity names defined there
-        public final Map<String, Set<String>> definedConstructors = new HashMap<>();
-        // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it.
-        public final Set<String> strategyNeedsExternal = new HashSet<>();
+        public final StringSetWithPositions externalConstructors = new StringSetWithPositions();
+        // Module-path to constructor_arity names defined there (to AST names of actual definitions)
+        public final Map<String, StringSetWithPositions> definedConstructors = new HashMap<>();
+        // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it. (to
+        // strategy definition AST names)
+        public final StringSetWithPositions strategyNeedsExternal = new StringSetWithPositions();
+        // Constructor_arity overlay name. (to overlay definition AST names)
+        public final StringSetWithPositions overlayDefs = new StringSetWithPositions();
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((definedCongruences == null) ? 0 : definedCongruences.hashCode());
+            result = prime * result + ((definedConstructors == null) ? 0 : definedConstructors.hashCode());
+            result = prime * result + ((definedStrategies == null) ? 0 : definedStrategies.hashCode());
+            result = prime * result + ((externalConstructors == null) ? 0 : externalConstructors.hashCode());
+            result = prime * result + ((externalStrategies == null) ? 0 : externalStrategies.hashCode());
+            result = prime * result + ((imports == null) ? 0 : imports.hashCode());
+            result = prime * result + ((strategyNeedsExternal == null) ? 0 : strategyNeedsExternal.hashCode());
+            result = prime * result + ((usedAmbStrategies == null) ? 0 : usedAmbStrategies.hashCode());
+            result = prime * result + ((usedConstructors == null) ? 0 : usedConstructors.hashCode());
+            result = prime * result + ((usedStrategies == null) ? 0 : usedStrategies.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Data other = (Data) obj;
+            if(definedCongruences == null) {
+                if(other.definedCongruences != null)
+                    return false;
+            } else if(!definedCongruences.equals(other.definedCongruences))
+                return false;
+            if(definedConstructors == null) {
+                if(other.definedConstructors != null)
+                    return false;
+            } else if(!definedConstructors.equals(other.definedConstructors))
+                return false;
+            if(definedStrategies == null) {
+                if(other.definedStrategies != null)
+                    return false;
+            } else if(!definedStrategies.equals(other.definedStrategies))
+                return false;
+            if(externalConstructors == null) {
+                if(other.externalConstructors != null)
+                    return false;
+            } else if(!externalConstructors.equals(other.externalConstructors))
+                return false;
+            if(externalStrategies == null) {
+                if(other.externalStrategies != null)
+                    return false;
+            } else if(!externalStrategies.equals(other.externalStrategies))
+                return false;
+            if(imports == null) {
+                if(other.imports != null)
+                    return false;
+            } else if(!imports.equals(other.imports))
+                return false;
+            if(strategyNeedsExternal == null) {
+                if(other.strategyNeedsExternal != null)
+                    return false;
+            } else if(!strategyNeedsExternal.equals(other.strategyNeedsExternal))
+                return false;
+            if(usedAmbStrategies == null) {
+                if(other.usedAmbStrategies != null)
+                    return false;
+            } else if(!usedAmbStrategies.equals(other.usedAmbStrategies))
+                return false;
+            if(usedConstructors == null) {
+                if(other.usedConstructors != null)
+                    return false;
+            } else if(!usedConstructors.equals(other.usedConstructors))
+                return false;
+            if(usedStrategies == null) {
+                if(other.usedStrategies != null)
+                    return false;
+            } else if(!usedStrategies.equals(other.usedStrategies))
+                return false;
+            return true;
+        }
+
+        public void registerStrategyDefinitions(Module module, StringSetWithPositions strategies) {
+            definedStrategies.put(module.path, strategies);
+        }
+
+        public void registerCongruenceDefinitions(Module module, Set<String> strategies) {
+            definedCongruences.put(module.path, strategies);
+        }
+
+        public void registerConstructorDefinitions(Module module, StringSetWithPositions constrs, StringSetWithPositions overlays) {
+            StringSetWithPositions visConstrs = new StringSetWithPositions(constrs);
+            visConstrs.addAll(overlays);
+            definedConstructors.put(module.path, visConstrs);
+        }
     }
 
     static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
     public static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
 
-    public static Output check(ExecContext execContext, String mainFileModulePath,
-        Data staticData, Map<String, Set<String>> overlayConstrs) throws ExecException {
-        boolean staticNameCheck = true;
-        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb call resolves to)
+    public static Output check(Logger logger, String mainFileModulePath, Data staticData,
+        Map<String, Set<String>> overlayConstrs) throws ExecException {
+        final List<ErrorMessage> messages = new ArrayList<>();
+        // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
+        // call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
-        // Module-path to  visible when imported (transitive closure of strategy definitions)
-        final Map<String, Set<String>> visibleStrategies = new HashMap<>(staticData.definedStrategies);
-        for(Map.Entry<String, Set<String>> entry : visibleStrategies.entrySet()) {
-            entry.setValue(new HashSet<>(entry.getValue()));
+        // Module-path to visible when imported (transitive closure of strategy definitions)
+        final Map<String, Set<String>> visibleStrategies = new HashMap<>(2 * (staticData.definedStrategies.size() + staticData.definedCongruences.size()));
+        for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedStrategies.entrySet()) {
+            visibleStrategies.put(entry.getKey(), entry.getValue().cloneSet());
         }
         for(Map.Entry<String, Set<String>> entry : staticData.definedCongruences.entrySet()) {
             getOrInitialize(visibleStrategies, entry.getKey(), HashSet::new).addAll(entry.getValue());
         }
         // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
-        final Map<String, Set<String>> visibleConstructors = new HashMap<>(staticData.definedConstructors);
-        for(Map.Entry<String, Set<String>> entry : visibleConstructors.entrySet()) {
-            entry.setValue(new HashSet<>(entry.getValue()));
+        final Map<String, Set<String>> visibleConstructors = new HashMap<>(2 * staticData.definedConstructors.size());
+        for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedConstructors.entrySet()) {
+            visibleConstructors.put(entry.getKey(), entry.getValue().cloneSet());
         }
 
         // CHECK that extending and/or overriding strategies have an external strategy to extend and/or override
-        Set<String> strategyNeedsExternalNonOverlap = Sets.difference(staticData.strategyNeedsExternal, staticData.externalStrategies);
-        if(!strategyNeedsExternalNonOverlap.isEmpty()) {
-            staticNameCheck = false;
-            execContext.logger()
-                .error("Cannot find external strategies for override/extend " + strategyNeedsExternalNonOverlap, null);
+        Set<String> strategyNeedsExternalNonOverlap =
+            Sets.difference(staticData.strategyNeedsExternal.readSet(), staticData.externalStrategies.readSet());
+        for(String name : strategyNeedsExternalNonOverlap) {
+            for(IStrategoString definitionName : staticData.strategyNeedsExternal.getPositions(name)) {
+                messages.add(ErrorMessage.externalStrategyNotFound(mainFileModulePath, definitionName));
+            }
         }
 
         // CHECK that overlays do not cyclically use each other
@@ -107,20 +241,21 @@ public class StaticChecks {
             Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
         overlaySccs.removeIf(s -> {
             String overlayName = s.iterator().next();
-            return s.size() == 1 && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet())
-                .contains(overlayName));
+            return s.size() == 1
+                && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet()).contains(overlayName));
         });
-        if(!overlaySccs.isEmpty()) {
-            staticNameCheck = false;
-            for(Set<String> overlayScc : overlaySccs) {
-                execContext.logger().error("Overlays have a cyclic dependency " + overlayScc, null);
+        for(Set<String> overlayScc : overlaySccs) {
+            for(String name : overlayScc) {
+                for(IStrategoString overlayName : staticData.overlayDefs.getPositions(name)) {
+                    messages.add(ErrorMessage.cyclicOverlay(mainFileModulePath, overlayName, overlayScc));
+                }
             }
         }
 
         // CHECK that names can be resolved
-        final Deque<Set<String>> sccs = Algorithms
-            .topoSCCs(Collections.singleton(mainFileModulePath), k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
+        final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
+            k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
+        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext();) {
             Set<String> scc = iterator.next();
             Set<String> theVisibleStrategies = new HashSet<>();
             Set<String> theVisibleConstructors = new HashSet<>();
@@ -138,37 +273,39 @@ public class StaticChecks {
                 }
                 visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
-                Set<String> unresolvedConstructors =
-                    Sets.difference(staticData.usedConstructors.getOrDefault(moduleName, Collections.emptySet()),
-                        theVisibleConstructors);
-                if(!unresolvedConstructors.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger()
-                        .error("In module " + moduleName + ": Cannot find constructors " + unresolvedConstructors,
-                            null);
+                final StringSetWithPositions usedConstructors =
+                    staticData.usedConstructors.getOrDefault(moduleName, new StringSetWithPositions());
+                Set<String> unresolvedConstructors = Sets.difference(usedConstructors.readSet(), theVisibleConstructors);
+                for(String name : unresolvedConstructors) {
+                    for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
+                        messages.add(ErrorMessage.constructorNotFound(moduleName, constructorUse));
+                    }
                 }
-                Set<String> unresolvedStrategies =
-                    Sets.difference(staticData.usedStrategies.getOrDefault(moduleName, Collections.emptySet()),
-                        theVisibleStrategies);
-                if(!unresolvedStrategies.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger()
-                        .error("In module " + moduleName + ": Cannot find strategies " + unresolvedStrategies, null);
+                final StringSetWithPositions usedStrategies =
+                    staticData.usedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
+                Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies);
+                for(String name : unresolvedStrategies) {
+                    for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
+                        messages.add(ErrorMessage.strategyNotFound(moduleName, strategyUse));
+                    }
                 }
-                Set<String> strategiesOverlapWithExternal = Sets.difference(
-                    Sets.intersection(staticData.definedStrategies.getOrDefault(moduleName, Collections.emptySet()),
-                        staticData.externalStrategies), ALWAYS_DEFINED);
-                if(!strategiesOverlapWithExternal.isEmpty()) {
-                    staticNameCheck = false;
-                    execContext.logger().error("In module " + moduleName + ": Illegal overlap with external strategies "
-                        + strategiesOverlapWithExternal, null);
+                final StringSetWithPositions definedStrategies =
+                    staticData.definedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
+                Set<String> strategiesOverlapWithExternal = Sets
+                    .difference(Sets.intersection(definedStrategies.readSet(), staticData.externalStrategies.readSet()), ALWAYS_DEFINED);
+                for(String name : strategiesOverlapWithExternal) {
+                    for(IStrategoString strategyDef : definedStrategies.getPositions(name)) {
+                        messages.add(ErrorMessage.externalStrategyOverlap(moduleName, strategyDef));
+                    }
                 }
                 Map<String, Set<String>> theUsedAmbStrategies =
                     new HashMap<>(staticData.usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
+                StringSetWithPositions ambStratPositions =
+                    staticData.ambStratPositions.getOrDefault(moduleName, new StringSetWithPositions());
                 // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
                 theUsedAmbStrategies.keySet().removeIf(theVisibleStrategies::contains);
                 if(!theUsedAmbStrategies.isEmpty()) {
-                    Map<String, Set<String>> differentArityDefinitions = new HashMap<>(theVisibleStrategies.size());
+                    Map<String, Set<String>> differentArityDefinitions = new HashMap<>(2 * theVisibleStrategies.size());
                     for(String theVisibleStrategy : theVisibleStrategies) {
                         String ambCallVersion = stripArity(theVisibleStrategy) + "_0_0";
                         getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new)
@@ -180,27 +317,27 @@ public class StaticChecks {
                             differentArityDefinitions.getOrDefault(usedAmbStrategy, Collections.emptySet());
                         switch(defs.size()) {
                             case 0:
-                                execContext.logger().error(
-                                    "In module " + moduleName + ": Cannot find strategy " + usedAmbStrategy
-                                        + " in ambiguous call position", null);
+                                for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
+                                    messages.add(ErrorMessage.strategyNotFound(moduleName, ambStrategyPosition));
+                                }
                                 break;
                             case 1:
                                 final String resolvedDef = defs.iterator().next();
                                 for(String useSite : entry.getValue()) {
-                                    getOrInitialize(ambStratResolution, useSite, TreeMap::new)
-                                        .put(usedAmbStrategy, resolvedDef);
+                                    getOrInitialize(ambStratResolution, useSite, TreeMap::new).put(usedAmbStrategy,
+                                        resolvedDef);
                                 }
                                 break;
                             default:
-                                execContext.logger().error(
-                                    "In module " + moduleName + ": Call to strategy " + usedAmbStrategy
-                                        + " is ambiguous, multiple arities possible. ", null);
+                                for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
+                                    messages.add(ErrorMessage.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
+                                }
                         }
                     }
                 }
             }
         }
-        return new Output(ambStratResolution, staticNameCheck);
+        return new Output(ambStratResolution, messages);
     }
 
     private static String stripArity(String s) throws ExecException {

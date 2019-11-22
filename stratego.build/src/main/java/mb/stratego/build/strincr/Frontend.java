@@ -45,6 +45,7 @@ import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
@@ -65,6 +66,7 @@ import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     public static final String id = Frontend.class.getCanonicalName();
@@ -128,16 +130,21 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-names referred to in this module [name checks]
          */
-        final Set<String> usedStrategies;
+        final StringSetWithPositions usedStrategies;
         /**
          * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument to
          * other strategy) to cified-strategy-names where the ambiguous call occurs [name checks]
          */
         final Map<String, Set<String>> ambStratUsed;
         /**
+         * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument to
+         * other strategy) to actual AST names where the ambiguous call occurs [name checks]
+         */
+        public StringSetWithPositions ambStratPositions;
+        /**
          * Cified-strategy-name to constructor_arity names that were used in the body [name checks]
          */
-        final Map<String, Set<String>> strategyConstrs;
+        final Map<String, StringSetWithPositions> strategyConstrs;
         /**
          * Overlay_arity names to file with CTree definition of that overlay [static linking / name checks]
          */
@@ -147,9 +154,17 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         final List<Import> imports;
         /**
+         * Cified-strategy-name defined in this module [name checks]
+         */
+        final StringSetWithPositions strats;
+        /**
          * Constructor_arity names defined in this module [name checks]
          */
-        final Set<String> constrs;
+        final StringSetWithPositions constrs;
+        /**
+         * Constructor_arity names defined in this module [name checks]
+         */
+        final StringSetWithPositions overlays;
         /**
          * Cified-strategy-name of a generated congruence [static linking]
          */
@@ -158,11 +173,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          * Cified-strategy-names of strategies that need a corresponding strategy in a library because it overrides or
          * extends it. [name checks]
          */
-        final Set<String> strategyNeedsExternal;
+        final List<IStrategoString> strategyNeedsExternal;
         /**
          * Overlay_arity names to constructor_arity names used. [static linking / name checks]
          */
-        final Map<String, Set<String>> overlayConstrs;
+        final Map<String, StringSetWithPositions> overlayConstrs;
         /**
          * Constructor_arity to file with CTree definition of that congruence [static linking]
          */
@@ -184,20 +199,24 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         transient Map<String, IStrategoAppl> congrASTs;
 
-        NormalOutput(String moduleName, Map<String, File> strategyFiles, Set<String> usedStrategies,
-            Map<String, Set<String>> ambStratUsed, Map<String, Set<String>> strategyConstrs,
-            Map<String, File> overlayFiles, List<Import> imports, Set<String> constrs, Set<String> congrs,
-            Set<String> strategyNeedsExternal, Map<String, Set<String>> overlayConstrs, Map<String, File> congrFiles,
-            Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
+        NormalOutput(String moduleName, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
+            Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions,
+            Map<String, StringSetWithPositions> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
+            StringSetWithPositions strats, StringSetWithPositions constrs, StringSetWithPositions overlays, Set<String> congrs,
+            List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs,
+            Map<String, File> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
             this.usedStrategies = usedStrategies;
             this.ambStratUsed = ambStratUsed;
+            this.ambStratPositions = ambStratPositions;
             this.strategyConstrs = strategyConstrs;
             this.overlayFiles = overlayFiles;
             this.imports = imports;
+            this.strats = strats;
             this.constrs = constrs;
+            this.overlays = overlays;
             this.congrs = congrs;
             this.strategyNeedsExternal = strategyNeedsExternal;
             this.overlayConstrs = overlayConstrs;
@@ -323,13 +342,19 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 return false;
             if(!ambStratUsed.equals(output.ambStratUsed))
                 return false;
+            if(!ambStratPositions.equals(output.ambStratPositions))
+                return false;
             if(!strategyConstrs.equals(output.strategyConstrs))
                 return false;
             if(!overlayFiles.equals(output.overlayFiles))
                 return false;
             if(!imports.equals(output.imports))
                 return false;
+            if(!strats.equals(output.strats))
+                return false;
             if(!constrs.equals(output.constrs))
+                return false;
+            if(!overlays.equals(output.overlays))
                 return false;
             if(!congrs.equals(output.congrs))
                 return false;
@@ -352,10 +377,13 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             result = 31 * result + strategyFiles.hashCode();
             result = 31 * result + usedStrategies.hashCode();
             result = 31 * result + ambStratUsed.hashCode();
+            result = 31 * result + ambStratPositions.hashCode();
             result = 31 * result + strategyConstrs.hashCode();
             result = 31 * result + overlayFiles.hashCode();
             result = 31 * result + imports.hashCode();
+            result = 31 * result + strats.hashCode();
             result = 31 * result + constrs.hashCode();
+            result = 31 * result + overlays.hashCode();
             result = 31 * result + congrs.hashCode();
             result = 31 * result + strategyNeedsExternal.hashCode();
             result = 31 * result + overlayConstrs.hashCode();
@@ -382,76 +410,6 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
     }
 
-    public static final class Import implements Serializable {
-        public enum ImportType {
-            normal, wildcard, library
-        }
-
-        final ImportType type;
-        final String path;
-
-        Import(ImportType type, String path) {
-            this.type = type;
-            this.path = path;
-        }
-
-        static Import normal(String importString) {
-            return new Import(ImportType.normal, importString);
-        }
-
-        static Import wildcard(String importString) {
-            return new Import(ImportType.wildcard, importString);
-        }
-
-        static Import library(String libraryName) {
-            return new Import(ImportType.library, Library.normalizeBuiltin(libraryName));
-        }
-
-        static Import fromTerm(IStrategoTerm importTerm) throws IOException {
-            if(!(importTerm instanceof IStrategoAppl)) {
-                throw new IOException("Import term was not a constructor: " + importTerm);
-            }
-            final IStrategoAppl appl = (IStrategoAppl) importTerm;
-            switch(appl.getName()) {
-                case "Import":
-                    String importString = Tools.javaStringAt(appl, 0);
-                    if(Library.Builtin.isBuiltinLibrary(importString)) {
-                        return library(importString);
-                    } else {
-                        return normal(importString);
-                    }
-                case "ImportWildcard":
-                    return wildcard(Tools.javaStringAt(appl, 0));
-                default:
-                    throw new IOException("Import term was not the expected Import or ImportWildcard: " + appl);
-            }
-        }
-
-        @Override public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-
-            Import anImport = (Import) o;
-
-            // noinspection SimplifiableIfStatement
-            if(type != anImport.type)
-                return false;
-            return path.equals(anImport.path);
-        }
-
-        @Override public int hashCode() {
-            int result = type.hashCode();
-            result = 31 * result + path.hashCode();
-            return result;
-        }
-
-        @Override public String toString() {
-            return "Import(" + type + ", '" + path + '\'' + ')';
-        }
-    }
-
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final IDialectService dialectService;
@@ -464,10 +422,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private ILanguageImpl strategoLang;
 
-    @Inject public Frontend(IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
-        ILanguageService languageService, ITermFactoryService termFactoryService, ISourceTextService sourceTextService,
-        ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService, SubFrontend strIncrSubFront) {
+    @Inject public Frontend(IResourceService resourceService, ILanguageIdentifierService languageIdentifierService,
+        IDialectService dialectService, ILanguageService languageService, ITermFactoryService termFactoryService,
+        ISourceTextService sourceTextService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService,
+        SubFrontend strIncrSubFront) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.dialectService = dialectService;
@@ -502,22 +460,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             return FileRemovedOutput.instance;
         }
 
-        // TODO: reinstate support for files from within a jar? Where was this used again?
-        // if(inputURI.getScheme().equals("jar")) {
-        // JarURLConnection c = ((JarURLConnection) inputURI.openConnection());
-        // try(FileSystem fs = FileSystems
-        // .newFileSystem(URI.create("jar:" + c.getJarFileURL().toString()), Collections.emptyMap())) {
-        // execContext.require(fs.getPath(c.getEntryName()));
-        // }
-        // } else {
-        // execContext.require(new File(inputURI));
-        // }
-
         final long startTime = System.nanoTime();
         final IStrategoTerm ast = parseFile(inputFile, input.projectName, location);
 
-        SubFrontend.Input frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, input.inputFileString,
-            SubFrontend.InputType.Split, ast);
+        SubFrontend.Input frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString,
+            input.inputFileString, SubFrontend.InputType.Split, ast);
         final SplitResult splitResult = SplitResult.fromTerm(execContext.require(strIncrSubFront, frontInput).result);
         final String moduleName = splitResult.moduleName;
         final List<Import> imports = new ArrayList<>(splitResult.imports.size());
@@ -527,13 +474,16 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
         final Map<String, IStrategoAppl> strategyASTs = new HashMap<>();
         final Map<String, File> strategyFiles = new HashMap<>();
-        final Map<String, Set<String>> strategyConstrs = new HashMap<>();
-        final Set<String> strategyNeedsExternal = new HashSet<>();
+        final Map<String, StringSetWithPositions> strategyConstrs = new HashMap<>();
+        final List<IStrategoString> strategyNeedsExternal = new ArrayList<>();
         final Map<String, Set<String>> usedAmbStrats = new HashMap<>();
-        final Set<String> usedStrats = new HashSet<>();
-        final Set<String> definedConstrs = new HashSet<>();
+        final StringSetWithPositions ambStratPositions = new StringSetWithPositions();
+        final StringSetWithPositions usedStrats = new StringSetWithPositions();
+        final StringSetWithPositions definedConstrs = new StringSetWithPositions();
+        final StringSetWithPositions definedStrats = new StringSetWithPositions();
+        final StringSetWithPositions definedOverlays = new StringSetWithPositions();
         final Map<String, File> overlayFiles = new HashMap<>();
-        final Map<String, Set<String>> overlayConstrs = new HashMap<>();
+        final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
         final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
         final Set<String> congrs = new HashSet<>();
@@ -545,8 +495,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             IStrategoTerm strategyAST = e.getValue();
             frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, strategyName,
                 SubFrontend.InputType.TopLevelDefinition, strategyAST);
-            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, strategyASTs, strategyFiles,
-                strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, noOfDefinitions);
+            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, strategyASTs,
+                strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
+                noOfDefinitions);
         }
         for(Map.Entry<String, IStrategoTerm> e : splitResult.consDefs.entrySet()) {
             String consName = e.getKey();
@@ -554,38 +505,40 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, consName,
                 SubFrontend.InputType.TopLevelDefinition, consAST);
             consFrontEnd(execContext, input, location, frontInput, moduleName, strategyConstrs, usedAmbStrats,
-                usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
+                ambStratPositions, usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
         }
         for(Map.Entry<String, IStrategoTerm> e : splitResult.olayDefs.entrySet()) {
             String olayName = e.getKey();
             IStrategoTerm olayAST = e.getValue();
             frontInput = new SubFrontend.Input(input.projectLocation, input.inputFileString, olayName,
                 SubFrontend.InputType.TopLevelDefinition, olayAST);
-            overlayFrontEnd(execContext, input, location, frontInput, moduleName, strategyASTs, strategyFiles,
-                strategyConstrs, strategyNeedsExternal, usedAmbStrats, usedStrats, overlayASTs, noOfDefinitions);
+            overlayFrontEnd(execContext, input, location, frontInput, moduleName, definedStrats, strategyASTs,
+                strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
+                definedOverlays, overlayASTs, noOfDefinitions);
         }
         for(Map.Entry<String, List<IStrategoAppl>> overlayPair : overlayASTs.entrySet()) {
             final String overlayName = overlayPair.getKey();
             final List<IStrategoAppl> overlayASTList = overlayPair.getValue();
 
             storeOverlay(location, moduleName, overlayName, overlayFiles, input.projectName);
-            final HashSet<String> usedConstrs = new HashSet<>();
+            final StringSetWithPositions usedConstrs = new StringSetWithPositions();
             collectUsedNames(StrategoArrayList.fromList(overlayASTList), usedConstrs);
             overlayConstrs.put(overlayName, usedConstrs);
         }
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
-        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, strategyConstrs, overlayFiles,
-            imports, definedConstrs, congrs, strategyNeedsExternal, overlayConstrs, congrFiles, noOfDefinitions,
-            strategyASTs, overlayASTs, congrASTs);
+        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
+            strategyConstrs, overlayFiles, imports, definedStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
+            overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
     }
 
 
     private void overlayFrontEnd(ExecContext execContext, Input input, final FileObject location,
-        final SubFrontend.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
-        final Map<String, File> strategyFiles, final Map<String, Set<String>> strategyConstrs,
-        final Set<String> strategyNeedsExternal, final Map<String, Set<String>> usedAmbStrats,
-        final Set<String> usedStrats, final Map<String, List<IStrategoAppl>> overlayASTs,
+        final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
+        final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
+        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
+        final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = Tools.listAt(result, 0);
@@ -595,21 +548,23 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final IStrategoList noOfDefs = Tools.listAt(result, 4);
 
         for(IStrategoTerm overlayPair : olays) {
-            final String overlayName = Tools.javaStringAt(overlayPair, 0);
+            final IStrategoString overlayName = Tools.stringAt(overlayPair, 0);
             final IStrategoAppl overlayAST = Tools.applAt(overlayPair, 1);
+            definedOverlays.add(overlayName);
 
-            Relation.getOrInitialize(overlayASTs, overlayName, ArrayList::new).add(overlayAST);
+            Relation.getOrInitialize(overlayASTs, overlayName.stringValue(), ArrayList::new).add(overlayAST);
         }
 
         for(IStrategoTerm defPair : defs3) {
-            final String strategyName = Tools.javaStringAt(defPair, 0);
+            final IStrategoString strategyName = Tools.stringAt(defPair, 0);
             final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);
-            strategyASTs.put(strategyName, strategyAST);
+            strategyASTs.put(strategyName.stringValue(), strategyAST);
+            definedStrats.add(strategyName);
 
-            storeDef(location, moduleName, strategyName, strategyFiles, input.projectName);
-            final HashSet<String> usedConstrs = new HashSet<>();
-            collectUsedNames(strategyAST, usedConstrs, usedStrats, usedAmbStrats);
-            strategyConstrs.put(strategyName, usedConstrs);
+            storeDef(location, moduleName, strategyName.stringValue(), strategyFiles, input.projectName);
+            final StringSetWithPositions usedConstrs = new StringSetWithPositions();
+            collectUsedNames(strategyAST, usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
+            strategyConstrs.put(strategyName.stringValue(), usedConstrs);
             if(needsExternal(strategyAST)) {
                 strategyNeedsExternal.add(strategyName);
             }
@@ -624,10 +579,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
 
     private void consFrontEnd(ExecContext execContext, Input input, final FileObject location,
-        final SubFrontend.Input frontInput, final String moduleName, final Map<String, Set<String>> strategyConstrs,
-        final Map<String, Set<String>> usedAmbStrats, final Set<String> usedStrats, final Set<String> definedConstrs,
-        final Map<String, IStrategoAppl> congrASTs, final Set<String> congrs, final Map<String, File> congrFiles,
-        final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException, IOException {
+        final SubFrontend.Input frontInput, final String moduleName,
+        final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
+        final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
+        final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
+        final Set<String> congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
+        throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         // 0 == Anno__Cong_____2_0
         final IStrategoList constrs = Tools.listAt(result, 1);
@@ -636,7 +593,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final IStrategoList noOfDefs = Tools.listAt(result, 4);
 
         for(IStrategoTerm constr : constrs) {
-            definedConstrs.add(Tools.javaStringAt(constr, 0));
+            definedConstrs.add(Tools.stringAt(constr, 0));
         }
 
         for(IStrategoTerm congrPair : congs) {
@@ -646,8 +603,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             congrASTs.put(congrName, congrAST);
 
             storeDef(location, moduleName, congrName, congrFiles, input.projectName);
-            final HashSet<String> usedConstrs = new HashSet<>();
-            collectUsedNames(congrAST, usedConstrs, usedStrats, usedAmbStrats);
+            final StringSetWithPositions usedConstrs = new StringSetWithPositions();
+            collectUsedNames(congrAST, usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
             strategyConstrs.put(congrName, usedConstrs);
         }
 
@@ -660,10 +617,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final FileObject location,
-        final SubFrontend.Input frontInput, final String moduleName, final Map<String, IStrategoAppl> strategyASTs,
-        final Map<String, File> strategyFiles, final Map<String, Set<String>> strategyConstrs,
-        final Set<String> strategyNeedsExternal, final Map<String, Set<String>> usedAmbStrats,
-        final Set<String> usedStrats, final Map<String, Integer> noOfDefinitions)
+        final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
+        final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
+        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
+        final StringSetWithPositions usedStrats, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = Tools.listAt(result, 0);
@@ -673,20 +631,21 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final IStrategoList noOfDefs = Tools.listAt(result, 4);
 
         for(IStrategoTerm defPair : defs3) {
-            final String strategyName = Tools.javaStringAt(defPair, 0);
+            final IStrategoString strategyName = Tools.stringAt(defPair, 0);
             final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);
-            strategyASTs.put(strategyName, strategyAST);
+            strategyASTs.put(strategyName.stringValue(), strategyAST);
+            definedStrats.add(strategyName);
 
-            storeDef(location, moduleName, strategyName, strategyFiles, projectName);
-            final HashSet<String> usedConstrs = new HashSet<>();
-            collectUsedNames(strategyAST, usedConstrs, usedStrats, usedAmbStrats);
-            strategyConstrs.put(strategyName, usedConstrs);
+            storeDef(location, moduleName, strategyName.stringValue(), strategyFiles, projectName);
+            final StringSetWithPositions usedConstrs = new StringSetWithPositions();
+            collectUsedNames(strategyAST, usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
+            strategyConstrs.put(strategyName.stringValue(), usedConstrs);
             if(needsExternal(strategyAST)) {
                 strategyNeedsExternal.add(strategyName);
             }
         }
-        final @Nullable File boilerplateFile = resourceService
-            .localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName));
+        final @Nullable File boilerplateFile =
+            resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName));
         assert boilerplateFile != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file";
 
         for(IStrategoTerm noOfDef : noOfDefs) {
@@ -699,14 +658,17 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     /**
      * Collect usedConstructors, usedStrategies, and ambUsedStrategies Combination of extract-used-constructors and
      * extract-used-strategies
+     * 
+     * @param ambStratPositions
      */
-    private void collectUsedNames(IStrategoTerm strategyAST, Set<String> usedConstrs, Set<String> usedStrats,
-        Map<String, Set<String>> usedAmbStrats) {
-        final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats);
+    private void collectUsedNames(IStrategoTerm strategyAST, StringSetWithPositions usedConstrs,
+        StringSetWithPositions usedStrats, Map<String, Set<String>> usedAmbStrats,
+        StringSetWithPositions ambStratPositions) {
+        final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
         visitor.visit(strategyAST);
     }
 
-    private void collectUsedNames(IStrategoTerm overlayASTList, Set<String> usedConstrs) {
+    private void collectUsedNames(IStrategoTerm overlayASTList, StringSetWithPositions usedConstrs) {
         final TermVisitor visitor = new UsedConstrs(usedConstrs);
         visitor.visit(overlayASTList);
     }

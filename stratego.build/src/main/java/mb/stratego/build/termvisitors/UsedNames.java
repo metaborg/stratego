@@ -11,28 +11,32 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.StaticChecks;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class UsedNames extends UsedConstrs {
 
     private final Deque<Set<String>> scopes = new ArrayDeque<>();
     private final Set<String> inScope = new HashSet<>();
 
-    private final Set<String> usedStrats;
+    private final StringSetWithPositions usedStrats;
     private final Map<String, Set<String>> usedAmbStrats;
+    private final StringSetWithPositions ambStratPositions;
 
     private @Nullable String currentTopLevelStrategyName = null;
     public int ambiguousStrategyNamesFound = 0;
 
-    public UsedNames(Set<String> usedConstrs, Set<String> usedStrats,
-        Map<String, Set<String>> usedAmbStrats) {
+    public UsedNames(StringSetWithPositions usedConstrs, StringSetWithPositions usedStrats,
+        Map<String, Set<String>> usedAmbStrats, StringSetWithPositions ambStratPositions) {
         super(usedConstrs);
 
         this.usedStrats = usedStrats;
         this.usedAmbStrats = usedAmbStrats;
+        this.ambStratPositions = ambStratPositions;
     }
 
     @Override public void preVisit(IStrategoTerm term) {
@@ -99,7 +103,8 @@ public class UsedNames extends UsedConstrs {
                         // Mark svar so it is not counted as a normal strategy use
                         sarg.getSubterm(0).putAttachment(AmbUseAttachment.INSTANCE);
 
-                        final String ambName = Tools.javaStringAt(Tools.applAt(sarg, 0), 0);
+                        final IStrategoString ambNameAST = Tools.stringAt(Tools.applAt(sarg, 0), 0);
+                        final String ambName = ambNameAST.stringValue();
                         if(!ambName.endsWith("_0_0")) {
                             // Inner strategies that were lifted don't have any arity info in their name and aren't ambiguous uses
                             if(!StaticChecks.stripArityPattern.matcher(ambName).matches()) {
@@ -107,6 +112,7 @@ public class UsedNames extends UsedConstrs {
                             }
                         }
                         Relation.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);
+                        ambStratPositions.add(ambNameAST);
                         ambiguousStrategyNamesFound++;
                     }
                 }
@@ -117,8 +123,8 @@ public class UsedNames extends UsedConstrs {
     private void registerStratUse(IStrategoTerm term) {
         if(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "SVar", 1)
             && term.getAttachment(AmbUseAttachment.TYPE) == null) {
-            String strategyName = Tools.javaStringAt(term, 0);
-            if(!inScope.contains(strategyName)) {
+            IStrategoString strategyName = Tools.stringAt(term, 0);
+            if(!inScope.contains(strategyName.stringValue())) {
                 usedStrats.add(strategyName);
             }
         }

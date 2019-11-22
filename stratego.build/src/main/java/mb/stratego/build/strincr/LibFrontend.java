@@ -1,23 +1,26 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
-import mb.pie.api.TaskDef;
+import static org.spoofax.interpreter.core.Interpreter.cify;
 
-import com.google.inject.Inject;
+import java.io.File;
+import java.io.Serializable;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
-import static org.spoofax.interpreter.core.Interpreter.cify;
+import com.google.inject.Inject;
+
+import mb.flowspec.terms.B;
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.TaskDef;
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
     public static final String id = LibFrontend.class.getCanonicalName();
@@ -50,10 +53,10 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
     }
 
     static final class Output implements Serializable {
-        final Set<String> strategies;
-        final Set<String> constrs;
+        final StringSetWithPositions strategies;
+        final StringSetWithPositions constrs;
 
-        Output(Set<String> strategies, Set<String> constrs) {
+        Output(StringSetWithPositions strategies, StringSetWithPositions constrs) {
             this.strategies = strategies;
             this.constrs = constrs;
         }
@@ -128,15 +131,15 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                 + "Expected Specification([Signature([Constructors([...])]), Strategies([...])]), but got: " + ast
                 .toString(3));
         }
-        final Set<String> constrs = extractConstrs(Tools.listAt(constructorsTerm, 0));
-        final Set<String> strategies = extractStrategies(Tools.listAt(strategiesTerm, 0));
+        final StringSetWithPositions constrs = extractConstrs(Tools.listAt(constructorsTerm, 0));
+        final StringSetWithPositions strategies = extractStrategies(Tools.listAt(strategiesTerm, 0));
 
         BuildStats.frontLibTaskTime += System.nanoTime() - startTime;
         return new Output(strategies, constrs);
     }
 
-    private Set<String> extractConstrs(IStrategoList extConstrTerms) throws ExecException {
-        final Set<String> constrs = new HashSet<>();
+    private StringSetWithPositions extractConstrs(IStrategoList extConstrTerms) throws ExecException {
+        final StringSetWithPositions constrs = new StringSetWithPositions();
         for(IStrategoTerm extConstrTerm : extConstrTerms) {
             if(Tools.isTermAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
@@ -149,12 +152,12 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     if(Tools.isTermAppl(extConstrAppl.getSubterm(1)) && Tools
                         .hasConstructor(Tools.applAt(extConstrAppl, 1), "FunType", 2) && Tools
                         .isTermList(extConstrAppl.getSubterm(1).getSubterm(0))) {
-                        constrs.add(
+                        constrs.add(B.string(
                             Tools.javaStringAt(extConstrAppl, 0) + "_" + Tools.listAt(extConstrAppl.getSubterm(1), 0)
-                                .size());
+                                .size()));
                     } else if(Tools.isTermAppl(extConstrAppl.getSubterm(1)) && Tools
                         .hasConstructor(Tools.applAt(extConstrAppl, 1), "ConstType", 1)) {
-                        constrs.add(Tools.javaStringAt(extConstrAppl, 0) + "_0");
+                        constrs.add(B.string(Tools.javaStringAt(extConstrAppl, 0) + "_0"));
                     } else {
                         throw new ExecException("Malformed built-in library AST. "
                             + "Expected ExtOpDecl(\"...\", FunType([...], ...)) or ExtOpDecl(\"...\", ConstType(...)) but got: "
@@ -170,8 +173,8 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                             + "Expected ExtOpDeclQ(\"...\", FunType([...], ...)) but got: " + extConstrTerm
                             .toString(2));
                     }
-                    constrs.add(StringEscapeUtils.escapeJava(Tools.javaStringAt(extConstrAppl, 0)) + "_" + Tools
-                        .listAt(extConstrAppl.getSubterm(1), 0).size());
+                    constrs.add(B.string(StringEscapeUtils.escapeJava(Tools.javaStringAt(extConstrAppl, 0)) + "_" + Tools
+                        .listAt(extConstrAppl.getSubterm(1), 0).size()));
                     continue;
                 } else if(Tools.hasConstructor(extConstrAppl, "ExtOpDeclInj", 1)) {
                     continue;
@@ -184,8 +187,8 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         return constrs;
     }
 
-    private Set<String> extractStrategies(IStrategoList extSDefTerms) throws ExecException {
-        final Set<String> strategyConstrs = new HashSet<>();
+    private StringSetWithPositions extractStrategies(IStrategoList extSDefTerms) throws ExecException {
+        final StringSetWithPositions strategyConstrs = new StringSetWithPositions();
         for(IStrategoTerm extSDefTerm : extSDefTerms) {
             if(!(Tools.isTermAppl(extSDefTerm) && Tools.hasConstructor((IStrategoAppl) extSDefTerm, "ExtSDef", 3))) {
                 throw new ExecException(
@@ -201,7 +204,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                         .toString(1));
             }
             strategyConstrs
-                .add(cify(Tools.javaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount());
+                .add(B.string(cify(Tools.javaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount()));
         }
         return strategyConstrs;
     }

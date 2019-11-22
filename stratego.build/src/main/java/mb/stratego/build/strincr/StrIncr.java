@@ -1,24 +1,8 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecContext;
-import mb.pie.api.None;
-import mb.pie.api.STask;
-import mb.pie.api.TaskDef;
-import mb.stratego.build.util.CommonPaths;
-import mb.stratego.build.util.Relation;
-
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,35 +14,42 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+
+import com.google.inject.Inject;
+
+import mb.pie.api.ExecContext;
+import mb.pie.api.None;
+import mb.pie.api.STask;
+import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.Relation;
+
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
 
-    public static final class Input implements Serializable {
-        final File inputFile;
+    public static final class Input extends Analysis.Input {
         final @Nullable String javaPackageName;
-        final Collection<File> includeDirs;
-        final Collection<String> builtinLibs;
         final @Nullable File cacheDir;
         final List<String> constants;
         final Arguments extraArgs;
         final File outputPath;
-        final Collection<STask> originTasks;
-        final File projectLocation;
 
         public Input(File inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
             Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
             File outputPath, Collection<STask> originTasks, File projectLocation) {
-            this.inputFile = inputFile;
+            super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation);
             this.javaPackageName = javaPackageName;
-            this.includeDirs = includeDirs;
-            this.builtinLibs = builtinLibs;
             this.cacheDir = cacheDir;
             this.constants = constants;
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
-            this.originTasks = originTasks;
-            this.projectLocation = projectLocation;
-
         }
 
         @Override public boolean equals(Object o) {
@@ -106,211 +97,25 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
     }
 
-    public static class Frontends {
-        private ExecContext execContext;
-        private Input input;
-        private Path projectLocationPath;
-        private File projectLocationFile;
-        private Module inputModule;
-        private StaticChecks.Data staticData;
-        private BackendData backendData;
-        private IResourceService resourceService;
-        private Frontend strIncrFront;
-        private LibFrontend strIncrFrontLib;
-
-        public Frontends(IResourceService resourceService, Frontend strIncrFront, LibFrontend strIncrFrontLib,
-            ExecContext execContext, Input input, Path projectLocationPath, File projectLocationFile, Module inputModule) {
-            this.execContext = execContext;
-            this.input = input;
-            this.projectLocationPath = projectLocationPath;
-            this.projectLocationFile = projectLocationFile;
-            this.inputModule = inputModule;
-            this.resourceService = resourceService;
-            this.strIncrFront = strIncrFront;
-            this.strIncrFrontLib = strIncrFrontLib;
-        }
-
-        public StaticChecks.Data getStaticData() {
-            return staticData;
-        }
-
-        public BackendData getBackendData() {
-            return backendData;
-        }
-
-        public Frontends invoke() throws IOException, mb.pie.api.ExecException, InterruptedException {
-            // FRONTEND
-            final Set<Module> seen = new HashSet<>();
-            final Deque<Module> workList = new ArrayDeque<>();
-            workList.add(inputModule);
-            seen.add(inputModule);
-
-            final List<Frontend.Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
-            for(String builtinLib : input.builtinLibs) {
-                defaultImports.add(Frontend.Import.library(builtinLib));
-            }
-            // depend on the include directories in which we search for str and rtree files
-            for(File includeDir : input.includeDirs) {
-                execContext.require(includeDir);
-            }
-
-            staticData = new StaticChecks.Data();
-
-            backendData = new BackendData();
-
-            long shuffleStartTime;
-            do {
-                final Module module = workList.remove();
-
-                if(module.type == Module.Type.library) {
-                    final LibFrontend.Input frontLibInput =
-                        new LibFrontend.Input(Library.fromString(resourceService, module.path));
-                    final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
-
-                    shuffleStartTime = System.nanoTime();
-
-                    registerStrategyDefinitions(staticData.definedStrategies, module, frontLibOutput.strategies);
-                    registerConstructorDefinitions(staticData.definedConstructors, module, frontLibOutput.constrs,
-                        Collections.emptySet());
-
-                    final Set<String> overlappingStrategies =
-                        Sets.difference(Sets.intersection(staticData.externalStrategies, frontLibOutput.strategies), StaticChecks.ALWAYS_DEFINED);
-                    if(!overlappingStrategies.isEmpty()) {
-                        execContext.logger()
-                            .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
-                    }
-
-                    staticData.externalStrategies.addAll(frontLibOutput.strategies);
-                    staticData.externalConstructors.addAll(frontLibOutput.constrs);
-
-                    BuildStats.shuffleLibTime += System.nanoTime() - shuffleStartTime;
-
-                    continue;
-                }
-
-                final String projectName = projectName(module.path);
-                final Frontend.Input frontInput =
-                    new Frontend.Input(projectLocationFile, module.resolveFrom(projectLocationPath), projectName,
-                        input.originTasks);
-                final @Nullable Frontend.NormalOutput frontOutput =
-                    execContext.require(strIncrFront, frontInput).normalOutput();
-                if(frontOutput != null) {
-                    for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
-                        Relation
-                            .getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
-                            .add(strategyNoOfDefs.getValue());
-                    }
-                    shuffleStartTime = System.nanoTime();
-
-                    final List<Frontend.Import> theImports = new ArrayList<>(frontOutput.imports);
-                    theImports.addAll(defaultImports);
-
-                    // combining output for check
-                    for(Set<String> usedConstrs : frontOutput.strategyConstrs.values()) {
-                        Relation.getOrInitialize(staticData.usedConstructors, module.path, HashSet::new).addAll(usedConstrs);
-                    }
-                    staticData.usedStrategies.put(module.path, frontOutput.usedStrategies);
-                    staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-                    registerStrategyDefinitions(staticData.definedStrategies, module,
-                        new HashSet<>(frontOutput.strategyFiles.keySet()));
-                    registerStrategyDefinitions(staticData.definedCongruences, module, frontOutput.congrs);
-                    registerConstructorDefinitions(staticData.definedConstructors, module, frontOutput.constrs,
-                        frontOutput.overlayFiles.keySet());
-                    staticData.strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
-
-
-                    // shuffling output for backend
-                    for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
-                        String strategyName = gen.getKey();
-                        // ensure the strategy is a key in the strategyFiles map
-                        Relation.getOrInitialize(backendData.strategyASTs, strategyName, ArrayList::new).add(gen.getValue());
-                        Relation.getOrInitialize(backendData.strategyConstrs, strategyName, HashSet::new)
-                            .addAll(frontOutput.strategyConstrs.get(strategyName));
-                    }
-                    for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
-                        final String congrName = gen.getKey();
-                        backendData.congrASTs.put(congrName, gen.getValue());
-                        Relation.getOrInitialize(backendData.strategyConstrs, congrName, HashSet::new)
-                            .addAll(frontOutput.strategyConstrs.get(congrName));
-                    }
-                    for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
-                        final String overlayName = gen.getKey();
-                        Relation.getOrInitialize(backendData.overlayASTs, overlayName, ArrayList::new).addAll(gen.getValue());
-                    }
-                    for(Map.Entry<String, Set<String>> gen : frontOutput.overlayConstrs.entrySet()) {
-                        final String overlayName = gen.getKey();
-                        Relation.getOrInitialize(backendData.overlayConstrs, overlayName, HashSet::new).addAll(gen.getValue());
-                    }
-
-                    // resolving imports
-                    final Set<Module> expandedImports =
-                        Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
-                    for(Module m : expandedImports) {
-                        Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
-                    }
-                    expandedImports.removeAll(seen);
-                    workList.addAll(expandedImports);
-                    seen.addAll(expandedImports);
-
-                    BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
-                }
-            } while(!workList.isEmpty());
-            return this;
-        }
-    }
-
     private final IResourceService resourceService;
-
-    private final Frontend strIncrFront;
-    private final LibFrontend strIncrFrontLib;
     private final Backend strIncrBack;
+    private final StrIncrAnalysis strIncrAnalysis;
 
-    @Inject public StrIncr(IResourceService resourceService, Frontend strIncrFront, LibFrontend strIncrFrontLib,
-        Backend strIncrBack) {
+    @Inject public StrIncr(IResourceService resourceService, Backend strIncrBack, StrIncrAnalysis analysis) {
         this.resourceService = resourceService;
-        this.strIncrFront = strIncrFront;
-        this.strIncrFrontLib = strIncrFrontLib;
         this.strIncrBack = strIncrBack;
+        this.strIncrAnalysis = analysis;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
-        /*
-         * Note that we require the sdf tasks here to force it to generated needed str files. We then discover those in
-         * this method with a directory search, and start a front-end task for each. Every front-end task also depends
-         * on the sdf tasks so there is no hidden dep. To make sure that front-end tasks only run when their input
-         * _files_ change, we need the front-end to depend on the sdf tasks with a simple stamper that allows the
-         * execution of the sdf task to be ignored.
-         */
-        for(final STask t : input.originTasks) {
-            execContext.require(t);
-        }
-
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
         final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
         final File projectLocationFile = resourceService.localFile(projectLocation);
 
-        final Module inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
-
-        final Frontends frontends =
-            new Frontends(resourceService, strIncrFront, strIncrFrontLib, execContext, input, projectLocationPath, projectLocationFile, inputModule).invoke();
-        final StaticChecks.Data staticData = frontends.getStaticData();
-        final BackendData backendData = frontends.getBackendData();
-
-        long preCheckTime = System.nanoTime();
-
-        // CHECK: constructor/strategy uses have definition which is imported
-        final StaticChecks.Output staticCheckOutput =
-            StaticChecks.check(execContext, inputModule.path, staticData, backendData.overlayConstrs);
-
-        if(!staticCheckOutput.staticNameCheck) {
-            // Commented during benchmarking, too many missing local imports to automatically fix.
-//            throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
-        }
-
-        BuildStats.checkTime = System.nanoTime() - preCheckTime;
+        final Output result = execContext.require(strIncrAnalysis, input);
 
         // BACKEND
-        backends(execContext, input, projectLocation, projectLocationFile, staticData, backendData, staticCheckOutput);
+        backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData, result.staticCheckOutput);
 
         return None.instance;
     }
@@ -418,23 +223,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             workList.addAll(usedConstrs);
         }
         return seenOverlays;
-    }
-
-    private static void registerConstructorDefinitions(Map<String, Set<String>> visibleConstructors, Module module,
-        Set<String> constrs, Set<String> overlays) {
-        Set<String> visConstrs = new HashSet<>(constrs);
-        visConstrs.addAll(overlays);
-        visibleConstructors.put(module.path, visConstrs);
-    }
-
-    private static void registerStrategyDefinitions(Map<String, Set<String>> visibleStrategies, Module module,
-        Set<String> strategies) {
-        visibleStrategies.put(module.path, strategies);
-    }
-
-    private static String projectName(String inputFile) {
-        // *can* we get the project name somehow? This is probably more portable for non-project based compilation
-        return Integer.toString(inputFile.hashCode());
     }
 
     @Override public String getId() {
