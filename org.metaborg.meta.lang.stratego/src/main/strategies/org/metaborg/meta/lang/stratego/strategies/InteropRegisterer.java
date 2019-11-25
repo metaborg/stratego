@@ -5,6 +5,6 @@ import org.strategoxt.lang.Strategy;
 
 public class InteropRegisterer extends JavaInteropRegisterer {
     public InteropRegisterer() {
-        super(new Strategy[] { nano_time_real_0_0.instance });
+        super(new Strategy[] { });
     }
 }
