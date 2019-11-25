@@ -29,10 +29,10 @@ public class StaticChecks {
     public static final class Output {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
-        final Map<String, SortedMap<String, String>> ambStratResolution;
-        final List<ErrorMessage> messages;
+        public final Map<String, SortedMap<String, String>> ambStratResolution;
+        public final List<Message> messages;
 
-        Output(Map<String, SortedMap<String, String>> ambStratResolution, List<ErrorMessage> messages) {
+        Output(Map<String, SortedMap<String, String>> ambStratResolution, List<Message> messages) {
             this.ambStratResolution = ambStratResolution;
             this.messages = messages;
         }
@@ -209,7 +209,7 @@ public class StaticChecks {
 
     public static Output check(Logger logger, String mainFileModulePath, Data staticData,
         Map<String, Set<String>> overlayConstrs) throws ExecException {
-        final List<ErrorMessage> messages = new ArrayList<>();
+        final List<Message> messages = new ArrayList<>();
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
@@ -232,7 +232,7 @@ public class StaticChecks {
             Sets.difference(staticData.strategyNeedsExternal.readSet(), staticData.externalStrategies.readSet());
         for(String name : strategyNeedsExternalNonOverlap) {
             for(IStrategoString definitionName : staticData.strategyNeedsExternal.getPositions(name)) {
-                messages.add(ErrorMessage.externalStrategyNotFound(mainFileModulePath, definitionName));
+                messages.add(Message.externalStrategyNotFound(mainFileModulePath, definitionName));
             }
         }
 
@@ -247,7 +247,7 @@ public class StaticChecks {
         for(Set<String> overlayScc : overlaySccs) {
             for(String name : overlayScc) {
                 for(IStrategoString overlayName : staticData.overlayDefs.getPositions(name)) {
-                    messages.add(ErrorMessage.cyclicOverlay(mainFileModulePath, overlayName, overlayScc));
+                    messages.add(Message.cyclicOverlay(mainFileModulePath, overlayName, overlayScc));
                 }
             }
         }
@@ -278,7 +278,7 @@ public class StaticChecks {
                 Set<String> unresolvedConstructors = Sets.difference(usedConstructors.readSet(), theVisibleConstructors);
                 for(String name : unresolvedConstructors) {
                     for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
-                        messages.add(ErrorMessage.constructorNotFound(moduleName, constructorUse));
+                        messages.add(Message.constructorNotFound(moduleName, constructorUse));
                     }
                 }
                 final StringSetWithPositions usedStrategies =
@@ -286,7 +286,7 @@ public class StaticChecks {
                 Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies);
                 for(String name : unresolvedStrategies) {
                     for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
-                        messages.add(ErrorMessage.strategyNotFound(moduleName, strategyUse));
+                        messages.add(Message.strategyNotFound(moduleName, strategyUse));
                     }
                 }
                 final StringSetWithPositions definedStrategies =
@@ -295,7 +295,7 @@ public class StaticChecks {
                     .difference(Sets.intersection(definedStrategies.readSet(), staticData.externalStrategies.readSet()), ALWAYS_DEFINED);
                 for(String name : strategiesOverlapWithExternal) {
                     for(IStrategoString strategyDef : definedStrategies.getPositions(name)) {
-                        messages.add(ErrorMessage.externalStrategyOverlap(moduleName, strategyDef));
+                        messages.add(Message.externalStrategyOverlap(moduleName, strategyDef));
                     }
                 }
                 Map<String, Set<String>> theUsedAmbStrategies =
@@ -318,7 +318,7 @@ public class StaticChecks {
                         switch(defs.size()) {
                             case 0:
                                 for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                                    messages.add(ErrorMessage.strategyNotFound(moduleName, ambStrategyPosition));
+                                    messages.add(Message.strategyNotFound(moduleName, ambStrategyPosition));
                                 }
                                 break;
                             case 1:
@@ -330,7 +330,7 @@ public class StaticChecks {
                                 break;
                             default:
                                 for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                                    messages.add(ErrorMessage.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
+                                    messages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
                                 }
                         }
                     }

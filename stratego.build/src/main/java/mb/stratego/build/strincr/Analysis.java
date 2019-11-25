@@ -149,7 +149,7 @@ public class Analysis {
 
         if(!output.staticCheckOutput.messages.isEmpty()) {
             // Commented during benchmarking, too many missing local imports to automatically fix.
-            for(ErrorMessage message : output.staticCheckOutput.messages) {
+            for(Message message : output.staticCheckOutput.messages) {
                 execContext.logger().error(message.toString(), null);
             }
             // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
