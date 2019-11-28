@@ -6,12 +6,12 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.spoofax.interpreter.terms.IStrategoString;
 
 public abstract class Message {
-    public final String module;
+    public final String moduleFilePath;
     public final IStrategoString name;
     public final MessageSeverity severity = MessageSeverity.ERROR;
 
     public Message(String module, IStrategoString name) {
-        this.module = module;
+        this.moduleFilePath = module;
         this.name = name;
     }
 
@@ -40,7 +40,7 @@ public abstract class Message {
     }
 
     public String toString() {
-        return "In module '" + module + "': " + getMessage();
+        return "In module '" + moduleFilePath + "': " + getMessage();
     }
 
     public abstract String getMessage();

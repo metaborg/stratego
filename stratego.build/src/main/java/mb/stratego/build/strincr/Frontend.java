@@ -711,12 +711,15 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         ILanguageImpl strategoDialect = languageIdentifierService.identify(inputFile);
         if(strategoLang == null) {
             strategoLang = dialectService.getBase(strategoDialect);
+            if(strategoLang == null) {
+                strategoLang = strategoDialect;
+                strategoDialect = null;
+            }
             strIncrSubFront.strategoLang = strategoLang;
-        }
-        if(strategoLang == null) {
-            strategoLang = strategoDialect;
-            strIncrSubFront.strategoLang = strategoLang;
-            strategoDialect = null;
+        } else {
+            if(dialectService.getBase(strategoDialect) == null) {
+                strategoDialect = null;
+            }
         }
         IStrategoTerm ast;
         if(strategoLang == null) {

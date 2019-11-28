@@ -114,6 +114,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         final Output result = execContext.require(strIncrAnalysis, input);
 
+        if(!result.staticCheckOutput.messages.isEmpty()) {
+            for(Message message : result.staticCheckOutput.messages) {
+                execContext.logger().error(message.toString(), null);
+            }
+            // Commented during benchmarking, too many missing local imports to automatically fix.
+            // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+        }
+
         // BACKEND
         backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData, result.staticCheckOutput);
 

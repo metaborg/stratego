@@ -4,14 +4,16 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
-import org.spoofax.terms.attachments.OriginAttachment;
 
 import mb.flowspec.terms.B;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class UsedConstrs extends TermVisitor {
     private final StringSetWithPositions usedConstrs;
+    private final ITermFactory tf = new TermFactory();
 
     public UsedConstrs(StringSetWithPositions usedConstrs) {
         this.usedConstrs = usedConstrs;
@@ -29,13 +31,13 @@ public class UsedConstrs extends TermVisitor {
                 if(!name.equals("")) {
                     final IStrategoString cifiedName =
                         B.string(name + "_" + Tools.listAt(term, 1).size());
-                    cifiedName.putAttachment(nameAST.getAttachment(OriginAttachment.TYPE));
+                    tf.copyAttachments(nameAST, cifiedName);
                     usedConstrs.add(cifiedName);
                 }
             } else {
                 final IStrategoString nameAST = Tools.stringAt(Tools.<IStrategoTerm>termAt(term, 0), 0);
                 final IStrategoString cifiedName = B.string(strategoEscape(nameAST.stringValue()) + Tools.listAt(term, 1).size());
-                cifiedName.putAttachment(nameAST.getAttachment(OriginAttachment.TYPE));
+                tf.copyAttachments(nameAST, cifiedName);
                 usedConstrs.add(cifiedName);
             }
         }

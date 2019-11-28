@@ -147,14 +147,6 @@ public class Analysis {
         output.staticCheckOutput = StaticChecks.check(execContext.logger(), inputModule.path, output.staticData,
             output.backendData.overlayConstrs);
 
-        if(!output.staticCheckOutput.messages.isEmpty()) {
-            // Commented during benchmarking, too many missing local imports to automatically fix.
-            for(Message message : output.staticCheckOutput.messages) {
-                execContext.logger().error(message.toString(), null);
-            }
-            // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
-        }
-
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
         return output;
     }
