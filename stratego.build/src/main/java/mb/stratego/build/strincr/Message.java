@@ -39,6 +39,14 @@ public abstract class Message {
         return new AmbiguousStrategyCall(module, name, defs);
     }
 
+    public static Message unresolvedImport(String module, IStrategoString path) {
+        return new UnresolvedImport(module, path);
+    }
+
+    public static Message unresolvedWildcardImport(String module, IStrategoString path) {
+        return new UnresolvedWildcardImport(module, path);
+    }
+
     public String toString() {
         return "In module '" + moduleFilePath + "': " + getMessage();
     }
@@ -109,5 +117,25 @@ class AmbiguousStrategyCall extends Message {
 
     @Override public String getMessage() {
         return "The call to '" + name + "' is ambiguous, it may resolve to " + defs;
+    }
+}
+
+class UnresolvedImport extends Message {
+    public UnresolvedImport(String module, IStrategoString name) {
+        super(module, name);
+    }
+
+    @Override public String getMessage() {
+        return "Cannot find module for import '" + name + "'";
+    }
+}
+
+class UnresolvedWildcardImport extends Message {
+    public UnresolvedWildcardImport(String module, IStrategoString name) {
+        super(module, name);
+    }
+
+    @Override public String getMessage() {
+        return "Cannot find directory for wildcard import '" + name + "'";
     }
 }

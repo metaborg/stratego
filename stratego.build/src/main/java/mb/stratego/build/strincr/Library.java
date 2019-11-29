@@ -1,11 +1,14 @@
 package mb.stratego.build.strincr;
 
+import mb.flowspec.terms.B;
 import mb.pie.api.ExecException;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.resource.IResourceService;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.lang.compat.override.strc_compat.Main;
 import javax.annotation.Nullable;
@@ -28,12 +31,14 @@ public interface Library extends Serializable {
         return new RTree(resourceService.resolve(name).getURL().toString());
     }
 
-    static String normalizeBuiltin(String name) {
-        final @Nullable Builtin b = Builtin.fromString(name);
-        if(b == null) {
+    static IStrategoString normalizeBuiltin(IStrategoString name) {
+        final @Nullable String normalizedName = Builtin.fromString(name.stringValue()).libString;
+        if(normalizedName == null) {
             return name;
         } else {
-            return b.libString;
+            final IStrategoString normNameTerm = B.string(normalizedName);
+            new TermFactory().copyAttachments(name, normNameTerm);
+            return normNameTerm;
         }
     }
 
@@ -172,6 +177,10 @@ public interface Library extends Serializable {
 
         @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
             return new TermReader(factory).parseFromStream(new URL(pathURLString).openStream());
+        }
+
+        @Override public String toString() {
+            return "RTree(" + pathURLString + ")";
         }
     }
 }

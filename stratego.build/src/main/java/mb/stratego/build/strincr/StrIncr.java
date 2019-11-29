@@ -114,8 +114,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         final Output result = execContext.require(strIncrAnalysis, input);
 
-        if(!result.staticCheckOutput.messages.isEmpty()) {
-            for(Message message : result.staticCheckOutput.messages) {
+        if(!result.messages.isEmpty()) {
+            for(Message message : result.messages) {
                 execContext.logger().error(message.toString(), null);
             }
             // Commented during benchmarking, too many missing local imports to automatically fix.

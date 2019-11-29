@@ -22,11 +22,11 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
+import mb.flowspec.terms.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.stratego.build.strincr.StaticChecks.Data;
-import mb.stratego.build.strincr.StaticChecks;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StringSetWithPositions;
 
@@ -79,13 +79,15 @@ public class Analysis {
     }
 
     public static class Output implements Serializable {
-        public StaticChecks.Data staticData;
-        public BackendData backendData;
+        public final StaticChecks.Data staticData;
+        public final BackendData backendData;
         public StaticChecks.Output staticCheckOutput;
+        public final List<Message> messages;
 
-        public Output(Data staticData, BackendData backendData) {
+        public Output(Data staticData, BackendData backendData, List<Message> messages) {
             this.staticData = staticData;
             this.backendData = backendData;
+            this.messages = messages;
         }
 
         @Override public int hashCode() {
@@ -145,7 +147,7 @@ public class Analysis {
 
         // CHECK: constructor/strategy uses have definition which is imported
         output.staticCheckOutput = StaticChecks.check(execContext.logger(), inputModule.path, output.staticData,
-            output.backendData.overlayConstrs);
+            output.backendData.overlayConstrs, output.messages);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
         return output;
@@ -161,16 +163,17 @@ public class Analysis {
 
         final List<Import> defaultImports = new ArrayList<>(input.builtinLibs.size());
         for(String builtinLib : input.builtinLibs) {
-            defaultImports.add(Import.library(builtinLib));
+            defaultImports.add(Import.library(B.string(builtinLib)));
         }
         // depend on the include directories in which we search for str and rtree files
         for(File includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
 
-        StaticChecks.Data staticData = new StaticChecks.Data();
+        final StaticChecks.Data staticData = new StaticChecks.Data();
 
-        BackendData backendData = new BackendData();
+        final BackendData backendData = new BackendData();
+        final List<Message> messages = new ArrayList<>();
 
         long shuffleStartTime;
         do {
@@ -262,7 +265,7 @@ public class Analysis {
 
                 // resolving imports
                 final Set<Module> expandedImports =
-                    Module.resolveWildcards(execContext, theImports, input.includeDirs, projectLocationPath);
+                    Module.resolveWildcards(execContext, module.path, theImports, input.includeDirs, projectLocationPath, messages);
                 for(Module m : expandedImports) {
                     Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
                 }
@@ -273,7 +276,7 @@ public class Analysis {
                 BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
             }
         } while(!workList.isEmpty());
-        return new Output(staticData, backendData);
+        return new Output(staticData, backendData, messages);
     }
 
     private static String projectName(String inputFile) {

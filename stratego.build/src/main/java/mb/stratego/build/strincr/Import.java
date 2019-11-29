@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public final class Import implements Serializable {
@@ -14,21 +15,23 @@ public final class Import implements Serializable {
 
     final Import.ImportType type;
     final String path;
+    final IStrategoString pathTerm;
 
-    Import(Import.ImportType type, String path) {
+    Import(Import.ImportType type, IStrategoString path) {
         this.type = type;
-        this.path = path;
+        this.pathTerm = path;
+        this.path = this.pathTerm.stringValue();
     }
 
-    static Import normal(String importString) {
+    static Import normal(IStrategoString importString) {
         return new Import(ImportType.normal, importString);
     }
 
-    static Import wildcard(String importString) {
+    static Import wildcard(IStrategoString importString) {
         return new Import(ImportType.wildcard, importString);
     }
 
-    static Import library(String libraryName) {
+    static Import library(IStrategoString libraryName) {
         return new Import(ImportType.library, Library.normalizeBuiltin(libraryName));
     }
 
@@ -39,14 +42,14 @@ public final class Import implements Serializable {
         final IStrategoAppl appl = (IStrategoAppl) importTerm;
         switch(appl.getName()) {
             case "Import":
-                String importString = Tools.javaStringAt(appl, 0);
-                if(Library.Builtin.isBuiltinLibrary(importString)) {
+                IStrategoString importString = Tools.stringAt(appl, 0);
+                if(Library.Builtin.isBuiltinLibrary(importString.stringValue())) {
                     return library(importString);
                 } else {
                     return normal(importString);
                 }
             case "ImportWildcard":
-                return wildcard(Tools.javaStringAt(appl, 0));
+                return wildcard(Tools.stringAt(appl, 0));
             default:
                 throw new IOException("Import term was not the expected Import or ImportWildcard: " + appl);
         }

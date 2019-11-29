@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
@@ -30,11 +29,9 @@ public class StaticChecks {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
         public final Map<String, SortedMap<String, String>> ambStratResolution;
-        public final List<Message> messages;
 
-        Output(Map<String, SortedMap<String, String>> ambStratResolution, List<Message> messages) {
+        Output(Map<String, SortedMap<String, String>> ambStratResolution) {
             this.ambStratResolution = ambStratResolution;
-            this.messages = messages;
         }
 
         @Override public String toString() {
@@ -57,7 +54,6 @@ public class StaticChecks {
             final int prime = 31;
             int result = 1;
             result = prime * result + ((ambStratResolution == null) ? 0 : ambStratResolution.hashCode());
-            result = prime * result + ((messages == null) ? 0 : messages.hashCode());
             return result;
         }
 
@@ -73,11 +69,6 @@ public class StaticChecks {
                 if(other.ambStratResolution != null)
                     return false;
             } else if(!ambStratResolution.equals(other.ambStratResolution))
-                return false;
-            if(messages == null) {
-                if(other.messages != null)
-                    return false;
-            } else if(!messages.equals(other.messages))
                 return false;
             return true;
         }
@@ -208,8 +199,7 @@ public class StaticChecks {
     public static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
 
     public static Output check(Logger logger, String mainFileModulePath, Data staticData,
-        Map<String, Set<String>> overlayConstrs) throws ExecException {
-        final List<Message> messages = new ArrayList<>();
+        Map<String, Set<String>> overlayConstrs, List<Message> outputMessages) throws ExecException {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
@@ -232,7 +222,7 @@ public class StaticChecks {
             Sets.difference(staticData.strategyNeedsExternal.readSet(), staticData.externalStrategies.readSet());
         for(String name : strategyNeedsExternalNonOverlap) {
             for(IStrategoString definitionName : staticData.strategyNeedsExternal.getPositions(name)) {
-                messages.add(Message.externalStrategyNotFound(mainFileModulePath, definitionName));
+                outputMessages.add(Message.externalStrategyNotFound(mainFileModulePath, definitionName));
             }
         }
 
@@ -247,7 +237,7 @@ public class StaticChecks {
         for(Set<String> overlayScc : overlaySccs) {
             for(String name : overlayScc) {
                 for(IStrategoString overlayName : staticData.overlayDefs.getPositions(name)) {
-                    messages.add(Message.cyclicOverlay(mainFileModulePath, overlayName, overlayScc));
+                    outputMessages.add(Message.cyclicOverlay(mainFileModulePath, overlayName, overlayScc));
                 }
             }
         }
@@ -278,7 +268,7 @@ public class StaticChecks {
                 Set<String> unresolvedConstructors = Sets.difference(usedConstructors.readSet(), theVisibleConstructors);
                 for(String name : unresolvedConstructors) {
                     for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
-                        messages.add(Message.constructorNotFound(moduleName, constructorUse));
+                        outputMessages.add(Message.constructorNotFound(moduleName, constructorUse));
                     }
                 }
                 final StringSetWithPositions usedStrategies =
@@ -286,7 +276,7 @@ public class StaticChecks {
                 Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies);
                 for(String name : unresolvedStrategies) {
                     for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
-                        messages.add(Message.strategyNotFound(moduleName, strategyUse));
+                        outputMessages.add(Message.strategyNotFound(moduleName, strategyUse));
                     }
                 }
                 final StringSetWithPositions definedStrategies =
@@ -295,7 +285,7 @@ public class StaticChecks {
                     .difference(Sets.intersection(definedStrategies.readSet(), staticData.externalStrategies.readSet()), ALWAYS_DEFINED);
                 for(String name : strategiesOverlapWithExternal) {
                     for(IStrategoString strategyDef : definedStrategies.getPositions(name)) {
-                        messages.add(Message.externalStrategyOverlap(moduleName, strategyDef));
+                        outputMessages.add(Message.externalStrategyOverlap(moduleName, strategyDef));
                     }
                 }
                 Map<String, Set<String>> theUsedAmbStrategies =
@@ -318,7 +308,7 @@ public class StaticChecks {
                         switch(defs.size()) {
                             case 0:
                                 for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                                    messages.add(Message.strategyNotFound(moduleName, ambStrategyPosition));
+                                    outputMessages.add(Message.strategyNotFound(moduleName, ambStrategyPosition));
                                 }
                                 break;
                             case 1:
@@ -330,14 +320,14 @@ public class StaticChecks {
                                 break;
                             default:
                                 for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                                    messages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
+                                    outputMessages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
                                 }
                         }
                     }
                 }
             }
         }
-        return new Output(ambStratResolution, messages);
+        return new Output(ambStratResolution);
     }
 
     private static String stripArity(String s) throws ExecException {

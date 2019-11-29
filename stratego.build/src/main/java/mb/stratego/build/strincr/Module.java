@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class Module implements Serializable {
@@ -44,8 +45,8 @@ public final class Module implements Serializable {
             Type.source);
     }
 
-    static Set<Module> resolveWildcards(ExecContext execContext, Collection<Import> imports,
-        Collection<File> includeDirs, Path projectLocation) throws ExecException, IOException {
+    static Set<Module> resolveWildcards(ExecContext execContext, String modulePath, Collection<Import> imports,
+        Collection<File> includeDirs, Path projectLocation, List<Message> outputMessages) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {
@@ -67,8 +68,7 @@ public final class Module implements Serializable {
                         }
                     }
                     if(!foundSomethingToImport) {
-                        execContext.logger()
-                            .warn("Could not find any module corresponding to import " + anImport.path, null);
+                        outputMessages.add(Message.unresolvedImport(modulePath, anImport.pathTerm));
                     }
                     break;
                 }
@@ -92,9 +92,7 @@ public final class Module implements Serializable {
                         }
                     }
                     if(!foundSomethingToImport) {
-                        execContext.logger()
-                            .warn("Could not find any module corresponding to import " + anImport.path + "/-",
-                                null);
+                        outputMessages.add(Message.unresolvedWildcardImport(modulePath, anImport.pathTerm));
                     }
                     break;
                 }
