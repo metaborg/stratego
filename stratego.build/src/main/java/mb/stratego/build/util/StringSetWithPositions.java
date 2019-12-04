@@ -83,4 +83,8 @@ public class StringSetWithPositions {
     @Override public String toString() {
         return map.toString();
     }
+
+    public int size() {
+        return map.size();
+    }
 }

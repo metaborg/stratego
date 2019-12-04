@@ -82,9 +82,9 @@ public class Analysis {
         public final StaticChecks.Data staticData;
         public final BackendData backendData;
         public StaticChecks.Output staticCheckOutput;
-        public final List<Message> messages;
+        public final List<Message<?>> messages;
 
-        public Output(Data staticData, BackendData backendData, List<Message> messages) {
+        public Output(Data staticData, BackendData backendData, List<Message<?>> messages) {
             this.staticData = staticData;
             this.backendData = backendData;
             this.messages = messages;
@@ -173,7 +173,7 @@ public class Analysis {
         final StaticChecks.Data staticData = new StaticChecks.Data();
 
         final BackendData backendData = new BackendData();
-        final List<Message> messages = new ArrayList<>();
+        final List<Message<?>> messages = new ArrayList<>();
 
         long shuffleStartTime;
         do {
@@ -226,6 +226,7 @@ public class Analysis {
                     Relation.getOrInitialize(staticData.usedConstructors, module.path, StringSetWithPositions::new)
                         .addAll(usedConstrs);
                 }
+                staticData.sugarASTs.put(module.path, frontOutput.sugarAST);
                 staticData.usedStrategies.put(module.path, frontOutput.usedStrategies);
                 staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
                 staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);

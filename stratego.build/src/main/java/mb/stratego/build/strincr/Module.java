@@ -46,7 +46,7 @@ public final class Module implements Serializable {
     }
 
     static Set<Module> resolveWildcards(ExecContext execContext, String modulePath, Collection<Import> imports,
-        Collection<File> includeDirs, Path projectLocation, List<Message> outputMessages) throws ExecException, IOException {
+        Collection<File> includeDirs, Path projectLocation, List<Message<?>> outputMessages) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {

@@ -19,7 +19,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,11 +49,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.inject.Inject;
 
+import mb.flowspec.terms.B;
 import mb.flowspec.terms.StrategoArrayList;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -123,6 +124,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     public static final class NormalOutput extends Output {
         final String moduleName;
+        final IStrategoTerm sugarAST;
         /**
          * Cified-strategy-name to file with CTree definition of that strategy [static linking]
          */
@@ -168,7 +170,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-name of a generated congruence [static linking]
          */
-        final Set<String> congrs;
+        final StringSetWithPositions congrs;
         /**
          * Cified-strategy-names of strategies that need a corresponding strategy in a library because it overrides or
          * extends it. [name checks]
@@ -199,14 +201,15 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         transient Map<String, IStrategoAppl> congrASTs;
 
-        NormalOutput(String moduleName, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
+        NormalOutput(String moduleName, IStrategoTerm sugarAST, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
             Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions,
             Map<String, StringSetWithPositions> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
-            StringSetWithPositions strats, StringSetWithPositions constrs, StringSetWithPositions overlays, Set<String> congrs,
+            StringSetWithPositions strats, StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
             List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs,
             Map<String, File> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
+            this.sugarAST = sugarAST;
             this.strategyFiles = strategyFiles;
             this.usedStrategies = usedStrategies;
             this.ambStratUsed = ambStratUsed;
@@ -486,7 +489,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
         final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
-        final Set<String> congrs = new HashSet<>();
+        final StringSetWithPositions congrs = new StringSetWithPositions();
         final Map<String, File> congrFiles = new HashMap<>();
         final Map<String, Integer> noOfDefinitions = new HashMap<>();
 
@@ -527,7 +530,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
-        return new NormalOutput(moduleName, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
+        return new NormalOutput(moduleName, ast, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
             strategyConstrs, overlayFiles, imports, definedStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
             overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
     }
@@ -583,7 +586,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
         final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
         final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
-        final Set<String> congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
+        final StringSetWithPositions congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         // 0 == Anno__Cong_____2_0
@@ -597,15 +600,18 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         for(IStrategoTerm congrPair : congs) {
-            final String congrName = Tools.javaStringAt(congrPair, 0);
+            final IStrategoString congrName = Tools.stringAt(congrPair, 0);
             final IStrategoAppl congrAST = Tools.applAt(congrPair, 1);
-            congrs.add(congrName + "_0");
-            congrASTs.put(congrName, congrAST);
+            final IStrategoString cifiedCongrName = B.string(congrName + "_0");
+            OriginAttachment.setOrigin(cifiedCongrName, congrName);
+            congrs.add(cifiedCongrName);
+            final String congrNameString = congrName.stringValue();
+            congrASTs.put(congrNameString, congrAST);
 
-            storeDef(location, moduleName, congrName, congrFiles, input.projectName);
+            storeDef(location, moduleName, congrNameString, congrFiles, input.projectName);
             final StringSetWithPositions usedConstrs = new StringSetWithPositions();
             collectUsedNames(congrAST, usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
-            strategyConstrs.put(congrName, usedConstrs);
+            strategyConstrs.put(congrNameString, usedConstrs);
         }
 
         for(IStrategoTerm noOfDef : noOfDefs) {

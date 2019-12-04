@@ -17,6 +17,7 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -115,11 +116,15 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final Output result = execContext.require(strIncrAnalysis, input);
 
         if(!result.messages.isEmpty()) {
-            for(Message message : result.messages) {
+            boolean error = false;
+            for(Message<?> message : result.messages) {
                 execContext.logger().error(message.toString(), null);
+                error |= message.severity == MessageSeverity.ERROR;
             }
-            // Commented during benchmarking, too many missing local imports to automatically fix.
-            // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+            if(error) {
+                // Commented during benchmarking, too many missing local imports to automatically fix.
+                // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+            }
         }
 
         // BACKEND
@@ -140,11 +145,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
         for(String strategyName : backendData.strategyASTs.keySet()) {
             backendStart = System.nanoTime();
-            /* TODO: don't use a set, it could in a very strange case affect the semantics of the Stratego problem
-                (side-effect, then failure, purposefully defined multiple times).
-               This set is used right now to eliminate overhead in the generated helper strategies of dynamic rules,
-               which should be defined once per rule-name but are defined once per rule-name per module. Fix that in a
-               principled way, then this can go back to a list.
+            /* This set is used right now to eliminate overhead in the generated helper strategies of dynamic rules,
+               which should be defined once per rule-name but are defined once per rule-name per module. 
+               If that can be fixed in a principled way, then this can go back to a list.
              */
             final Set<IStrategoAppl> strategyContributions;
             final List<IStrategoAppl> strategyOverlayFiles = new ArrayList<>();
