@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.config.JSGLRVersion;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageImpl;
@@ -36,7 +37,6 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
-import org.metaborg.spoofax.core.syntax.ImploderImplementation;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -67,6 +67,7 @@ import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
@@ -422,13 +423,14 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private final ISpoofaxUnitService unitService;
     private final ISpoofaxSyntaxService syntaxService;
     private final SubFrontend strIncrSubFront;
+    private final StrIncrContext strContext;
 
     private ILanguageImpl strategoLang;
 
     @Inject public Frontend(IResourceService resourceService, ILanguageIdentifierService languageIdentifierService,
         IDialectService dialectService, ILanguageService languageService, ITermFactoryService termFactoryService,
         ISourceTextService sourceTextService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService,
-        SubFrontend strIncrSubFront) {
+        SubFrontend strIncrSubFront, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.dialectService = dialectService;
@@ -438,6 +440,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         this.unitService = unitService;
         this.syntaxService = syntaxService;
         this.strIncrSubFront = strIncrSubFront;
+        this.strContext = strContext;
     }
 
 
@@ -602,10 +605,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         for(IStrategoTerm congrPair : congs) {
             final IStrategoString congrName = Tools.stringAt(congrPair, 0);
             final IStrategoAppl congrAST = Tools.applAt(congrPair, 1);
-            final IStrategoString cifiedCongrName = B.string(congrName + "_0");
+            final String congrNameString = congrName.stringValue();
+            final IStrategoString cifiedCongrName = B.string(congrNameString + "_0");
             OriginAttachment.setOrigin(cifiedCongrName, congrName);
             congrs.add(cifiedCongrName);
-            final String congrNameString = congrName.stringValue();
             congrASTs.put(congrNameString, congrAST);
 
             storeDef(location, moduleName, congrNameString, congrFiles, input.projectName);
@@ -760,6 +763,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             // parse *.str file
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
+
+        // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
+        ast = new DisambiguateAsAnno(strContext).visit(ast);
+
         if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
             && ast.getSubtermCount() == 2) {
             final TermSize termSizeTermVisitor = new TermSize();
@@ -773,8 +780,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
         ILanguageImpl strategoLang) throws ParseException, ExecException {
-        final @Nullable ImploderImplementation overrideImploder =
-            strategoDialect == null ? null : ImploderImplementation.stratego;
+        final JSGLRVersion overrideJSGLRVersion = JSGLRVersion.v2;
 
         final @Nullable IStrategoTerm ast;
         final String text;
@@ -784,7 +790,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             throw new ParseException(null, e);
         }
         final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLang, strategoDialect);
-        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, overrideImploder);
+        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, overrideJSGLRVersion);
         ast = parseResult.ast();
         if(!parseResult.success() || ast == null) {
             throw new ExecException("Cannot parse stratego file " + inputFile + ": " + parseResult.messages());
