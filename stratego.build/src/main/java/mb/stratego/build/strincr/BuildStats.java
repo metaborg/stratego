@@ -21,14 +21,16 @@ public class BuildStats {
     public static Set<String> generatedJavaFiles = new HashSet<>();
     // strategy name -> no. for each module defining the strategy, which is how many definitions there were in that module
     public static Map<String, List<Integer>> modulesDefiningStrategy = new TreeMap<>();
-    public static Map<String, Long> moduleFrontendCTreeSize = new HashMap<>();
+    public static Map<String, Long> tldSubFrontendCTreeSize = new HashMap<>();
     public static Map<String, Long> strategyBackendCTreeSize = new HashMap<>();
 
     // @formatter:off
     public static final String CSV_HEADER = "\"Frontend time\","
         + "\"Frontend tasks\","
+        + "\"Frontend size\","
         + "\"Backend time\","
         + "\"Backend tasks\","
+        + "\"Backend size\","
         + "\"Lib time\","
         + "\"Lib tasks\","
         + "\"Shuffle time\","
@@ -54,9 +56,17 @@ public class BuildStats {
     }
 
     public static String csv() {
+        long frontSize = 0L;
+        for(Long l : tldSubFrontendCTreeSize.values()) {
+            frontSize += l;
+        }
+        long backSize = 0L;
+        for(Long l : strategyBackendCTreeSize.values()) {
+            backSize += l;
+        }
         // @formatter:off
-        return frontTaskTime + "," + executedFrontTasks
-            + "," + backTaskTime + "," + executedBackTasks
+        return frontTaskTime + "," + executedFrontTasks + "," + frontSize
+            + "," + backTaskTime + "," + executedBackTasks + "," + backSize
             + "," + frontLibTaskTime + "," + executedFrontLibTasks
             + "," + shuffleTime
             + "," + shuffleLibTime

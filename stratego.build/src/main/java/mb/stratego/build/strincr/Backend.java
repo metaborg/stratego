@@ -156,7 +156,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
-        BuildStats.strategyBackendCTreeSize.put(input.strategyName, getTermSize(ctree));
+        BuildStats.strategyBackendCTreeSize.put(input.strategyName, TermSize.computeTermSize(ctree));
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
@@ -204,12 +204,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
         return None.instance;
-    }
-
-    private long getTermSize(IStrategoTerm ctree) {
-        final TermSize termSizeTermVisitor = new TermSize();
-        termSizeTermVisitor.visit(ctree);
-        return termSizeTermVisitor.size;
     }
 
     public static StrategoExecutor.ExecutionResult runLocallyUniqueStringStrategy(Logger logger, boolean silent,

@@ -18,6 +18,7 @@ import com.google.inject.Inject;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.ResourceAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
@@ -128,7 +129,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         }
     }
 
-    public static enum InputType {
+    public enum InputType {
         TopLevelDefinition(compile_top_level_def_0_0.instance),
         Split(split_module_0_0.instance); // Split is for convenience, not because it *must* be cached
         final Strategy strategy;
@@ -158,6 +159,9 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
 
     @Override public SubFrontend.Output exec(ExecContext context, SubFrontend.Input input) throws Exception {
+        if(input.inputType == InputType.TopLevelDefinition) {
+            BuildStats.tldSubFrontendCTreeSize.put(input.toString(), TermSize.computeTermSize(input.ast));
+        }
         final StrategoExecutor.ExecutionResult result = Backend.runLocallyUniqueStringStrategy(context.logger(), true,
             newResourceTracker(new File(System.getProperty("user.dir")), true), input.inputType.strategy, input.ast,
             strContext);

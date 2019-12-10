@@ -767,14 +767,6 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
         ast = new DisambiguateAsAnno(strContext).visit(ast);
 
-        if(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
-            && ast.getSubtermCount() == 2) {
-            final TermSize termSizeTermVisitor = new TermSize();
-            termSizeTermVisitor.visit(ast);
-            final String moduleName = Tools.javaStringAt(ast, 0);
-            BuildStats.moduleFrontendCTreeSize.put(moduleName, termSizeTermVisitor.size);
-        }
-
         return ast;
     }
 

@@ -6,6 +6,12 @@ import org.spoofax.terms.TermVisitor;
 public class TermSize extends TermVisitor {
     public long size = 0;
 
+    public static long computeTermSize(IStrategoTerm ctree) {
+        final TermSize termSizeTermVisitor = new TermSize();
+        termSizeTermVisitor.visit(ctree);
+        return termSizeTermVisitor.size;
+    }
+
     @Override public void preVisit(IStrategoTerm term) {
         size++;
     }
