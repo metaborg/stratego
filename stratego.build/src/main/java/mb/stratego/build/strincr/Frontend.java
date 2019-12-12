@@ -37,6 +37,7 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
+import org.metaborg.spoofax.core.syntax.ImploderImplementation;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
@@ -765,17 +766,14 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             ast = parse(inputFile, strategoDialect, strategoLang);
         }
 
-        // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
-        ast = new DisambiguateAsAnno(strContext).visit(ast);
-
         return ast;
     }
 
     private IStrategoTerm parse(FileObject inputFile, @Nullable ILanguageImpl strategoDialect,
         ILanguageImpl strategoLang) throws ParseException, ExecException {
-        final JSGLRVersion overrideJSGLRVersion = JSGLRVersion.v2;
+        final ImploderImplementation overrideImploder = ImploderImplementation.stratego;
 
-        final @Nullable IStrategoTerm ast;
+        @Nullable IStrategoTerm ast;
         final String text;
         try {
             text = sourceTextService.text(inputFile);
@@ -783,11 +781,15 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             throw new ParseException(null, e);
         }
         final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLang, strategoDialect);
-        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, overrideJSGLRVersion);
+        final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, overrideImploder);
         ast = parseResult.ast();
         if(!parseResult.success() || ast == null) {
             throw new ExecException("Cannot parse stratego file " + inputFile + ": " + parseResult.messages());
         }
+
+        // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
+//        ast = new DisambiguateAsAnno(strContext).visit(ast);
+
         return ast;
     }
 
