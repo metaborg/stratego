@@ -62,6 +62,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
+import mb.stratego.build.termvisitors.DisambiguateAsAnno;
 import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;

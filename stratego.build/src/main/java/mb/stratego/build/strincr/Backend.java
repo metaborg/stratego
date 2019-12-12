@@ -5,6 +5,7 @@ import static org.strategoxt.lang.Term.NO_TERMS;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
@@ -240,7 +241,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 stdout = "";
                 stderr = "";
             }
-            return new StrategoExecutor.ExecutionResult(result != null, stdout, stderr, null, time, result);
+            return new StrategoExecutor.ExecutionResult(result != null, stdout, stderr, null, time, result, Arrays.asList(strContext.getTrace()));
         } catch(StrategoExit e) {
             final long time = System.nanoTime() - start;
             if(e.getValue() == 0) {
@@ -253,7 +254,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
                     stdout = "";
                     stderr = "";
                 }
-                return new StrategoExecutor.ExecutionResult(true, stdout, stderr, e, time);
+                return new StrategoExecutor.ExecutionResult(true, stdout, stderr, e, time, Arrays.asList(strContext.getTrace()));
             }
             strContext.popOnExit(false);
             if(!silent) {
@@ -268,7 +269,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 stdout = "";
                 stderr = "";
             }
-            return new StrategoExecutor.ExecutionResult(false, stdout, stderr, e, time);
+            return new StrategoExecutor.ExecutionResult(false, stdout, stderr, e, time, Arrays.asList(strContext.getTrace()));
         } finally {
             dr_scope_all_end_0_0.instance.invoke(strContext, factory.makeTuple());
         }

@@ -167,7 +167,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             strContext);
 
         if(!result.success) {
-            throw new ExecException("Call to strc frontend failed", result.exception);
+            throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.strategoTrace, result.exception);
         }
 
         return new Output(result.result);

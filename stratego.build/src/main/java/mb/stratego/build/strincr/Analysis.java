@@ -210,72 +210,77 @@ public class Analysis {
                 module.resolveFrom(projectLocationPath), projectName, input.originTasks);
             final @Nullable Frontend.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
-            if(frontOutput != null) {
-                for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
-                    Relation
-                        .getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
-                        .add(strategyNoOfDefs.getValue());
-                }
-                shuffleStartTime = System.nanoTime();
 
-                final List<Import> theImports = new ArrayList<>(frontOutput.imports);
-                theImports.addAll(defaultImports);
-
-                // combining output for check
-                for(StringSetWithPositions usedConstrs : frontOutput.strategyConstrs.values()) {
-                    Relation.getOrInitialize(staticData.usedConstructors, module.path, StringSetWithPositions::new)
-                        .addAll(usedConstrs);
-                }
-                staticData.sugarASTs.put(module.path, frontOutput.sugarAST);
-                staticData.usedStrategies.put(module.path, frontOutput.usedStrategies);
-                staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
-                staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
-                staticData.registerStrategyDefinitions(module, frontOutput.strats);
-                staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
-                staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
-
-                staticData.strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
-
-
-                // shuffling output for backend
-                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
-                    String strategyName = gen.getKey();
-                    // ensure the strategy is a key in the strategyFiles map
-                    Relation.getOrInitialize(backendData.strategyASTs, strategyName, ArrayList::new)
-                        .add(gen.getValue());
-                    Relation.getOrInitialize(backendData.strategyConstrs, strategyName, HashSet::new)
-                        .addAll(frontOutput.strategyConstrs.get(strategyName).readSet());
-                }
-                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
-                    final String congrName = gen.getKey();
-                    backendData.congrASTs.put(congrName, gen.getValue());
-                    Relation.getOrInitialize(backendData.strategyConstrs, congrName, HashSet::new)
-                        .addAll(frontOutput.strategyConstrs.get(congrName).readSet());
-                }
-                for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
-                    final String overlayName = gen.getKey();
-
-                    Relation.getOrInitialize(backendData.overlayASTs, overlayName, ArrayList::new)
-                        .addAll(gen.getValue());
-                }
-                for(Map.Entry<String, StringSetWithPositions> gen : frontOutput.overlayConstrs.entrySet()) {
-                    final String overlayName = gen.getKey();
-                    Relation.getOrInitialize(backendData.overlayConstrs, overlayName, HashSet::new)
-                        .addAll(gen.getValue().readSet());
-                }
-
-                // resolving imports
-                final Set<Module> expandedImports =
-                    Module.resolveWildcards(execContext, module.path, theImports, input.includeDirs, projectLocationPath, messages);
-                for(Module m : expandedImports) {
-                    Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
-                }
-                expandedImports.removeAll(seen);
-                workList.addAll(expandedImports);
-                seen.addAll(expandedImports);
-
-                BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
+            if(frontOutput == null) {
+                execContext.logger().debug("File deletion detected: " + module.resolveFrom(projectLocationPath));
+                continue;
             }
+            execContext.logger().debug("File parsed: " + module.resolveFrom(projectLocationPath));
+
+            for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
+                Relation
+                    .getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
+                    .add(strategyNoOfDefs.getValue());
+            }
+            shuffleStartTime = System.nanoTime();
+
+            final List<Import> theImports = new ArrayList<>(frontOutput.imports);
+            theImports.addAll(defaultImports);
+
+            // combining output for check
+            for(StringSetWithPositions usedConstrs : frontOutput.strategyConstrs.values()) {
+                Relation.getOrInitialize(staticData.usedConstructors, module.path, StringSetWithPositions::new)
+                    .addAll(usedConstrs);
+            }
+            staticData.sugarASTs.put(module.path, frontOutput.sugarAST);
+            staticData.usedStrategies.put(module.path, frontOutput.usedStrategies);
+            staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
+            staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
+            staticData.registerStrategyDefinitions(module, frontOutput.strats);
+            staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
+            staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
+
+            staticData.strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
+
+
+            // shuffling output for backend
+            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
+                String strategyName = gen.getKey();
+                // ensure the strategy is a key in the strategyFiles map
+                Relation.getOrInitialize(backendData.strategyASTs, strategyName, ArrayList::new)
+                    .add(gen.getValue());
+                Relation.getOrInitialize(backendData.strategyConstrs, strategyName, HashSet::new)
+                    .addAll(frontOutput.strategyConstrs.get(strategyName).readSet());
+            }
+            for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
+                final String congrName = gen.getKey();
+                backendData.congrASTs.put(congrName, gen.getValue());
+                Relation.getOrInitialize(backendData.strategyConstrs, congrName, HashSet::new)
+                    .addAll(frontOutput.strategyConstrs.get(congrName).readSet());
+            }
+            for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
+                final String overlayName = gen.getKey();
+
+                Relation.getOrInitialize(backendData.overlayASTs, overlayName, ArrayList::new)
+                    .addAll(gen.getValue());
+            }
+            for(Map.Entry<String, StringSetWithPositions> gen : frontOutput.overlayConstrs.entrySet()) {
+                final String overlayName = gen.getKey();
+                Relation.getOrInitialize(backendData.overlayConstrs, overlayName, HashSet::new)
+                    .addAll(gen.getValue().readSet());
+            }
+
+            // resolving imports
+            final Set<Module> expandedImports =
+                Module.resolveWildcards(execContext, module.path, theImports, input.includeDirs, projectLocationPath, messages);
+            for(Module m : expandedImports) {
+                Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
+            }
+            expandedImports.removeAll(seen);
+            workList.addAll(expandedImports);
+            seen.addAll(expandedImports);
+
+            BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
         return new Output(staticData, backendData, messages);
     }

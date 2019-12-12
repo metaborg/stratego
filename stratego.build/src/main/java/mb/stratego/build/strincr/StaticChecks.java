@@ -266,6 +266,10 @@ public class StaticChecks {
                 visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
                 // CHECK for constant congruences & overlap between local variables and nullary constructors
+                if(!staticData.sugarASTs.containsKey(moduleName)) {
+                    logger.debug("Sugar ASTs available for: " + staticData.sugarASTs.keySet());
+                    throw new ExecException("Cannot find sugar AST for " + moduleName);
+                }
                 new SugarAnalysis(moduleName, outputMessages, staticData.definedConstructors)
                     .visit(staticData.sugarASTs.get(moduleName));
                 resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);

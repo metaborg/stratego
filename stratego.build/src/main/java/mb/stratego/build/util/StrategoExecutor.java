@@ -19,21 +19,33 @@ public class StrategoExecutor {
         public final String errLog;
         public final @Nullable IStrategoTerm result;
         public final @Nullable Exception exception;
+        public final @Nullable List<String> strategoTrace;
         public final long time;
 
         public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
             long time) {
-            this(success, outLog, errLog, exception, time, null);
+            this(success, outLog, errLog, exception, time, null, null);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable List<String> strategoTrace) {
+            this(success, outLog, errLog, exception, time, null, strategoTrace);
         }
 
         public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
             long time, @Nullable IStrategoTerm result) {
+            this(success, outLog, errLog, exception, time, result, null);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable IStrategoTerm result, @Nullable List<String> strategoTrace) {
             this.success = success;
             this.outLog = outLog;
             this.errLog = errLog;
             this.exception = exception;
             this.time = time;
             this.result = result;
+            this.strategoTrace = strategoTrace;
         }
     }
 

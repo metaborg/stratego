@@ -1,8 +1,10 @@
-package mb.stratego.build.strincr;
+package mb.stratego.build.termvisitors;
 
 import javax.annotation.Nullable;
 
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -16,6 +18,7 @@ import org.strategoxt.lang.Strategy;
  * See also https://github.com/metaborg/jsglr/pull/44
  */
 public class DisambiguateAsAnno {
+    private static final ILogger logger = LoggerUtils.logger(DisambiguateAsAnno.class);
     private final Strategy visitor;
     private final Context context;
 
@@ -25,7 +28,7 @@ public class DisambiguateAsAnno {
             @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
                 final IStrategoTerm ambiguityResolved = resolveAmbiguity(current);
                 if(ambiguityResolved == null) {
-                    return visit2(current);
+                    return visit(current);
                 } else {
                     return ambiguityResolved;
                 }
@@ -34,12 +37,7 @@ public class DisambiguateAsAnno {
     }
 
     public IStrategoTerm visit(IStrategoTerm term) {
-        return visit2(term);
-    }
-
-    public IStrategoTerm visit2(IStrategoTerm term) {
-        SRTS_all.instance.invoke(context, term, visitor);
-        return term;
+        return SRTS_all.instance.invoke(context, term, visitor);
     }
 
     public @Nullable IStrategoTerm resolveAmbiguity(IStrategoTerm current) {
@@ -49,8 +47,11 @@ public class DisambiguateAsAnno {
                 IStrategoTerm left = ambs.getSubterm(0);
                 IStrategoTerm right = ambs.getSubterm(1);
                 return resolveAmbiguity(left, right);
+            } else {
+//                throw new MetaborgRuntimeException("Ambiguity found: " + current.toString(7));
+                logger.error("Ambiguity found: " + current.toString());
+                return ambs.getSubterm(0);
             }
-            throw new MetaborgRuntimeException("Ambiguity found: " + current.toString(7));
         }
         return null;
     }
