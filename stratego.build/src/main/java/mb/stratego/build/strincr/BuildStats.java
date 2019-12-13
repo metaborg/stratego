@@ -52,6 +52,7 @@ public class BuildStats {
         shuffleBackendTime = 0;
         generatedJavaFiles.clear();
         modulesDefiningStrategy.clear();
+        tldSubFrontendCTreeSize.clear();
         strategyBackendCTreeSize.clear();
     }
 
