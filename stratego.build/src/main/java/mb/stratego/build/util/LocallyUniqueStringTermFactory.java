@@ -31,13 +31,8 @@ public class LocallyUniqueStringTermFactory extends ImploderOriginTermFactory {
         this(new TermFactory());
     }
 
-    @Override public ITermFactory getFactoryWithStorageType(int storageType) {
-        assert getDefaultStorageType() <= storageType;
-        return this;
-    }
-
     @Override public IStrategoString makeString(String s) {
-        final IStrategoString string = new StrategoString(s, null, defaultStorageType);
+        final IStrategoString string = new StrategoString(s, null);
         if(s.length() <= MAX_POOLED_STRING_LENGTH) {
             synchronized(usedStrings) {
                 usedStrings.add(s);
