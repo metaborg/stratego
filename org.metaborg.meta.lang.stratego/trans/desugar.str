@@ -29,7 +29,29 @@ rules
     SDef(x, a*, s) -> SDefT(x, a*, [], s)
 
   basic-desugar:
+    SDefP(x, s*, t*, s) -> SDefT(x, s*, t'*, s')
+  where
+    (t'*, s') := <transform-P-to-T-s(|s)> t*
+
+  basic-desugar:
     RDef(x, a*, s) -> SDefT(x, a*, [], SRule(s))
+
+  basic-desugar:
+    RDefP(x, s*, t*, RuleNoCond(a, b)) -> SDefT(x, s*, t'*, Rule(a, b, [w*]))
+  where
+    (t'*, w*) := <transform-P-to-T-r> t*
+
+  basic-desugar:
+    RDefP(x, s*, t*, Rule(a, b, r*)) -> SDefT(x, s*, t'*, Rule(a, b, [w*, r*]))
+  where
+    <is-list> r*;
+    (t'*, w*) := <transform-P-to-T-r> t*
+
+  basic-desugar:
+    RDefP(x, s*, t*, Rule(a, b, r)) -> SDefT(x, s*, t'*, Rule(a, b, [w*, WhereClause(r)]))
+  where
+    <not(is-list)> r;
+    (t'*, w*) := <transform-P-to-T-r> t*
 
   basic-desugar:
     RDefT(x, s*, t*, s) -> SDefT(x, s*, t*, SRule(s))
