@@ -1,0 +1,12 @@
+module core
+
+imports
+  core/constants
+  core/identifiers
+  core/layout
+  core/signatures
+  core/terms
+  core/strategies
+  core/modules
+
+context-free start-symbols Module

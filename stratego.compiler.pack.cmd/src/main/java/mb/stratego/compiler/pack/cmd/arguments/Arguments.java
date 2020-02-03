@@ -14,11 +14,13 @@ public class Arguments {
 
     public final SingleStrategy singleStrategy;
     public final Boilerplate boilerplate;
-    private SharedArguments parsedCommandArguments;
+    public final TryGradualTypes tryGradualTypes;
+    private Object parsedCommandArguments;
 
-    public Arguments(SingleStrategy singleStrategy, Boilerplate boilerplate) {
+    public Arguments(SingleStrategy singleStrategy, Boilerplate boilerplate, TryGradualTypes tryGradualTypes) {
         this.singleStrategy = singleStrategy;
         this.boilerplate = boilerplate;
+        this.tryGradualTypes = tryGradualTypes;
     }
 
     void setParsedCommandArguments(String command) {
@@ -29,12 +31,15 @@ public class Arguments {
             case "boilerplate":
                 parsedCommandArguments = boilerplate;
                 break;
+            case "try-gradual-types":
+                parsedCommandArguments = tryGradualTypes;
+                break;
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    public SharedArguments getParsedCommandArguments() {
+    public Object getParsedCommandArguments() {
         return parsedCommandArguments;
     }
 
@@ -43,11 +48,13 @@ public class Arguments {
 
         SingleStrategy singleStrategy = new SingleStrategy();
         Boilerplate boilerplate = new Boilerplate();
-        Arguments arguments = new Arguments(singleStrategy, boilerplate);
+        TryGradualTypes tryGradualTypes = new TryGradualTypes();
+        Arguments arguments = new Arguments(singleStrategy, boilerplate, tryGradualTypes);
 
         jc.addObject(arguments);
         jc.addCommand("single", singleStrategy);
         jc.addCommand("boilerplate", boilerplate);
+        jc.addCommand("try-gradual-types", tryGradualTypes);
 
         try {
             jc.parse(args);

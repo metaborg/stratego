@@ -1,0 +1,46 @@
+module core/modules
+
+imports
+  core/identifiers
+  core/layout
+  core/strategies
+  core/signatures
+
+sorts Module
+context-free syntax
+
+  Module.Module = <
+    module <ModName>
+     <AnnoDecl*>
+  >
+
+  Module.Specification = <
+    specification
+      <AnnoDecl*>
+  >
+
+sorts Decl AnnoDecl
+context-free syntax
+  Decl.Imports =
+    <imports
+       <ImportModName*>>
+
+  Decl.Strategies = <
+    strategies
+      <Def*>
+  >
+
+  Decl.Signature = <
+    signature
+      <Sdecl*>
+  >
+
+  AnnoDecl = Decl
+
+sorts ImportModName
+context-free syntax
+  ImportModName.Import = <<ModName>>
+
+syntax
+  ImportModName-CF.ImportWildcard = ModName-CF "/" "-"
+

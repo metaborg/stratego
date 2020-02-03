@@ -30,7 +30,19 @@
 
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>stratego-gradual-types</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>stratego.build</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
 

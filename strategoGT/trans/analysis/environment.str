@@ -1,0 +1,69 @@
+module analysis/environment
+
+imports
+
+libstratego-lib
+libstrc
+
+analysis/utils
+analysis/signatures
+immutable/map
+
+signature constructors
+
+//    strategies           constructors
+Env : Map/*(String, SType)*/ * Map/*(String, OpType)*/ -> Environment
+//    local variables     currentTermType
+St : Map/*(String, Type)*/ * Type -> Store
+
+strategies
+
+new-env: (strats, constrs) -> Env(strats, constrs)
+new-st = !St(<immap-new>, Dyn())
+
+strat-env = ?Env(<id>, _)
+strat-env(s) = Env(s, id)
+
+strat-lookup(|name) = strat-env; env-lookup(|name)
+strat-put(|name, value) = strat-env(env-put(|name, value))
+strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
+strat-copy-type(|name, as) = strat-env(env-copy-type(|name, as))
+
+constr-env = ?Env(_, <id>)
+constr-env(s) = Env(id, s)
+
+constr-lookup(|name) = constr-env; env-lookup(|name)
+constr-put(|name, value) = constr-env(env-put(|name, value))
+constr-merge-env(s): (e, ce) -> <constr-env(immap-union(s|ce))> e
+
+term-env = ?St(<id>, _)
+term-env(s) = St(s, id)
+
+term-lookup(|name) = term-env; env-lookup(|name)
+term-put(|name, value) = term-env(env-put(|name, value))
+term-merge-env(s): (e, te) -> <term-env(immap-union(s|te))> e
+
+current-type = ?St(_, <id>)
+current-type(|t) = St(id, !t)
+
+st-merge(s): (St(terms1, type1), St(terms2, type2)) -> St(terms3, type3)
+  with
+    terms3 := <immap-union(s|terms2)> terms1
+  ; type3 := <s> (type1, type2)
+
+strategies
+
+/**
+ * Copy type of `name` and bind it to the new name (`as`) as well. 
+ */
+env-copy-type(|name, as): env -> <immap-put(|as, <immap-get(|name)> env)> env
+
+env-lookup(|name) = immap-get(|name)
+env-put(|name, value) = immap-put(|name, value)
+
+zip-new-env = zip;immap-from-list
+
+merge-env(s) = immap-union(s)
+
+keep-right = ?(_, <id>)
+keep-left = ?(<id>, _)

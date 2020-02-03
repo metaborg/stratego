@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class BackendData {
     // Cified-strategy-name to definitions of that strategy
-    final Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
+    Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
     // Constructor_arity of congruence to definition of that strategy
     final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
     // Cified-strategy-name to constructor_arity names that were used in the body

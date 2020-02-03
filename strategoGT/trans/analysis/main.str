@@ -1,4 +1,4 @@
-module main
+module analysis/main
 
 imports
 
@@ -7,9 +7,9 @@ libstrc
 
 libspoofax/term/annotation
 
-utils
-environment
-signatures
+analysis/utils
+analysis/environment
+analysis/signatures
 immutable/map
 immutable/set
 
@@ -80,17 +80,17 @@ rm-redundant-cast: Seq(strat, Cast(Id())) -> strat
 rm-redundant-cast: App(Cast(Id()), term) -> term
 
 toBinding-DefHasType: DefHasType(name, stype) -> (name{}, stype)
-toBinding-ExtSDef: d@ExtSDef(name, sargs, targs) ->
+toBinding-SDefT: d@SDefT(name, sargs, targs, _) ->
   ( name{}
   , <otf(!FunTType(
-      <map(otf(toBinding-ExtSDef-Typedid))> sargs
+      <map(otf(toBinding-SDefT-Typedid))> sargs
     , <map(otf(!Dyn()))> targs
     , <otf(!Dyn())> d
     , <otf(!Dyn())> d))> d)
-toBinding-ExtSDef-Typedid = ?VarDec(_, <toBinding-ExtSDef-ConstType + toBinding-ExtSDef-FunType>)
-toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], Dyn(), Dyn())
-toBinding-ExtSDef-ConstType: ConstType(s) -> Dyn()
-toBinding-ExtSDef-FunType: FunType(a*, r) -> SDyn()
+toBinding-SDefT-Typedid = ?VarDec(_, <toBinding-SDefT-ConstType + toBinding-SDefT-FunType>)
+toBinding-SDefT-Typedid: DefaultVarDec(_) -> FunTType([], [], Dyn(), Dyn())
+toBinding-SDefT-ConstType: ConstType(s) -> Dyn()
+toBinding-SDefT-FunType: FunType(a*, r) -> SDyn()
 
 strategies // entry-points from Java
 
@@ -112,16 +112,12 @@ with
 ; constrMap := <immap-from-list> constr*
 ; injMap := <immap-from-list> inj*
 
-extract-constr: OpDecl(c, t@ConstType(_)) -> ($[[c]_0], FunType([], t))
-extract-constr: OpDeclQ(c, t@ConstType(_)) -> ($[[c]_0], FunType([], t))
-extract-constr: OpDecl(c, t@FunType(a*, _)) -> ($[[c]_[<length> a*]], t)
-extract-constr: OpDeclQ(c, t@FunType(a*, _)) -> ($[[c]_[<length> a*]], t)
-extract-constr: OpDeclInj(t@FunType(a*@[_, _ | _], _)) -> ($[_[<length> a*]], t)
-extract-constr: ExtOpDecl(c, t@ConstType(_)) -> ($[[c]_0], FunType([], t))
-extract-constr: ExtOpDeclQ(c, t@ConstType(_)) -> ($[[c]_0], FunType([], t))
-extract-constr: ExtOpDecl(c, t@FunType(a*, _)) -> ($[[c]_[<length> a*]], t)
-extract-constr: ExtOpDeclQ(c, t@FunType(a*, _)) -> ($[[c]_[<length> a*]], t)
-extract-constr: ExtOpDeclInj(t@FunType(a*@[_, _ | _], _)) -> ($[_[<length> a*]], t)
+extract-constr: OpDecl(c, t) -> (c, t)
+extract-constr: OpDeclQ(c, t) -> (c, t)
+extract-constr: OpDeclInj(t@FunType([_, _ | _], _)) -> ("", t)
+extract-constr: ExtOpDecl(c, t) -> (c, t)
+extract-constr: ExtOpDeclQ(c, t) -> (c, t)
+extract-constr: ExtOpDeclInj(t@FunType([_, _ | _], _)) -> ("", t)
 
 extract-inj: OpDeclInj(FunType([from], to)) -> (from, to)
 extract-inj: ExtOpDeclInj(FunType([from], to)) -> (from, to)
@@ -141,11 +137,12 @@ with
 ; forward := <map(\(k, v) -> <imset-map(!(k, <id>))> v\);foldr(imset-new, imset-union)> pairs
 ; backward := <imset-map(Swap)> forward
 
-extract-strategy-types:
-  Specification(decl*) -> stratEnv
-with
-  sdeft* := <filter(?Strategies(<id>));concat> decl*
-; stratEnv := <risky(getDefTypes|"getDefTypes failed")> sdeft*
+extract-strategy-types =
+  ?Specification(<filter(?Signature(<filter(?Strategies(<id>));concat>));concat>)
+; map(extract-strategy-type)
+; immap-from-list
+
+extract-strategy-type = toBinding-DefHasType <+ toBinding-SDefT
 
 
 insertCasts-Def(|strats, constrs, injection-closure, lub-map, lvl): ast ->
@@ -164,7 +161,7 @@ insertCasts-Def(|strats, constrs, injection-closure, lub-map, lvl): ast ->
 insert-casts: (strats, constrs, injection-closure, lub-map, lvl, ast) -> (ast', errs, warns, notes)
   with {| CanCoerce, LUB, Message, ConstructorStrictness:
     rules(CanCoerce: (from, to) ->
-      <imset-contains(|(from, to)) <+ <can-coerce> (from, to)> injection-closure)
+      <imset-contains(|(from, to)) <+ <eq> (from, to) <+ <?ErrT() + ?FailT()> from> injection-closure)
   ; rules(LUB: pair -> <if eq then Fst else <immap-get(|pair)> lub-map end> pair)
   ; rules(ConstructorStrictness := lvl)
   ; ast' := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
@@ -172,13 +169,6 @@ insert-casts: (strats, constrs, injection-closure, lub-map, lvl, ast) -> (ast', 
   ; warns := <bagof-Message> Warn()
   ; notes := <bagof-Message> Note()
   |}
-
-can-coerce = ?(ErrT(), _)
-can-coerce = ?(FailT(), _)
-// We assume co-variant type parameters
-can-coerce: (Sort(x, t1*), Sort(x, t2*)) -> <id>
-  where
-    <zip(CanCoerce)> (t1*, t2*)
 
 strategies // Def
 
@@ -203,17 +193,16 @@ strategies // StrategyDef
 insertCasts-StrategyDef(|e1, st1):
   SDefT(x, s*, t*, s1) -> (SDefT(x, s*, t*, s3), st3)
   with
-    FunTType(st*, tt*, t1, t2) := <risky(strat-lookup(|x{})|$[Environment doesn't contain [x]])> e1
+    FunTType(st*, tt*, t1, t2) := <strat-lookup(|x{})> e1
   ; e2 := <strat-merge-env(keep-right)> (e1, <zip-new-env> (s*, st*))
   ; st2 := <term-merge-env(keep-right);current-type(|t1)> (st1, <zip-new-env> (t*, tt*))
-  ; (s2, st3) := <risky(insertCasts-Strategy(|e2, st2)|$[Cannot insert casts for strategy [<get-constructor> s1]])> s1
+  ; (s2, st3) := <insertCasts-Strategy(|e2, st2)> s1
   ; s3 := <insertCastAfter(|<current-type> st3, t2)> s2
 
-insertCasts-StrategyDef(|e1, st1):
-  ExtSDefInl(name1, sargs1, targs1, body1) -> (ExtSDefInl(name2, sargs2, targs2, body2), st2)
-  with
-    (SDefT(name2, sargs2, targs2, body2), st2) :=
-      <insertCasts-StrategyDef(|e1, st1)> SDefT(name1, sargs1, targs1, body1)
+insertCasts-StrategyDef(|e1, st1) =
+    \ExtSDefInl(name, sargs, targs, body) -> SDefT(name, sargs, targs, body)\
+  ; insertCasts-StrategyDef(|e1, st1)
+  ; (\SDefT(name, sargs, targs, body) -> ExtSDefInl(name, sargs, targs, body)\, id, id)
 
 insertCasts-StrategyDef(e1, st1) = ?ExtSDef(_, _, _)
 
@@ -302,31 +291,13 @@ insertCasts-Strategy(|e1, st1):
   Match(trm1) -> (Match(trm2), st3)
   with
     (trm2, st2) := <insertCasts-MatchTerm(|e1, st1)> trm1
-    /* Does this make sense? Does MatchTerm even pass the type up again or is it just the last on
-     * that was passed down? In that case we want to overwrite with the type from st1. But we could
-     * in some cases pass up the more accurate type based on the pattern right? But are types passed
-     * upward even used in the insertCasts-Strategy rules?
-     */
-  ; if not(t1 := <LUB> (<current-type> st1, <current-type> st2))
-      then t1 := ErrT()
-      ; rules(Message :+ Err() -> (trm1, TypeMismatch(<current-type> st1, <current-type> st2)))
-    end
-  ; st3 := <current-type(|t1)> st2
+  ; st3 := <current-type(|<LUB> (<current-type> st1, <current-type> st2))> st2
 
 insertCasts-Strategy(|e1, st1):
   Build(trm1) -> (Build(trm2), st3)
   with
     (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
-    /* Does this make sense? BuildTerm passes up the (more accurate) computed type.
-     * We receive an expected type from st1. We should (be able to) coerce the type from st2 to that
-     * of st1... Then do we keep the more accurate st2 type or the st1 type? But are types passed
-     * upward even used in the insertCasts-Strategy rules?
-     */
-  ; if not(t1 := <LUB> (<current-type> st1, <current-type> st2))
-      then t1 := ErrT()
-      ; rules(Message :+ Err() -> (trm1, TypeMismatch(<current-type> st1, <current-type> st2)))
-    end
-  ; st3 := <current-type(|t1)> st2
+  ; st3 := <current-type(|<LUB> (<current-type> st1, <current-type> st2))> st2
 
 //outputType, outTerms|strats, constrs, terms, inputType
 insertCasts-Strategy(|e1, st1):
@@ -463,7 +434,7 @@ insertCasts-MatchTerm(|e1, st1):
   op@Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st2)
   with
     t1 := <current-type> st1
-  ; FunType(t1*, t2) := <constr-lookup(|$[[cnstr]_[<length> trm1*]])> e1
+  ; FunType(t1*, t2) := <constr-lookup(|cnstr{})> e1
   ; lvl := <ConstructorStrictness>
   ; if not(<CanCoerce> (t2, t1))
       then rules(Message :+ lvl -> (op, TypeMismatch(t2, t1)))
@@ -526,7 +497,7 @@ insertCasts-BuildTerm(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
   with
     t1 := <current-type> st1
-  ; FunType(t1*, t2) := <constr-lookup(|$[[cnstr]_[<length> trm1*]])> e1
+  ; FunType(t1*, t2) := <constr-lookup(|cnstr{})> e1
   ; lvl := <ConstructorStrictness>
   ; let threader = {c', st':
       \((c, et), st) -> (<insertCastApp(|lvl, <current-type> st', et)> c', st')
@@ -565,25 +536,18 @@ strategies // Helpers
 
 getDefTypes =
   with(
-      map(try(extToNormal))
-    ; (haveTypes, defs) := <partition(?DefHasType(<rm-annotations>, _))>
-    ; defNames := <filter(?SDefT(<rm-annotations>, _, _, _) <+ ?ExtSDef(<rm-annotations>, _, _))> defs
+      (haveTypes, defNames) := <partition(?DefHasType(<rm-annotations>, _), ?SDefT(<rm-annotations>, _, _, _))>
       // detect duplicates in haveTypes => errors
     ; <foldl(getDefTypes-detect-duplicates)> (haveTypes, <imset-new>)
       // detect missing definitions for haveTypes => errors
     ; imset-subtract(|<imset-from-list> defNames)
     ; imset-map(where({?name; rules(Message :+ Err() -> (name, MissingDefinitionForTypeDefinition()))}))
   )
-  ; map(try(simpleDef))
-  ; partition(toBinding-DefHasType, toBinding-ExtSDef)
+  ; partition(toBinding-DefHasType, toBinding-SDefT)
   ; (immap-from-list, immap-from-list)
-  ; immap-union(keep-left)
+  ; immap-union(?(<id>, _))
 
 internal getDefTypes-detect-duplicates: (name, set) -> <imset-insert(|name)> set
   with if <imset-contains(|name)> set
     then rules(Message :+ Err() -> (name, DuplicateTypeDefinition()))
   end
-
-internal extToNormal: ExtSDefInl(n, s, t, b) -> SDefT(n, s, t, b)
-internal simpleDef = \ExtSDefInl(n, s, t, b) -> ExtSDef(n, s, t)\
-  <+ \SDefT(n, s, t, b) -> ExtSDef(n, s, t)\

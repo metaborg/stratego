@@ -106,6 +106,8 @@ public class StaticChecks {
         public final StringSetWithPositions strategyNeedsExternal = new StringSetWithPositions();
         // Constructor_arity overlay name. (to overlay definition AST names)
         public final StringSetWithPositions overlayDefs = new StringSetWithPositions();
+        // Constructor strictness for each strategy
+        public final Map<String, Boolean> strictnessLevel = new HashMap<>();
 
         @Override public int hashCode() {
             final int prime = 31;
@@ -121,6 +123,7 @@ public class StaticChecks {
             result = prime * result + ((usedAmbStrategies == null) ? 0 : usedAmbStrategies.hashCode());
             result = prime * result + ((usedConstructors == null) ? 0 : usedConstructors.hashCode());
             result = prime * result + ((usedStrategies == null) ? 0 : usedStrategies.hashCode());
+            result = prime * result + ((strictnessLevel == null) ? 0 : usedStrategies.hashCode());
             return result;
         }
 
@@ -186,6 +189,11 @@ public class StaticChecks {
                 if(other.usedStrategies != null)
                     return false;
             } else if(!usedStrategies.equals(other.usedStrategies))
+                return false;
+            if(strictnessLevel == null) {
+                if(other.strictnessLevel != null)
+                    return false;
+            } else if(!strictnessLevel.equals(other.strictnessLevel))
                 return false;
             return true;
         }

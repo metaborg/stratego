@@ -27,15 +27,12 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
     public static final String id = SubFrontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final File projectLocation;
-        final String inputFileString;
-        final String cifiedName;
-        final InputType inputType;
-        final IStrategoTerm ast;
+        public final String inputFileString;
+        public final String cifiedName;
+        public final InputType inputType;
+        public final IStrategoTerm ast;
 
-        public Input(File projectLocation, String inputFileString, String cifiedName, InputType inputType,
-            IStrategoTerm ast) {
-            this.projectLocation = projectLocation;
+        public Input(String inputFileString, String cifiedName, InputType inputType, IStrategoTerm ast) {
             this.inputFileString = inputFileString;
             this.cifiedName = cifiedName;
             this.inputType = inputType;
@@ -54,7 +51,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             result = prime * result + ((cifiedName == null) ? 0 : cifiedName.hashCode());
             result = prime * result + ((inputFileString == null) ? 0 : inputFileString.hashCode());
             result = prime * result + ((inputType == null) ? 0 : inputType.hashCode());
-            result = prime * result + ((projectLocation == null) ? 0 : projectLocation.hashCode());
             return result;
         }
 
@@ -83,11 +79,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             } else if(!inputFileString.equals(other.inputFileString))
                 return false;
             if(inputType != other.inputType)
-                return false;
-            if(projectLocation == null) {
-                if(other.projectLocation != null)
-                    return false;
-            } else if(!projectLocation.equals(other.projectLocation))
                 return false;
             return true;
         }
@@ -131,8 +122,9 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
     public enum InputType {
         TopLevelDefinition(compile_top_level_def_0_0.instance),
+//        InsertCasts(insert_casts_0_0.instance),
         Split(split_module_0_0.instance); // Split is for convenience, not because it *must* be cached
-        final Strategy strategy;
+        public final Strategy strategy;
 
         InputType(Strategy strategy) {
             this.strategy = strategy;
@@ -154,7 +146,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
     }
 
     @Override public Serializable key(SubFrontend.Input input) {
-        return input.inputFileString + ":" + input.cifiedName;
+        return input.inputType.name() + ":" + input.inputFileString + ":" + input.cifiedName;
     }
 
 

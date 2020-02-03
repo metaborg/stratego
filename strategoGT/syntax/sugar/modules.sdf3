@@ -1,0 +1,25 @@
+module sugar/modules
+imports
+  core/modules
+  core/identifiers
+  sugar/strategies
+  sugar/signatures
+  sugar/overlays
+  sugar/rules
+
+sorts Decl Def AnnoDecl
+
+context-free syntax
+  Decl.Rules =
+    <rules
+       <Def*>>
+
+  Decl.Overlays =
+    <overlays
+       <Overlay*>>
+
+  AnnoDecl.Strict = <strict <Decl>>
+
+  Def = <<RuleDef>>
+  
+  Def.DefHasType = [[Id] :: [SFunType]]

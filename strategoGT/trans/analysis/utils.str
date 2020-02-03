@@ -1,0 +1,6 @@
+module analysis/utils
+
+rules
+
+// origin-track-forced
+otf(s) = ![<id>]; all(s); ?[<id>]

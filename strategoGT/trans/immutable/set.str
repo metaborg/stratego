@@ -57,7 +57,7 @@ imset-elements = ?ImmutableSet(<id>); prim("SSL_immutable_set_elements")
 strategies
 
 /**
- * Succeeds if element is in the immutable set.
+ * Succeeds is element is in the immutable set.
  *
  * @param e - the element that containment is tested for
  * @type ImmutableSet -?> ImmutableSet
@@ -65,7 +65,7 @@ strategies
 imset-contains(|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_contains", e))
 
 /**
- * Succeeds if element is in the immutable set.
+ * Succeeds is element is in the immutable set.
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
@@ -80,7 +80,7 @@ imset-contains(eq|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_contai
  * @param e - the element that is inserted
  * @type ImmutableSet -> ImmutableSet
  */
-imset-insert(|e) = ImmutableSet(prim("SSL_immutable_set_insert", e))
+imset-insert(|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_insert", e))
 
 /**
  * Inserts an element in the immutable set. Returns a new set with the added element.
@@ -90,7 +90,7 @@ imset-insert(|e) = ImmutableSet(prim("SSL_immutable_set_insert", e))
  * @param e - the element that is inserted
  * @type ImmutableSet -> ImmutableSet
  */
-imset-insert(eq|e) = ImmutableSet(prim("SSL_immutable_set_insert_eq", eq | e))
+imset-insert(eq|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_insert_eq", eq | e))
 
 /**
  * Removes an element in the immutable set. Returns a new set without the removed element.
@@ -98,7 +98,7 @@ imset-insert(eq|e) = ImmutableSet(prim("SSL_immutable_set_insert_eq", eq | e))
  * @param e - the element that is removed
  * @type ImmutableSet -> ImmutableSet
  */
-imset-remove(|e) = ImmutableSet(prim("SSL_immutable_set_remove", e))
+imset-remove(|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_remove", e))
 
 /**
  * Removes an element in the immutable set. Returns a new set without the removed element.
@@ -108,7 +108,7 @@ imset-remove(|e) = ImmutableSet(prim("SSL_immutable_set_remove", e))
  * @param e - the element that is removed
  * @type ImmutableSet -> ImmutableSet
  */
-imset-remove(eq|e) = ImmutableSet(prim("SSL_immutable_set_remove_eq", eq | e))
+imset-remove(eq|e) = where(?ImmutableSet(<id>); prim("SSL_immutable_set_remove_eq", eq | e))
 
 /**
  * Higher-order operations
@@ -122,7 +122,7 @@ strategies
  * @param s: Term -?> Term
  * @type ImmutableSet -> ImmutableSet
  */
-imset-filter(s) = ImmutableSet(prim("SSL_immutable_set_filter", s|))
+imset-filter(s) = ?ImmutableSet(<id>); prim("SSL_immutable_set_filter", s|)
 
 /**
  * Map all elements from the immutable set.
@@ -131,7 +131,7 @@ imset-filter(s) = ImmutableSet(prim("SSL_immutable_set_filter", s|))
  * @param s: Term -> Term
  * @type ImmutableSet -> ImmutableSet
  */
-imset-map(s) = ImmutableSet(prim("SSL_immutable_set_map", s|))
+imset-map(s) = ?ImmutableSet(<id>); prim("SSL_immutable_set_map", s|)
 
 /**
  * Combining operations
@@ -145,8 +145,8 @@ strategies
  * @param other: ImmutableSet
  * @type ImmutableSet -> ImmutableSet
  */
-imset-intersect(|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_intersect", other))
+imset-intersect(|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(<id>); prim("SSL_immutable_set_intersect", other)
 
 /**
  * Intersect two immutable sets.
@@ -164,8 +164,8 @@ imset-intersect =
  * @param other: ImmutableSet - the set to remove from the current term immutable set
  * @type ImmutableSet -> ImmutableSet
  */
-imset-subtract(|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_subtract", other))
+imset-subtract(|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(<id>); prim("SSL_immutable_set_subtract", other)
 
 /**
  * Subtract the right immutable set from the left.
@@ -183,8 +183,8 @@ imset-subtract =
  * @param other: ImmutableSet - the set to remove from the current term immutable set
  * @type ImmutableSet -> ImmutableSet
  */
-imset-union(|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_union", other))
+imset-union(|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(<id>); prim("SSL_immutable_set_union", other)
 
 /**
  * Union two immutable sets.
@@ -208,8 +208,8 @@ strategies
  * @param other: ImmutableSet
  * @type ImmutableSet -> ImmutableSet
  */
-imset-intersect(eq|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_intersect_eq", eq | other))
+imset-intersect(eq|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(_); prim("SSL_immutable_set_intersect_eq", eq | other)
 
 /**
  * Intersect two immutable sets.
@@ -229,8 +229,8 @@ imset-intersect(eq) =
  * @param other: ImmutableSet - the set to remove from the current term immutable set
  * @type ImmutableSet -> ImmutableSet
  */
-imset-subtract(eq|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_subtract_eq", eq | other))
+imset-subtract(eq|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(<id>); prim("SSL_immutable_set_subtract_eq", eq | other)
 
 /**
  * Subtract the right immutable set from the left.
@@ -250,8 +250,8 @@ imset-subtract(eq) =
  * @param other: ImmutableSet - the set to remove from the current term immutable set
  * @type ImmutableSet -> ImmutableSet
  */
-imset-union(eq|ImmutableSet(other)) =
-  ImmutableSet(prim("SSL_immutable_set_union_eq", eq | other))
+imset-union(eq|r) = where(ImmutableSet(other) := r);
+  ?ImmutableSet(<id>); prim("SSL_immutable_set_union_eq", eq | other)
 
 /**
  * Union two immutable sets.
