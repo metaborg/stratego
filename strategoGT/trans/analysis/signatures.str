@@ -16,6 +16,8 @@ RealT : Type
 //    Dyn                      : Type
 //    DefHasType               : Id * SFunType -> Def
 
+ConstrType : List(Type) * Type -> ConstrType
+
 ErrT : Type
 FailT : Type
 

@@ -8,17 +8,18 @@ sorts Sdecl
 context-free syntax
 
   Sdecl.Sorts =
-    <sorts <Sort*>>
+<sorts <Sort*>>
 
   Sdecl.Constructors =
-    <constructors
-       <Opdecl*>>
+<constructors
+
+<{Opdecl "\n"}*>>
 
 sorts Sort
 context-free syntax
-  Sort.SortVar    = <<LCID>>
-  Sort.SortNoArgs = <<UCID>>
-  Sort.Sort       = <<Id>(<{Sort ","}*>)>
+  Sort.SortVar    = LCID
+  Sort.SortNoArgs = UCID
+  Sort.Sort       = <<Id>(<{Sort ", "}*>)>
 
 sorts Opdecl
 context-free syntax
@@ -32,20 +33,20 @@ context-free syntax
 
 sorts OldType OldArgType ConstType FunType RetType OpType
 context-free syntax
-  ConstType.ConstType = <<Sort>>
+  ConstType.ConstType = Sort
 
-  FunType.FunType = [[{OldArgType "*"}+] -> [RetType]]
+  FunType.FunType = [[{OldArgType " * "}+] -> [RetType]]
 
   OldArgType = <(<OldType>)> {bracket}
-  OldArgType = <<ConstType>>
-  RetType = <<OldType>>
-  RetType = <<FunType>> {reject}
+  OldArgType = ConstType
+  RetType = OldType
+  RetType = FunType {reject}
 
-  OldType = <<FunType>>
-  OldType = <<ConstType>>
+  OldType = FunType
+  OldType = ConstType
 
   OpType = ConstType
-  OpType.FunType = [[{ConstType "*"}+] -> [ConstType]]
+  OpType.FunType = [[{ConstType " * "}+] -> [ConstType]]
 
 // Restriction is required for the Sort* in Sdecl: List(a) is ambiguous.
 context-free restrictions

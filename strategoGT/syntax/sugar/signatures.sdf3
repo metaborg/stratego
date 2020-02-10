@@ -16,16 +16,3 @@ sorts Kind
 context-free syntax
   Kind.Star = <*>
   Kind.StarStar = <**>
-
-// The new gradual types:
-sorts Type SType
-context-free syntax
-  Type.Dyn = [?]
-  Type.SortVar    = LCID
-  Type.SortNoArgs = UCID
-  Type.Sort       = [[Id]([{Type ","}*])]
-  SType.SDyn = [?]
-  SType = SFunType
-  SFunType.FunNoArgsType = [[Type] -> [Type]]
-  SFunType.FunType = [([{SType " * "}*]) [Type] -> [Type]]
-  SFunType.FunTType = [([{SType " * "}*] | [{Type " * "}*]) [Type] -> [Type]]

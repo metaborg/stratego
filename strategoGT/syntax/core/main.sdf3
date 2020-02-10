@@ -1,4 +1,4 @@
-module core
+module core/main
 
 imports
   core/constants
@@ -8,5 +8,3 @@ imports
   core/terms
   core/strategies
   core/modules
-
-context-free start-symbols Module

@@ -1,0 +1,214 @@
+module gradual-types/strategies
+
+imports
+
+libstratego-lib
+libstrc
+
+libspoofax/term/annotation
+libspoofax/stratego/debug
+
+signatures/strategoGT-sig
+signatures/sugar/modules-sig
+
+analysis/utils
+analysis/environment
+analysis/signatures
+analysis/defs
+analysis/terms
+analysis/main
+immutable/map
+immutable/set
+
+strategies // Strategy
+
+// insertCasts-Strategy :: (|Environment, Store) Strategy -> (Strategy, Store)
+insertCasts-Strategy(|e1, st1):
+  Let(d1*, s1) -> (Let(d2*, s2), st3)
+  with
+    e2 := <strat-merge-env(keep-right)> (e1, <getDefTypes> d1*)
+  ; let
+      threader = \(d, st) -> <insertCasts-StrategyDef(|e2, st)> d\
+    in (d2*, st2) := <thread-map(threader)> (d1*, st1)
+    end
+  ; (s2, st3) := <insertCasts-Strategy(|e2, st2)> s1
+
+//outputType, outTerms|strats, constrs, terms, inputType
+insertCasts-Strategy(|e1, st1):
+  c@CallT(SVar(x), s*, t*) -> result
+  with
+    if t1 := <strat-lookup(|x{}, <length> s*, <length> t*)> e1
+      then
+        result := <insertCasts-CallT(|e1, st1)> (c, t1)
+      else
+        rules(Message :+ Err() -> (x, UnresolvedName()))
+      ; result := (c, <current-type(|ErrT())> st1)
+    end
+
+insertCasts-CallT(|e1, st1):
+  (CallT(s, s1*, t1*), FunTType(st*, tt*, t1, t2)) -> (call, st4)
+  with
+    s2* := <zip> (s1*, st*)
+  ; t2* := <zip> (t1*, tt*)
+  ; let
+      insertCasts-Sarg = \(b, st) -> <insertCasts-Sarg(|e1, st)> b\
+      insertCasts-Targ = \(b, st) -> <insertCasts-Targ(|e1, st)> b\
+    in
+      (s3*, st2) := <thread-map(insertCasts-Sarg)> (s2*, st1)
+    ; (t3*, st3) := <thread-map(insertCasts-Targ)> (t2*, st2)
+    end
+  ; st4 := <current-type(|t2)> st3
+  ; call := <insertCastBefore(|<current-type> e1, t1)> CallT(s, s3*, t3*)
+
+insertCasts-CallT(|e1, st1):
+  (call, SDyn()) -> (call, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  call@CallDynamic(_, _, _) -> (call, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@Fail() -> (s, <current-type(|FailT())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@Id() -> (s, st1)
+
+insertCasts-Strategy(|e1, st1):
+  p@ProceedT(s1*, t1*) -> (call, st4)
+  with
+    FunTType(st*, tt*, t1, t2) := <strat-lookup(|ProceedNoArgs(), <length> s1*, <length> t1*)> e1
+  ; s2* := <zip> (s1*, st*)
+  ; t2* := <zip> (t1*, tt*)
+  ; let
+      insertCasts-Sarg = \(b, st) -> <insertCasts-Sarg(|e1, st)> b\
+      insertCasts-Targ = \(b, st) -> <insertCasts-Targ(|e1, st)> b\
+    in
+      (s3*, st2) := <thread-map(insertCasts-Sarg)> (s2*, st1)
+    ; (t3*, st3) := <thread-map(insertCasts-Targ)> (t2*, st2)
+    end
+  ; st4 := <current-type(|t2)> st3
+  ; call := <insertCastBefore(|<current-type> e1, t1)> ProceedT(s3*, t3*)
+
+insertCasts-Strategy(|e1, st1):
+  p@ProceedNoArgs() -> (call, st2)
+  with
+    FunTType(st*, tt*, t1, t2) := <strat-lookup(|ProceedNoArgs(), 0, 0)> e1
+  ; if not([] := st*; [] := tt*)
+      then rules(Message :+ Err() -> (p, ProceedWrongNumberOfArguments(<length> st*, <length> tt*)))
+    end
+  ; st2 := <current-type(|t2)> st1
+  ; call := <insertCastBefore(|<current-type> e1, t1)> p
+
+insertCasts-Strategy(|e1, st1):
+  Match(trm1) -> (Match(trm2), st3)
+  with
+    (trm2, st2) := <insertCasts-MatchTerm(|e1, st1)> trm1
+    /* Does this make sense? Does MatchTerm even pass the type up again or is it just the last on
+     * that was passed down? In that case we want to overwrite with the type from st1. But we could
+     * in some cases pass up the more accurate type based on the pattern right? But are types passed
+     * upward even used in the insertCasts-Strategy rules?
+     */
+  ; if not(t1 := <LUB> (<current-type> st1, <current-type> st2))
+      then t1 := ErrT()
+      ; rules(Message :+ Err() -> (trm1, TypeMismatch(<current-type> st1, <current-type> st2)))
+    end
+  ; st3 := <current-type(|t1)> st2
+
+insertCasts-Strategy(|e1, st1):
+  Build(trm1) -> (Build(trm2), st3)
+  with
+    (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
+    /* Does this make sense? BuildTerm passes up the (more accurate) computed type.
+     * We receive an expected type from st1. We should (be able to) coerce the type from st2 to that
+     * of st1... Then do we keep the more accurate st2 type or the st1 type? But are types passed
+     * upward even used in the insertCasts-Strategy rules?
+     */
+  ; if not(t1 := <LUB> (<current-type> st1, <current-type> st2))
+      then t1 := ErrT()
+      ; rules(Message :+ Err() -> (trm1, TypeMismatch(<current-type> st1, <current-type> st2)))
+    end
+  ; st3 := <current-type(|t1)> st2
+
+//outputType, outTerms|strats, constrs, terms, inputType
+insertCasts-Strategy(|e1, st1):
+  Scope(x*, s1) -> (Scope(x*, s2), st4)
+  with
+    // TODO: support type annotations on local variables
+    new := <map(!(<id>, Dyn())); immap-from-list> x*
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1
+  ; st2 := <term-merge-env(keep-right)> (st1, new)
+  ; (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1
+  ; st4 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st3
+
+insertCasts-Strategy(|e1, st1):
+  Seq(s1, s2) -> (Seq(s3, s4), st3)
+  with
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, st2)> s2
+
+insertCasts-Strategy(|e1, st1):
+  GuardedLChoice(s1, s2, s3) -> (GuardedLChoice(s4, s5, s6), st5)
+  with
+    (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s5, st3) := <insertCasts-Strategy(|e1, st2)> s2
+  ; (s6, st4) := <insertCasts-Strategy(|e1, st1)> s3
+  ; st5 := <st-merge(LUB <+ !Dyn())> (st3, st4)
+
+insertCasts-Strategy(|e1, st1):
+  s@PrimT(_, _, _) -> (s, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@Some(_) -> (s, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@One(_) -> (s, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@All(_) -> (s, <current-type(|Dyn())> st1)
+
+insertCasts-Strategy(|e1, st1):
+  s@ImportTerm(_) -> (s, <current-type(|Dyn())> st1)
+
+insertCasts-Sarg(|e1, st1):
+  (c@CallT(SVar(v), [], []), t1@FunTType([_|_], [_|_], _, _)) -> (s, st1)
+  with
+    t2 := <strat-lookup(|v{}, 0, 0)> e1
+  ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+
+insertCasts-Sarg(|e1, st1):
+  (s1, t1@FunTType(st*, tt*, t2, t3)) -> (s2, st2)
+with
+  (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
+; if not([] := st*; [] := tt*)
+    then rules(Message :+ Err() -> (s1, CallStrategyArgumentTakesParameters(t1)))
+  end
+; s3 := <rm-redundant-proxy> Proxy(Id(), <computeCoercion(|<current-type> st2, t3)>, s2)
+
+insertCasts-Sarg(|e1, st1):
+  (s1, SDyn()) -> (s2, st2)
+  with (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|Dyn())> st1)> s1
+
+insertCasts-Sarg-CallNoArgs:
+  (v, t1@FunTType(st1*, tt1*, t2, t3), t4@FunTType(st2*, tt2*, t4, t5)) -> ProxyT(sc*, tc*, c1, c2, v)
+  with
+    if not(<eq> (<length> st1*, <length> st2*); <eq> (<length> tt1*, <length> tt2*))
+      then rules(Message :+ Err() -> (v, TypeMismatch(t1, t4)))
+    end
+  ; sc* := <zip(computeSCoercion)> (st1*, st2*)
+  ; tc* := <zip(computeCoercion)> (tt1*, tt2*)
+  ; c1 := <computeCoercion(|t2, t4)>
+  ; c2 := <computeCoercion(|t5, t3)>
+
+insertCasts-Sarg-CallNoArgs:
+  (v, FunTType(st*, tt*, t1, t2), SDyn()) -> ProxyT(sc*, tc*, Id(), c, v)
+  with
+    sc* := <map(!Id())> st*
+  ; tc* := <map(!Id())> tt*
+  ; c := <computeCoercion(|Dyn(), t2)>
+
+rm-redundant-proxy = try(?Proxy(Id(), Id(), <id>))
+
+insertCasts-Targ(|e1, st1):
+  t1 -> (t3, st2)
+  with
+    (t2, st2) := <insertCasts-BuildTerm(|e1, st1)> t1
+  ; t3 := <insertCastAfter(|<current-type> st2, <current-type> st1)> t2

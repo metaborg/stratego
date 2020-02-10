@@ -9,18 +9,20 @@ imports
 template options
   Id = keyword {reject}
   keyword -/- [a-zA-Z0-9\'\-\_]
+  tokenize: ")(|"
 
 sorts Def
 context-free syntax
-  Def = <<StrategyDef>>
+  Def = StrategyDef
 
-  SVar.SVar = <<Id>>
+  SVar.SVar = Id
 
-  Strategy.Let = <
-    let <Def*>
-      in <Strategy>
-     end
-  >
+  Strategy.Let =
+<let
+  <{Def "\n"}*>
+in
+  <Strategy>
+end>
 
   Strategy.CallT =
     <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
@@ -30,18 +32,15 @@ context-free syntax
 
 sorts StrategyDef
 context-free syntax
-  StrategyDef.SDefT = <
-    <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
-       <Strategy>
-  >
+  StrategyDef.SDefT =
+<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+  <Strategy>>
 
-  Def.AnnoDef =
-    <<Anno+> <StrategyDef>>
+  Def.AnnoDef = <<Anno+> <StrategyDef>>
 
-  StrategyDef.ExtSDefInl = <
-    external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
-       <Strategy>
-  >
+  StrategyDef.ExtSDefInl =
+<external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+  <Strategy>>
 
   StrategyDef.ExtSDef =
     <external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
@@ -73,7 +72,7 @@ context-free syntax
   StrategyParen.ParenStrat = <(<Strategy>)>
   Strategy.Fail  = <fail>
   Strategy.Id    = <id>
-  Strategy.ProceedT = <proceed ( <{Strategy ", "}*> | <{Term ", "}*> )> {prefer}
+  Strategy.ProceedT = <proceed(<{Strategy ", "}*> | <{Term ", "}*>)> {prefer}
   Strategy.ProceedNoArgs = <proceed> {prefer}
   Strategy.Match = <?<Term>>
   Strategy.Build = <!<Term>>
@@ -81,10 +80,10 @@ context-free syntax
   Strategy.Seq   = <<Strategy>; <Strategy>> {right}
   Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}
   StrategyMid    = <<Strategy>>
-  Strategy.PrimT = <prim( <String> , <{Strategy ", "}*> | <{Term ", "}*> )>
-  Strategy.Some  = <some( <Strategy> )>
-  Strategy.One   = <one( <Strategy> )>
-  Strategy.All   = <all( <Strategy> )>
+  Strategy.PrimT = <prim(<String>, <{Strategy ", "}*> | <{Term ", "}*> )>
+  Strategy.Some  = <some(<Strategy>)>
+  Strategy.One   = <one(<Strategy>)>
+  Strategy.All   = <all(<Strategy>)>
 
 context-free priorities
   { Strategy.Build
@@ -95,4 +94,4 @@ context-free priorities
    Strategy.GuardedLChoice }
 
 context-free syntax
-  Strategy.ImportTerm = <import-term ( <ModName> )>
+  Strategy.ImportTerm = <import-term(<ModName>)>

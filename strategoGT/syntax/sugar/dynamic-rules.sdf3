@@ -8,14 +8,17 @@ imports
   sugar/strategies
   sugar/rules
 
+template options
+  tokenize: ")("
+
 sorts ScopeLabels
 context-free syntax
   Strategy.DynRuleScope =
-    <{| <ScopeLabels>
-      : <Strategy>
-      |}>
+<{| <ScopeLabels>
+: <Strategy>
+|}>
 
-  ScopeLabels = <<{DynRuleScopeId ", "}*>>
+  ScopeLabels = {DynRuleScopeId ", "}*
 
   ScopeLabels.ScopeLabels = <~ <Term>>
 
@@ -31,7 +34,7 @@ sorts DynRuleDef DynRuleId DynRuleScopeId RuleDec
 context-free syntax
 
   Strategy.GenDynRules =
-    <rules ( <DynRuleDef*> )>
+    <rules(<DynRuleDef*>)>
   DynRuleDef.AddScopeLabel =
     <<Id> + <Term>>
   DynRuleDef.UndefineDynRule =
@@ -52,16 +55,14 @@ context-free syntax
     <<RuleDec> . <Term>>
   DynRuleId.AddLabelDynRuleId =
     <<RuleDec> + <Term>>
-  DynRuleId.DynRuleId =
-    <<RuleDec>>
+  DynRuleId.DynRuleId = RuleDec
   DynRuleScopeId.LabeledDynRuleScopeId =
     <<Id> . <Term>>
-  DynRuleScopeId.DynRuleScopeId =
-    <<Id>>
+  DynRuleScopeId.DynRuleScopeId = Id
 
 context-free syntax
 
-  RuleDec.RDecNoArgs = <<Id>>
+  RuleDec.RDecNoArgs = Id
   RuleDec.RDec = <<Id>(<{Typedid ", "}*> )>
   RuleDec.RDecT = <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
@@ -69,9 +70,9 @@ sorts RuleNames
 
 context-free syntax
 
-  RuleNames = <<{Id ", "}*>>
+  RuleNames = {Id ", "}*
   RuleNames.RuleNames = <~ <Term>>
-  Strategy.DynRuleIntersectFix = </ <RuleNames> \\* <Strategy>>
+  Strategy.DynRuleIntersectFix = </<RuleNames>\\* <Strategy>>
 
 //  context-free syntax
 //    RuleNames = {Id ","}*
@@ -101,11 +102,11 @@ syntax
 context-free syntax
 
   Strategy.DynRuleIntersect =
-    <<Strategy> / <RuleNames> \\ <Strategy>> {right}
+    <<Strategy> /<RuleNames>\\ <Strategy>> {right}
   Strategy.DynRuleUnion =
-    <<Strategy> \\ <RuleNames> / <Strategy>> {right}
+    <<Strategy> \\<RuleNames>/ <Strategy>> {right}
   Strategy.DynRuleIntersectUnion =
-    <<Strategy> / <RuleNames> \\ <RuleNames> / <Strategy>> {right}
+    <<Strategy> /<RuleNames>\\<RuleNames>/ <Strategy>> {right}
 
 //  priorities
 //    <StrategyAngle-CF> <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("BA")}

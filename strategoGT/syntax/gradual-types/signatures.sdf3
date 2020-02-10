@@ -1,0 +1,27 @@
+module gradual-types/signatures
+
+imports
+  core/identifiers
+
+sorts Type
+context-free syntax
+  Type.Dyn = [?]
+  Type.SortVar    = LCID {avoid}
+  Type.StringT    = "str"
+  Type.IntT       = "int"
+  Type.RealT      = "real"
+  Type.SortNoArgs = UCID
+  Type.Sort       = [[Id]([{Type ", "}*])]
+
+sorts SType SFunType
+context-free syntax
+  SType.SDyn = [?]
+  SType = SFunType
+  SFunType.FunNoArgsType = [[Type] -> [Type]]
+  SFunType.FunType = [([{SType ", "}*]) [Type] -> [Type]]
+  SFunType.FunTType = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
+
+context-free syntax
+  Sort.StringT = "str" {avoid}
+  Sort.IntT = "int" {avoid}
+  Sort.RealT = "real" {avoid}

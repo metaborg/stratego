@@ -1,0 +1,19 @@
+module gradual-types/strategies
+
+imports
+  core/signatures
+
+template options
+  Id = keyword {reject}
+  keyword -/- [a-zA-Z0-9\'\-\_]
+  tokenize: ")(|"
+
+
+sorts Strategy Coercion
+context-free syntax
+// Extension for highlighting casts
+  Strategy.Cast   = <cast(<Coercion>)>
+
+  Coercion.Fail = <fail>
+  Coercion.Id = <id>
+  Coercion.RuntimeCheck = Type

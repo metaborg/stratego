@@ -9,29 +9,30 @@ imports
   sugar/constants
   sugar/signatures
 
-context-free syntax
-  StrategyDef.SDefNoArgs = <
-    <Id> =
-       <Strategy>
-  >
-
-  StrategyDef.SDef = <
-    <Id>(<{Typedid ", "}*>) =
-       <Strategy>
-  >
+template options
+  tokenize: ")(|"
 
 context-free syntax
-  Typedid.DefaultVarDec = <<ID>>
+  StrategyDef.SDefNoArgs =
+<<Id> =
+  <Strategy>>
+
+  StrategyDef.SDef =
+<<Id>(<{Typedid ", "}*>) =
+  <Strategy>>
+
+context-free syntax
+  Typedid.DefaultVarDec = ID
 
 sorts StrategyParen StrategyCurly //StrategyAngle
 context-free syntax
 
-  Strategy.Call = <<SVar> ( <{Strategy ","}*> )>
-  Strategy.ScopeDefault = <{ <Strategy> }>
+  Strategy.Call = <<SVar>(<{Strategy ","}*>)>
+  Strategy.ScopeDefault = <{<Strategy>}>
   Strategy.BA = [<[Strategy]> [Term]]
   Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
 
-  Strategy.Rec        = <rec <Id> ( <Strategy> )>
+  Strategy.Rec        = <rec <Id>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
   Strategy.With       = <with(<Strategy>)> {prefer}
@@ -51,11 +52,11 @@ context-free syntax // congruence operators
   Strategy.TupleCong      = <(<Strategy>, <{Strategy ", "}+> )>
   Strategy.ListCongNoTail = <[<{Strategy ", "}*> ]>
   Strategy.ListCong       = <[<{Strategy ", "}*> | <Strategy> ]>
-  Strategy.ExplodeCong    = <<Strategy> # (<Strategy>)>
+  Strategy.ExplodeCong    = <<Strategy>#(<Strategy>)>
   Strategy.AM             = [[Strategy] => [Term]]
   Strategy.Assign         = <<Term> := <Term>>
 
-  Strategy.AnnoCong       = <<Strategy> { <Strategy> }>
+  Strategy.AnnoCong       = <<Strategy>{<Strategy>}>
 
 //    StrategyCurly.StrategyCurly = <{ <Strategy> }>
 //    StrategyParen = <(<Strategy>)>
@@ -65,7 +66,7 @@ context-free syntax // congruence operators
 context-free syntax
 
   Strategy.CallNoArgs = <<SVar>>
-  Strategy.LRule      = <\\ <Rule> \\>
+  Strategy.LRule      = <\\<Rule>\\>
   Strategy.SRule      = <(<Rule>)>
   Strategy.Choice     = <<Strategy> + <Strategy>> {right}
   Strategy.RChoice    = [[Strategy] +> [Strategy]] {right}
@@ -75,23 +76,20 @@ context-free syntax
 
 sorts SwitchCase
 context-free syntax
-  Strategy.SwitchChoiceNoOtherwise = <
-    switch <Strategy>
-       <SwitchCase*>
-    end
-  >
+  Strategy.SwitchChoiceNoOtherwise =
+<switch <Strategy>
+  <{SwitchCase "\n"}*>
+end>
 
-  Strategy.SwitchChoice = <
-    switch <Strategy>
-      <SwitchCase*>
-      otherwise : <Strategy>
-    end
-  >
+  Strategy.SwitchChoice =
+<switch <Strategy>
+  <{SwitchCase "\n"}*>
+  otherwise : <Strategy>
+end>
 
-  SwitchCase.SwitchCase = <
-    case <Strategy> :
-      <Strategy>
-  >
+  SwitchCase.SwitchCase =
+<case <Strategy>:
+  <Strategy>>
 
 context-free priorities
   { Strategy.AnnoCong Strategy.ExplodeCong }

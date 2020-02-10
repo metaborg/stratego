@@ -10,21 +10,24 @@ module sugar/rules
 
 sorts RuleDef
 
+template options
+  tokenize: ")(|"
+
 context-free syntax
   RuleDef.RDefNoArgs =
-    <<Id> :
-       <Rule>>
+<<Id>:
+  <Rule>>
 
   Def.AnnoDef =
     <<Anno+> <RuleDef>>
 
   RuleDef.RDef =
-    <<Id>(<{Typedid ", "}*>) :
-       <Rule>>
+<<Id>(<{Typedid ", "}*>):
+  <Rule>>
 
   RuleDef.RDefT =
-    <<Id> ( <{Typedid ", "}*> | <{Typedid ", "}*>) :
-       <Rule>>
+<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>):
+  <Rule>>
 
 sorts Rule RuleCond
 
@@ -35,7 +38,11 @@ context-free syntax
 
   Rule.Rule = [[Term] -> [Term] [RuleCond*]] //{avoid}
 
-  RuleCond.WhereClause = <where <Strategy>>
-  RuleCond.WithClause = <with <Strategy>>
+  RuleCond.WhereClause =
+<where
+  <Strategy>>
+  RuleCond.WithClause =
+<with
+  <Strategy>>
 
 

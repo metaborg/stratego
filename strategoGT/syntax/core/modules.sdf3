@@ -9,37 +9,37 @@ imports
 sorts Module
 context-free syntax
 
-  Module.Module = <
-    module <ModName>
-     <AnnoDecl*>
-  >
+  Module.Module =
+<module <ModName>
 
-  Module.Specification = <
-    specification
-      <AnnoDecl*>
-  >
+<{AnnoDecl "\n\n"}*>>
+
+  Module.Specification =
+<specification
+
+<{AnnoDecl "\n\n"}*>>
 
 sorts Decl AnnoDecl
 context-free syntax
   Decl.Imports =
-    <imports
-       <ImportModName*>>
+<imports
 
-  Decl.Strategies = <
-    strategies
-      <Def*>
-  >
+<{ImportModName "\n"}*>>
 
-  Decl.Signature = <
-    signature
-      <Sdecl*>
-  >
+  Decl.Strategies = 
+<strategies
+
+<{Def "\n\n"}*>>
+
+  Decl.Signature =
+<signature
+<{Sdecl "\n\n"}*>>
 
   AnnoDecl = Decl
 
 sorts ImportModName
 context-free syntax
-  ImportModName.Import = <<ModName>>
+  ImportModName.Import = ModName
 
 syntax
   ImportModName-CF.ImportWildcard = ModName-CF "/" "-"

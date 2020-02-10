@@ -7,19 +7,15 @@ imports
   sugar/overlays
   sugar/rules
 
-sorts Decl Def AnnoDecl
+sorts Decl Def
 
 context-free syntax
   Decl.Rules =
-    <rules
-       <Def*>>
+<rules
+  <{Def "\n\n"}*>>
 
   Decl.Overlays =
-    <overlays
-       <Overlay*>>
-
-  AnnoDecl.Strict = <strict <Decl>>
+<overlays
+  <{Overlay "\n\n"}*>>
 
   Def = <<RuleDef>>
-  
-  Def.DefHasType = [[Id] :: [SFunType]]

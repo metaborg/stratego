@@ -15,3 +15,4 @@ menus
   menu: "Analysis" (openeditor)
 
     action: "Show analyzed AST" = debug-show-analyzed
+    action: "Show program with explicit casts" = debug-show-analyzed-concrete

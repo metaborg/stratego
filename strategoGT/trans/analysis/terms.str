@@ -1,0 +1,184 @@
+module analysis/terms
+
+imports
+
+libstratego-lib
+libstrc
+
+libspoofax/term/annotation
+libspoofax/stratego/debug
+
+signatures/strategoGT-sig
+signatures/sugar/modules-sig
+
+analysis/utils
+analysis/environment
+analysis/signatures
+analysis/defs
+analysis/main
+immutable/map
+immutable/set
+
+strategies // Terms
+
+insertCasts-MatchTerm(|e1, st1):
+  trm@Var(v) -> (trm, st2)
+  with
+    t1 := <current-type> st1
+  ; if t2 := <term-lookup(|v{})> st1
+      then if not(st2 := <term-put(|v{}, <LUB> (t1, t2))> st1)
+        then
+          rules(Message :+ Err() -> (v, VariableBoundToIncompatibleType(t2, t1)))
+        ; st2 := st1
+      end
+      else st2 := <term-put(|v{}, t1)> st1
+    end
+
+insertCasts-MatchTerm(|e1, st1):
+  As(Var(v), trm1) -> (As(Var(v), trm2), st2)
+  with
+    t1 := <current-type> st1
+  ; if t2 := <term-lookup(|v{})> st1
+      then if not(st2 := <term-put(|v{}, <LUB> (t1, t2))> st1)
+        then
+          rules(Message :+ Err() -> (v, VariableBoundToIncompatibleType(t2, t1)))
+        ; st2 := st1
+      end
+      else st2 := <term-put(|v{}, t1)> st1
+    end
+  ; trm2 := <insertCasts-MatchTerm(|e1, st2)> trm1
+
+insertCasts-MatchTerm(|e1, st1):
+  trm@Wld() -> (trm, st1)
+
+insertCasts-MatchTerm(|e1, st1):
+  Int(_) -> <insertCasts-MatchTerm-Lit(|e1, st1, IntT())>
+
+insertCasts-MatchTerm(|e1, st1):
+  Real(_) -> <insertCasts-MatchTerm-Lit(|e1, st1, RealT())>
+
+insertCasts-MatchTerm(|e1, st1):
+  Str(_) -> <insertCasts-MatchTerm-Lit(|e1, st1, StringT())>
+
+insertCasts-MatchTerm-Lit(|e1, st1, t1):
+  trm -> (trm, <current-type(|t1)> st1)
+  with
+    t2 := <current-type> st1
+  ; if not(<CanCoerce>(t1, t2))
+      then rules(Message :+ Err() -> (trm, TypeMismatch(t1, t2)))
+    end
+
+insertCasts-MatchTerm(|e1, st1):
+  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st2)
+  with
+    t1 := <current-type> st1
+  ; ConstrType(t1*, t2) := <constr-lookup(|cnstr, <length> trm1*)> e1
+  ; lvl := <ConstructorStrictness>
+  ; if not(<CanCoerce> (t2, t1))
+      then rules(Message :+ lvl -> (cnstr, TypeMismatch(t2, t1)))
+    end
+  ; let
+      threader = \((c, t), st) -> <insertCasts-MatchTerm(|e1, <current-type(|t)> st)> c\
+      map-targs = if not(Err() := lvl) then map(!Dyn()) else id end
+    in
+      t2* := <map-targs> t1*
+    ; (trm2*, st2) := <thread-map(threader)> (<zip> (trm1*, t2*), st1)
+    end
+
+insertCasts-MatchTerm(|e1, st1) =
+    \OpQ(c, c*) -> Op(c, c*)\
+  ; insertCasts-MatchTerm(|e1, st1)
+  ; (\Op(c, c*) -> OpQ(c, c*)\, id)
+
+insertCasts-MatchTerm(|e1, st1):
+  Explode(trm1, trm2) -> (Explode(trm3, trm4), st3)
+  with
+    (trm3, st2) := <insertCasts-MatchTerm(|e1, <current-type(|StringT())> st1)> trm1
+  ; (trm4, st3) := <insertCasts-MatchTerm(|e1, <current-type(|Sort("List", [Dyn()]))> st2)> trm2
+
+insertCasts-MatchTerm(|e1, st1):
+  Anno(trm1, trm2) -> (Anno(trm3, trm4), st3)
+  with
+    (trm3, st2) := <insertCasts-MatchTerm(|e1, st1)> trm1
+  ; (trm4, st3) := <insertCasts-MatchTerm(|e1, <current-type(|Sort("List", [Dyn()]))> st2)> trm2
+
+insertCasts-MatchTerm(|e1, st1):
+  NoAnnoList(trm1) -> (NoAnnoList(trm2), st2)
+  with
+    (trm2, st2) := <insertCasts-MatchTerm(|e1, st1)> trm1
+
+insertCasts-BuildTerm(|e1, st1):
+  bt@Var(v) -> (bt, <current-type(|t)> st1)
+  with
+  // TODO: distinguish between unresolved name and unbound name
+    if not(t := <term-lookup(|v{})> st1)
+      then
+        rules(Message :+ Err() -> (v, UnresolvedName()))
+      ; <debug(|"Failed to find term ")> (v, <term-env> st1)
+      ; t := ErrT()
+    end
+
+insertCasts-BuildTerm(|e1, st1):
+  trm1@As(Var(v), trm2) -> (As(Var(v), trm3), <current-type(|ErrT())> st2)
+  with
+    (trm3, st2) := <insertCasts-BuildTerm(|e1, st1)> trm2
+  ; rules(Message :+ Err() -> (trm1, AsInBuildTerm()))
+
+insertCasts-BuildTerm(|e1, st1):
+  trm@Wld() -> (trm, <current-type(|ErrT())> st1)
+  with
+    rules(Message :+ Err() -> (trm, WldInBuildTerm()))
+
+insertCasts-BuildTerm(|e1, st1):
+  trm@Int(_) -> (trm, <current-type(|IntT())> st1)
+
+insertCasts-BuildTerm(|e1, st1):
+  trm@Real(_) -> (trm, <current-type(|RealT())> st1)
+
+insertCasts-BuildTerm(|e1, st1):
+  trm@Str(_) -> (trm, <current-type(|StringT())> st1)
+
+insertCasts-BuildTerm(|e1, st1):
+  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
+  with
+    t1 := <current-type> st1
+  ; ConstrType(t1*, t2) := <constr-lookup(|cnstr, <length> trm1*)> e1
+  ; lvl := <ConstructorStrictness>
+  ; let threader = {c', st':
+      \((c, et), st) -> (<insertCastApp(|lvl, <current-type> st', et)> c', st')
+        with (c', st') := <insertCasts-BuildTerm(|e1, st)> c
+        ; <debug(|$[casting for a child of [cnstr]: ])> (<current-type> st', et)\}
+    in (trm2*, st2) := <thread-map(threader)> (<zip> (trm1*, t1*), st1)
+    end
+  ; st3 := <current-type(|t2)> st2
+
+insertCasts-BuildTerm(|e1, st1) =
+    \OpQ(c, c*) -> Op(c, c*)\
+  ; insertCasts-BuildTerm(|e1, st1)
+  ; (\Op(c, c*) -> OpQ(c, c*)\, id)
+
+insertCasts-BuildTerm(|e1, st1):
+  Explode(trm1, trm2) -> (Explode(trm3, trm4), <current-type(|Dyn())> st3)
+  with
+    (trm3, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
+  ; (trm4, st3) := <insertCasts-BuildTerm(|e1, st2)> trm2
+  ; if not(<CanCoerce> (<current-type> st2, StringT()))
+      then rules(Message :+ Err() -> (trm1, NonStringInExplode(<current-type> st2)))
+    end
+  ; if not(<CanCoerce> (<current-type> st3, Sort("List", [Dyn()])))
+      then rules(Message :+ Err() -> (trm2, NonListInAnno(<current-type> st3)))
+    end
+
+insertCasts-BuildTerm(|e1, st1):
+  Anno(trm1, trm2) -> (Anno(trm3, trm4), st3)
+  with
+    (trm3, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
+  ; (trm4, st3) := <insertCasts-BuildTerm(|e1, st2)> trm2
+  ; if not(<CanCoerce> (<current-type> st3, Sort("List", [Dyn()])))
+      then rules(Message :+ Err() -> (trm2, NonListInAnno(<current-type> st3)))
+    end
+
+insertCasts-BuildTerm(|e1, st1):
+  NoAnnoList(trm1) -> (NoAnnoList(trm2), st2)
+  with
+    (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1

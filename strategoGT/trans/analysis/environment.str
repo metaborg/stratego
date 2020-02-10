@@ -24,16 +24,16 @@ new-st = !St(<immap-new>, Dyn())
 strat-env = ?Env(<id>, _)
 strat-env(s) = Env(s, id)
 
-strat-lookup(|name) = strat-env; env-lookup(|name)
-strat-put(|name, value) = strat-env(env-put(|name, value))
+strat-lookup(|name, snum, tnum) = strat-env; env-lookup(|(name, snum, tnum))
+strat-put(|name, snum, tnum, value) = strat-env(env-put(|(name, snum, tnum), value))
 strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
-strat-copy-type(|name, as) = strat-env(env-copy-type(|name, as))
+strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), as))
 
 constr-env = ?Env(_, <id>)
 constr-env(s) = Env(id, s)
 
-constr-lookup(|name) = constr-env; env-lookup(|name)
-constr-put(|name, value) = constr-env(env-put(|name, value))
+constr-lookup(|name, arity) = constr-env; env-lookup(|(name, arity))
+constr-put(|name, arity, value) = constr-env(env-put(|(name, arity), value))
 constr-merge-env(s): (e, ce) -> <constr-env(immap-union(s|ce))> e
 
 term-env = ?St(<id>, _)

@@ -3,15 +3,17 @@ module sugar/string-quotations
 imports sugar/terms
 
 sorts
-
-  StringQuotation StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1 StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2 StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3 StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4 Dollar4 Padding
+  StringQuotation
+  StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1
+  StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2
+  StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3
+  StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4 Dollar4
+  Padding
 
 context-free syntax
-
   PreTerm = StringQuotation
 
 syntax
-
   PreTerm-CF = StringQuotation
   StringQuotation.StringQuotation1 = "$" "[" Padding StringQuotedPart1* "]"
   StringQuotedPart1.StringEscape1 = Padding "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
@@ -49,7 +51,6 @@ syntax
   Padding-LEX =  {indentpadding}
 
 lexical restrictions
-
   StringQuotedChars1 -/- ~[\[\]\$]
   StringQuotedChars2 -/- ~[\{\}\$]
   StringQuotedChars3 -/- ~[\(\)\$]

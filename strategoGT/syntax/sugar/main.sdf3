@@ -1,4 +1,4 @@
-module sugar/sugar
+module sugar/main
 
 imports
   core/identifiers
