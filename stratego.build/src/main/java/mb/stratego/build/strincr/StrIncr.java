@@ -25,6 +25,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import com.google.inject.Inject;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
@@ -123,7 +124,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
             if(error) {
                 // Commented during benchmarking, too many missing local imports to automatically fix.
-                // throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
+                throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
             }
         }
 
