@@ -1,0 +1,120 @@
+module test
+
+language strategoGT
+
+test parse [[
+
+]] parse fails
+
+test specification [[
+  specification
+]] parse succeeds
+
+test As and Explode 1 [[
+  specification
+  
+  strategies
+  
+  a = ?a@a#(a){}
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Match(
+          As(Var("a"),
+          AnnoList(Explode(Var("a"),Var("a")), []))))
+    ])
+  ])
+
+test As and Explode [[
+  specification
+  
+  strategies
+  
+  a = ?a@a#(a)
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Match(
+          As(Var("a"),
+          NoAnnoList(Explode(Var("a"),Var("a"))))))
+    ])
+  ])
+
+test As and Anno [[
+  specification
+  
+  strategies
+  
+  a = ?a@a{a}
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Match(
+          As(Var("a"),
+          AnnoList(Var("a"),[Var("a")]))))
+    ])
+  ])
+
+test BuildDefault [[
+  specification
+  
+  strategies
+  
+  a = ?_()
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Match(
+          BuildDefault(NoAnnoList(Tuple([])))))
+    ])
+  ])
+
+test BuildDefault [[
+  specification
+  
+  strategies
+  
+  a = ?_(); !_()
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Seq(
+          Match(
+            BuildDefault(NoAnnoList(Tuple([])))),
+          Build(
+            BuildDefault(NoAnnoList(Tuple([]))))))
+    ])
+  ])
+
+test BuildDefault [[
+  specification
+
+  overlays
+
+  A(a) = _ a
+]] parse to
+  Specification([
+    Overlays([
+      Overlay("A", ["a"],
+        BuildDefault(Var("a")))
+    ])
+  ])
+
+test BuildDefault, not Var("_a") [[
+  specification
+
+  overlays
+
+  A(a) = _a
+]] parse to
+  Specification([
+    Overlays([
+      Overlay("A", ["a"],
+        BuildDefault(Var("a")))
+    ])
+  ])

@@ -1,20 +1,16 @@
 module analysis/signatures
 
+imports
+
+signatures/gradual-types/signatures-sig
+
 signature constructors
 
 StringT : Type
 IntT : Type
 RealT : Type
 
-//    FunTType                 : List(SType) * List(Type) * Type * Type -> SFunType
-//    FunType                  : List(SType) * Type * Type -> SFunType
-//    FunNoArgsType            : Type * Type -> SFunType
-//                             : SFunType -> SType
-//    SDyn                     : SType
-//
-//    SortNoArgs               : UCID -> Type
-//    Dyn                      : Type
-//    DefHasType               : Id * SFunType -> Def
+IllFormedSort : Id * List(Type) -> Type
 
 ConstrType : List(Type) * Type -> ConstrType
 
@@ -37,20 +33,40 @@ Err  : MessageType
 Warn : MessageType
 Note : MessageType
 
+
 TermVariableTypedWithStrategyType   : ErrorDesc
 StrategyVariableTypedWithTermType   : ErrorDesc
+
 DuplicateTypeDefinition             : ErrorDesc
 MissingDefinitionForTypeDefinition  : ErrorDesc
+
 ProceedWrongNumberOfArguments       : Int * Int -> ErrorDesc
+
 CallStrategyArgumentTakesParameters : SFunType -> ErrorDesc
+
 NoInjectionBetween                  : Type * Type -> ErrorDesc
 VariableBoundToIncompatibleType     : Type * Type -> ErrorDesc
 TypeMismatch                        : Type * Type -> ErrorDesc
 STypeMismatch                       : SType * SType -> ErrorDesc
+UnresolvedName                      : ErrorDesc
+
 AsInBuildTerm                       : ErrorDesc
 WldInBuildTerm                      : ErrorDesc
-NonStringInExplode                  : Type -> ErrorDesc
-NonListInExplode                    : Type -> ErrorDesc
+BuildDefaultInBuildTerm             : ErrorDesc
+BuildDefaultInMatchTerm             : ErrorDesc
+StringQuotationInMatchTerm          : ErrorDesc
+
+NonStringOrListInExplode            : Type -> ErrorDesc
 NonListInAnno                       : Type -> ErrorDesc
-UnresolvedName                      : ErrorDesc
+MultipleAppsInMatch                 : ErrorDesc
+
 BuildUnboundTerm                    : ErrorDesc
+
+overlays
+
+  FunTType(from, to) = FunTType([], [], from, to)
+  FunTType(ft) = FunTType(ft, ft)
+  FunTType() = FunTType(Dyn())
+  ListT(elem) = Sort("List", [elem])
+  ListT() = ListT(Dyn())
+  TupleT(elems) = Sort("Tuple", elems)

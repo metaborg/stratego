@@ -2,8 +2,9 @@ module analysis/utils
 
 imports
 
-signatures/strategoGT-sig
-signatures/sugar/modules-sig
+signatures/gradual-types/modules-sig
+signatures/gradual-types/signatures-sig
+signatures/sugar/signatures-sig
 analysis/signatures
 
 analysis/main
@@ -13,12 +14,12 @@ immutable/set
 
 libspoofax/stratego/debug
 
-rules
+strategies
 
 // origin-track-forced
 otf(s) = ![<id>]; all(s); ?[<id>]
 
-rules
+strategies
 
 desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], <desugar-Type> i, <desugar-Type> o)\)
 desugar-SType = otf(\FunType(targs, i, o) -> FunTType([], <map(desugar-Type)> targs, <desugar-Type> i, <desugar-Type> o)\)
@@ -30,10 +31,25 @@ desugar-Type = otf(\SortVar("real") -> RealT()\)
 desugar-Type = otf(\SortNoArgs(x) -> Sort(x, [])\)
 desugar-Type = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
-desugar-Type = otf(\SortTuple(xs) -> Sort("Tuple", [<desugar-Type> SortList(xs)])\)
+desugar-Type = otf(\SortTuple(xs) -> TupleT(<map(desugar-Type)> xs)\)
 desugar-Type = id
 
 arityOf-SType: FunTType(st*, tt*, _, _) -> (<length> st*, <length> tt*)
+
+strategies
+
+name-of-StrategyDef-RuleDef: SDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+name-of-StrategyDef-RuleDef: SDef(name, s*, _) -> (name{}, <length> s*, 0)
+name-of-StrategyDef-RuleDef: SDefNoArgs(name, _) -> (name{}, 0, 0)
+name-of-StrategyDef-RuleDef: ExtSDefInl(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+name-of-StrategyDef-RuleDef: ExtSDef(name, s*, t*) -> (name{}, <length> s*, <length> t*)
+
+name-of-StrategyDef-RuleDef: RDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+name-of-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
+name-of-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
+
+name-of-DefHasType: DefHasType(name, <desugar-SType>) -> (name{}, <length> s*, <length> t*)
+  with ?FunTType(s*, t*, _, _)
 
 strategies
 
@@ -115,13 +131,13 @@ strategies // Helpers
 getDefTypes =
   with(
       map(try(extToNormal))
-    ; (haveTypes, defs) := <partition(?DefHasType(<rm-annotations>, _))>
-    ; defNames := <filter(?SDefT(<rm-annotations>, _, _, _) <+ ?ExtSDef(<rm-annotations>, _, _))> defs
+    ; (haveTypes, defs) := <partition(name-of-DefHasType)>
+    ; defNames := <filter(name-of-StrategyDef-RuleDef)> defs
       // detect duplicates in haveTypes => errors
     ; <foldl(getDefTypes-detect-duplicates)> (haveTypes, <imset-new>)
       // detect missing definitions for haveTypes => errors
     ; imset-subtract(|<imset-from-list> defNames)
-    ; imset-map(where({?name; rules(Message :+ Err() -> (name, MissingDefinitionForTypeDefinition()))}))
+    ; imset-map(where({?(name, _, _); rules(Message :+ Err() -> (name, MissingDefinitionForTypeDefinition()))}))
   )
   ; map(try(simpleDef))
   ; partition(toBinding-DefHasType, toBinding-ExtSDef)
@@ -142,3 +158,45 @@ simpleDef: SDefNoArgs(n, _) -> ExtSDef(n, [], [])
 simpleDef: RDefT(n, s, t, _) -> ExtSDef(n, s, t)
 simpleDef: RDef(n, s, _) -> ExtSDef(n, s, [])
 simpleDef: RDefNoArgs(n, _) -> ExtSDef(n, [], [])
+
+strategies // imrel
+
+imrel-new = immap-new
+
+imrel-from-list = map((id, ![<id>];imset-from-list)); immap-from-list(imset-union)
+
+imrel-to-list = immap-to-list; mapconcat(?(k, <id>); imset-to-list; map(!(k, <id>)))
+
+imrel-keys = immap-keys
+imrel-keys-imset = immap-keys-imset
+
+imrel-values-imset = immap-values;foldr(imset-new, imset-union)
+imrel-values = imrel-values-imset; imset-to-list
+
+imrel-contains-key(|k) = where(immap-get(|k))
+imrel-contains-key(eq|k) = where(immap-get(eq|k))
+
+imrel-contains(|k, v) = where(immap-get(|k);imset-contains(|v))
+imrel-contains(eq|k, v) = where(immap-get(eq|k);imset-contains(|v))
+
+imrel-get(|k) = immap-get(|k)
+imrel-get(eq|k) = immap-get(eq|k)
+
+imrel-put(|k, v) =
+    where(vset := <(immap-get(|k) <+ imset-new);imset-insert(|v)>)
+  ; immap-put(|k, vset)
+
+imrel-put(eq|k, v) =
+    where(vset := <(immap-get(eq|k) <+ imset-new);imset-insert(|v)>)
+  ; immap-put(eq|k, vset)
+
+immap-remove(|k) = immap-remove(|k)
+immap-remove(eq|k) = immap-remove(eq|k)
+immap-remove(|k, v) =
+    where(vset := <(immap-get(|k) <+ imset-new);imset-remove(|v)>)
+  ; immap-put(|k, vset)
+immap-remove(eq|k, v) =
+    where(vset := <(immap-get(eq|k) <+ imset-new);imset-remove(|v)>)
+  ; immap-put(eq|k, vset)
+
+

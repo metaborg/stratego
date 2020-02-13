@@ -24,7 +24,6 @@ context-free syntax
 context-free syntax
   Typedid.DefaultVarDec = ID
 
-sorts StrategyParen StrategyCurly //StrategyAngle
 context-free syntax
 
   Strategy.Call = <<SVar>(<{Strategy ","}*>)>
@@ -36,7 +35,7 @@ context-free syntax
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
   Strategy.With       = <with(<Strategy>)> {prefer}
-  Strategy.Test       = <test(<Strategy>)>
+  Strategy.Test       = <test(<Strategy>)> {deprecated("Use `where` instead")}
   Strategy.PrimNoArgs = <prim(<String>)>
   Strategy.Prim       = <prim(<String>, <{Term ", "}*>)>
 
@@ -57,9 +56,6 @@ context-free syntax // congruence operators
   Strategy.Assign         = <<Term> := <Term>>
 
   Strategy.AnnoCong       = <<Strategy>{<Strategy>}>
-
-//    StrategyCurly.StrategyCurly = <{ <Strategy> }>
-//    StrategyParen = <(<Strategy>)>
 
 %% Syntactic sugar sugar
 
@@ -104,10 +100,9 @@ context-free priorities
    Strategy.GuardedLChoice
   }
 
-// context-free priorities
-//   StrategyMid
-// > Strategy.Choice
-
 context-free priorities
-  { Strategy.AnnoCong Strategy.ExplodeCong }
-  .> Strategy.Assign
+  Strategy.AnnoCong <0>
+  .> { Strategy.Match Strategy.Build Strategy.Assign },
+
+  Strategy.ExplodeCong <0>
+  .> { Strategy.Match Strategy.Build Strategy.Assign }

@@ -20,14 +20,7 @@ context-free syntax
 
   ScopeLabels = {DynRuleScopeId ", "}*
 
-  ScopeLabels.ScopeLabels = <~ <Term>>
-
-//  context-free syntax
-//
-//    Strategy.DynRuleScope = "{|" ScopeLabels ":" Strategy "|}"
-//
-//    ScopeLabels = {DynRuleScopeId ","}*
-//    ScopeLabels.ScopeLabels = "~" Term
+  ScopeLabels.ScopeLabels = <~<Term>>
 
 sorts DynRuleDef DynRuleId DynRuleScopeId RuleDec
 
@@ -71,13 +64,8 @@ sorts RuleNames
 context-free syntax
 
   RuleNames = {Id ", "}*
-  RuleNames.RuleNames = <~ <Term>>
+  RuleNames.RuleNames = <~<Term>>
   Strategy.DynRuleIntersectFix = </<RuleNames>\\* <Strategy>>
-
-//  context-free syntax
-//    RuleNames = {Id ","}*
-//    RuleNames.RuleNames = "~" Term
-//    Strategy.DynRuleIntersectFix = "/" RuleNames "\\*" Strategy
 
 syntax
   // no space after RuleNames
@@ -108,34 +96,9 @@ context-free syntax
   Strategy.DynRuleIntersectUnion =
     <<Strategy> /<RuleNames>\\<RuleNames>/ <Strategy>> {right}
 
-//  priorities
-//    <StrategyAngle-CF> <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("BA")}
-//  > {
-//
-//    // no space after RuleNames
-//    "\\" <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
-//      -> <Strategy-CF> {cons("DynRuleUnionFix")}
-//
-//    // 1 space after RuleNames
-//    "\\" <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
-//      -> <Strategy-CF> {cons("DynRuleUnionFix")}
-//
-//    // no space after RuleNames
-//    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
-//        <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
-//      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
-//
-//    // 1 space after RuleNames
-//    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
-//        <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
-//      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
-//
-//    }
-//  > <Strategy-CF> <LAYOUT?-CF> "=>" <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("AM")}
-
  context-free priorities
      Strategy.BA
-   > Strategy.DynRuleIntersectFix
+   > { Strategy.DynRuleIntersectFix Strategy.DynRuleUnionFix }
    > Strategy.AM
    > Strategy.DynRuleIntersect
    > Strategy.DynRuleUnion

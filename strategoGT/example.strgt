@@ -19,23 +19,34 @@ Module  : str * List(Stat) -> Module
 
 IAdd : Instr
 
-strict strategies
+strategies
 
   desugar-Expr :: Expr -> Expr
   desugar-Expr: Int(e) -> Add(e, Int("1"))
+  
+  foo = ?A(<id>, B(<f>))
+  
+//  desugar: a -> b
+//  where // a: 
+
+//  map :: (? -> ?) List(?) -> List(?)
+//  map :: (a -> b) List(a) -> List(b)
 
 //  create-Add :: (|?, ?) ? -> Expr
 //  create-Add(|left, right) = !Add(left, right)
-
+//
 //  desugar-Stat :: Expr -> Stat
 //  desugar-Stat: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
-
+//
 //  desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
 //  desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
 //  where b := <lookup(|name)> globalName
-
+//
 //  desugar :: (? -> ? | ?) ? -> ?
 //  desugar(s | t) = fail
+
+//  foo: Int(e) -> Add(Int(e), Int("1"))
+//  foo: Seq(e1, e2) -> Seq(e2, e1)
 
 //  desugar :: ? -> ?
 //  desugar: Incr(e) -> Incr(e)
@@ -60,30 +71,35 @@ strict strategies
 //  collect-TU(s) = ![<s> | <children;mapconcat(collect-TU(s))>]
 //
 //  children :: ? -> List(?)
-//  children: _#(l) -> l
-//
+//  children: _#(l) -> 1 // Int() -> List(?)
+
 //strategies
-//
-//  // Tiger to list of instructions
-//  // usage: bottomup(codegen); flatten
-//
-//  codegen :: Exp -> List(?)
+
+  // Tiger to list of instructions
+  // usage: bottomup(codegen); flatten
+
+//  codegen :: Expr -> List(?)
 //  codegen: Add(e1, e2) -> [e1, e2, IAdd()]
-//
-//  /*
-//for(var i = 0; i <= 10; i++) {
-//
-//}
-//
-//
-//  */
-//
+
+  /*
+for(var i = 0; i <= 10; i++) {
+
+}
+
+
+  */
+
 //  lift-assign-Expr: Add(e1, Assign(x, e2)) -> Seq(Assign(x, e2), Add(e1, Var(x)))
 //  lift-assign-Expr: Add(Assign(x, e1), e2) -> Seq(Assign(x, e1), Add(Var(x), e2))
 //
 //  desugar-Expr: Incr(x) -> Assign(x, Add(x, 1))
 //
 //  lift-statements-from-expressions = bottomup(lift-assign-Expr)
+//
+//  bottomup(s) = fail
+//  map(s) = fail
+//  Snd = fail
+//  lookup(|s) = fail
 //
 //strategies
 //

@@ -1,7 +1,7 @@
 module gradual-types/strategies
 
 imports
-  core/signatures
+  gradual-types/signatures
 
 template options
   Id = keyword {reject}

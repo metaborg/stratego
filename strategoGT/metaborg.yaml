@@ -18,6 +18,7 @@ language:
   sdf:
     pretty-print: strategoGT
     sdf2table: java
+    jsglr-version: v1
     placeholder:
       prefix: "$"
   stratego:

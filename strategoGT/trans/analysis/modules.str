@@ -4,6 +4,8 @@ imports
 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/core/modules-sig
+signatures/sugar/overlays-sig
 
 analysis/main
 analysis/signatures
@@ -30,9 +32,6 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
         <+ Overlays(id)
         <+ Strategies(process-defs(|Warn()))
         <+ Rules(process-defs(|Warn()))
-        <+ Strict(Strategies(process-defs(|Err())))
-        <+ Strict(Rules(process-defs(|Err())))
-        <+ Strict(id)
         ))
     in
       ast2 := <process> ast1
@@ -135,5 +134,5 @@ with
 extract-strategy-types:
   Specification(decl*) -> stratEnv
 with
-  sdeft* := <filter(try(?Strict(<id>)); ?Strategies(<id>) + ?Rules(<id>));concat> decl*
+  sdeft* := <filter(?Strategies(<id>) + ?Rules(<id>));concat> decl*
 ; stratEnv := <risky(getDefTypes|"getDefTypes failed")> sdeft*

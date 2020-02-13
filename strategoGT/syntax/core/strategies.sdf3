@@ -43,44 +43,36 @@ context-free syntax
   <Strategy>>
 
   StrategyDef.ExtSDef =
-    <external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+    <external <MaybeEmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
-  StrategyDef.ExtSDef =
-    <external <EmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
-
-
-sorts EmptyId
+sorts MaybeEmptyId
 lexical syntax
-  EmptyId =
+  MaybeEmptyId =
+  MaybeEmptyId = Id
 
 sorts Anno
 context-free syntax
   Anno.Extend = <extend>
   Anno.Override = <override>
   Anno.Internal = <internal>
-  %%  "sealed"      -> Anno {cons("Sealed")}
-  %%  "extensible"  -> Anno {cons("Extensible")}
-  %%  "overridable" -> Anno {cons("Overridable")}
 
 sorts Typedid
 context-free syntax
   Typedid.VarDec = <<ID> : <OldType>>
 
 
-sorts Strategy SVar StrategyParen StrategyMid
+sorts Strategy SVar StrategyMid
 context-free syntax
-  StrategyParen.ParenStrat = <(<Strategy>)>
   Strategy.Fail  = <fail>
   Strategy.Id    = <id>
-  Strategy.ProceedT = <proceed(<{Strategy ", "}*> | <{Term ", "}*>)> {prefer}
+  Strategy.ProceedT = <proceed(<{Strategy ", "}*>|<{Term ", "}*>)> {prefer}
   Strategy.ProceedNoArgs = <proceed> {prefer}
   Strategy.Match = <?<Term>>
   Strategy.Build = <!<Term>>
   Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
   Strategy.Seq   = <<Strategy>; <Strategy>> {right}
-  Strategy.GuardedLChoice = [[Strategy] < [StrategyMid] + [Strategy]] {right}
-  StrategyMid    = <<Strategy>>
-  Strategy.PrimT = <prim(<String>, <{Strategy ", "}*> | <{Term ", "}*> )>
+  Strategy.GuardedLChoice = [[Strategy] < [Strategy] + [Strategy]] {right}
+  Strategy.PrimT = <prim(<String>, <{Strategy ", "}*>|<{Term ", "}*>)>
   Strategy.Some  = <some(<Strategy>)>
   Strategy.One   = <one(<Strategy>)>
   Strategy.All   = <all(<Strategy>)>
@@ -90,8 +82,7 @@ context-free priorities
     Strategy.Match
   }
 > Strategy.Seq
-> {right:
-   Strategy.GuardedLChoice }
+> Strategy.GuardedLChoice
 
 context-free syntax
   Strategy.ImportTerm = <import-term(<ModName>)>

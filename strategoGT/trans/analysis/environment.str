@@ -11,15 +11,26 @@ immutable/map
 
 signature constructors
 
-//    strategies           constructors
+//    strategies               constructors
 Env : Map/*(String, SType)*/ * Map/*(String, OpType)*/ -> Environment
-//    local variables     currentTermType
+//    local variables        currentTermType
 St : Map/*(String, Type)*/ * Type -> Store
+//    local variables            currentTermType outputTermType
+StMatchTerm : Map/*(String, Type)*/ * Type *     Option(Type) -> Store
+//    local variables            currentTermType inputTermType
+StBuildTerm : Map/*(String, Type)*/ * Type *          Type -> Store
 
 strategies
 
 new-env: (strats, constrs) -> Env(strats, constrs)
 new-st = !St(<immap-new>, Dyn())
+stMatchTerm-from-st: St(te, t) -> StMatchTerm(te, t, None())
+stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, t, t)
+st-from-stMatchTerm: StMatchTerm(te, _, Some(t)) -> St(te, t)
+st-from-stMatchTerm: StMatchTerm(te, t, None()) -> St(te, t)
+st-from-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
+
+st-from-stBuildTerm-input: StBuildTerm(te, _, t) -> St(te, t)
 
 strat-env = ?Env(<id>, _)
 strat-env(s) = Env(s, id)
@@ -37,19 +48,29 @@ constr-put(|name, arity, value) = constr-env(env-put(|(name, arity), value))
 constr-merge-env(s): (e, ce) -> <constr-env(immap-union(s|ce))> e
 
 term-env = ?St(<id>, _)
+term-env = ?StMatchTerm(<id>, _, _)
+term-env = ?StBuildTerm(<id>, _, _)
 term-env(s) = St(s, id)
+term-env(s) = StMatchTerm(s, id, id)
+term-env(s) = StBuildTerm(s, id, id)
 
 term-lookup(|name) = term-env; env-lookup(|name)
 term-put(|name, value) = term-env(env-put(|name, value))
 term-merge-env(s): (e, te) -> <term-env(immap-union(s|te))> e
 
 current-type = ?St(_, <id>)
+current-type = ?StMatchTerm(_, <id>, _)
+current-type = ?StBuildTerm(_, <id>, _)
 current-type(|t) = St(id, !t)
+current-type(|t) = StMatchTerm(id, !t, id)
+current-type(|t) = StBuildTerm(id, !t, id)
 
 st-merge(s): (St(terms1, type1), St(terms2, type2)) -> St(terms3, type3)
   with
     terms3 := <immap-union(s|terms2)> terms1
   ; type3 := <s> (type1, type2)
+
+output-type(|t) = StMatchTerm(id, id, \None() -> Some(t)\)
 
 strategies
 
@@ -65,5 +86,5 @@ zip-new-env = zip;immap-from-list
 
 merge-env(s) = immap-union(s)
 
-keep-right = ?(_, <id>)
-keep-left = ?(<id>, _)
+keep-left = Fst
+keep-right = Snd
