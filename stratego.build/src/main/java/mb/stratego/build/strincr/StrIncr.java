@@ -119,11 +119,20 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         if(!result.messages.isEmpty()) {
             boolean error = false;
             for(Message<?> message : result.messages) {
-                execContext.logger().error(message.toString(), null);
-                error |= message.severity == MessageSeverity.ERROR;
+                switch(message.severity) {
+                    case NOTE:
+                        execContext.logger().info(message.toString());
+                        break;
+                    case WARNING:
+                        execContext.logger().warn(message.toString(), null);
+                        break;
+                    case ERROR:
+                        execContext.logger().error(message.toString(), null);
+                        error = true;
+                        break;
+                }
             }
             if(error) {
-                // Commented during benchmarking, too many missing local imports to automatically fix.
                 throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
             }
         }
