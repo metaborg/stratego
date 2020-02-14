@@ -196,8 +196,9 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
 
         for(String line : result.errLog.split(System.lineSeparator())) {
-            if(line.startsWith(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
-                String fileName = line.substring(SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
+            if(line.contains(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
+                String fileName = line.substring(line.indexOf(SpoofaxConstants.STRJ_INFO_WRITING_FILE)
+                    + SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
                 execContext.provide(new File(fileName));
             }

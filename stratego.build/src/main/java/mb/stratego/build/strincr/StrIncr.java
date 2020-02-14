@@ -17,7 +17,6 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -138,7 +137,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData, result.staticCheckOutput);
+        backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData,
+            result.staticCheckOutput);
 
         return None.instance;
     }
