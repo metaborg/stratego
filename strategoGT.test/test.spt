@@ -14,7 +14,7 @@ test As and Explode 1 [[
   specification
   
   strategies
-  
+
   a = ?a@a#(a){}
 ]] parse to
   Specification([

@@ -16,6 +16,11 @@ rules // Analysis
     with
       (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
 
+  editor-analyze:
+    (Specification(decl*), path, project-path) -> (ast, errs, warns, notes)
+    with
+      (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
+
 rules // Editor services
 
   editor-resolve:

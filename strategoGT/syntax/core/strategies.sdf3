@@ -28,7 +28,7 @@ end>
     <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
 
   Strategy.CallDynamic =
-    <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)>
+    <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)> {deprecated("Dynamic calls are not supported")}
 
 sorts StrategyDef
 context-free syntax

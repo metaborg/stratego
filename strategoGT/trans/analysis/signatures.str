@@ -34,33 +34,35 @@ Warn : MessageType
 Note : MessageType
 
 
-TermVariableTypedWithStrategyType   : ErrorDesc
-StrategyVariableTypedWithTermType   : ErrorDesc
+CallDynamicNotSupported              : ErrorDesc
 
-DuplicateTypeDefinition             : ErrorDesc
-MissingDefinitionForTypeDefinition  : ErrorDesc
+TermVariableTypedWithStrategyType    : ErrorDesc
+StrategyVariableTypedWithTermType    : ErrorDesc
 
-ProceedWrongNumberOfArguments       : Int * Int -> ErrorDesc
+DuplicateTypeDefinition              : ErrorDesc
+MissingDefinitionForTypeDefinition   : ErrorDesc
 
-CallStrategyArgumentTakesParameters : SFunType -> ErrorDesc
+ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
 
-NoInjectionBetween                  : Type * Type -> ErrorDesc
-VariableBoundToIncompatibleType     : Type * Type -> ErrorDesc
-TypeMismatch                        : Type * Type -> ErrorDesc
-STypeMismatch                       : SType * SType -> ErrorDesc
-UnresolvedName                      : ErrorDesc
+CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
 
-AsInBuildTerm                       : ErrorDesc
-WldInBuildTerm                      : ErrorDesc
-BuildDefaultInBuildTerm             : ErrorDesc
-BuildDefaultInMatchTerm             : ErrorDesc
-StringQuotationInMatchTerm          : ErrorDesc
+NoInjectionBetween                   : Type * Type -> ErrorDesc
+VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
+TypeMismatch                         : Type * Type -> ErrorDesc
+STypeMismatch                        : SType * SType -> ErrorDesc
+UnresolvedName                       : ErrorDesc
 
-NonStringOrListInExplode            : Type -> ErrorDesc
-NonListInAnno                       : Type -> ErrorDesc
-MultipleAppsInMatch                 : ErrorDesc
+AsInBuildTerm                        : ErrorDesc
+WldInBuildTerm                       : ErrorDesc
+BuildDefaultInBuildTerm              : ErrorDesc
+BuildDefaultInMatchTerm              : ErrorDesc
+StringQuotationInMatchTerm           : ErrorDesc
 
-BuildUnboundTerm                    : ErrorDesc
+NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
+NonListInAnno                        : Type -> ErrorDesc
+MultipleAppsInMatch                  : ErrorDesc
+
+BuildUnboundTerm                     : ErrorDesc
 
 overlays
 

@@ -19,6 +19,27 @@ strategies
 // origin-track-forced
 otf(s) = ![<id>]; all(s); ?[<id>]
 
+otf12(s): t1 -> (<otf(!t2)> t1, etc)
+  where (t2, etc) := <s> t1
+
+otf22(s): t@(t1, _) -> (<otf(!t2)> t1, etc)
+  where (t2, etc) := <s> t
+
+otf21(s): t@(t1, _) -> <otf(!t2)> t1
+  where t2 := <s> t
+
+otf12-sugar(desugar, s, resugar): t1 -> t4st
+  where
+    t2 := <otf(desugar)> t1
+  ; t3st := <s> t2
+  ; t4st := <otf12(resugar)> t3st
+
+otf22-sugar(desugar, s, resugar): t1st -> t4st
+  where
+    t2st := <(otf(desugar), id)> t1st
+  ; t3st := <s> t2st
+  ; t4st := <(otf(resugar), id)> t3st
+
 strategies
 
 desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], <desugar-Type> i, <desugar-Type> o)\)
@@ -68,8 +89,7 @@ computeCoercion(|subj): (Warn(), Dyn(), to) -> Id()
 computeCoercion(|subj): (lvl, from, to) -> coercion
   where if <CanCoerce> (from, to)
     then coercion := Id()
-    else rules(Message :+ lvl -> (subj, NoInjectionBetween(from, to)))
-       ; <debug(|"Message: ")> (lvl, subj, NoInjectionBetween(from, to))
+    else <report> (lvl, subj, NoInjectionBetween(from, to))
        ; if Err() := lvl
            then coercion := Fail()
            else coercion := Id()
@@ -126,6 +146,17 @@ toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], Dyn(), Dyn())
 toBinding-ExtSDef-ConstType: ConstType(s) -> Dyn()
 toBinding-ExtSDef-FunType: FunType(a*, r) -> SDyn()
 
+strategies // Messages
+
+report-Err: (subj, msg) -> <rules(Message :+ Err() -> (subj, msg))>
+report-Warn: (subj, msg) -> <rules(Message :+ Warn() -> (subj, msg))>
+report-Note: (subj, msg) -> <rules(Message :+ Note() -> (subj, msg))>
+
+report: (Err(), subj, msg) -> <report-Err> (subj, msg)
+report: (Warn(), subj, msg) -> <report-Warn> (subj, msg)
+report: (Note(), subj, msg) -> <report-Note> (subj, msg)
+report: (None(), subj, msg) -> <id> (subj, msg)
+
 strategies // Helpers
 
 getDefTypes =
@@ -137,7 +168,7 @@ getDefTypes =
     ; <foldl(getDefTypes-detect-duplicates)> (haveTypes, <imset-new>)
       // detect missing definitions for haveTypes => errors
     ; imset-subtract(|<imset-from-list> defNames)
-    ; imset-map(where({?(name, _, _); rules(Message :+ Err() -> (name, MissingDefinitionForTypeDefinition()))}))
+    ; imset-map(where({?(name, _, _); <report-Err> (name, MissingDefinitionForTypeDefinition())}))
   )
   ; map(try(simpleDef))
   ; partition(toBinding-DefHasType, toBinding-ExtSDef)
@@ -146,7 +177,7 @@ getDefTypes =
 
 getDefTypes-detect-duplicates: (name, set) -> <imset-insert(|name)> set
   with if <imset-contains(|name)> set
-    then rules(Message :+ Err() -> (name, DuplicateTypeDefinition()))
+    then <report-Err> (name, DuplicateTypeDefinition())
   end
 
 extToNormal: ExtSDefInl(n, s, t, b) -> SDefT(n, s, t, b)

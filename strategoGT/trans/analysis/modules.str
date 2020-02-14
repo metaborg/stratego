@@ -6,11 +6,13 @@ signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/core/modules-sig
 signatures/sugar/overlays-sig
+signatures/gradual-types/signatures-sig
 
 analysis/main
 analysis/signatures
 analysis/utils
 immutable/map
+immutable/set
 
 libspoofax/stratego/debug
 
@@ -35,9 +37,9 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
         ))
     in
       ast2 := <process> ast1
-    ; errs := <bagof-Message;debug1> Err()
-    ; warns := <bagof-Message;debug2> Warn()
-    ; notes := <bagof-Message;debug3> Note()
+    ; errs := <bagof-Message> Err()
+    ; warns := <bagof-Message> Warn()
+    ; notes := <bagof-Message> Note()
     end
   |}
 
