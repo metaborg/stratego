@@ -200,9 +200,6 @@ insertCasts-StBuildTerm-(|e1, st1):
       then <report-Err> (trm1, NonStringOrListInExplodeConsPosition(<current-type> st2))
     end
     // TODO: support cast to string-or-list for the constructor
-  ; if not(<CanCoerce> (<current-type> st3, ListT()))
-      then <report-Err> (trm2, TypeMismatch(<current-type> st3, ListT()))
-    end
   ; trm5 := <insertCastApp(|<current-type> st3, ListT())> trm4
   ; st4 := <current-type(|Dyn())> st3
 

@@ -263,4 +263,128 @@ imset-union(eq|r) = where(ImmutableSet(other) := r);
 imset-union(eq) =
   ?(l, r); <imset-union(eq|r)> l
 
+/**
+ * Comparison operations
+ */
+strategies
 
+/**
+ * Strict subset comparison with another immutable set.
+ * Fails if not a strict subset of the given other set.
+ *
+ * @param other: ImmutableSet - the set to test if superset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-subset(|r) = where(ImmutableSet(other) := r);
+  ImmutableSet(prim("SSL_immutable_set_strict_subset", other))
+
+/**
+ * Strict subset comparison between left and right immutable set.
+ * Fails if left set is not a strict subset of the right set.
+ *
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-subset =
+  ?(l, r); where(<imset-subset(|r)> l)
+
+/**
+ * Strict superset comparison with another immutable set.
+ * Fails if not a strict superset of the given other set.
+ *
+ * @param other: ImmutableSet - the set to test if subset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-superset(|r): l -> <imset-subset(|l);!l> r
+
+/**
+ * Strict superset comparison between left and right immutable set.
+ * Fails if left set is not a strict superset of the right set.
+ *
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-superset =
+  ?(l, r); where(<imset-superset(|r)> l)
+
+/**
+ * Strict subset comparison with another immutable set.
+ * Fails if not a strict subset of the given other set.
+ *
+ * @param other: ImmutableSet - the set to test if superset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-subset-eq(|r) = where(ImmutableSet(other) := r);
+  ( ImmutableSet(prim("SSL_immutable_set_strict_subset", other))
+  <+ ?ImmutableSet(r))
+
+/**
+ * Strict subset comparison between left and right immutable set.
+ * Fails if left set is not a strict subset of the right set.
+ *
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-subset-eq =
+  ?(l, r); where(<imset-subset-eq(|r)> l)
+
+/**
+ * Strict superset comparison with another immutable set.
+ * Fails if not a strict superset of the given other set.
+ *
+ * @param other: ImmutableSet - the set to test if subset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-superset-eq(|r): l -> <imset-subset-eq(|l);!l> r
+
+/**
+ * Strict superset comparison between left and right immutable set.
+ * Fails if left set is not a strict superset of the right set.
+ *
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-superset-eq =
+  ?(l, r); where(<imset-superset-eq(|r)> l)
+
+/**
+ * Comparison operations with custom equality operator (prefers the current/left elements)
+ */
+strategies
+
+/**
+ * Strict subset comparison with another immutable set.
+ * Fails if not a strict subset of the given other set.
+ *
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableSet - the set to test if superset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-subset(eq|r) = where(ImmutableSet(other) := r);
+  ImmutableSet(prim("SSL_immutable_set_strict_subset_eq", eq | other))
+
+/**
+ * Strict subset comparison between left and right immutable set.
+ * Fails if left set is not a strict subset of the right set.
+ *
+ * @param eq: Term * Term -?>
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-subset(eq) =
+  ?(l, r); where(<imset-subset(eq|r)> l)
+
+/**
+ * Strict superset comparison with another immutable set.
+ * Fails if not a strict superset of the given other set.
+ *
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableSet - the set to test if subset of current set
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-superset(eq|r): l -> <imset-subset(eq|l);!l> r
+
+/**
+ * Strict superset comparison between left and right immutable set.
+ * Fails if left set is not a strict superset of the right set.
+ *
+ * @param eq: Term * Term -?>
+ * @type ImmutableSet * ImmutableSet -?> ImmutableSet * ImmutableSet
+ */
+imset-superset(eq) =
+  ?(l, r); where(<imset-superset(eq|r)> l)

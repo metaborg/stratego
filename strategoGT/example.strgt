@@ -32,18 +32,18 @@ strategies
 //  map :: (? -> ?) List(?) -> List(?)
 //  map :: (a -> b) List(a) -> List(b)
 
-//  create-Add :: (|?, ?) ? -> Expr
-//  create-Add(|left, right) = !Add(left, right)
-//
-//  desugar-Stat :: Expr -> Stat
-//  desugar-Stat: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
-//
-//  desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
-//  desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
-//  where b := <lookup(|name)> globalName
-//
-//  desugar :: (? -> ? | ?) ? -> ?
-//  desugar(s | t) = fail
+  create-Add :: (|?, ?) ? -> Expr
+  create-Add(|left, right) = !Add(left, right)
+
+  desugar-Stat :: Expr -> Stat
+  desugar-Stat: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
+
+  desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
+  desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
+  where b := <lookup(|name)> globalName
+
+  desugar :: (? -> ? | ?) ? -> ?
+  desugar(s | t) = fail
 
 //  foo: Int(e) -> Add(Int(e), Int("1"))
 //  foo: Seq(e1, e2) -> Seq(e2, e1)
@@ -51,35 +51,35 @@ strategies
 //  desugar :: ? -> ?
 //  desugar: Incr(e) -> Incr(e)
 
-//// desugar :: TP
-//  desugar = desugar-Stat + desugar-Expr
-//
-//// desugar :: a -> a
-//// Hd :: List(a) -> a
-//
-//// topdown-TP :: (forall a. a -> a) b -> b // rank N polymorphism
-//// topdown-TP :: (TP) TP                   // special TypePreserving type
-//  topdown-TP(s) = s; all(topdown-TP(s))
-//
-//// topdown :: (? -> ?) ? -> ?              // not typed
-//
-//// all :: (TP) TP
-//// all :: (? -> ?) ? -> ?
-//
-//// collect-TU :: (forall a. a -> b) c -> List(b)
-//// collect-TU :: (TU(b)) TU(List(b))       // special TypeUnifying type
-//  collect-TU(s) = ![<s> | <children;mapconcat(collect-TU(s))>]
-//
-//  children :: ? -> List(?)
-//  children: _#(l) -> 1 // Int() -> List(?)
+// desugar :: TP
+  desugar = desugar-Stat + desugar-Expr
+
+// desugar :: a -> a
+// Hd :: List(a) -> a
+
+// topdown-TP :: (forall a. a -> a) b -> b // rank N polymorphism
+// topdown-TP :: (TP) TP                   // special TypePreserving type
+  topdown-TP(s) = s; all(topdown-TP(s))
+
+// topdown :: (? -> ?) ? -> ?              // not typed
+
+// all :: (TP) TP
+// all :: (? -> ?) ? -> ?
+
+// collect-TU :: (forall a. a -> b) c -> List(b)
+// collect-TU :: (TU(b)) TU(List(b))       // special TypeUnifying type
+  collect-TU(s) = ![<s> | <children;mapconcat(collect-TU(s))>]
+
+  children :: ? -> List(?)
+  children: _#(l) -> l
 
 //strategies
 
   // Tiger to list of instructions
   // usage: bottomup(codegen); flatten
 
-//  codegen :: Expr -> List(?)
-//  codegen: Add(e1, e2) -> [e1, e2, IAdd()]
+  codegen :: Expr -> List(?)
+  codegen: Add(e1, e2) -> [e1, e2, IAdd()]
 
   /*
 for(var i = 0; i <= 10; i++) {
@@ -89,36 +89,38 @@ for(var i = 0; i <= 10; i++) {
 
   */
 
-//  lift-assign-Expr: Add(e1, Assign(x, e2)) -> Seq(Assign(x, e2), Add(e1, Var(x)))
-//  lift-assign-Expr: Add(Assign(x, e1), e2) -> Seq(Assign(x, e1), Add(Var(x), e2))
-//
-//  desugar-Expr: Incr(x) -> Assign(x, Add(x, 1))
-//
-//  lift-statements-from-expressions = bottomup(lift-assign-Expr)
-//
-//  bottomup(s) = fail
-//  map(s) = fail
-//  Snd = fail
-//  lookup(|s) = fail
-//
-//strategies
-//
-//  s = fail
-//  returns-a-list = fail
-//  do-something = fail
-//  returns-a-pair = fail
-//  something-else = fail
-//
-//  local-variable-type-inference: a -> b
-//  where if <s> a
-//    then c := <returns-a-list> a
-//       ; <map(do-something)> c // c :: List(?), no cast necessary
-//    else c := <returns-a-pair> a
-//       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
-//    end
-//  ; b := <something-else> c // c :: ?, cast necessary when matching to anything
-//
-//
-//signature constructors
-//  amb : List(a) -> Amb(a)
-//  // for each sort X have an injection `: Amb(X) -> X`
+  lift-assign-Expr :: ? -> ? // ?Expr -> ?Stat
+  lift-assign-Expr: Add(e1, Assign(x, e2)) -> Seq(Assign(x, e2), Add(e1, Var(x)))
+  lift-assign-Expr: Add(Assign(x, e1), e2) -> Seq(Assign(x, e1), Add(Var(x), e2))
+
+  desugar-Expr: Incr(x) -> Assign(x, Add(x, 1))
+
+  lift-statements-from-expressions = bottomup(lift-assign-Expr)
+
+  bottomup(s) = fail
+  map(s) = fail
+  mapconcat(s) = fail
+  Snd = fail
+  lookup(|s) = fail
+
+strategies
+
+  s = fail
+  returns-a-list = fail
+  do-something = fail
+  returns-a-pair = fail
+  something-else = fail
+
+  local-variable-type-inference: a -> b
+  where if <s> a
+    then c := <returns-a-list> a
+       ; <map(do-something)> c // c :: List(?), no cast necessary
+    else c := <returns-a-pair> a
+       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+    end
+  ; b := <something-else> c // c :: ?, cast necessary when matching to anything
+
+
+signature constructors
+  amb : List(a) -> Amb(a)
+  // for each sort X have an injection `: Amb(X) -> X`

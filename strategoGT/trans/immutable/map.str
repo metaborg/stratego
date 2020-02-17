@@ -11,6 +11,7 @@ module immutable/map
 imports
   libstratego-lib
   immutable/set
+  immutable/rel
 
 signature
   constructors
@@ -20,7 +21,7 @@ signature
     ImmutableMap : ImplDep -> ImmutableMap
 
 /**
- * Immutable set construction and deconstruction
+ * Immutable map construction and deconstruction
  */
 strategies
 
@@ -55,6 +56,13 @@ immap-from-list(merge) = prim("SSL_immutable_map_from_list", merge|); !Immutable
  * @type ImmutableMap -> List
  */
 immap-to-list = ?ImmutableMap(<id>); prim("SSL_immutable_map_to_list")
+
+/**
+ * Turn the immutable map into an immutable relation.
+ *
+ * @type ImmutableMap -> ImmutableRelation
+ */
+immap-to-imrel = ?ImmutableMap(<id>); prim("SSL_immutable_map_to_relation"); !ImmutableRelation(<id>)
 
 /**
  * Get all keys of the immutable map.
@@ -128,7 +136,7 @@ immap-get(|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get", k)
 immap-get(eq|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get_eq", eq | k)
 
 /**
- * Inserts an element in the immutable map. Returns a new set with the added element.
+ * Inserts an element in the immutable map. Returns a new map with the added element.
  *
  * @param e - the element that is inserted
  * @type ImmutableMap -> ImmutableMap
@@ -136,7 +144,7 @@ immap-get(eq|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get_eq", eq | k)
 immap-put(|k, v) = ImmutableMap(prim("SSL_immutable_map_put", k, v))
 
 /**
- * Inserts an element in the immutable map. Returns a new set with the added element.
+ * Inserts an element in the immutable map. Returns a new map with the added element.
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
@@ -146,7 +154,7 @@ immap-put(|k, v) = ImmutableMap(prim("SSL_immutable_map_put", k, v))
 immap-put(eq|k, v) = ImmutableMap(prim("SSL_immutable_map_put_eq", eq | k, v))
 
 /**
- * Removes an element in the immutable map. Returns a new set without the removed element.
+ * Removes an element in the immutable map. Returns a new map without the removed element.
  *
  * @param e - the element that is removed
  * @type ImmutableMap -> ImmutableMap
@@ -154,7 +162,7 @@ immap-put(eq|k, v) = ImmutableMap(prim("SSL_immutable_map_put_eq", eq | k, v))
 immap-remove(|k) = ImmutableMap(prim("SSL_immutable_map_remove", k))
 
 /**
- * Removes an element in the immutable map. Returns a new set without the removed element.
+ * Removes an element in the immutable map. Returns a new map without the removed element.
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
@@ -363,7 +371,7 @@ immap-subtract-set =
  * Returns a new set with the union.
  *
  * @param m: Term * Term -> Term
- * @param other: ImmutableMap - the set to remove from the current term immutable map
+ * @param other: ImmutableMap - the map to remove from the current term immutable map
  * @type ImmutableMap -> ImmutableMap
  */
 immap-union(m|r) = where(ImmutableMap(other) := r);
@@ -372,7 +380,7 @@ immap-union(m|r) = where(ImmutableMap(other) := r);
 /**
  * Union two immutable maps.
  * The given strategy merges the values of the intersecting keys.
- * Returns a new set with the union.
+ * Returns a new map with the union.
  *
  * @param m: Term * Term -> Term
  * @type ImmutableMap * ImmutableSet -> ImmutableMap
@@ -477,11 +485,11 @@ immap-subtract-set(eq) =
 /**
  * Union with another immutable map.
  * The given strategy merges the values of the intersecting keys.
- * Returns a new set with the union.
+ * Returns a new map with the union.
  *
  * @param m: Term * Term -> Term
  * @param eq: Term * Term -?>
- * @param other: ImmutableMap - the set to remove from the current term immutable map
+ * @param other: ImmutableMap - the map to remove from the current term immutable map
  * @type ImmutableMap -> ImmutableMap
  */
 immap-union(m, eq|r) = where(ImmutableMap(other) := r);
@@ -490,7 +498,7 @@ immap-union(m, eq|r) = where(ImmutableMap(other) := r);
 /**
  * Union two immutable maps.
  * The given strategy merges the values of the intersecting keys.
- * Returns a new set with the union.
+ * Returns a new map with the union.
  *
  * @param m: Term * Term -> Term
  * @param eq: Term * Term -?>
