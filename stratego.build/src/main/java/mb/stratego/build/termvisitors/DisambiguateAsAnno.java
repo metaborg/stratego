@@ -1,17 +1,16 @@
 package mb.stratego.build.termvisitors;
 
-import javax.annotation.Nullable;
-
-import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.SRTS_all;
 import org.strategoxt.lang.Strategy;
+import javax.annotation.Nullable;
 
 /**
  * Resolve ambiguity NoAnnoList/As in Term/PreTerm for Stratego code like `x@[]`.
@@ -22,15 +21,32 @@ public class DisambiguateAsAnno {
     private final Strategy visitor;
     private final Context context;
 
+    private static class DisambiguationResult {
+        private boolean ambiguityFound;
+        private @Nullable IStrategoTerm resolution;
+
+        private DisambiguationResult(boolean ambiguityFound, @Nullable IStrategoTerm resolution) {
+            this.ambiguityFound = ambiguityFound;
+            this.resolution = resolution;
+        }
+
+        boolean ambiguityFound() {
+            return ambiguityFound;
+        }
+        IStrategoTerm resolution() {
+            return resolution;
+        }
+    }
+
     public DisambiguateAsAnno(Context context) {
         this.context = context;
         visitor = new Strategy() {
             @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-                final IStrategoTerm ambiguityResolved = resolveAmbiguity(current);
-                if(ambiguityResolved == null) {
-                    return visit(current);
+                final DisambiguationResult ambiguityResolved = resolveAmbiguity(current);
+                if(ambiguityResolved.ambiguityFound()) {
+                    return ambiguityResolved.resolution();
                 } else {
-                    return ambiguityResolved;
+                    return visit(current);
                 }
             }
         };
@@ -40,20 +56,24 @@ public class DisambiguateAsAnno {
         return SRTS_all.instance.invoke(context, term, visitor);
     }
 
-    public @Nullable IStrategoTerm resolveAmbiguity(IStrategoTerm current) {
+    public DisambiguationResult resolveAmbiguity(IStrategoTerm current) {
         if(Tools.isTermAppl(current) && ((IStrategoAppl) current).getName().equals("amb") && Tools.isTermList(current.getSubterm(0))) {
-            IStrategoList ambs = Tools.listAt(current, 0);
+            final IStrategoList ambs = Tools.listAt(current, 0);
+            assert ambs != null;
+            final DisambiguationResult ambiguityResolved = new DisambiguationResult(true, null);
             if(ambs.size() == 2) {
-                IStrategoTerm left = ambs.getSubterm(0);
-                IStrategoTerm right = ambs.getSubterm(1);
-                return resolveAmbiguity(left, right);
-            } else {
-//                throw new MetaborgRuntimeException("Ambiguity found: " + current.toString(7));
-                logger.error("Ambiguity found: " + current.toString());
-                return ambs.getSubterm(0);
+                final IStrategoTerm left = ambs.getSubterm(0);
+                final IStrategoTerm right = ambs.getSubterm(1);
+                ambiguityResolved.resolution = resolveAmbiguity(left, right);
             }
+            if(ambs.size() != 2 || ambiguityResolved.resolution() == null) {
+                logger.error("Ambiguity found: " + current.toString());
+//                throw new MetaborgRuntimeException("Ambiguity found: " + current.toString(7));
+                ambiguityResolved.resolution = ambs.getSubterm(0);
+            }
+            return ambiguityResolved;
         }
-        return null;
+        return new DisambiguationResult(false, null);
     }
 
     public IStrategoTerm resolveAmbiguity(IStrategoTerm left, IStrategoTerm right) {
@@ -63,21 +83,21 @@ public class DisambiguateAsAnno {
         if(left.getClass() != right.getClass()) {
             return null;
         }
+        if(left.getSubtermCount() != right.getSubtermCount()) {
+            return null;
+        }
         if(left == right || left.equals(right)) {
             return left;
         }
+        final IStrategoTerm[] newChildren = resolveChildAmbiguity(left, right);
+        if(newChildren == null) {
+            return null;
+        }
         if(Tools.isTermAppl(left)) {
-            IStrategoAppl leftA = (IStrategoAppl) left;
-            IStrategoAppl rightA = (IStrategoAppl) right;
+            final IStrategoAppl leftA = (IStrategoAppl) left;
+            final IStrategoAppl rightA = (IStrategoAppl) right;
 
             if(leftA.getConstructor().equals(rightA.getConstructor())) {
-                final IStrategoTerm[] newChildren = new IStrategoTerm[leftA.getSubtermCount()];
-                for(int i = 0; i < leftA.getSubtermCount(); i++) {
-                    newChildren[i] = resolveAmbiguity(leftA.getSubterm(i), rightA.getSubterm(i));
-                    if(newChildren[i] == null) {
-                        return null;
-                    }
-                }
                 return context.getFactory().replaceAppl(leftA.getConstructor(), newChildren, leftA);
             } else if(leftA.getName().equals("As") && rightA.getName().equals("NoAnnoList")) {
                 return leftA;
@@ -85,6 +105,23 @@ public class DisambiguateAsAnno {
                 return rightA;
             }
         }
+        if(Tools.isTermList(left)) {
+            return context.getFactory().replaceList(newChildren, (IStrategoList) left);
+        }
+        if(Tools.isTermTuple(left)) {
+            return context.getFactory().replaceTuple(newChildren, (IStrategoTuple) left);
+        }
         return null;
+    }
+
+    public <T extends IStrategoTerm> IStrategoTerm[] resolveChildAmbiguity(T leftL, T rightL) {
+        final IStrategoTerm[] newChildren = new IStrategoTerm[leftL.getSubtermCount()];
+        for(int i = 0; i < leftL.getSubtermCount(); i++) {
+            newChildren[i] = resolveAmbiguity(leftL.getSubterm(i), rightL.getSubterm(i));
+            if(newChildren[i] == null) {
+                return null;
+            }
+        }
+        return newChildren;
     }
 }
