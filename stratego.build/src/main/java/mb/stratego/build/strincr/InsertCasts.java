@@ -98,14 +98,14 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final List<IStrategoAppl> ast = e.getValue();
             final IStrategoTerm tuple = factory.makeTuple(sEnv, constrs, injClos, lubMap, input.strictnessLevel,
                 factory.makeList(ast.toArray(new IStrategoTerm[0])));
-            SubFrontend.Output output = execContext.require(strIncrSubFront
-                .createTask(new SubFrontend.Input(null, cifiedName, SubFrontend.InputType.InsertCasts, tuple)));
-            final IStrategoList outputList = (IStrategoList) output.result;
-            final List<IStrategoAppl> list = new ArrayList<>(outputList.size());
-            for(IStrategoTerm term : outputList) {
-                list.add((IStrategoAppl) term);
-            }
-            result.put(cifiedName, list);
+//            SubFrontend.Output output = execContext.require(strIncrSubFront
+//                .createTask(new SubFrontend.Input(null, cifiedName, SubFrontend.InputType.InsertCasts, tuple)));
+//            final IStrategoList outputList = (IStrategoList) output.result;
+//            final List<IStrategoAppl> list = new ArrayList<>(outputList.size());
+//            for(IStrategoTerm term : outputList) {
+//                list.add((IStrategoAppl) term);
+//            }
+//            result.put(cifiedName, list);
 
         }
 

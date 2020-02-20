@@ -11,6 +11,7 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(StrIncr.class, StrIncr.id);
         bindTaskDef(Frontend.class, Frontend.id);
         bindTaskDef(SubFrontend.class, SubFrontend.id);
+        bindTaskDef(InsertCasts.class, InsertCasts.id);
         bindTaskDef(LibFrontend.class, LibFrontend.id);
         bindTaskDef(Backend.class, Backend.id);
 

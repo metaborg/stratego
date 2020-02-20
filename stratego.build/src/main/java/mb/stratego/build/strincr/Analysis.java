@@ -132,17 +132,17 @@ public class Analysis {
     protected final IResourceService resourceService;
 
     protected final Frontend strIncrFront;
-    protected final InsertCasts strIncrInsertCasts;
+//    protected final InsertCasts strIncrInsertCasts;
     protected final LibFrontend strIncrFrontLib;
 
     private final StrIncrContext strContext;
 
     @Inject
-    public Analysis(IResourceService resourceService, Frontend strIncrFront, InsertCasts strIncrInsertCasts,
+    public Analysis(IResourceService resourceService, Frontend strIncrFront/*, InsertCasts strIncrInsertCasts*/,
         LibFrontend strIncrFrontLib, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
-        this.strIncrInsertCasts = strIncrInsertCasts;
+//        this.strIncrInsertCasts = strIncrInsertCasts;
         this.strIncrFrontLib = strIncrFrontLib;
         this.strContext = strContext;
     }
@@ -153,7 +153,7 @@ public class Analysis {
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
 
-        insertCasts(execContext, output);
+//        insertCasts(execContext, output);
 
         long preCheckTime = System.nanoTime();
 
@@ -166,38 +166,37 @@ public class Analysis {
         return output;
     }
 
-    private void insertCasts(ExecContext execContext, Output output) throws ExecException, InterruptedException {
-        final Map.Transient<IStrategoTerm, IStrategoTerm> sEnv = Map.Transient.of();
-        final Map.Transient<IStrategoTerm, IStrategoTerm> constrs = Map.Transient.of();
-
-        final Set.Transient<IStrategoTerm> injClos = Set.Transient.of();
-        final Map.Transient<IStrategoTerm, IStrategoTerm> lub = Map.Transient.of();
-        final Map.Transient<IStrategoTerm, IStrategoTerm> lvl = Map.Transient.of();
-
-        final IStrategoTerm err = strContext.getFactory().makeAppl("Err");
-        final IStrategoTerm warn = strContext.getFactory().makeAppl("Warn");
-
-        for(java.util.Map.Entry<String, Boolean> e : output.staticData.strictnessLevel.entrySet()) {
-            if(e.getValue()) {
-                lvl.__put(strContext.getFactory().makeString(e.getKey()), err);
-            } else {
-                lvl.__put(strContext.getFactory().makeString(e.getKey()), warn);
-            }
-        }
-
-        final StrategoImmutableMap strategyEnvironment = new StrategoImmutableMap(sEnv.freeze());
-        final StrategoImmutableMap constructors = new StrategoImmutableMap(constrs.freeze());
-        final StrategoImmutableSet injectionClosure = new StrategoImmutableSet(injClos.freeze());
-        final StrategoImmutableMap lubMap = new StrategoImmutableMap(lub.freeze());
-        final StrategoImmutableMap strictnessLevel = new StrategoImmutableMap(lvl.freeze());
-
-        final java.util.Map<String, List<IStrategoAppl>> asts = output.backendData.strategyASTs;
-
-        InsertCasts.Input input = new InsertCasts.Input(strategyEnvironment, constructors, injectionClosure, lubMap, strictnessLevel, asts);
-        InsertCasts.Output icOutput = execContext.require(strIncrInsertCasts.createTask(input));
-        output.backendData.strategyASTs = icOutput.astsWithCasts;
-
-    }
+//    private void insertCasts(ExecContext execContext, Output output) throws ExecException, InterruptedException {
+//        final Map.Transient<IStrategoTerm, IStrategoTerm> sEnv = Map.Transient.of();
+//        final Map.Transient<IStrategoTerm, IStrategoTerm> constrs = Map.Transient.of();
+//
+//        final Set.Transient<IStrategoTerm> injClos = Set.Transient.of();
+//        final Map.Transient<IStrategoTerm, IStrategoTerm> lub = Map.Transient.of();
+//        final Map.Transient<IStrategoTerm, IStrategoTerm> lvl = Map.Transient.of();
+//
+//        final IStrategoTerm err = strContext.getFactory().makeAppl("Err");
+//        final IStrategoTerm warn = strContext.getFactory().makeAppl("Warn");
+//
+//        for(java.util.Map.Entry<String, Boolean> e : output.staticData.strictnessLevel.entrySet()) {
+//            if(e.getValue()) {
+//                lvl.__put(strContext.getFactory().makeString(e.getKey()), err);
+//            } else {
+//                lvl.__put(strContext.getFactory().makeString(e.getKey()), warn);
+//            }
+//        }
+//
+//        final StrategoImmutableMap strategyEnvironment = new StrategoImmutableMap(sEnv.freeze());
+//        final StrategoImmutableMap constructors = new StrategoImmutableMap(constrs.freeze());
+//        final StrategoImmutableSet injectionClosure = new StrategoImmutableSet(injClos.freeze());
+//        final StrategoImmutableMap lubMap = new StrategoImmutableMap(lub.freeze());
+//        final StrategoImmutableMap strictnessLevel = new StrategoImmutableMap(lvl.freeze());
+//
+//        final java.util.Map<String, List<IStrategoAppl>> asts = output.backendData.strategyASTs;
+//
+//        InsertCasts.Input input = new InsertCasts.Input(strategyEnvironment, constructors, injectionClosure, lubMap, strictnessLevel, asts);
+//        InsertCasts.Output icOutput = execContext.require(strIncrInsertCasts.createTask(input));
+//        output.backendData.strategyASTs = icOutput.astsWithCasts;
+//    }
 
     public Output frontends(ExecContext execContext, Input input, Path projectLocationPath, Module inputModule)
         throws IOException, mb.pie.api.ExecException, InterruptedException {
