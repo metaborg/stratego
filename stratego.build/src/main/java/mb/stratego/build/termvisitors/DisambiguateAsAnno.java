@@ -1,5 +1,11 @@
 package mb.stratego.build.termvisitors;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.function.BiFunction;
+
+import javax.annotation.Nullable;
+
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.spoofax.interpreter.core.Tools;
@@ -10,7 +16,6 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.SRTS_all;
 import org.strategoxt.lang.Strategy;
-import javax.annotation.Nullable;
 
 /**
  * Resolve ambiguity NoAnnoList/As in Term/PreTerm for Stratego code like `x@[]`.
@@ -33,6 +38,7 @@ public class DisambiguateAsAnno {
         boolean ambiguityFound() {
             return ambiguityFound;
         }
+
         IStrategoTerm resolution() {
             return resolution;
         }
@@ -41,10 +47,11 @@ public class DisambiguateAsAnno {
     public DisambiguateAsAnno(Context context) {
         this.context = context;
         visitor = new Strategy() {
-            @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+            @Override
+            public IStrategoTerm invoke(Context context, IStrategoTerm current) {
                 final DisambiguationResult ambiguityResolved = resolveAmbiguity(current);
                 if(ambiguityResolved.ambiguityFound()) {
-                    return ambiguityResolved.resolution();
+                    return visit(ambiguityResolved.resolution());
                 } else {
                     return visit(current);
                 }
@@ -53,11 +60,26 @@ public class DisambiguateAsAnno {
     }
 
     public IStrategoTerm visit(IStrategoTerm term) {
-        return SRTS_all.instance.invoke(context, term, visitor);
+        final IStrategoTerm result = SRTS_all.instance.invoke(context, term, visitor);
+        // Flatten lists, workaround for JSGLR2 + Stratego parse table from the old sdf2table (in C)
+        // See also: https://github.com/metaborg/jsglr/pull/44#issuecomment-589648434
+        if(Tools.isTermList(result)) {
+            final ArrayList<IStrategoTerm> flatList = new ArrayList<>();
+            for(IStrategoTerm child : result) {
+                if(Tools.isTermList(child)) {
+                    Collections.addAll(flatList, child.getAllSubterms());
+                } else {
+                    flatList.add(child);
+                }
+            }
+            return context.getFactory().replaceList(flatList.toArray(new IStrategoTerm[0]), (IStrategoList) result);
+        }
+        return result;
     }
 
     public DisambiguationResult resolveAmbiguity(IStrategoTerm current) {
-        if(Tools.isTermAppl(current) && ((IStrategoAppl) current).getName().equals("amb") && Tools.isTermList(current.getSubterm(0))) {
+        if(Tools.isTermAppl(current) && ((IStrategoAppl) current).getName().equals("amb") && Tools
+            .isTermList(current.getSubterm(0))) {
             final IStrategoList ambs = Tools.listAt(current, 0);
             assert ambs != null;
             final DisambiguationResult ambiguityResolved = new DisambiguationResult(true, null);
@@ -83,22 +105,16 @@ public class DisambiguateAsAnno {
         if(left.getClass() != right.getClass()) {
             return null;
         }
-        if(left.getSubtermCount() != right.getSubtermCount()) {
-            return null;
-        }
         if(left == right || left.equals(right)) {
             return left;
-        }
-        final IStrategoTerm[] newChildren = resolveChildAmbiguity(left, right);
-        if(newChildren == null) {
-            return null;
         }
         if(Tools.isTermAppl(left)) {
             final IStrategoAppl leftA = (IStrategoAppl) left;
             final IStrategoAppl rightA = (IStrategoAppl) right;
 
             if(leftA.getConstructor().equals(rightA.getConstructor())) {
-                return context.getFactory().replaceAppl(leftA.getConstructor(), newChildren, leftA);
+                return resolveChildAmbiguity(leftA, rightA,
+                    (nc, l) -> context.getFactory().replaceAppl(leftA.getConstructor(), nc, l));
             } else if(leftA.getName().equals("As") && rightA.getName().equals("NoAnnoList")) {
                 return leftA;
             } else if(rightA.getName().equals("As") && leftA.getName().equals("NoAnnoList")) {
@@ -106,22 +122,25 @@ public class DisambiguateAsAnno {
             }
         }
         if(Tools.isTermList(left)) {
-            return context.getFactory().replaceList(newChildren, (IStrategoList) left);
+            return resolveChildAmbiguity((IStrategoList) left, (IStrategoList) right,
+                context.getFactory()::replaceList);
         }
         if(Tools.isTermTuple(left)) {
-            return context.getFactory().replaceTuple(newChildren, (IStrategoTuple) left);
+            return resolveChildAmbiguity((IStrategoTuple) left, (IStrategoTuple) right,
+                context.getFactory()::replaceTuple);
         }
         return null;
     }
 
-    public <T extends IStrategoTerm> IStrategoTerm[] resolveChildAmbiguity(T leftL, T rightL) {
-        final IStrategoTerm[] newChildren = new IStrategoTerm[leftL.getSubtermCount()];
-        for(int i = 0; i < leftL.getSubtermCount(); i++) {
-            newChildren[i] = resolveAmbiguity(leftL.getSubterm(i), rightL.getSubterm(i));
+    public <T extends IStrategoTerm> T resolveChildAmbiguity(T left, T right,
+        BiFunction<IStrategoTerm[], T, T> replaceT) {
+        final IStrategoTerm[] newChildren = new IStrategoTerm[left.getSubtermCount()];
+        for(int i = 0; i < left.getSubtermCount(); i++) {
+            newChildren[i] = resolveAmbiguity(left.getSubterm(i), right.getSubterm(i));
             if(newChildren[i] == null) {
                 return null;
             }
         }
-        return newChildren;
+        return replaceT.apply(newChildren, left);
     }
 }
