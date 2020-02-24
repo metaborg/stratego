@@ -29,9 +29,9 @@ Cast : Coercion -> Strategy
 SId : SCoercion
 SRuntimeCheck : SFunType -> SCoercion
 
-Err  : MessageType
-Warn : MessageType
-Note : MessageType
+MTError  : MessageType
+MTWarning : MessageType
+MTNote : MessageType
 
 
 CallDynamicNotSupported              : ErrorDesc
@@ -50,7 +50,10 @@ NoInjectionBetween                   : Type * Type -> ErrorDesc
 VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
 TypeMismatch                         : Type * Type -> ErrorDesc
 STypeMismatch                        : SType * SType -> ErrorDesc
-UnresolvedName                       : ErrorDesc
+UnresolvedLocal                      : ErrorDesc
+UnresolvedConstructor                : Int * Type -> ErrorDesc
+UnresolvedStrategy                   : Int * Int -> ErrorDesc
+AmbiguousConstructorUse              : List(Type) -> ErrorDesc
 
 AsInBuildTerm                        : ErrorDesc
 WldInBuildTerm                       : ErrorDesc

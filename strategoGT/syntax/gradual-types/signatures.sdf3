@@ -12,6 +12,7 @@ context-free syntax
   Type.RealT      = "real"
   Type.SortNoArgs = UCID
   Type.Sort       = [[Id]([{Type ", "}*])]
+  Type.TupleT     = [[Type] * [Type]] {right}
 
 sorts SType SFunType
 context-free syntax

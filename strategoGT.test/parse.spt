@@ -58,6 +58,26 @@ test As and Anno [[
     ])
   ])
 
+test As and Anno [[
+  specification
+  
+  strategies
+  
+  insertCasts-Call-:
+    (c@Call(s, s1*), FunTType(st*, tt*, t1, t2)) -> c
+]] parse to
+  Specification([
+    Strategies([
+      RDefNoArgs("insertCasts-Call-",
+        Rule(
+          NoAnnoList(Tuple([
+            As(Var("c"), NoAnnoList(Op("Call", [Var("s"), Var(ListVar("s1*"))])))
+          , NoAnnoList(Op("FunTType", [Var(ListVar("st*")), Var(ListVar("tt*")), Var("t1"), Var("t2")]))]))
+        , Var("c"),[])
+      )
+    ])
+  ])
+
 test BuildDefault [[
   specification
   

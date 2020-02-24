@@ -4,12 +4,14 @@ imports
 
 libstratego-lib
 libstrc
+libstratego-aterm
 
 libspoofax/term/annotation
 libspoofax/stratego/debug
 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/gradual-types/signatures-sig
 
 analysis/utils
 analysis/environment
@@ -84,23 +86,27 @@ insertCasts-StMatchTerm-(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
   with
     t1 := <current-type> st1
-  ; if ConstrType(t1*, t2) := <constr-lookup(|cnstr, <length> trm1*)> e1
+  ; t* := <constr-lookup(|cnstr, <length> trm1*, t1)> e1
+  ; if [ConstrType(t1*, t2)] := t*
     then
       lvl := <ConstructorStrictness>
     ; if not(<CanCoerce> (t2, t1))
         then <report> (lvl, cnstr, TypeMismatch(t2, t1))
       end
-    ; if not(Err() := lvl)
+    ; if not(MTError() := lvl)
         then t2* := <map(!Dyn())> t1*
         else t2* := t1*
       end
-    ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
-    ; st3 := <current-type(|t2)> st2
-    else
-      <report-Err> (cnstr, UnresolvedName())
-    ; st3 := <current-type(|ErrT())> st1
-    ; trm2* := trm1*
+    else if [] := t*
+        then err := UnresolvedConstructor(<length> trm1*, t1)
+        else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
+      end
+    ; <report-Err> (cnstr, err)
+    ; t2 := ErrT()
+    ; t2* := <map(!ErrT())> trm1*
     end
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
+  ; st3 := <current-type(|t2)> st2
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
@@ -132,7 +138,7 @@ insertCasts-StBuildTerm(|e1, st1):
   // TODO: distinguish between unresolved name and unbound name
     if not(t := <term-lookup(|v{})> st1)
       then
-        <report-Err> (v, UnresolvedName())
+        <report-Err> (v, UnresolvedLocal())
       ; t := ErrT()
     end
   ; st2 := <current-type(|t)> st1
@@ -170,20 +176,24 @@ insertCasts-StBuildTerm(|e1, st1):
 insertCasts-StBuildTerm-(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
   with
-    if ConstrType(t1*, t2) := <constr-lookup(|cnstr, <length> trm1*)> e1
-    then
-      lvl := <ConstructorStrictness>
-    ; let threader = {c', st':
-        \((c, et), st) -> (<insertCastApp(|lvl, <current-type> st', et)> c', st')
-          with (c', st') := <insertCasts-StBuildTerm(|e1, st)> c\}
-      in (trm2*, st2) := <thread-map(threader)> (<zip> (trm1*, t1*), st1)
+    t* := <constr-lookup(|cnstr, <length> trm1*, Dyn())> e1
+  ; if [ConstrType(t1*, t2)] := t*
+    then id
+    else if [] := t*
+        then err := UnresolvedConstructor(<length> trm1*, Dyn())
+        else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
       end
-    ; st3 := <current-type(|t2)> st2
-    else
-      <report-Err> (cnstr, UnresolvedName())
-    ; st3 := <current-type(|ErrT())> st1
-    ; trm2* := trm1*
+    ; <report-Err> (cnstr, err)
+    ; t2 := ErrT()
+    ; t1* := <map(!ErrT())> trm1*
     end
+  ; lvl := <ConstructorStrictness>
+  ; let threader = {c', st':
+      \((c, et), st) -> (<insertCastApp(|lvl, <current-type> st', et)> c', st')
+        with (c', st') := <insertCasts-StBuildTerm(|e1, st)> c\}
+    in (trm2*, st2) := <thread-map(threader)> (<zip> (trm1*, t1*), st1)
+    end
+  ; st3 := <current-type(|t2)> st2
 
 insertCasts-StBuildTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)

@@ -10,6 +10,7 @@ libspoofax/stratego/debug
 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/gradual-types/signatures-sig
 
 analysis/utils
 analysis/environment
@@ -17,6 +18,7 @@ analysis/signatures
 analysis/defs
 immutable/map
 immutable/set
+immutable/rel
 
 strategies // entry-points from Java
 
@@ -26,24 +28,26 @@ strategies // entry-points from Java
  * constrs: map of constructor definition names to type description
  * injection-closure: map of injections from one type to another (the transitive closure)
  * lub-map: map representing the least-upper-bound of the type lattice
- * lvl: the level of strictness of constructors (Err() = strict, Warn() = non-strict, no casts)
+ * lvl: the level of strictness of constructors (MTError() = strict, MTWarning() = non-strict, no casts)
  * ast: the stratego strategy/rule ast
  */
-// insert-casts :: Map(String * Int * Int, SType) * Map(String * Int, ConstrType) * Set(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
+// insert-casts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
 insert-casts: (strats, constrs, injection-closure, lub-map, lvl, ast) -> (ast', errs, warns, notes)
   with {| CanCoerce, LUB, Message, ConstructorStrictness:
     ast' := <insertCasts(|strats, constrs, injection-closure, lub-map, lvl)> ast
-  ; errs := <bagof-Message> Err()
-  ; warns := <bagof-Message> Warn()
-  ; notes := <bagof-Message> Note()
+    ; msg* := <bagof-Message>
+    ; errs := <filter(?(MTError(), <id>))> msg*
+    ; warns := <filter(?(MTWarning(), <id>))> msg*
+    ; notes := <filter(?(MTNote(), <id>))> msg*
   |}
 
-// insertCasts :: Map(String, SType) * Map(String, ConstrType) * Set(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
+// insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
 insertCasts(|strats, constrs, injection-closure, lub-map, lvl): ast -> ast'
   with
-    rules(CanCoerce: (from, to) ->
-      <imset-contains(|(from, to)) <+ <can-coerce> (from, to)> injection-closure)
-  ; rules(LUB: pair -> <if eq then Fst else <immap-get(|pair)> lub-map end> pair)
+    rules(CanCoerce: (from, to) -> <id>
+      where <can-coerce> (from, to)
+         <+ <imrel-contains(|from, to)> injection-closure)
+  ; rules(LUB: pair -> <\(x,x) -> x\ <+ <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map> pair)
   ; rules(ConstructorStrictness := lvl)
   ; ast' := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
 
@@ -55,3 +59,8 @@ can-coerce: (Sort(x, t1*), Sort(x, t2*)) -> <id>
   where
     <zip(CanCoerce)> (t1*, t2*)
 can-coerce = eq
+
+constr-lookup(|name, arity, t1) =
+    constr-lookup(|name, arity)
+  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t2, t1)\))
+  ; imset-to-list

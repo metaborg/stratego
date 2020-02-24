@@ -46,6 +46,28 @@ imrel-from-list = prim("SSL_immutable_relation_from_list"); !ImmutableRelation(<
 imrel-to-list = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_list")
 
 /**
+ * Turn the immutable relation into a map.
+ * For pairs with the same key, the values are merged with the second parameter. 
+ *
+ * @type ImmutableRelation -> ImmutableMap
+ */
+imrel-to-map(merge) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_map", merge|)
+
+/**
+ * Turn the immutable relation into a list of pairs.
+ *
+ * @type ImmutableRelation -> List
+ */
+imrel-pairs = imrel-to-list
+
+/**
+ * Turn the immutable relation into a set of pairs.
+ *
+ * @type ImmutableRelation -> ImmutableSet
+ */
+imrel-pairs-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_set"); !ImmutableSet(<id>)
+
+/**
  * Get all keys of the immutable relation.
  *
  * @type ImmutableRelation -> List
@@ -111,33 +133,20 @@ imrel-contains-key(|k) = where(imrel-get(|k))
 
 /**
  * Succeeds if the key is in the immutable relation.
- * With a custom equality operator.
  *
- * @param eq: Term * Term -?>
  * @param k - the key
  * @type ImmutableRelation -?> ImmutableRelation
  */
-imrel-contains-key(eq|k) = where(imrel-get(eq|k))
+imrel-contains(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_contains", k, v))
 
 /**
  * Returns the associated value of the key in the immutable relation,
  * or fails if the key is not in the immutable relation. 
  *
  * @param e - the key used to look up the value
- * @type ImmutableRelation -?> Term
+ * @type ImmutableRelation -?> ImmutableSet
  */
-imrel-get(|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get", k)
-
-/**
- * Returns the associated value of the key in the immutable relation,
- * or fails if the key is not in the immutable relation. 
- * With a custom equality operator.
- *
- * @param eq: Term * Term -?>
- * @param e - the key used to look up the value
- * @type ImmutableRelation -?> Term
- */
-imrel-get(eq|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get_eq", eq | k)
+imrel-get(|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get", k); !ImmutableSet(<id>)
 
 /**
  * Inserts an element in the immutable relation. Returns a new relation with the added element.
@@ -148,32 +157,12 @@ imrel-get(eq|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get_eq"
 imrel-put(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_put", k, v))
 
 /**
- * Inserts an element in the immutable relation. Returns a new relation with the added element.
- * With a custom equality operator.
- *
- * @param eq: Term * Term -?>
- * @param e - the element that is inserted
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-put(eq|k, v) = ImmutableRelation(prim("SSL_immutable_relation_put_eq", eq | k, v))
-
-/**
  * Removes an element in the immutable relation. Returns a new relation without the removed element.
  *
  * @param e - the element that is removed
  * @type ImmutableRelation -> ImmutableRelation
  */
 imrel-remove(|k) = ImmutableRelation(prim("SSL_immutable_relation_remove", k))
-
-/**
- * Removes an element in the immutable relation. Returns a new relation without the removed element.
- * With a custom equality operator.
- *
- * @param eq: Term * Term -?>
- * @param e - the element that is removed
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-remove(eq|k) = ImmutableRelation(prim("SSL_immutable_relation_remove_eq", eq | k))
 
 /**
  * Higher-order operations
@@ -183,35 +172,11 @@ strategies
 /**
  * Remove all pairs from the immutable relation for which the filter strategy fails.
  * Returns a new immutable relation without the removed pairs.
- * For pairs relationped to the same key the values are merged with the second parameter. 
- * This version gives the merge function the key as well as the pair of values to merge. 
- *
- * @param s: Term * Term -?> Term * Term
- * @param merge: Term * (Term * Term) -> Term
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-filter'(s, merge) = ImmutableRelation(prim("SSL_immutable_relation_filter", s, merge|))
-
-/**
- * Remove all pairs from the immutable relation for which the filter strategy fails.
- * Returns a new immutable relation without the removed pairs.
- * For pairs relationped to the same key the values are merged with the second parameter. 
- *
- * @param s: Term * Term -?> Term * Term
- * @param merge: Term * Term -> Term
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-filter(s, merge) = imrel-filter'(s, Snd;merge)
-
-/**
- * Remove all pairs from the immutable relation for which the filter strategy fails.
- * Returns a new immutable relation without the removed pairs.
- * Pairs relationped to the same key keep one of the values (chosen arbitrarily). 
  *
  * @param s: Term * Term -?> Term * Term
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-filter(s) = imrel-filter(s, Fst)
+imrel-filter(s) = ImmutableRelation(prim("SSL_immutable_relation_filter", s|))
 
 /**
  * Remove all pairs from the immutable relation for which the filter strategy fails on the key.
@@ -233,50 +198,25 @@ imrel-filter-values(s) = imrel-filter((id, s))
 
 /**
  * Map all pairs from the immutable relation.
- * Returns a new immutable relation with the relationped pairs.
- * For pairs relationped to the same key the values are merged with the second parameter. 
- * This version gives the merge function the key as well as the pair of values to merge. 
+ * Returns a new immutable relation with the mapped pairs.
  *
  * @param s: Term * Term -?> Term * Term
- * @param merge: Term * (Term * Term) -> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-map'(s, merge) = ImmutableRelation(prim("SSL_immutable_relation_map", s, merge|))
-
-/**
- * Map all pairs from the immutable relation.
- * Returns a new immutable relation with the relationped pairs.
- * For pairs relationped to the same key the values are merged with the second parameter. 
- *
- * @param s: Term * Term -?> Term * Term
- * @param merge: Term * Term -> Term
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-map(s, merge) = imrel-map'(s, Snd;merge)
-
-/**
- * Map all pairs from the immutable relation.
- * Returns a new immutable relation with the relationped pairs.
- * Pairs relationped to the same key keep one of the values (chosen arbitrarily). 
- *
- * @param s: Term -> Term
- * @type ImmutableRelation -> ImmutableRelation
- */
-imrel-map(s) = imrel-map(s, Fst)
+imrel-map(s) = ImmutableRelation(prim("SSL_immutable_relation_map", s|))
 
 /**
  * Map all keys from the immutable relation.
- * Returns a new immutable relation with the relationped keys.
+ * Returns a new immutable relation with the mapped keys.
  *
  * @param s: Term -> Term
- * @param merge: Term * Term -> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-map-keys(s, merge) = imrel-map((s, id))
+imrel-map-keys(s) = imrel-map((s, id))
 
 /**
  * Map all values from the immutable relation.
- * Returns a new immutable relation with the relationped values.
+ * Returns a new immutable relation with the mapped values.
  *
  * @param s: Term -> Term
  * @type ImmutableRelation -> ImmutableRelation
@@ -301,15 +241,13 @@ imrel-compose(|r) =  where(ImmutableRelation(other) := r);
 
 /**
  * Intersect with another immutable relation.
- * The given strategy merges the values of the intersecting keys.
- * Returns a new immutable relation with the intersection.
+ * Returns a new immutable relation with the pairs that are in both relations.
  *
- * @param m: Term * Term -> Term
  * @param other: ImmutableRelation
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-intersect(m|r) = where(ImmutableRelation(other) := r);
-  ImmutableRelation(prim("SSL_immutable_relation_intersect", m | other))
+imrel-intersect(|r) = where(ImmutableRelation(other) := r);
+  ImmutableRelation(prim("SSL_immutable_relation_intersect", other))
 
 /**
  * Intersect two immutable relations.
@@ -319,12 +257,12 @@ imrel-intersect(m|r) = where(ImmutableRelation(other) := r);
  * @param m: Term * Term -> Term
  * @type ImmutableRelation * ImmutableRelation -> ImmutableRelation
  */
-imrel-intersect(m) =
-  ?(l, r); <imrel-intersect(m|r)> l
+imrel-intersect =
+  ?(l, r); <imrel-intersect(|r)> l
 
 /**
  * Subtract another immutable relation from the given one.
- * Returns a new immutable relation without the pairs where the key was a key in the immutable relation.
+ * Returns a new immutable relation without the pairs in the other immutable relation.
  *
  * @param other: ImmutableRelation - the relation to remove from the current term immutable relation
  * @type ImmutableRelation -> ImmutableRelation
@@ -334,7 +272,7 @@ imrel-subtract(|r) = where(ImmutableRelation(other) := r);
 
 /**
  * Subtract the right immutable relation from the left.
- * Returns a new immutable relation without the pairs where the key was a key in the immutable relation.
+ * Returns a new immutable relation without the pairs in the other immutable relation.
  *
  * @type ImmutableRelation * ImmutableRelation -> ImmutableRelation
  */
@@ -343,15 +281,13 @@ imrel-subtract =
 
 /**
  * Union with another immutable relation.
- * The given strategy merges the values of the intersecting keys.
- * Returns a new set with the union.
+ * Returns a new relation with the union of the pairs in the two relation.
  *
- * @param m: Term * Term -> Term
  * @param other: ImmutableRelation - the relation to remove from the current term immutable relation
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-union(m|r) = where(ImmutableRelation(other) := r);
-  ImmutableRelation(prim("SSL_immutable_relation_union", m | other))
+imrel-union(|r) = where(ImmutableRelation(other) := r);
+  ImmutableRelation(prim("SSL_immutable_relation_union", other))
 
 /**
  * Union two immutable relations.
@@ -361,5 +297,5 @@ imrel-union(m|r) = where(ImmutableRelation(other) := r);
  * @param m: Term * Term -> Term
  * @type ImmutableRelation * ImmutableSet -> ImmutableRelation
  */
-imrel-union(m) =
-  ?(l, r); <imrel-union(m|r)> l
+imrel-union =
+  ?(l, r); <imrel-union(|r)> l

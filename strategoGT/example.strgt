@@ -22,7 +22,7 @@ IAdd : Instr
 strategies
 
   desugar-Expr :: Expr -> Expr
-  desugar-Expr: Int(e) -> Add(e, Int("1"))
+  desugar-Expr: Int(e) -> Add(e, "1")
   
   foo = ?A(<id>, B(<f>))
   
@@ -99,16 +99,22 @@ for(var i = 0; i <= 10; i++) {
 
   bottomup(s) = fail
   map(s) = fail
+  mapconcat :: (? -> List(?)) List(?) -> List(?)
   mapconcat(s) = fail
+  Snd :: ? * ? -> ?
   Snd = fail
   lookup(|s) = fail
 
 strategies
 
-  s = fail
+  s = fail 
+  returns-a-list :: ? -> List(?)
   returns-a-list = fail
   do-something = fail
+  returns-a-pair :: ? -> ? * ?
   returns-a-pair = fail
+  something-else :: List(?) -> ?
+//  something-else :: ? * ? -> ?
   something-else = fail
 
   local-variable-type-inference: a -> b
@@ -119,7 +125,6 @@ strategies
        ; <Snd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <something-else> c // c :: ?, cast necessary when matching to anything
-
 
 signature constructors
   amb : List(a) -> Amb(a)

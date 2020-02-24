@@ -7,18 +7,21 @@ libstrc
 
 analysis/utils
 analysis/signatures
+signatures/-
+signatures/gradual-types/signatures-sig
 immutable/map
+immutable/rel
 
 signature constructors
 
-//    strategies               constructors
-Env : Map/*(String, SType)*/ * Map/*(String, OpType)*/ -> Environment
-//    local variables        currentTermType
-St : Map/*(String, Type)*/ * Type -> Store
-//    local variables            currentTermType outputTermType
-StMatchTerm : Map/*(String, Type)*/ * Type *     Option(Type) -> Store
-//    local variables            currentTermType inputTermType
-StBuildTerm : Map/*(String, Type)*/ * Type *          Type -> Store
+//    strategies                        constructors
+Env : Map/*(str * int * int, SType)*/ * Rel/*(str * int, OpType)*/ -> Environment
+//    local variables     currentTermType
+St : Map/*(str, Type)*/ * Type -> Store
+//    local variables              currentTermType outputTermType
+StMatchTerm : Map/*(str, Type)*/ * Type *     Option(Type) -> Store
+//    local variables              currentTermType inputTermType
+StBuildTerm : Map/*(str, Type)*/ * Type *          Type -> Store
 
 strategies
 
@@ -35,17 +38,19 @@ st-from-stBuildTerm-input: StBuildTerm(te, _, t) -> St(te, t)
 strat-env = ?Env(<id>, _)
 strat-env(s) = Env(s, id)
 
-strat-lookup(|name, snum, tnum) = strat-env; env-lookup(|(name, snum, tnum))
-strat-put(|name, snum, tnum, value) = strat-env(env-put(|(name, snum, tnum), value))
+strat-lookup(|name, snum, tnum) = strat-env; immap-get(|(name, snum, tnum))
+strat-put(|name, snum, tnum, value) = strat-env(immap-put(|(name, snum, tnum), value))
 strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
 strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), as))
 
 constr-env = ?Env(_, <id>)
 constr-env(s) = Env(id, s)
 
-constr-lookup(|name, arity) = constr-env; env-lookup(|(name, arity))
-constr-put(|name, arity, value) = constr-env(env-put(|(name, arity), value))
-constr-merge-env(s): (e, ce) -> <constr-env(immap-union(s|ce))> e
+// N.B. this returns an imset. Use constr-lookup/3 from main.str to filter on sort of the
+//       constructor and receive a list.
+constr-lookup(|name, arity) = constr-env; imrel-get(|(name, arity))
+constr-put(|name, arity, value) = constr-env(imrel-put(|(name, arity), value))
+constr-merge-env: (e, ce) -> <constr-env(imrel-union(|ce))> e
 
 term-env = ?St(<id>, _)
 term-env = ?StMatchTerm(<id>, _, _)
@@ -54,8 +59,8 @@ term-env(s) = St(s, id)
 term-env(s) = StMatchTerm(s, id, id)
 term-env(s) = StBuildTerm(s, id, id)
 
-term-lookup(|name) = term-env; env-lookup(|name)
-term-put(|name, value) = term-env(env-put(|name, value))
+term-lookup(|name) = term-env; immap-get(|name)
+term-put(|name, value) = term-env(immap-put(|name, value))
 term-merge-env(s): (e, te) -> <term-env(immap-union(s|te))> e
 
 current-type = ?St(_, <id>)
@@ -79,12 +84,7 @@ strategies
  */
 env-copy-type(|name, as): env -> <immap-put(|as, <immap-get(|name)> env)> env
 
-env-lookup(|name) = immap-get(|name)
-env-put(|name, value) = immap-put(|name, value)
-
 zip-new-env = zip;immap-from-list
-
-merge-env(s) = immap-union(s)
 
 keep-left = Fst
 keep-right = Snd

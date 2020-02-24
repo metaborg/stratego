@@ -10,6 +10,7 @@ libspoofax/stratego/debug
 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/gradual-types/modules-sig
 
 analysis/utils
 analysis/environment

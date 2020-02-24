@@ -263,12 +263,12 @@ immap-map(s) = immap-map(s, Fst)
 /**
  * Map all keys from the immutable map.
  * Returns a new immutable map with the mapped keys.
+ * For pairs mapped to the same key the values are merged with the second parameter. 
  *
  * @param s: Term -> Term
- * @param merge: Term * Term -> Term
  * @type ImmutableMap -> ImmutableMap
  */
-immap-map-keys(s, merge) = immap-map((s, id))
+immap-map-keys(s, merge) = immap-map((s, id), merge)
 
 /**
  * Map all values from the immutable map.

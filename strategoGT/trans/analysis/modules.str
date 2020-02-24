@@ -5,6 +5,7 @@ imports
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/core/modules-sig
+signatures/core/signatures-sig
 signatures/sugar/overlays-sig
 signatures/gradual-types/signatures-sig
 
@@ -13,6 +14,7 @@ analysis/signatures
 analysis/utils
 immutable/map
 immutable/set
+immutable/rel
 
 libspoofax/stratego/debug
 
@@ -23,7 +25,7 @@ strategies
 insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   with {| CanCoerce, LUB, Message, ConstructorStrictness:
     (constrs, injs) := <extract-constrs-inj> ast1
-  ; injection-closure := <compute-closure> (injs, <immap-values-imset> injs)
+  ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types> ast1
   ; let
@@ -32,14 +34,15 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
            Imports(id)
         <+ Signature(id)
         <+ Overlays(id)
-        <+ Strategies(process-defs(|Warn()))
-        <+ Rules(process-defs(|Warn()))
+        <+ Strategies(process-defs(|MTWarning()))
+        <+ Rules(process-defs(|MTWarning()))
         ))
     in
       ast2 := <process> ast1
-    ; errs := <bagof-Message> Err()
-    ; warns := <bagof-Message> Warn()
-    ; notes := <bagof-Message> Note()
+    ; msg* := <bagof-Message>
+    ; errs := <filter(?(MTError(), <id>))> msg*
+    ; warns := <filter(?(MTWarning(), <id>))> msg*
+    ; notes := <filter(?(MTNote(), <id>))> msg*
     end
   |}
 
@@ -48,10 +51,8 @@ extract-constrs-inj:
 with
   opdecl* := <filter(?Signature(<filter(?Constructors(<id>) + ?Overlays(<id>));concat>));concat> decl*
 ; (constr*, inj*) := <partition(extract-constr, extract-inj)> opdecl*
-// Overloaded constructors are currently not supported, so we make them dynamically typed
-; constrMap := <immap-from-list(\(ConstrType(t*, _), _) -> ConstrType(<map(!Dyn())> t*, Dyn())\)> constr*
-// TODO: handle injections as relation
-; injMap := <immap-from-list> inj*
+; constrMap := <imrel-from-list> constr*
+; injMap := <imrel-from-list> inj*
 
 extract-constr:
   OpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
@@ -127,11 +128,10 @@ compute-closure: (map1, frontier1) -> map3
   ; map2 := <immap-union(imset-union)> (map1, <immap-from-list> pairs)
   ; map3 := <compute-closure> (map2, frontier2)
 
-lub-map: injection-closure -> <imset-union> (forward, backward)
+lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
 with
-  pairs := <immap-to-list> injection-closure
-; forward := <map(\(k, v) -> <imset-map(!(k, <id>))> v\);foldr(imset-new, imset-union)> pairs
-; backward := <imset-map(Swap)> forward
+  forward := <imrel-map(\(l,u) -> ((l,u),u)\)> injection-closure
+; relation := <imrel-union(|<imrel-invert> forward)> forward
 
 extract-strategy-types:
   Specification(decl*) -> stratEnv

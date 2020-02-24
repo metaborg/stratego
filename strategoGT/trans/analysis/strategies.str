@@ -10,6 +10,7 @@ libspoofax/stratego/debug
 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/gradual-types/signatures-sig
 
 analysis/utils
 analysis/environment
@@ -39,7 +40,7 @@ insertCasts-Strategy(|e1, st1):
       then
         result := <insertCasts-CallT(|e1, st1)> (c, t1)
       else
-        <report-Err> (x, UnresolvedName())
+        <report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
       ; result := (c, <current-type(|ErrT())> st1)
     end
 
@@ -239,7 +240,7 @@ insertCasts-Strategy-(|e1, st1):
       then
         result := <insertCasts-Call(|e1, st1)> (c, t1)
       else
-        <report-Err> (x, UnresolvedName())
+        <report-Err> (x, UnresolvedStrategy(<length> s*, 0))
       ; result := (c, <current-type(|ErrT())> st1)
     end
 
@@ -259,7 +260,7 @@ insertCasts-Call(|e1, st1):
 insertCasts-Strategy-(|e1, st1):
   ScopeDefault(s1) -> (ScopeDefault(s2), st3)
   with
-    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+    (s2, st2) := <insertCasts-Strategy(|e1, <new-st;current-type(|<current-type> st1)>)> s1
     // Note how we only preserve the current type of st2 here 
   ; st3 := <current-type(|<current-type> st2)> st1
 
@@ -351,7 +352,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     t1 := <current-type> st1
   ; ConstrType(t1*, t2) := <constr-lookup(|x, <length> s1*)> e1
-  ; if not(Err() := <ConstructorStrictness>)
+  ; if not(MTError() := <ConstructorStrictness>)
       then t2* := <map(!Dyn())> t1*
       else t2* := t1*
     end
@@ -432,7 +433,7 @@ insertCasts-Strategy-(|e1, st1):
           ; result := (<insertCastBefore(|<current-type> st1, t2)> c, <current-type(|t3)> st1)
         end
       else
-        <report-Err> (x, UnresolvedName())
+        <report-Err> (x, UnresolvedStrategy(0, 0))
       ; result := (c, <current-type(|ErrT())> st1)
     end
 
@@ -484,7 +485,7 @@ insertCasts-Strategy-(|e1, st1):
   ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Proceed(s3*))> p
 
 insertCasts-Strategy-(|e1, st1):
-  CondChoice(s1, s2, s3) -> (CondChoice(s4, s5, s6), st4)
+  CondChoice(s1, s2, s3) -> (CondChoice(s4, s5, s6), st5)
   with
     (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (s5, st3) := <insertCasts-Strategy(|e1, <current-type(|<current-type> st1)> st2)> s2
@@ -504,6 +505,7 @@ insertCasts-Strategy-(|e1, st1):
   ; t1 := <current-type> st1
   ; t2 := <current-type> st2
   ; (sc2*, st3) := <thread-map(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
+  // TODO: independent cases and LUB
 
 insertCasts-Strategy-(|e1, st1):
   SwitchChoice(s1, sc1*, s2) -> (SwitchChoice(s3, sc2*, s4), st4)
@@ -513,6 +515,7 @@ insertCasts-Strategy-(|e1, st1):
   ; t2 := <current-type> st2
   ; (sc2*, st3) := <thread-map(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
   ; (s4, st4) := <insertCasts-Strategy(|e1, <current-type(|t1)> st3)> s1
+  // TODO: independent cases and LUB
 
 insertCasts-SwitchCase(|e1, t1, t2) = otf22(insertCasts-SwitchCase-(|e1, t1, t2))
 
