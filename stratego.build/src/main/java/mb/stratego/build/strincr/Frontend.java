@@ -162,6 +162,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         final StringSetWithPositions strats;
         /**
+         * Cified-strategy-name defined in this module annotated with internal [name checks]
+         */
+        final StringSetWithPositions internalStrats;
+        /**
          * Constructor_arity names defined in this module [name checks]
          */
         final StringSetWithPositions constrs;
@@ -204,11 +208,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         transient Map<String, IStrategoAppl> congrASTs;
 
         NormalOutput(String moduleName, IStrategoTerm sugarAST, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
-            Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions,
-            Map<String, StringSetWithPositions> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
-            StringSetWithPositions strats, StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
-            List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs,
-            Map<String, File> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
+            Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions, Map<String, StringSetWithPositions> strategyConstrs,
+            Map<String, File> overlayFiles, List<Import> imports, StringSetWithPositions strats,
+            StringSetWithPositions internalStrats, StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
+            List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs, Map<String, File> congrFiles,
+            Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
             this.sugarAST = sugarAST;
@@ -220,6 +224,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             this.overlayFiles = overlayFiles;
             this.imports = imports;
             this.strats = strats;
+            this.internalStrats = internalStrats;
             this.constrs = constrs;
             this.overlays = overlays;
             this.congrs = congrs;
@@ -357,6 +362,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 return false;
             if(!strats.equals(output.strats))
                 return false;
+            if(!internalStrats.equals(output.strats))
+                return false;
             if(!constrs.equals(output.constrs))
                 return false;
             if(!overlays.equals(output.overlays))
@@ -387,6 +394,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             result = 31 * result + overlayFiles.hashCode();
             result = 31 * result + imports.hashCode();
             result = 31 * result + strats.hashCode();
+            result = 31 * result + internalStrats.hashCode();
             result = 31 * result + constrs.hashCode();
             result = 31 * result + overlays.hashCode();
             result = 31 * result + congrs.hashCode();
@@ -488,6 +496,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions usedStrats = new StringSetWithPositions();
         final StringSetWithPositions definedConstrs = new StringSetWithPositions();
         final StringSetWithPositions definedStrats = new StringSetWithPositions();
+        final StringSetWithPositions internalStrats = new StringSetWithPositions();
         final StringSetWithPositions definedOverlays = new StringSetWithPositions();
         final Map<String, File> overlayFiles = new HashMap<>();
         final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
@@ -502,7 +511,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             IStrategoTerm strategyAST = e.getValue();
             frontInput = new SubFrontend.Input(input.inputFileString, strategyName,
                 SubFrontend.InputType.TopLevelDefinition, strategyAST);
-            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, strategyASTs,
+            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, internalStrats, strategyASTs,
                 strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
                 noOfDefinitions);
         }
@@ -536,7 +545,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
         return new NormalOutput(moduleName, ast, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
-            strategyConstrs, overlayFiles, imports, definedStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
+            strategyConstrs, overlayFiles, imports, definedStrats, internalStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
             overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
     }
 
@@ -629,10 +638,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final FileObject location,
         final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
-        final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        StringSetWithPositions internalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
-        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
-        final StringSetWithPositions usedStrats, final Map<String, Integer> noOfDefinitions)
+        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
+        final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = Tools.listAt(result, 0);
@@ -653,6 +662,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             strategyConstrs.put(strategyName.stringValue(), usedConstrs);
             if(needsExternal(strategyAST)) {
                 strategyNeedsExternal.add(strategyName);
+            }
+            if(isInternal(strategyAST)) {
+                internalStrats.add(strategyName);
             }
         }
         final @Nullable File boilerplateFile =
@@ -689,6 +701,21 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
                     String annoName = Tools.constructorName(anno);
                     if(annoName.equals("Override") || annoName.equals("Extend")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isInternal(IStrategoAppl strategyAST) {
+        if(Tools.hasConstructor(strategyAST, "AnnoDef", 2)) {
+            IStrategoList annos = Tools.listAt(strategyAST, 0);
+            for(IStrategoTerm anno : annos) {
+                if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
+                    String annoName = Tools.constructorName(anno);
+                    if(annoName.equals("Internal")) {
                         return true;
                     }
                 }

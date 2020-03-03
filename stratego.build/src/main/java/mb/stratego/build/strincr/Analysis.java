@@ -282,6 +282,7 @@ public class Analysis {
             staticData.usedAmbStrategies.put(module.path, frontOutput.ambStratUsed);
             staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
             staticData.registerStrategyDefinitions(module, frontOutput.strats);
+            staticData.registerInternalStrategyDefinitions(module, frontOutput.internalStrats);
             staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
             staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
 
