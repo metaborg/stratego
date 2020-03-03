@@ -12,6 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import mb.stratego.build.strincr.Message;
@@ -45,7 +46,7 @@ public class SugarAnalysis {
         boolean isCongruence = visitCongruence(term);
         if(!isCongruence) {
             visitVar(term);
-            for(IStrategoTerm child : term) {
+            for(IStrategoTerm child : term.getSubterms()) {
                 visit(child);
             }
         }
@@ -55,10 +56,10 @@ public class SugarAnalysis {
      * Test whether a local variable overlaps with a nullary constructor
      */
     private void visitVar(IStrategoTerm term) {
-        if(Tools.isTermAppl(term) && term.getSubtermCount() == 1) {
+        if(TermUtils.isAppl(term) && term.getSubtermCount() == 1) {
             IStrategoAppl appl = (IStrategoAppl) term;
-            if(appl.getName().equals("Var") && Tools.isTermString(appl.getSubterm(0))) {
-                final IStrategoString varName = Tools.stringAt(appl, 0);
+            if(appl.getName().equals("Var") && TermUtils.isString(appl.getSubterm(0))) {
+                final IStrategoString varName = TermUtils.toStringAt(appl, 0);
                 if(isConstructor(varName.stringValue(), 0)) {
                     sugarAnalysisMessages.add(Message.varConstrOverlap(module, varName));
                 }
@@ -84,7 +85,7 @@ public class SugarAnalysis {
     private boolean visitCongruence(IStrategoTerm term, boolean returnConst) {
         boolean isCongruence = false;
         boolean constCongruence = false;
-        if(Tools.isTermAppl(term)) {
+        if(TermUtils.isAppl(term)) {
             IStrategoAppl appl = (IStrategoAppl) term;
             switch(appl.getName()) {
                 case "StrCong":
@@ -97,8 +98,8 @@ public class SugarAnalysis {
                     }
                     break;
                 case "CongQ":
-                    if(appl.getSubtermCount() == 2 && Tools.isTermList(appl.getSubterm(1))) {
-                        IStrategoList children = Tools.listAt(appl, 1);
+                    if(appl.getSubtermCount() == 2 && TermUtils.isList(appl.getSubterm(1))) {
+                        IStrategoList children = TermUtils.toListAt(appl, 1);
                         if(constantCongruence(children)) {
                             constCongruence = true;
                         }
@@ -106,8 +107,8 @@ public class SugarAnalysis {
                     }
                     break;
                 case "AnnoCong":
-                    if(appl.getSubtermCount() == 2 && Tools.isTermAppl(appl.getSubterm(1))) {
-                        IStrategoAppl secondChild = Tools.applAt(term, 1);
+                    if(appl.getSubtermCount() == 2 && TermUtils.isAppl(appl.getSubterm(1))) {
+                        IStrategoAppl secondChild = TermUtils.toApplAt(term, 1);
                         if(secondChild.getName().equals("StrategyCurly") && secondChild.getSubtermCount() == 1) {
                             if(constantCongruence(Arrays.asList(appl.getSubterm(0), secondChild.getSubterm(0)))) {
                                 constCongruence = true;
@@ -124,8 +125,8 @@ public class SugarAnalysis {
                     break;
                 case "TupleCong":
                 case "ListCongNoTail":
-                    if(appl.getSubtermCount() == 1 && Tools.isTermList(appl.getSubterm(0))) {
-                        IStrategoList children = Tools.listAt(appl, 0);
+                    if(appl.getSubtermCount() == 1 && TermUtils.isList(appl.getSubterm(0))) {
+                        IStrategoList children = TermUtils.toListAt(appl, 0);
                         if(constantCongruence(children)) {
                             constCongruence = true;
                         }
@@ -133,8 +134,8 @@ public class SugarAnalysis {
                     }
                     break;
                 case "ListCong":
-                    if(appl.getSubtermCount() == 2 && Tools.isTermList(appl.getSubterm(0))) {
-                        IStrategoList children = Tools.listAt(appl, 0);
+                    if(appl.getSubtermCount() == 2 && TermUtils.isList(appl.getSubterm(0))) {
+                        IStrategoList children = TermUtils.toListAt(appl, 0);
                         if(constantCongruence(children) && constantCongruence(appl.getSubterm(1))) {
                             constCongruence = true;
                         }
@@ -142,8 +143,8 @@ public class SugarAnalysis {
                     }
                     break;
                 case "ExplodeCong":
-                    if(appl.getSubtermCount() == 2 && Tools.isTermAppl(appl.getSubterm(1))) {
-                        IStrategoAppl secondChild = Tools.applAt(term, 1);
+                    if(appl.getSubtermCount() == 2 && TermUtils.isAppl(appl.getSubterm(1))) {
+                        IStrategoAppl secondChild = TermUtils.toApplAt(term, 1);
                         if(secondChild.getName().equals("ParenStrat") && secondChild.getSubtermCount() == 1) {
                             if(constantCongruence(Arrays.asList(appl.getSubterm(0), secondChild.getSubterm(0)))) {
                                 constCongruence = true;
@@ -153,15 +154,15 @@ public class SugarAnalysis {
                     }
                     break;
                 case "CallT":
-                    if(appl.getSubtermCount() == 3 && Tools.isTermAppl(appl.getSubterm(0))
-                        && Tools.isTermList(appl.getSubterm(1)) && Tools.isTermList(appl.getSubterm(2))) {
-                        IStrategoAppl firstChild = Tools.applAt(term, 0);
-                        IStrategoList secondChild = Tools.listAt(term, 1);
-                        IStrategoList thirdChild = Tools.listAt(term, 1);
+                    if(appl.getSubtermCount() == 3 && TermUtils.isAppl(appl.getSubterm(0))
+                        && TermUtils.isList(appl.getSubterm(1)) && TermUtils.isList(appl.getSubterm(2))) {
+                        IStrategoAppl firstChild = TermUtils.toApplAt(term, 0);
+                        IStrategoList secondChild = TermUtils.toListAt(term, 1);
+                        IStrategoList thirdChild = TermUtils.toListAt(term, 1);
                         visit(thirdChild);
                         if(firstChild.getName().equals("SVar") && firstChild.getSubtermCount() == 1
-                            && Tools.isTermString(firstChild.getSubterm(0))
-                            && isConstructor(Tools.javaStringAt(firstChild, 0), secondChild.size())) {
+                            && TermUtils.isString(firstChild.getSubterm(0))
+                            && isConstructor(TermUtils.toJavaStringAt(firstChild, 0), secondChild.size())) {
                             if(constantCongruence(secondChild)) {
                                 constCongruence = true;
                             }
@@ -185,7 +186,7 @@ public class SugarAnalysis {
     }
 
     /**
-     * @param term
+     * @param cong
      * @return true if congruence is constant
      */
     private boolean constantCongruence(IStrategoTerm cong) {

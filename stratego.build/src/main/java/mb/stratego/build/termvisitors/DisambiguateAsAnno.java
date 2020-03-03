@@ -9,6 +9,7 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.SRTS_all;
 import org.strategoxt.lang.Strategy;
@@ -41,8 +42,8 @@ public class DisambiguateAsAnno {
     }
 
     public @Nullable IStrategoTerm resolveAmbiguity(IStrategoTerm current) {
-        if(Tools.isTermAppl(current) && ((IStrategoAppl) current).getName().equals("amb") && Tools.isTermList(current.getSubterm(0))) {
-            IStrategoList ambs = Tools.listAt(current, 0);
+        if(TermUtils.isAppl(current) && ((IStrategoAppl) current).getName().equals("amb") && TermUtils.isList(current.getSubterm(0))) {
+            IStrategoList ambs = TermUtils.toListAt(current, 0);
             if(ambs.size() == 2) {
                 IStrategoTerm left = ambs.getSubterm(0);
                 IStrategoTerm right = ambs.getSubterm(1);
@@ -66,7 +67,7 @@ public class DisambiguateAsAnno {
         if(left == right || left.equals(right)) {
             return left;
         }
-        if(Tools.isTermAppl(left)) {
+        if(TermUtils.isAppl(left)) {
             IStrategoAppl leftA = (IStrategoAppl) left;
             IStrategoAppl rightA = (IStrategoAppl) right;
 

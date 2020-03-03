@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.flowspec.terms.StrategoArrayList;
 import mb.stratego.build.util.Relation;
+import org.spoofax.terms.util.TermUtils;
 
 public class SplitResult {
     public final String moduleName;
@@ -29,14 +30,14 @@ public class SplitResult {
     }
 
     public static SplitResult fromTerm(IStrategoTerm splitTerm) {
-        final String moduleName = Tools.javaStringAt(splitTerm, 0);
-        final IStrategoList imps = Tools.listAt(splitTerm, 1);
-        final IStrategoList strats = Tools.listAt(splitTerm, 2);
-        final IStrategoList cons = Tools.listAt(splitTerm, 3);
-        final IStrategoList olays = Tools.listAt(splitTerm, 4);
+        final String moduleName = TermUtils.toJavaStringAt(splitTerm, 0);
+        final IStrategoList imps = TermUtils.toListAt(splitTerm, 1);
+        final IStrategoList strats = TermUtils.toListAt(splitTerm, 2);
+        final IStrategoList cons = TermUtils.toListAt(splitTerm, 3);
+        final IStrategoList olays = TermUtils.toListAt(splitTerm, 4);
 
         final List<IStrategoTerm> imports = new ArrayList<>(imps.size());
-        for(IStrategoTerm imp : imps) {
+        for(IStrategoTerm imp : imps.getSubterms()) {
             imports.add(imp);
         }
 
@@ -49,9 +50,9 @@ public class SplitResult {
 
     private static Map<String, IStrategoTerm> assocListToMap(final IStrategoList assocList) {
         final Map<String, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
-        for(IStrategoTerm pair : assocList) {
-            final String name = Tools.javaStringAt(pair, 0);
-            final IStrategoTerm def = Tools.termAt(pair, 1);
+        for(IStrategoTerm pair : assocList.getSubterms()) {
+            final String name = TermUtils.toJavaStringAt(pair, 0);
+            final IStrategoTerm def = pair.getSubterm(1);
             Relation.getOrInitialize(resultMap, name, ArrayList::new).add(def);
         }
         return packMapValues(resultMap);

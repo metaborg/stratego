@@ -71,6 +71,7 @@ import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StringSetWithPositions;
+import org.spoofax.terms.util.TermUtils;
 
 public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     public static final String id = Frontend.class.getCanonicalName();
@@ -549,23 +550,23 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
-        final IStrategoList defs3 = Tools.listAt(result, 0);
+        final IStrategoList defs3 = TermUtils.toListAt(result, 0);
         // 1 == DR_UNDEFINE_1, DR_DUMMY_0
-        final IStrategoList olays = Tools.listAt(result, 2);
+        final IStrategoList olays = TermUtils.toListAt(result, 2);
         // 3 ~= 1
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm overlayPair : olays) {
-            final IStrategoString overlayName = Tools.stringAt(overlayPair, 0);
-            final IStrategoAppl overlayAST = Tools.applAt(overlayPair, 1);
+        for(IStrategoTerm overlayPair : olays.getSubterms()) {
+            final IStrategoString overlayName = TermUtils.toStringAt(overlayPair, 0);
+            final IStrategoAppl overlayAST = TermUtils.toApplAt(overlayPair, 1);
             definedOverlays.add(overlayName);
 
             Relation.getOrInitialize(overlayASTs, overlayName.stringValue(), ArrayList::new).add(overlayAST);
         }
 
-        for(IStrategoTerm defPair : defs3) {
-            final IStrategoString strategyName = Tools.stringAt(defPair, 0);
-            final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);
+        for(IStrategoTerm defPair : defs3.getSubterms()) {
+            final IStrategoString strategyName = TermUtils.toStringAt(defPair, 0);
+            final IStrategoAppl strategyAST = TermUtils.toApplAt(defPair, 1);
             strategyASTs.put(strategyName.stringValue(), strategyAST);
             definedStrats.add(strategyName);
 
@@ -578,9 +579,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             }
         }
 
-        for(IStrategoTerm noOfDef : noOfDefs) {
-            final String defName = Tools.javaStringAt(noOfDef, 0);
-            final int no = Tools.javaIntAt(noOfDef, 1);
+        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+            final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
+            final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
         }
     }
@@ -595,18 +596,18 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         // 0 == Anno__Cong_____2_0
-        final IStrategoList constrs = Tools.listAt(result, 1);
+        final IStrategoList constrs = TermUtils.toListAt(result, 1);
         // 2 == empty
-        final IStrategoList congs = Tools.listAt(result, 3);
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        final IStrategoList congs = TermUtils.toListAt(result, 3);
+        final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm constr : constrs) {
-            definedConstrs.add(Tools.stringAt(constr, 0));
+        for(IStrategoTerm constr : constrs.getSubterms()) {
+            definedConstrs.add(TermUtils.toStringAt(constr, 0));
         }
 
-        for(IStrategoTerm congrPair : congs) {
-            final IStrategoString congrName = Tools.stringAt(congrPair, 0);
-            final IStrategoAppl congrAST = Tools.applAt(congrPair, 1);
+        for(IStrategoTerm congrPair : congs.getSubterms()) {
+            final IStrategoString congrName = TermUtils.toStringAt(congrPair, 0);
+            final IStrategoAppl congrAST = TermUtils.toApplAt(congrPair, 1);
             final String congrNameString = congrName.stringValue();
             final IStrategoString cifiedCongrName = B.string(congrNameString + "_0");
             OriginAttachment.setOrigin(cifiedCongrName, congrName);
@@ -619,9 +620,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             strategyConstrs.put(congrNameString, usedConstrs);
         }
 
-        for(IStrategoTerm noOfDef : noOfDefs) {
-            final String defName = Tools.javaStringAt(noOfDef, 0);
-            final int no = Tools.javaIntAt(noOfDef, 1);
+        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+            final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
+            final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
         }
     }
@@ -635,15 +636,15 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions usedStrats, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException, IOException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
-        final IStrategoList defs3 = Tools.listAt(result, 0);
+        final IStrategoList defs3 = TermUtils.toListAt(result, 0);
         // 1 == DR_UNDEFINE_1, DR_DUMMY_0
         // 2 == empty
         // 3 ~= 1
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm defPair : defs3) {
-            final IStrategoString strategyName = Tools.stringAt(defPair, 0);
-            final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);
+        for(IStrategoTerm defPair : defs3.getSubterms()) {
+            final IStrategoString strategyName = TermUtils.toStringAt(defPair, 0);
+            final IStrategoAppl strategyAST = TermUtils.toApplAt(defPair, 1);
             strategyASTs.put(strategyName.stringValue(), strategyAST);
             definedStrats.add(strategyName);
 
@@ -659,9 +660,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName));
         assert boilerplateFile != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file";
 
-        for(IStrategoTerm noOfDef : noOfDefs) {
-            final String defName = Tools.javaStringAt(noOfDef, 0);
-            final int no = Tools.javaIntAt(noOfDef, 1);
+        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+            final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
+            final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
         }
     }
@@ -685,11 +686,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     }
 
     private boolean needsExternal(IStrategoAppl strategyAST) {
-        if(Tools.hasConstructor(strategyAST, "AnnoDef", 2)) {
-            IStrategoList annos = Tools.listAt(strategyAST, 0);
-            for(IStrategoTerm anno : annos) {
-                if(anno.getSubtermCount() == 0 && anno.getTermType() == IStrategoTerm.APPL) {
-                    String annoName = Tools.constructorName(anno);
+        if(TermUtils.isAppl(strategyAST, "AnnoDef", 2)) {
+            IStrategoList annos = TermUtils.toListAt(strategyAST, 0);
+            for(IStrategoTerm anno : annos.getSubterms()) {
+                if(TermUtils.isAppl(anno, null, 0)) {
+                    String annoName = TermUtils.tryGetName(anno).orElse(null);
                     if(annoName.equals("Override") || annoName.equals("Extend")) {
                         return true;
                     }
@@ -742,9 +743,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 // support *.rtree (StrategoSugar AST)
                 final ITermFactory factory = termFactoryService.getGeneric();
                 ast = new TermReader(factory).parseFromStream(inputFile.getContent().getInputStream());
-                if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Module")
+                if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
-                    if(!(ast instanceof IStrategoAppl && ((IStrategoAppl) ast).getName().equals("Specification")
+                    if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
                         && ast.getSubtermCount() == 1)) {
                         throw new ExecException("Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
                     } else {

@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -21,6 +20,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.StringSetWithPositions;
+import org.spoofax.terms.util.TermUtils;
 
 public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
     public static final String id = LibFrontend.class.getCanonicalName();
@@ -101,38 +101,38 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         }
         final IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
         // Expected: Specification([Signature([Constructors([...])]), Strategies([...])])
-        if(!(Tools.isTermAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {
+        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification(...), but got: " + ast.toString(0));
         }
         final IStrategoTerm specList = ast.getSubterm(0);
-        if(!(Tools.isTermList(specList) && specList.getSubtermCount() == 2)) {
+        if(!(TermUtils.isList(specList) && specList.getSubtermCount() == 2)) {
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification([..., ...]), but got: " + ast.toString(2));
         }
         final IStrategoTerm signaturesTerm = specList.getSubterm(0);
         final IStrategoTerm strategiesTerm = specList.getSubterm(1);
-        if(!(Tools.isTermAppl(signaturesTerm) && Tools.constructorName(signaturesTerm).equals("Signature")
-            && signaturesTerm.getSubtermCount() == 1 && Tools.isTermList(signaturesTerm.getSubterm(0))
-            && Tools.listAt(signaturesTerm, 0).size() == 1)) {
+        if(!(TermUtils.isAppl(signaturesTerm) && TermUtils.tryGetName(signaturesTerm).orElse("").equals("Signature")
+            && signaturesTerm.getSubtermCount() == 1 && TermUtils.isList(signaturesTerm.getSubterm(0))
+            && TermUtils.toListAt(signaturesTerm, 0).size() == 1)) {
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification([Signature([...]), ...]), but got: " + ast
                     .toString(3));
         }
-        final IStrategoTerm constructorsTerm = Tools.listAt(signaturesTerm, 0).getSubterm(0);
-        if(!(Tools.isTermAppl(constructorsTerm) && Tools.constructorName(constructorsTerm).equals("Constructors")
-            && constructorsTerm.getSubtermCount() == 1 && Tools.isTermList(signaturesTerm.getSubterm(0)))) {
+        final IStrategoTerm constructorsTerm = TermUtils.toListAt(signaturesTerm, 0).getSubterm(0);
+        if(!(TermUtils.isAppl(constructorsTerm) && TermUtils.tryGetName(constructorsTerm).orElse("").equals("Constructors")
+            && constructorsTerm.getSubtermCount() == 1 && TermUtils.isList(signaturesTerm.getSubterm(0)))) {
             throw new ExecException("Malformed built-in library AST. "
                 + "Expected Specification([Signature([Constructors([...])]), ...]), but got: " + ast.toString(3));
         }
-        if(!(Tools.isTermAppl(strategiesTerm) && Tools.constructorName(strategiesTerm).equals("Strategies")
-            && strategiesTerm.getSubtermCount() == 1 && Tools.isTermList(strategiesTerm.getSubterm(0)))) {
+        if(!(TermUtils.isAppl(strategiesTerm) && TermUtils.tryGetName(strategiesTerm).orElse("").equals("Strategies")
+            && strategiesTerm.getSubtermCount() == 1 && TermUtils.isList(strategiesTerm.getSubterm(0)))) {
             throw new ExecException("Malformed built-in library AST. "
                 + "Expected Specification([Signature([Constructors([...])]), Strategies([...])]), but got: " + ast
                 .toString(3));
         }
-        final StringSetWithPositions constrs = extractConstrs(Tools.listAt(constructorsTerm, 0));
-        final StringSetWithPositions strategies = extractStrategies(Tools.listAt(strategiesTerm, 0));
+        final StringSetWithPositions constrs = extractConstrs(TermUtils.toListAt(constructorsTerm, 0));
+        final StringSetWithPositions strategies = extractStrategies(TermUtils.toListAt(strategiesTerm, 0));
 
         BuildStats.frontLibTaskTime += System.nanoTime() - startTime;
         return new Output(strategies, constrs);
@@ -140,43 +140,42 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     private StringSetWithPositions extractConstrs(IStrategoList extConstrTerms) throws ExecException {
         final StringSetWithPositions constrs = new StringSetWithPositions();
-        for(IStrategoTerm extConstrTerm : extConstrTerms) {
-            if(Tools.isTermAppl(extConstrTerm)) {
+        for(IStrategoTerm extConstrTerm : extConstrTerms.getSubterms()) {
+            if(TermUtils.isAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
-                if(Tools.hasConstructor(extConstrAppl, "ExtOpDecl", 2)) {
-                    if(!(Tools.isTermString(extConstrAppl.getSubterm(0)))) {
+                if(TermUtils.isAppl(extConstrAppl, "ExtOpDecl", 2)) {
+                    if(!(TermUtils.isString(extConstrAppl.getSubterm(0)))) {
                         throw new ExecException(
                             "Malformed built-in library AST. " + "Expected ExtOpDecl(\"...\", ...) but got: "
                                 + extConstrTerm.toString(2));
                     }
-                    if(Tools.isTermAppl(extConstrAppl.getSubterm(1)) && Tools
-                        .hasConstructor(Tools.applAt(extConstrAppl, 1), "FunType", 2) && Tools
-                        .isTermList(extConstrAppl.getSubterm(1).getSubterm(0))) {
+                    if(TermUtils.isAppl(extConstrAppl.getSubterm(1)) && TermUtils
+                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2) && TermUtils
+                        .isList(extConstrAppl.getSubterm(1).getSubterm(0))) {
                         constrs.add(B.string(
-                            Tools.javaStringAt(extConstrAppl, 0) + "_" + Tools.listAt(extConstrAppl.getSubterm(1), 0)
+                            TermUtils.toJavaStringAt(extConstrAppl, 0) + "_" + TermUtils.toListAt(extConstrAppl.getSubterm(1), 0)
                                 .size()));
-                    } else if(Tools.isTermAppl(extConstrAppl.getSubterm(1)) && Tools
-                        .hasConstructor(Tools.applAt(extConstrAppl, 1), "ConstType", 1)) {
-                        constrs.add(B.string(Tools.javaStringAt(extConstrAppl, 0) + "_0"));
+                    } else if(TermUtils.isAppl(extConstrAppl.getSubterm(1)) && TermUtils
+                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "ConstType", 1)) {
+                        constrs.add(B.string(TermUtils.toJavaStringAt(extConstrAppl, 0) + "_0"));
                     } else {
                         throw new ExecException("Malformed built-in library AST. "
                             + "Expected ExtOpDecl(\"...\", FunType([...], ...)) or ExtOpDecl(\"...\", ConstType(...)) but got: "
                             + extConstrTerm.toString(2));
                     }
                     continue;
-                } else if(Tools.hasConstructor(extConstrAppl, "ExtOpDeclQ", 2)) {
-                    if(!(Tools.isTermString(extConstrAppl.getSubterm(0)) && Tools
-                        .isTermAppl(extConstrAppl.getSubterm(1)) && Tools
-                        .hasConstructor(Tools.applAt(extConstrAppl, 1), "FunType", 2) && Tools
-                        .isTermList(extConstrAppl.getSubterm(1).getSubterm(0)))) {
+                } else if(TermUtils.isAppl(extConstrAppl, "ExtOpDeclQ", 2)) {
+                    if(!(TermUtils.isString(extConstrAppl.getSubterm(0)) && TermUtils
+                        .isAppl(extConstrAppl.getSubterm(1)) && TermUtils
+                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2) && TermUtils
+                        .isList(extConstrAppl.getSubterm(1).getSubterm(0)))) {
                         throw new ExecException("Malformed built-in library AST. "
                             + "Expected ExtOpDeclQ(\"...\", FunType([...], ...)) but got: " + extConstrTerm
                             .toString(2));
                     }
-                    constrs.add(B.string(StringEscapeUtils.escapeJava(Tools.javaStringAt(extConstrAppl, 0)) + "_" + Tools
-                        .listAt(extConstrAppl.getSubterm(1), 0).size()));
+                    constrs.add(B.string(StringEscapeUtils.escapeJava(TermUtils.toJavaStringAt(extConstrAppl, 0)) + "_" + TermUtils.toListAt(extConstrAppl.getSubterm(1), 0).size()));
                     continue;
-                } else if(Tools.hasConstructor(extConstrAppl, "ExtOpDeclInj", 1)) {
+                } else if(TermUtils.isAppl(extConstrAppl, "ExtOpDeclInj", 1)) {
                     continue;
                 }
             }
@@ -189,8 +188,8 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     private StringSetWithPositions extractStrategies(IStrategoList extSDefTerms) throws ExecException {
         final StringSetWithPositions strategyConstrs = new StringSetWithPositions();
-        for(IStrategoTerm extSDefTerm : extSDefTerms) {
-            if(!(Tools.isTermAppl(extSDefTerm) && Tools.hasConstructor((IStrategoAppl) extSDefTerm, "ExtSDef", 3))) {
+        for(IStrategoTerm extSDefTerm : extSDefTerms.getSubterms()) {
+            if(!(TermUtils.isAppl(extSDefTerm, "ExtSDef", 3))) {
                 throw new ExecException(
                     "Malformed built-in library AST. " + "Expected ExtSDef(..., ..., ...) but got: " + extSDefTerm
                         .toString(0));
@@ -198,13 +197,13 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
             IStrategoTerm name = extSDefTerm.getSubterm(0);
             IStrategoTerm sargs = extSDefTerm.getSubterm(1);
             IStrategoTerm targs = extSDefTerm.getSubterm(2);
-            if(!(Tools.isTermString(name) && Tools.isTermList(sargs) && Tools.isTermList(targs))) {
+            if(!(TermUtils.isString(name) && TermUtils.isList(sargs) && TermUtils.isList(targs))) {
                 throw new ExecException(
                     "Malformed built-in library AST. " + "Expected ExtSDef(\"...\", ..., ...) but got: " + extSDefTerm
                         .toString(1));
             }
             strategyConstrs
-                .add(B.string(cify(Tools.javaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount()));
+                .add(B.string(cify(TermUtils.toJavaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount()));
         }
         return strategyConstrs;
     }

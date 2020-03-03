@@ -7,6 +7,7 @@ import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 public final class Import implements Serializable {
     public enum ImportType {
@@ -36,20 +37,20 @@ public final class Import implements Serializable {
     }
 
     static Import fromTerm(IStrategoTerm importTerm) throws IOException {
-        if(!(importTerm instanceof IStrategoAppl)) {
+        if(!(TermUtils.isAppl(importTerm))) {
             throw new IOException("Import term was not a constructor: " + importTerm);
         }
         final IStrategoAppl appl = (IStrategoAppl) importTerm;
         switch(appl.getName()) {
             case "Import":
-                IStrategoString importString = Tools.stringAt(appl, 0);
+                IStrategoString importString = TermUtils.toStringAt(appl, 0);
                 if(Library.Builtin.isBuiltinLibrary(importString.stringValue())) {
                     return library(importString);
                 } else {
                     return normal(importString);
                 }
             case "ImportWildcard":
-                return wildcard(Tools.stringAt(appl, 0));
+                return wildcard(TermUtils.toStringAt(appl, 0));
             default:
                 throw new IOException("Import term was not the expected Import or ImportWildcard: " + appl);
         }

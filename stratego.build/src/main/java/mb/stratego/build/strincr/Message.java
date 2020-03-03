@@ -6,6 +6,7 @@ import org.metaborg.core.messages.MessageSeverity;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
+import org.spoofax.terms.util.TermUtils;
 
 public abstract class Message<T extends IStrategoTerm> {
     public final String moduleFilePath;
@@ -20,7 +21,7 @@ public abstract class Message<T extends IStrategoTerm> {
 
     public static Message<IStrategoString> externalStrategyNotFound(String module, IStrategoString definitionName) {
         IStrategoTerm origin = OriginAttachment.getOrigin(definitionName);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             definitionName = (IStrategoString) origin;
         }
         return new ExternalStrategyNotFound(module, definitionName);
@@ -29,7 +30,7 @@ public abstract class Message<T extends IStrategoTerm> {
     public static Message<IStrategoString> strategyNotFound(String module, IStrategoString name,
         MessageSeverity severity) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
         return new StrategyNotFound(module, name, severity);
@@ -38,7 +39,7 @@ public abstract class Message<T extends IStrategoTerm> {
     public static Message<IStrategoString> constructorNotFound(String module, IStrategoString name,
         MessageSeverity severity) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
         return new ConstructorNotFound(module, name, severity);
@@ -46,7 +47,7 @@ public abstract class Message<T extends IStrategoTerm> {
 
     public static Message<IStrategoString> externalStrategyOverlap(String module, IStrategoString name) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
         return new ExternalStrategyOverlap(module, name);
@@ -54,7 +55,7 @@ public abstract class Message<T extends IStrategoTerm> {
 
     public static Message<IStrategoString> cyclicOverlay(String module, IStrategoString name, Set<String> overlayScc) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
         return new CyclicOverlay(module, name, overlayScc);
@@ -63,7 +64,7 @@ public abstract class Message<T extends IStrategoTerm> {
     public static Message<IStrategoString> ambiguousStrategyCall(String module, IStrategoString name,
         Set<String> defs) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && origin instanceof IStrategoString) {
+        if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
         return new AmbiguousStrategyCall(module, name, defs);

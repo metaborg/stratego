@@ -10,6 +10,7 @@ import org.spoofax.terms.TermVisitor;
 
 import mb.flowspec.terms.B;
 import mb.stratego.build.util.StringSetWithPositions;
+import org.spoofax.terms.util.TermUtils;
 
 public class UsedConstrs extends TermVisitor {
     private final StringSetWithPositions usedConstrs;
@@ -24,19 +25,19 @@ public class UsedConstrs extends TermVisitor {
     }
 
     void registerConsUse(IStrategoTerm term) {
-        if(Tools.isTermAppl(term) && Tools.hasConstructor((IStrategoAppl) term, "Op", 2)) {
-            if(Tools.isTermString(term.getSubterm(0))) {
-                final IStrategoString nameAST = Tools.stringAt(term, 0);
+        if(TermUtils.isAppl(term) && TermUtils.isAppl((IStrategoAppl) term, "Op", 2)) {
+            if(TermUtils.isString(term.getSubterm(0))) {
+                final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
                 final String name = nameAST.stringValue();
                 if(!name.equals("")) {
                     final IStrategoString cifiedName =
-                        B.string(name + "_" + Tools.listAt(term, 1).size());
+                        B.string(name + "_" + TermUtils.toListAt(term, 1).size());
                     tf.copyAttachments(nameAST, cifiedName);
                     usedConstrs.add(cifiedName);
                 }
             } else {
-                final IStrategoString nameAST = Tools.stringAt(Tools.<IStrategoTerm>termAt(term, 0), 0);
-                final IStrategoString cifiedName = B.string(strategoEscape(nameAST.stringValue()) + Tools.listAt(term, 1).size());
+                final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
+                final IStrategoString cifiedName = B.string(strategoEscape(nameAST.stringValue()) + TermUtils.toListAt(term, 1).size());
                 tf.copyAttachments(nameAST, cifiedName);
                 usedConstrs.add(cifiedName);
             }
