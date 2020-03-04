@@ -57,7 +57,14 @@ imset-elements = ?ImmutableSet(<id>); prim("SSL_immutable_set_elements")
 strategies
 
 /**
- * Succeeds is element is in the immutable set.
+ * Succeeds if the given immutable set is empty.
+ *
+ * @type ImmutableSet -?> ImmutableSet
+ */
+imset-empty = equal(|<imset-new>)
+
+/**
+ * Succeeds if element is in the immutable set.
  *
  * @param e - the element that containment is tested for
  * @type ImmutableSet -?> ImmutableSet

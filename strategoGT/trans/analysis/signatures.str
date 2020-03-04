@@ -10,7 +10,7 @@ StringT : Type
 IntT : Type
 RealT : Type
 
-IllFormedSort : Id * List(Type) -> Type
+IllFormedTermT : Id * List(Type) -> Type
 
 ConstrType : List(Type) * Type -> ConstrType
 
@@ -43,6 +43,7 @@ DuplicateTypeDefinition              : ErrorDesc
 MissingDefinitionForTypeDefinition   : ErrorDesc
 
 ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
+ProceedInNonExtendStrategy           : ErrorDesc
 
 CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
 
@@ -70,8 +71,9 @@ BuildUnboundTerm                     : ErrorDesc
 overlays
 
   FunTType(from, to) = FunTType([], [], from, to)
-  FunTType(ft) = FunTType(ft, ft)
-  FunTType() = FunTType(Dyn())
+  FunTType(ft) = FunTType([], [], ft, ft)
+  FunTType() = FunTType([], [], DynT(), DynT())
   ListT(elem) = Sort("List", [elem])
-  ListT() = ListT(Dyn())
+  ListT() = Sort("List", [_DynT()])
   TupleT(elems) = Sort("Tuple", elems)
+  DynT() = DynT(_Dyn())

@@ -124,6 +124,13 @@ imrel-invert =
 strategies
 
 /**
+ * Succeeds if the given immutable relation is empty.
+ *
+ * @type ImmutableRelation -?> ImmutableRelation
+ */
+imrel-empty = equal(|<imrel-new>)
+
+/**
  * Succeeds if the key is in the immutable relation.
  *
  * @param k - the key

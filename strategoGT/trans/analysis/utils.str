@@ -7,6 +7,10 @@ libstratego-aterm
 signatures/gradual-types/modules-sig
 signatures/gradual-types/signatures-sig
 signatures/sugar/signatures-sig
+signatures/sugar/modules-sig
+signatures/core/modules-sig
+signatures/sugar/strategies-sig
+signatures/core/strategies-sig
 analysis/signatures
 
 analysis/main
@@ -66,17 +70,17 @@ arityOf-SType: FunTType(st*, tt*, _, _) -> (<length> st*, <length> tt*)
 
 strategies
 
-name-of-StrategyDef-RuleDef: SDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
-name-of-StrategyDef-RuleDef: SDef(name, s*, _) -> (name{}, <length> s*, 0)
-name-of-StrategyDef-RuleDef: SDefNoArgs(name, _) -> (name{}, 0, 0)
-name-of-StrategyDef-RuleDef: ExtSDefInl(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
-name-of-StrategyDef-RuleDef: ExtSDef(name, s*, t*) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: SDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: SDef(name, s*, _) -> (name{}, <length> s*, 0)
+nameOf-StrategyDef-RuleDef: SDefNoArgs(name, _) -> (name{}, 0, 0)
+nameOf-StrategyDef-RuleDef: ExtSDefInl(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: ExtSDef(name, s*, t*) -> (name{}, <length> s*, <length> t*)
 
-name-of-StrategyDef-RuleDef: RDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
-name-of-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
-name-of-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
+nameOf-StrategyDef-RuleDef: RDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
+nameOf-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
 
-name-of-DefHasType: DefHasType(name, <desugar-SType>) -> (name{}, <length> s*, <length> t*)
+nameOf-DefHasType: DefHasType(name, <desugar-SType>) -> (name{}, <length> s*, <length> t*)
   with ?FunTType(s*, t*, _, _)
 
 strategies
@@ -89,17 +93,31 @@ computeCoercion(|from, to): subj -> <computeCoercion(|subj)> (MTError(), from, t
 computeCoercion: (from, to) -> <computeCoercion(|from)> (MTError(), from, to)
 
 // computeCoercion :: MessageType * Type * Type -> Coercion
-computeCoercion(|subj): (_, _, Dyn()) -> Id()
-computeCoercion(|subj): (_, ErrT(), _) -> Id()
-computeCoercion(|subj): (MTError(), Dyn(), to) -> RuntimeCheck(to)
-computeCoercion(|subj): (MTWarning(), Dyn(), to) -> Id()
+computeCoercion(|subj): (_, from, DynT(to)) -> Id(){t}
+  where
+    if not(DynT(f) := from; (Dyn() := f <+ <CanCoerce> (f, to)) <+ Dyn() := to <+ not(DynT() := from); <CanCoerce> (from, to))
+      then <report-Warn> (subj, NoInjectionBetween(from, DynT(to)))
+    end
+  ; if not(DynT() := from)
+      then t := from
+      else if DynT(f) := from; <CanCoerce> (f, to)
+        then t := DynT(f)
+        else t := DynT(to)
+      end
+    end
+computeCoercion(|subj): (MTError(), DynT(), to) -> RuntimeCheck(to){to}
+computeCoercion(|subj): (_, DynT(from), to) -> Id(){to}
+  where
+    if not(Dyn() := from <+ <CanCoerce> (from, to))
+      then <report-Warn> (subj, NoInjectionBetween(from, to))
+    end
 computeCoercion(|subj): (lvl, from, to) -> coercion
   where if <CanCoerce> (from, to)
-    then coercion := Id() 
+    then coercion := Id(){from}
     else <report> (lvl, subj, NoInjectionBetween(from, to))
        ; if MTError() := lvl
-           then coercion := Fail()
-           else coercion := Id()
+           then coercion := Fail(){FailT()}
+           else coercion := Id(){to}
          end
   end
 
@@ -112,7 +130,8 @@ computeSCoercion: (SDyn(), sft@FunTType(_, _, _, _)) -> SRuntimeCheck(sft)
 insertCastAfter(|from, to) = insertCastAfter(|MTError(), from, to)
 insertCastAfter(|lvl, from, to): strat -> strat'
   with
-    cast := Cast(<computeCoercion(|lvl, from, to)> strat)
+    c{t} := <computeCoercion(|lvl, from, to)> strat
+  ; cast := Cast(c)
   ; strat' := <try(rm-redundant-cast)> Seq(strat, cast)
 
 // Add a cast before the current strategy (in sequence) if necessary to go from `from` to `to`
@@ -120,16 +139,19 @@ insertCastAfter(|lvl, from, to): strat -> strat'
 insertCastBefore(|from, to) = insertCastBefore(|MTError(), from, to)
 insertCastBefore(|lvl, from, to): strat -> strat'
   with
-    cast := Cast(<computeCoercion(|lvl, from, to)> strat)
+    c{t} := <computeCoercion(|lvl, from, to)> strat
+  ; cast := Cast(c)
   ; strat' := <try(rm-redundant-cast)> Seq(cast, strat)
 
 // Add a cast on the current term (the App or `<cast(to)> term`) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 
 insertCastApp(|from, to) = insertCastApp(|MTError(), from, to)
-insertCastApp(|lvl, from, to): term -> term'
+insertCastApp(|lvl, from, to): (term1, st1) -> (term2, st2)
   with
-    cast := Cast(<computeCoercion(|lvl, from, to)> term)
-  ; term' := <try(rm-redundant-cast)> App(cast, term)
+    c{t} := <computeCoercion(|lvl, from, to)> term1
+  ; cast := Cast(c)
+  ; term2 := <try(rm-redundant-cast)> App(cast, term1)
+  ; st2 := <current-type(|t)> st1
 
 // Used to remove Id() casts
 rm-redundant-cast: Seq(Cast(Id()), strat) -> strat
@@ -145,12 +167,12 @@ toBinding-ExtSDef: d@ExtSDef(name, sargs, targs) ->
   ( (name{}, <length> sargs, <length> targs)
   , <otf(!FunTType(
       <map(otf(toBinding-ExtSDef-Typedid))> sargs
-    , <map(otf(!Dyn()))> targs
-    , <otf(!Dyn())> d
-    , <otf(!Dyn())> d))> d)
+    , <map(otf(!DynT()))> targs
+    , <otf(!DynT())> d
+    , <otf(!DynT())> d))> d)
 toBinding-ExtSDef-Typedid = ?VarDec(_, <toBinding-ExtSDef-ConstType + toBinding-ExtSDef-FunType>)
-toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], Dyn(), Dyn())
-toBinding-ExtSDef-ConstType: ConstType(s) -> Dyn()
+toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], DynT(), DynT())
+toBinding-ExtSDef-ConstType: ConstType(s) -> DynT()
 toBinding-ExtSDef-FunType: FunType(a*, r) -> SDyn()
 
 strategies // Messages
@@ -169,8 +191,8 @@ strategies // Helpers
 getDefTypes =
   with(
       map(try(extToNormal))
-    ; (haveTypes, defs) := <partition(name-of-DefHasType)>
-    ; defNames := <filter(name-of-StrategyDef-RuleDef);imset-from-list> defs
+    ; (haveTypes, defs) := <partition(nameOf-DefHasType)>
+    ; defNames := <filter(nameOf-StrategyDef-RuleDef);imset-from-list> defs
       // detect duplicates in haveTypes => errors
     ; <foldl(getDefTypes-detect-duplicates)> (haveTypes, <imset-new>)
       // detect missing definitions for haveTypes => errors
@@ -197,3 +219,37 @@ simpleDef: RDefT(n, s, t, _) -> ExtSDef(n, s, t)
 simpleDef: RDef(n, s, _) -> ExtSDef(n, s, [])
 simpleDef: RDefNoArgs(n, _) -> ExtSDef(n, [], [])
 
+strategies
+
+thread-map-reduce(s, reduce): ([], st) -> ([], st)
+thread-map-reduce(s, reduce): (trm1*@[_ | _], st1) -> (trm2*, st2)
+  where
+    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
+  ; st2 := <foldl(reduce)> (st*, st)
+
+thread-map-LUB(s): ([], st) -> ([], [], st)
+thread-map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, <reverse> t*, st2)
+  where
+    (trm2*, (st2, t*)) := <thread-map(thread-map-LUB-threader(s))> (trm1*, (st1, []))
+
+thread-map-LUB-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
+  where
+    (trm2, st2) := <s> (trm1, st1)
+  ; t2* := [<current-type> st2 | t1*]
+
+map-LUB(s): ([], st) -> ([], DynT(), st)
+map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t, st2)
+  where
+    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
+  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
+  ; t := <foldl(LUB <+ !DynT())> (st*, st)
+
+map-st-LUB(s): ([], st) -> ([], [], st)
+map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)
+  where
+    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
+  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
+  ; t* := <map(current-type)> [st | st*]
+
+// Incremental compiler needs updated static check to allow local override with internal keyword
+//internal seqs(|) = foldr1(Hd, \(s1, s2) -> Seq(s1, s2)\)

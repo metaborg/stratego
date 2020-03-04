@@ -2,6 +2,7 @@ module gradual-types/strategies
 
 imports
   gradual-types/signatures
+  core/identifiers
 
 template options
   Id = keyword {reject}
@@ -12,8 +13,11 @@ template options
 sorts Strategy Coercion
 context-free syntax
 // Extension for highlighting casts
-  Strategy.Cast   = <cast(<Coercion>)>
+  Strategy.Cast   = [cast([Coercion])]
+  Strategy.TypedCong = [[TypedId]([{Strategy ", "}*])]
 
-  Coercion.Fail = <fail>
-  Coercion.Id = <id>
+  Coercion.Fail = [fail]
+  Coercion.Id = [id]
   Coercion.RuntimeCheck = Type
+
+  TypedId.TypedId = [[SortT].[Id]]

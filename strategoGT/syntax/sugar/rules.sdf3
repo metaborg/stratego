@@ -32,11 +32,9 @@ context-free syntax
 sorts Rule RuleCond
 
 context-free syntax
-//    Rule.RuleNoCond = [[Term] -> [Term]] // backward comp.
-//
-//    Rule.Rule = [[Term] -> [Term] where [Strategy]]  // backward comp.
 
-  Rule.Rule = [[Term] -> [Term] [RuleCond*]] //{avoid}
+  Rule.Rule = [[Term] -> [Term]
+  [{RuleCond "\n"}*]]
 
   RuleCond.WhereClause =
 <where

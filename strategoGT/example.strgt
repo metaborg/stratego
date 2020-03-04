@@ -20,10 +20,43 @@ Module  : str * List(Stat) -> Module
 IAdd : Instr
 
 strategies
+  typed0 :: Expr -> Expr
+  typed0: e1 -> Add(e1, e2)
+  where e2 := Add(Int("1"), "1")
 
-  desugar-Expr :: Expr -> Expr
-  desugar-Expr: Int(e) -> Add(e, "1")
-  
+  typed1 :: Expr -> Expr
+  typed1: e -> Add(e, e)
+
+  typed2 :: Stat -> Stat
+  typed2 = id
+
+  untyped: Add(e1, _) -> e1
+  where
+    <typed1> e1
+  ; <typed2> e1
+
+  test-warning: Module(name, stats) -> Module(stats, name)
+
+//  desugar-Expr :: Expr -> Expr
+//  desugar-Expr: Int(e) -> Add(e, "1")
+
+  typed :: Expr -> Expr
+  typed: e1 -> Add(e1, e2)
+  where e2 := "1" :: Expr
+
+  untyped: Add(e1 :: Expr, _) -> e1
+  where <typed> e1
+/* //turns into:
+  untyped: Add(e10, _) -> e1
+  where e1 := <Cast(Expr())> e10
+  where <typed> e1
+*/
+
+  banana :: Expr -> Expr
+  banana = Var(id)
+
+// banana = Var(id)
+
   foo = ?A(<id>, B(<f>))
   
 //  desugar: a -> b

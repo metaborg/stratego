@@ -3,16 +3,18 @@ module gradual-types/signatures
 imports
   core/identifiers
 
-sorts Type
+sorts Type SortT Dyn
 context-free syntax
-  Type.Dyn = [?]
-  Type.SortVar    = LCID {avoid}
+  Dyn.Dyn = [?]
+  Type.DynT = Dyn
   Type.StringT    = "str"
   Type.IntT       = "int"
   Type.RealT      = "real"
-  Type.SortNoArgs = UCID
-  Type.Sort       = [[Id]([{Type ", "}*])]
   Type.TupleT     = [[Type] * [Type]] {right}
+  Type = SortT
+  SortT.Sort       = [[Id]([{Type ", "}*])]
+  SortT.SortNoArgs = UCID
+  SortT.SortVar    = LCID {avoid}
 
 sorts SType SFunType
 context-free syntax

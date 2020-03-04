@@ -98,6 +98,13 @@ immap-values-imset = ?ImmutableMap(<id>); prim("SSL_immutable_map_values"); imse
 strategies
 
 /**
+ * Succeeds if the given immutable map is empty.
+ *
+ * @type ImmutableMap -?> ImmutableMap
+ */
+immap-empty = equal(|<immap-new>)
+
+/**
  * Succeeds if the key is in the immutable map.
  *
  * @param k - the key
