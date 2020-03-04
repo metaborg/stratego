@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr;
 
 import io.usethesource.capsule.Map;
-import io.usethesource.capsule.Set;
 import mb.flowspec.terms.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -14,10 +13,7 @@ import mb.stratego.build.util.StringSetWithPositions;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.metaborg.core.resource.IResourceService;
-import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
-import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -234,13 +230,7 @@ public class Analysis {
                 staticData.registerStrategyDefinitions(module, frontLibOutput.strategies);
                 staticData.registerConstructorDefinitions(module, frontLibOutput.constrs, new StringSetWithPositions());
 
-                final java.util.Set<String> overlappingStrategies = Sets.difference(
-                    Sets.intersection(staticData.externalStrategies.readSet(), frontLibOutput.strategies.readSet()),
-                    StaticChecks.ALWAYS_DEFINED);
-                if(!overlappingStrategies.isEmpty()) {
-                    execContext.logger()
-                        .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
-                }
+                reportOverlappingStrategies(execContext, staticData.externalStrategies, frontLibOutput.strategies);
 
                 staticData.externalStrategies.addAll(frontLibOutput.strategies);
                 staticData.externalConstructors.addAll(frontLibOutput.constrs);
@@ -283,6 +273,8 @@ public class Analysis {
             staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
             staticData.registerStrategyDefinitions(module, frontOutput.strats);
             staticData.registerInternalStrategyDefinitions(module, frontOutput.internalStrats);
+            reportOverlappingStrategies(execContext, staticData.externalStrategies, frontOutput.externalStrats);
+            staticData.externalStrategies.addAll(frontOutput.externalStrats);
             staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
             staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
 
@@ -328,6 +320,17 @@ public class Analysis {
             BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
         return new Output(staticData, backendData, messages);
+    }
+
+    public void reportOverlappingStrategies(ExecContext execContext, StringSetWithPositions externalStrategies,
+        StringSetWithPositions newExternalStrategies) {
+        final java.util.Set<String> overlappingStrategies = Sets.difference(
+            Sets.intersection(externalStrategies.readSet(), newExternalStrategies.readSet()),
+            StaticChecks.ALWAYS_DEFINED);
+        if(!overlappingStrategies.isEmpty()) {
+            execContext.logger()
+                .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
+        }
     }
 
     private static String projectName(String inputFile) {

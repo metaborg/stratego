@@ -166,6 +166,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         final StringSetWithPositions internalStrats;
         /**
+         * Cified-strategy-name defined in this module to be external [name checks]
+         */
+        final StringSetWithPositions externalStrats;
+        /**
          * Constructor_arity names defined in this module [name checks]
          */
         final StringSetWithPositions constrs;
@@ -210,7 +214,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         NormalOutput(String moduleName, IStrategoTerm sugarAST, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
             Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions, Map<String, StringSetWithPositions> strategyConstrs,
             Map<String, File> overlayFiles, List<Import> imports, StringSetWithPositions strats,
-            StringSetWithPositions internalStrats, StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
+            StringSetWithPositions internalStrats, StringSetWithPositions externalStrats, StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
             List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs, Map<String, File> congrFiles,
             Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
@@ -225,6 +229,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             this.imports = imports;
             this.strats = strats;
             this.internalStrats = internalStrats;
+            this.externalStrats = externalStrats;
             this.constrs = constrs;
             this.overlays = overlays;
             this.congrs = congrs;
@@ -452,6 +457,13 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         this.strContext = strContext;
     }
 
+    private static final int LOCAL_DEFS = 0;
+    private static final int EXT_DEFS = 1;
+    private static final int CONSTRS = 2;
+    private static final int OLAYS = 3;
+    private static final int CONGRS = 4;
+    private static final int DEF_COUNT = 5;
+
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedFrontTasks++;
@@ -497,6 +509,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions definedConstrs = new StringSetWithPositions();
         final StringSetWithPositions definedStrats = new StringSetWithPositions();
         final StringSetWithPositions internalStrats = new StringSetWithPositions();
+        final StringSetWithPositions externalStrats = new StringSetWithPositions();
         final StringSetWithPositions definedOverlays = new StringSetWithPositions();
         final Map<String, File> overlayFiles = new HashMap<>();
         final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
@@ -511,7 +524,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             IStrategoTerm strategyAST = e.getValue();
             frontInput = new SubFrontend.Input(input.inputFileString, strategyName,
                 SubFrontend.InputType.TopLevelDefinition, strategyAST);
-            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, internalStrats, strategyASTs,
+            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, internalStrats, externalStrats, strategyASTs,
                 strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
                 noOfDefinitions);
         }
@@ -545,10 +558,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
         return new NormalOutput(moduleName, ast, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
-            strategyConstrs, overlayFiles, imports, definedStrats, internalStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
+            strategyConstrs, overlayFiles, imports, definedStrats, internalStrats, externalStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
             overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
     }
-
 
     private void overlayFrontEnd(ExecContext execContext, Input input, final FileObject location,
         final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
@@ -558,11 +570,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
-        final IStrategoList defs3 = Tools.listAt(result, 0);
-        // 1 == DR_UNDEFINE_1, DR_DUMMY_0
-        final IStrategoList olays = Tools.listAt(result, 2);
-        // 3 ~= 1
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        final IStrategoList defs3 = Tools.listAt(result, LOCAL_DEFS);
+        // EXT_DEFS == empty
+        // CONSTRS == DR_UNDEFINE_1, DR_DUMMY_0
+        final IStrategoList olays = Tools.listAt(result, OLAYS);
+        // CONGRS ~= 1
+        final IStrategoList noOfDefs = Tools.listAt(result, DEF_COUNT);
 
         for(IStrategoTerm overlayPair : olays) {
             final IStrategoString overlayName = Tools.stringAt(overlayPair, 0);
@@ -603,11 +616,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
-        // 0 == Anno__Cong_____2_0
-        final IStrategoList constrs = Tools.listAt(result, 1);
-        // 2 == empty
-        final IStrategoList congs = Tools.listAt(result, 3);
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        // LOCAL_DEFS == Anno__Cong_____2_0
+        // EXT_DEFS == empty
+        final IStrategoList constrs = Tools.listAt(result, CONSTRS);
+        // OLAYS == empty
+        final IStrategoList congs = Tools.listAt(result, CONGRS);
+        final IStrategoList noOfDefs = Tools.listAt(result, DEF_COUNT);
 
         for(IStrategoTerm constr : constrs) {
             definedConstrs.add(Tools.stringAt(constr, 0));
@@ -638,18 +652,25 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final FileObject location,
         final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
-        StringSetWithPositions internalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        StringSetWithPositions internalStrats, StringSetWithPositions externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
         final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
-        final IStrategoList defs3 = Tools.listAt(result, 0);
-        // 1 == DR_UNDEFINE_1, DR_DUMMY_0
-        // 2 == empty
-        // 3 ~= 1
-        final IStrategoList noOfDefs = Tools.listAt(result, 4);
+        final IStrategoList defs3 = Tools.listAt(result, LOCAL_DEFS);
+        final IStrategoList extDefs = Tools.listAt(result, EXT_DEFS);
+        // CONSTRS == DR_UNDEFINE_1, DR_DUMMY_0
+        // OLAYS == empty
+        // CONGRS ~= 1
+        final IStrategoList noOfDefs = Tools.listAt(result, DEF_COUNT);
 
+        for(IStrategoTerm defPair : extDefs) {
+            final IStrategoString strategyName = Tools.stringAt(defPair, 0);
+            externalStrats.add(strategyName);
+            // We don't add to strategyASTs so that no backend task is created for this external definition
+            definedStrats.add(strategyName);
+        }
         for(IStrategoTerm defPair : defs3) {
             final IStrategoString strategyName = Tools.stringAt(defPair, 0);
             final IStrategoAppl strategyAST = Tools.applAt(defPair, 1);

@@ -118,7 +118,7 @@ public class StaticChecks {
             result = prime * result + ((definedStrategies == null) ? 0 : definedStrategies.hashCode());
             result = prime * result + ((externalConstructors == null) ? 0 : externalConstructors.hashCode());
             result = prime * result + ((externalStrategies == null) ? 0 : externalStrategies.hashCode());
-            result = prime * result + ((internalStrategies == null) ? 0 : externalStrategies.hashCode());
+            result = prime * result + ((internalStrategies == null) ? 0 : internalStrategies.hashCode());
             result = prime * result + ((imports == null) ? 0 : imports.hashCode());
             result = prime * result + ((strategyNeedsExternal == null) ? 0 : strategyNeedsExternal.hashCode());
             result = prime * result + ((usedAmbStrategies == null) ? 0 : usedAmbStrategies.hashCode());
@@ -167,9 +167,9 @@ public class StaticChecks {
             } else if(!externalStrategies.equals(other.externalStrategies))
                 return false;
             if(internalStrategies == null) {
-                if(other.externalStrategies != null)
+                if(other.internalStrategies != null)
                     return false;
-            } else if(!externalStrategies.equals(other.externalStrategies))
+            } else if(!internalStrategies.equals(other.internalStrategies))
                 return false;
             if(imports == null) {
                 if(other.imports != null)
@@ -238,6 +238,7 @@ public class StaticChecks {
         for(StringSetWithPositions s : staticData.definedConstructors.values()) {
             globalConstructors.addAll(s);
         }
+        globalStrategies.addAll(staticData.externalStrategies);
 
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
