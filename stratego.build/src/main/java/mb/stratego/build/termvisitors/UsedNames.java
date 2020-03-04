@@ -63,7 +63,7 @@ public class UsedNames extends UsedConstrs {
                     if(term.getSubtermCount() == 2) {
                         final IStrategoList defList = TermUtils.toListAt(term, 0);
                         final Set<String> defs = new HashSet<>(defList.size() * 2);
-                        for(IStrategoTerm sdeft : defList.getSubterms()) {
+                        for(IStrategoTerm sdeft : defList) {
                             if(TermUtils.isAppl((IStrategoAppl) sdeft, "AnnoDef", 2)) {
                                 sdeft = sdeft.getSubterm(1);
                             }
@@ -83,7 +83,7 @@ public class UsedNames extends UsedConstrs {
                     if(count) {
                         final IStrategoList svars = TermUtils.toListAt(term, 1);
                         final Set<String> defs = new HashSet<>(svars.size() * 2);
-                        for(IStrategoTerm tvar : svars.getSubterms()) {
+                        for(IStrategoTerm tvar : svars) {
                             final String def = TermUtils.toJavaStringAt(tvar, 0);
                             defs.add(def);
                             inScope.add(def);
@@ -98,7 +98,7 @@ public class UsedNames extends UsedConstrs {
     private void registerAmbStratUse(IStrategoTerm term) {
         if(TermUtils.isAppl(term) && TermUtils.isAppl((IStrategoAppl) term, "CallT", 3)) {
             final IStrategoList sargs = TermUtils.toListAt(term, 1);
-            for(IStrategoTerm sarg : sargs.getSubterms()) {
+            for(IStrategoTerm sarg : sargs) {
                 if(TermUtils.isAppl(sarg) && TermUtils.isAppl((IStrategoAppl) sarg, "CallT", 3)) {
                     if(sarg.getSubterm(1).getSubtermCount() == 0 && sarg.getSubterm(2).getSubtermCount() == 0) {
                         // Mark svar so it is not counted as a normal strategy use

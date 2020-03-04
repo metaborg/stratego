@@ -37,7 +37,7 @@ public class SplitResult {
         final IStrategoList olays = TermUtils.toListAt(splitTerm, 4);
 
         final List<IStrategoTerm> imports = new ArrayList<>(imps.size());
-        for(IStrategoTerm imp : imps.getSubterms()) {
+        for(IStrategoTerm imp : imps) {
             imports.add(imp);
         }
 
@@ -50,7 +50,7 @@ public class SplitResult {
 
     private static Map<String, IStrategoTerm> assocListToMap(final IStrategoList assocList) {
         final Map<String, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
-        for(IStrategoTerm pair : assocList.getSubterms()) {
+        for(IStrategoTerm pair : assocList) {
             final String name = TermUtils.toJavaStringAt(pair, 0);
             final IStrategoTerm def = pair.getSubterm(1);
             Relation.getOrInitialize(resultMap, name, ArrayList::new).add(def);

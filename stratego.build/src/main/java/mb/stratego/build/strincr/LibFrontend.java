@@ -140,7 +140,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     private StringSetWithPositions extractConstrs(IStrategoList extConstrTerms) throws ExecException {
         final StringSetWithPositions constrs = new StringSetWithPositions();
-        for(IStrategoTerm extConstrTerm : extConstrTerms.getSubterms()) {
+        for(IStrategoTerm extConstrTerm : extConstrTerms) {
             if(TermUtils.isAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
                 if(TermUtils.isAppl(extConstrAppl, "ExtOpDecl", 2)) {
@@ -188,7 +188,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     private StringSetWithPositions extractStrategies(IStrategoList extSDefTerms) throws ExecException {
         final StringSetWithPositions strategyConstrs = new StringSetWithPositions();
-        for(IStrategoTerm extSDefTerm : extSDefTerms.getSubterms()) {
+        for(IStrategoTerm extSDefTerm : extSDefTerms) {
             if(!(TermUtils.isAppl(extSDefTerm, "ExtSDef", 3))) {
                 throw new ExecException(
                     "Malformed built-in library AST. " + "Expected ExtSDef(..., ..., ...) but got: " + extSDefTerm

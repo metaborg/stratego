@@ -556,7 +556,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         // 3 ~= 1
         final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm overlayPair : olays.getSubterms()) {
+        for(IStrategoTerm overlayPair : olays) {
             final IStrategoString overlayName = TermUtils.toStringAt(overlayPair, 0);
             final IStrategoAppl overlayAST = TermUtils.toApplAt(overlayPair, 1);
             definedOverlays.add(overlayName);
@@ -564,7 +564,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             Relation.getOrInitialize(overlayASTs, overlayName.stringValue(), ArrayList::new).add(overlayAST);
         }
 
-        for(IStrategoTerm defPair : defs3.getSubterms()) {
+        for(IStrategoTerm defPair : defs3) {
             final IStrategoString strategyName = TermUtils.toStringAt(defPair, 0);
             final IStrategoAppl strategyAST = TermUtils.toApplAt(defPair, 1);
             strategyASTs.put(strategyName.stringValue(), strategyAST);
@@ -579,7 +579,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             }
         }
 
-        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+        for(IStrategoTerm noOfDef : noOfDefs) {
             final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
             final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
@@ -601,11 +601,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final IStrategoList congs = TermUtils.toListAt(result, 3);
         final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm constr : constrs.getSubterms()) {
+        for(IStrategoTerm constr : constrs) {
             definedConstrs.add(TermUtils.toStringAt(constr, 0));
         }
 
-        for(IStrategoTerm congrPair : congs.getSubterms()) {
+        for(IStrategoTerm congrPair : congs) {
             final IStrategoString congrName = TermUtils.toStringAt(congrPair, 0);
             final IStrategoAppl congrAST = TermUtils.toApplAt(congrPair, 1);
             final String congrNameString = congrName.stringValue();
@@ -620,7 +620,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             strategyConstrs.put(congrNameString, usedConstrs);
         }
 
-        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+        for(IStrategoTerm noOfDef : noOfDefs) {
             final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
             final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
@@ -642,7 +642,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         // 3 ~= 1
         final IStrategoList noOfDefs = TermUtils.toListAt(result, 4);
 
-        for(IStrategoTerm defPair : defs3.getSubterms()) {
+        for(IStrategoTerm defPair : defs3) {
             final IStrategoString strategyName = TermUtils.toStringAt(defPair, 0);
             final IStrategoAppl strategyAST = TermUtils.toApplAt(defPair, 1);
             strategyASTs.put(strategyName.stringValue(), strategyAST);
@@ -660,7 +660,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             resourceService.localPath(CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName));
         assert boilerplateFile != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file";
 
-        for(IStrategoTerm noOfDef : noOfDefs.getSubterms()) {
+        for(IStrategoTerm noOfDef : noOfDefs) {
             final String defName = TermUtils.toJavaStringAt(noOfDef, 0);
             final int no = TermUtils.toJavaIntAt(noOfDef, 1);
             noOfDefinitions.put(defName, no);
@@ -688,7 +688,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private boolean needsExternal(IStrategoAppl strategyAST) {
         if(TermUtils.isAppl(strategyAST, "AnnoDef", 2)) {
             IStrategoList annos = TermUtils.toListAt(strategyAST, 0);
-            for(IStrategoTerm anno : annos.getSubterms()) {
+            for(IStrategoTerm anno : annos) {
                 if(TermUtils.isAppl(anno, null, 0)) {
                     String annoName = TermUtils.tryGetName(anno).orElse(null);
                     if(annoName.equals("Override") || annoName.equals("Extend")) {

@@ -46,7 +46,7 @@ public class SugarAnalysis {
         boolean isCongruence = visitCongruence(term);
         if(!isCongruence) {
             visitVar(term);
-            for(IStrategoTerm child : term.getSubterms()) {
+            for(IStrategoTerm child : term) {
                 visit(child);
             }
         }
