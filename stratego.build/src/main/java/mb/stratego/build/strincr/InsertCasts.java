@@ -12,6 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.AbstractTermFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,7 +98,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final String cifiedName = e.getKey();
             final List<IStrategoAppl> ast = e.getValue();
             final IStrategoTerm tuple = factory.makeTuple(sEnv, constrs, injClos, lubMap, input.strictnessLevel,
-                factory.makeList(ast.toArray(new IStrategoTerm[0])));
+                factory.makeList(ast.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY)));
 //            SubFrontend.Output output = execContext.require(strIncrSubFront
 //                .createTask(new SubFrontend.Input(null, cifiedName, SubFrontend.InputType.InsertCasts, tuple)));
 //            final IStrategoList outputList = (IStrategoList) output.result;

@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -72,7 +73,7 @@ public class DisambiguateAsAnno {
                     flatList.add(child);
                 }
             }
-            return context.getFactory().replaceList(flatList.toArray(new IStrategoTerm[0]), (IStrategoList) result);
+            return context.getFactory().replaceList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), (IStrategoList) result);
         }
         return result;
     }
