@@ -669,7 +669,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             final IStrategoString strategyName = Tools.stringAt(defPair, 0);
             externalStrats.add(strategyName);
             // We don't add to strategyASTs so that no backend task is created for this external definition
-            definedStrats.add(strategyName);
+            // We don't add to definedStrats as the external strategy is defined elsewhere, and defined strategies may not overlap with external ones
+//            definedStrats.add(strategyName);
         }
         for(IStrategoTerm defPair : defs3) {
             final IStrategoString strategyName = Tools.stringAt(defPair, 0);
