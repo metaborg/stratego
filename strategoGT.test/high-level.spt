@@ -1,0 +1,225 @@
+module high-level
+
+language strategoGT
+
+fixture [[
+  specification
+
+  signature constructors
+    Int : str -> Expr
+    Add : Expr * Expr -> Expr
+
+    Module  : str * List(Stat) -> Module
+
+  rules
+    [[...]]
+]]
+
+test Untyped Well-Formed AST [[
+    untyped: e -> Add(e, e)
+]] 0 errors
+   0 warnings
+
+test Typed Well-Formed AST [[
+    typed :: Expr -> Expr
+    typed: e -> Add(e, e)
+]] 0 errors
+   0 warnings
+
+test Untyped Ill-Formed AST [[
+    untyped: e -> Add(e, [["1"]])
+]] 0 errors
+   1 warning at #1
+
+test Ill-formed AST derived from likely types of input [[
+  untyped: Module(name, stats) -> Module([[stats]], [[name]])
+]] 2 warnings at #1, #2
+
+test Typed Ill-Formed AST gives error [[
+    typed :: Expr -> Expr
+    typed: e -> [["1"]]
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST gives error [[
+    typed :: Expr -> Expr
+    typed: e -> Add(e, [["1"]])
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection gives error inside where clause because it's a rule, not a strategy [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where [[e2]] := "1"
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where [[e2 :: Expr]] := "1"
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where [[Add]](e2 :: Expr, _) := "1"
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where Add([[e2 :: str]], _) := e1
+]] 2 errors at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where Add([[e2 :: str]], _) :: ? := e1
+]] 1 errors at #1
+   0 warnings
+
+test Typed Ill-Formed AST with indirection and type ascription gives error on literal that doesn't match the ascription [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where e2 := [["1"]] :: Expr
+]] 1 errors at #1
+   0 warnings
+
+test Typed Ill-Formed AST with more indirection gives error inside where clause because it's a rule, not a strategy [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where [[e2]] := Add(Int("1"), [["1"]])
+]] 1 error at #1
+   1 warning at #2
+
+test Typed Ill-Formed AST with inner type ascription gives error on ill-formed part [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where e2 := Add(Int("1"), [["1"]] :: Expr)
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST with outer type ascription gives error on ill-formed part [[
+    typed :: Expr -> Expr
+    typed: e1 -> Add(e1, e2)
+    where e2 := Add(Int("1"), [["1"]]) :: Expr
+]] 1 error at #1
+   0 warnings
+
+test Typed Ill-Formed AST in annotation only gives warning [[
+    typed :: Expr -> Expr
+    typed: e -> Add(e, e){Add(Int("1"), [["1"]])}
+]] 1 warning at #1
+   0 errors
+
+test Type ascription inside an untyped strategy is ok [[
+    typed :: Expr -> Expr
+    typed: e -> Add(e, e)
+
+    untyped: Add(e1 :: Expr, _) -> e1
+    where <typed> e1
+]] 0 errors
+   0 warnings
+
+test Strengthen type of dyn variable after use in typed position [[
+    typed1 :: Expr -> Expr
+    typed1: e -> Add(e, e)
+
+    typed2 :: Stat -> Stat
+    typed2 = id
+
+    untyped: Add(e1, _) -> e1
+    where
+      <typed1> e1
+    ; <typed2> [[e1]]
+]] 1 error at #1
+   0 warnings
+
+test Different types in different branches [[
+  map :: (? -> ?|) List(?) -> List(?)
+  map(s) = fail
+  Snd :: ? * ? -> ?
+  Snd = fail
+  s = fail
+  returns-a-list :: ? -> List(?)
+  returns-a-list = fail
+  do-something = fail
+  returns-a-pair :: ? -> ? * ?
+  returns-a-pair = fail
+  something-else :: ? -> ?
+  something-else = fail
+
+  local-variable-type-inference: a -> b
+  where if <s> a
+    then c := <returns-a-list> a
+       ; <map(do-something)> c // c :: List(?), no cast necessary
+    else c := <returns-a-pair> a
+       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+    end
+  ; b := <something-else> c // c :: ?, cast necessary when matching to anything
+]] 0 errors
+   0 warnings
+
+test Dynamic type after different types in branches #1 [[
+  map :: (? -> ?|) List(?) -> List(?)
+  map(s) = fail
+  Snd :: ? * ? -> ?
+  Snd = fail
+  s = fail
+  returns-a-list :: ? -> List(?)
+  returns-a-list = fail
+  do-something = fail
+  returns-a-pair :: ? -> ? * ?
+  returns-a-pair = fail
+  something-else :: List(?) -> ?
+//  something-else :: ? * ? -> ?
+  something-else = fail
+
+  local-variable-type-inference: a -> b
+  where if <s> a
+    then c := <returns-a-list> a
+       ; <map(do-something)> c // c :: List(?), no cast necessary
+    else c := <returns-a-pair> a
+       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+    end
+  ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
+]] 0 errors
+   0 warnings
+
+test Dynamic type after different types in branches #2 [[
+  map :: (? -> ?|) List(?) -> List(?)
+  map(s) = fail
+  Snd :: ? * ? -> ?
+  Snd = fail
+  s = fail
+  returns-a-list :: ? -> List(?)
+  returns-a-list = fail
+  do-something = fail
+  returns-a-pair :: ? -> ? * ?
+  returns-a-pair = fail
+//  something-else :: List(?) -> ?
+  something-else :: ? * ? -> ?
+  something-else = fail
+
+  local-variable-type-inference: a -> b
+  where if <s> a
+    then c := <returns-a-list> a
+       ; <map(do-something)> c // c :: List(?), no cast necessary
+    else c := <returns-a-pair> a
+       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+    end
+  ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
+]] 0 errors
+   0 warnings
+
+test Duplicate type definitions not allowed [[
+  something-else :: List(?) -> ?
+  [[something-else]] :: ? * ? -> ?
+  something-else = fail
+]] 1 error at #1
+
+

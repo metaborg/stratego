@@ -1,0 +1,70 @@
+module sugar/string-quotations
+
+imports sugar/terms
+
+sorts
+  StringQuotation
+  StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1
+  StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2
+  StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3
+  StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4 Dollar4
+  Padding
+
+context-free syntax
+  PreTerm = StringQuotation
+
+  StringQuotedPart1.QStr = StringQuotedChars1
+  StringQuotedPart2.QStr = StringQuotedChars2
+  StringQuotedPart3.QStr = StringQuotedChars3
+  StringQuotedPart4.QStr = StringQuotedChars4
+
+  StringQuotedPart1.QDollar = Dollar1
+  StringQuotedPart2.QDollar = Dollar2
+  StringQuotedPart3.QDollar = Dollar3
+  StringQuotedPart4.QDollar = Dollar4
+
+  StringQuotedPart1.QBr = QuotedBracket1
+  StringQuotedPart2.QBr = QuotedBracket2
+  StringQuotedPart3.QBr = QuotedBracket3
+  StringQuotedPart4.QBr = QuotedBracket4
+
+lexical syntax
+  StringQuotedChars1 = ~[\[\]\$]+
+  StringQuotedChars2 = ~[\{\}\$]+
+  StringQuotedChars3 = ~[\(\)\$]+
+  StringQuotedChars4 = ~[\<\>\$]+
+
+  Dollar1 = "$"
+  Dollar2 = "$"
+  Dollar3 = "$"
+  Dollar4 = "$"
+
+  QuotedBracket1 = "$" [\[\]] "$"
+  QuotedBracket2 = "$" [\{\}] "$"
+  QuotedBracket3 = "$" [\(\)] "$"
+  QuotedBracket4 = "$" [\<\>] "$"
+
+lexical restrictions
+  StringQuotedChars1 -/- ~[\[\]\$]
+  StringQuotedChars2 -/- ~[\{\}\$]
+  StringQuotedChars3 -/- ~[\(\)\$]
+  StringQuotedChars4 -/- ~[\<\>\$]
+
+  Dollar1 -/- [\[\]].[\$]
+  Dollar2 -/- [\{\}].[\$]
+  Dollar3 -/- [\(\)].[\$]
+  Dollar4 -/- [\<\>].[\$]
+
+syntax
+  StringQuotation-CF.StringQuotation1 = "$" "[" Padding-CF StringQuotedPart1-CF* "]"
+  StringQuotation-CF.StringQuotation2 = "$" "{" Padding-CF StringQuotedPart2-CF* "}"
+  StringQuotation-CF.StringQuotation3 = "$" "(" Padding-CF StringQuotedPart3-CF* ")"
+  StringQuotation-CF.StringQuotation4 = "$" "<" Padding-CF StringQuotedPart4-CF* ">"
+
+  StringQuotedPart1-CF.StringEscape1 = Padding-CF "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
+  StringQuotedPart2-CF.StringEscape2 = Padding-CF "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}"
+  StringQuotedPart3-CF.StringEscape3 = Padding-CF "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")"
+  StringQuotedPart4-CF.StringEscape4 = Padding-CF "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">"
+
+  Padding-CF = Padding-LEX
+  Padding-LEX =  {indentpadding}

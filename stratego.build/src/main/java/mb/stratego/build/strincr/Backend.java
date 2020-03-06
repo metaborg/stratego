@@ -192,7 +192,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
-            throw new ExecException("Call to strj failed", result.exception);
+            throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
         }
 
         for(String line : result.errLog.split(System.lineSeparator())) {

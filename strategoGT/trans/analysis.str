@@ -1,0 +1,44 @@
+module analysis
+
+imports
+
+  signatures/sugar/modules-sig
+
+  analysis/modules
+  analysis/main
+  libstrc
+  pp
+
+rules // Analysis
+
+  editor-analyze:
+    (Module(_, decl*), path, project-path) -> (ast, errs, warns, notes)
+    with
+      (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
+
+  editor-analyze:
+    (Specification(decl*), path, project-path) -> (ast, errs, warns, notes)
+    with
+      (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
+
+rules // Editor services
+
+  editor-resolve:
+    (node, position, ast, path, project-path) -> <fail>
+
+  editor-hover:
+    (node, position, ast, path, project-path) -> <fail>
+
+rules // Debugging
+
+  debug-show-analyzed:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := ast
+
+  debug-show-analyzed-concrete:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.strgt")> path;
+      result   := <pp-strategoGT-string> ast

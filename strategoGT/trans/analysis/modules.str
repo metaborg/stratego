@@ -1,0 +1,146 @@
+module analysis/modules
+
+imports
+
+signatures/strategoGT-sig
+signatures/sugar/modules-sig
+signatures/core/modules-sig
+signatures/core/signatures-sig
+signatures/sugar/overlays-sig
+signatures/gradual-types/signatures-sig
+signatures/gradual-types/internal-sig
+
+analysis/main
+analysis/signatures
+analysis/utils
+immutable/map
+immutable/set
+immutable/rel
+
+libspoofax/stratego/debug
+
+libstrc
+
+strategies
+
+external banana(|) = id
+
+// This is a quick&dirty testing entry point for running this code on an AST
+// insertCasts :: Module -> (Module, List(Message))
+insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
+  with {| CanCoerce, LUB, Message:
+    (constrs, injs) := <extract-constrs-inj> ast1
+  ; injection-closure := <imrel-transitive-closure> injs
+  ; lub-map := <lub-map> injection-closure
+  ; strats := <extract-strategy-types> ast1
+  ; let
+      process-defs = map(insertCasts(|strats, constrs, injection-closure, lub-map);where(debug1;![Strategies([<id>])];compile-top-level-def;debug2))
+      process = Specification(map(
+           Imports(id)
+        <+ Signature(id)
+        <+ Overlays(id)
+        <+ Strategies(process-defs)
+        <+ Rules(process-defs)
+        ))
+    in
+      ast2 := <process> ast1
+    ; msg* := <bagof-Message>
+    ; errs := <filter(?(MTError(), <id>))> msg*
+    ; warns := <filter(?(MTWarning(), <id>))> msg*
+    ; notes := <filter(?(MTNote(), <id>))> msg*
+    ; banana
+    end
+  |}
+
+extract-constrs-inj:
+  Specification(decl*) -> (constrMap, injMap)
+  with
+    opdecl* := <filter(?Signature(<filter(?Constructors(<id>) + ?Overlays(<id>));concat>));concat> decl*
+  ; (constr*, inj*) := <partition(extract-constr, extract-inj)> opdecl*
+  ; constrMap := <imrel-from-list> constr*
+  ; injMap := <imrel-from-list> inj*
+
+extract-constr:
+  OpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+  with t2 := <desugar-Type> t1
+
+extract-constr:
+  OpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+  with t2 := <desugar-Type> t1
+
+extract-constr:
+  OpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+extract-constr:
+  OpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+extract-constr:
+  OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+// TODO: allow type definition?
+extract-constr:
+  OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
+
+extract-constr:
+  Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
+
+extract-constr:
+  ExtOpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+  with t2 := <desugar-Type> t1
+
+extract-constr:
+  ExtOpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+  with t2 := <desugar-Type> t1
+
+extract-constr:
+  ExtOpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+extract-constr:
+  ExtOpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+extract-constr:
+  ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+
+extract-inj:
+  OpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
+
+extract-inj:
+  ExtOpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
+
+compute-closure: (map1, frontier1) -> map1
+  where <eq> (<imset-new>, frontier1)
+compute-closure: (map1, frontier1) -> map3
+  with
+    pairs := <imset-elements;filter(\k -> (k, <immap-get(|k)> map1)\)> frontier1
+  ; frontier2 := <map(Snd);foldr(imset-new, imset-union)> pairs
+  ; map2 := <immap-union(imset-union)> (map1, <immap-from-list> pairs)
+  ; map3 := <compute-closure> (map2, frontier2)
+
+lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
+  with
+    forward := <imrel-map(\(l,u) -> ((l,u),u)\)> injection-closure
+  ; relation := <imrel-union(|<imrel-invert> forward)> forward
+
+extract-strategy-types:
+  Specification(decl*) -> stratEnv
+  with
+    sdeft* := <filter(?Strategies(<id>) + ?Rules(<id>));concat> decl*
+  ; stratEnv := <risky(getDefTypes|"getDefTypes failed")> sdeft*

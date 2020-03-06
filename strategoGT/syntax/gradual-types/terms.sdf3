@@ -1,0 +1,12 @@
+module gradual-types/terms
+imports
+  core/terms
+  gradual-types/signatures
+
+context-free syntax
+
+  Term.TypeAscription = [[Term] :: [Type]]
+//  Term.MatchVar = [=[Var]] {prefer}
+//  Term.AssignVar = [[Var]=] {prefer}
+//  PreTerm.MatchVar = [=[Var]]
+//  PreTerm.AssignVar = [[Var]=]

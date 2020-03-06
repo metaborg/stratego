@@ -1,5 +1,20 @@
 package mb.stratego.build.strincr;
 
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.None;
+import mb.pie.api.STask;
+import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.Relation;
+
+import com.google.inject.Inject;
+import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -13,24 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-
-import javax.annotation.Nullable;
-
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-
-import com.google.inject.Inject;
-
-import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
-import mb.pie.api.None;
-import mb.pie.api.STask;
-import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.Analysis.Output;
-import mb.stratego.build.util.CommonPaths;
-import mb.stratego.build.util.Relation;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
@@ -179,6 +176,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
         }
+        ArrayList<String> droppedCongruences = new ArrayList<>();
         for(Map.Entry<String, IStrategoAppl> entry : backendData.congrASTs.entrySet()) {
             backendStart = System.nanoTime();
             String congrName = entry.getKey();
@@ -187,8 +185,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 continue;
             }
             if(staticData.externalConstructors.contains(congrName)) {
-                execContext.logger()
-                    .info("Dropping congruence for " + congrName + " in favour of external definition in library. ");
+                droppedCongruences.add(congrName);
                 continue;
             }
             final List<IStrategoAppl> strategyContributions;
@@ -210,6 +207,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             execContext.require(strIncrBack.createTask(backEndInput));
 
             Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
+        }
+        if(!droppedCongruences.isEmpty()) {
+            execContext.logger().info(
+                "The following congruences were not generated as an external definition for that name was found in a library: "
+                    + droppedCongruences);
         }
         // boilerplate task
         {

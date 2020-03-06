@@ -109,7 +109,11 @@ class StrategyNotFound extends Message<IStrategoString> {
     }
 
     @Override public String getMessage() {
-        return "Cannot find strategy or rule '" + locationTerm.stringValue() + "'";
+        if(severity == MessageSeverity.ERROR) {
+            return "Cannot find strategy or rule '" + locationTerm.stringValue() + "'";
+        } else {
+            return "Found '" + locationTerm.stringValue() + "' in a compiled library that was not imported directly or indirectly by this module";
+        }
     }
 }
 

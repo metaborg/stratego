@@ -1,0 +1,15 @@
+module sugar/main
+
+imports
+  core/identifiers
+  core/modules
+
+  sugar/constants
+  sugar/signatures
+  sugar/modules
+  sugar/terms
+  sugar/strategies
+  sugar/rules
+  sugar/dynamic-rules
+  sugar/overlays
+

@@ -1,0 +1,10 @@
+module core/main
+
+imports
+  core/constants
+  core/identifiers
+  core/layout
+  core/signatures
+  core/terms
+  core/strategies
+  core/modules
