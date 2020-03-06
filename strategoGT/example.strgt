@@ -35,6 +35,7 @@ strategies
     <typed1> e1
   ; <typed2> e1
 
+//  test-warning :: Module -> Module
   test-warning: Module(name, stats) -> Module(stats, name)
 
 //  desugar-Expr :: Expr -> Expr
@@ -68,8 +69,8 @@ strategies
   create-Add :: (|?, ?) ? -> Expr
   create-Add(|left, right) = !Add(left, right)
 
-  desugar-Stat :: Expr -> Stat
-  desugar-Stat: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
+  desugar-Expr :: Expr -> Stat
+  desugar-Expr: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
 
   desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
   desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
@@ -84,8 +85,13 @@ strategies
 //  desugar :: ? -> ?
 //  desugar: Incr(e) -> Incr(e)
 
+//desugar-Stat :: Stat -> Stat
+desugar-Stat = fail
+
 // desugar :: TP
-  desugar = desugar-Stat + desugar-Expr
+  desugar = cast(Foo( )); desugar-Expr
+
+  desugar1 = !Add(Int("1"), Int("1")); desugar
 
 // desugar :: a -> a
 // Hd :: List(a) -> a
@@ -162,3 +168,16 @@ strategies
 signature constructors
   amb : List(a) -> Amb(a)
   // for each sort X have an injection `: Amb(X) -> X`
+
+strategies
+
+  foo :: (Stat -> Stat) Stat -> Stat
+  foo(s) = foo2(s)
+  
+  foo2(s) = if id then s else foo(s) end
+  
+  bar :: ? -> ?
+  bar = id
+  
+  baz = foo(bar)
+  

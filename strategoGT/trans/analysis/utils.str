@@ -12,6 +12,7 @@ signatures/core/modules-sig
 signatures/sugar/strategies-sig
 signatures/core/strategies-sig
 analysis/signatures
+signatures/gradual-types/internal-sig
 
 analysis/main
 analysis/environment

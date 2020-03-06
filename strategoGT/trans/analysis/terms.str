@@ -13,6 +13,7 @@ signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/terms-sig
+signatures/gradual-types/internal-sig
 
 analysis/utils
 analysis/environment
@@ -200,6 +201,13 @@ insertCasts-StBuildTerm-Lit(|st1, t1):
     t2 := <current-type> st1
   ; (trm2, st2) := <insertCastApp(|t1, t2)> (trm1, st1)
 
+signature constructors
+  AllCanCoerce : OpTypeRelation
+  SomeDyn      : OpTypeRelation
+  Unrelated    : OpTypeRelation
+
+strategies
+
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@Op(cnstr, trm1*) -> (trm2, st3)
   with
@@ -221,18 +229,15 @@ insertCasts-StBuildTerm-(|e1, st1):
       let
         set-type(|t) = current-type(|DynT(t))
       in (trm2*, t2*, st2) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; if <zip(CanCoerce)> (t2*, t1*)
-        then
-          st3 := <current-type(|t2)> st2
-        ; trm2 := Op(cnstr, trm2*)
-        else
-          if <zip(CanCoerce <+ ?(DynT(), _))> (t2*, t1*)
-            then
-              (trm2, st3) := <insertCastApp(|DynT(t2), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
-            else
-              st3 := <current-type(|IllFormedTermT(cnstr, t2*))> st2
-            ; trm2 := Op(cnstr, trm2*)
-          end
+      ; switch <StBuildTerm-Op-type-relation> (t2*, t1*)
+          case ?AllCanCoerce():
+            st3 := <current-type(|t2)> st2
+          ; trm2 := Op(cnstr, trm2*)
+          case ?SomeDyn():
+            (trm2, st3) := <insertCastApp(|DynT(t2), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
+          case ?Unrelated():
+            st3 := <current-type(|IllFormedTermT(cnstr, t2*))> st2
+          ; trm2 := Op(cnstr, trm2*)
         end
       end
     else
@@ -250,6 +255,15 @@ StBuildTerm-Op-threader(set-type|e1):
   with
     (trm2, st2) := <insertCasts-StBuildTerm(|e1, <set-type(|t)> st1)> trm1
 
+StBuildTerm-Op-type-relation: (t2*, t1*) -> result
+  with
+    zipped := <zip(CanCoerce;!AllCanCoerce()
+                <+ ?(DynT(), _);!SomeDyn()
+                <+ !Unrelated())> (t2*, t1*)
+  ; result := <foldl(one(?Unrelated());!Unrelated()
+                  <+ one(?SomeDyn());!SomeDyn()
+                  <+ !AllCanCoerce())> (zipped, AllCanCoerce())
+
 insertCasts-StBuildTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
   ; insertCasts-StBuildTerm(|e1, st1)
@@ -260,8 +274,9 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
   ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, st2)> trm2
+  ; t1 := <current-type> st2
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
-  ; if not(<CanCoerce> (<current-type> st2, StringT()) + <CanCoerce> (<current-type> st2, ListT()))
+  ; if not(<CanCoerce> (t1, StringT()) + <CanCoerce> (t1, ListT()))
       then <report-Err> (trm1, NonStringOrListInExplodeConsPosition(<current-type> st2))
     end
     // TODO: support cast to string-or-list for the constructor

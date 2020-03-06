@@ -3,49 +3,13 @@ module analysis/signatures
 imports
 
 signatures/gradual-types/signatures-sig
+signatures/gradual-types/internal-sig
 
 signature constructors
-
-StringT : Type
-IntT : Type
-RealT : Type
-
-IllFormedTermT : Id * List(Type) -> Type
-
-ConstrType : List(Type) * Type -> ConstrType
-
-ErrT : Type
-FailT : Type
-
-ProxyT : List(SCoercion) * List(Coercion) * Coercion * Coercion * Id -> Proxy
-Proxy : Coercion * Coercion * Strategy -> Proxy
-: Proxy -> Strategy
-
-Fail : Coercion
-Id : Coercion
-RuntimeCheck : Type -> Coercion
-Cast : Coercion -> Strategy
-
-SId : SCoercion
-SRuntimeCheck : SFunType -> SCoercion
 
 MTError  : MessageType
 MTWarning : MessageType
 MTNote : MessageType
-
-
-CallDynamicNotSupported              : ErrorDesc
-
-TermVariableTypedWithStrategyType    : ErrorDesc
-StrategyVariableTypedWithTermType    : ErrorDesc
-
-DuplicateTypeDefinition              : ErrorDesc
-MissingDefinitionForTypeDefinition   : ErrorDesc
-
-ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
-ProceedInNonExtendStrategy           : ErrorDesc
-
-CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
 
 NoInjectionBetween                   : Type * Type -> ErrorDesc
 VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc

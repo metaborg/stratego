@@ -3,7 +3,7 @@ module gradual-types/signatures
 imports
   core/identifiers
 
-sorts Type SortT Dyn
+sorts Type SortT Dyn ConstrType
 context-free syntax
   Dyn.Dyn = [?]
   Type.DynT = Dyn
