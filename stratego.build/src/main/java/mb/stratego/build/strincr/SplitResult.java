@@ -5,11 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.flowspec.terms.StrategoArrayList;
+import org.spoofax.terms.StrategoArrayList;
 import mb.stratego.build.util.Relation;
 import org.spoofax.terms.util.TermUtils;
 
