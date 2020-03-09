@@ -1,6 +1,5 @@
 package mb.stratego.build.termvisitors;
 
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -8,7 +7,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import mb.stratego.build.util.StringSetWithPositions;
 import org.spoofax.terms.util.TermUtils;
 

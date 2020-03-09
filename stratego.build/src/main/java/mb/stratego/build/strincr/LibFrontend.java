@@ -15,7 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
 
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;

@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr;
 
 import io.usethesource.capsule.Map;
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;

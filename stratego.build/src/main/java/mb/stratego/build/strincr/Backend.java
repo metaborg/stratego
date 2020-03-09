@@ -32,7 +32,7 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import com.google.inject.Inject;
 
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;

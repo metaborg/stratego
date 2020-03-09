@@ -56,7 +56,7 @@ import org.spoofax.terms.io.binary.TermReader;
 
 import com.google.inject.Inject;
 
-import mb.flowspec.terms.B;
+import org.spoofax.terms.util.B;
 import org.spoofax.terms.StrategoArrayList;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
