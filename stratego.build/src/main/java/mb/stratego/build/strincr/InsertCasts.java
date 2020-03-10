@@ -98,7 +98,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final String cifiedName = e.getKey();
             final List<IStrategoAppl> ast = e.getValue();
             final IStrategoTerm tuple = factory.makeTuple(sEnv, constrs, injClos, lubMap, input.strictnessLevel,
-                factory.makeList(ast.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY)));
+                factory.makeList(ast));
 //            SubFrontend.Output output = execContext.require(strIncrSubFront
 //                .createTask(new SubFrontend.Input(null, cifiedName, SubFrontend.InputType.InsertCasts, tuple)));
 //            final IStrategoList outputList = (IStrategoList) output.result;

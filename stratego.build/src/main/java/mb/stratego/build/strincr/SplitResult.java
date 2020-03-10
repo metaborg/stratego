@@ -10,6 +10,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import org.spoofax.terms.StrategoArrayList;
 import mb.stratego.build.util.Relation;
+
+import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
 public class SplitResult {
@@ -60,7 +62,7 @@ public class SplitResult {
     private static Map<String, IStrategoTerm> packMapValues(final Map<String, List<IStrategoTerm>> listOfValuesMap) {
         final Map<String, IStrategoTerm> packedValuesMap = new HashMap<>(listOfValuesMap.size() * 2);
         for(Map.Entry<String, List<IStrategoTerm>> e : listOfValuesMap.entrySet()) {
-            packedValuesMap.put(e.getKey(), StrategoArrayList.fromList(e.getValue()));
+            packedValuesMap.put(e.getKey(), B.list(e.getValue()));
         }
         return packedValuesMap;
     }

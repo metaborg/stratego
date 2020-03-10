@@ -57,7 +57,6 @@ import org.spoofax.terms.io.binary.TermReader;
 import com.google.inject.Inject;
 
 import org.spoofax.terms.util.B;
-import org.spoofax.terms.StrategoArrayList;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
@@ -554,7 +553,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
             storeOverlay(location, moduleName, overlayName, overlayFiles, input.projectName);
             final StringSetWithPositions usedConstrs = new StringSetWithPositions();
-            collectUsedNames(StrategoArrayList.fromList(overlayASTList), usedConstrs);
+            collectUsedNames(B.list(overlayASTList), usedConstrs);
             overlayConstrs.put(overlayName, usedConstrs);
         }
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
