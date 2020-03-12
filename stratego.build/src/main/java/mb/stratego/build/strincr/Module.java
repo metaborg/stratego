@@ -1,9 +1,10 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.resource.fs.FSResource;
 
 import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.metaborg.util.functions.CheckedFunction1;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,8 +46,8 @@ public final class Module implements Serializable {
             Type.source);
     }
 
-    static Set<Module> resolveWildcards(ExecContext execContext, String modulePath, Collection<Import> imports,
-        Collection<File> includeDirs, Path projectLocation, List<Message<?>> outputMessages) throws ExecException, IOException {
+    static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<File> includeDirs,
+        Path projectLocation, List<Message<?>> outputMessages, CheckedFunction1<Path, FSResource, IOException> require) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {
@@ -76,7 +77,7 @@ public final class Module implements Serializable {
                     boolean foundSomethingToImport = false;
                     for(File dir : includeDirs) {
                         final Path path = dir.toPath().resolve(anImport.path);
-                        execContext.require(path);
+                        require.apply(path);
                         if(Files.exists(path)) {
                             final @Nullable File[] strFiles = path.toFile()
                                 .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));

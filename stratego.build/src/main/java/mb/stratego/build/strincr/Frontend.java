@@ -439,6 +439,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private final ISpoofaxSyntaxService syntaxService;
     private final SubFrontend strIncrSubFront;
     private final StrIncrContext strContext;
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     private ILanguageImpl strategoLang;
 
@@ -484,16 +485,22 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final FileObject inputFile = resourceService.resolve(input.inputFileString);
 
         execContext.require(resourceService.localFile(inputFile));
+
         if(!inputFile.exists()) {
             return FileRemovedOutput.instance;
         }
+
+        timestamps.add(System.nanoTime());
 
         final long startTime = System.nanoTime();
         final IStrategoTerm ast = parseFile(inputFile);
 
         SubFrontend.Input frontInput = new SubFrontend.Input(input.inputFileString,
             input.inputFileString, SubFrontend.InputType.Split, ast);
-        final SplitResult splitResult = SplitResult.fromTerm(execContext.require(strIncrSubFront, frontInput).result);
+        timestamps.add(System.nanoTime());
+        final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, frontInput).result;
+        timestamps.add(System.nanoTime());
+        final SplitResult splitResult = SplitResult.fromTerm(splitTerm);
         final String moduleName = splitResult.moduleName;
         final List<Import> imports = new ArrayList<>(splitResult.imports.size());
         for(IStrategoTerm importTerm : splitResult.imports) {
@@ -558,6 +565,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
         BuildStats.frontTaskTime += System.nanoTime() - startTime;
 
+        timestamps.add(System.nanoTime());
+
         return new NormalOutput(moduleName, ast, strategyFiles, usedStrats, usedAmbStrats, ambStratPositions,
             strategyConstrs, overlayFiles, imports, definedStrats, internalStrats, externalStrats, definedConstrs, definedOverlays, congrs, strategyNeedsExternal,
             overlayConstrs, congrFiles, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
@@ -570,7 +579,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
         final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
+        timestamps.add(System.nanoTime());
         final IStrategoList defs3 = TermUtils.toListAt(result, LOCAL_DEFS);
         // EXT_DEFS == empty
         // CONSTRS == DR_UNDEFINE_1, DR_DUMMY_0
@@ -616,7 +627,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
         final StringSetWithPositions congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
+        timestamps.add(System.nanoTime());
         // LOCAL_DEFS == Anno__Cong_____2_0
         // EXT_DEFS == empty
         final IStrategoList constrs = TermUtils.toListAt(result, CONSTRS);
@@ -658,7 +671,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
         final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
+        timestamps.add(System.nanoTime());
         final IStrategoList defs3 = TermUtils.toListAt(result, LOCAL_DEFS);
         final IStrategoList extDefs = TermUtils.toListAt(result, EXT_DEFS);
         // CONSTRS == DR_UNDEFINE_1, DR_DUMMY_0

@@ -1,20 +1,16 @@
 package mb.stratego.build.strincr;
 
 import io.usethesource.capsule.Map;
-import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
 import mb.pie.api.STask;
+import mb.resource.fs.FSResource;
 import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StringSetWithPositions;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import org.metaborg.core.resource.IResourceService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,6 +22,12 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import javax.annotation.Nullable;
+import org.metaborg.core.resource.IResourceService;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.terms.util.B;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 public class Analysis {
     public static class Input implements Serializable {
@@ -132,6 +134,7 @@ public class Analysis {
     protected final LibFrontend strIncrFrontLib;
 
     private final StrIncrContext strContext;
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject
     public Analysis(IResourceService resourceService, Frontend strIncrFront/*, InsertCasts strIncrInsertCasts*/,
@@ -145,6 +148,7 @@ public class Analysis {
 
     protected Output collectInformation(ExecContext execContext, Input input, Path projectLocationPath)
         throws IOException, ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         final Module inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
@@ -159,6 +163,7 @@ public class Analysis {
                 output.messages);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
+        timestamps.add(System.nanoTime());
         return output;
     }
 
@@ -196,6 +201,7 @@ public class Analysis {
 
     public Output frontends(ExecContext execContext, Input input, Path projectLocationPath, Module inputModule)
         throws IOException, mb.pie.api.ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         // FRONTEND
         final java.util.Set<Module> seen = new HashSet<>();
         final Deque<Module> workList = new ArrayDeque<>();
@@ -206,10 +212,12 @@ public class Analysis {
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(Import.library(B.string(builtinLib)));
         }
+        timestamps.add(System.nanoTime());
         // depend on the include directories in which we search for str and rtree files
         for(File includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
+        timestamps.add(System.nanoTime());
 
         final StaticChecks.Data staticData = new StaticChecks.Data();
 
@@ -223,14 +231,17 @@ public class Analysis {
             if(module.type == Module.Type.library) {
                 final LibFrontend.Input frontLibInput =
                     new LibFrontend.Input(Library.fromString(resourceService, module.path));
+                timestamps.add(System.nanoTime());
                 final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
+                timestamps.add(System.nanoTime());
 
                 shuffleStartTime = System.nanoTime();
 
                 staticData.registerStrategyDefinitions(module, frontLibOutput.strategies);
                 staticData.registerConstructorDefinitions(module, frontLibOutput.constrs, new StringSetWithPositions());
 
-                reportOverlappingStrategies(execContext, staticData.externalStrategies, frontLibOutput.strategies);
+                reportOverlappingStrategies(staticData.externalStrategies, frontLibOutput.strategies,
+                    execContext.logger());
 
                 staticData.externalStrategies.addAll(frontLibOutput.strategies);
                 staticData.externalConstructors.addAll(frontLibOutput.constrs);
@@ -244,8 +255,10 @@ public class Analysis {
             final Frontend.Input frontInput =
                 new Frontend.Input(projectLocationPath.toFile(), module.resolveFrom(projectLocationPath), projectName,
                     input.originTasks);
+            timestamps.add(System.nanoTime());
             final @Nullable Frontend.NormalOutput frontOutput =
                 execContext.require(strIncrFront, frontInput).normalOutput();
+            timestamps.add(System.nanoTime());
 
             if(frontOutput == null) {
                 execContext.logger().debug("File deletion detected: " + module.resolveFrom(projectLocationPath));
@@ -273,7 +286,7 @@ public class Analysis {
             staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
             staticData.registerStrategyDefinitions(module, frontOutput.strats);
             staticData.registerInternalStrategyDefinitions(module, frontOutput.internalStrats);
-            reportOverlappingStrategies(execContext, staticData.externalStrategies, frontOutput.externalStrats);
+            reportOverlappingStrategies(staticData.externalStrategies, frontOutput.externalStrats, execContext.logger());
             staticData.externalStrategies.addAll(frontOutput.externalStrats);
             staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
             staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
@@ -308,8 +321,13 @@ public class Analysis {
 
             // resolving imports
             final java.util.Set<Module> expandedImports = Module
-                .resolveWildcards(execContext, module.path, theImports, input.includeDirs, projectLocationPath,
-                    messages);
+                .resolveWildcards(module.path, theImports, input.includeDirs, projectLocationPath,
+                    messages, path -> {
+                        timestamps.add(System.nanoTime());
+                        final FSResource res = execContext.require(path);
+                        timestamps.add(System.nanoTime());
+                        return res;
+                    });
             for(Module m : expandedImports) {
                 Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
             }
@@ -319,17 +337,17 @@ public class Analysis {
 
             BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
         } while(!workList.isEmpty());
+        timestamps.add(System.nanoTime());
         return new Output(staticData, backendData, messages);
     }
 
-    public void reportOverlappingStrategies(ExecContext execContext, StringSetWithPositions externalStrategies,
-        StringSetWithPositions newExternalStrategies) {
+    public void reportOverlappingStrategies(StringSetWithPositions externalStrategies,
+        StringSetWithPositions newExternalStrategies, Logger logger) {
         final java.util.Set<String> overlappingStrategies = Sets.difference(
             Sets.intersection(externalStrategies.readSet(), newExternalStrategies.readSet()),
             StaticChecks.ALWAYS_DEFINED);
         if(!overlappingStrategies.isEmpty()) {
-            execContext.logger()
-                .warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
+            logger.warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
         }
     }
 

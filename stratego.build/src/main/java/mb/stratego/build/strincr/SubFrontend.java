@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
@@ -25,6 +26,7 @@ import mb.stratego.build.util.StrategoExecutor;
 
 public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Output> {
     public static final String id = SubFrontend.class.getCanonicalName();
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     public static final class Input implements Serializable {
         public final String inputFileString;
@@ -151,6 +153,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
 
     @Override public SubFrontend.Output exec(ExecContext context, SubFrontend.Input input) throws Exception {
+        timestamps.add(System.nanoTime());
         if(input.inputType == InputType.TopLevelDefinition) {
             BuildStats.tldSubFrontendCTreeSize.put(input.toString(), TermSize.computeTermSize(input.ast));
         }
@@ -159,9 +162,11 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             strContext);
 
         if(!result.success) {
+            timestamps.add(System.nanoTime());
             throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.strategoTrace, result.exception);
         }
 
+        timestamps.add(System.nanoTime());
         return new Output(result.result);
     }
 

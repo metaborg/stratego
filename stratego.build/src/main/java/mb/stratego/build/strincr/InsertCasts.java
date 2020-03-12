@@ -76,6 +76,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
     private final SubFrontend strIncrSubFront;
     private final StrIncrContext strContext;
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject
     public InsertCasts(SubFrontend strIncrSubFront, StrIncrContext strContext) {
@@ -86,6 +87,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
     @Override
     public Output exec(ExecContext execContext, Input input) throws ExecException, InterruptedException {
+        timestamps.add(System.nanoTime());
         Map<String, List<IStrategoAppl>> result = new HashMap<>(2 * input.asts.size());
 
         final ITermFactory factory = strContext.getFactory();
@@ -110,6 +112,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
         }
 
+        timestamps.add(System.nanoTime());
         return new Output(result);
     }
 

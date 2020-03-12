@@ -98,6 +98,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     private final IResourceService resourceService;
     private final Backend strIncrBack;
     private final StrIncrAnalysis strIncrAnalysis;
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public StrIncr(IResourceService resourceService, Backend strIncrBack, StrIncrAnalysis analysis) {
         this.resourceService = resourceService;
@@ -106,11 +107,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
+        timestamps.add(System.nanoTime());
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
         final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
         final File projectLocationFile = resourceService.localFile(projectLocation);
 
+        timestamps.add(System.nanoTime());
         final Output result = execContext.require(strIncrAnalysis, input);
+        timestamps.add(System.nanoTime());
 
         if(!result.messages.isEmpty()) {
             boolean error = false;
@@ -129,6 +133,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
             if(error) {
+                timestamps.add(System.nanoTime());
                 throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
             }
         }
@@ -137,6 +142,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData,
             result.staticCheckOutput);
 
+        timestamps.add(System.nanoTime());
         return None.instance;
     }
 
@@ -174,7 +180,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
+            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
+            timestamps.add(System.nanoTime());
         }
         ArrayList<String> droppedCongruences = new ArrayList<>();
         for(Map.Entry<String, IStrategoAppl> entry : backendData.congrASTs.entrySet()) {
@@ -204,7 +212,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
+            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
+            timestamps.add(System.nanoTime());
 
             Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
         }
@@ -226,7 +236,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
+            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
+            timestamps.add(System.nanoTime());
         }
     }
 

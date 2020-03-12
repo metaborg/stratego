@@ -5,6 +5,7 @@ import static org.strategoxt.lang.Term.NO_TERMS;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.stratego.Build;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -137,6 +139,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;
     private final StrIncrContext strContext;
+    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public Backend(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrContext strContext) {
         this.resourceService = resourceService;
@@ -146,6 +149,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedBackTasks++;
+        timestamps.add(System.nanoTime());
 
         final ITermFactory factory = termFactoryService.getGeneric();
 
@@ -192,6 +196,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
+            timestamps.add(System.nanoTime());
             throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
         }
 
@@ -200,11 +205,14 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 String fileName = line.substring(line.indexOf(SpoofaxConstants.STRJ_INFO_WRITING_FILE)
                     + SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
+                timestamps.add(System.nanoTime());
                 execContext.provide(new File(fileName));
+                timestamps.add(System.nanoTime());
             }
         }
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
+        timestamps.add(System.nanoTime());
         return None.instance;
     }
 
