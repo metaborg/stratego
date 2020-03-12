@@ -8,7 +8,6 @@ import java.util.Map;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import org.spoofax.terms.StrategoArrayList;
 import mb.stratego.build.util.Relation;
 
 import org.spoofax.terms.util.B;

@@ -3,7 +3,6 @@ package mb.stratego.build.strincr;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
