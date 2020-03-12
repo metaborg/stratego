@@ -3,6 +3,7 @@ module gradual-types/strategies
 imports
   gradual-types/signatures
   core/identifiers
+  core/strategies
 
 template options
   Id = keyword {reject}
@@ -26,5 +27,5 @@ context-free syntax
   TypedId.TypedId = [[SortT].[Id]]
 
   Strategy = Proxy
-  Proxy.Proxy = [proxy([Coercion], [Coercion])([Strategy])]
-  Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([Strategy])]
+  Proxy.Proxy = [proxy([Coercion], [Coercion])([SVar])]
+  Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([SVar])]

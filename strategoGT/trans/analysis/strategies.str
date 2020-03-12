@@ -185,22 +185,22 @@ insertCasts-Sarg-Type(|e1, t):
   (trm, st1) -> <insertCasts-Sarg(|e1, st1)> (trm, t)
 
 insertCasts-Sarg(|e1, st1):
-  (c@CallT(SVar(v), [], []), t1@FunTType([_ | _], [_ | _], _, _)) -> (s, st1)
+  (c@CallT(v@SVar(x), [], []), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    t2 := <strat-lookup(|v{}, 0, 0)> e1
-  ; s := <insertCasts-Sarg-CallNoArgs;rm-redundant-proxy> (v, t1, t2)
+    t2 := <strat-lookup(|x{}, 0, 0)> e1
+  ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
 
 insertCasts-Sarg(|e1, st1):
-  (c@Call(SVar(v), []), t1@FunTType([_ | _], [_ | _], _, _)) -> (s, st1)
+  (c@Call(v@SVar(x), []), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    t2 := <strat-lookup(|v{}, 0, 0)> e1
-  ; s := <insertCasts-Sarg-CallNoArgs;rm-redundant-proxy> (v, t1, t2)
+    t2 := <strat-lookup(|x{}, 0, 0)> e1
+  ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
 
 insertCasts-Sarg(|e1, st1):
-  (c@CallNoArgs(SVar(v)), t1@FunTType([_ | _], [_ | _], _, _)) -> (s, st1)
+  (c@CallNoArgs(v@SVar(x)), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    t2 := <strat-lookup(|v{}, 0, 0)> e1
-  ; s := <insertCasts-Sarg-CallNoArgs;rm-redundant-proxy> (v, t1, t2)
+    t2 := <strat-lookup(|x{}, 0, 0)> e1
+  ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
 
 insertCasts-Sarg(|e1, st1):
   (s1, t1@FunTType(st*, tt*, t2, t3)) -> (s2, st2)
@@ -215,28 +215,35 @@ insertCasts-Sarg(|e1, st1):
   (s1, SDyn()) -> (s2, st2)
   with (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|DynT())> st1)> s1
 
-insertCasts-Sarg-CallNoArgs = otf21(insertCasts-Sarg-CallNoArgs-)
+insertCasts-Sarg-CallNoArgs = otf31(insertCasts-Sarg-CallNoArgs-)
 
+/**
+ * t1 is the expected type of the sarg, t4 is the actual type. Build a proxy that turns the input
+ *  types from t1 (as it will be used) into the t4 types, output type the other way around.
+ */
 insertCasts-Sarg-CallNoArgs-:
-  (v, t1@FunTType(st1*, tt1*, t2, t3), t4@FunTType(st2*, tt2*, t4, t5)) -> ProxyT(sc*, tc*, c1, c2, v)
+  (v, t1@FunTType(st1*, tt1*, t2, t3), t4@FunTType(st2*, tt2*, t5, t6)) ->
+    <rm-redundant-proxy> ProxyT(sc*, tc*, c1, c2, v)
   with
     if not(<eq> (<length> st1*, <length> st2*); <eq> (<length> tt1*, <length> tt2*))
       then <report-Err> (v, TypeMismatch(t1, t4))
     end
   ; sc* := <zip(computeSCoercion)> (st1*, st2*)
   ; tc* := <zip(computeCoercion)> (tt1*, tt2*)
-  ; c1 := <computeCoercion(|t2, t4)>
-  ; c2 := <computeCoercion(|t5, t3)>
+  ; c1 := <computeCoercion(|t2, t5)>
+  ; c2 := <computeCoercion(|t6, t3)>
 
 insertCasts-Sarg-CallNoArgs-:
-  (v, FunTType(st*, tt*, t1, t2), SDyn()) -> ProxyT(sc*, tc*, Id(), c, v)
+  (v, FunTType(st*, tt*, t1, t2), SDyn()) -> <rm-redundant-proxy> ProxyT(sc*, tc*, Id(), c, v)
   with
-    sc* := <map(!Id())> st*
+    sc* := <map(!SId())> st*
   ; tc* := <map(!Id())> tt*
   ; c := <computeCoercion(|DynT(), t2)>
 
-rm-redundant-proxy = try(?Proxy(Id(), Id(), <id>))
-rm-redundant-proxy = try(ProxyT(map(?Id()), map(?SId()), ?Id(), ?Id(), ?v);!v)
+rm-redundant-proxy =
+     ?Proxy(Id(){^_}, Id(){^_}, <!CallNoArgs(<id>)>)
+  <+ ProxyT(map(?SId(){^_}), map(?Id(){^_}), ?Id(){^_}, ?Id(){^_}, ?v);!CallNoArgs(v)
+  <+ id
 
 insertCasts-Targ(|e1):
   ((trm1, t1), st1) -> <insertCasts-BuildTerm(|e1, st1, t1)> trm1
@@ -259,8 +266,7 @@ insertCasts-Call(|e1, st1) = otf22(insertCasts-Call-(|e1, st1))
 insertCasts-Call-(|e1, st1):
   (c@Call(s, s1*), FunTType(st*, tt*, t1, t2)) -> (call, st3)
   with
-    t := <current-type> st1
-  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, st*), st1)
+    (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, st*), st1)
   ; st3 := <current-type(|t2)> st2
   ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Call(s, s3*))> c
 
@@ -560,7 +566,7 @@ insertCasts-SwitchCase-(|e1, t1, t2):
 //    ; s := Call(SVar(x2), s2*)
 //    end
 
-strategies // The Cast extension
+strategies // The Cast & Proxy extension
 
 insertCasts-Strategy(|e1, st1):
   s@Cast(Fail()) -> (s, st2)
@@ -574,3 +580,16 @@ insertCasts-Strategy(|e1, st1):
   s@Cast(RuntimeCheck(t)) -> (s, st2)
   with
     st2 := <current-type(|t)> st1
+
+insertCasts-Strategy(|e1, st1):
+  Proxy(c1, c2, s1) -> (Proxy(c1, c2, s2), st2)
+  with
+    (_, st2) := <insertCasts-Strategy(|e1, st1)> Cast(c1)
+  ; (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1
+  ; (_, st4) := <insertCasts-Strategy(|e1, st3)> Cast(c2)
+
+insertCasts-Strategy(|e1, st1):
+  s1@ProxyT(sc1*, tc1*, c1, c2, SVar(x)) -> (s1, st1)
+  with
+    t1 := <strat-lookup(|x{}, 0, 0)> e1
+    // TODO: check that t1 corresponds to the coercions in the ProxyT

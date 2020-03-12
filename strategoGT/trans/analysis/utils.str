@@ -6,13 +6,14 @@ libstratego-aterm
 
 signatures/gradual-types/modules-sig
 signatures/gradual-types/signatures-sig
+signatures/gradual-types/internal-sig
+signatures/gradual-types/strategies-sig
 signatures/sugar/signatures-sig
 signatures/sugar/modules-sig
 signatures/core/modules-sig
 signatures/sugar/strategies-sig
 signatures/core/strategies-sig
 analysis/signatures
-signatures/gradual-types/internal-sig
 
 analysis/main
 analysis/environment
@@ -33,6 +34,9 @@ otf22(s): t@(t1, _) -> (<otf(!t2)> t1, etc)
   where (t2, etc) := <s> t
 
 otf21(s): t@(t1, _) -> <otf(!t2)> t1
+  where t2 := <s> t
+
+otf31(s): t@(t1, _, _) -> <otf(!t2)> t1
   where t2 := <s> t
 
 otf12-sugar(desugar, s, resugar): t1 -> t4st

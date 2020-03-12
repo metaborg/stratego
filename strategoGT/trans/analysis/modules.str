@@ -7,6 +7,7 @@ signatures/sugar/modules-sig
 signatures/core/modules-sig
 signatures/core/signatures-sig
 signatures/sugar/overlays-sig
+signatures/gradual-types/modules-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 
@@ -23,8 +24,6 @@ libstrc
 
 strategies
 
-external banana(|) = id
-
 // This is a quick&dirty testing entry point for running this code on an AST
 // insertCasts :: Module -> (Module, List(Message))
 insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
@@ -34,7 +33,7 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types> ast1
   ; let
-      process-defs = map(insertCasts(|strats, constrs, injection-closure, lub-map);where(debug1;![Strategies([<id>])];compile-top-level-def;debug2))
+      process-defs = map(insertCasts(|strats, constrs, injection-closure, lub-map);where(try(not(?DefHasType(_, _)); ![Strategies([<id>])];compile-top-level-def)))
       process = Specification(map(
            Imports(id)
         <+ Signature(id)
@@ -48,7 +47,6 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
-    ; banana
     end
   |}
 

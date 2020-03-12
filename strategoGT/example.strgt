@@ -20,6 +20,7 @@ Module  : str * List(Stat) -> Module
 IAdd : Instr
 
 strategies
+
   typed0 :: Expr -> Expr
   typed0: e1 -> Add(e1, e2)
   where e2 := Add(Int("1"), "1")
@@ -34,6 +35,12 @@ strategies
   where
     <typed1> e1
   ; <typed2> e1
+
+  even :: (? -> ?) int -> int
+  even(k): n -> <if ?0 then <k> 1 else odd(k) end> n
+
+  odd :: (int -> int) int -> int
+  odd(k): n -> <if ?0 then <k> 0 else even(k) end> n
 
 //  test-warning :: Module -> Module
   test-warning: Module(name, stats) -> Module(stats, name)
