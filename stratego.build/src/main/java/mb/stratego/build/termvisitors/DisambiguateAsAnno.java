@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -73,7 +74,11 @@ public class DisambiguateAsAnno {
                     flatList.add(child);
                 }
             }
-            return context.getFactory().replaceList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), (IStrategoList) result);
+            // TermFactory#replaceList apparently requires the lists to be equal length, or it will throw an exception
+            final ITermFactory factory = context.getFactory();
+            final IStrategoList newList =
+                factory.makeList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), result.getAnnotations());
+            return factory.replaceTerm(newList, result);
         }
         return result;
     }
