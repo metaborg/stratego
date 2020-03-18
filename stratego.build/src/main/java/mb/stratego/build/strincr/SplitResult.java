@@ -19,14 +19,16 @@ public class SplitResult {
     public final Map<String, IStrategoTerm> strategyDefs;
     public final Map<String, IStrategoTerm> consDefs;
     public final Map<String, IStrategoTerm> olayDefs;
+    public final Map<String, IStrategoTerm> defTypes;
 
     public SplitResult(String moduleName, List<IStrategoTerm> imports, Map<String, IStrategoTerm> strategyDefs,
-        Map<String, IStrategoTerm> consDefs, Map<String, IStrategoTerm> olayDefs) {
+        Map<String, IStrategoTerm> consDefs, Map<String, IStrategoTerm> olayDefs, Map<String, IStrategoTerm> defTypes) {
         this.moduleName = moduleName;
         this.imports = imports;
         this.strategyDefs = strategyDefs;
         this.consDefs = consDefs;
         this.olayDefs = olayDefs;
+        this.defTypes = defTypes;
     }
 
     public static SplitResult fromTerm(IStrategoTerm splitTerm) {
@@ -35,6 +37,7 @@ public class SplitResult {
         final IStrategoList strats = TermUtils.toListAt(splitTerm, 2);
         final IStrategoList cons = TermUtils.toListAt(splitTerm, 3);
         final IStrategoList olays = TermUtils.toListAt(splitTerm, 4);
+        final IStrategoList deftys = TermUtils.toListAt(splitTerm, 5);
 
         final List<IStrategoTerm> imports = new ArrayList<>(imps.size());
         for(IStrategoTerm imp : imps) {
@@ -44,8 +47,9 @@ public class SplitResult {
         final Map<String, IStrategoTerm> strategyDefs = assocListToMap(strats);
         final Map<String, IStrategoTerm> consDefs = assocListToMap(cons);
         final Map<String, IStrategoTerm> olayDefs = assocListToMap(olays);
+        final Map<String, IStrategoTerm> defTypes = assocListToMap(deftys);
 
-        return new SplitResult(moduleName, imports, strategyDefs, consDefs, olayDefs);
+        return new SplitResult(moduleName, imports, strategyDefs, consDefs, olayDefs, defTypes);
     }
 
     private static Map<String, IStrategoTerm> assocListToMap(final IStrategoList assocList) {
