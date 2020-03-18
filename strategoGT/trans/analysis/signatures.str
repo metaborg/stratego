@@ -5,33 +5,6 @@ imports
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 
-signature constructors
-
-MTError  : MessageType
-MTWarning : MessageType
-MTNote : MessageType
-
-NoInjectionBetween                   : Type * Type -> ErrorDesc
-VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
-TypeMismatch                         : Type * Type -> ErrorDesc
-STypeMismatch                        : SType * SType -> ErrorDesc
-UnresolvedLocal                      : ErrorDesc
-UnresolvedConstructor                : Int * Type -> ErrorDesc
-UnresolvedStrategy                   : Int * Int -> ErrorDesc
-AmbiguousConstructorUse              : List(Type) -> ErrorDesc
-
-AsInBuildTerm                        : ErrorDesc
-WldInBuildTerm                       : ErrorDesc
-BuildDefaultInBuildTerm              : ErrorDesc
-BuildDefaultInMatchTerm              : ErrorDesc
-StringQuotationInMatchTerm           : ErrorDesc
-
-NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
-NonListInAnno                        : Type -> ErrorDesc
-MultipleAppsInMatch                  : ErrorDesc
-
-BuildUnboundTerm                     : ErrorDesc
-
 overlays
 
   FunTType(from, to) = FunTType([], [], from, to)

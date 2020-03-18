@@ -10,6 +10,7 @@ signatures/gradual-types/internal-sig
 signatures/gradual-types/strategies-sig
 signatures/sugar/signatures-sig
 signatures/sugar/modules-sig
+signatures/sugar/rules-sig
 signatures/core/modules-sig
 signatures/sugar/strategies-sig
 signatures/core/strategies-sig
