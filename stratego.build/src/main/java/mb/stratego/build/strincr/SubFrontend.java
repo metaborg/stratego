@@ -9,6 +9,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
+import org.strategoxt.strc.insert_casts_0_0;
 import org.strategoxt.strc.split_module_0_0;
 
 import javax.inject.Inject;
@@ -121,7 +122,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
     public enum InputType {
         TopLevelDefinition(compile_top_level_def_0_0.instance),
-//        InsertCasts(insert_casts_0_0.instance),
+        InsertCasts(insert_casts_0_0.instance),
         Split(split_module_0_0.instance); // Split is for convenience, not because it *must* be cached
         public final Strategy strategy;
 

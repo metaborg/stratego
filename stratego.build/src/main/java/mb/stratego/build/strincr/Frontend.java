@@ -442,7 +442,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          * is forced in the main task StrIncr before it starts frontend tasks and searches for Stratego files through
          * imports.
          */
-        for(final STask t : input.originTasks) {
+        for(STask t : input.originTasks) {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
@@ -465,10 +465,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             }
         }
 
-        SubFrontend.Input frontInput = new SubFrontend.Input(input.inputFileString,
+        final SubFrontend.Input frontSplitInput = new SubFrontend.Input(input.inputFileString,
             input.inputFileString, SubFrontend.InputType.Split, ast);
         timestamps.add(System.nanoTime());
-        final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, frontInput).result;
+        final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, frontSplitInput).result;
         timestamps.add(System.nanoTime());
         final SplitResult splitResult = SplitResult.fromTerm(splitTerm);
         final String moduleName = splitResult.moduleName;
@@ -498,29 +498,29 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, Integer> noOfDefinitions = new HashMap<>();
 
         for(Map.Entry<String, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
-            String strategyName = e.getKey();
-            IStrategoTerm strategyAST = e.getValue();
-            frontInput = new SubFrontend.Input(input.inputFileString, strategyName,
+            final String strategyName = e.getKey();
+            final IStrategoTerm strategyAST = e.getValue();
+            final SubFrontend.Input frontTLDInput = new SubFrontend.Input(input.inputFileString, strategyName,
                 SubFrontend.InputType.TopLevelDefinition, strategyAST);
-            stratFrontEnd(execContext, input.projectName, location, frontInput, moduleName, definedStrats, internalStrats, externalStrats, strategyASTs,
+            stratFrontEnd(execContext, input.projectName, location, frontTLDInput, moduleName, definedStrats, internalStrats, externalStrats, strategyASTs,
                 strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
                 noOfDefinitions);
         }
 
         for(Map.Entry<String, IStrategoTerm> e : splitResult.consDefs.entrySet()) {
-            String consName = e.getKey();
-            IStrategoTerm consAST = e.getValue();
-            frontInput = new SubFrontend.Input(input.inputFileString, consName,
+            final String consName = e.getKey();
+            final IStrategoTerm consAST = e.getValue();
+            final SubFrontend.Input frontTLDInput = new SubFrontend.Input(input.inputFileString, consName,
                 SubFrontend.InputType.TopLevelDefinition, consAST);
-            consFrontEnd(execContext, input, location, frontInput, moduleName, strategyConstrs, usedAmbStrats,
+            consFrontEnd(execContext, input, location, frontTLDInput, moduleName, strategyConstrs, usedAmbStrats,
                 ambStratPositions, usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
         }
         for(Map.Entry<String, IStrategoTerm> e : splitResult.olayDefs.entrySet()) {
-            String olayName = e.getKey();
-            IStrategoTerm olayAST = e.getValue();
-            frontInput = new SubFrontend.Input(input.inputFileString, olayName,
+            final String olayName = e.getKey();
+            final IStrategoTerm olayAST = e.getValue();
+            final SubFrontend.Input frontTLDInput = new SubFrontend.Input(input.inputFileString, olayName,
                 SubFrontend.InputType.TopLevelDefinition, olayAST);
-            overlayFrontEnd(execContext, input, location, frontInput, moduleName, definedStrats, strategyASTs,
+            overlayFrontEnd(execContext, input, location, frontTLDInput, moduleName, definedStrats, strategyASTs,
                 strategyFiles, strategyConstrs, strategyNeedsExternal, usedAmbStrats, ambStratPositions, usedStrats,
                 definedOverlays, overlayASTs, noOfDefinitions);
         }

@@ -85,6 +85,38 @@ public abstract class Message<T extends IStrategoTerm> {
         return new VarConstrOverlap(module, name);
     }
 
+    public static Message<IStrategoString> from(IStrategoTerm message) {
+        // TODO: implement
+        /*
+    CallDynamicNotSupported              : ErrorDesc
+    TermVariableTypedWithStrategyType    : ErrorDesc
+    StrategyVariableTypedWithTermType    : ErrorDesc
+    DuplicateTypeDefinition              : ErrorDesc
+    MissingDefinitionForTypeDefinition   : ErrorDesc
+    ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
+    ProceedInNonExtendStrategy           : ErrorDesc
+    CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
+    NoInjectionBetween                   : Type * Type -> ErrorDesc
+    VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
+    TypeMismatch                         : Type * Type -> ErrorDesc
+    STypeMismatch                        : SType * SType -> ErrorDesc
+    UnresolvedLocal                      : ErrorDesc
+    UnresolvedConstructor                : Int * Type -> ErrorDesc
+    UnresolvedStrategy                   : Int * Int -> ErrorDesc
+    AmbiguousConstructorUse              : List(Type) -> ErrorDesc
+    AsInBuildTerm                        : ErrorDesc
+    WldInBuildTerm                       : ErrorDesc
+    BuildDefaultInBuildTerm              : ErrorDesc
+    BuildDefaultInMatchTerm              : ErrorDesc
+    StringQuotationInMatchTerm           : ErrorDesc
+    NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
+    NonListInAnno                        : Type -> ErrorDesc
+    MultipleAppsInMatch                  : ErrorDesc
+    BuildUnboundTerm                     : ErrorDesc
+         */
+        throw new RuntimeException("Not implemented");
+    }
+
     public String toString() {
         return "In '" + moduleFilePath + "':\n" + getMessage();
     }
