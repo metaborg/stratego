@@ -6,7 +6,6 @@ imports
   core/strategies
 
 template options
-  Id = keyword {reject}
   keyword -/- [a-zA-Z0-9\'\-\_]
   tokenize: ")(|"
 
@@ -29,3 +28,5 @@ context-free syntax
   Strategy = Proxy
   Proxy.Proxy = [proxy([Coercion], [Coercion])([SVar])]
   Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([SVar])]
+
+  SVar = "cast" {reject}

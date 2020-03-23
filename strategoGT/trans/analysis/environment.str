@@ -59,7 +59,7 @@ constr-env(s) = Env(id, s)
 // N.B. this returns an imset. Use constr-lookup/3 from main.str to filter on sort of the
 //       constructor and receive a list.
 constr-lookup(|name, arity) = constr-env; imrel-get(|(name, arity))
-constr-put(|name, arity, value) = constr-env(imrel-put(|(name, arity), value))
+constr-put(|name, arity, value) = constr-env(imrel-insert(|(name, arity), value))
 constr-merge-env: (e, ce) -> <constr-env(imrel-union(|ce))> e
 
 term-env = ?St(<id>, _)
