@@ -17,8 +17,6 @@ analysis/environment
 analysis/signatures
 analysis/strategies
 analysis/terms
-immutable/map
-immutable/set
 
 strategies // Def
 

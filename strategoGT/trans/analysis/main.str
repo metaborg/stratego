@@ -17,9 +17,6 @@ analysis/utils
 analysis/environment
 analysis/signatures
 analysis/defs
-immutable/map
-immutable/set
-immutable/rel
 
 strategies // entry-points from Java
 

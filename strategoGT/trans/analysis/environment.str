@@ -9,8 +9,6 @@ analysis/utils
 analysis/signatures
 signatures/-
 signatures/gradual-types/signatures-sig
-immutable/map
-immutable/rel
 
 libspoofax/stratego/debug
 

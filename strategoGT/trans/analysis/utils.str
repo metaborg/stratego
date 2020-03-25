@@ -9,17 +9,17 @@ signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 signatures/gradual-types/strategies-sig
 signatures/sugar/signatures-sig
+signatures/sugar/strategies-sig
+signatures/sugar/terms-sig
 signatures/sugar/modules-sig
 signatures/sugar/rules-sig
 signatures/core/modules-sig
-signatures/sugar/strategies-sig
+signatures/core/signatures-sig
 signatures/core/strategies-sig
 analysis/signatures
 
 analysis/main
 analysis/environment
-immutable/map
-immutable/set
 
 libspoofax/stratego/debug
 
@@ -137,8 +137,8 @@ insertCastAfter(|from, to) = insertCastAfter(|MTError(), from, to)
 insertCastAfter(|lvl, from, to): strat -> strat'
   with
     c{t} := <computeCoercion(|lvl, from, to)> strat
-  ; cast := Cast(c)
-  ; strat' := <try(rm-redundant-cast)> Seq(strat, cast)
+  ; 'cast := Cast(c)
+  ; strat' := <try(rm-redundant-cast)> Seq(strat, 'cast)
 
 // Add a cast before the current strategy (in sequence) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 
@@ -146,8 +146,8 @@ insertCastBefore(|from, to) = insertCastBefore(|MTError(), from, to)
 insertCastBefore(|lvl, from, to): strat -> strat'
   with
     c{t} := <computeCoercion(|lvl, from, to)> strat
-  ; cast := Cast(c)
-  ; strat' := <try(rm-redundant-cast)> Seq(cast, strat)
+  ; 'cast := Cast(c)
+  ; strat' := <try(rm-redundant-cast)> Seq('cast, strat)
 
 // Add a cast on the current term (the App or `<cast(to)> term`) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 
@@ -155,8 +155,8 @@ insertCastApp(|from, to) = insertCastApp(|MTError(), from, to)
 insertCastApp(|lvl, from, to): (term1, st1) -> (term2, st2)
   with
     c{t} := <computeCoercion(|lvl, from, to)> term1
-  ; cast := Cast(c)
-  ; term2 := <try(rm-redundant-cast)> App(cast, term1)
+  ; 'cast := Cast(c)
+  ; term2 := <try(rm-redundant-cast)> App('cast, term1)
   ; st2 := <current-type(|t)> st1
 
 // Used to remove Id() casts

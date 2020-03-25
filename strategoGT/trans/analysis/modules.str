@@ -14,9 +14,8 @@ signatures/gradual-types/internal-sig
 analysis/main
 analysis/signatures
 analysis/utils
-immutable/map
-immutable/set
-immutable/rel
+
+pp
 
 libspoofax/stratego/debug
 
@@ -122,15 +121,6 @@ extract-inj:
 
 extract-inj:
   ExtOpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
-
-compute-closure: (map1, frontier1) -> map1
-  where <eq> (<imset-new>, frontier1)
-compute-closure: (map1, frontier1) -> map3
-  with
-    pairs := <imset-elements;filter(\k -> (k, <immap-get(|k)> map1)\)> frontier1
-  ; frontier2 := <map(Snd);foldr(imset-new, imset-union)> pairs
-  ; map2 := <immap-union(imset-union)> (map1, <immap-from-list> pairs)
-  ; map3 := <compute-closure> (map2, frontier2)
 
 lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
   with

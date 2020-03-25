@@ -20,8 +20,6 @@ analysis/signatures
 analysis/defs
 analysis/terms
 analysis/main
-immutable/map
-immutable/set
 
 strategies // Strategy (core)
 

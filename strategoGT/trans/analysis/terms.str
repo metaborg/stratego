@@ -21,8 +21,6 @@ analysis/signatures
 analysis/defs
 analysis/strategies
 analysis/main
-immutable/map
-immutable/set
 
 strategies // Terms in match position (core)
 
