@@ -1,0 +1,32 @@
+module example
+
+strategies
+
+  s = fail
+
+  returns-a-list :: ? -> List(?)
+  returns-a-list = fail
+
+  do-something = fail
+
+  returns-a-pair :: ? -> ? * ?
+  returns-a-pair = fail
+
+//  something-else :: List(?) -> ?
+  something-else :: ? * ? -> ?
+  something-else = fail
+
+  map :: (? -> ?) List(?) -> List(?)
+  map(s) = fail
+
+  Snd :: ? * ? -> ?
+  Snd = fail
+
+  local-variable-type-inference: a -> b
+  where if <s> a
+    then c := <returns-a-list> a
+       ; <map(do-something)> c // c :: List(?), no cast necessary
+    else c := <returns-a-pair> a
+       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+    end
+  ; b := <something-else> c // c :: ?, cast necessary when matching to anything

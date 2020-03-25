@@ -1,0 +1,30 @@
+specification
+
+imports
+
+libstratego-lib
+
+signature
+constructors
+
+Incr : Expr -> Expr
+Add : Expr * Expr -> Expr
+Int : str -> Expr
+Var : str -> Expr
+
+strategies
+
+typed1 :: Expr -> Expr
+
+typed1:
+  e -> Add(e, e)
+
+typed2 :: Stat -> Stat
+
+typed2 =
+  id
+
+untyped:
+  Add(e1, _) -> e1
+    where
+      <cast(Expr( )); typed1> e1; <cast(Stat( )); typed2> e1
