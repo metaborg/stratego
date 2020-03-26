@@ -115,6 +115,14 @@ public class DisambiguateAsAnno {
         if(left == right || left.equals(right)) {
             return left;
         }
+        if(TermUtils.isList(left)) {
+            return resolveChildAmbiguity((IStrategoList) left, (IStrategoList) right,
+                context.getFactory()::replaceList);
+        }
+        if(TermUtils.isTuple(left)) {
+            return resolveChildAmbiguity((IStrategoTuple) left, (IStrategoTuple) right,
+                context.getFactory()::replaceTuple);
+        }
         if(TermUtils.isAppl(left)) {
             final IStrategoAppl leftA = (IStrategoAppl) left;
             final IStrategoAppl rightA = (IStrategoAppl) right;
@@ -143,14 +151,6 @@ public class DisambiguateAsAnno {
                     }
                     break;
             }
-        }
-        if(TermUtils.isList(left)) {
-            return resolveChildAmbiguity((IStrategoList) left, (IStrategoList) right,
-                context.getFactory()::replaceList);
-        }
-        if(TermUtils.isTuple(left)) {
-            return resolveChildAmbiguity((IStrategoTuple) left, (IStrategoTuple) right,
-                context.getFactory()::replaceTuple);
         }
         return null;
     }

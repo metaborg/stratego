@@ -240,10 +240,10 @@ public class Analysis {
                 staticData.registerStrategyDefinitions(module, frontLibOutput.strategies);
                 staticData.registerConstructorDefinitions(module, frontLibOutput.constrs, new StringSetWithPositions());
 
-                reportOverlappingStrategies(staticData.externalStrategies, frontLibOutput.strategies,
+                reportOverlappingStrategies(staticData.libraryExternalStrategies, frontLibOutput.strategies,
                     execContext.logger());
 
-                staticData.externalStrategies.addAll(frontLibOutput.strategies);
+                staticData.libraryExternalStrategies.addAll(frontLibOutput.strategies);
                 staticData.externalConstructors.addAll(frontLibOutput.constrs);
 
                 BuildStats.shuffleLibTime += System.nanoTime() - shuffleStartTime;
@@ -286,8 +286,8 @@ public class Analysis {
             staticData.ambStratPositions.put(module.path, frontOutput.ambStratPositions);
             staticData.registerStrategyDefinitions(module, frontOutput.strats);
             staticData.registerInternalStrategyDefinitions(module, frontOutput.internalStrats);
-            reportOverlappingStrategies(staticData.externalStrategies, frontOutput.externalStrats, execContext.logger());
-            staticData.externalStrategies.addAll(frontOutput.externalStrats);
+            reportOverlappingStrategies(staticData.libraryExternalStrategies, frontOutput.externalStrats, execContext.logger());
+            staticData.externalStrategies.put(module.path, frontOutput.externalStrats);
             staticData.registerCongruenceDefinitions(module, frontOutput.congrs);
             staticData.registerConstructorDefinitions(module, frontOutput.constrs, frontOutput.overlays);
 

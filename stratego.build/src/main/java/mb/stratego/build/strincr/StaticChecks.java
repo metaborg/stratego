@@ -93,8 +93,10 @@ public class StaticChecks {
         public final Map<String, StringSetWithPositions> definedStrategies = new HashMap<>();
         // Module-path to cified-strategy-names defined here as congruences
         public final Map<String, StringSetWithPositions> definedCongruences = new HashMap<>();
+        // Module-path to external cified-strategy-names that will be imported in Java
+        public final Map<String, StringSetWithPositions> externalStrategies = new HashMap<>();
         // External cified-strategy-names that will be imported in Java
-        public final StringSetWithPositions externalStrategies = new StringSetWithPositions();
+        public final StringSetWithPositions libraryExternalStrategies = new StringSetWithPositions();
         // Internal cified-strategy-names that will be imported in Java
         public final Map<String, StringSetWithPositions> internalStrategies = new HashMap<>();
         // External constructors that will be imported in Java
@@ -118,6 +120,7 @@ public class StaticChecks {
             result = prime * result + ((definedStrategies == null) ? 0 : definedStrategies.hashCode());
             result = prime * result + ((externalConstructors == null) ? 0 : externalConstructors.hashCode());
             result = prime * result + ((externalStrategies == null) ? 0 : externalStrategies.hashCode());
+            result = prime * result + ((libraryExternalStrategies == null) ? 0 : libraryExternalStrategies.hashCode());
             result = prime * result + ((internalStrategies == null) ? 0 : internalStrategies.hashCode());
             result = prime * result + ((imports == null) ? 0 : imports.hashCode());
             result = prime * result + ((strategyNeedsExternal == null) ? 0 : strategyNeedsExternal.hashCode());
@@ -165,6 +168,11 @@ public class StaticChecks {
                 if(other.externalStrategies != null)
                     return false;
             } else if(!externalStrategies.equals(other.externalStrategies))
+                return false;
+            if(libraryExternalStrategies == null) {
+                if(other.libraryExternalStrategies != null)
+                    return false;
+            } else if(!libraryExternalStrategies.equals(other.libraryExternalStrategies))
                 return false;
             if(internalStrategies == null) {
                 if(other.internalStrategies != null)
@@ -230,6 +238,10 @@ public class StaticChecks {
 
     public static Output check(Logger logger, String mainFileModulePath, Data staticData,
         Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) throws ExecException {
+        StringSetWithPositions allExternals = new StringSetWithPositions(staticData.libraryExternalStrategies);
+        for(StringSetWithPositions s : staticData.externalStrategies.values()) {
+            allExternals.addAll(s);
+        }
         StringSetWithPositions globalStrategies = new StringSetWithPositions();
         StringSetWithPositions globalConstructors = new StringSetWithPositions();
         for(StringSetWithPositions s : staticData.definedStrategies.values()) {
@@ -238,7 +250,7 @@ public class StaticChecks {
         for(StringSetWithPositions s : staticData.definedConstructors.values()) {
             globalConstructors.addAll(s);
         }
-        globalStrategies.addAll(staticData.externalStrategies);
+        globalStrategies.addAll(allExternals);
 
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
@@ -248,6 +260,9 @@ public class StaticChecks {
             new HashMap<>(2 * (staticData.definedStrategies.size() + staticData.definedCongruences.size()));
         for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedStrategies.entrySet()) {
             visibleStrategies.put(entry.getKey(), new StringSetWithPositions(entry.getValue()));
+        }
+        for(Map.Entry<String, StringSetWithPositions> entry : staticData.externalStrategies.entrySet()) {
+            getOrInitialize(visibleStrategies, entry.getKey(), StringSetWithPositions::new).addAll(entry.getValue());
         }
         for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedCongruences.entrySet()) {
             getOrInitialize(visibleStrategies, entry.getKey(), StringSetWithPositions::new).addAll(entry.getValue());
@@ -259,7 +274,7 @@ public class StaticChecks {
             visibleConstructors.put(entry.getKey(), new StringSetWithPositions(entry.getValue()));
         }
 
-        strategyNeedsExternal(mainFileModulePath, staticData, outputMessages);
+        strategyNeedsExternal(mainFileModulePath, staticData, outputMessages, allExternals);
         cyclicOverlays(mainFileModulePath, staticData, overlayConstrs, outputMessages);
 
         // CHECK that names can be resolved
@@ -293,7 +308,7 @@ public class StaticChecks {
                     .visit(staticData.sugarASTs.get(moduleName));
                 resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
                 resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
-                overlapWithExternals(staticData, outputMessages, moduleName);
+                overlapWithExternals(staticData, outputMessages, moduleName, allExternals);
                 resolveAmbiguousStrategyCalls(staticData, outputMessages, ambStratResolution, theVisibleStrategies,
                     moduleName);
             }
@@ -352,13 +367,13 @@ public class StaticChecks {
     /**
      * CHECK for overlap with external strategies (error condition)
      */
-    private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName) {
+    private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName, StringSetWithPositions allExternals) {
         final StringSetWithPositions definedStrategies =
             staticData.definedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
         final StringSetWithPositions internalStrategies =
             staticData.internalStrategies.getOrDefault(moduleName, new StringSetWithPositions());
         Set<String> strategiesOverlapWithExternal = Sets.difference(
-            Sets.difference(Sets.intersection(definedStrategies.readSet(), staticData.externalStrategies.readSet()),
+            Sets.difference(Sets.intersection(definedStrategies.readSet(), allExternals.readSet()),
                 ALWAYS_DEFINED), internalStrategies.readSet());
         for(String name : strategiesOverlapWithExternal) {
             if(!staticData.strategyNeedsExternal.contains(name)) {
@@ -438,9 +453,9 @@ public class StaticChecks {
      * old compiler generated Java code that would fail to compile)
      */
     private static void strategyNeedsExternal(String mainFileModulePath, Data staticData,
-        List<Message<?>> outputMessages) {
+        List<Message<?>> outputMessages, StringSetWithPositions allExternals) {
         Set<String> strategyNeedsExternalNonOverlap =
-            Sets.difference(staticData.strategyNeedsExternal.readSet(), staticData.externalStrategies.readSet());
+            Sets.difference(staticData.strategyNeedsExternal.readSet(), allExternals.readSet());
         for(String name : strategyNeedsExternalNonOverlap) {
             for(IStrategoString definitionName : staticData.strategyNeedsExternal.getPositions(name)) {
                 outputMessages.add(Message.externalStrategyNotFound(mainFileModulePath, definitionName));
