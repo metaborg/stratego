@@ -8,13 +8,13 @@ import javax.annotation.Nullable;
 
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.AbstractTermFactory;
-import org.spoofax.terms.util.TermUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.AbstractTermFactory;
+import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.SRTS_all;
 import org.strategoxt.lang.Strategy;
@@ -51,11 +51,12 @@ public class DisambiguateAsAnno {
         visitor = new Strategy() {
             @Override
             public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-                final DisambiguationResult ambiguityResolved = resolveAmbiguity(current);
+                final IStrategoTerm visited = visit(current);
+                final DisambiguationResult ambiguityResolved = resolveAmbiguity(visited);
                 if(ambiguityResolved.ambiguityFound()) {
-                    return visit(ambiguityResolved.resolution());
+                    return ambiguityResolved.resolution();
                 } else {
-                    return visit(current);
+                    return visited;
                 }
             }
         };
@@ -121,10 +122,26 @@ public class DisambiguateAsAnno {
             if(leftA.getConstructor().equals(rightA.getConstructor())) {
                 return resolveChildAmbiguity(leftA, rightA,
                     (nc, l) -> context.getFactory().replaceAppl(leftA.getConstructor(), nc, l));
-            } else if(leftA.getName().equals("As") && rightA.getName().equals("NoAnnoList")) {
-                return leftA;
-            } else if(rightA.getName().equals("As") && leftA.getName().equals("NoAnnoList")) {
-                return rightA;
+            }
+            switch(leftA.getName()) {
+                case "As":
+                case "App":
+                    switch(rightA.getName()) {
+                        case "AnnoList":
+                        case "NoAnnoList":
+                        case "Explode":
+                            return leftA;
+                    }
+                    break;
+                case "AnnoList":
+                case "NoAnnoList":
+                case "Explode":
+                    switch(rightA.getName()) {
+                        case "As":
+                        case "App":
+                            return rightA;
+                    }
+                    break;
             }
         }
         if(TermUtils.isList(left)) {
