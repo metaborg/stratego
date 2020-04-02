@@ -125,7 +125,7 @@ extract-inj:
 lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
   with
     forward := <imrel-map(\(l,u) -> ((l,u),u)\)> injection-closure
-  ; relation := <imrel-union(|<imrel-invert> forward)> forward
+  ; relation := <imrel-union(|<imrel-map((Swap, id))> forward)> forward
 
 extract-strategy-types:
   Specification(decl*) -> stratEnv
