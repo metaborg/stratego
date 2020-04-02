@@ -155,7 +155,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
             if(TermUtils.isAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
                 if(TermUtils.isAppl(extConstrAppl, "ExtOpDecl", 2)) {
-                    if(!(TermUtils.isString(extConstrAppl.getSubterm(0)))) {
+                    if(!TermUtils.isString(extConstrAppl.getSubterm(0))) {
                         throw new ExecException(
                             "Malformed built-in library AST. " + "Expected ExtOpDecl(\"...\", ...) but got: "
                                 + extConstrTerm.toString(2));
@@ -200,7 +200,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
     private StringSetWithPositions extractStrategies(IStrategoList extSDefTerms) throws ExecException {
         final StringSetWithPositions strategyConstrs = new StringSetWithPositions();
         for(IStrategoTerm extSDefTerm : extSDefTerms) {
-            if(!(TermUtils.isAppl(extSDefTerm, "ExtSDef", 3))) {
+            if(!TermUtils.isAppl(extSDefTerm, "ExtSDef", 3)) {
                 throw new ExecException(
                     "Malformed built-in library AST. " + "Expected ExtSDef(..., ..., ...) but got: " + extSDefTerm
                         .toString(0));

@@ -1,15 +1,11 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
-import mb.stratego.build.termvisitors.SugarAnalysis;
-import mb.stratego.build.util.Algorithms;
-import mb.stratego.build.util.StringSetWithPositions;
+import static mb.stratego.build.strincr.Frontends.reportOverlappingStrategies;
 
-import com.google.common.collect.Sets;
-import org.spoofax.interpreter.terms.IStrategoString;
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -24,6 +20,28 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+
+import io.usethesource.capsule.BinaryRelation;
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
+import mb.pie.api.STask;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
+import mb.stratego.build.termvisitors.SugarAnalysis;
+import mb.stratego.build.util.Algorithms;
+import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StringSetWithPositions;
+
 public class StaticChecks {
     public static final class Output {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
@@ -34,7 +52,8 @@ public class StaticChecks {
             this.ambStratResolution = ambStratResolution;
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             if(!ambStratResolution.isEmpty()) {
                 final StringBuilder b = new StringBuilder();
                 for(Map.Entry<String, SortedMap<String, String>> stringSortedMapEntry : ambStratResolution.entrySet()) {
@@ -50,14 +69,16 @@ public class StaticChecks {
             }
         }
 
-        @Override public int hashCode() {
+        @Override
+        public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((ambStratResolution == null) ? 0 : ambStratResolution.hashCode());
+            result = prime * result + ambStratResolution.hashCode();
             return result;
         }
 
-        @Override public boolean equals(Object obj) {
+        @Override
+        public boolean equals(Object obj) {
             if(this == obj)
                 return true;
             if(obj == null)
@@ -65,12 +86,7 @@ public class StaticChecks {
             if(getClass() != obj.getClass())
                 return false;
             Output other = (Output) obj;
-            if(ambStratResolution == null) {
-                if(other.ambStratResolution != null)
-                    return false;
-            } else if(!ambStratResolution.equals(other.ambStratResolution))
-                return false;
-            return true;
+            return ambStratResolution.equals(other.ambStratResolution);
         }
     }
 
@@ -110,27 +126,29 @@ public class StaticChecks {
         // Constructor strictness for each strategy
         public final Map<String, Boolean> strictnessLevel = new HashMap<>();
 
-        @Override public int hashCode() {
+        @Override
+        public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((sugarASTs == null) ? 0 : sugarASTs.hashCode());
-            result = prime * result + ((definedCongruences == null) ? 0 : definedCongruences.hashCode());
-            result = prime * result + ((definedConstructors == null) ? 0 : definedConstructors.hashCode());
-            result = prime * result + ((definedStrategies == null) ? 0 : definedStrategies.hashCode());
-            result = prime * result + ((externalConstructors == null) ? 0 : externalConstructors.hashCode());
-            result = prime * result + ((externalStrategies == null) ? 0 : externalStrategies.hashCode());
-            result = prime * result + ((libraryExternalStrategies == null) ? 0 : libraryExternalStrategies.hashCode());
-            result = prime * result + ((internalStrategies == null) ? 0 : internalStrategies.hashCode());
-            result = prime * result + ((imports == null) ? 0 : imports.hashCode());
-            result = prime * result + ((strategyNeedsExternal == null) ? 0 : strategyNeedsExternal.hashCode());
-            result = prime * result + ((usedAmbStrategies == null) ? 0 : usedAmbStrategies.hashCode());
-            result = prime * result + ((usedConstructors == null) ? 0 : usedConstructors.hashCode());
-            result = prime * result + ((usedStrategies == null) ? 0 : usedStrategies.hashCode());
-            result = prime * result + ((strictnessLevel == null) ? 0 : usedStrategies.hashCode());
+            result = prime * result + sugarASTs.hashCode();
+            result = prime * result + definedCongruences.hashCode();
+            result = prime * result + definedConstructors.hashCode();
+            result = prime * result + definedStrategies.hashCode();
+            result = prime * result + externalConstructors.hashCode();
+            result = prime * result + externalStrategies.hashCode();
+            result = prime * result + libraryExternalStrategies.hashCode();
+            result = prime * result + internalStrategies.hashCode();
+            result = prime * result + imports.hashCode();
+            result = prime * result + strategyNeedsExternal.hashCode();
+            result = prime * result + usedAmbStrategies.hashCode();
+            result = prime * result + usedConstructors.hashCode();
+            result = prime * result + usedStrategies.hashCode();
+            result = prime * result + usedStrategies.hashCode();
             return result;
         }
 
-        @Override public boolean equals(Object obj) {
+        @Override
+        public boolean equals(Object obj) {
             if(this == obj)
                 return true;
             if(obj == null)
@@ -138,102 +156,219 @@ public class StaticChecks {
             if(getClass() != obj.getClass())
                 return false;
             Data other = (Data) obj;
-            if(sugarASTs == null) {
-                if(other.sugarASTs != null)
-                    return false;
-            } else if(!sugarASTs.equals(other.sugarASTs))
-                return false;
-            if(definedCongruences == null) {
-                if(other.definedCongruences != null)
-                    return false;
-            } else if(!definedCongruences.equals(other.definedCongruences))
-                return false;
-            if(definedConstructors == null) {
-                if(other.definedConstructors != null)
-                    return false;
-            } else if(!definedConstructors.equals(other.definedConstructors))
-                return false;
-            if(definedStrategies == null) {
-                if(other.definedStrategies != null)
-                    return false;
-            } else if(!definedStrategies.equals(other.definedStrategies))
-                return false;
-            if(externalConstructors == null) {
-                if(other.externalConstructors != null)
-                    return false;
-            } else if(!externalConstructors.equals(other.externalConstructors))
-                return false;
-            if(externalStrategies == null) {
-                if(other.externalStrategies != null)
-                    return false;
-            } else if(!externalStrategies.equals(other.externalStrategies))
-                return false;
-            if(libraryExternalStrategies == null) {
-                if(other.libraryExternalStrategies != null)
-                    return false;
-            } else if(!libraryExternalStrategies.equals(other.libraryExternalStrategies))
-                return false;
-            if(internalStrategies == null) {
-                if(other.internalStrategies != null)
-                    return false;
-            } else if(!internalStrategies.equals(other.internalStrategies))
-                return false;
-            if(imports == null) {
-                if(other.imports != null)
-                    return false;
-            } else if(!imports.equals(other.imports))
-                return false;
-            if(strategyNeedsExternal == null) {
-                if(other.strategyNeedsExternal != null)
-                    return false;
-            } else if(!strategyNeedsExternal.equals(other.strategyNeedsExternal))
-                return false;
-            if(usedAmbStrategies == null) {
-                if(other.usedAmbStrategies != null)
-                    return false;
-            } else if(!usedAmbStrategies.equals(other.usedAmbStrategies))
-                return false;
-            if(usedConstructors == null) {
-                if(other.usedConstructors != null)
-                    return false;
-            } else if(!usedConstructors.equals(other.usedConstructors))
-                return false;
-            if(usedStrategies == null) {
-                if(other.usedStrategies != null)
-                    return false;
-            } else if(!usedStrategies.equals(other.usedStrategies))
-                return false;
-            if(strictnessLevel == null) {
-                if(other.strictnessLevel != null)
-                    return false;
-            } else if(!strictnessLevel.equals(other.strictnessLevel))
-                return false;
-            return true;
+            return sugarASTs.equals(other.sugarASTs) && definedCongruences.equals(other.definedCongruences)
+                && definedConstructors.equals(other.definedConstructors) && definedStrategies
+                .equals(other.definedStrategies) && externalConstructors.equals(other.externalConstructors)
+                && externalStrategies.equals(other.externalStrategies) && libraryExternalStrategies
+                .equals(other.libraryExternalStrategies) && internalStrategies.equals(other.internalStrategies)
+                && imports.equals(other.imports) && strategyNeedsExternal.equals(other.strategyNeedsExternal)
+                && usedAmbStrategies.equals(other.usedAmbStrategies) && usedConstructors.equals(other.usedConstructors)
+                && usedStrategies.equals(other.usedStrategies) && strictnessLevel.equals(other.strictnessLevel);
         }
 
-        public void registerInternalStrategyDefinitions(Module module, StringSetWithPositions strategies) {
-            internalStrategies.put(module.path, strategies);
-        }
-
-        public void registerStrategyDefinitions(Module module, StringSetWithPositions strategies) {
-            definedStrategies.put(module.path, strategies);
-        }
-
-        public void registerCongruenceDefinitions(Module module, StringSetWithPositions strategies) {
-            definedCongruences.put(module.path, strategies);
-        }
-
-        public void registerConstructorDefinitions(Module module, StringSetWithPositions constrs,
+        public void registerConstructorDefinitions(String modulePath, StringSetWithPositions constrs,
             StringSetWithPositions overlays) {
             StringSetWithPositions visConstrs = new StringSetWithPositions(constrs);
             visConstrs.addAll(overlays);
-            definedConstructors.put(module.path, visConstrs);
+            definedConstructors.put(modulePath, visConstrs);
         }
     }
 
+    // TODO: remove once strategoxt is bootstrapped and has an updated baseline. This stuff was added to the standard library and can be removed from the compiler once the baseline is updated.
     static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
     public static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
+
+    protected final Frontend strIncrFront;
+    protected final InsertCasts strIncrInsertCasts;
+    private final StrIncrContext strContext;
+
+    static ArrayList<Long> timestamps = new ArrayList<>();
+
+    @Inject
+    public StaticChecks(Frontend strIncrFront, InsertCasts strIncrInsertCasts, StrIncrContext strContext) {
+        this.strIncrFront = strIncrFront;
+        this.strIncrInsertCasts = strIncrInsertCasts;
+        this.strContext = strContext;
+    }
+
+    public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
+        List<Message<?>> outputMessages, Collection<STask> originTasks, Path projectLocationPath)
+        throws ExecException, InterruptedException {
+        final Data staticData = output.staticData;
+
+        // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
+        final Map<String, Map<IStrategoString, IStrategoTerm>> stratEnvInclImports = new HashMap<>();
+        // Module-path to constructor_arity names to ConstrType visible in the module (def or import of def)
+        final Map<String, BinaryRelation.Immutable<IStrategoString, IStrategoTerm>> constrEnvInclImports =
+            new HashMap<>();
+        // Module-path to Sort type to Sort type in the module (def or import of def)
+        final Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports = new HashMap<>();
+        final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
+            k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
+        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
+            Set<String> scc = iterator.next();
+            // Gather up environment for SCC (typically just 1 module)
+            Map<IStrategoString, IStrategoTerm> sccStrategyEnv = new HashMap<>();
+            BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT = BinaryRelation.Transient.of();
+            BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT = BinaryRelation.Transient.of();
+            final ITermFactory tf = strContext.getFactory();
+            prepareSCCEnv(output, staticData, stratEnvInclImports, constrEnvInclImports, injEnvInclImports, scc,
+                sccStrategyEnv, sccConstructorEnvT, sccInjEnvT, tf);
+            BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv = sccConstructorEnvT.freeze();
+            BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv = sccInjEnvT.freeze();
+            // Do the actual work
+            for(String moduleName : scc) {
+                if(Library.Builtin.isBuiltinLibrary(moduleName)) {
+                    continue;
+                }
+                // Incrementally build the transitive closure while traversing the SCCs
+                constrEnvInclImports.put(moduleName, sccConstructorEnv);
+                stratEnvInclImports.put(moduleName, sccStrategyEnv);
+                injEnvInclImports.put(moduleName, sccInjEnv);
+                // CHECK for constant congruences & overlap between local variables and nullary constructors
+                warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
+                // Insert casts (mutates splitResult.strategyDefs)
+                final SplitResult splitResult =
+                    insertCasts(execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
+                        output.splitModules.get(moduleName));
+                // Desugar
+                long shuffleStartTime;
+                final String projectName = projectName(moduleName);
+
+                final Frontend.Input frontInput =
+                    new Frontend.Input(projectLocationPath.toFile(), splitResult.inputFileString, projectName,
+                        splitResult);
+                timestamps.add(System.nanoTime());
+                final @Nullable Frontend.NormalOutput frontOutput =
+                    execContext.require(strIncrFront, frontInput).normalOutput();
+                timestamps.add(System.nanoTime());
+                // Shuffle information
+                if(frontOutput == null) {
+                    execContext.logger().debug("File deletion detected: " + splitResult.inputFileString);
+                    continue;
+                }
+                execContext.logger().debug("File parsed: " + splitResult.inputFileString);
+
+                for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
+                    Relation
+                        .getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
+                        .add(strategyNoOfDefs.getValue());
+                }
+                shuffleStartTime = System.nanoTime();
+
+                // combining output for check
+                for(StringSetWithPositions usedConstrs : frontOutput.strategyConstrs.values()) {
+                    Relation.getOrInitialize(staticData.usedConstructors, moduleName, StringSetWithPositions::new)
+                        .addAll(usedConstrs);
+                }
+                staticData.usedStrategies.put(moduleName, frontOutput.usedStrategies);
+                staticData.usedAmbStrategies.put(moduleName, frontOutput.ambStratUsed);
+                staticData.ambStratPositions.put(moduleName, frontOutput.ambStratPositions);
+                staticData.definedStrategies.put(moduleName, frontOutput.strats);
+                staticData.internalStrategies.put(moduleName, frontOutput.internalStrats);
+                reportOverlappingStrategies(staticData.libraryExternalStrategies, frontOutput.externalStrats,
+                    execContext.logger());
+                staticData.externalStrategies.put(moduleName, frontOutput.externalStrats);
+                staticData.definedCongruences.put(moduleName, frontOutput.congrs);
+                staticData.registerConstructorDefinitions(moduleName, frontOutput.constrs, frontOutput.overlays);
+
+                staticData.strategyNeedsExternal.addAll(frontOutput.strategyNeedsExternal);
+
+
+                // shuffling output for backend
+                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.strategyASTs.entrySet()) {
+                    String strategyName = gen.getKey();
+                    // ensure the strategy is a key in the strategyFiles map
+                    Relation.getOrInitialize(output.backendData.strategyASTs, strategyName, ArrayList::new)
+                        .add(gen.getValue());
+                    Relation.getOrInitialize(output.backendData.strategyConstrs, strategyName, HashSet::new)
+                        .addAll(frontOutput.strategyConstrs.get(strategyName).readSet());
+                }
+                for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
+                    final String congrName = gen.getKey();
+                    output.backendData.congrASTs.put(congrName, gen.getValue());
+                    Relation.getOrInitialize(output.backendData.strategyConstrs, congrName, HashSet::new)
+                        .addAll(frontOutput.strategyConstrs.get(congrName).readSet());
+                }
+                for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
+                    final String overlayName = gen.getKey();
+
+                    Relation.getOrInitialize(output.backendData.overlayASTs, overlayName, ArrayList::new)
+                        .addAll(gen.getValue());
+                }
+                for(Map.Entry<String, StringSetWithPositions> gen : frontOutput.overlayConstrs.entrySet()) {
+                    final String overlayName = gen.getKey();
+                    Relation.getOrInitialize(output.backendData.overlayConstrs, overlayName, HashSet::new)
+                        .addAll(gen.getValue().readSet());
+                }
+
+                BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
+            }
+        }
+
+        // Run old static checks while we move those from here to the type system implementation
+        return StaticChecks
+            .check(execContext.logger(), mainFileModulePath, output.staticData, output.backendData.overlayConstrs,
+                output.messages);
+    }
+
+    public void warnConstCongrAndNullaryConstr(ExecContext execContext, List<Message<?>> outputMessages,
+        Data staticData, String moduleName) throws ExecException {
+        if(!staticData.sugarASTs.containsKey(moduleName)) {
+            execContext.logger().debug("Sugar ASTs available for: " + staticData.sugarASTs.keySet());
+            throw new ExecException("Cannot find sugar AST for " + moduleName);
+        }
+        new SugarAnalysis(moduleName, outputMessages, staticData.definedConstructors)
+            .visit(staticData.sugarASTs.get(moduleName));
+    }
+
+    public SplitResult insertCasts(ExecContext execContext, List<Message<?>> outputMessages,
+        Map<IStrategoString, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
+        BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv,
+        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult)
+        throws ExecException, InterruptedException {
+        final InsertCasts.Input.Builder builder =
+            new InsertCasts.Input.Builder(sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
+        for(Map.Entry<String, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
+            final InsertCasts.Input insertCastsInput = builder.build(e.getValue(), e.getKey());
+            final InsertCasts.Output result = execContext.require(strIncrInsertCasts, insertCastsInput);
+            e.setValue(result.astWithCasts);
+            outputMessages.addAll(result.messages);
+        }
+        return splitResult;
+    }
+
+    public static void prepareSCCEnv(Frontends.Output output, Data staticData,
+        Map<String, Map<IStrategoString, IStrategoTerm>> stratEnvInclImports,
+        Map<String, BinaryRelation.Immutable<IStrategoString, IStrategoTerm>> constrEnvInclImports,
+        Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports, Set<String> scc,
+        Map<IStrategoString, IStrategoTerm> sccStrategyEnv,
+        BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT,
+        BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT, ITermFactory tf) {
+        for(String moduleName : scc) {
+            final SplitResult splitResult = output.splitModules.get(moduleName);
+
+            final Map<IStrategoString, IStrategoTerm> moduleEnv = new HashMap<>(2 * splitResult.defTypes.size());
+            for(Map.Entry<String, IStrategoTerm> e : splitResult.defTypes.entrySet()) {
+                moduleEnv.put(tf.makeString(e.getKey()), e.getValue());
+            }
+            for(StrategySignature dynRuleSig : splitResult.dynRuleSigs) {
+                moduleEnv.putAll(dynRuleSig.dynamicRuleSignatures(tf));
+            }
+            for(Map.Entry<String, IStrategoTerm> e : splitResult.consTypes.entrySet()) {
+                sccConstructorEnvT.__insert(tf.makeString(e.getKey()), e.getValue());
+            }
+            Relation.putAll(sccInjEnvT, splitResult.injections);
+            sccStrategyEnv.putAll(moduleEnv);
+            for(String mod : staticData.imports.getOrDefault(moduleName, new HashSet<>())) {
+                Relation
+                    .putAll(sccConstructorEnvT, constrEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
+                Relation.putAll(sccInjEnvT, injEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
+                sccStrategyEnv.putAll(stratEnvInclImports.getOrDefault(mod, new HashMap<>()));
+            }
+        }
+    }
 
     public static Output check(Logger logger, String mainFileModulePath, Data staticData,
         Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) throws ExecException {
@@ -279,7 +414,7 @@ public class StaticChecks {
         // CHECK that names can be resolved
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext();) {
+        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
             Set<String> scc = iterator.next();
             StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
             StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
@@ -298,13 +433,6 @@ public class StaticChecks {
                 }
                 visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
-                // CHECK for constant congruences & overlap between local variables and nullary constructors
-                if(!staticData.sugarASTs.containsKey(moduleName)) {
-                    logger.debug("Sugar ASTs available for: " + staticData.sugarASTs.keySet());
-                    throw new ExecException("Cannot find sugar AST for " + moduleName);
-                }
-                new SugarAnalysis(moduleName, outputMessages, staticData.definedConstructors)
-                    .visit(staticData.sugarASTs.get(moduleName));
                 resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
                 resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
                 overlapWithExternals(staticData, outputMessages, moduleName, allExternals);
@@ -317,9 +445,8 @@ public class StaticChecks {
 
     /**
      * RESOLVE ambiguous strategy calls (i.e. in higher-order strategy argument position)
-     * 
-     * @throws ExecException
-     *             on stratego strategy name that does not conform to cified name
+     *
+     * @throws ExecException on stratego strategy name that does not conform to cified name
      */
     private static void resolveAmbiguousStrategyCalls(Data staticData, List<Message<?>> outputMessages,
         final Map<String, SortedMap<String, String>> ambStratResolution, StringSetWithPositions theVisibleStrategies,
@@ -350,8 +477,8 @@ public class StaticChecks {
                     case 1:
                         final String resolvedDef = defs.iterator().next();
                         for(String useSite : entry.getValue()) {
-                            getOrInitialize(ambStratResolution, useSite, TreeMap::new).put(usedAmbStrategy,
-                                resolvedDef);
+                            getOrInitialize(ambStratResolution, useSite, TreeMap::new)
+                                .put(usedAmbStrategy, resolvedDef);
                         }
                         break;
                     default:
@@ -366,14 +493,15 @@ public class StaticChecks {
     /**
      * CHECK for overlap with external strategies (error condition)
      */
-    private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName, StringSetWithPositions allExternals) {
+    private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName,
+        StringSetWithPositions allExternals) {
         final StringSetWithPositions definedStrategies =
             staticData.definedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
         final StringSetWithPositions internalStrategies =
             staticData.internalStrategies.getOrDefault(moduleName, new StringSetWithPositions());
         Set<String> strategiesOverlapWithExternal = Sets.difference(
-            Sets.difference(Sets.intersection(definedStrategies.readSet(), allExternals.readSet()),
-                ALWAYS_DEFINED), internalStrategies.readSet());
+            Sets.difference(Sets.intersection(definedStrategies.readSet(), allExternals.readSet()), ALWAYS_DEFINED),
+            internalStrategies.readSet());
         for(String name : strategiesOverlapWithExternal) {
             if(!staticData.strategyNeedsExternal.contains(name)) {
                 for(IStrategoString strategyDef : definedStrategies.getPositions(name)) {
@@ -435,8 +563,8 @@ public class StaticChecks {
             Algorithms.topoSCCs(overlayConstrs.keySet(), k -> overlayConstrs.getOrDefault(k, Collections.emptySet()));
         overlaySccs.removeIf(s -> {
             String overlayName = s.iterator().next();
-            return s.size() == 1
-                && !(overlayConstrs.getOrDefault(overlayName, Collections.emptySet()).contains(overlayName));
+            return s.size() == 1 && !overlayConstrs.getOrDefault(overlayName, Collections.emptySet())
+                .contains(overlayName);
         });
         for(Set<String> overlayScc : overlaySccs) {
             for(String name : overlayScc) {
@@ -463,10 +591,10 @@ public class StaticChecks {
     }
 
     private static String stripArity(String s) throws ExecException {
-        if(s.substring(s.length() - 4, s.length()).matches("_\\d_\\d")) {
+        if(s.substring(s.length() - 4).matches("_\\d_\\d")) {
             return s.substring(0, s.length() - 4);
         }
-        if(s.substring(s.length() - 5, s.length()).matches("_\\d+_\\d+")) {
+        if(s.substring(s.length() - 5).matches("_\\d+_\\d+")) {
             return s.substring(0, s.length() - 5);
         }
         Matcher m = stripArityPattern.matcher(s);
@@ -480,6 +608,11 @@ public class StaticChecks {
     static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
         map.computeIfAbsent(key, ignore -> initialize.get());
         return map.get(key);
+    }
+
+    private static String projectName(String inputFile) {
+        // *can* we get the project name somehow? This is probably more portable for non-project based compilation
+        return Integer.toString(inputFile.hashCode());
     }
 
 }

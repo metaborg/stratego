@@ -7,18 +7,18 @@ import javax.inject.Inject;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.strincr.Frontends.Output;
 
-public class StrIncrAnalysis implements TaskDef<Analysis.Input, Analysis.Output> {
+public class StrIncrAnalysis implements TaskDef<Frontends.Input, Frontends.Output> {
     public static final String id = StrIncrAnalysis.class.getSimpleName();
-    private final Analysis analysis;
+    private final Frontends frontends;
 
     @Inject
-    public StrIncrAnalysis(Analysis analysis) {
-        this.analysis = analysis;
+    public StrIncrAnalysis(Frontends frontends) {
+        this.frontends = frontends;
     }
 
-    @Override public Output exec(ExecContext execContext, Analysis.Input input) throws Exception {
+    @Override public Output exec(ExecContext execContext, Frontends.Input input) throws Exception {
         /*
          * Note that we require the sdf tasks here to force it to generated needed str files. We then discover those in
          * this method with a directory search, and start a front-end task for each. Every front-end task also depends
@@ -32,7 +32,7 @@ public class StrIncrAnalysis implements TaskDef<Analysis.Input, Analysis.Output>
 
         final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
 
-        return analysis.collectInformation(execContext, input, projectLocationPath);
+        return frontends.collectInformation(execContext, input, projectLocationPath);
     }
 
     @Override public String getId() {

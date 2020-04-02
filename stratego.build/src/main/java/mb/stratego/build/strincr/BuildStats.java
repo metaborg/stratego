@@ -73,7 +73,7 @@ public class BuildStats {
         SubFrontend.timestamps.clear();
         Backend.timestamps.clear();
         LibFrontend.timestamps.clear();
-        Analysis.timestamps.clear();
+        Frontends.timestamps.clear();
         InsertCasts.timestamps.clear();
         StrIncr.timestamps.clear();
     }
@@ -103,7 +103,7 @@ public class BuildStats {
         final long subFrontTime = computeTime(SubFrontend.timestamps);
         final long backTime = computeTime(Backend.timestamps);
         final long libTime = computeTime(LibFrontend.timestamps);
-        final long analysisTime = computeTime(Analysis.timestamps);
+        final long analysisTime = computeTime(Frontends.timestamps);
         final long castTime = computeTime(InsertCasts.timestamps);;
         final long strIncrTime = computeTime(StrIncr.timestamps);
         long totalRecordedTime = frontTime + subFrontTime + backTime + libTime + analysisTime + castTime + strIncrTime;

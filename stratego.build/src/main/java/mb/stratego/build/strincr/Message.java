@@ -85,7 +85,7 @@ public abstract class Message<T extends IStrategoTerm> {
         return new VarConstrOverlap(module, name);
     }
 
-    public static Message<IStrategoString> from(IStrategoTerm message) {
+    public static Message<IStrategoString> from(IStrategoTerm message, MessageSeverity severity) {
         // TODO: implement
         /*
     CallDynamicNotSupported              : ErrorDesc

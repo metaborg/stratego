@@ -10,15 +10,15 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -26,14 +26,14 @@ import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.fs.FSPath;
-import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
 
-    public static final class Input extends Analysis.Input {
+    public static final class Input extends Frontends.Input {
         final @Nullable String javaPackageName;
         final @Nullable File cacheDir;
         final List<String> constants;
@@ -59,34 +59,19 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             Input input = (Input) o;
 
-            if(!inputFile.equals(input.inputFile))
-                return false;
-            if(javaPackageName != null ? !javaPackageName.equals(input.javaPackageName) : input.javaPackageName != null)
-                return false;
-            if(!includeDirs.equals(input.includeDirs))
-                return false;
-            if(!builtinLibs.equals(input.builtinLibs))
-                return false;
-            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
-                return false;
-            if(!constants.equals(input.constants))
-                return false;
-            if(!extraArgs.equals(input.extraArgs))
-                return false;
-            if(!outputPath.equals(input.outputPath))
-                return false;
-            //noinspection SimplifiableIfStatement
-            if(!originTasks.equals(input.originTasks))
-                return false;
-            return projectLocation.equals(input.projectLocation);
+            return inputFile.equals(input.inputFile) && Objects.equals(javaPackageName, input.javaPackageName)
+                && includeDirs.equals(input.includeDirs) && builtinLibs.equals(input.builtinLibs) && Objects
+                .equals(cacheDir, input.cacheDir) && constants.equals(input.constants) && extraArgs
+                .equals(input.extraArgs) && outputPath.equals(input.outputPath) && originTasks.equals(input.originTasks)
+                && projectLocation.equals(input.projectLocation);
         }
 
         @Override public int hashCode() {
             int result = inputFile.hashCode();
-            result = 31 * result + (javaPackageName != null ? javaPackageName.hashCode() : 0);
+            result = 31 * result + Objects.hashCode(javaPackageName);
             result = 31 * result + includeDirs.hashCode();
             result = 31 * result + builtinLibs.hashCode();
-            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
+            result = 31 * result + Objects.hashCode(cacheDir);
             result = 31 * result + constants.hashCode();
             result = 31 * result + extraArgs.hashCode();
             result = 31 * result + outputPath.hashCode();
