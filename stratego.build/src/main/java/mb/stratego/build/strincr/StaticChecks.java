@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -204,8 +203,7 @@ public class StaticChecks {
         final Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports = new HashMap<>();
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.iterator(); iterator.hasNext(); ) {
-            Set<String> scc = iterator.next();
+        for(Set<String> scc : sccs) {
             // Gather up environment for SCC (typically just 1 module)
             Map<IStrategoString, IStrategoTerm> sccStrategyEnv = new HashMap<>();
             BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT = BinaryRelation.Transient.of();
@@ -228,8 +226,8 @@ public class StaticChecks {
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
                 final SplitResult splitResult =
-                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
-                        output.splitModules.get(moduleName));
+                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
+                        sccInjEnv, output.splitModules.get(moduleName));
                 // Desugar
                 long shuffleStartTime;
                 final String projectName = projectName(moduleName);
@@ -364,7 +362,7 @@ public class StaticChecks {
             }
             Relation.putAll(sccInjEnvT, splitResult.injections);
             sccStrategyEnv.putAll(moduleEnv);
-            for(String mod : staticData.imports.getOrDefault(moduleName, new HashSet<>())) {
+            for(String mod : staticData.imports.getOrDefault(moduleName, Collections.emptySet())) {
                 Relation
                     .putAll(sccConstructorEnvT, constrEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
                 Relation.putAll(sccInjEnvT, injEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
@@ -417,15 +415,14 @@ public class StaticChecks {
         // CHECK that names can be resolved
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
-            Set<String> scc = iterator.next();
+        for(Set<String> scc : sccs) {
             StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
             StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
             for(String moduleName : scc) {
                 theVisibleConstructors
                     .addAll(visibleConstructors.getOrDefault(moduleName, new StringSetWithPositions()));
                 theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, new StringSetWithPositions()));
-                for(String mod : staticData.imports.getOrDefault(moduleName, new HashSet<>())) {
+                for(String mod : staticData.imports.getOrDefault(moduleName, Collections.emptySet())) {
                     theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, new StringSetWithPositions()));
                     theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, new StringSetWithPositions()));
                 }
