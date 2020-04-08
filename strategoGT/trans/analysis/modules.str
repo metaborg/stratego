@@ -17,7 +17,7 @@ analysis/utils
 
 pp
 
-libspoofax/stratego/debug
+//libspoofax/stratego/debug
 
 libstrc
 
@@ -26,13 +26,14 @@ strategies
 // This is a quick&dirty testing entry point for running this code on an AST
 // insertCasts :: Module -> (Module, List(Message))
 insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
-  with {| CanCoerce, LUB, Message:
+  with //{| CanCoerce, local-LUB, Message:
     (constrs, injs) := <extract-constrs-inj> ast1
   ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types> ast1
+  ; <debug> constrs
   ; let
-      process-defs = map(insertCasts(|strats, constrs, injection-closure, lub-map);where(try(not(?DefHasType(_, _)); ![Strategies([<id>])];compile-top-level-def)))
+      process-defs = map(local-insertCasts(|strats, constrs, injection-closure, lub-map);where(try(not(?DefHasType(_, _)); ![Strategies([<id>])];compile-top-level-def)))
       process = Specification(map(
            Imports(id)
         <+ Signature(id)
@@ -42,12 +43,12 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
         ))
     in
       ast2 := <process> ast1
-    ; msg* := <bagof-Message>
+    ; msg* := <bagof-local-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
     end
-  |}
+  //|}
 
 extract-constrs-inj:
   Specification(decl*) -> (constrMap, injMap)
@@ -57,70 +58,70 @@ extract-constrs-inj:
   ; constrMap := <imrel-from-list> constr*
   ; injMap := <imrel-from-list> inj*
 
-extract-constr:
-  OpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
-  with t2 := <desugar-Type> t1
-
-extract-constr:
-  OpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
-  with t2 := <desugar-Type> t1
-
-extract-constr:
-  OpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-extract-constr:
-  OpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-extract-constr:
-  OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-// TODO: allow type definition?
-extract-constr:
-  OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
-
-extract-constr:
-  Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
-
-extract-constr:
-  ExtOpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
-  with t2 := <desugar-Type> t1
-
-extract-constr:
-  ExtOpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
-  with t2 := <desugar-Type> t1
-
-extract-constr:
-  ExtOpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-extract-constr:
-  ExtOpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-extract-constr:
-  ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
-extract-inj:
-  OpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
-
-extract-inj:
-  ExtOpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
+//extract-constr:
+//  OpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+//  with t2 := <desugar-Type> t1
+//
+//extract-constr:
+//  OpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+//  with t2 := <desugar-Type> t1
+//
+//extract-constr:
+//  OpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//extract-constr:
+//  OpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//extract-constr:
+//  OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//// TODO: allow type definition?
+//extract-constr:
+//  OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT(Dyn())))
+//
+//extract-constr:
+//  Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT(Dyn()))> t*, DynT(Dyn())))
+//
+//extract-constr:
+//  ExtOpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+//  with t2 := <desugar-Type> t1
+//
+//extract-constr:
+//  ExtOpDeclQ(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+//  with t2 := <desugar-Type> t1
+//
+//extract-constr:
+//  ExtOpDecl(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//extract-constr:
+//  ExtOpDeclQ(c, FunType(t1*, ConstType(t1))) -> ((c, <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//extract-constr:
+//  ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
+//  with
+//    t2 := <desugar-Type> t1
+//  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
+//
+//extract-inj:
+//  OpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
+//
+//extract-inj:
+//  ExtOpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
 
 lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
   with

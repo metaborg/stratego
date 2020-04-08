@@ -29,43 +29,45 @@ strategies // entry-points from Java
  * ast: the stratego strategy/rule ast
  */
 // insert-casts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
-insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
-  with {| CanCoerce, LUB, Message:
-    ast' := <insertCasts(|strats, constrs, injection-closure, lub-map)> ast
-    ; msg* := <bagof-Message>
+local-insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
+  with {| local-CanCoerce, local-LUB, local-Message:
+    ast' := <local-insertCasts(|strats, constrs, injection-closure, lub-map)> ast
+    ; msg* := <bagof-local-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
   |}
 
 // insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
+local-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
   with
-    rules(CanCoerce: (from, to) -> <id>
-      where <can-coerce(|injection-closure)> (from, to))
-  ; rules(LUB: pair -> <lub(|lub-map)> pair)
-  ; ast' := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
+    rules(local-CanCoerce: (from, to) -> <id>
+      where <local-can-coerce(|injection-closure)> (from, to))
+  ; rules(local-LUB: pair -> <local-lub(|lub-map)> pair)
+  ; ast' := <local-insertCasts-Def(|<local-new-env> (strats, constrs), <local-new-st>)> ast
 
-can-coerce(|injection-closure) = ?(ErrT(), _)
-can-coerce(|injection-closure) = ?(_, ErrT())
-can-coerce(|injection-closure) = ?(FailT(), _)
-//can-coerce(|injection-closure) = ?(_, Dyn())
-can-coerce(|injection-closure) = ?(_, DynT())
+local-can-coerce(|injection-closure) = ?(ErrT(), _)
+local-can-coerce(|injection-closure) = ?(_, ErrT())
+local-can-coerce(|injection-closure) = ?(FailT(), _)
+//local-can-coerce(|injection-closure) = ?(_, Dyn())
+local-can-coerce(|injection-closure) = ?(_, DynT(_))
 // We assume co-variant type parameters
-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
+local-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
   where
     <zip(CanCoerce)> (t1*, t2*)
-can-coerce(|injection-closure) = eq
-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
+local-can-coerce(|injection-closure) = eq
+local-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
 
-lub(|lub-map): (x, x) -> x
-lub(|lub-map): (ErrT(), x) -> x
-lub(|lub-map): (x, ErrT()) -> x
-lub(|lub-map): (FailT(), x) -> x
-lub(|lub-map): (x, FailT()) -> x
-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
+local-lub(|lub-map): (x, x) -> x
+local-lub(|lub-map): (ErrT(), x) -> x
+local-lub(|lub-map): (x, ErrT()) -> x
+local-lub(|lub-map): (FailT(), x) -> x
+local-lub(|lub-map): (x, FailT()) -> x
+local-lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
+local-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
+local-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
-constr-lookup(|name, arity, t1) =
-    constr-lookup(|name, arity)
+local-constr-lookup(|name, arity, t1) =
+    local-constr-lookup(|name, arity)
   ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t2, t1)\))
   ; imset-to-list

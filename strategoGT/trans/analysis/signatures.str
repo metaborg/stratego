@@ -5,12 +5,12 @@ imports
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 
-overlays
-
-  FunTType(from, to) = FunTType([], [], from, to)
-  FunTType(ft) = FunTType([], [], ft, ft)
-  FunTType() = FunTType([], [], DynT(), DynT())
-  ListT(elem) = Sort("List", [elem])
-  ListT() = Sort("List", [_DynT()])
-  TupleT(elems) = Sort("Tuple", elems)
-  DynT() = DynT(_Dyn())
+//overlays
+//
+//  FunTType(from, to) = FunTType([], [], from, to)
+//  FunTType(ft) = FunTType([], [], ft, ft)
+//  FunTType() = FunTType([], [], DynT(_Dyn()), DynT(_Dyn()))
+//  ListT(elem) = Sort("List", [elem])
+//  Sort("List", [DynT(Dyn())]) = Sort("List", [_DynT()])
+//  TupleT(elems) = Sort("Tuple", elems)
+//  DynT() = DynT(_Dyn())
