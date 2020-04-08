@@ -1,27 +1,30 @@
 package mb.stratego.build.strincr;
 
-import mb.resource.ResourceKeyString;
-import mb.resource.ResourceService;
-import org.spoofax.terms.util.B;
-import mb.pie.api.ExecException;
-
-import org.spoofax.interpreter.terms.IStrategoString;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.TermFactory;
-import org.spoofax.terms.io.binary.TermReader;
-import org.strategoxt.lang.compat.override.strc_compat.Main;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.annotation.Nullable;
+
+import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.io.binary.TermReader;
+import org.spoofax.terms.util.B;
+import org.strategoxt.lang.compat.override.strc_compat.Main;
+
+import mb.pie.api.ExecException;
+import mb.resource.ResourceKeyString;
+import mb.resource.ResourceService;
+
 public interface Library extends Serializable {
     IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException;
 
-    @Nullable File fileToRead() throws MalformedURLException;
+    @Nullable
+    File fileToRead() throws MalformedURLException;
 
     static Library fromString(ResourceService resourceService, String name) throws IOException {
         final @Nullable Builtin builtinLibrary = Builtin.fromString(name);
@@ -62,11 +65,14 @@ public interface Library extends Serializable {
             this.libString = "lib" + cmdArgString;
         }
 
-        @Override public @Nullable File fileToRead() {
+        @Override
+        public @Nullable
+        File fileToRead() {
             return null;
         }
 
-        @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException {
+        @Override
+        public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException {
             switch(this) {
                 case StrategoLib:
                     return Main.getLibstrategolibRtree();
@@ -113,7 +119,8 @@ public interface Library extends Serializable {
             }
         }
 
-        public static @Nullable Builtin fromString(String name) {
+        public static @Nullable
+        Builtin fromString(String name) {
             switch(name) {
                 case "stratego-lib":
                 case "libstrategolib":
@@ -161,7 +168,9 @@ public interface Library extends Serializable {
             this.pathURLString = pathURLString;
         }
 
-        @Override public @Nullable File fileToRead() throws MalformedURLException {
+        @Override
+        public @Nullable
+        File fileToRead() throws MalformedURLException {
             URL url = new URL(pathURLString);
             if(url.getProtocol().equals("jar")) {
                 url = new URL(url.getPath().split("!", 2)[0]);
@@ -175,12 +184,29 @@ public interface Library extends Serializable {
             return new File(url.toString());
         }
 
-        @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
+        @Override
+        public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
             return new TermReader(factory).parseFromStream(new URL(pathURLString).openStream());
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return "RTree(" + pathURLString + ")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(!(o instanceof RTree))
+                return false;
+            RTree rTree = (RTree) o;
+            return pathURLString.equals(rTree.pathURLString);
+        }
+
+        @Override
+        public int hashCode() {
+            return pathURLString.hashCode();
         }
     }
 }

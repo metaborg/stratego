@@ -135,7 +135,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
     private final ITermFactory termFactory;
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
-    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.termFactory = termFactory;
@@ -145,7 +144,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedBackTasks++;
-        timestamps.add(System.nanoTime());
 
         final long startTime = System.nanoTime();
         final IStrategoTerm ctree;
@@ -190,7 +188,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
-            timestamps.add(System.nanoTime());
             throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
         }
 
@@ -199,14 +196,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 String fileName = line.substring(line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
                     + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
-                timestamps.add(System.nanoTime());
                 execContext.provide(new File(fileName));
-                timestamps.add(System.nanoTime());
             }
         }
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
-        timestamps.add(System.nanoTime());
         return None.instance;
     }
 

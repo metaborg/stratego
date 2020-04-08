@@ -4,24 +4,22 @@ import static org.spoofax.interpreter.core.Interpreter.cify;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import javax.inject.Inject;
-
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
+import org.spoofax.terms.util.TermUtils;
+
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.StringSetWithPositions;
-import org.spoofax.terms.util.TermUtils;
 
 public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
     public static final String id = LibFrontend.class.getCanonicalName();
@@ -88,7 +86,6 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
     }
 
     private final ITermFactory termFactory;
-    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public LibFrontend(ITermFactory termFactory) {
         this.termFactory = termFactory;
@@ -96,24 +93,19 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedFrontLibTasks++;
-        timestamps.add(System.nanoTime());
         final long startTime = System.nanoTime();
         final @Nullable File fileToRead = input.library.fileToRead();
         if(fileToRead != null) {
-            timestamps.add(System.nanoTime());
             execContext.require(fileToRead);
-            timestamps.add(System.nanoTime());
         }
         final IStrategoTerm ast = input.library.readLibraryFile(termFactory);
         // Expected: Specification([Signature([Constructors([...])]), Strategies([...])])
         if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {
-            timestamps.add(System.nanoTime());
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification(...), but got: " + ast.toString(0));
         }
         final IStrategoTerm specList = ast.getSubterm(0);
         if(!(TermUtils.isList(specList) && specList.getSubtermCount() == 2)) {
-            timestamps.add(System.nanoTime());
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification([..., ...]), but got: " + ast.toString(2));
         }
@@ -122,7 +114,6 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         if(!(TermUtils.isAppl(signaturesTerm) && TermUtils.tryGetName(signaturesTerm).orElse("").equals("Signature")
             && signaturesTerm.getSubtermCount() == 1 && TermUtils.isList(signaturesTerm.getSubterm(0))
             && TermUtils.toListAt(signaturesTerm, 0).size() == 1)) {
-            timestamps.add(System.nanoTime());
             throw new ExecException(
                 "Malformed built-in library AST. " + "Expected Specification([Signature([...]), ...]), but got: " + ast
                     .toString(3));
@@ -130,13 +121,11 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         final IStrategoTerm constructorsTerm = TermUtils.toListAt(signaturesTerm, 0).getSubterm(0);
         if(!(TermUtils.isAppl(constructorsTerm) && TermUtils.tryGetName(constructorsTerm).orElse("").equals("Constructors")
             && constructorsTerm.getSubtermCount() == 1 && TermUtils.isList(signaturesTerm.getSubterm(0)))) {
-            timestamps.add(System.nanoTime());
             throw new ExecException("Malformed built-in library AST. "
                 + "Expected Specification([Signature([Constructors([...])]), ...]), but got: " + ast.toString(3));
         }
         if(!(TermUtils.isAppl(strategiesTerm) && TermUtils.tryGetName(strategiesTerm).orElse("").equals("Strategies")
             && strategiesTerm.getSubtermCount() == 1 && TermUtils.isList(strategiesTerm.getSubterm(0)))) {
-            timestamps.add(System.nanoTime());
             throw new ExecException("Malformed built-in library AST. "
                 + "Expected Specification([Signature([Constructors([...])]), Strategies([...])]), but got: " + ast
                 .toString(3));
@@ -145,7 +134,6 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         final StringSetWithPositions strategies = extractStrategies(TermUtils.toListAt(strategiesTerm, 0));
 
         BuildStats.frontLibTaskTime += System.nanoTime() - startTime;
-        timestamps.add(System.nanoTime());
         return new Output(strategies, constrs);
     }
 

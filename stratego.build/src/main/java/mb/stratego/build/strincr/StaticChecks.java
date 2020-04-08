@@ -183,8 +183,6 @@ public class StaticChecks {
     protected final InsertCasts strIncrInsertCasts;
     private final StrIncrContext strContext;
 
-    static ArrayList<Long> timestamps = new ArrayList<>();
-
     @Inject
     public StaticChecks(Frontend strIncrFront, InsertCasts strIncrInsertCasts, StrIncrContext strContext) {
         this.strIncrFront = strIncrFront;
@@ -206,7 +204,7 @@ public class StaticChecks {
         final Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports = new HashMap<>();
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
-        for(Iterator<Set<String>> iterator = sccs.descendingIterator(); iterator.hasNext(); ) {
+        for(Iterator<Set<String>> iterator = sccs.iterator(); iterator.hasNext(); ) {
             Set<String> scc = iterator.next();
             // Gather up environment for SCC (typically just 1 module)
             Map<IStrategoString, IStrategoTerm> sccStrategyEnv = new HashMap<>();
@@ -230,7 +228,7 @@ public class StaticChecks {
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
                 final SplitResult splitResult =
-                    insertCasts(execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
+                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
                         output.splitModules.get(moduleName));
                 // Desugar
                 long shuffleStartTime;
@@ -239,10 +237,8 @@ public class StaticChecks {
                 final Frontend.Input frontInput =
                     new Frontend.Input(projectLocationPath.toFile(), splitResult.inputFileString, projectName,
                         splitResult);
-                timestamps.add(System.nanoTime());
                 final @Nullable Frontend.NormalOutput frontOutput =
                     execContext.require(strIncrFront, frontInput).normalOutput();
-                timestamps.add(System.nanoTime());
                 // Shuffle information
                 if(frontOutput == null) {
                     execContext.logger().debug("File deletion detected: " + splitResult.inputFileString);
@@ -323,13 +319,13 @@ public class StaticChecks {
             .visit(staticData.sugarASTs.get(moduleName));
     }
 
-    public SplitResult insertCasts(ExecContext execContext, List<Message<?>> outputMessages,
+    public SplitResult insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
         Map<IStrategoString, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
         BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult)
         throws ExecException, InterruptedException {
         final InsertCasts.Input.Builder builder =
-            new InsertCasts.Input.Builder(sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
+            new InsertCasts.Input.Builder(moduleName, sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
         for(Map.Entry<String, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
             final InsertCasts.Input insertCastsInput = builder.build(e.getValue(), e.getKey());
             final InsertCasts.Output result = execContext.require(strIncrInsertCasts, insertCastsInput);
@@ -347,7 +343,14 @@ public class StaticChecks {
         BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT,
         BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT, ITermFactory tf) {
         for(String moduleName : scc) {
+            if(Library.Builtin.isBuiltinLibrary(moduleName)) {
+                // TODO: Add external defs from library to env
+                continue;
+            }
             final SplitResult splitResult = output.splitModules.get(moduleName);
+            if(splitResult == null) {
+                throw new NullPointerException("Cannot find splitResult for module " + moduleName);
+            }
 
             final Map<IStrategoString, IStrategoTerm> moduleEnv = new HashMap<>(2 * splitResult.defTypes.size());
             for(Map.Entry<String, IStrategoTerm> e : splitResult.defTypes.entrySet()) {

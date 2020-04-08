@@ -72,6 +72,10 @@ public class Frontends {
         public int hashCode() {
             return Objects.hash(inputFile, includeDirs, builtinLibs, originTasks, projectLocation);
         }
+
+        @Override public String toString() {
+            return "FrontEnds$Input(inputFile=" + inputFile + ", projectLocation=" + projectLocation + ")";
+        }
     }
 
     public static class Output implements Serializable {
@@ -96,13 +100,14 @@ public class Frontends {
             if(!(o instanceof Output))
                 return false;
             Output output = (Output) o;
-            return staticData.equals(output.staticData) && backendData.equals(output.backendData) && staticCheckOutput
-                .equals(output.staticCheckOutput) && messages.equals(output.messages);
+            return staticData.equals(output.staticData) && backendData.equals(output.backendData) && splitModules
+                .equals(output.splitModules) && messages.equals(output.messages) && staticCheckOutput
+                .equals(output.staticCheckOutput);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(staticData, backendData, staticCheckOutput, messages);
+            return Objects.hash(staticData, backendData, splitModules, messages, staticCheckOutput);
         }
     }
 
@@ -111,8 +116,6 @@ public class Frontends {
     private final SubFrontend strIncrSubFront;
     private final ParseStratego parseStratego;
     private final ResourceService resourceService;
-
-    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public Frontends(ResourceService resourceService, LibFrontend strIncrFrontLib, StaticChecks staticChecks, StrIncrContext strContext,
         ParseStratego parseStratego, SubFrontend strIncrSubFront) {
@@ -125,7 +128,6 @@ public class Frontends {
 
     protected Output collectInformation(ExecContext execContext, Input input, Path projectLocationPath)
         throws Exception {
-        timestamps.add(System.nanoTime());
         final Module inputModule = Module.source(Paths.get(input.inputFile.toURI()));
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
@@ -136,13 +138,11 @@ public class Frontends {
         output.staticCheckOutput = staticChecks.insertCasts(execContext, inputModule.path, output, output.messages, input.originTasks, projectLocationPath);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
-        timestamps.add(System.nanoTime());
         return output;
     }
 
     public Output frontends(ExecContext execContext, Input input, Path projectLocationPath, Module inputModule)
         throws Exception {
-        timestamps.add(System.nanoTime());
         // FRONTEND
         final java.util.Set<Module> seen = new HashSet<>();
         final Deque<Module> workList = new ArrayDeque<>();
@@ -153,12 +153,10 @@ public class Frontends {
         for(String builtinLib : input.builtinLibs) {
             defaultImports.add(Import.library(B.string(builtinLib)));
         }
-        timestamps.add(System.nanoTime());
         // depend on the include directories in which we search for str and rtree files
         for(File includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
-        timestamps.add(System.nanoTime());
 
         final StaticChecks.Data staticData = new StaticChecks.Data();
 
@@ -173,9 +171,7 @@ public class Frontends {
             if(module.type == Module.Type.library) {
                 final LibFrontend.Input frontLibInput =
                     new LibFrontend.Input(Library.fromString(resourceService, module.path));
-                timestamps.add(System.nanoTime());
                 final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
-                timestamps.add(System.nanoTime());
 
                 shuffleStartTime = System.nanoTime();
 
@@ -202,9 +198,7 @@ public class Frontends {
                 continue;
             }
             // Parse file:
-            timestamps.add(System.nanoTime());
             execContext.require(inputFile);
-            timestamps.add(System.nanoTime());
             final IStrategoTerm ast;
             try(final InputStream inputStream = new BufferedInputStream(inputFile.openRead())) {
                 if("rtree".equals(inputFile.getLeafExtension())) {
@@ -218,18 +212,14 @@ public class Frontends {
             // Split file up with PIE task:
             final SubFrontend.Input splitInput =
                 SubFrontend.Input.split(input.originTasks, inputFileString, inputFileString, ast);
-            timestamps.add(System.nanoTime());
             final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, splitInput).result;
-            timestamps.add(System.nanoTime());
             final SplitResult splitResult = SplitResult.fromTerm(splitTerm, inputFileString);
             // Save results for use in different order during type checking
             splitModules.put(module.path, splitResult);
             // Resolve imports
             final Set<Module> expandedImports =
                 resolveImports(input, defaultImports, messages, module, splitResult, path -> {
-                    timestamps.add(System.nanoTime());
                     final FSResource res = execContext.require(path);
-                    timestamps.add(System.nanoTime());
                     return res;
                 });
             for(Module m : expandedImports) {
@@ -239,7 +229,6 @@ public class Frontends {
             workList.addAll(expandedImports);
             seen.addAll(expandedImports);
         } while(!workList.isEmpty());
-        timestamps.add(System.nanoTime());
         return new Output(staticData, backendData, splitModules, messages);
     }
 

@@ -10,7 +10,7 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.Frontends.Output;
 
 public class StrIncrAnalysis implements TaskDef<Frontends.Input, Frontends.Output> {
-    public static final String id = StrIncrAnalysis.class.getSimpleName();
+    public static final String id = StrIncrAnalysis.class.getCanonicalName();
     private final Frontends frontends;
 
     @Inject

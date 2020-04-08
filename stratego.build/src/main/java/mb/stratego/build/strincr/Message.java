@@ -7,6 +7,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.pie.api.Logger;
+
 public abstract class Message<T extends IStrategoTerm> {
     public final String moduleFilePath;
     public final T locationTerm;
@@ -85,36 +87,44 @@ public abstract class Message<T extends IStrategoTerm> {
         return new VarConstrOverlap(module, name);
     }
 
-    public static Message<IStrategoString> from(IStrategoTerm message, MessageSeverity severity) {
-        // TODO: implement
-        /*
-    CallDynamicNotSupported              : ErrorDesc
-    TermVariableTypedWithStrategyType    : ErrorDesc
-    StrategyVariableTypedWithTermType    : ErrorDesc
-    DuplicateTypeDefinition              : ErrorDesc
-    MissingDefinitionForTypeDefinition   : ErrorDesc
-    ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
-    ProceedInNonExtendStrategy           : ErrorDesc
-    CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
-    NoInjectionBetween                   : Type * Type -> ErrorDesc
-    VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
-    TypeMismatch                         : Type * Type -> ErrorDesc
-    STypeMismatch                        : SType * SType -> ErrorDesc
-    UnresolvedLocal                      : ErrorDesc
-    UnresolvedConstructor                : Int * Type -> ErrorDesc
-    UnresolvedStrategy                   : Int * Int -> ErrorDesc
-    AmbiguousConstructorUse              : List(Type) -> ErrorDesc
-    AsInBuildTerm                        : ErrorDesc
-    WldInBuildTerm                       : ErrorDesc
-    BuildDefaultInBuildTerm              : ErrorDesc
-    BuildDefaultInMatchTerm              : ErrorDesc
-    StringQuotationInMatchTerm           : ErrorDesc
-    NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
-    NonListInAnno                        : Type -> ErrorDesc
-    MultipleAppsInMatch                  : ErrorDesc
-    BuildUnboundTerm                     : ErrorDesc
+    public static Message<IStrategoTerm> from(Logger logger, String module, IStrategoTerm messageTerm, MessageSeverity severity) {
+        switch(TermUtils.toAppl(messageTerm).getName()) {
+            case "CallDynamicNotSupported":
+                return new CallDynamicNotSupported(module, messageTerm, severity);
+            case "TermVariableTypedWithStrategyType":
+                return new TermVariableTypedWithStrategyType(module, messageTerm, severity);
+            case "StrategyVariableTypedWithTermType":
+                return new StrategyVariableTypedWithTermType(module, messageTerm, severity);
+            case "DuplicateTypeDefinition":
+                return new DuplicateTypeDefinition(module, messageTerm, severity);
+            case "MissingDefinitionForTypeDefinition":
+                return new MissingDefinitionForTypeDefinition(module, messageTerm, severity);
+            default:
+                logger.warn("Unrecognised message from type checker, passing raw message. ", null);
+                return new RawTermMessage(module, messageTerm, severity);
+        }
+        /* TODO: implement
+         *  ProceedWrongNumberOfArguments        : Int * Int -> ErrorDesc
+         *  ProceedInNonExtendStrategy           : ErrorDesc
+         *  CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
+         *  NoInjectionBetween                   : Type * Type -> ErrorDesc
+         *  VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
+         *  TypeMismatch                         : Type * Type -> ErrorDesc
+         *  STypeMismatch                        : SType * SType -> ErrorDesc
+         *  UnresolvedLocal                      : ErrorDesc
+         *  UnresolvedConstructor                : Int * Type -> ErrorDesc
+         *  UnresolvedStrategy                   : Int * Int -> ErrorDesc
+         *  AmbiguousConstructorUse              : List(Type) -> ErrorDesc
+         *  AsInBuildTerm                        : ErrorDesc
+         *  WldInBuildTerm                       : ErrorDesc
+         *  BuildDefaultInBuildTerm              : ErrorDesc
+         *  BuildDefaultInMatchTerm              : ErrorDesc
+         *  StringQuotationInMatchTerm           : ErrorDesc
+         *  NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
+         *  NonListInAnno                        : Type -> ErrorDesc
+         *  MultipleAppsInMatch                  : ErrorDesc
+         *  BuildUnboundTerm                     : ErrorDesc
          */
-        throw new RuntimeException("Not implemented");
     }
 
     public String toString() {
@@ -231,5 +241,71 @@ class VarConstrOverlap extends Message<IStrategoString> {
 
     @Override public String getMessage() {
         return "Nullary constructor '" + locationTerm.stringValue() + "' should be followed by round brackets ().";
+    }
+}
+
+class RawTermMessage extends Message<IStrategoTerm> {
+    public RawTermMessage(String module, IStrategoTerm locationTerm, MessageSeverity severity) {
+        super(module, locationTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return this.locationTerm.toString();
+    }
+}
+
+class CallDynamicNotSupported extends Message<IStrategoTerm> {
+    public CallDynamicNotSupported(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return "The dynamic call construct is no longer supported.";
+    }
+}
+
+class TermVariableTypedWithStrategyType extends Message<IStrategoTerm> {
+    public TermVariableTypedWithStrategyType(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return "This is a term variable, but it has a strategy type.";
+    }
+}
+
+class StrategyVariableTypedWithTermType extends Message<IStrategoTerm> {
+    public StrategyVariableTypedWithTermType(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return "This is a strategy variable, but it has a term type.";
+    }
+}
+
+class DuplicateTypeDefinition extends Message<IStrategoTerm> {
+    public DuplicateTypeDefinition(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return "Duplicate type definition.";
+    }
+}
+
+class MissingDefinitionForTypeDefinition extends Message<IStrategoTerm> {
+    public MissingDefinitionForTypeDefinition(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return "Cannot find definition corresponding to this type definition.";
     }
 }

@@ -18,8 +18,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import com.sun.istack.internal.NotNull;
-
 import io.usethesource.capsule.BinaryRelation;
 import mb.stratego.build.util.Relation;
 
@@ -66,7 +64,14 @@ public class SplitResult {
 
         final List<IStrategoTerm> imports = imps.getSubterms();
 
-        final Map<String, IStrategoTerm> strategyDefs = assocListToMap(strats);
+        final Map<String, List<IStrategoTerm>> resultMap = new HashMap<>(strats.size() * 2);
+        for(IStrategoTerm pair : strats) {
+            // pair == (name1, Strategies([def]))
+            final String name1 = TermUtils.toJavaStringAt(pair, 0);
+            final IStrategoTerm def = pair.getSubterm(1).getSubterm(0).getSubterm(0);
+            Relation.getOrInitialize(resultMap, name1, ArrayList::new).add(def);
+        }
+        final Map<String, IStrategoTerm> strategyDefs = packMapValues(resultMap);
         final Map<String, IStrategoTerm> consDefs = assocListToMap(cons);
         final Map<String, IStrategoTerm> olayDefs = assocListToMap(olays);
         final Map<String, IStrategoTerm> defTypes = assocListToMap(deftys);
@@ -96,7 +101,6 @@ public class SplitResult {
             injections.freeze());
     }
 
-    @NotNull
     public static String consSigToString(IStrategoTuple consSig) {
         return TermUtils.toJavaStringAt(consSig, 0) + "_" + TermUtils.toJavaIntAt(consSig, 1);
     }
