@@ -218,10 +218,9 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
       t2* := t1*
     ; t3 := t2  // workaround for backtracking issue in strj
     else if [] := t*
-        then err := UnresolvedConstructor(<length> trm1*, DynT(Dyn()))
-        else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
+        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, DynT(Dyn())))
+        else <local-report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
-    ; <local-report-Err> (cnstr, err)
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
     end
