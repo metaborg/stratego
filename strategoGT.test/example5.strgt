@@ -6,6 +6,8 @@ libstratego-lib
 
 strategies
 
+decr = fail
+
 //  strat(? -> ?, ? -> ? | ?, ?) :: ? -> ?
 //  strat :: (? -> ?, ? -> ? | ?, ?) ? -> ?
   strat(s1, s2 | t1, t2): t0 -> t4

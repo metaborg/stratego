@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import org.spoofax.terms.util.B;
 import mb.pie.api.ExecException;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,15 +31,8 @@ public final class StrategyStubs {
         final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
         final B b = new B(strj.init().getFactory());
         for(String strategyName : strategyASTs.keySet()) {
-            final Matcher m = StaticChecks.stripArityPattern.matcher(strategyName);
-            if(!m.matches()) {
-                throw new ExecException(
-                    "Frontend returned stratego strategy name that does not conform to cified name: '" + strategyName
-                        + "'");
-            }
-            final int svars = Integer.parseInt(m.group(2));
-            final int tvars = Integer.parseInt(m.group(3));
-            decls.add(sdefStub(b, strategyName, svars, tvars));
+            final StrategySignature sig = StrategySignature.fromCified(strategyName);
+            decls.add(sdefStub(b, strategyName, sig.noStrategyArgs, sig.noTermArgs));
         }
         return decls;
     }

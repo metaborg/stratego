@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.management.RuntimeErrorException;
+
+import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -164,7 +167,7 @@ public class SplitResult {
             for(int i = 0; i < noStrategyArgs; i++) {
                 sargTypes.add(sdyn);
             }
-            final IStrategoAppl dyn = tf.makeAppl("Dyn");
+            final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
             final IStrategoList.Builder targTypes = tf.arrayListBuilder(noStrategyArgs);
             for(int i = 0; i < noTermArgs; i++) {
                 targTypes.add(dyn);
@@ -198,6 +201,42 @@ public class SplitResult {
             result.put(tf.makeString("chain_" + n + "_" + s + "_" + t), standardType(tf, s, t));
             result.put(tf.makeString("bigchain_" + n + "_" + s + "_" + t), standardType(tf, s, t));
             return result;
+        }
+
+        public static boolean isCified(String name) {
+            try {
+                int lastUnderlineOffset = name.lastIndexOf('_');
+                if(lastUnderlineOffset == -1) {
+                    return false;
+                }
+                Integer.parseInt(name.substring(lastUnderlineOffset+1));
+                int penultimateUnderlineOffset = name.lastIndexOf('_', lastUnderlineOffset-1);
+                if(penultimateUnderlineOffset == -1) {
+                    return false;
+                }
+                Integer.parseInt(name.substring(penultimateUnderlineOffset+1, lastUnderlineOffset));
+            } catch(RuntimeException e) {
+                return false;
+            }
+            return true;
+        }
+
+        public static StrategySignature fromCified(String cifiedName) throws RuntimeException {
+            try {
+                int lastUnderlineOffset = cifiedName.lastIndexOf('_');
+                if(lastUnderlineOffset == -1) {
+                    throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName);
+                }
+                int termArity = Integer.parseInt(cifiedName.substring(lastUnderlineOffset+1));
+                int penultimateUnderlineOffset = cifiedName.lastIndexOf('_', lastUnderlineOffset-1);
+                if(penultimateUnderlineOffset == -1) {
+                    throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName);
+                }
+                int strategyArity = Integer.parseInt(cifiedName.substring(penultimateUnderlineOffset+1, lastUnderlineOffset));
+                return new StrategySignature(SDefT.unescape(cifiedName.substring(0, penultimateUnderlineOffset)), strategyArity, termArity);
+            } catch(NumberFormatException e) {
+                throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName, e);
+            }
         }
     }
 }

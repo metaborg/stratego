@@ -5,7 +5,6 @@ import static mb.stratego.build.strincr.Frontends.reportOverlappingStrategies;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -16,11 +15,10 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -32,8 +30,6 @@ import com.google.inject.Inject;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
-import mb.pie.api.STask;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.termvisitors.SugarAnalysis;
 import mb.stratego.build.util.Algorithms;
@@ -176,7 +172,6 @@ public class StaticChecks {
     // TODO: remove once strategoxt is bootstrapped and has an updated baseline. This stuff was added to the standard library and can be removed from the compiler once the baseline is updated.
     static final HashSet<String> ALWAYS_DEFINED =
         new HashSet<>(Arrays.asList("DR__DUMMY_0_0", "Anno__Cong_____2_0", "DR__UNDEFINE_1_0"));
-    public static final Pattern stripArityPattern = Pattern.compile("([A-Za-z$_][A-Za-z0-9_$]*)_(\\d+)_(\\d+)");
 
     protected final Frontend strIncrFront;
     protected final InsertCasts strIncrInsertCasts;
@@ -190,7 +185,7 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, Collection<STask> originTasks, Path projectLocationPath)
+        List<Message<?>> outputMessages, Path projectLocationPath)
         throws ExecException, InterruptedException {
         final Data staticData = output.staticData;
 
@@ -225,10 +220,10 @@ public class StaticChecks {
                 // CHECK for constant congruences & overlap between local variables and nullary constructors
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
-                final SplitResult splitResult =
-                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
-                        sccInjEnv, output.splitModules.get(moduleName));
-                // Desugar
+                final SplitResult splitResult = output.splitModules.get(moduleName);
+                insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
+                    sccInjEnv, splitResult);
+
                 long shuffleStartTime;
                 final String projectName = projectName(moduleName);
 
@@ -301,9 +296,11 @@ public class StaticChecks {
             }
         }
 
+        sccs.clear();
+
         // Run old static checks while we move those from here to the type system implementation
         return StaticChecks
-            .check(execContext.logger(), mainFileModulePath, output.staticData, output.backendData.overlayConstrs,
+            .check(mainFileModulePath, output.staticData, output.backendData.overlayConstrs,
                 output.messages);
     }
 
@@ -317,7 +314,7 @@ public class StaticChecks {
             .visit(staticData.sugarASTs.get(moduleName));
     }
 
-    public SplitResult insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
+    public void insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
         Map<IStrategoString, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
         BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult)
@@ -330,7 +327,6 @@ public class StaticChecks {
             e.setValue(result.astWithCasts);
             outputMessages.addAll(result.messages);
         }
-        return splitResult;
     }
 
     public static void prepareSCCEnv(Frontends.Output output, Data staticData,
@@ -342,7 +338,22 @@ public class StaticChecks {
         BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT, ITermFactory tf) {
         for(String moduleName : scc) {
             if(Library.Builtin.isBuiltinLibrary(moduleName)) {
-                // TODO: Add external defs from library to env
+                final StringSetWithPositions definedStrats = staticData.definedStrategies.get(moduleName);
+                final StringSetWithPositions definedConstrs = staticData.definedConstructors.get(moduleName);
+                for(String cifiedName : definedStrats.readSet()) {
+                    try {
+                        final StrategySignature sig = StrategySignature.fromCified(cifiedName);
+                        sccStrategyEnv.put(tf.makeString(sig.name), sig.standardType(tf));
+                    } catch(NumberFormatException | IndexOutOfBoundsException e) {
+                        // TODO: what to do?
+                        continue;
+                    }
+                }
+
+                for(String cifiedName : definedConstrs.readSet()) {
+                    final StrategySignature sig = StrategySignature.fromCified(cifiedName);
+                    sccConstructorEnvT.__insert(tf.makeString(sig.name), sig.standardType(tf));
+                }
                 continue;
             }
             final SplitResult splitResult = output.splitModules.get(moduleName);
@@ -371,8 +382,7 @@ public class StaticChecks {
         }
     }
 
-    public static Output check(Logger logger, String mainFileModulePath, Data staticData,
-        Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) throws ExecException {
+    public static Output check(String mainFileModulePath, Data staticData, Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) {
         StringSetWithPositions allExternals = new StringSetWithPositions(staticData.libraryExternalStrategies);
         for(StringSetWithPositions s : staticData.externalStrategies.values()) {
             allExternals.addAll(s);
@@ -433,8 +443,8 @@ public class StaticChecks {
                 }
                 visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
-                resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
-                resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
+//                resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
+//                resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
                 overlapWithExternals(staticData, outputMessages, moduleName, allExternals);
                 resolveAmbiguousStrategyCalls(staticData, outputMessages, ambStratResolution, theVisibleStrategies,
                     moduleName);
@@ -445,12 +455,12 @@ public class StaticChecks {
 
     /**
      * RESOLVE ambiguous strategy calls (i.e. in higher-order strategy argument position)
+     * TODO: move this into the type checker (insertCasts)
      *
-     * @throws ExecException on stratego strategy name that does not conform to cified name
      */
     private static void resolveAmbiguousStrategyCalls(Data staticData, List<Message<?>> outputMessages,
         final Map<String, SortedMap<String, String>> ambStratResolution, StringSetWithPositions theVisibleStrategies,
-        String moduleName) throws ExecException {
+        String moduleName) {
         Map<String, Set<String>> theUsedAmbStrategies =
             new HashMap<>(staticData.usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
         StringSetWithPositions ambStratPositions =
@@ -460,7 +470,7 @@ public class StaticChecks {
         if(!theUsedAmbStrategies.isEmpty()) {
             Map<String, Set<String>> differentArityDefinitions = new HashMap<>(2 * theVisibleStrategies.size());
             for(String theVisibleStrategy : theVisibleStrategies.readSet()) {
-                String ambCallVersion = stripArity(theVisibleStrategy) + "_0_0";
+                String ambCallVersion = SDefT.removeArity(theVisibleStrategy) + "_0_0";
                 getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new).add(theVisibleStrategy);
             }
             for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
@@ -492,6 +502,7 @@ public class StaticChecks {
 
     /**
      * CHECK for overlap with external strategies (error condition)
+     * TODO: move this into the type checker (insertCasts)
      */
     private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName,
         StringSetWithPositions allExternals) {
@@ -556,6 +567,7 @@ public class StaticChecks {
 
     /**
      * CHECK that overlays do not cyclically use each other (error condition) (New check, old compiler looped)
+     * TODO: move this into the type checker (insertCasts)
      */
     private static void cyclicOverlays(String mainFileModulePath, Data staticData,
         Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) {
@@ -578,6 +590,7 @@ public class StaticChecks {
     /**
      * CHECK that extending and/or overriding strategies have an external strategy to extend and/or override (New check,
      * old compiler generated Java code that would fail to compile)
+     * TODO: move this into the type checker (insertCasts)
      */
     private static void strategyNeedsExternal(String mainFileModulePath, Data staticData,
         List<Message<?>> outputMessages, StringSetWithPositions allExternals) {
@@ -588,21 +601,6 @@ public class StaticChecks {
                 outputMessages.add(Message.externalStrategyNotFound(mainFileModulePath, definitionName));
             }
         }
-    }
-
-    private static String stripArity(String s) throws ExecException {
-        if(s.substring(s.length() - 4).matches("_\\d_\\d")) {
-            return s.substring(0, s.length() - 4);
-        }
-        if(s.substring(s.length() - 5).matches("_\\d+_\\d+")) {
-            return s.substring(0, s.length() - 5);
-        }
-        Matcher m = stripArityPattern.matcher(s);
-        if(!m.matches()) {
-            throw new ExecException(
-                "Frontend returned stratego strategy name that does not conform to cified name: '" + s + "'");
-        }
-        return m.group(1);
     }
 
     static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {

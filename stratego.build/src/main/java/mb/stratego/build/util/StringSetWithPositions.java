@@ -1,67 +1,175 @@
 package mb.stratego.build.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.metaborg.util.iterators.CompoundIterator;
 import org.spoofax.interpreter.terms.IStrategoString;
 
 public class StringSetWithPositions {
-    private final HashMap<String, List<IStrategoString>> map;
+    private final List<Map<String, List<IStrategoString>>> maps;
+    private boolean latestMutatable;
 
     public StringSetWithPositions() {
-        this.map = new HashMap<>();
+        this.maps = new ArrayList<>();
+        this.latestMutatable = false;
     }
 
     public StringSetWithPositions(StringSetWithPositions toCopy) {
-        this.map = new HashMap<>(toCopy.map);
+        this.maps = new ArrayList<>(toCopy.maps);
+        this.latestMutatable = toCopy.latestMutatable = false;
     }
 
     public Set<String> cloneSet() {
-        return new HashSet<>(map.keySet());
+        Set<String> result = new HashSet<>();
+        for(Map<String, List<IStrategoString>> map : maps) {
+            result.addAll(map.keySet());
+        }
+        return result;
     }
 
     public Set<String> readSet() {
-        return Collections.unmodifiableSet(map.keySet());
+        final List<Iterator<String>> keyIterators = new ArrayList<>(maps.size());
+        int size = 0;
+        for(Map<String, List<IStrategoString>> map : maps) {
+            size += map.size();
+            keyIterators.add(map.keySet().iterator());
+        }
+        final int finalSize = size;
+
+        return new Set<String>() {
+            @Override
+            public int size() {
+                return finalSize;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return finalSize == 0;
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                for(Map<String, List<IStrategoString>> map : maps) {
+                    //noinspection SuspiciousMethodCalls
+                    if(map.containsKey(o)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public Iterator<String> iterator() {
+                return new CompoundIterator<>(keyIterators);
+            }
+
+            @Override
+            public Object[] toArray() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> T[] toArray(T[] a) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean add(String s) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean remove(Object o) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean containsAll(Collection<?> c) {
+                for(Object o : c) {
+                    if(!contains(o)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public boolean addAll(Collection<? extends String> c) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean retainAll(Collection<?> c) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean removeAll(Collection<?> c) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void clear() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     public void add(IStrategoString str) {
-        Relation.getOrInitialize(map, str.stringValue(), ArrayList::new).add(str);
+        final Map<String, List<IStrategoString>> map = getMap();
+        map.put(str.stringValue(), Collections.singletonList(str));
+    }
+
+    private Map<String, List<IStrategoString>> getMap() {
+        final Map<String, List<IStrategoString>> map;
+        if(!latestMutatable) {
+            map = new HashMap<>();
+            maps.add(map);
+            latestMutatable = true;
+        } else {
+            map = maps.get(maps.size()-1);
+        }
+        return map;
     }
 
     public void addAll(Iterable<IStrategoString> iterable) {
+        final Map<String, List<IStrategoString>> newMap = getMap();
         for(IStrategoString s : iterable) {
-            add(s);
+            newMap.put(s.stringValue(), Collections.singletonList(s));
         }
-    }
-
-    private void addAll(String str, List<IStrategoString> strs) {
-        Relation.getOrInitialize(map, str, ArrayList::new).addAll(strs);
     }
 
     public List<IStrategoString> getPositions(String str) {
-        return map.get(str);
+        ArrayList<IStrategoString> result = new ArrayList<>();
+        for(Map<String, List<IStrategoString>> map : maps) {
+            result.addAll(map.get(str));
+        }
+        return result;
     }
 
     public void addAll(StringSetWithPositions other) {
-        for(Map.Entry<String, List<IStrategoString>> entry : other.map.entrySet()) {
-            addAll(entry.getKey(), entry.getValue());
-        }
+        maps.addAll(other.maps);
     }
 
     public boolean contains(String str) {
-        return this.map.containsKey(str);
+        for(Map<String, List<IStrategoString>> map : this.maps) {
+            if(map.containsKey(str)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((map == null) ? 0 : map.hashCode());
-        return result;
+        return maps.hashCode();
     }
 
     @Override public boolean equals(Object obj) {
@@ -72,19 +180,18 @@ public class StringSetWithPositions {
         if(getClass() != obj.getClass())
             return false;
         StringSetWithPositions other = (StringSetWithPositions) obj;
-        if(map == null) {
-            if(other.map != null)
-                return false;
-        } else if(!map.equals(other.map))
-            return false;
-        return true;
+        return maps.equals(other.maps);
     }
 
     @Override public String toString() {
-        return map.toString();
+        return maps.toString();
     }
 
     public int size() {
-        return map.size();
+        int size = 0;
+        for(Map<String, List<IStrategoString>> map : maps) {
+            size += map.size();
+        }
+        return size;
     }
 }

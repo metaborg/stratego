@@ -135,7 +135,8 @@ public class Frontends {
         long preCheckTime = System.nanoTime();
 
         // CHECK: constructor/strategy uses have definition which is imported
-        output.staticCheckOutput = staticChecks.insertCasts(execContext, inputModule.path, output, output.messages, input.originTasks, projectLocationPath);
+        output.staticCheckOutput = staticChecks.insertCasts(execContext, inputModule.path, output, output.messages,
+            projectLocationPath);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
         return output;
