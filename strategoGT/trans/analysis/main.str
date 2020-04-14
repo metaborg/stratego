@@ -54,7 +54,7 @@ local-can-coerce(|injection-closure) = ?(_, DynT(_))
 // We assume co-variant type parameters
 local-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
   where
-    <zip(CanCoerce)> (t1*, t2*)
+    <zip(local-CanCoerce)> (t1*, t2*)
 local-can-coerce(|injection-closure) = eq
 local-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
 
@@ -69,5 +69,5 @@ local-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-m
 
 local-constr-lookup(|name, arity, t1) =
     local-constr-lookup(|name, arity)
-  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t2, t1)\))
+  ; imset-filter(where(\ConstrType(_, t2) -> <local-CanCoerce> (t2, t1)\))
   ; imset-to-list

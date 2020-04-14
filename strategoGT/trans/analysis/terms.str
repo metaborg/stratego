@@ -44,7 +44,7 @@ local-insertCasts-StMatchTerm(|e1, st1):
       then if t3 := <local-LUB> (t1, t2)
         then st2 := <local-term-put(|v{}, t3)> st1
         else
-          where(try(<debug> (t2, t1); <lub(|());debug> (t1, t2); <local-LUB;debug> (t1, t2)));
+//          where(try(<debug> (t2, t1); <lub(|());debug> (t1, t2); <local-LUB;debug> (t1, t2)));
           <local-report-Err> (v, VariableBoundToIncompatibleType(t2, t1))
         ; st2 := st1
         end // TODO: do this for both unresolved names and unbound names
@@ -84,7 +84,7 @@ local-insertCasts-StMatchTerm-Lit(|e1, st1, t1):
   trm -> (trm, <local-current-type(|t1)> st1)
   with
     t2 := <local-current-type> st1
-  ; if not(<CanCoerce>(t1, t2))
+  ; if not(<local-CanCoerce>(t1, t2))
       then <local-report-Err> (trm, TypeMismatch(t1, t2))
     end
 
@@ -95,23 +95,23 @@ local-insertCasts-StMatchTerm-(|e1, st1):
   ; t* := <local-constr-lookup(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
-      if not(<CanCoerce> (t2, t1))
+      if not(<local-CanCoerce> (t2, t1))
         then <local-report-Err> (cnstr, TypeMismatch(t2, t1))
+        else if DynT(_) := t1
+          then t2* := <map(!DynT(<id>))> t1*
+          else t2* := t1*
+        end
       end
-    ; if DynT(_) := t1
-        then t2* := <map(!DynT(<id>))> t1*
-        else t2* := t1*
-      end
+    ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
-        then err := UnresolvedConstructor(<length> trm1*, t1)
-        else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
+        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        else <local-report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
-    ; <local-report-Err> (cnstr, err)
-    ; t2 := ErrT()
+    ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
     end
   ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
-  ; st3 := <local-current-type(|t2)> st2
+  ; st3 := <local-current-type(|t3)> st2
 
 local-insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
@@ -171,7 +171,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   with
     (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
   ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|DynT(Dyn()))> st2)> trm2
-  ; if not(<CanCoerce> (<local-current-type> st3, Sort("List", [DynT(Dyn())])))
+  ; if not(<local-CanCoerce> (<local-current-type> st3, Sort("List", [DynT(Dyn())])))
       then <local-report-Err> (trm2, NonListInAnno(<local-current-type> st3))
     end
   ; st4 := <local-current-type(|<local-current-type> st2)> st3
@@ -214,29 +214,31 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
     t1 := <local-current-type> st1
   ; t* := <local-constr-lookup(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
-    then id
+    then
+      t2* := t1*
+    ; t3 := t2  // workaround for backtracking issue in strj
     else if [] := t*
         then err := UnresolvedConstructor(<length> trm1*, DynT(Dyn()))
         else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
       end
     ; <local-report-Err> (cnstr, err)
-    ; t2 := ErrT()
-    ; t1* := <map(!ErrT())> trm1*
+    ; t3 := ErrT() // workaround for backtracking issue in strj
+    ; t2* := <map(!ErrT())> trm1*
     end
-  ; b* := <zip> (trm1*, t1*)
+  ; b* := <zip> (trm1*, t2*)
   ; if DynT(_) := t1
     then
       let
         set-type(|t) = local-current-type(|DynT(t))
-      in (trm2*, t2*, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; switch <local-StBuildTerm-Op-type-relation> (t2*, t1*)
+      in (trm2*, t3*, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
+      ; switch <local-StBuildTerm-Op-type-relation> (t3*, t1*)
           case ?AllCanCoerce():
-            st3 := <local-current-type(|t2)> st2
+            st3 := <local-current-type(|t3)> st2
           ; trm2 := Op(cnstr, trm2*)
           case ?SomeDyn():
-            (trm2, st3) := <insertCastApp(|DynT(t2), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
+            (trm2, st3) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
           case ?Unrelated():
-            st3 := <local-current-type(|IllFormedTermT(cnstr, t2*))> st2
+            st3 := <local-current-type(|IllFormedTermT(cnstr, t3*))> st2
           ; trm2 := Op(cnstr, trm2*)
         end
       end
@@ -257,7 +259,7 @@ local-StBuildTerm-Op-threader(set-type|e1):
 
 local-StBuildTerm-Op-type-relation: (t2*, t1*) -> result
   with
-    zipped := <zip(CanCoerce;!AllCanCoerce()
+    zipped := <zip(local-CanCoerce;!AllCanCoerce()
                 <+ ?(DynT(_), _);!SomeDyn()
                 <+ !Unrelated())> (t2*, t1*)
   ; result := <foldl(one(?Unrelated());!Unrelated()
@@ -276,7 +278,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm2
   ; t1 := <local-current-type> st2
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
-  ; if not(<CanCoerce> (t1, StringT()) + <CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
+  ; if not(<local-CanCoerce> (t1, StringT()) + <local-CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
       then <local-report-Err> (trm1, NonStringOrListInExplodeConsPosition(<local-current-type> st2))
     end
     // TODO: support cast to string-or-list for the constructor
@@ -342,7 +344,7 @@ local-insertCasts-StMatchTerm-(|e1, st1):
     t1 := <local-current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("Tuple", t1*)
-  ; if not(<CanCoerce> (t2, t1))
+  ; if not(<local-CanCoerce> (t2, t1))
       then <local-report-Err> ("", TypeMismatch(t2, t1))
     end
   ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
@@ -354,7 +356,7 @@ local-insertCasts-StMatchTerm-(|e1, st1):
     t1 := <local-current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("List", [DynT(Dyn())])
-  ; if not(<CanCoerce> (t2, t1))
+  ; if not(<local-CanCoerce> (t2, t1))
       then <local-report-Err> ("", TypeMismatch(t2, t1))
     end
   ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
@@ -366,7 +368,7 @@ local-insertCasts-StMatchTerm-(|e1, st1):
     t1 := <local-current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("List", [DynT(Dyn())])
-  ; if not(<CanCoerce> (t2, t1))
+  ; if not(<local-CanCoerce> (t2, t1))
       then <local-report-Err> ("", TypeMismatch(t2, t1))
     end
   ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
@@ -448,7 +450,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   ; (trm2, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm1
   // TODO: Use returned current types to inform list type
   // Cannot use the same as before. <local-current-type> st3 must be a list and cast to it if DynT(Dyn()).
-  // But if not <CanCoerce> (<local-current-type> st3, t1), local-current-type in st4 should be Sort("List", [DynT(Dyn())])
+  // But if not <local-CanCoerce> (<local-current-type> st3, t1), local-current-type in st4 should be Sort("List", [DynT(Dyn())])
   ; t1 := Sort("List", [DynT(Dyn())]) //<foldr1(?[<id>], local-LUB <+ !DynT(Dyn()))> t*
   ; (trm3, st4) := <insertCastApp(|<local-current-type> st3, t1)> (trm2, st3)
   ; st5 := <local-current-type(|t1)> st4
@@ -517,7 +519,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   with
     t1 := StringT()
   ; t2 := <local-current-type> st1
-  ; if not(<CanCoerce>(t1, t2))
+  ; if not(<local-CanCoerce>(t1, t2))
       then <local-report-Err> (trm, TypeMismatch(t1, t2))
     end
   ; (sqp2*, st2) := <thread-map(local-insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <local-current-type(|StringT())> st1)
@@ -592,12 +594,12 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   with
     t2 := <desugar-Type> t1
   ; t3 := <local-current-type> st1
-  ; if not(<CanCoerce> (t2, t3) + DynT(_) := t2)
+  ; if not(<local-CanCoerce> (t2, t3) + DynT(_) := t2)
       then <local-report-Err> (trm1, TypeMismatch(t2, t3))
     end
   ; (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|t2)> st1)> trm2
 //  ; (trm4, st3) := <insertCastApp(|<local-current-type> st2, t2)> (trm3, st2)
-  ; if not(<CanCoerce> (t2, <local-current-type> st2) + DynT(_) := t2)
+  ; if not(<local-CanCoerce> (t2, <local-current-type> st2) + DynT(_) := t2)
       then
         st3 := <local-current-type(|t2)> st2
       else

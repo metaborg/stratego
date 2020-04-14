@@ -17,7 +17,7 @@ signatures/gradual-types/internal-sig
 analysis/utils
 analysis/environment
 analysis/signatures
-analysis/defs
+analysis/strategies
 analysis/terms
 analysis/main
 

@@ -187,18 +187,3 @@ strategies
   bar = id
   
   baz = foo(bar)
-
-rules
-  RightContext(s) = fail
-
-  strategoGTParenthesize-deep :
-    Explode(t_0, t_1) -> Explode(t_0', t_1)
-    where t_0' := <RightContext(?As(_, _)) + fail> t_0
-
-signature constructors
-
-  Explode             : Term * Term -> PreTerm
-  As                  : Var * Term -> Term 
-//  As                  : Var * PreTerm -> PreTerm
-  
-  
