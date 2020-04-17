@@ -9,16 +9,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.management.RuntimeErrorException;
+import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.AbstractTermFactory;
+import org.spoofax.terms.StrategoInt;
+import org.spoofax.terms.StrategoString;
+import org.spoofax.terms.StrategoTuple;
 import org.spoofax.terms.util.B;
+import org.spoofax.terms.util.StringUtils;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
@@ -30,17 +35,18 @@ public class SplitResult {
     public final String moduleName;
     public final String inputFileString;
     public final List<IStrategoTerm> imports;
-    public final Map<String, IStrategoTerm> strategyDefs;
-    public final Map<String, IStrategoTerm> consDefs;
-    public final Map<String, IStrategoTerm> olayDefs;
-    public final Map<String, IStrategoTerm> defTypes;
+    public final Map<StrategySignature, IStrategoTerm> strategyDefs;
+    public final Map<ConstructorSignature, IStrategoTerm> consDefs;
+    public final Map<ConstructorSignature, IStrategoTerm> olayDefs;
+    public final Map<StrategySignature, IStrategoTerm> defTypes;
     public final Set<StrategySignature> dynRuleSigs;
-    public final BinaryRelation.Immutable<String, IStrategoTerm> consTypes;
+    public final BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> consTypes;
     public final BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections;
 
-    public SplitResult(String moduleName, String inputFileString, List<IStrategoTerm> imports, Map<String, IStrategoTerm> strategyDefs,
-        Map<String, IStrategoTerm> consDefs, Map<String, IStrategoTerm> olayDefs, Map<String, IStrategoTerm> defTypes,
-        Set<StrategySignature> dynRuleSigs, BinaryRelation.Immutable<String, IStrategoTerm> consTypes,
+    public SplitResult(String moduleName, String inputFileString, List<IStrategoTerm> imports,
+        Map<StrategySignature, IStrategoTerm> strategyDefs, Map<ConstructorSignature, IStrategoTerm> consDefs,
+        Map<ConstructorSignature, IStrategoTerm> olayDefs, Map<StrategySignature, IStrategoTerm> defTypes,
+        Set<StrategySignature> dynRuleSigs, BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> consTypes,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections) {
         this.moduleName = moduleName;
         this.inputFileString = inputFileString;
@@ -67,31 +73,23 @@ public class SplitResult {
 
         final List<IStrategoTerm> imports = imps.getSubterms();
 
-        final Map<String, List<IStrategoTerm>> resultMap = new HashMap<>(strats.size() * 2);
-        for(IStrategoTerm pair : strats) {
-            // pair == (name1, Strategies([def]))
-            final String name1 = TermUtils.toJavaStringAt(pair, 0);
-            final IStrategoTerm def = pair.getSubterm(1).getSubterm(0).getSubterm(0);
-            Relation.getOrInitialize(resultMap, name1, ArrayList::new).add(def);
-        }
-        final Map<String, IStrategoTerm> strategyDefs = packMapValues(resultMap);
-        final Map<String, IStrategoTerm> consDefs = assocListToMap(cons);
-        final Map<String, IStrategoTerm> olayDefs = assocListToMap(olays);
-        final Map<String, IStrategoTerm> defTypes = assocListToMap(deftys);
+        final Map<StrategySignature, IStrategoTerm> strategyDefs = stratAssocListToMap(strats);
+        final Map<ConstructorSignature, IStrategoTerm> consDefs = consAssocListToMap(cons);
+        final Map<ConstructorSignature, IStrategoTerm> olayDefs = consAssocListToMap(olays);
+        final Map<StrategySignature, IStrategoTerm> defTypes = stratAssocListToMap(deftys);
 
         final Set<StrategySignature> dynRuleSigs = new HashSet<>(dynRuleSignatures.size() * 2);
         for(IStrategoTerm dynRuleSignature : dynRuleSignatures) {
-            final String name = TermUtils.toJavaStringAt(dynRuleSignature, 0);
-            final int noStrategyArgs = TermUtils.toJavaIntAt(dynRuleSignature, 1);
-            final int noTermArgs = TermUtils.toJavaIntAt(dynRuleSignature, 2);
-            dynRuleSigs.add(new StrategySignature(name, noStrategyArgs, noTermArgs));
+            dynRuleSigs.add(StrategySignature.fromTuple(dynRuleSignature));
         }
 
-        final BinaryRelation.Transient<String, IStrategoTerm> consTypes = BinaryRelation.Transient.of();
+        final BinaryRelation.Transient<ConstructorSignature, IStrategoTerm> consTypes = BinaryRelation.Transient.of();
         for(IStrategoTerm consTypePair : consTypePairs) {
-            IStrategoTuple consSig = TermUtils.toTupleAt(consTypePair, 0);
+            ConstructorSignature consSig = ConstructorSignature.fromTuple(consTypePair.getSubterm(0));
+            Objects.requireNonNull(consSig,
+                () -> "Cannot turn term " + consTypePair.getSubterm(0) + " into a constructor signature. Not a pair of a string and an int?");
             IStrategoTerm consType = consTypePair.getSubterm(1);
-            consTypes.__insert(consSigToString(consSig), consType);
+            consTypes.__insert(consSig, consType);
         }
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections = BinaryRelation.Transient.of();
         for(IStrategoTerm injPair : injPairs) {
@@ -104,53 +102,59 @@ public class SplitResult {
             injections.freeze());
     }
 
-    public static String consSigToString(IStrategoTuple consSig) {
-        return TermUtils.toJavaStringAt(consSig, 0) + "_" + TermUtils.toJavaIntAt(consSig, 1);
-    }
-
-    private static Map<String, IStrategoTerm> assocListToMap(final IStrategoList assocList) {
-        final Map<String, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
+    private static Map<StrategySignature, IStrategoTerm> stratAssocListToMap(final IStrategoList assocList) {
+        final Map<StrategySignature, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
         for(IStrategoTerm pair : assocList) {
-            final String name = TermUtils.toJavaStringAt(pair, 0);
+            final StrategySignature sig = StrategySignature.fromTuple(pair.getSubterm(0));
+            Objects.requireNonNull(sig,
+                () -> "Cannot turn term " + pair.getSubterm(0) + " into a strategy signature. Not a pair of a string and two ints?");
             final IStrategoTerm def = pair.getSubterm(1);
-            Relation.getOrInitialize(resultMap, name, ArrayList::new).add(def);
+            Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
         }
         return packMapValues(resultMap);
     }
 
-    private static Map<String, IStrategoTerm> packMapValues(final Map<String, List<IStrategoTerm>> listOfValuesMap) {
-        final Map<String, IStrategoTerm> packedValuesMap = new HashMap<>(listOfValuesMap.size() * 2);
-        for(Map.Entry<String, List<IStrategoTerm>> e : listOfValuesMap.entrySet()) {
+    private static Map<ConstructorSignature, IStrategoTerm> consAssocListToMap(final IStrategoList assocList) {
+        final Map<ConstructorSignature, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
+        for(IStrategoTerm pair : assocList) {
+            final ConstructorSignature sig = ConstructorSignature.fromTuple(pair.getSubterm(0));
+            if(sig == null) {
+                // case where the signature name is Inj() for injections.
+                continue;
+            }
+            final IStrategoTerm def = pair.getSubterm(1);
+            Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
+        }
+        return packMapValues(resultMap);
+    }
+
+    private static <K, V extends IStrategoTerm> Map<K, IStrategoTerm> packMapValues(
+        final Map<K, List<V>> listOfValuesMap) {
+        final Map<K, IStrategoTerm> packedValuesMap = new HashMap<>(listOfValuesMap.size() * 2);
+        for(Map.Entry<K, List<V>> e : listOfValuesMap.entrySet()) {
             packedValuesMap.put(e.getKey(), B.list(e.getValue()));
         }
         return packedValuesMap;
     }
 
-    public static class StrategySignature implements Serializable {
+    public static class StrategySignature extends StrategoTuple implements Serializable {
         public final String name;
         public final int noStrategyArgs;
         public final int noTermArgs;
 
         public StrategySignature(String name, int noStrategyArgs, int noTermArgs) {
+            super(new IStrategoTerm[] { new StrategoString(name, AbstractTermFactory.EMPTY_LIST),
+                new StrategoInt(noStrategyArgs), new StrategoInt(noTermArgs) }, AbstractTermFactory.EMPTY_LIST);
             this.name = name;
             this.noStrategyArgs = noStrategyArgs;
             this.noTermArgs = noTermArgs;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(!(o instanceof StrategySignature))
-                return false;
-            StrategySignature that = (StrategySignature) o;
-            return noStrategyArgs == that.noStrategyArgs && noTermArgs == that.noTermArgs && Objects
-                .equals(name, that.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, noStrategyArgs, noTermArgs);
+        public StrategySignature(IStrategoString name, IStrategoInt noStrategyArgs, IStrategoInt noTermArgs) {
+            super(new IStrategoTerm[] { name, noStrategyArgs, noTermArgs }, AbstractTermFactory.EMPTY_LIST);
+            this.name = name.stringValue();
+            this.noStrategyArgs = noStrategyArgs.intValue();
+            this.noTermArgs = noTermArgs.intValue();
         }
 
         public String cifiedName() {
@@ -168,38 +172,38 @@ public class SplitResult {
                 sargTypes.add(sdyn);
             }
             final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-            final IStrategoList.Builder targTypes = tf.arrayListBuilder(noStrategyArgs);
+            final IStrategoList.Builder targTypes = tf.arrayListBuilder(noTermArgs);
             for(int i = 0; i < noTermArgs; i++) {
                 targTypes.add(dyn);
             }
             return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(targTypes), dyn, dyn);
         }
 
-        public Map<IStrategoString, IStrategoTerm> dynamicRuleSignatures(ITermFactory tf) {
+        public Map<StrategySignature, IStrategoTerm> dynamicRuleSignatures(ITermFactory tf) {
             final String n = cify(this.name);
             final int s = this.noStrategyArgs;
             final int t = this.noTermArgs;
-            final Map<IStrategoString, IStrategoTerm> result = new HashMap<>(40);
-            result.put(tf.makeString(cifiedName()), standardType(tf));
-            result.put(tf.makeString("new_" + n + "_0_2"), standardType(tf, 0, 2));
-            result.put(tf.makeString("undefine_" + n + "_0_1"), standardType(tf, 0, 1));
-            result.put(tf.makeString("aux_" + n + "_" + s + "_" + (t + 1)), standardType(tf, s, t + 1));
-            result.put(tf.makeString("once_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("bagof_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("reverse_bagof_" + n + "_" + (s + 1) + "_" + t), standardType(tf, s + 1, t));
-            result.put(tf.makeString("bigbagof_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("all_keys_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("innermost_scope_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("break_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("break_to_label_" + n + "_" + s + "_" + (t + 1)), standardType(tf, s, t + 1));
-            result.put(tf.makeString("break_bp_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("continue_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("continue_to_label_" + n + "_" + s + "_" + (t + 1)), standardType(tf, s, t + 1));
-            result.put(tf.makeString("throw_" + n + "_" + (s + 1) + "_" + (t + 1)), standardType(tf, s + 1, t + 1));
-            result.put(tf.makeString("fold_" + n + "_" + (s + 1) + "_" + t), standardType(tf, s + 1, t));
-            result.put(tf.makeString("bigfold_" + n + "_" + (s + 1) + "_" + t), standardType(tf, s + 1, t));
-            result.put(tf.makeString("chain_" + n + "_" + s + "_" + t), standardType(tf, s, t));
-            result.put(tf.makeString("bigchain_" + n + "_" + s + "_" + t), standardType(tf, s, t));
+            final Map<StrategySignature, IStrategoTerm> result = new HashMap<>(40);
+            result.put(this, standardType(tf));
+            result.put(new StrategySignature("new-" + n, 0, 2), standardType(tf, 0, 2));
+            result.put(new StrategySignature("undefine-" + n, 0, 1), standardType(tf, 0, 1));
+            result.put(new StrategySignature("aux-" + n, s, t + 1), standardType(tf, s, t + 1));
+            result.put(new StrategySignature("once-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("bagof-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("reverse-bagof-" + n, s + 1, t), standardType(tf, s + 1, t));
+            result.put(new StrategySignature("bigbagof-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("all-keys-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("innermost-scope-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("break-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("break-to-label-" + n, s, t + 1), standardType(tf, s, t + 1));
+            result.put(new StrategySignature("break-bp-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("continue-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("continue-to-label-" + n, s, t + 1), standardType(tf, s, t + 1));
+            result.put(new StrategySignature("throw-" + n, s + 1, t + 1), standardType(tf, s + 1, t + 1));
+            result.put(new StrategySignature("fold-" + n, s + 1, t), standardType(tf, s + 1, t));
+            result.put(new StrategySignature("bigfold-" + n, s + 1, t), standardType(tf, s + 1, t));
+            result.put(new StrategySignature("chain-" + n, s, t), standardType(tf, s, t));
+            result.put(new StrategySignature("bigchain-" + n, s, t), standardType(tf, s, t));
             return result;
         }
 
@@ -221,22 +225,109 @@ public class SplitResult {
             return true;
         }
 
-        public static StrategySignature fromCified(String cifiedName) throws RuntimeException {
+        public static @Nullable StrategySignature fromCified(String cifiedName) {
             try {
                 int lastUnderlineOffset = cifiedName.lastIndexOf('_');
                 if(lastUnderlineOffset == -1) {
-                    throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName);
+                    return null;
                 }
                 int termArity = Integer.parseInt(cifiedName.substring(lastUnderlineOffset+1));
                 int penultimateUnderlineOffset = cifiedName.lastIndexOf('_', lastUnderlineOffset-1);
                 if(penultimateUnderlineOffset == -1) {
-                    throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName);
+                    return null;
                 }
                 int strategyArity = Integer.parseInt(cifiedName.substring(penultimateUnderlineOffset+1, lastUnderlineOffset));
                 return new StrategySignature(SDefT.unescape(cifiedName.substring(0, penultimateUnderlineOffset)), strategyArity, termArity);
             } catch(NumberFormatException e) {
-                throw new RuntimeException("Attempted to deconstruct a non-cified name: " + cifiedName, e);
+                return null;
             }
+        }
+
+        public static @Nullable StrategySignature fromTuple(IStrategoTerm tuple) {
+            if(!TermUtils.isTuple(tuple) && tuple.getSubtermCount() == 3) {
+                return null;
+            }
+            if(!TermUtils.isStringAt(tuple, 0) || !TermUtils.isIntAt(tuple, 1) || !TermUtils.isIntAt(tuple, 2)) {
+                return null;
+            }
+            return new StrategySignature(TermUtils.toStringAt(tuple, 0), TermUtils.toIntAt(tuple, 1),
+                TermUtils.toIntAt(tuple, 2));
+        }
+    }
+
+    public static class ConstructorSignature extends StrategoTuple implements Serializable {
+        public final String name;
+        public final int noArgs;
+
+        public ConstructorSignature(String name, int noArgs) {
+            super(new IStrategoTerm[] {new StrategoString(name, AbstractTermFactory.EMPTY_LIST), new StrategoInt(noArgs)}, AbstractTermFactory.EMPTY_LIST);            
+            this.name = name;
+            this.noArgs = noArgs;
+        }
+
+        public ConstructorSignature(IStrategoString name, IStrategoInt noArgs) {
+            super(new IStrategoTerm[] { name, noArgs }, AbstractTermFactory.EMPTY_LIST);
+            this.name = name.stringValue();
+            this.noArgs = noArgs.intValue();
+        }
+
+        public String cifiedName() {
+            return cify(name) + "_" + noArgs;
+        }
+
+        public IStrategoTerm standardType(ITermFactory tf) {
+            final IStrategoAppl sdyn = tf.makeAppl("SDyn");
+            final IStrategoList.Builder sargTypes = tf.arrayListBuilder(noArgs);
+            for(int i = 0; i < noArgs; i++) {
+                sargTypes.add(sdyn);
+            }
+            final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+            return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(), dyn, dyn);
+        }
+
+        public static boolean isCified(String name) {
+            try {
+                int lastUnderlineOffset = name.lastIndexOf('_');
+                if(lastUnderlineOffset == -1) {
+                    return false;
+                }
+                Integer.parseInt(name.substring(lastUnderlineOffset+1));
+            } catch(RuntimeException e) {
+                return false;
+            }
+            return true;
+        }
+
+        public static @Nullable ConstructorSignature fromCified(String cifiedName) {
+            try {
+                int lastUnderlineOffset = cifiedName.lastIndexOf('_');
+                if(lastUnderlineOffset == -1) {
+                    return null;
+                }
+                int arity = Integer.parseInt(cifiedName.substring(lastUnderlineOffset+1));
+                return new ConstructorSignature(SDefT.unescape(cifiedName.substring(0, lastUnderlineOffset)), arity);
+            } catch(NumberFormatException e) {
+                return null;
+            }
+        }
+
+        public static @Nullable ConstructorSignature fromTuple(IStrategoTerm tuple) {
+            if(!TermUtils.isTuple(tuple) || tuple.getSubtermCount() != 2 || !TermUtils.isIntAt(tuple, 1)) {
+                return null;
+            }
+            if(TermUtils.isStringAt(tuple, 0)) {
+                return new ConstructorSignature(TermUtils.toStringAt(tuple, 0), TermUtils.toIntAt(tuple, 1));
+            }
+            if(TermUtils.isApplAt(tuple, 0) && TermUtils.tryGetName(tuple.getSubterm(0)).map(n -> n.equals("Q"))
+                .orElse(false)) {
+                final String escapedNameString =
+                    StringUtils.escape(TermUtils.toStringAt(tuple.getSubterm(0), 0).stringValue());
+                final StrategoString escapedName =
+                    new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
+                AbstractTermFactory.staticCopyAttachments(tuple.getSubterm(0), escapedName);
+                return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1));
+            }
+            return null;
         }
     }
 }

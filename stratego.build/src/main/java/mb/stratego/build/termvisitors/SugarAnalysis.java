@@ -30,9 +30,7 @@ public class SugarAnalysis {
         this.sugarAnalysisMessages = sugarAnalysisMessages;
         this.definedConstructors = new HashSet<>();
         for(StringSetWithPositions sswp : allDefinedConstructors.values()) {
-            for(String constr : sswp.readSet()) {
-                this.definedConstructors.add(constr);
-            }
+            this.definedConstructors.addAll(sswp.readSet());
         }
     }
 

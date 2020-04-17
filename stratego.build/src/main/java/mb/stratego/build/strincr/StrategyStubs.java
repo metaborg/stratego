@@ -1,17 +1,18 @@
 package mb.stratego.build.strincr;
 
-import org.spoofax.terms.util.B;
-import mb.pie.api.ExecException;
-import mb.stratego.build.strincr.SplitResult.StrategySignature;
-
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.strj.strj;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
+
+import javax.annotation.Nullable;
+
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.B;
+import org.strategoxt.strj.strj;
+
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 
 public final class StrategyStubs {
     private StrategyStubs() {}
@@ -27,17 +28,22 @@ public final class StrategyStubs {
         newTVar = b.applShared("VarDec", B.string("a"), b.applShared("ConstType", A_TERM));
     }
 
-    static List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) throws ExecException {
+    static List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
         final B b = new B(strj.init().getFactory());
         for(String strategyName : strategyASTs.keySet()) {
-            final StrategySignature sig = StrategySignature.fromCified(strategyName);
-            decls.add(sdefStub(b, strategyName, sig.noStrategyArgs, sig.noTermArgs));
+            final @Nullable StrategySignature sig;
+            sig = StrategySignature.fromCified(strategyName);
+            if(sig != null) {
+                decls.add(sdefStub(b, strategyName, sig.noStrategyArgs, sig.noTermArgs));
+            } else {
+                decls.add(sdefStub(b, strategyName, 0, 0));
+            }
         }
         return decls;
     }
 
-    private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) throws ExecException {
+    private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) {
         final IStrategoAppl newBody = b.applShared("Id");
         final IStrategoTerm name = b.stringShared(strategyName);
 

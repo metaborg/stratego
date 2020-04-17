@@ -1,21 +1,7 @@
 package mb.stratego.build.strincr;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,10 +18,8 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
@@ -45,6 +29,8 @@ import mb.pie.api.TaskDef;
 import mb.resource.ResourceService;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
@@ -329,8 +315,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, File> congrFiles = new HashMap<>();
         final Map<String, Integer> noOfDefinitions = new HashMap<>();
 
-        for(Map.Entry<String, IStrategoTerm> e : input.splitResult.strategyDefs.entrySet()) {
-            final String strategyName = e.getKey();
+        for(Map.Entry<StrategySignature, IStrategoTerm> e : input.splitResult.strategyDefs.entrySet()) {
+            final String strategyName = e.getKey().cifiedName();
             final IStrategoTerm strategyAST = e.getValue();
             final SubFrontend.Input frontTLDInput =
                 SubFrontend.Input.topLevelDefinition(input.inputFileString, strategyName, strategyAST);
@@ -339,16 +325,16 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 usedAmbStrats, ambStratPositions, usedStrats, noOfDefinitions);
         }
 
-        for(Map.Entry<String, IStrategoTerm> e : input.splitResult.consDefs.entrySet()) {
-            final String consName = e.getKey();
+        for(Map.Entry<ConstructorSignature, IStrategoTerm> e : input.splitResult.consDefs.entrySet()) {
+            final String consName = e.getKey().cifiedName();
             final IStrategoTerm consAST = e.getValue();
             final SubFrontend.Input frontTLDInput =
                 SubFrontend.Input.topLevelDefinition(input.inputFileString, consName, consAST);
             consFrontEnd(execContext, input, location, frontTLDInput, moduleName, strategyConstrs, usedAmbStrats,
                 ambStratPositions, usedStrats, definedConstrs, congrASTs, congrs, congrFiles, noOfDefinitions);
         }
-        for(Map.Entry<String, IStrategoTerm> e : input.splitResult.olayDefs.entrySet()) {
-            final String olayName = e.getKey();
+        for(Map.Entry<ConstructorSignature, IStrategoTerm> e : input.splitResult.olayDefs.entrySet()) {
+            final String olayName = e.getKey().cifiedName();
             final IStrategoTerm olayAST = e.getValue();
             final SubFrontend.Input frontTLDInput =
                 SubFrontend.Input.topLevelDefinition(input.inputFileString, olayName, olayAST);

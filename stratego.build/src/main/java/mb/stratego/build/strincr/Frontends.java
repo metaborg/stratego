@@ -21,6 +21,8 @@ import java.util.Set;
 
 import org.metaborg.util.functions.CheckedFunction1;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.AbstractTermFactory;
+import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import com.google.common.collect.Sets;
@@ -33,6 +35,8 @@ import mb.pie.api.STask;
 import mb.resource.ResourceService;
 import mb.resource.fs.FSPath;
 import mb.resource.fs.FSResource;
+import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
@@ -176,15 +180,23 @@ public class Frontends {
 
                 shuffleStartTime = System.nanoTime();
 
-                staticData.definedStrategies.put(module.path, frontLibOutput.strategies);
-                staticData.registerConstructorDefinitions(module.path,
-                    frontLibOutput.constrs, new StringSetWithPositions());
+                final StringSetWithPositions strategies = new StringSetWithPositions();
+                for(StrategySignature strategy : frontLibOutput.strategies) {
+                    strategies.add(new StrategoString(strategy.cifiedName(), AbstractTermFactory.EMPTY_LIST));
+                }
+                staticData.definedStrategies.put(module.path, strategies);
+                staticData.strategySignatures.put(module.path, frontLibOutput.strategies);
+                staticData.registerConstructorDefinitions(module.path, frontLibOutput.constrs);
 
-                reportOverlappingStrategies(staticData.libraryExternalStrategies, frontLibOutput.strategies,
+                reportOverlappingStrategies(staticData.libraryExternalStrategies, strategies,
                     execContext.logger());
 
-                staticData.libraryExternalStrategies.addAll(frontLibOutput.strategies);
-                staticData.externalConstructors.addAll(frontLibOutput.constrs);
+                staticData.libraryExternalStrategies.addAll(strategies);
+                final StringSetWithPositions constrs = new StringSetWithPositions();
+                for(ConstructorSignature constr : frontLibOutput.constrs) {
+                    constrs.add(new StrategoString(constr.cifiedName(), AbstractTermFactory.EMPTY_LIST));
+                }
+                staticData.externalConstructors.addAll(constrs);
 
                 BuildStats.shuffleLibTime += System.nanoTime() - shuffleStartTime;
 
@@ -219,10 +231,8 @@ public class Frontends {
             splitModules.put(module.path, splitResult);
             // Resolve imports
             final Set<Module> expandedImports =
-                resolveImports(input, defaultImports, messages, module, splitResult, path -> {
-                    final FSResource res = execContext.require(path);
-                    return res;
-                });
+                resolveImports(input, defaultImports, messages, module, splitResult,
+                    execContext::require);
             for(Module m : expandedImports) {
                 Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
             }

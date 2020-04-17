@@ -9,7 +9,6 @@ import javax.inject.Inject;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
@@ -18,6 +17,8 @@ import io.usethesource.capsule.Map;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.util.StrIncrContext;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
@@ -30,22 +31,22 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategoImmutableRelation injectionClosure;
         final StrategoImmutableMap lubMap;
         final IStrategoTerm ast;
-        final String cifiedName;
+        final StrategySignature sig;
 
         Input(String moduleName, StrategoImmutableMap strategyEnvironment, StrategoImmutableRelation constructors,
-            StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap, IStrategoTerm ast, String cifiedName) {
+            StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap, IStrategoTerm ast, StrategySignature sig) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
             this.constructors = constructors;
             this.injectionClosure = injectionClosure;
             this.lubMap = lubMap;
             this.ast = ast;
-            this.cifiedName = cifiedName;
+            this.sig = sig;
         }
 
         @Override
         public String toString() {
-            return "InsertCasts$Input(moduleName="+moduleName+", cifiedName="+cifiedName+")";
+            return "InsertCasts$Input(moduleName="+moduleName+", cifiedName="+ sig +")";
         }
 
         @Override
@@ -57,13 +58,13 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             Input input = (Input) o;
             return moduleName.equals(input.moduleName) && strategyEnvironment.equals(input.strategyEnvironment)
                 && constructors.equals(input.constructors) && injectionClosure.equals(input.injectionClosure) && lubMap
-                .equals(input.lubMap) && ast.equals(input.ast) && cifiedName.equals(input.cifiedName);
+                .equals(input.lubMap) && ast.equals(input.ast) && sig.equals(input.sig);
         }
 
         @Override
         public int hashCode() {
             return Objects
-                .hash(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap, ast, cifiedName);
+                .hash(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap, ast, sig);
         }
 
         public static class Builder {
@@ -73,8 +74,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final StrategoImmutableRelation injectionClosure;
             final StrategoImmutableMap lubMap;
 
-            public Builder(String moduleName, java.util.Map<IStrategoString, IStrategoTerm> strategyEnv,
-                BinaryRelation.Immutable<IStrategoString, IStrategoTerm> constrs,
+            public Builder(String moduleName, java.util.Map<StrategySignature, IStrategoTerm> strategyEnv,
+                BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
                 BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections, ITermFactory tf) {
                 this.moduleName = moduleName;
                 strategyEnvironment = StrategoImmutableMap.fromMap(strategyEnv);
@@ -100,9 +101,9 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 return lubMap.freeze();
             }
 
-            public Input build(IStrategoTerm ast, String cifiedName) {
+            public Input build(IStrategoTerm ast, StrategySignature sig) {
                 return new Input(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap,
-                    ast, cifiedName);
+                    ast, sig);
             }
         }
     }
@@ -146,8 +147,14 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
     public Output exec(ExecContext execContext, Input input) throws ExecException, InterruptedException {
         final ITermFactory tf = strContext.getFactory();
 
-        final IStrategoTerm tuple = tf.makeTuple(input.strategyEnvironment, input.constructors, input.injectionClosure, input.lubMap, input.ast);
-        final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.cifiedName, tuple);
+        assert input.strategyEnvironment.backingMap.containsKey(input.sig) : "Cannot find strategy " + input.sig
+            + " to type check in given environment.";
+
+        final IStrategoTerm tuple =
+            tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
+                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.ast);
+        final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
+        //noinspection unused
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
         // TODO: temporary, remove once this stuff works
         return new Output(input.ast, Collections.emptyList());

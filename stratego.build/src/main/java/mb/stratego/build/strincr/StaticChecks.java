@@ -23,6 +23,8 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.AbstractTermFactory;
+import org.spoofax.terms.StrategoString;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -30,6 +32,7 @@ import com.google.inject.Inject;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.termvisitors.SugarAnalysis;
 import mb.stratego.build.util.Algorithms;
@@ -86,6 +89,11 @@ public class StaticChecks {
     }
 
     public static final class Data {
+        // Module-path to strategy "signatures" (name + arity)
+        public final Map<String, Set<StrategySignature>> strategySignatures = new HashMap<>();
+        // Module-path to constructor "signatures" (name + arity)
+        public final Map<String, Set<ConstructorSignature>> constructorSignatures = new HashMap<>();
+
         // Module-path to sugar ast
         public final Map<String, IStrategoTerm> sugarASTs = new HashMap<>();
         // Module-path to module-path
@@ -161,9 +169,18 @@ public class StaticChecks {
                 && usedStrategies.equals(other.usedStrategies) && strictnessLevel.equals(other.strictnessLevel);
         }
 
+        public void registerConstructorDefinitions(String modulePath, Set<ConstructorSignature> constrs) {
+            constructorSignatures.put(modulePath, constrs);
+            final StringSetWithPositions set = new StringSetWithPositions();
+            for(ConstructorSignature constr : constrs) {
+                set.add(new StrategoString(constr.cifiedName(), AbstractTermFactory.EMPTY_LIST));
+            }
+            registerConstructorDefinitions(modulePath, set, new StringSetWithPositions());
+        }
+
         public void registerConstructorDefinitions(String modulePath, StringSetWithPositions constrs,
             StringSetWithPositions overlays) {
-            StringSetWithPositions visConstrs = new StringSetWithPositions(constrs);
+            final StringSetWithPositions visConstrs = new StringSetWithPositions(constrs);
             visConstrs.addAll(overlays);
             definedConstructors.put(modulePath, visConstrs);
         }
@@ -185,14 +202,13 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, Path projectLocationPath)
-        throws ExecException, InterruptedException {
+        List<Message<?>> outputMessages, Path projectLocationPath) throws ExecException, InterruptedException {
         final Data staticData = output.staticData;
 
         // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
-        final Map<String, Map<IStrategoString, IStrategoTerm>> stratEnvInclImports = new HashMap<>();
+        final Map<String, Map<StrategySignature, IStrategoTerm>> stratEnvInclImports = new HashMap<>();
         // Module-path to constructor_arity names to ConstrType visible in the module (def or import of def)
-        final Map<String, BinaryRelation.Immutable<IStrategoString, IStrategoTerm>> constrEnvInclImports =
+        final Map<String, BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm>> constrEnvInclImports =
             new HashMap<>();
         // Module-path to Sort type to Sort type in the module (def or import of def)
         final Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports = new HashMap<>();
@@ -200,13 +216,15 @@ public class StaticChecks {
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
         for(Set<String> scc : sccs) {
             // Gather up environment for SCC (typically just 1 module)
-            Map<IStrategoString, IStrategoTerm> sccStrategyEnv = new HashMap<>();
-            BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT = BinaryRelation.Transient.of();
+            Map<StrategySignature, IStrategoTerm> sccStrategyEnv = new HashMap<>();
+            BinaryRelation.Transient<ConstructorSignature, IStrategoTerm> sccConstructorEnvT =
+                BinaryRelation.Transient.of();
             BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT = BinaryRelation.Transient.of();
             final ITermFactory tf = strContext.getFactory();
             prepareSCCEnv(output, staticData, stratEnvInclImports, constrEnvInclImports, injEnvInclImports, scc,
                 sccStrategyEnv, sccConstructorEnvT, sccInjEnvT, tf);
-            BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv = sccConstructorEnvT.freeze();
+            BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> sccConstructorEnv =
+                sccConstructorEnvT.freeze();
             BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv = sccInjEnvT.freeze();
             // Do the actual work
             for(String moduleName : scc) {
@@ -221,8 +239,8 @@ public class StaticChecks {
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
                 final SplitResult splitResult = output.splitModules.get(moduleName);
-                insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
-                    sccInjEnv, splitResult);
+                insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
+                    splitResult);
 
                 long shuffleStartTime;
                 final String projectName = projectName(moduleName);
@@ -271,14 +289,17 @@ public class StaticChecks {
                     // ensure the strategy is a key in the strategyFiles map
                     Relation.getOrInitialize(output.backendData.strategyASTs, strategyName, ArrayList::new)
                         .add(gen.getValue());
+                    final StringSetWithPositions constructorSignatures =
+                        frontOutput.strategyConstrs.get(strategyName);
                     Relation.getOrInitialize(output.backendData.strategyConstrs, strategyName, HashSet::new)
-                        .addAll(frontOutput.strategyConstrs.get(strategyName).readSet());
+                        .addAll(constructorSignatures.readSet());
                 }
                 for(Map.Entry<String, IStrategoAppl> gen : frontOutput.congrASTs.entrySet()) {
                     final String congrName = gen.getKey();
                     output.backendData.congrASTs.put(congrName, gen.getValue());
+                    final StringSetWithPositions constructorSignatures = frontOutput.strategyConstrs.get(congrName);
                     Relation.getOrInitialize(output.backendData.strategyConstrs, congrName, HashSet::new)
-                        .addAll(frontOutput.strategyConstrs.get(congrName).readSet());
+                        .addAll(constructorSignatures.readSet());
                 }
                 for(Map.Entry<String, List<IStrategoAppl>> gen : frontOutput.overlayASTs.entrySet()) {
                     final String overlayName = gen.getKey();
@@ -288,8 +309,9 @@ public class StaticChecks {
                 }
                 for(Map.Entry<String, StringSetWithPositions> gen : frontOutput.overlayConstrs.entrySet()) {
                     final String overlayName = gen.getKey();
+                    final StringSetWithPositions constructorSignatures = gen.getValue();
                     Relation.getOrInitialize(output.backendData.overlayConstrs, overlayName, HashSet::new)
-                        .addAll(gen.getValue().readSet());
+                        .addAll(constructorSignatures.readSet());
                 }
 
                 BuildStats.shuffleTime += System.nanoTime() - shuffleStartTime;
@@ -300,8 +322,7 @@ public class StaticChecks {
 
         // Run old static checks while we move those from here to the type system implementation
         return StaticChecks
-            .check(mainFileModulePath, output.staticData, output.backendData.overlayConstrs,
-                output.messages);
+            .check(mainFileModulePath, output.staticData, output.backendData.overlayConstrs, output.messages);
     }
 
     public void warnConstCongrAndNullaryConstr(ExecContext execContext, List<Message<?>> outputMessages,
@@ -315,13 +336,13 @@ public class StaticChecks {
     }
 
     public void insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
-        Map<IStrategoString, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
-        BinaryRelation.Immutable<IStrategoString, IStrategoTerm> sccConstructorEnv,
+        Map<StrategySignature, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
+        BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> sccConstructorEnv,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult)
         throws ExecException, InterruptedException {
         final InsertCasts.Input.Builder builder =
             new InsertCasts.Input.Builder(moduleName, sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
-        for(Map.Entry<String, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
+        for(Map.Entry<StrategySignature, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
             final InsertCasts.Input insertCastsInput = builder.build(e.getValue(), e.getKey());
             final InsertCasts.Output result = execContext.require(strIncrInsertCasts, insertCastsInput);
             e.setValue(result.astWithCasts);
@@ -330,29 +351,24 @@ public class StaticChecks {
     }
 
     public static void prepareSCCEnv(Frontends.Output output, Data staticData,
-        Map<String, Map<IStrategoString, IStrategoTerm>> stratEnvInclImports,
-        Map<String, BinaryRelation.Immutable<IStrategoString, IStrategoTerm>> constrEnvInclImports,
+        Map<String, Map<StrategySignature, IStrategoTerm>> stratEnvInclImports,
+        Map<String, BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm>> constrEnvInclImports,
         Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports, Set<String> scc,
-        Map<IStrategoString, IStrategoTerm> sccStrategyEnv,
-        BinaryRelation.Transient<IStrategoString, IStrategoTerm> sccConstructorEnvT,
+        Map<StrategySignature, IStrategoTerm> sccStrategyEnv,
+        BinaryRelation.Transient<ConstructorSignature, IStrategoTerm> sccConstructorEnvT,
         BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT, ITermFactory tf) {
         for(String moduleName : scc) {
             if(Library.Builtin.isBuiltinLibrary(moduleName)) {
-                final StringSetWithPositions definedStrats = staticData.definedStrategies.get(moduleName);
-                final StringSetWithPositions definedConstrs = staticData.definedConstructors.get(moduleName);
-                for(String cifiedName : definedStrats.readSet()) {
-                    try {
-                        final StrategySignature sig = StrategySignature.fromCified(cifiedName);
-                        sccStrategyEnv.put(tf.makeString(sig.name), sig.standardType(tf));
-                    } catch(NumberFormatException | IndexOutOfBoundsException e) {
-                        // TODO: what to do?
-                        continue;
-                    }
+                // TODO: Support types of constructors in libraries
+                // TODO: Support type definitions for strategies in libraries
+                final Set<StrategySignature> definedStrats = staticData.strategySignatures.get(moduleName);
+                final Set<ConstructorSignature> definedConstrs = staticData.constructorSignatures.get(moduleName);
+                for(StrategySignature sig : definedStrats) {
+                    sccStrategyEnv.put(sig, sig.standardType(tf));
                 }
 
-                for(String cifiedName : definedConstrs.readSet()) {
-                    final StrategySignature sig = StrategySignature.fromCified(cifiedName);
-                    sccConstructorEnvT.__insert(tf.makeString(sig.name), sig.standardType(tf));
+                for(ConstructorSignature sig : definedConstrs) {
+                    sccConstructorEnvT.__insert(sig, sig.standardType(tf));
                 }
                 continue;
             }
@@ -361,15 +377,20 @@ public class StaticChecks {
                 throw new NullPointerException("Cannot find splitResult for module " + moduleName);
             }
 
-            final Map<IStrategoString, IStrategoTerm> moduleEnv = new HashMap<>(2 * splitResult.defTypes.size());
-            for(Map.Entry<String, IStrategoTerm> e : splitResult.defTypes.entrySet()) {
-                moduleEnv.put(tf.makeString(e.getKey()), e.getValue());
+            final Map<StrategySignature, IStrategoTerm> moduleEnv = new HashMap<>(2 * splitResult.defTypes.size());
+            // untyped definitions
+            for(StrategySignature sig : splitResult.strategyDefs.keySet()) {
+                moduleEnv.put(sig, sig.standardType(tf));
             }
+            // typed definitions
+            moduleEnv.putAll(splitResult.defTypes);
+            // generated strategies for dynamic rules
             for(StrategySignature dynRuleSig : splitResult.dynRuleSigs) {
                 moduleEnv.putAll(dynRuleSig.dynamicRuleSignatures(tf));
             }
-            for(Map.Entry<String, IStrategoTerm> e : splitResult.consTypes.entrySet()) {
-                sccConstructorEnvT.__insert(tf.makeString(e.getKey()), e.getValue());
+            // congruences
+            for(Map.Entry<ConstructorSignature, IStrategoTerm> e : splitResult.consTypes.entrySet()) {
+                sccConstructorEnvT.__insert(e.getKey(), e.getValue());
             }
             Relation.putAll(sccInjEnvT, splitResult.injections);
             sccStrategyEnv.putAll(moduleEnv);
@@ -377,25 +398,38 @@ public class StaticChecks {
                 Relation
                     .putAll(sccConstructorEnvT, constrEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
                 Relation.putAll(sccInjEnvT, injEnvInclImports.getOrDefault(mod, BinaryRelation.Immutable.of()));
-                sccStrategyEnv.putAll(stratEnvInclImports.getOrDefault(mod, new HashMap<>()));
+                final Map<StrategySignature, IStrategoTerm> importEnv =
+                    stratEnvInclImports.getOrDefault(mod, new HashMap<>());
+                for(Map.Entry<StrategySignature, IStrategoTerm> e : importEnv.entrySet()) {
+                    final StrategySignature key = e.getKey();
+                    final IStrategoTerm value = e.getValue();
+                    if(sccStrategyEnv.containsKey(key)) {
+                        final IStrategoTerm oldValue = sccStrategyEnv.get(key);
+                        if(oldValue.equals(value) || key.standardType(tf).equals(value)) {
+                            continue;
+                        }
+                    }
+                    sccStrategyEnv.put(key, value);
+                }
             }
         }
     }
 
-    public static Output check(String mainFileModulePath, Data staticData, Map<String, Set<String>> overlayConstrs, List<Message<?>> outputMessages) {
+    public static Output check(String mainFileModulePath, Data staticData, Map<String, Set<String>> overlayConstrs,
+        List<Message<?>> outputMessages) {
         StringSetWithPositions allExternals = new StringSetWithPositions(staticData.libraryExternalStrategies);
         for(StringSetWithPositions s : staticData.externalStrategies.values()) {
             allExternals.addAll(s);
         }
-        StringSetWithPositions globalStrategies = new StringSetWithPositions();
-        StringSetWithPositions globalConstructors = new StringSetWithPositions();
-        for(StringSetWithPositions s : staticData.definedStrategies.values()) {
-            globalStrategies.addAll(s);
-        }
-        for(StringSetWithPositions s : staticData.definedConstructors.values()) {
-            globalConstructors.addAll(s);
-        }
-        globalStrategies.addAll(allExternals);
+        //        StringSetWithPositions globalStrategies = new StringSetWithPositions();
+        //        StringSetWithPositions globalConstructors = new StringSetWithPositions();
+        //        for(StringSetWithPositions s : staticData.definedStrategies.values()) {
+        //            globalStrategies.addAll(s);
+        //        }
+        //        for(StringSetWithPositions s : staticData.definedConstructors.values()) {
+        //            globalConstructors.addAll(s);
+        //        }
+        //        globalStrategies.addAll(allExternals);
 
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
@@ -413,11 +447,11 @@ public class StaticChecks {
             getOrInitialize(visibleStrategies, entry.getKey(), StringSetWithPositions::new).addAll(entry.getValue());
         }
         // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
-        final Map<String, StringSetWithPositions> visibleConstructors =
-            new HashMap<>(2 * staticData.definedConstructors.size());
-        for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedConstructors.entrySet()) {
-            visibleConstructors.put(entry.getKey(), new StringSetWithPositions(entry.getValue()));
-        }
+        //        final Map<String, Set<ConstructorSignature>> visibleConstructors =
+        //            new HashMap<>(2 * staticData.definedConstructors.size());
+        //        for(Map.Entry<String, Set<ConstructorSignature>> entry : staticData.definedConstructors.entrySet()) {
+        //            visibleConstructors.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        //        }
 
         strategyNeedsExternal(mainFileModulePath, staticData, outputMessages, allExternals);
         cyclicOverlays(mainFileModulePath, staticData, overlayConstrs, outputMessages);
@@ -427,13 +461,13 @@ public class StaticChecks {
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
         for(Set<String> scc : sccs) {
             StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
-            StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
+            //            StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
             for(String moduleName : scc) {
-                theVisibleConstructors
-                    .addAll(visibleConstructors.getOrDefault(moduleName, new StringSetWithPositions()));
+                //                theVisibleConstructors
+                //                    .addAll(visibleConstructors.getOrDefault(moduleName, new StringSetWithPositions()));
                 theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, new StringSetWithPositions()));
                 for(String mod : staticData.imports.getOrDefault(moduleName, Collections.emptySet())) {
-                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, new StringSetWithPositions()));
+                    //                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, new StringSetWithPositions()));
                     theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, new StringSetWithPositions()));
                 }
             }
@@ -441,10 +475,10 @@ public class StaticChecks {
                 if(Library.Builtin.isBuiltinLibrary(moduleName)) {
                     continue;
                 }
-                visibleConstructors.put(moduleName, theVisibleConstructors);
+                //                visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
-//                resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
-//                resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
+                //                resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
+                //                resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
                 overlapWithExternals(staticData, outputMessages, moduleName, allExternals);
                 resolveAmbiguousStrategyCalls(staticData, outputMessages, ambStratResolution, theVisibleStrategies,
                     moduleName);
@@ -456,7 +490,6 @@ public class StaticChecks {
     /**
      * RESOLVE ambiguous strategy calls (i.e. in higher-order strategy argument position)
      * TODO: move this into the type checker (insertCasts)
-     *
      */
     private static void resolveAmbiguousStrategyCalls(Data staticData, List<Message<?>> outputMessages,
         final Map<String, SortedMap<String, String>> ambStratResolution, StringSetWithPositions theVisibleStrategies,
@@ -510,7 +543,7 @@ public class StaticChecks {
             staticData.definedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
         final StringSetWithPositions internalStrategies =
             staticData.internalStrategies.getOrDefault(moduleName, new StringSetWithPositions());
-        Set<String> strategiesOverlapWithExternal = Sets.difference(
+        final Set<String> strategiesOverlapWithExternal = Sets.difference(
             Sets.difference(Sets.intersection(definedStrategies.readSet(), allExternals.readSet()), ALWAYS_DEFINED),
             internalStrategies.readSet());
         for(String name : strategiesOverlapWithExternal) {
@@ -522,48 +555,48 @@ public class StaticChecks {
         }
     }
 
-    /**
-     * CHECK for strategies that cannot be resolved (error/warning condition)
-     */
-    private static void resolveStrategies(Data staticData, List<Message<?>> outputMessages,
-        StringSetWithPositions globalStrategies, StringSetWithPositions theVisibleStrategies, String moduleName) {
-        final StringSetWithPositions usedStrategies =
-            staticData.usedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
-        Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies.readSet());
-        for(String name : unresolvedStrategies) {
-            final MessageSeverity severity;
-            if(globalStrategies.contains(name)) {
-                severity = MessageSeverity.WARNING;
-            } else {
-                severity = MessageSeverity.ERROR;
-            }
-            for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
-                outputMessages.add(Message.strategyNotFound(moduleName, strategyUse, severity));
-            }
-        }
-    }
-
-    /**
-     * CHECK for constructors that cannot be resolved (error/warning condition)
-     */
-    private static void resolveConstructors(List<Message<?>> outputMessages, StringSetWithPositions globalConstructors,
-        StringSetWithPositions theVisibleConstructors, String moduleName, final Data staticData) {
-        final StringSetWithPositions usedConstructors =
-            staticData.usedConstructors.getOrDefault(moduleName, new StringSetWithPositions());
-        final Set<String> unresolvedConstructors =
-            Sets.difference(usedConstructors.readSet(), theVisibleConstructors.readSet());
-        for(String name : unresolvedConstructors) {
-            final MessageSeverity severity;
-            if(globalConstructors.contains(name)) {
-                severity = MessageSeverity.WARNING;
-            } else {
-                severity = MessageSeverity.ERROR;
-            }
-            for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
-                outputMessages.add(Message.constructorNotFound(moduleName, constructorUse, severity));
-            }
-        }
-    }
+    //    /**
+    //     * CHECK for strategies that cannot be resolved (error/warning condition)
+    //     */
+    //    private static void resolveStrategies(Data staticData, List<Message<?>> outputMessages,
+    //        StringSetWithPositions globalStrategies, StringSetWithPositions theVisibleStrategies, String moduleName) {
+    //        final StringSetWithPositions usedStrategies =
+    //            staticData.usedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
+    //        Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies.readSet());
+    //        for(String name : unresolvedStrategies) {
+    //            final MessageSeverity severity;
+    //            if(globalStrategies.contains(name)) {
+    //                severity = MessageSeverity.WARNING;
+    //            } else {
+    //                severity = MessageSeverity.ERROR;
+    //            }
+    //            for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
+    //                outputMessages.add(Message.strategyNotFound(moduleName, strategyUse, severity));
+    //            }
+    //        }
+    //    }
+    //
+    //    /**
+    //     * CHECK for constructors that cannot be resolved (error/warning condition)
+    //     */
+    //    private static void resolveConstructors(List<Message<?>> outputMessages, StringSetWithPositions globalConstructors,
+    //        StringSetWithPositions theVisibleConstructors, String moduleName, final Data staticData) {
+    //        final StringSetWithPositions usedConstructors =
+    //            staticData.usedConstructors.getOrDefault(moduleName, new StringSetWithPositions());
+    //        final Set<String> unresolvedConstructors =
+    //            Sets.difference(usedConstructors.readSet(), theVisibleConstructors.readSet());
+    //        for(String name : unresolvedConstructors) {
+    //            final MessageSeverity severity;
+    //            if(globalConstructors.contains(name)) {
+    //                severity = MessageSeverity.WARNING;
+    //            } else {
+    //                severity = MessageSeverity.ERROR;
+    //            }
+    //            for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
+    //                outputMessages.add(Message.constructorNotFound(moduleName, constructorUse, severity));
+    //            }
+    //        }
+    //    }
 
     /**
      * CHECK that overlays do not cyclically use each other (error condition) (New check, old compiler looped)

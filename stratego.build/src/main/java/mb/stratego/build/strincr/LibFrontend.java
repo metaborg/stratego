@@ -1,9 +1,9 @@
 package mb.stratego.build.strincr;
 
-import static org.spoofax.interpreter.core.Interpreter.cify;
-
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -13,13 +13,13 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.util.StringSetWithPositions;
+import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
+import mb.stratego.build.strincr.SplitResult.StrategySignature;
 
 public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
     public static final String id = LibFrontend.class.getCanonicalName();
@@ -52,10 +52,10 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
     }
 
     static final class Output implements Serializable {
-        final StringSetWithPositions strategies;
-        final StringSetWithPositions constrs;
+        final Set<StrategySignature> strategies;
+        final Set<ConstructorSignature> constrs;
 
-        Output(StringSetWithPositions strategies, StringSetWithPositions constrs) {
+        Output(Set<StrategySignature> strategies, Set<ConstructorSignature> constrs) {
             this.strategies = strategies;
             this.constrs = constrs;
         }
@@ -130,15 +130,17 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                 + "Expected Specification([Signature([Constructors([...])]), Strategies([...])]), but got: " + ast
                 .toString(3));
         }
-        final StringSetWithPositions constrs = extractConstrs(TermUtils.toListAt(constructorsTerm, 0));
-        final StringSetWithPositions strategies = extractStrategies(TermUtils.toListAt(strategiesTerm, 0));
+        final Set<ConstructorSignature> constrs = extractConstrs(TermUtils.toListAt(constructorsTerm, 0));
+        // TODO: Support type definitions for strategies
+        final Set<StrategySignature> strategies = extractStrategies(TermUtils.toListAt(strategiesTerm, 0));
 
         BuildStats.frontLibTaskTime += System.nanoTime() - startTime;
         return new Output(strategies, constrs);
     }
 
-    private StringSetWithPositions extractConstrs(IStrategoList extConstrTerms) throws ExecException {
-        final StringSetWithPositions constrs = new StringSetWithPositions();
+    private Set<ConstructorSignature> extractConstrs(IStrategoList extConstrTerms) throws ExecException {
+        // TODO: Support types of constructors
+        final Set<ConstructorSignature> constrs = new HashSet<>();
         for(IStrategoTerm extConstrTerm : extConstrTerms) {
             if(TermUtils.isAppl(extConstrTerm)) {
                 IStrategoAppl extConstrAppl = (IStrategoAppl) extConstrTerm;
@@ -148,15 +150,14 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                             "Malformed built-in library AST. " + "Expected ExtOpDecl(\"...\", ...) but got: "
                                 + extConstrTerm.toString(2));
                     }
-                    if(TermUtils.isAppl(extConstrAppl.getSubterm(1)) && TermUtils
-                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2) && TermUtils
-                        .isList(extConstrAppl.getSubterm(1).getSubterm(0))) {
-                        constrs.add(B.string(
-                            TermUtils.toJavaStringAt(extConstrAppl, 0) + "_" + TermUtils.toListAt(extConstrAppl.getSubterm(1), 0)
-                                .size()));
-                    } else if(TermUtils.isAppl(extConstrAppl.getSubterm(1)) && TermUtils
-                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "ConstType", 1)) {
-                        constrs.add(B.string(TermUtils.toJavaStringAt(extConstrAppl, 0) + "_0"));
+                    if(TermUtils.isAppl(extConstrAppl.getSubterm(1))
+                        && TermUtils.isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2)
+                        && TermUtils.isList(extConstrAppl.getSubterm(1).getSubterm(0))) {
+                        final IStrategoList paramList = TermUtils.toListAt(extConstrAppl.getSubterm(1), 0);
+                        constrs.add(new ConstructorSignature(TermUtils.toJavaStringAt(extConstrAppl, 0), paramList.size()));
+                    } else if(TermUtils.isAppl(extConstrAppl.getSubterm(1))
+                        && TermUtils.isAppl(TermUtils.toApplAt(extConstrAppl, 1), "ConstType", 1)) {
+                        constrs.add(new ConstructorSignature(TermUtils.toJavaStringAt(extConstrAppl, 0), 0));
                     } else {
                         throw new ExecException("Malformed built-in library AST. "
                             + "Expected ExtOpDecl(\"...\", FunType([...], ...)) or ExtOpDecl(\"...\", ConstType(...)) but got: "
@@ -164,15 +165,16 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     }
                     continue;
                 } else if(TermUtils.isAppl(extConstrAppl, "ExtOpDeclQ", 2)) {
-                    if(!(TermUtils.isString(extConstrAppl.getSubterm(0)) && TermUtils
-                        .isAppl(extConstrAppl.getSubterm(1)) && TermUtils
-                        .isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2) && TermUtils
-                        .isList(extConstrAppl.getSubterm(1).getSubterm(0)))) {
+                    if(!(TermUtils.isString(extConstrAppl.getSubterm(0))
+                        && TermUtils.isAppl(extConstrAppl.getSubterm(1))
+                        && TermUtils.isAppl(TermUtils.toApplAt(extConstrAppl, 1), "FunType", 2)
+                        && TermUtils.isList(extConstrAppl.getSubterm(1).getSubterm(0)))) {
                         throw new ExecException("Malformed built-in library AST. "
                             + "Expected ExtOpDeclQ(\"...\", FunType([...], ...)) but got: " + extConstrTerm
                             .toString(2));
                     }
-                    constrs.add(B.string(StringEscapeUtils.escapeJava(TermUtils.toJavaStringAt(extConstrAppl, 0)) + "_" + TermUtils.toListAt(extConstrAppl.getSubterm(1), 0).size()));
+                    final IStrategoList paramList = TermUtils.toListAt(extConstrAppl.getSubterm(1), 0);
+                    constrs.add(new ConstructorSignature(StringEscapeUtils.escapeJava(TermUtils.toJavaStringAt(extConstrAppl, 0)), paramList.size()));
                     continue;
                 } else if(TermUtils.isAppl(extConstrAppl, "ExtOpDeclInj", 1)) {
                     continue;
@@ -185,8 +187,8 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         return constrs;
     }
 
-    private StringSetWithPositions extractStrategies(IStrategoList extSDefTerms) throws ExecException {
-        final StringSetWithPositions strategyConstrs = new StringSetWithPositions();
+    private Set<StrategySignature> extractStrategies(IStrategoList extSDefTerms) throws ExecException {
+        final Set<StrategySignature> strategyConstrs = new HashSet<>();
         for(IStrategoTerm extSDefTerm : extSDefTerms) {
             if(!TermUtils.isAppl(extSDefTerm, "ExtSDef", 3)) {
                 throw new ExecException(
@@ -202,7 +204,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                         .toString(1));
             }
             strategyConstrs
-                .add(B.string(cify(TermUtils.toJavaString(name)) + "_" + sargs.getSubtermCount() + "_" + targs.getSubtermCount()));
+                .add(new StrategySignature(TermUtils.toJavaString(name),  sargs.getSubtermCount(), targs.getSubtermCount()));
         }
         return strategyConstrs;
     }
