@@ -31,7 +31,6 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types> ast1
-  ; <debug> constrs
   ; let
       process-defs = map(local-insertCasts(|strats, constrs, injection-closure, lub-map);where(try(not(?DefHasType(_, _)); ![Strategies([<id>])];compile-top-level-def)))
       process = Specification(map(

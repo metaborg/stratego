@@ -97,6 +97,7 @@ local-insertCasts-StMatchTerm-(|e1, st1):
     then
       if not(<local-CanCoerce> (t2, t1))
         then <local-report-Err> (cnstr, TypeMismatch(t2, t1))
+           ; t2* := <map(!ErrT())> trm1*
         else if DynT(_) := t1
           then t2* := <map(!DynT(<id>))> t1*
           else t2* := t1*
@@ -230,7 +231,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
       let
         set-type(|t) = local-current-type(|DynT(t))
       in (trm2*, t3*, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; switch <local-StBuildTerm-Op-type-relation> (t3*, t1*)
+      ; switch <local-StBuildTerm-Op-type-relation> (t3*, t2*)
           case ?AllCanCoerce():
             st3 := <local-current-type(|t3)> st2
           ; trm2 := Op(cnstr, trm2*)
@@ -246,7 +247,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
         // defined to disambiguate between local-current-type/0/0 and local-current-type/0/1
         set-type(|t) = local-current-type(|t)
       in (trm2*, _, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; st3 := <local-current-type(|t2)> st2
+      ; st3 := <local-current-type(|t3)> st2
       ; trm2 := Op(cnstr, trm2*)
       end
     end
@@ -314,25 +315,21 @@ local-insertCasts-StMatchTerm-(|e1, st1):
 local-insertCasts-StMatchTerm-(|e1, st1):
   App(s1, trm1) -> (App(s2, trm2), st5)
   with
-    (trm2, st2) := <local-insertCasts-BuildTerm(|e1, st1)> trm1
-  ; (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1
-  ; st4 := <local-term-env(<local-term-env> st3)> st1
-  ; if not(st5 := <local-output-type(|<local-current-type> st3)> st4)
-      then
-          <local-report-Warn> (s1, MultipleAppsInMatch())
-        ; st5 := st4
-    end
+    !st1
+  ; local-stMatchTerm-as-st(\st2 -> st4 where
+        (trm2, st3) := <local-insertCasts-BuildTerm(|e1, st2)> trm1
+      ; (s2, st4) := <local-insertCasts-Strategy(|e1, st3)> s1\
+    | (s1, MultipleAppsInMatch()))
+  ; ?st5
 
 local-insertCasts-StMatchTerm-(|e1, st1):
   RootApp(s1) -> (RootApp(s2), st4)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <local-term-env(<local-term-env> st2)> st1
-  ; if not(st4 := <local-output-type(|<local-current-type> st2)> st3)
-      then
-          <local-report-Warn> (s1, MultipleAppsInMatch())
-        ; st4 := st3
-    end
+    !st1
+  ; local-stMatchTerm-as-st(\st2 -> st3 where
+      (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1\
+    | (s1, MultipleAppsInMatch()))
+  ; ?st4
 
 local-insertCasts-StMatchTerm(|e1, st1):
   Char(_) -> <local-insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
@@ -410,17 +407,19 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
 local-insertCasts-local-StBuildTerm-(|e1, st1):
   App(s1, trm1) -> (App(s2, trm2), st5)
   with
-    st2 := <st-from-local-stBuildTerm-input> st1
-  ; (trm2, st3) := <local-insertCasts-BuildTerm(|e1, st2)> trm1
-  ; (s2, st4) := <local-insertCasts-Strategy(|e1, st3)> s1
-  ; st5 := <local-term-env(<local-term-env> st4);local-current-type(|<local-current-type> st4)> st1
+    !st1
+  ; local-stBuildTerm-as-st(\st2 -> st4 where
+      (trm2, st3) := <local-insertCasts-BuildTerm(|e1, st2)> trm1
+    ; (s2, st4) := <local-insertCasts-Strategy(|e1, st3)> s1\)
+  ; ?st5
 
 local-insertCasts-local-StBuildTerm-(|e1, st1):
   RootApp(s1) -> (RootApp(s2), st4)
   with
-    st2 := <st-from-local-stBuildTerm-input> st1
-  ; (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1
-  ; st4 := <local-term-env(<local-term-env> st3);local-current-type(|<local-current-type> st3)> st1
+    !st1
+  ; local-stBuildTerm-as-st(\st2 -> st3 where
+      (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1\)
+  ; ?st4
 
 local-insertCasts-StBuildTerm(|e1, st1):
   trm@Char(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, IntT())>
@@ -438,7 +437,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   List(trm1*) -> (List(trm2*), st3)
   with
     (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
-  ; t1 := Sort("List", [<foldr1(?[<id>], local-LUB <+ !DynT(Dyn()))> t*])
+  ; t1 := Sort("List", [<foldr1(?[<id>], local-LUB <+ !DynT(Dyn())) <+ !DynT(Dyn())> t*])
   ; st3 := <local-current-type(|t1)> st2
 
 // TODO: extract types from expected type to support the type parameters properly here

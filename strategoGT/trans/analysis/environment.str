@@ -33,7 +33,17 @@ st-from-local-stMatchTerm: StMatchTerm(te, _, Some(t), s*) -> (St(te, t), s*)
 st-from-local-stMatchTerm: StMatchTerm(te, t, None(), s*) -> (St(te, t), s*)
 st-from-local-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
 
-st-from-local-stBuildTerm-input: StBuildTerm(te, _, t) -> St(te, t)
+local-stMatchTerm-as-st(s|msg): StMatchTerm(te1, t1, ot1, s*) -> StMatchTerm(te1, t2, ot2, s*)
+  where
+    St(_, t2) := <s> St(te1, t1)
+  ; if(None() := ot1)
+      then ot2 := Some(t2)
+      else ot2 := ot1; <local-report-Warn> msg
+    end
+local-stBuildTerm-as-st(s): StBuildTerm(te1, t1, t2) -> StBuildTerm(te2, t3, t2)
+  where
+    // note we're using the inputtype here, not the current type
+    St(te2, t3) := <s> St(te1, t2)
 
 local-strat-env = ?Env(<id>, _)
 local-strat-env(s) = Env(s, id)
@@ -42,12 +52,13 @@ local-strat-env(s) = Env(s, id)
 local-strat-lookup(|name, snum, tnum) =
   local-strat-env; immap-get(|(name, snum, tnum))
   <+ where(0 := tnum); local-constr-lookup(|name, snum); not(imset-empty); !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
+  <+ strat-env; immap-get(|(name, 0, 0)); ?SDyn()
 local-strat-put(|name, snum, tnum, value) = local-strat-env(immap-put(|(name, snum, tnum), value))
 local-strat-merge-env(s): (e, se) -> <local-strat-env(immap-union(s|se))> e
 local-strat-copy-type(|name, snum, tnum, as) = local-strat-env(local-env-copy-type(|(name, snum, tnum), as))
 strat-zip-local-new-env: (names, types) -> <zip-local-new-env> (names-arities, types)
 where if <map(is-string)> names
-  then names-arities := <zip(\(n, FunTType(st*, tt*, _, _)) -> (n, <length> st*, <length> tt*)\)> (names, types)
+  then names-arities := <zip(\(n, FunTType(st*, tt*, _, _)) -> (n, <length> st*, <length> tt*)\ <+ \(n, SDyn()) -> (n, 0, 0)\)> (names, types)
   else names-arities := names
 end
 
