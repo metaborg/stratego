@@ -438,13 +438,19 @@ public class StaticChecks {
         final Map<String, StringSetWithPositions> visibleStrategies =
             new HashMap<>(2 * (staticData.definedStrategies.size() + staticData.definedCongruences.size()));
         for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedStrategies.entrySet()) {
-            visibleStrategies.put(entry.getKey(), new StringSetWithPositions(entry.getValue()));
+            final String moduleName = entry.getKey();
+            final StringSetWithPositions set = entry.getValue();
+            visibleStrategies.put(moduleName, new StringSetWithPositions(set));
         }
         for(Map.Entry<String, StringSetWithPositions> entry : staticData.externalStrategies.entrySet()) {
-            getOrInitialize(visibleStrategies, entry.getKey(), StringSetWithPositions::new).addAll(entry.getValue());
+            final String moduleName = entry.getKey();
+            final StringSetWithPositions set = entry.getValue();
+            getOrInitialize(visibleStrategies, moduleName, StringSetWithPositions::new).addAll(set);
         }
         for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedCongruences.entrySet()) {
-            getOrInitialize(visibleStrategies, entry.getKey(), StringSetWithPositions::new).addAll(entry.getValue());
+            final String moduleName = entry.getKey();
+            final StringSetWithPositions set = entry.getValue();
+            getOrInitialize(visibleStrategies, moduleName, StringSetWithPositions::new).addAll(set);
         }
         // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
         //        final Map<String, Set<ConstructorSignature>> visibleConstructors =
@@ -460,7 +466,7 @@ public class StaticChecks {
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
         for(Set<String> scc : sccs) {
-            StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
+            final StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
             //            StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
             for(String moduleName : scc) {
                 //                theVisibleConstructors
@@ -498,37 +504,41 @@ public class StaticChecks {
             new HashMap<>(staticData.usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
         StringSetWithPositions ambStratPositions =
             staticData.ambStratPositions.getOrDefault(moduleName, new StringSetWithPositions());
-        // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
-        theUsedAmbStrategies.keySet().removeIf(theVisibleStrategies::contains);
-        if(!theUsedAmbStrategies.isEmpty()) {
-            Map<String, Set<String>> differentArityDefinitions = new HashMap<>(2 * theVisibleStrategies.size());
-            for(String theVisibleStrategy : theVisibleStrategies.readSet()) {
-                String ambCallVersion = SDefT.removeArity(theVisibleStrategy) + "_0_0";
-                getOrInitialize(differentArityDefinitions, ambCallVersion, HashSet::new).add(theVisibleStrategy);
+        for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
+            final String usedAmbStrategy = entry.getKey();
+            final @Nullable StrategySignature usedAmbStrategyStart = StrategySignature.fromCified(usedAmbStrategy);
+            // local strategies (which don't have proper cified names) are not ambiguous
+            if(usedAmbStrategyStart == null) {
+                continue;
             }
-            for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
-                final String usedAmbStrategy = entry.getKey();
-                final Set<String> defs =
-                    differentArityDefinitions.getOrDefault(usedAmbStrategy, Collections.emptySet());
-                switch(defs.size()) {
-                    case 0:
-                        for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                            outputMessages
-                                .add(Message.strategyNotFound(moduleName, ambStrategyPosition, MessageSeverity.ERROR));
-                        }
-                        break;
-                    case 1:
-                        final String resolvedDef = defs.iterator().next();
-                        for(String useSite : entry.getValue()) {
-                            getOrInitialize(ambStratResolution, useSite, TreeMap::new)
-                                .put(usedAmbStrategy, resolvedDef);
-                        }
-                        break;
-                    default:
-                        for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
-                            outputMessages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
-                        }
+            // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
+            if(theVisibleStrategies.contains(usedAmbStrategy)) {
+                continue;
+            }
+            final Set<String> defs = new HashSet<>();
+            for(String s : theVisibleStrategies.readSet()) {
+                if(s.startsWith(usedAmbStrategyStart.name)) {
+                    defs.add(s);
                 }
+            }
+            switch(defs.size()) {
+                case 0:
+                    for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
+                        outputMessages
+                            .add(Message.strategyNotFound(moduleName, ambStrategyPosition, MessageSeverity.ERROR));
+                    }
+                    break;
+                case 1:
+                    final String resolvedDef = defs.iterator().next();
+                    for(String useSite : entry.getValue()) {
+                        getOrInitialize(ambStratResolution, useSite, TreeMap::new)
+                            .put(usedAmbStrategy, resolvedDef);
+                    }
+                    break;
+                default:
+                    for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
+                        outputMessages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
+                    }
             }
         }
     }

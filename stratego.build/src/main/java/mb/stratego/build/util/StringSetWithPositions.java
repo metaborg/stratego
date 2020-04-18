@@ -3,12 +3,14 @@ package mb.stratego.build.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.metaborg.util.iterators.CompoundIterator;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -131,7 +133,7 @@ public class StringSetWithPositions {
     private Map<String, List<IStrategoString>> getMap() {
         final Map<String, List<IStrategoString>> map;
         if(!latestMutatable) {
-            map = new HashMap<>();
+            map = new TreeMap<>();
             maps.add(map);
             latestMutatable = true;
         } else {

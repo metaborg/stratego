@@ -158,7 +158,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
         // TODO: temporary, remove once this stuff works
         return new Output(input.ast, Collections.emptyList());
-//        final IStrategoAppl astWithCasts = TermUtils.toApplAt(output.result, 0);
+//        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
 //        final IStrategoList errors = TermUtils.toListAt(output.result, 1);
 //        final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
 //        final IStrategoList notes = TermUtils.toListAt(output.result, 3);
