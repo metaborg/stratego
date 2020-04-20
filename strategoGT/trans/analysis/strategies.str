@@ -184,22 +184,43 @@ local-insertCasts-Sarg-Type(|e1, t):
   (trm, st1) -> <local-insertCasts-Sarg(|e1, st1)> (trm, t)
 
 local-insertCasts-Sarg(|e1, st1):
-  (c@CallT(v@SVar(x), [], []), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
+  (c@CallT(v@SVar(x), [], []), t1@FunTType(st*, tt*, _, _)) -> (s, st2)
   with
-    t2 := <local-strat-lookup(|x{}, 0, 0)> e1
-  ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+      then
+        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+      ; st2 := st1
+      else
+        <local-report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := c
+      ; st2 := <local-current-type(|ErrT())> st1
+    end
 
 local-insertCasts-Sarg(|e1, st1):
   (c@Call(v@SVar(x), []), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    t2 := <local-strat-lookup(|x{}, 0, 0)> e1
-  ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+      then
+        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+      ; st2 := st1
+      else
+        <local-report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := c
+      ; st2 := <local-current-type(|ErrT())> st1
+    end
 
 local-insertCasts-Sarg(|e1, st1):
   (c@CallNoArgs(v@SVar(x)), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    t2 := <local-strat-lookup(|x{}, 0, 0)> e1
-  ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+      then
+        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+      ; st2 := st1
+      else
+        <local-report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := c
+      ; st2 := <local-current-type(|ErrT())> st1
+    end
 
 local-insertCasts-Sarg(|e1, st1):
   (s1, t1@FunTType(st*, tt*, t2, t3)) -> (s2, st2)
@@ -389,7 +410,7 @@ local-insertCasts-Strategy-(|e1, st1):
   TupleCong(s1, s1*) -> (CongQ(s2, s2*), st4)
   with
     t1 := <local-current-type> st1
-  ; (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, DynT(Dyn()))
+  ; (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
   ; (s2*, st3) := <thread-map(local-insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st2)
   ; st4 := <local-current-type(|Sort("Tuple", <map(!DynT(Dyn()))> [s1 | s1*]))> st3
 
@@ -418,7 +439,7 @@ local-insertCasts-Strategy-(|e1, st1):
   ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
   with
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
-    (s3, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, DynT(Dyn()))
+    (s3, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
   ; (s4, st3) := <local-insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
   ; st4 := <local-current-type(|DynT(Dyn()))> st3
 
@@ -497,14 +518,21 @@ local-insertCasts-Strategy-(|e1, st1):
   ; st4 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st2, st3)
 
 local-insertCasts-Strategy-(|e1, st1):
-  p@Proceed(s1*) -> (call, st4)
+  p@Proceed(s1*) -> (call, st3)
   with
-    FunTType(st*, [], t1, t2) := <local-strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
-  ; s2* := <zip> (s1*, st*)
-  ; t := <local-current-type> st1
-  ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-  ; st4 := <local-current-type(|t2)> st2
-  ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!Proceed(s3*))> p
+    if FunTType(st*, [], t1, t2) := <local-strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
+    then
+      s2* := <zip> (s1*, st*)
+    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
+    ; st3 := <local-current-type(|t2)> st2
+    ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!Proceed(s3*))> p
+    else
+      <local-report-Err> (p, ProceedInNonExtendStrategy())
+    ; s2* := <map(!ErrT())> s1*
+    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
+    ; call := <otf(!Proceed(s3*))> p
+    ; st3 := <local-current-type(|ErrT())> st2
+    end
 
 local-insertCasts-Strategy-(|e1, st1):
   CondChoice(s1, s2, s3) -> (CondChoice(s4, s5, s6), st5)
