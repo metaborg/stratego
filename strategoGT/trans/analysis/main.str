@@ -44,12 +44,11 @@ local-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
     rules(local-CanCoerce: (from, to) -> <id>
       where <local-can-coerce(|injection-closure)> (from, to))
   ; rules(local-LUB: pair -> <local-lub(|lub-map)> pair)
-  ; ast' := <local-insertCasts-Def(|<local-new-env> (strats, constrs), <local-new-st>)> ast
+  ; (ast', _) := <local-insertCasts-Def(|<local-new-env> (strats, constrs), <local-new-st>)> ast
 
 local-can-coerce(|injection-closure) = ?(ErrT(), _)
 local-can-coerce(|injection-closure) = ?(_, ErrT())
 local-can-coerce(|injection-closure) = ?(FailT(), _)
-//local-can-coerce(|injection-closure) = ?(_, Dyn())
 local-can-coerce(|injection-closure) = ?(_, DynT(_))
 // We assume co-variant type parameters
 local-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
@@ -65,6 +64,8 @@ local-lub(|lub-map): (FailT(), x) -> x
 local-lub(|lub-map): (x, FailT()) -> x
 local-lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
 local-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
+// pointwise lift LUB over type parameters
+local-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
 local-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
 local-constr-lookup(|name, arity, t1) =
