@@ -577,7 +577,7 @@ local-insertCasts-Strategy-(|e1, st1):
   ; t1 := <local-current-type> st1
   ; t2 := <local-current-type> st2
   ; (sc2*, _, st3) := <map-local-LUB(local-insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
-  ; (s4, st4) := <local-insertCasts-Strategy(|e1, <local-current-type(|t1)> st3)> s1
+  ; (s4, st4) := <local-insertCasts-Strategy(|e1, <local-current-type(|t1)> st3)> s2
 
 local-insertCasts-SwitchCase(|e1, t1, t2) = otf22(local-insertCasts-SwitchCase-(|e1, t1, t2))
 
