@@ -68,7 +68,16 @@ local-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
 local-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
 local-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
-local-constr-lookup(|name, arity, t1) =
-    local-constr-lookup(|name, arity)
+local-constr-lookup-from(|name, arity, t1) =
+    local-constr-env
+  ; imrel-get(|(name, arity))
+  ; if not(DynT(_) := t1)
+      then imset-filter(where(\ConstrType(_, t2) -> <local-CanCoerce> (t1, t2)\))
+    end
+  ; imset-to-list
+
+local-constr-lookup-to(|name, arity, t1) =
+    local-constr-env
+  ; imrel-get(|(name, arity))
   ; imset-filter(where(\ConstrType(_, t2) -> <local-CanCoerce> (t2, t1)\))
   ; imset-to-list

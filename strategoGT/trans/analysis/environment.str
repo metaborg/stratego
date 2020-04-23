@@ -28,7 +28,7 @@ strategies
 local-new-env: (strats, constrs) -> Env(strats, constrs)
 local-new-st = !St(<immap-new>, DynT(Dyn()))
 local-stMatchTerm-from-st: St(te, t) -> StMatchTerm(te, t, None(), [])
-local-stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, t, t)
+local-stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, DynT(Dyn()), t)
 st-from-local-stMatchTerm: StMatchTerm(te, _, Some(t), s*) -> (St(te, t), s*)
 st-from-local-stMatchTerm: StMatchTerm(te, t, None(), s*) -> (St(te, t), s*)
 st-from-local-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
@@ -65,9 +65,8 @@ end
 local-constr-env = ?Env(_, <id>)
 local-constr-env(s) = Env(id, s)
 
-// N.B. this returns an imset. Use local-constr-lookup/3 from main.str to filter on sort of the
-//       constructor and receive a list.
-local-constr-lookup(|name, arity) = local-constr-env; imrel-get(|(name, arity))
+// N.B. Use local-constr-lookup/3 from main.str to filter on sort of the constructor.
+local-constr-lookup(|name, arity) = local-constr-env; imrel-get(|(name, arity)); imset-to-list
 local-constr-put(|name, arity, value) = local-constr-env(imrel-insert(|(name, arity), value))
 local-constr-merge-env: (e, ce) -> <local-constr-env(imrel-union(|ce))> e
 

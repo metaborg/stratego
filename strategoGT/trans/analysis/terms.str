@@ -92,7 +92,7 @@ local-insertCasts-StMatchTerm-(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
   with
     t1 := <local-current-type> st1
-  ; t* := <local-constr-lookup(|cnstr, <length> trm1*, t1)> e1
+  ; t* := <local-constr-lookup-to(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
       if not(<local-CanCoerce> (t2, t1))
@@ -213,13 +213,14 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   trm1@Op(cnstr, trm1*) -> (trm2, st3)
   with
     t1 := <local-current-type> st1
-  ; t* := <local-constr-lookup(|cnstr, <length> trm1*, t1)> e1
+  // In a top-level term e.g. in Build(Op(..., ...)) the current term type in DynT(Dyn()).
+  ; t* := <local-constr-lookup-from(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
       t2* := t1*
     ; t3 := t2  // workaround for backtracking issue in strj
     else if [] := t*
-        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, DynT(Dyn())))
+        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
         else <local-report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
@@ -278,11 +279,11 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm2
   ; t1 := <local-current-type> st2
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
-  ; if not(<local-CanCoerce> (t1, StringT()) + <local-CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
+  ; if not(DynT(_) := t1 + <local-CanCoerce> (t1, StringT()) + <local-CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
       then <local-report-Err> (trm1, NonStringOrListInExplodeConsPosition(<local-current-type> st2))
     end
     // TODO: support cast to string-or-list for the constructor
-  ; (trm5, st4) := <insertCastApp(|<local-current-type> st3, Sort("List", [DynT(Dyn())]))> (trm4, st3)
+  ; (trm5, st4) := <insertCastApp(|<local-current-type> st3, StringT())> (trm4, st3)
   ; st5 := <local-current-type(|DynT(Dyn()))> st4
 
 strategies // Terms in match position (sugar)
@@ -596,6 +597,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
       then <local-report-Err> (trm1, TypeMismatch(t2, t3))
     end
   ; (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|t2)> st1)> trm2
+  // TODO: Was this cast insertion supposed to go into the if-then-else?
 //  ; (trm4, st3) := <insertCastApp(|<local-current-type> st2, t2)> (trm3, st2)
   ; if not(<local-CanCoerce> (t2, <local-current-type> st2) + DynT(_) := t2)
       then
