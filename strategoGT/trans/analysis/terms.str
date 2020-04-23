@@ -197,10 +197,10 @@ local-insertCasts-StBuildTerm(|e1, st1):
   trm@Str(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, StringT())>
 
 local-insertCasts-local-StBuildTerm-Lit(|st1, t1):
-  trm1 -> (trm2, st2)
+  trm1 -> (trm1, st1)
   with
     t2 := <local-current-type> st1
-  ; (trm2, st2) := <insertCastApp(|t1, t2)> (trm1, st1)
+// TODO: Give a warning when it's guaranteed to fail based on type: t1 -> t2
 
 signature constructors
   AllCanCoerce : OpTypeRelation
@@ -237,6 +237,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
             st3 := <local-current-type(|t3)> st2
           ; trm2 := Op(cnstr, trm2*)
           case ?SomeDyn():
+            // insertCastApp here only generates warnings, not casts, because DynT(_) := t1
             (trm2, st3) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
           case ?Unrelated():
             st3 := <local-current-type(|IllFormedTermT(cnstr, t3*))> st2
@@ -273,7 +274,7 @@ local-insertCasts-StBuildTerm(|e1, st1) =
   ; (otf(\Op(c, c*) -> OpQ(c, c*)\), id)
 
 local-insertCasts-local-StBuildTerm-(|e1, st1):
-  Explode(trm1, trm2) -> (Explode(trm3, trm5), st5)
+  Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
     (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
   ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm2
@@ -283,8 +284,8 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
       then <local-report-Err> (trm1, NonStringOrListInExplodeConsPosition(<local-current-type> st2))
     end
     // TODO: support cast to string-or-list for the constructor
-  ; (trm5, st4) := <insertCastApp(|<local-current-type> st3, StringT())> (trm4, st3)
-  ; st5 := <local-current-type(|DynT(Dyn()))> st4
+    // TODO: Give a warning when it's guaranteed to fail based on type.
+  ; st4 := <local-current-type(|DynT(Dyn()))> st3
 
 strategies // Terms in match position (sugar)
 
@@ -443,7 +444,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
 
 // TODO: extract types from expected type to support the type parameters properly here
 local-insertCasts-local-StBuildTerm-(|e1, st1):
-  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm3), st5)
+  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
   with
     (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
   ; (trm2, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm1
@@ -451,8 +452,8 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   // Cannot use the same as before. <local-current-type> st3 must be a list and cast to it if DynT(Dyn()).
   // But if not <local-CanCoerce> (<local-current-type> st3, t1), local-current-type in st4 should be Sort("List", [DynT(Dyn())])
   ; t1 := Sort("List", [DynT(Dyn())]) //<foldr1(?[<id>], local-LUB <+ !DynT(Dyn()))> t*
-  ; (trm3, st4) := <insertCastApp(|<local-current-type> st3, t1)> (trm2, st3)
-  ; st5 := <local-current-type(|t1)> st4
+  // TODO: Give a warning when it's guaranteed to fail based on type: <local-current-type> st3 -> t1
+  ; st4 := <local-current-type(|t1)> st3
 
 local-insertCasts-local-StBuildTerm-(|e1, st1):
   trm@BuildDefaultPT(trm1) -> (BuildDefaultPT(trm2), st2)
@@ -562,11 +563,11 @@ local-insertCasts-Build-StringQuotedPart(|e1):
   (sqp@QBr(_), st1) -> (sqp, st1)
 
 local-insertCasts-Build-StringQuotedPart-(|e1):
-  (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm3), st4)
+  (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st3)
   with
     (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; (trm3, st3) := <insertCastApp(|<local-current-type> st2, StringT())> (trm2, st2)
-  ; st4 := <local-current-type(|<local-current-type> st2)> st3
+// TODO: Give a warning when it's guaranteed to fail based on type.
+  ; st3 := <local-current-type(|<local-current-type> st2)> st2
 
 local-insertCasts-Build-StringQuotedPart(|e1) =
   otf22-sugar(
