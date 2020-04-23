@@ -21,6 +21,11 @@ context-free syntax
 <<Id>(<{Typedid ", "}*>) =
   <Strategy>>
 
+  // Strategy definition with pattern matched term parameters
+  StrategyDef.SDefP =
+<<Id>(<{Typedid ", "}*>|<{Term ","}*>) =
+  <Strategy>> {avoid}
+
 context-free syntax
   Typedid.DefaultVarDec = ID
 

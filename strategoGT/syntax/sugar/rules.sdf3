@@ -29,6 +29,11 @@ context-free syntax
 <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>):
   <Rule>>
 
+  // Rule definition with pattern matched term parameters
+  RuleDef.RDefP =
+<<Id>(<{Typedid ", "}*> | <{Term ", "}*>):
+  <Rule>> {avoid}
+
 sorts Rule RuleCond
 
 context-free syntax
