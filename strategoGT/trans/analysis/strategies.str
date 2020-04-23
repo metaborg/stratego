@@ -48,7 +48,7 @@ local-insertCasts-Strategy(|e1, st1):
 
 local-insertCasts-CallT(|e1, st1) = otf22(local-insertCasts-CallT-(|e1, st1))
 
-local-insertCasts-CallT-(|e1, st1):
+local-insertCasts-CallT(|e1, st1):
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, t1, t2)) -> (c2, st4)
   with
     s2* := <zip> (s1*, st*)
@@ -291,14 +291,14 @@ local-insertCasts-Strategy-(|e1, st1):
 
 local-insertCasts-Call(|e1, st1) = otf22(local-insertCasts-Call-(|e1, st1))
 
-local-insertCasts-Call-(|e1, st1):
+local-insertCasts-Call(|e1, st1):
   (c@Call(s, s1*), FunTType(st*, tt*, t1, t2)) -> (call, st3)
   with
     (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<zip> (s1*, st*), st1)
   ; st3 := <local-current-type(|t2)> st2
   ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!Call(s, s3*))> c
 
-local-insertCasts-Call(|e1, st1):
+local-insertCasts-Call-(|e1, st1):
   (c@Call(s, s1*), SDyn()) -> (Call(s, s3*), st3)
   with
     (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<map-pair-right(|SDyn())> s1*, st1)
