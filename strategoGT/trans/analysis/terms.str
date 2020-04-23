@@ -488,6 +488,15 @@ local-insertCasts-StMatchTerm(|e1, st1) =
 
 local-insertCasts-Match-StringQuotedPart(|e1) = otf22(local-insertCasts-Match-StringQuotedPart-(|e1))
 
+local-insertCasts-Match-StringQuotedPart(|e1):
+  (sqp@QStr(_), st1) -> (sqp, st1)
+
+local-insertCasts-Match-StringQuotedPart(|e1):
+  (sqp@QDollar(_), st1) -> (sqp, st1)
+
+local-insertCasts-Match-StringQuotedPart(|e1):
+  (sqp@QBr(_), st1) -> (sqp, st1)
+
 local-insertCasts-Match-StringQuotedPart-(|e1):
   (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st2)
   with
@@ -542,6 +551,15 @@ local-insertCasts-StBuildTerm(|e1, st1) =
     , \StringQuotation1(p, sqp*) -> StringQuotation4(p, sqp*)\)
 
 local-insertCasts-Build-StringQuotedPart(|e1) = otf22(local-insertCasts-Build-StringQuotedPart-(|e1))
+
+local-insertCasts-Build-StringQuotedPart(|e1):
+  (sqp@QStr(_), st1) -> (sqp, st1)
+
+local-insertCasts-Build-StringQuotedPart(|e1):
+  (sqp@QDollar(_), st1) -> (sqp, st1)
+
+local-insertCasts-Build-StringQuotedPart(|e1):
+  (sqp@QBr(_), st1) -> (sqp, st1)
 
 local-insertCasts-Build-StringQuotedPart-(|e1):
   (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm3), st4)
