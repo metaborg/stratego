@@ -373,11 +373,12 @@ local-litCongruence(|st1, t1) = otf12(local-litCongruence-(|st1, t1))
 
 // Note how we don't add a cast here. Literal congruences are allow to fail based on wrong type, we
 //  don't want them to crash instead.
-// TODO: Give a warning when it's guaranteed to fail based on type.
 local-litCongruence-(|st1, t1):
   s -> (s, st2)
   with
     t2 := <local-current-type> st1
+  // Give a warning when it's guaranteed to fail based on type.
+  ; _ := <computeCoercion(|t2, t1)> s
   ; st2 := <local-current-type(|t1)> st1
 
 local-insertCasts-Strategy(|e1, st1):
@@ -428,23 +429,27 @@ local-insertCasts-Strategy-(|e1, st1):
   ; st4 := <local-current-type(|Sort("Tuple", <map(!DynT(Dyn()))> [s1 | s1*]))> st3
 
 // TODO: extract type of elements of list from local-current-type, and use in insertCasts
-// TODO: Give a warning when it's guaranteed to fail based on type.
 local-insertCasts-Strategy-(|e1, st1):
   s1@ListCongNoTail(s1*) -> (ListCongNoTail(s2*), st3)
   with
     (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
-  ; t2 := <local-current-type> st1
-  ; st3 := <local-current-type(|Sort("List", [DynT(Dyn())]))> st2
+  ; t1 := <local-current-type> st1
+  ; t2 := Sort("List", [DynT(Dyn())])
+  // Give a warning when it's guaranteed to fail based on type.
+  ; _ := <computeCoercion(|t1, t2)> s1
+  ; st3 := <local-current-type(|t2)> st2
 
 // TODO: extract type of elements of list from local-current-type, and use in insertCasts
-// TODO: Give a warning when it's guaranteed to fail based on type.
 local-insertCasts-Strategy-(|e1, st1):
   s1@ListCong(s1*, s2) -> (ListCong(s2*, s3), st4)
   with
     (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
   ; (s3, st3) := <local-insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
-  ; t2 := <local-current-type> st1
-  ; st4 := <local-current-type(|Sort("List", [DynT(Dyn())]))> st3
+  ; t1 := <local-current-type> st1
+  ; t2 := Sort("List", [DynT(Dyn())])
+  // Give a warning when it's guaranteed to fail based on type.
+  ; _ := <computeCoercion(|t1, t2)> s1
+  ; st4 := <local-current-type(|t2)> st3
 
 local-insertCasts-Strategy-(|e1, st1):
   ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
