@@ -26,6 +26,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static org.spoofax.terms.AbstractTermFactory.EMPTY_TERM_ARRAY;
+
 public class Packer {
     private static final String SPEC_START = "Specification([Signature([Constructors([])]), Overlays([\n";
     private static final String SPEC_MIDDLE = "\n]), Strategies([\n";
@@ -348,7 +350,7 @@ public class Packer {
     public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoAppl> strategyContributions) {
         return f.makeAppl("Specification",
             f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
-                f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
+                f.makeAppl("Strategies", f.makeList(strategyContributions))));
     }
 
     public static IStrategoTerm packStrategy(ITermFactory f, Collection<IStrategoAppl> overlayContributions,
@@ -363,12 +365,14 @@ public class Packer {
         if(overlayContributions.isEmpty()) {
             term = f.makeAppl("Specification",
                 f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
-                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
+                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(
+                        EMPTY_TERM_ARRAY)))));
         } else {
             term = f.makeAppl("Specification",
                 f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
-                    f.makeAppl("Overlays", f.makeList(overlayContributions.toArray(new IStrategoTerm[0]))),
-                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(new IStrategoTerm[0])))));
+                    f.makeAppl("Overlays", f.makeList(overlayContributions.toArray(EMPTY_TERM_ARRAY))),
+                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(
+                        EMPTY_TERM_ARRAY)))));
         }
         if(ambStrategyResolution.isEmpty()) {
             return term;

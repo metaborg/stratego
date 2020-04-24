@@ -19,13 +19,33 @@ public class StrategoExecutor {
         public final String errLog;
         public final @Nullable IStrategoTerm result;
         public final @Nullable Exception exception;
+        public final @Nullable List<String> strategoTrace;
+        public final long time;
 
-        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception) {
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time) {
+            this(success, outLog, errLog, exception, time, null, null);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable List<String> strategoTrace) {
+            this(success, outLog, errLog, exception, time, null, strategoTrace);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable IStrategoTerm result) {
+            this(success, outLog, errLog, exception, time, result, null);
+        }
+
+        public ExecutionResult(boolean success, String outLog, String errLog, @Nullable Exception exception,
+            long time, @Nullable IStrategoTerm result, @Nullable List<String> strategoTrace) {
             this.success = success;
             this.outLog = outLog;
             this.errLog = errLog;
             this.exception = exception;
-            this.result = null;
+            this.time = time;
+            this.result = result;
+            this.strategoTrace = strategoTrace;
         }
     }
 
@@ -84,33 +104,30 @@ public class StrategoExecutor {
             name = strategy.getName();
         }
 
-        ExecutionResult result;
-        ret:
-        {
-            try {
-                if(!silent) {
-                    log.info("Execute {} {}", name, arguments);
-                }
-                context.setIOAgent(tracker.agent());
-                dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
-                final String[] args = getArgumentStrings(arguments);
-                context.invokeStrategyCLI(strategy, name, args);
-                result = new ExecutionResult(true, tracker.stdout(), tracker.stderr(), null);
-            } catch(StrategoExit e) {
-                if(e.getValue() == 0) {
-                    result = new ExecutionResult(true, tracker.stdout(), tracker.stderr(), e);
-                    break ret;
-                }
-                context.popOnExit(false);
-                if(!silent) {
-                    log.error("Executing {} failed: {}", name, e);
-                }
-                result = new ExecutionResult(false, tracker.stdout(), tracker.stderr(), e);
-            } finally {
-                dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
-            }
+        if(!silent) {
+            log.info("Execute {} {}", name, arguments);
         }
-        return result;
+        context.setIOAgent(tracker.agent());
+        dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
+        final String[] args = getArgumentStrings(arguments);
+        final long start = System.nanoTime();
+        try {
+            context.invokeStrategyCLI(strategy, name, args);
+            final long time = System.nanoTime() - start;
+            return new ExecutionResult(true, tracker.stdout(), tracker.stderr(), null, time);
+        } catch(StrategoExit e) {
+            final long time = System.nanoTime() - start;
+            if(e.getValue() == 0) {
+                return new ExecutionResult(true, tracker.stdout(), tracker.stderr(), e, time);
+            }
+            context.popOnExit(false);
+            if(!silent) {
+                log.error("Executing {} failed: {}", name, e);
+            }
+            return new ExecutionResult(false, tracker.stdout(), tracker.stderr(), e, time);
+        } finally {
+            dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
+        }
     }
 
 
