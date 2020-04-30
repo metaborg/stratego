@@ -12,7 +12,8 @@ pardonedLanguages:
 - Stratego-Sugar
 - SDF
 language:
-  sdf:  
+  sdf:
+    sdf2table: c
     externalDef: ${path:root}/syntax/Stratego-Sugar.def
   stratego:
     format: jar
