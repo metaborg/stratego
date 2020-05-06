@@ -236,3 +236,27 @@ signature constructors
   As                  : Var * PreTerm -> PreTerm
 ]] analysis succeeds
 
+test explode build with wrong constructor gives error [[
+  explode1 = ![[()]]#([])
+]] 1 error at #1
+
+test explode build with wrong arguments gives error [[
+  explode1 = !""#([[1]])
+]] 1 error at #1
+
+test explode match with wrong constructor gives error [[
+  explode1 = ?[[()]]#([])
+]] 1 error at #1
+
+test explode match with wrong arguments gives error [[
+  explode1 = ?""#([[1]])
+]] 1 error at #1
+
+test explode congruence with wrong constructor gives error [[
+  explode1 = [[()]]#([])
+]] 1 error at #1
+
+test explode congruence with wrong arguments gives error [[
+  explode1 = ""#([[1]])
+]] 1 error at #1
+

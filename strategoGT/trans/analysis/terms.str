@@ -122,7 +122,8 @@ local-insertCasts-StMatchTerm(|e1, st1) =
 local-insertCasts-StMatchTerm-(|e1, st1):
   Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
-    // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
+    // Note that constructors can be strings (in case of applications, strings and tuples)
+    //  or the empty list (in case of a list), or an int (in case of an int), etc.
     (trm3, st2) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|DynT(Dyn()))> st1)> trm1
   ; (trm4, st3) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
   ; st4 := <local-current-type(|DynT(Dyn()))> st3
@@ -205,7 +206,7 @@ local-insertCasts-local-StBuildTerm-Lit(|st1, t1):
   with
     st2 := <local-current-type(|t1)> st1
   ; t2 := <local-current-type> st1
-  ; _ := <computeCoercion(|t2, t1)> trm1
+  ; _ := <computeCoercion(|t1, t2)> trm1
 
 signature constructors
   AllCanCoerce : OpTypeRelation
@@ -281,8 +282,8 @@ local-insertCasts-StBuildTerm(|e1, st1) =
 local-insertCasts-local-StBuildTerm-(|e1, st1):
   Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
-    (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, st2)> trm2
+    (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|DynT(Dyn()))> st1)> trm1
+  ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
   ; t1 := <local-current-type> st2
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
   ; if DynT(t2) := t1
@@ -438,7 +439,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   with
     (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
   ; t1 := Sort("Tuple", t*)
-  ; _ := <computeCoercion(|<local-current-type> st1, t1)> trm1
+  ; _ := <computeCoercion(|t1, <local-current-type> st1)> trm1
   ; st3 := <local-current-type(|t1)> st2
 
 local-insertCasts-local-StBuildTerm-(|e1, st1):
@@ -446,7 +447,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   with
     (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
   ; t1 := Sort("List", [<foldr1(?[<id>], local-LUB <+ !DynT(Dyn())) <+ !DynT(Dyn())> t*])
-  ; _ := <computeCoercion(|<local-current-type> st1, t1)> trm1
+  ; _ := <computeCoercion(|t1, <local-current-type> st1)> trm1
   ; st3 := <local-current-type(|t1)> st2
 
 // TODO: extract types from expected type to support the type parameters properly here
@@ -459,7 +460,7 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   // Cannot use the same as before. <local-current-type> st3 must be a list and cast to it if DynT(Dyn()).
   // But if not <local-CanCoerce> (<local-current-type> st3, t1), local-current-type in st4 should be Sort("List", [DynT(Dyn())])
   ; t1 := Sort("List", [DynT(Dyn())]) //<foldr1(?[<id>], local-LUB <+ !DynT(Dyn()))> t*
-  ; _ := <computeCoercion(|<local-current-type> st3, t1)> trm1
+  ; _ := <computeCoercion(|t1, <local-current-type> st3)> trm1
   ; st4 := <local-current-type(|t1)> st3
 
 local-insertCasts-local-StBuildTerm-(|e1, st1):
@@ -570,12 +571,9 @@ local-insertCasts-Build-StringQuotedPart(|e1):
   (sqp@QBr(_), st1) -> (sqp, st1)
 
 local-insertCasts-Build-StringQuotedPart-(|e1):
-  (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st3)
+  (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; t1 := <local-current-type> st2
-  ; _ := <computeCoercion(|t1, StringT())> trm1
-  ; st3 := <local-current-type(|StringT())> st2
+    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|StringT())> st1)> trm1
 
 local-insertCasts-Build-StringQuotedPart(|e1) =
   otf22-sugar(
