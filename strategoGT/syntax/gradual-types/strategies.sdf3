@@ -21,7 +21,7 @@ context-free syntax
   Coercion.RuntimeCheck = Type
 
   SCoercion.SId = [id]
-  SCoercion.SRuntimeCheck = Type
+  SCoercion.SRuntimeCheck = SType
 
   TypedId.TypedId = [[SortT].[Id]]
 
