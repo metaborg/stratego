@@ -3,6 +3,8 @@ package mb.stratego.build.util;
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.spoofax.interpreter.library.IOperatorRegistry;
+import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
@@ -108,7 +110,6 @@ public class StrategoExecutor {
             log.info("Execute {} {}", name, arguments);
         }
         context.setIOAgent(tracker.agent());
-        dr_scope_all_start_0_0.instance.invoke(context, context.getFactory().makeTuple());
         final String[] args = getArgumentStrings(arguments);
         final long start = System.nanoTime();
         try {
@@ -126,7 +127,12 @@ public class StrategoExecutor {
             }
             return new ExecutionResult(false, tracker.stdout(), tracker.stderr(), e, time);
         } finally {
-            dr_scope_all_end_0_0.instance.invoke(context, context.getFactory().makeTuple());
+            final @Nullable IOperatorRegistry registry = context.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
+            if(registry != null) {
+                final SSLLibrary sslLibrary = (SSLLibrary) registry;
+                sslLibrary.getDynamicRuleTable().clear();
+                sslLibrary.getTableTable().clear();
+            }
         }
     }
 

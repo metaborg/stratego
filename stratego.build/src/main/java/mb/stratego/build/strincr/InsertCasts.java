@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -9,8 +10,10 @@ import javax.inject.Inject;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Map;
@@ -156,24 +159,24 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
         //noinspection unused
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
+        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
+        final IStrategoList errors = TermUtils.toListAt(output.result, 1);
+        final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
+        final IStrategoList notes = TermUtils.toListAt(output.result, 3);
+
+        List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
+        for(IStrategoTerm errorTerm : errors) {
+            messages.add(Message.from(execContext.logger(), input.moduleName, errorTerm, MessageSeverity.ERROR));
+        }
+        for(IStrategoTerm warningTerm : warnings) {
+            messages.add(Message.from(execContext.logger(), input.moduleName, warningTerm, MessageSeverity.WARNING));
+        }
+        for(IStrategoTerm noteTerm : notes) {
+            messages.add(Message.from(execContext.logger(), input.moduleName, noteTerm, MessageSeverity.NOTE));
+        }
         // TODO: temporary, remove once this stuff works
-        return new Output(input.ast, Collections.emptyList());
-//        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
-//        final IStrategoList errors = TermUtils.toListAt(output.result, 1);
-//        final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
-//        final IStrategoList notes = TermUtils.toListAt(output.result, 3);
-//        timestamps.add(System.nanoTime());
-//        List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
-//        for(IStrategoTerm errorTerm : errors) {
-//            messages.add(Message.from(errorTerm, MessageSeverity.ERROR));
-//        }
-//        for(IStrategoTerm warningTerm : warnings) {
-//            messages.add(Message.from(warningTerm, MessageSeverity.WARNING));
-//        }
-//        for(IStrategoTerm noteTerm : notes) {
-//            messages.add(Message.from(noteTerm, MessageSeverity.NOTE));
-//        }
-//        return new Output(tf.makeAppl("Strategies", tf.makeList(astWithCasts)), messages);
+//        return new Output(astWithCasts, messages);
+        return new Output(input.ast, messages);
     }
 
     @Override

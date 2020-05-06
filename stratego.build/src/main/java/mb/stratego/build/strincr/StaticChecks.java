@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -89,10 +88,12 @@ public class StaticChecks {
     }
 
     public static final class Data {
-        // Module-path to strategy "signatures" (name + arity)
-        public final Map<String, Set<StrategySignature>> strategySignatures = new HashMap<>();
-        // Module-path to constructor "signatures" (name + arity)
-        public final Map<String, Set<ConstructorSignature>> constructorSignatures = new HashMap<>();
+        // Module-path to strategy "signatures" (name + arity) to types (FunTType)
+        public final Map<String, Map<StrategySignature, IStrategoTerm>> libraryStrategies = new HashMap<>();
+        // Module-path to constructor "signatures" (name + arity) to types (ConstrType)
+        public final Map<String, Map<ConstructorSignature, IStrategoTerm>> libraryConstructors = new HashMap<>();
+        // Module-path to injections (pairs of types)
+        public final Map<String, Set<IStrategoTerm>> libraryInjections = new HashMap<>();
 
         // Module-path to sugar ast
         public final Map<String, IStrategoTerm> sugarASTs = new HashMap<>();
@@ -169,10 +170,10 @@ public class StaticChecks {
                 && usedStrategies.equals(other.usedStrategies) && strictnessLevel.equals(other.strictnessLevel);
         }
 
-        public void registerConstructorDefinitions(String modulePath, Set<ConstructorSignature> constrs) {
-            constructorSignatures.put(modulePath, constrs);
+        public void registerConstructorDefinitions(String modulePath, Map<ConstructorSignature, IStrategoTerm> constrs) {
+            libraryConstructors.put(modulePath, constrs);
             final StringSetWithPositions set = new StringSetWithPositions();
-            for(ConstructorSignature constr : constrs) {
+            for(ConstructorSignature constr : constrs.keySet()) {
                 set.add(new StrategoString(constr.cifiedName(), AbstractTermFactory.EMPTY_LIST));
             }
             registerConstructorDefinitions(modulePath, set, new StringSetWithPositions());
@@ -228,13 +229,14 @@ public class StaticChecks {
             BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv = sccInjEnvT.freeze();
             // Do the actual work
             for(String moduleName : scc) {
-                if(Library.Builtin.isBuiltinLibrary(moduleName)) {
-                    continue;
-                }
                 // Incrementally build the transitive closure while traversing the SCCs
                 constrEnvInclImports.put(moduleName, sccConstructorEnv);
                 stratEnvInclImports.put(moduleName, sccStrategyEnv);
                 injEnvInclImports.put(moduleName, sccInjEnv);
+
+                if(Library.Builtin.isBuiltinLibrary(moduleName)) {
+                    continue;
+                }
                 // CHECK for constant congruences & overlap between local variables and nullary constructors
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
@@ -359,16 +361,22 @@ public class StaticChecks {
         BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> sccInjEnvT, ITermFactory tf) {
         for(String moduleName : scc) {
             if(Library.Builtin.isBuiltinLibrary(moduleName)) {
-                // TODO: Support types of constructors in libraries
-                // TODO: Support type definitions for strategies in libraries
-                final Set<StrategySignature> definedStrats = staticData.strategySignatures.get(moduleName);
-                final Set<ConstructorSignature> definedConstrs = staticData.constructorSignatures.get(moduleName);
-                for(StrategySignature sig : definedStrats) {
-                    sccStrategyEnv.put(sig, sig.standardType(tf));
+                final Map<StrategySignature, IStrategoTerm> definedStrats =
+                    staticData.libraryStrategies.get(moduleName);
+                for(Map.Entry<StrategySignature, IStrategoTerm> e : definedStrats.entrySet()) {
+                    sccStrategyEnv.put(e.getKey(), e.getValue());
                 }
 
-                for(ConstructorSignature sig : definedConstrs) {
-                    sccConstructorEnvT.__insert(sig, sig.standardType(tf));
+                final Map<ConstructorSignature, IStrategoTerm> definedConstrs =
+                    staticData.libraryConstructors.get(moduleName);
+                for(Map.Entry<ConstructorSignature, IStrategoTerm> e : definedConstrs.entrySet()) {
+                    sccConstructorEnvT.__insert(e.getKey(), e.getValue());
+                }
+
+                final Set<IStrategoTerm> definedInjs =
+                    staticData.libraryInjections.get(moduleName);
+                for(IStrategoTerm inj : definedInjs) {
+                    sccInjEnvT.__insert(inj.getSubterm(0), inj.getSubterm(1));
                 }
                 continue;
             }
@@ -390,6 +398,7 @@ public class StaticChecks {
             }
             // congruences
             for(Map.Entry<ConstructorSignature, IStrategoTerm> e : splitResult.consTypes.entrySet()) {
+//                moduleEnv.put(e.getKey().toCongruenceSig(), e.getValue());
                 sccConstructorEnvT.__insert(e.getKey(), e.getValue());
             }
             Relation.putAll(sccInjEnvT, splitResult.injections);

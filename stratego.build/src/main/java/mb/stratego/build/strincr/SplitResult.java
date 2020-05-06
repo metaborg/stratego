@@ -46,7 +46,8 @@ public class SplitResult {
     public SplitResult(String moduleName, String inputFileString, List<IStrategoTerm> imports,
         Map<StrategySignature, IStrategoTerm> strategyDefs, Map<ConstructorSignature, IStrategoTerm> consDefs,
         Map<ConstructorSignature, IStrategoTerm> olayDefs, Map<StrategySignature, IStrategoTerm> defTypes,
-        Set<StrategySignature> dynRuleSigs, BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> consTypes,
+        Set<StrategySignature> dynRuleSigs,
+        BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> consTypes,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections) {
         this.moduleName = moduleName;
         this.inputFileString = inputFileString;
@@ -98,8 +99,8 @@ public class SplitResult {
             injections.__insert(fromType, toType);
         }
 
-        return new SplitResult(moduleName, inputFileString, imports, strategyDefs, consDefs, olayDefs, defTypes, dynRuleSigs, consTypes.freeze(),
-            injections.freeze());
+        return new SplitResult(moduleName, inputFileString, imports, strategyDefs, consDefs, olayDefs, defTypes,
+            dynRuleSigs, consTypes.freeze(), injections.freeze());
     }
 
     private static Map<StrategySignature, IStrategoTerm> stratAssocListToMap(final IStrategoList assocList) {
@@ -260,7 +261,8 @@ public class SplitResult {
         public final int noArgs;
 
         public ConstructorSignature(String name, int noArgs) {
-            super(new IStrategoTerm[] {new StrategoString(name, AbstractTermFactory.EMPTY_LIST), new StrategoInt(noArgs)}, AbstractTermFactory.EMPTY_LIST);            
+            super(new IStrategoTerm[] { new StrategoString(name, AbstractTermFactory.EMPTY_LIST),
+                new StrategoInt(noArgs) }, AbstractTermFactory.EMPTY_LIST);
             this.name = name;
             this.noArgs = noArgs;
         }
@@ -276,13 +278,12 @@ public class SplitResult {
         }
 
         public IStrategoTerm standardType(ITermFactory tf) {
-            final IStrategoAppl sdyn = tf.makeAppl("SDyn");
+            final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
             final IStrategoList.Builder sargTypes = tf.arrayListBuilder(noArgs);
             for(int i = 0; i < noArgs; i++) {
-                sargTypes.add(sdyn);
+                sargTypes.add(dyn);
             }
-            final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-            return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(), dyn, dyn);
+            return tf.makeAppl("ConstrType", tf.makeList(sargTypes), dyn);
         }
 
         public static boolean isCified(String name) {
@@ -328,6 +329,10 @@ public class SplitResult {
                 return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1));
             }
             return null;
+        }
+
+        public StrategySignature toCongruenceSig() {
+            return new StrategySignature(name, noArgs, 0);
         }
     }
 }

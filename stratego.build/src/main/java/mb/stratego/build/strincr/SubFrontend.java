@@ -17,6 +17,7 @@ import org.strategoxt.strc.split_module_0_0;
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
@@ -168,10 +169,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             strContext);
 
         if(!result.success) {
-            // TODO: temporary, remove once this stuff works
-            context.logger().error("Call to strc frontend failed on " + input.toString() + ": \n" + result.strategoTrace + "\n" + tracker.stderr() + "\n" + tracker.stdout(), result.exception);
-            return new Output(null);
-//            throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.strategoTrace, result.exception);
+            throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.exception);
         }
         return new Output(result.result);
     }

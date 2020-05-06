@@ -1,14 +1,11 @@
 package mb.stratego.build.strincr;
 
-import static org.strategoxt.lang.Term.NO_STRATEGIES;
-import static org.strategoxt.lang.Term.NO_TERMS;
-
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
@@ -21,7 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.lang.StackSaver;
+import org.spoofax.terms.util.B;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
@@ -30,7 +27,6 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import javax.inject.Inject;
 
-import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
@@ -77,58 +73,31 @@ public class Backend implements TaskDef<Backend.Input, None> {
             this.isBoilerplate = isBoilerplate;
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return "StrIncrBack$Input(" + strategyName + ')';
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(o == null || getClass() != o.getClass())
+            if(!(o instanceof Input))
                 return false;
-
             Input input = (Input) o;
-
-            if(isBoilerplate != input.isBoilerplate)
-                return false;
-            if(!projectLocation.equals(input.projectLocation))
-                return false;
-            if(!strategyName.equals(input.strategyName))
-                return false;
-            if(!strategyContributions.equals(input.strategyContributions))
-                return false;
-            if(!overlayContributions.equals(input.overlayContributions))
-                return false;
-            if(!ambStrategyResolution.equals(input.ambStrategyResolution))
-                return false;
-            if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
-                return false;
-            if(!outputPath.equals(input.outputPath))
-                return false;
-            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
-                return false;
-            if(!constants.equals(input.constants))
-                return false;
-            //noinspection SimplifiableIfStatement
-            if(!includeDirs.equals(input.includeDirs))
-                return false;
-            return extraArgs.equals(input.extraArgs);
+            return isBoilerplate == input.isBoilerplate && projectLocation.equals(input.projectLocation) && strategyName
+                .equals(input.strategyName) && strategyContributions.equals(input.strategyContributions)
+                && overlayContributions.equals(input.overlayContributions) && ambStrategyResolution
+                .equals(input.ambStrategyResolution) && Objects.equals(packageName, input.packageName) && outputPath
+                .equals(input.outputPath) && Objects.equals(cacheDir, input.cacheDir) && constants
+                .equals(input.constants) && includeDirs.equals(input.includeDirs) && extraArgs.equals(input.extraArgs);
         }
 
-        @Override public int hashCode() {
-            int result = projectLocation.hashCode();
-            result = 31 * result + strategyName.hashCode();
-            result = 31 * result + strategyContributions.hashCode();
-            result = 31 * result + overlayContributions.hashCode();
-            result = 31 * result + ambStrategyResolution.hashCode();
-            result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
-            result = 31 * result + outputPath.hashCode();
-            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
-            result = 31 * result + constants.hashCode();
-            result = 31 * result + includeDirs.hashCode();
-            result = 31 * result + extraArgs.hashCode();
-            result = 31 * result + (isBoilerplate ? 1 : 0);
-            return result;
+        @Override
+        public int hashCode() {
+            return Objects
+                .hash(projectLocation, strategyName, strategyContributions, overlayContributions, ambStrategyResolution,
+                    packageName, outputPath, cacheDir, constants, includeDirs, extraArgs, isBoilerplate);
         }
     }
 
@@ -188,7 +157,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
-            throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
+            throw new ExecException("Call to strj failed:\n" + result.exception, null);
         }
 
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
@@ -220,11 +189,13 @@ public class Backend implements TaskDef<Backend.Input, None> {
         try {
             final IStrategoTerm result;
             // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
-            if(new Exception().getStackTrace().length > 20) {
-                result = new StackSaver(strategy).invokeStackFriendly(strContext, input, NO_STRATEGIES, NO_TERMS);
-            } else {
+//            final int stackCalls = new Exception().getStackTrace().length;
+//            if(stackCalls > 20) {
+//                logger.debug("Used part of the stack: " + stackCalls);
+//                result = new StackSaver(strategy).invokeStackFriendly(strContext, input, NO_STRATEGIES, NO_TERMS);
+//            } else {
                 result = strategy.invoke(strContext, input);
-            }
+//            }
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
                 logger.error("Executing " + name + " failed with normal Stratego failure. ", null);

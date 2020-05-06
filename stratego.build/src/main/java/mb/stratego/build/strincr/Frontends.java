@@ -181,19 +181,20 @@ public class Frontends {
                 shuffleStartTime = System.nanoTime();
 
                 final StringSetWithPositions strategies = new StringSetWithPositions();
-                for(StrategySignature strategy : frontLibOutput.strategies) {
+                for(StrategySignature strategy : frontLibOutput.strategies.keySet()) {
                     strategies.add(new StrategoString(strategy.cifiedName(), AbstractTermFactory.EMPTY_LIST));
                 }
                 staticData.definedStrategies.put(module.path, strategies);
-                staticData.strategySignatures.put(module.path, frontLibOutput.strategies);
+                staticData.libraryStrategies.put(module.path, frontLibOutput.strategies);
                 staticData.registerConstructorDefinitions(module.path, frontLibOutput.constrs);
+                staticData.libraryInjections.put(module.path, frontLibOutput.injs);
 
                 reportOverlappingStrategies(staticData.libraryExternalStrategies, strategies,
                     execContext.logger());
 
                 staticData.libraryExternalStrategies.addAll(strategies);
                 final StringSetWithPositions constrs = new StringSetWithPositions();
-                for(ConstructorSignature constr : frontLibOutput.constrs) {
+                for(ConstructorSignature constr : frontLibOutput.constrs.keySet()) {
                     constrs.add(new StrategoString(constr.cifiedName(), AbstractTermFactory.EMPTY_LIST));
                 }
                 staticData.externalConstructors.addAll(constrs);
