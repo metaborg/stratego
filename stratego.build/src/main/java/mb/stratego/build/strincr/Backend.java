@@ -200,7 +200,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
         }
 
-        for(String line : result.errLog.split(System.lineSeparator())) {
+        for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
             if(line.contains(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
                 String fileName = line.substring(line.indexOf(SpoofaxConstants.STRJ_INFO_WRITING_FILE)
                     + SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
