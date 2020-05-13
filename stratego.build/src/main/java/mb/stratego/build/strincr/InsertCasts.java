@@ -157,7 +157,6 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
                 input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.ast);
         final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
-        //noinspection unused
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
         final IStrategoTerm astWithCasts = output.result.getSubterm(0);
         final IStrategoList errors = TermUtils.toListAt(output.result, 1);
@@ -174,9 +173,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         for(IStrategoTerm noteTerm : notes) {
             messages.add(Message.from(execContext.logger(), input.moduleName, noteTerm, MessageSeverity.NOTE));
         }
-        // TODO: temporary, remove once this stuff works
-//        return new Output(astWithCasts, messages);
-        return new Output(input.ast, messages);
+        return new Output(astWithCasts, messages);
+//        return new Output(input.ast, messages);
     }
 
     @Override
