@@ -42,8 +42,16 @@ public final class Module implements Serializable {
      * should give us a unique string to use to identify the module file within this pipeline.
      */
     public static Module source(Path projectLocationPath, Path path) {
-        return new Module(projectLocationPath.relativize(path.toAbsolutePath().normalize()).toString(),
-            Type.source);
+        try {
+            return new Module(projectLocationPath.relativize(path.toAbsolutePath().normalize()).toString(),
+                Type.source);
+        } catch(IllegalArgumentException e) {
+            throw new RuntimeException(
+                "Failed to create canonical path for Stratego module by making it relative to"
+                    + " project root. Project path is: " + projectLocationPath
+                    + ", and path of the module is: " + path,
+                e);
+        }
     }
 
     static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<File> includeDirs,
