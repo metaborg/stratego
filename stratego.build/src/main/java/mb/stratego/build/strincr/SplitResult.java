@@ -74,7 +74,7 @@ public class SplitResult {
 
         final List<IStrategoTerm> imports = imps.getSubterms();
 
-        final Map<StrategySignature, IStrategoTerm> strategyDefs = stratAssocListToMap(strats);
+        final Map<StrategySignature, IStrategoTerm> strategyDefs = stratAssocListToMapOfLists(strats);
         final Map<ConstructorSignature, IStrategoTerm> consDefs = consAssocListToMap(cons);
         final Map<ConstructorSignature, IStrategoTerm> olayDefs = consAssocListToMap(olays);
         final Map<StrategySignature, IStrategoTerm> defTypes = stratAssocListToMap(deftys);
@@ -103,7 +103,7 @@ public class SplitResult {
             dynRuleSigs, consTypes.freeze(), injections.freeze());
     }
 
-    private static Map<StrategySignature, IStrategoTerm> stratAssocListToMap(final IStrategoList assocList) {
+    private static Map<StrategySignature, IStrategoTerm> stratAssocListToMapOfLists(final IStrategoList assocList) {
         final Map<StrategySignature, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
         for(IStrategoTerm pair : assocList) {
             final StrategySignature sig = StrategySignature.fromTuple(pair.getSubterm(0));
@@ -113,6 +113,20 @@ public class SplitResult {
             Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
         }
         return packMapValues(resultMap);
+    }
+
+    private static Map<StrategySignature, IStrategoTerm> stratAssocListToMap(final IStrategoList assocList) {
+        final Map<StrategySignature, IStrategoTerm> resultMap = new HashMap<>(assocList.size() * 2);
+        for(IStrategoTerm pair : assocList) {
+            final StrategySignature sig = StrategySignature.fromTuple(pair.getSubterm(0));
+            Objects.requireNonNull(sig,
+                () -> "Cannot turn term " + pair.getSubterm(0) + " into a strategy signature. Not a pair of a string and two ints?");
+            final IStrategoTerm value = pair.getSubterm(1);
+            if(!resultMap.containsKey(sig)) {
+                resultMap.put(sig, value);
+            }
+        }
+        return resultMap;
     }
 
     private static Map<ConstructorSignature, IStrategoTerm> consAssocListToMap(final IStrategoList assocList) {
