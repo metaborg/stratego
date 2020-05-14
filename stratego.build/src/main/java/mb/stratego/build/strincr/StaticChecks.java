@@ -203,7 +203,7 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, Path projectLocationPath) throws ExecException, InterruptedException {
+        List<Message<?>> outputMessages, Path projectLocationPath, boolean gradualChecksOn) throws ExecException, InterruptedException {
         final Data staticData = output.staticData;
 
         // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
@@ -241,8 +241,10 @@ public class StaticChecks {
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
                 final SplitResult splitResult = output.splitModules.get(moduleName);
-                insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv, sccInjEnv,
-                    splitResult);
+                if(gradualChecksOn) {
+                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
+                        sccInjEnv, splitResult);
+                }
 
                 long shuffleStartTime;
                 final String projectName = projectName(moduleName);

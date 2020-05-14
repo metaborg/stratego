@@ -49,15 +49,16 @@ public class Frontends {
         protected final Collection<String> builtinLibs;
         protected final Collection<STask> originTasks;
         protected final File projectLocation;
+        protected final boolean strGradualSetting;
 
         public Input(File inputFile, Collection<File> includeDirs, Collection<String> builtinLibs,
-            Collection<STask> originTasks, File projectLocation) {
+            Collection<STask> originTasks, File projectLocation, boolean strGradualSetting) {
             this.inputFile = inputFile;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;
             this.originTasks = originTasks;
             this.projectLocation = projectLocation;
-
+            this.strGradualSetting = strGradualSetting;
         }
 
         @Override
@@ -69,12 +70,12 @@ public class Frontends {
             Input input = (Input) o;
             return inputFile.equals(input.inputFile) && includeDirs.equals(input.includeDirs) && builtinLibs
                 .equals(input.builtinLibs) && originTasks.equals(input.originTasks) && projectLocation
-                .equals(input.projectLocation);
+                .equals(input.projectLocation) && strGradualSetting == input.strGradualSetting;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(inputFile, includeDirs, builtinLibs, originTasks, projectLocation);
+            return Objects.hash(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
         }
 
         @Override public String toString() {
@@ -140,7 +141,7 @@ public class Frontends {
 
         // CHECK: constructor/strategy uses have definition which is imported
         output.staticCheckOutput = staticChecks.insertCasts(execContext, inputModule.path, output, output.messages,
-            projectLocationPath);
+            projectLocationPath, input.strGradualSetting);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
         return output;
