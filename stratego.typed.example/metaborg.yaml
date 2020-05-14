@@ -4,8 +4,6 @@ name: StrategoTyped
 dependencies:
   compile:
   - org.metaborg:stratego.typed:0.1.0-SNAPSHOT
-debug:
-  typesmart: false
 runtime:
   nabl2:
     debug: analysis files
