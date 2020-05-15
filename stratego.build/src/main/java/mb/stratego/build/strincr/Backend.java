@@ -187,15 +187,9 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
         final long start = System.nanoTime();
         try {
-            final IStrategoTerm result;
-            // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
-//            final int stackCalls = new Exception().getStackTrace().length;
-//            if(stackCalls > 20) {
-//                logger.debug("Used part of the stack: " + stackCalls);
-//                result = new StackSaver(strategy).invokeStackFriendly(strContext, input, NO_STRATEGIES, NO_TERMS);
-//            } else {
-                result = strategy.invoke(strContext, input);
-//            }
+            // We don't use StackSaver because we do not expect that the strategy invoked here will be more recursive
+            //  than the already generous stack limit.
+            final IStrategoTerm result = strategy.invoke(strContext, input);
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
                 logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
