@@ -13,7 +13,6 @@ context-free syntax
 
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.ErrT = [err]
-  Type.FailT = [fail]
 
   ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]
 

@@ -42,3 +42,12 @@ rules // Debugging
     with
       filename := <guarantee-extension(|"analyzed.strgt")> path;
       result   := <pp-strategoGT-string> ast
+
+  test-cast-correct:
+    _ -> <try(id);pair-id;!"correct"> (1,2)
+
+  test-cast-incorrect:
+    _ -> <try(id);pair-id;!"incorrect"> (1,2,3)
+
+  pair-id :: ? * ? -> ? * ?
+  pair-id = \c -> c\

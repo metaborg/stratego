@@ -52,7 +52,7 @@ local-strat-env(s) = Env(s, id)
 local-strat-lookup(|name, snum, tnum) =
   local-strat-env; immap-get(|(name, snum, tnum))
   <+ where(0 := tnum); local-constr-lookup(|name, snum); not(imset-empty); !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
-  <+ strat-env; immap-get(|(name, 0, 0)); ?SDyn()
+  <+ local-strat-env; immap-get(|(name, 0, 0)); ?SDyn()
 local-strat-put(|name, snum, tnum, value) = local-strat-env(immap-put(|(name, snum, tnum), value))
 local-strat-merge-env(s): (e, se) -> <local-strat-env(immap-union(s|se))> e
 local-strat-copy-type(|name, snum, tnum, as) = local-strat-env(local-env-copy-type(|(name, snum, tnum), as))

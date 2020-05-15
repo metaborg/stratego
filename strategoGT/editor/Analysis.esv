@@ -16,3 +16,5 @@ menus
 
     action: "Show analyzed AST" = debug-show-analyzed
     action: "Show program with explicit casts" = debug-show-analyzed-concrete
+    action: "Test cast correct" = test-cast-correct
+    action: "Test cast incorrect" = test-cast-incorrect

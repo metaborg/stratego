@@ -122,7 +122,7 @@ libspoofax/stratego/debug
 //    then coercion := Id(){from}
 //    else <report> (lvl, subj, NoInjectionBetween(from, to))
 //       ; if MTError() := lvl
-//           then coercion := Fail(){FailT()}
+//           then coercion := Fail(){ErrT()}
 //           else coercion := Id(){to}
 //         end
 //  end
