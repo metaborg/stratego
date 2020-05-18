@@ -48,7 +48,6 @@ local-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
 
 local-can-coerce(|injection-closure) = ?(ErrT(), _)
 local-can-coerce(|injection-closure) = ?(_, ErrT())
-local-can-coerce(|injection-closure) = ?(FailT(), _)
 local-can-coerce(|injection-closure) = ?(_, DynT(_))
 // We assume co-variant type parameters
 local-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
@@ -60,8 +59,6 @@ local-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> 
 local-lub(|lub-map): (x, x) -> x
 local-lub(|lub-map): (ErrT(), x) -> x
 local-lub(|lub-map): (x, ErrT()) -> x
-local-lub(|lub-map): (FailT(), x) -> x
-local-lub(|lub-map): (x, FailT()) -> x
 local-lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
 local-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
 // pointwise lift LUB over type parameters
