@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;
 
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -87,11 +87,11 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         }
     }
 
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public LibFrontend(ITermFactoryService termFactoryService) {
-        this.termFactoryService = termFactoryService;
+    @Inject public LibFrontend(ITermFactory termFactory) {
+        this.termFactory = termFactory;
     }
 
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
@@ -104,7 +104,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
             execContext.require(fileToRead);
             timestamps.add(System.nanoTime());
         }
-        final IStrategoTerm ast = input.library.readLibraryFile(termFactoryService.getGeneric());
+        final IStrategoTerm ast = input.library.readLibraryFile(termFactory);
         // Expected: Specification([Signature([Constructors([...])]), Strategies([...])])
         if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification"))) {
             timestamps.add(System.nanoTime());

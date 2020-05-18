@@ -39,7 +39,6 @@ import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.syntax.ParseException;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
@@ -433,7 +432,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private final ILanguageIdentifierService languageIdentifierService;
     private final IDialectService dialectService;
     private final ILanguageService languageService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final ISourceTextService sourceTextService;
     private final ISpoofaxUnitService unitService;
     private final ISpoofaxSyntaxService syntaxService;
@@ -444,14 +443,14 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private ILanguageImpl strategoLang;
 
     @Inject public Frontend(IResourceService resourceService, ILanguageIdentifierService languageIdentifierService,
-        IDialectService dialectService, ILanguageService languageService, ITermFactoryService termFactoryService,
+        IDialectService dialectService, ILanguageService languageService, ITermFactory termFactory,
         ISourceTextService sourceTextService, ISpoofaxUnitService unitService, ISpoofaxSyntaxService syntaxService,
         SubFrontend strIncrSubFront, StrIncrContext strContext) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.dialectService = dialectService;
         this.languageService = languageService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.sourceTextService = sourceTextService;
         this.unitService = unitService;
         this.syntaxService = syntaxService;
@@ -796,8 +795,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 strategoLang = stratego.activeImpl();
                 strIncrSubFront.strategoLang = strategoLang;
                 // support *.rtree (StrategoSugar AST)
-                final ITermFactory factory = termFactoryService.getGeneric();
-                ast = new TermReader(factory).parseFromStream(inputFile.getContent().getInputStream());
+                ast = new TermReader(termFactory).parseFromStream(inputFile.getContent().getInputStream());
                 if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Module")
                     && ast.getSubtermCount() == 2)) {
                     if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
