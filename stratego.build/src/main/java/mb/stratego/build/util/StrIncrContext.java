@@ -2,15 +2,15 @@ package mb.stratego.build.util;
 
 import javax.inject.Inject;
 
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
 import org.strategoxt.strj.strj;
 
 public class StrIncrContext extends Context {
     protected LocallyUniqueStringTermFactory factory;
 
-    @Inject public StrIncrContext(ITermFactoryService termFactoryService) {
-        super(new LocallyUniqueStringTermFactory(termFactoryService.getGeneric()));
+    @Inject public StrIncrContext(ITermFactory termFactory) {
+        super(new LocallyUniqueStringTermFactory(termFactory));
         factory = (LocallyUniqueStringTermFactory) super.getFactory();
         strj.init(this);
     }

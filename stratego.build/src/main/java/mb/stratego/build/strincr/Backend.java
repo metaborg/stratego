@@ -18,9 +18,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.stratego.Build;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -137,13 +135,13 @@ public class Backend implements TaskDef<Backend.Input, None> {
     }
 
     private final IResourceService resourceService;
-    private final ITermFactoryService termFactoryService;
+    private final ITermFactory termFactory;
     private final StrIncrContext strContext;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public Backend(IResourceService resourceService, ITermFactoryService termFactoryService, StrIncrContext strContext) {
+    @Inject public Backend(IResourceService resourceService, ITermFactory termFactory, StrIncrContext strContext) {
         this.resourceService = resourceService;
-        this.termFactoryService = termFactoryService;
+        this.termFactory = termFactory;
         this.strContext = strContext;
     }
 
@@ -151,14 +149,12 @@ public class Backend implements TaskDef<Backend.Input, None> {
         BuildStats.executedBackTasks++;
         timestamps.add(System.nanoTime());
 
-        final ITermFactory factory = termFactoryService.getGeneric();
-
         final long startTime = System.nanoTime();
         final IStrategoTerm ctree;
         if(input.isBoilerplate) {
-            ctree = Packer.packBoilerplate(factory, input.strategyContributions);
+            ctree = Packer.packBoilerplate(termFactory, input.strategyContributions);
         } else {
-            ctree = Packer.packStrategy(factory, input.overlayContributions, input.strategyContributions,
+            ctree = Packer.packStrategy(termFactory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
         }
         BuildStats.strategyBackendCTreeSize.put(input.strategyName, TermSize.computeTermSize(ctree));
