@@ -139,7 +139,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, strategyName, strategyContributions,
+                new Backend.Input(projectLocation, strategyName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -169,7 +169,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, congrName, strategyContributions,
+                new Backend.Input(projectLocation, congrName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -191,7 +191,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             assert strSrcGenDir
                 != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, null, decls, Collections.emptyList(),
+                new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;

@@ -44,6 +44,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
     public static final class Input implements Serializable {
         final File projectLocation;
         final String strategyName;
+        final Collection<IStrategoTerm> constructors;
         final Collection<IStrategoAppl> strategyContributions;
         final Collection<IStrategoAppl> overlayContributions;
         final SortedMap<String, String> ambStrategyResolution;
@@ -55,12 +56,13 @@ public class Backend implements TaskDef<Backend.Input, None> {
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
-        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoAppl> strategyContributions,
+        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions,
             Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
-            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants,
-            Collection<File> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
+            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
+            boolean isBoilerplate) {
             this.projectLocation = projectLocation;
             this.strategyName = strategyName == null ? "" : strategyName;
+            this.constructors = constructors;
             this.strategyContributions = strategyContributions;
             this.overlayContributions = overlayContributions;
             this.ambStrategyResolution = ambStrategyResolution;
@@ -117,7 +119,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
         final long startTime = System.nanoTime();
         final IStrategoTerm ctree;
         if(input.isBoilerplate) {
-            ctree = Packer.packBoilerplate(termFactory, input.strategyContributions);
+            ctree = Packer.packBoilerplate(termFactory, input.constructors, input.strategyContributions);
         } else {
             ctree = Packer.packStrategy(termFactory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);

@@ -18,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.B;
@@ -269,10 +270,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
     }
 
+    private final ITermFactory tf;
     private final ParseStratego parseStratego;
     private final SubFrontend strIncrSubFront;
 
-    @Inject public Frontend(ParseStratego parseStratego, SubFrontend strIncrSubFront) {
+    @Inject public Frontend(ITermFactory tf, ParseStratego parseStratego, SubFrontend strIncrSubFront) {
+        this.tf = tf;
         this.parseStratego = parseStratego;
         this.strIncrSubFront = strIncrSubFront;
     }
@@ -325,9 +328,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 usedAmbStrats, ambStratPositions, usedStrats, noOfDefinitions);
         }
 
-        for(Map.Entry<ConstructorSignature, IStrategoTerm> e : input.splitResult.consDefs.entrySet()) {
+        for(Map.Entry<ConstructorSignature, List<IStrategoTerm>> e : input.splitResult.consDefs.entrySet()) {
             final String consName = e.getKey().cifiedName();
-            final IStrategoTerm consAST = e.getValue();
+            final List<IStrategoTerm> consASTs = e.getValue();
+            final IStrategoTerm consAST = tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList(consASTs))));
             final SubFrontend.Input frontTLDInput =
                 SubFrontend.Input.topLevelDefinition(input.inputFileString, consName, consAST);
             consFrontEnd(execContext, input, location, frontTLDInput, moduleName, strategyConstrs, usedAmbStrats,

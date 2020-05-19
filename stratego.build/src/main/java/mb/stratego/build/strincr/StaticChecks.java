@@ -245,6 +245,9 @@ public class StaticChecks {
                     insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
                         sccInjEnv, splitResult);
                 }
+                for(List<IStrategoTerm> consDefs : splitResult.consDefs.values()) {
+                    output.backendData.consDefs.addAll(consDefs);
+                }
 
                 long shuffleStartTime;
                 final String projectName = projectName(moduleName);

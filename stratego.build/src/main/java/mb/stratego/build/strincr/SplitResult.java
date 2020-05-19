@@ -36,7 +36,7 @@ public class SplitResult {
     public final String inputFileString;
     public final List<IStrategoTerm> imports;
     public final Map<StrategySignature, IStrategoTerm> strategyDefs;
-    public final Map<ConstructorSignature, IStrategoTerm> consDefs;
+    public final Map<ConstructorSignature, List<IStrategoTerm>> consDefs;
     public final Map<ConstructorSignature, IStrategoTerm> olayDefs;
     public final Map<StrategySignature, IStrategoTerm> defTypes;
     public final Set<StrategySignature> dynRuleSigs;
@@ -44,7 +44,7 @@ public class SplitResult {
     public final BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections;
 
     public SplitResult(String moduleName, String inputFileString, List<IStrategoTerm> imports,
-        Map<StrategySignature, IStrategoTerm> strategyDefs, Map<ConstructorSignature, IStrategoTerm> consDefs,
+        Map<StrategySignature, IStrategoTerm> strategyDefs, Map<ConstructorSignature, List<IStrategoTerm>> consDefs,
         Map<ConstructorSignature, IStrategoTerm> olayDefs, Map<StrategySignature, IStrategoTerm> defTypes,
         Set<StrategySignature> dynRuleSigs,
         BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> consTypes,
@@ -75,7 +75,7 @@ public class SplitResult {
         final List<IStrategoTerm> imports = imps.getSubterms();
 
         final Map<StrategySignature, IStrategoTerm> strategyDefs = stratAssocListToMapOfLists(strats);
-        final Map<ConstructorSignature, IStrategoTerm> consDefs = consAssocListToMap(cons);
+        final Map<ConstructorSignature, List<IStrategoTerm>> consDefs = consAssocListToRel(cons);
         final Map<ConstructorSignature, IStrategoTerm> olayDefs = consAssocListToMap(olays);
         final Map<StrategySignature, IStrategoTerm> defTypes = stratAssocListToMap(deftys);
 
@@ -129,7 +129,7 @@ public class SplitResult {
         return resultMap;
     }
 
-    private static Map<ConstructorSignature, IStrategoTerm> consAssocListToMap(final IStrategoList assocList) {
+    private static Map<ConstructorSignature, List<IStrategoTerm>> consAssocListToRel(final IStrategoList assocList) {
         final Map<ConstructorSignature, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
         for(IStrategoTerm pair : assocList) {
             final ConstructorSignature sig = ConstructorSignature.fromTuple(pair.getSubterm(0));
@@ -140,7 +140,11 @@ public class SplitResult {
             final IStrategoTerm def = pair.getSubterm(1);
             Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
         }
-        return packMapValues(resultMap);
+        return resultMap;
+    }
+
+    private static Map<ConstructorSignature, IStrategoTerm> consAssocListToMap(final IStrategoList assocList) {
+        return packMapValues(consAssocListToRel(assocList));
     }
 
     private static <K, V extends IStrategoTerm> Map<K, IStrategoTerm> packMapValues(
