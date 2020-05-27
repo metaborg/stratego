@@ -10,4 +10,3 @@ language
   extensions : strgt
 
   provider : target/metaborg/stratego.jar
-  provider : target/metaborg/stratego-javastrat.jar
