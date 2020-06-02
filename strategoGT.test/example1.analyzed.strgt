@@ -7,13 +7,14 @@ Incr : Expr -> Expr
 Add : Expr * Expr -> Expr
 Int : str -> Expr
 Var : str -> Expr
+VarDecl : str * Type * Expr -> Stat
 
 strategies
 
 typed1 :: Expr -> Expr
 
 typed1:
-  e -> Add(e, <untyped> e)
+  e -> Add(e, e)
 
 untyped:
-  Add(e1, _) -> <cast(Expr( )); typed1> e1
+  Add(e1, _) -> <cast(Expr); typed1> e1

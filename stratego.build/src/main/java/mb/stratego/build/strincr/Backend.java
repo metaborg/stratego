@@ -77,7 +77,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
         @Override
         public String toString() {
-            return "StrIncrBack$Input(" + strategyName + ')';
+            if(isBoilerplate) {
+                return "StrIncrBack$Input[boilerplate]";
+            } else {
+                return "StrIncrBack$Input(" + strategyName + ')';
+            }
         }
 
         @Override

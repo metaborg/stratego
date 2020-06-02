@@ -331,7 +331,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         for(Map.Entry<ConstructorSignature, List<IStrategoTerm>> e : input.splitResult.consDefs.entrySet()) {
             final String consName = e.getKey().cifiedName();
             final List<IStrategoTerm> consASTs = e.getValue();
-            final IStrategoTerm consAST = tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList(consASTs))));
+            final IStrategoTerm consAST = tf.makeList(tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList(consASTs)))));
             final SubFrontend.Input frontTLDInput =
                 SubFrontend.Input.topLevelDefinition(input.inputFileString, consName, consAST);
             consFrontEnd(execContext, input, location, frontTLDInput, moduleName, strategyConstrs, usedAmbStrats,

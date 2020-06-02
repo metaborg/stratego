@@ -1,6 +1,13 @@
 module example
 
-signature constructors
+signature
+sorts
+
+Expr
+Stat
+Type
+
+constructors
 
 Incr : Expr -> Expr // ++
 Add  : Expr * Expr -> Expr // +
@@ -12,6 +19,7 @@ VarDecl : str * Type * Expr -> Stat
 strategies
 
   typed1 :: Expr -> Expr
-  typed1: e -> Add(e, e) // <untyped> e)
+  typed1: e -> Add(e, <untyped> e)
 
+  untyped :: ? -> ?
   untyped: Add(e1, _) -> <typed1> e1

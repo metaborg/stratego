@@ -44,10 +44,10 @@ rules // Debugging
       result   := <pp-strategoGT-string> ast
 
   test-cast-correct:
-    _ -> <try(id);pair-id;!"correct"> (1,2)
+    _ -> <try(id);pair-id;!"correct";debug> (1,2)
 
   test-cast-incorrect:
-    _ -> <try(id);pair-id;!"incorrect"> (1,2,3)
+    _ -> <pair-id;!"unreachable";debug> (1,2,3)
 
   pair-id :: ? * ? -> ? * ?
   pair-id = \c -> c\
