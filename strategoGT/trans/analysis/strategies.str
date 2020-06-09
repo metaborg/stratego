@@ -3,7 +3,6 @@ module analysis/strategies
 imports
 
 libstratego-lib
-libstrc
 
 libspoofax/term/annotation
 libspoofax/stratego/debug
@@ -25,614 +24,617 @@ analysis/terms
 
 strategies // Strategy (core)
 
-local-insertCasts-Strategy(|e1, st1) = otf12(local-insertCasts-Strategy-(|e1, st1))
+insertCasts-Strategy(|e1, st1) = otf12(insertCasts-Strategy-(|e1, st1))
 
-// local-insertCasts-Strategy- :: (|Environment, Store) Strategy -> (Strategy, Store)
-local-insertCasts-Strategy-(|e1, st1):
+// insertCasts-Strategy-(|Environment, Store) :: Strategy -> (Strategy, Store)
+insertCasts-Strategy-(|e1, st1):
   Let(d1*, s1) -> (Let(d2*, s2), st3)
   with
-    e2 := <local-strat-merge-env(local-keep-right)> (e1, <getDefTypes> d1*)
-  ; (d2*, st2) := <thread-map(local-insertCasts-Def(|e2))> (d1*, st1)
-  ; (s2, st3) := <local-insertCasts-Strategy(|e2, <local-current-type(|<local-current-type> st1)> st2)> s1
+    e2 := <strat-merge-env(keep-right)> (e1, <getDefTypes> d1*)
+  ; (d2*, st2) := <thread-map(insertCasts-Def(|e2))> (d1*, st1)
+  ; (s2, st3) := <insertCasts-Strategy(|e2, <current-type(|<current-type> st1)> st2)> s1
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   c@CallT(SVar(x), s*, t*) -> result
   with
-    if t1 := <local-strat-lookup(|x{}, <length> s*, <length> t*)> e1
+    if t1 := <strat-lookup(|x{}, <length> s*, <length> t*)> e1
       then
-        result := <local-insertCasts-CallT(|e1, st1)> (c, t1)
+        result := <insertCasts-CallT(|e1, st1)> (c, t1)
       else
-        <local-report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
-      ; result := <local-insertCasts-CallT(|e1, st1)> (c, SDyn())
+        <report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
+      ; result := <insertCasts-CallT(|e1, st1)> (c, SDyn())
     end
 
-local-insertCasts-CallT(|e1, st1) = otf22(local-insertCasts-CallT-(|e1, st1))
+insertCasts-CallT(|e1, st1) = otf22(insertCasts-CallT-(|e1, st1))
 
-local-insertCasts-CallT(|e1, st1):
+insertCasts-CallT(|e1, st1):
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, t1, t2)) -> (c2, st4)
   with
     s2* := <zip> (s1*, st*)
   ; t2* := <zip> (t1*, tt*)
-  ; t3 := <local-current-type> st1
-  ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-  ; (t3*, st3) := <thread-map(local-insertCasts-Targ(|e1))> (t2*, st2)
-  ; st4 := <local-current-type(|t2)> st3
+  ; t3 := <current-type> st1
+  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+  ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
+  ; st4 := <current-type(|t2)> st3
   ; c2 := <insertCastBefore(|t3, t1)> <otf(!CallT(v, s3*, t3*))> c1
 
-local-insertCasts-CallT-(|e1, st1):
+insertCasts-CallT-(|e1, st1):
   (c1@CallT(v, s1*, t1*), SDyn()) -> (CallT(v, s3*, t3*), st4)
   with
     s2* := <map-pair-right(|SDyn())> s1*
   ; t2* := <map-pair-right(|DynT(Dyn()))> t1*
-  ; t3 := <local-current-type> st1
-  ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-  ; (t3*, st3) := <thread-map(local-insertCasts-Targ(|e1))> (t2*, st2)
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+  ; t3 := <current-type> st1
+  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+  ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   c1@CallDynamic(trm1, s1*, t1*) -> (CallDynamic(trm3, s3*, t3*), st6)
   with
-    (trm2, st2) := <local-insertCasts-BuildTerm(|e1, st1)> trm1
-  ; t1 := <local-current-type> st2
+    (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
+  ; t1 := <current-type> st2
   ; (trm3, st3) := <insertCastApp(|t1, StringT())> (trm2, st2)
   ; s2* := <map-pair-right(|SDyn())> s1*
   ; t2* := <map-pair-right(|DynT(Dyn()))> t1*
-  ; (s3*, st4) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st3)
-  ; (t3*, st5) := <thread-map(local-insertCasts-Targ(|e1))> (t1*, st4)
-  ; st6 := <local-current-type(|DynT(Dyn()))> st5
-  ; <local-report-Err> (c1, CallDynamicNotSupported())
+  ; (s3*, st4) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st3)
+  ; (t3*, st5) := <thread-map(insertCasts-Targ(|e1))> (t2*, st4)
+  ; st6 := <current-type(|DynT(Dyn()))> st5
+  ; <report-Err> (c1, CallDynamicNotSupported())
 
-local-insertCasts-Strategy(|e1, st1):
-  s@Fail() -> (s, <local-current-type(|ErrT())> st1)
+insertCasts-Strategy(|e1, st1):
+  s@Fail() -> (s, <current-type(|ErrT())> st1)
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s@Id() -> (s, st1)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   p@ProceedT(s1*, t1*) -> (call, st4)
   with
-    if FunTType(st*, tt*, t1, t2) := <local-strat-lookup(|ProceedNoArgs(), <length> s1*, <length> t1*)> e1
+    if FunTType(st*, tt*, t1, t2) := <strat-lookup(|ProceedNoArgs(), <length> s1*, <length> t1*)> e1
     then
       s2* := <zip> (s1*, st*)
     ; t2* := <zip> (t1*, tt*)
-    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-    ; (t3*, st3) := <thread-map(local-insertCasts-Targ(|e1))> (t2*, st2)
-    ; st4 := <local-current-type(|t2)> st3
-    ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!ProceedT(s3*, t3*))> p
+    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+    ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
+    ; st4 := <current-type(|t2)> st3
+    ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!ProceedT(s3*, t3*))> p
     else
-      <local-report-Err> (p, ProceedInNonExtendStrategy())
+      <report-Err> (p, ProceedInNonExtendStrategy())
     ; s2* := <map-pair-right(|SDyn())> s1*
     ; t2* := <map-pair-right(|ErrT())> t1*
-    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-    ; (t3*, st3) := <thread-map(local-insertCasts-Targ(|e1))> (t2*, st2)
+    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+    ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
     ; call := ProceedT(s3*, t3*)
-    ; st4 := <local-current-type(|ErrT())> st3
+    ; st4 := <current-type(|ErrT())> st3
     end
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   p@ProceedNoArgs() -> (call, st2)
   with
-    if FunTType(st*, tt*, t1, t2) := <local-strat-lookup(|ProceedNoArgs(), 0, 0)> e1
+    if FunTType(st*, tt*, t1, t2) := <strat-lookup(|ProceedNoArgs(), 0, 0)> e1
     then
       if not([] := st*; [] := tt*)
-        then <local-report-Err> (p, ProceedWrongNumberOfArguments(<length> st*, <length> tt*))
+        then <report-Err> (p, ProceedWrongNumberOfArguments(<length> st*, <length> tt*))
       end
-    ; st2 := <local-current-type(|t2)> st1
-    ; call := <insertCastBefore(|<local-current-type> st1, t1)> p
+    ; st2 := <current-type(|t2)> st1
+    ; call := <insertCastBefore(|<current-type> st1, t1)> p
     else
-      <local-report-Err> (p, ProceedInNonExtendStrategy())
-    ; st2 := <local-current-type(|ErrT())> st1
+      <report-Err> (p, ProceedInNonExtendStrategy())
+    ; st2 := <current-type(|ErrT())> st1
     ; call := p
     end
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Match(trm1) -> (<seqs> [Match(trm2) | s*], st2)
   with
-    (trm2, (st2, s*)) := <local-insertCasts-MatchTerm(|e1, st1)> trm1
+    (trm2, (st2, s*)) := <insertCasts-MatchTerm(|e1, st1)> trm1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Build(trm1) -> (Build(trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-BuildTerm(|e1, st1)> trm1
+    (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Scope(x*, s1) -> (Scope(x*, s2), st4)
   with
     // TODO: support type annotations on local variables
     new := <map-pair-right(|DynT(Dyn())); immap-from-list> x*
-  ; orig := <local-term-env;immap-intersect(local-keep-left|new)> st1
-  ; st2 := <local-term-merge-env(local-keep-right)> (st1, new)
-  ; (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1
-  ; st4 := <local-term-env(immap-subtract(|new);immap-union(fail|orig))> st3
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1
+  ; st2 := <term-merge-env(keep-right)> (st1, new)
+  ; (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1
+  ; st4 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st3
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Seq(s1, s2) -> (Seq(s3, s4), st3)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, st2)> s2
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, st2)> s2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   GuardedLChoice(s1, s2, s3) -> (GuardedLChoice(s4, s5, s6), st5)
   with
-    (s4, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s5, st3) := <local-insertCasts-Strategy(|e1, st2)> s2
-  ; (s6, st4) := <local-insertCasts-Strategy(|e1, st1)> s3
-  ; st5 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st3, st4)
+    (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s5, st3) := <insertCasts-Strategy(|e1, st2)> s2
+  ; (s6, st4) := <insertCasts-Strategy(|e1, st1)> s3
+  ; st5 := <st-merge(LUB <+ !DynT(Dyn()))> (st3, st4)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   PrimT(x, s1*, t1*) -> (PrimT(x, s2*, t2*), st4)
   with
-    (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
-  ; (t2*, st3) := <thread-map(local-insertCasts-Targ(|e1))> (t1*, st2)
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+    (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
+  ; (t2*, st3) := <thread-map(insertCasts-Targ(|e1))> (t1*, st2)
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
-local-insertCasts-Strategy-(|e1, st1):
-  Some(s1) -> (Some(s2), <local-current-type(|DynT(Dyn()))> st1)
+insertCasts-Strategy-(|e1, st1):
+  Some(s1) -> (Some(s2), <current-type(|DynT(Dyn()))> st1)
   with
-    (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
 
-local-insertCasts-Strategy-(|e1, st1):
-  One(s1) -> (One(s2), <local-current-type(|DynT(Dyn()))> st1)
+insertCasts-Strategy-(|e1, st1):
+  One(s1) -> (One(s2), <current-type(|DynT(Dyn()))> st1)
   with
-    (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
 
-local-insertCasts-Strategy-(|e1, st1):
-  All(s1) -> (All(s2), <local-current-type(|DynT(Dyn()))> st1)
+insertCasts-Strategy-(|e1, st1):
+  All(s1) -> (All(s2), <current-type(|DynT(Dyn()))> st1)
   with
-    (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
 
-local-insertCasts-Strategy(|e1, st1):
-  s@ImportTerm(_) -> (s, <local-current-type(|DynT(Dyn()))> st1)
+insertCasts-Strategy(|e1, st1):
+  s@ImportTerm(_) -> (s, <current-type(|DynT(Dyn()))> st1)
 
-local-insertCasts-Sarg(|e1):
-  (b, st1) -> <local-insertCasts-Sarg(|e1, st1)> b
+insertCasts-Sarg(|e1):
+  (b, st1) -> <insertCasts-Sarg(|e1, st1)> b
 
-local-insertCasts-Sarg-Type(|e1, t):
-  (trm, st1) -> <local-insertCasts-Sarg(|e1, st1)> (trm, t)
+insertCasts-Sarg-Type(|e1, t):
+  (trm, st1) -> <insertCasts-Sarg(|e1, st1)> (trm, t)
 
-local-insertCasts-Sarg(|e1, st1):
+insertCasts-Sarg(|e1, st1):
   (c@CallT(v@SVar(x), [], []), t1@FunTType(st*, tt*, _, _)) -> (s, st2)
   with
-    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+    if t2 := <strat-lookup(|x{}, 0, 0)> e1
       then
-        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+        s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
       ; st2 := st1
       else
-        <local-report-Err> (x, UnresolvedStrategy(0, 0))
-      ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
-      ; st2 := <local-current-type(|ErrT())> st1
+        <report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
+      ; st2 := <current-type(|ErrT())> st1
     end
 
-local-insertCasts-Sarg(|e1, st1):
+insertCasts-Sarg(|e1, st1):
   (c@Call(v@SVar(x), []), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+    if t2 := <strat-lookup(|x{}, 0, 0)> e1
       then
-        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+        s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
       ; st2 := st1
       else
-        <local-report-Err> (x, UnresolvedStrategy(0, 0))
-      ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
-      ; st2 := <local-current-type(|ErrT())> st1
+        <report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
+      ; st2 := <current-type(|ErrT())> st1
     end
 
-local-insertCasts-Sarg(|e1, st1):
+insertCasts-Sarg(|e1, st1):
   (c@CallNoArgs(v@SVar(x)), t1@FunTType(st*, tt*, _, _)) -> (s, st1)
   with
-    if t2 := <local-strat-lookup(|x{}, 0, 0)> e1
+    if t2 := <strat-lookup(|x{}, 0, 0)> e1
       then
-        s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, t2)
+        s := <insertCasts-Sarg-CallNoArgs> (v, t1, t2)
       ; st2 := st1
       else
-        <local-report-Err> (x, UnresolvedStrategy(0, 0))
-      ; s := <local-insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
-      ; st2 := <local-current-type(|ErrT())> st1
+        <report-Err> (x, UnresolvedStrategy(0, 0))
+      ; s := <insertCasts-Sarg-CallNoArgs> (v, t1, SDyn())
+      ; st2 := <current-type(|ErrT())> st1
     end
 
-local-insertCasts-Sarg(|e1, st1):
+insertCasts-Sarg(|e1, st1):
   (s1, t1@FunTType(st*, tt*, t2, t3)) -> (s2, st2)
 with
-  (s2, st2) := <local-insertCasts-Strategy(|e1, <local-current-type(|t2)> st1)> s1
+  (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
 ; if not([] := st*; [] := tt*)
-    then <local-report-Err> (s1, CallStrategyArgumentTakesParameters(t1))
+    then <report-Err> (s1, CallStrategyArgumentTakesParameters(t1))
   end
-; s3 := <local-rm-redundant-proxy> Proxy(Id(), <computeCoercion(|<local-current-type> st2, t3)>, s2)
+; s3 := <rm-redundant-proxy> Proxy(Id(), <computeCoercion(|<current-type> st2, t3)>, s2)
 
-local-insertCasts-Sarg(|e1, st1):
+insertCasts-Sarg(|e1, st1):
   (s1, SDyn()) -> (s2, st2)
-  with (s2, st2) := <local-insertCasts-Strategy(|e1, <local-current-type(|DynT(Dyn()))> st1)> s1
+  with (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|DynT(Dyn()))> st1)> s1
 
-local-insertCasts-Sarg-CallNoArgs = otf31(local-insertCasts-Sarg-CallNoArgs-)
+insertCasts-Sarg-CallNoArgs = otf31(insertCasts-Sarg-CallNoArgs-)
 
 /**
  * t1 is the expected type of the sarg, t4 is the actual type. Build a proxy that turns the input
  *  types from t1 (as it will be used) into the t4 types, output type the other way around.
  */
-local-insertCasts-Sarg-CallNoArgs-:
+insertCasts-Sarg-CallNoArgs-:
   (v, t1@FunTType(st1*, tt1*, t2, t3), t4@FunTType(st2*, tt2*, t5, t6)) ->
-    <local-rm-redundant-proxy> ProxyT(sc*, tc*, c1, c2, v)
+    <rm-redundant-proxy> ProxyT(sc*, tc*, c1, c2, v)
   with
     if not(<eq> (<length> st1*, <length> st2*); <eq> (<length> tt1*, <length> tt2*))
-      then <local-report-Err> (v, TypeMismatch(t1, t4))
+      then <report-Err> (v, TypeMismatch(t1, t4))
     end
   ; sc* := <zip(computeSCoercion)> (st1*, st2*)
   ; tc* := <zip(computeCoercion)> (tt1*, tt2*)
   ; c1 := <computeCoercion(|t2, t5)>
   ; c2 := <computeCoercion(|t6, t3)>
 
-local-insertCasts-Sarg-CallNoArgs-:
-  (v, FunTType(st*, tt*, t1, t2), SDyn()) -> <local-rm-redundant-proxy> ProxyT(sc*, tc*, Id(), c, v)
+insertCasts-Sarg-CallNoArgs-:
+  (v, FunTType(st*, tt*, t1, t2), SDyn()) -> <rm-redundant-proxy> ProxyT(sc*, tc*, Id(), c, v)
   with
     sc* := <map(!SId())> st*
   ; tc* := <map(!Id())> tt*
   ; c := <computeCoercion(|DynT(Dyn()), t2)>
 
-local-rm-redundant-proxy =
+rm-redundant-proxy =
      ?Proxy(Id(){^_}, Id(){^_}, <!CallNoArgs(<id>)>)
   <+ ProxyT(map(?SId(){^_}), map(?Id(){^_}), ?Id(){^_}, ?Id(){^_}, ?v);!CallNoArgs(v)
   <+ id
 
-local-insertCasts-Targ(|e1):
-  ((trm1, t1), st1) -> <local-insertCasts-BuildTerm(|e1, st1, t1)> trm1
+insertCasts-Targ(|e1):
+  ((trm1, t1), st1) -> <insertCasts-BuildTerm(|e1, st1, t1)> trm1
 
 strategies // Strategy (sugar)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   c1@Call(SVar(x), s*) -> result
   with
-    if t1 := <local-strat-lookup(|x{}, <length> s*, 0)> e1
+    if t1 := <strat-lookup(|x{}, <length> s*, 0)> e1
       then
-        result := <local-insertCasts-Call(|e1, st1)> (c1, t1)
+        result := <insertCasts-Call(|e1, st1)> (c1, t1)
       else
-        <local-report-Err> (x, UnresolvedStrategy(<length> s*, 0))
-      ; (c2, st2) := <local-insertCasts-Call(|e1, st1)> (c1, SDyn())
-      ; result := (c2, <local-current-type(|ErrT())> st2)
+        <report-Err> (x, UnresolvedStrategy(<length> s*, 0))
+      ; (c2, st2) := <insertCasts-Call(|e1, st1)> (c1, SDyn())
+      ; result := (c2, <current-type(|ErrT())> st2)
     end
 
-local-insertCasts-Call(|e1, st1) = otf22(local-insertCasts-Call-(|e1, st1))
+insertCasts-Call(|e1, st1) = otf22(insertCasts-Call-(|e1, st1))
 
-local-insertCasts-Call(|e1, st1):
+insertCasts-Call(|e1, st1):
   (c@Call(s, s1*), FunTType(st*, tt*, t1, t2)) -> (call, st3)
   with
-    (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<zip> (s1*, st*), st1)
-  ; st3 := <local-current-type(|t2)> st2
-  ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!Call(s, s3*))> c
+    (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, st*), st1)
+  ; st3 := <current-type(|t2)> st2
+  ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Call(s, s3*))> c
 
-local-insertCasts-Call-(|e1, st1):
+insertCasts-Call-(|e1, st1):
   (c@Call(s, s1*), SDyn()) -> (Call(s, s3*), st3)
   with
-    (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<map-pair-right(|SDyn())> s1*, st1)
-  ; st3 := <local-current-type(|DynT(Dyn()))> st2
+    (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<map-pair-right(|SDyn())> s1*, st1)
+  ; st3 := <current-type(|DynT(Dyn()))> st2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   ScopeDefault(s1) -> (ScopeDefault(s2), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, <local-new-st;local-current-type(|<local-current-type> st1)>)> s1
+    (s2, st2) := <insertCasts-Strategy(|e1, <new-st;current-type(|<current-type> st1)>)> s1
     // Note how we only preserve the current type of st2 here 
-  ; st3 := <local-current-type(|<local-current-type> st2)> st1
+  ; st3 := <current-type(|<current-type> st2)> st1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   BA(s1, trm1) -> (BA(s2, trm2), st3)
   with
-    (trm2, st2) := <local-insertCasts-BuildTerm(|e1, st1)> trm1
-  ; (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1
+    (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
+  ; (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   LChoice(s1, s2) -> (LChoice(s3, s4), st4)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, st1)> s2
-  ; st4 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st2, st3)
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, st1)> s2
+  ; st4 := <st-merge(LUB <+ !DynT(Dyn()))> (st2, st3)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Rec(x, s1) -> (Rec(x, s2), st2)
   with
-    e2 := <local-strat-merge-env(local-keep-right)> (e1, <immap-from-list> [(x{}, FunTType([], [], DynT(Dyn()), DynT(Dyn())))])
-  ; (s2, st2) := <local-insertCasts-Strategy(|e2, st1)> s1
+    e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [(x{}, FunTType([], [], DynT(Dyn()), DynT(Dyn())))])
+  ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Not(s1) -> (Not(s2), st2)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Where(s1) -> (Where(s2), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <local-current-type(|st1)> st2
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type(|st1)> st2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   With(s1) -> (With(s2), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <local-current-type(|st1)> st2
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type(|st1)> st2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Test(s1) -> (Test(s2), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <local-current-type(|st1)> st2
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type(|st1)> st2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Test(s1) -> (Test(s2), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <local-current-type(|st1)> st2
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type(|st1)> st2
 
-local-insertCasts-Strategy(|e1, st1):
-  s@PrimNoArgs(_) -> (s, <local-current-type(|DynT(Dyn()))> st1)
+insertCasts-Strategy(|e1, st1):
+  s@PrimNoArgs(_) -> (s, <current-type(|DynT(Dyn()))> st1)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Prim(x, t1*) -> (Prim(x, t2*), st3)
   with
-    (t2*, st2) := <thread-map(local-insertCasts-Targ(|e1))> (<map-pair-right(|DynT(Dyn()))> t1*, st1)
-  ; st3 := <local-current-type(|DynT(Dyn()))> st2
+    (t2*, st2) := <thread-map(insertCasts-Targ(|e1))> (<map-pair-right(|DynT(Dyn()))> t1*, st1)
+  ; st3 := <current-type(|DynT(Dyn()))> st2
 
 
-local-litCongruence(|st1, t1) = otf12(local-litCongruence-(|st1, t1))
+litCongruence(|st1, t1) = otf12(litCongruence-(|st1, t1))
 
 // Note how we don't add a cast here. Literal congruences are allow to fail based on wrong type, we
 //  don't want them to crash instead.
-local-litCongruence-(|st1, t1):
+litCongruence-(|st1, t1):
   s -> (s, st2)
   with
-    t2 := <local-current-type> st1
+    t2 := <current-type> st1
   // Give a warning when it's guaranteed to fail based on type.
   ; _ := <computeCoercion(|t2, t1)> s
-  ; st2 := <local-current-type(|t1)> st1
+  ; st2 := <current-type(|t1)> st1
 
-local-insertCasts-Strategy(|e1, st1):
-  s@StrCong(_) -> <local-litCongruence(|st1, StringT())> s
+insertCasts-Strategy(|e1, st1):
+  s@StrCong(_) -> <litCongruence(|st1, StringT())> s
 
-local-insertCasts-Strategy(|e1, st1):
-  s@IntCong(_) -> <local-litCongruence(|st1, IntT())> s
+insertCasts-Strategy(|e1, st1):
+  s@IntCong(_) -> <litCongruence(|st1, IntT())> s
 
-local-insertCasts-Strategy(|e1, st1):
-  s@RealCong(_) -> <local-litCongruence(|st1, RealT())> s
+insertCasts-Strategy(|e1, st1):
+  s@RealCong(_) -> <litCongruence(|st1, RealT())> s
 
-local-insertCasts-Strategy(|e1, st1):
-  s@CharCong(_) -> <local-litCongruence(|st1, IntT())> s
+insertCasts-Strategy(|e1, st1):
+  s@CharCong(_) -> <litCongruence(|st1, IntT())> s
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   CongQ(x, s1*) -> (s, st3)
   with
-    t1 := <local-current-type> st1
-  ; t* := <local-constr-lookup-from(|x, <length> s1*, t1)> e1
+    t1 := <current-type> st1
+  ; t* := <constr-lookup-from(|x, <length> s1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
       if DynT(_) := t1
         then t2* := <map(!DynT(Dyn()))> t1*
         else t2* := t1*
       end
-    ; (s2*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<zip> (s1*, t2*), st1)
+    ; (s2*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, t2*), st1)
     // We cannot assume correct output as congruences can be extended arbitrarily by users
-    ; st3 := <local-current-type(|DynT(Dyn()))> st2
+    ; st3 := <current-type(|DynT(Dyn()))> st2
     ; s := <insertCastBefore(|t1, t2)> CongQ(x, s2*)
     else if [] := t*
-        then <local-report-Err> (x, UnresolvedConstructor(<length> s1*, t1))
-        else <local-report-Warn> (x, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+        then <report-Err> (x, UnresolvedConstructor(<length> s1*, t1))
+        else <report-Warn> (x, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
-    ; (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, ErrT()))> (s1*, st1)
-    ; st3 := <local-current-type(|ErrT())> st1
+    ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, ErrT()))> (s1*, st1)
+    ; st3 := <current-type(|ErrT())> st1
     ; s := CongQ(x, s1*)
     end
 
-local-insertCasts-Strategy(|e1, st1):
-  s@EmptyTupleCong() -> <local-litCongruence(|st1, Sort("Tuple", []))> s
+insertCasts-Strategy(|e1, st1):
+  s@EmptyTupleCong() -> <litCongruence(|st1, Sort("Tuple", []))> s
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   TupleCong(s1, s1*) -> (TupleCong(s2, s2*), st4)
   with
-    t1 := <local-current-type> st1
-  ; (s2, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
-  ; (s2*, st3) := <thread-map(local-insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st2)
-  ; st4 := <local-current-type(|Sort("Tuple", <map(!DynT(Dyn()))> [s1 | s1*]))> st3
+    t1 := <current-type> st1
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st2)
+  ; st4 := <current-type(|Sort("Tuple", <map(!DynT(Dyn()))> [s1 | s1*]))> st3
 
-// TODO: extract type of elements of list from local-current-type, and use in insertCasts
-local-insertCasts-Strategy-(|e1, st1):
+// TODO: extract type of elements of list from current-type, and use in insertCasts
+insertCasts-Strategy-(|e1, st1):
   s1@ListCongNoTail(s1*) -> (ListCongNoTail(s2*), st3)
   with
-    (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
-  ; t1 := <local-current-type> st1
+    (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
+  ; t1 := <current-type> st1
   ; t2 := Sort("List", [DynT(Dyn())])
   // Give a warning when it's guaranteed to fail based on type.
   ; _ := <computeCoercion(|t1, t2)> s1
-  ; st3 := <local-current-type(|t2)> st2
+  ; st3 := <current-type(|t2)> st2
 
-// TODO: extract type of elements of list from local-current-type, and use in insertCasts
-local-insertCasts-Strategy-(|e1, st1):
+// TODO: extract type of elements of list from current-type, and use in insertCasts
+insertCasts-Strategy-(|e1, st1):
   s1@ListCong(s1*, s2) -> (ListCong(s2*, s3), st4)
   with
-    (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
-  ; (s3, st3) := <local-insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
-  ; t1 := <local-current-type> st1
+    (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType([], [], DynT(Dyn()), DynT(Dyn()))))> (s1*, st1)
+  ; (s3, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
+  ; t1 := <current-type> st1
   ; t2 := Sort("List", [DynT(Dyn())])
   // Give a warning when it's guaranteed to fail based on type.
   ; _ := <computeCoercion(|t1, t2)> s1
-  ; st4 := <local-current-type(|t2)> st3
+  ; st4 := <current-type(|t2)> st3
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
   with
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
-    (s3, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
-  ; (s4, st3) := <local-insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+    (s3, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+  ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   AM(s1, trm1) -> (<seqs> [AM(s2, trm2) | s*], st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (trm2, (st3, s*)) := <local-insertCasts-MatchTerm(|e1, st2)> trm1
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (trm2, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Assign(trm1, trm2) -> (<seqs> [Assign(trm3, trm4) | s*], st3)
   with
-    (trm4, st2) := <local-insertCasts-BuildTerm(|e1, st1)> trm2
-  ; (trm3, (st3, s*)) := <local-insertCasts-MatchTerm(|e1, st2)> trm1
+    (trm4, st2) := <insertCasts-BuildTerm(|e1, st1)> trm2
+  ; (trm3, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   AnnoCong(s1, s2) -> (AnnoCong(s3, s4), st4)
   with
-    (s3, st2) := <local-insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
-  ; (s4, st3) := <local-insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+    (s3, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], DynT(Dyn()), DynT(Dyn())))
+  ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType([], [], Sort("List", [DynT(Dyn())]), Sort("List", [DynT(Dyn())])))
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   c@CallNoArgs(SVar(x)) -> result
   with
-    if t1 := <local-strat-lookup(|x{}, 0, 0)> e1
-      then
-        if SDyn() := t1
-          then result := (c, <local-current-type(|DynT(Dyn()))> st1)
-          else
-            FunTType([], [], t2, t3) := t1
-          ; result := (<insertCastBefore(|<local-current-type> st1, t2)> c, <local-current-type(|t3)> st1)
-        end
+    if t1 := <strat-lookup(|x{}, 0, 0)> e1
+      then result := <insertCasts-CallNoArgs(|e1, st1)> (c, t1)
       else
-        <local-report-Err> (x, UnresolvedStrategy(0, 0))
-      ; result := (c, <local-current-type(|ErrT())> st1)
+        <report-Err> (x, UnresolvedStrategy(0, 0))
+      ; result := (c, <current-type(|ErrT())> st1)
     end
 
-local-insertCasts-Rule(|e1, st1) = otf12(local-insertCasts-Rule-(|e1, st1))
+insertCasts-CallNoArgs(|e1, st1):
+  (c@CallNoArgs(_), SDyn()) -> (c, <current-type(|DynT(Dyn()))> st1)
 
-local-insertCasts-Rule-(|e1, st1):
+insertCasts-CallNoArgs(|e1, st1):
+  (c@CallNoArgs(_), FunTType([], [], t1, t2)) -> (call, st2)
+  with
+    st2 := <current-type(|t2)> st1
+  ; call := <insertCastBefore(|<current-type> st1, t1)> c
+
+insertCasts-Rule(|e1, st1) = otf12(insertCasts-Rule-(|e1, st1))
+
+insertCasts-Rule-(|e1, st1):
   Rule(trm1, trm2, cs1) -> (Rule(trm3, trm4, cs3), st4)
   with
-    (trm3, (st2, s*)) := <local-insertCasts-MatchTerm(|e1, st1)> trm1
-  ; (cs2, st3)  := <thread-map(local-insertCasts-RuleCond(|e1))> (cs1, st2)
-  ; cs3 := <local-RuleDef-local-after-match> (s*, cs2)
-  ; (trm4, st4) := <local-insertCasts-BuildTerm(|e1, st3)> trm2
+    (trm3, (st2, s*)) := <insertCasts-MatchTerm(|e1, st1)> trm1
+  ; (cs2, st3)  := <thread-map(insertCasts-RuleCond(|e1))> (cs1, st2)
+  ; cs3 := <RuleDef-after-match> (s*, cs2)
+  ; (trm4, st4) := <insertCasts-BuildTerm(|e1, st3)> trm2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   LRule(r1@Rule(trm, _, _)) -> (LRule(r2), st4)
   with
     new := <collect-all(?Var(<id>));map-pair-right(|DynT(Dyn()));immap-from-list> trm
-  ; orig := <local-term-env;immap-intersect(local-keep-left|new)> st1
-  ; st2 := <local-term-merge-env(local-keep-right)> (st1, new)
-  ; (r2, st3) := <local-insertCasts-Rule(|e1, st2)> r1
-  ; st4 := <local-term-env(immap-subtract(|new);immap-union(fail|orig))> st3
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1
+  ; st2 := <term-merge-env(keep-right)> (st1, new)
+  ; (r2, st3) := <insertCasts-Rule(|e1, st2)> r1
+  ; st4 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st3
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   SRule(r1) -> (LRule(r2), st2)
   with
-    (r2, st2) := <local-insertCasts-Rule(|e1, st1)> r1
+    (r2, st2) := <insertCasts-Rule(|e1, st1)> r1
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   Choice(s1, s2) -> (Choice(s3, s4), st4)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, st1)> s2
-  ; st4 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st2, st3)
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, st1)> s2
+  ; st4 := <st-merge(LUB <+ !DynT(Dyn()))> (st2, st3)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   RChoice(s1, s2) -> (RChoice(s3, s4), st4)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, st1)> s2
-  ; st4 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st2, st3)
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, st1)> s2
+  ; st4 := <st-merge(LUB <+ !DynT(Dyn()))> (st2, st3)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   p@Proceed(s1*) -> (call, st3)
   with
-    if FunTType(st*, [], t1, t2) := <local-strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
+    if FunTType(st*, [], t1, t2) := <strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
     then
       s2* := <zip> (s1*, st*)
-    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-    ; st3 := <local-current-type(|t2)> st2
-    ; call := <insertCastBefore(|<local-current-type> st1, t1)> <otf(!Proceed(s3*))> p
+    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+    ; st3 := <current-type(|t2)> st2
+    ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Proceed(s3*))> p
     else
-      <local-report-Err> (p, ProceedInNonExtendStrategy())
+      <report-Err> (p, ProceedInNonExtendStrategy())
     ; s2* := <map-pair-right(|SDyn())> s1*
-    ; (s3*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (s2*, st1)
-    ; st3 := <local-current-type(|ErrT())> st2
+    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+    ; st3 := <current-type(|ErrT())> st2
     ; call := Proceed(s3*)
     end
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   CondChoice(s1, s2, s3) -> (CondChoice(s4, s5, s6), st5)
   with
-    (s4, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s5, st3) := <local-insertCasts-Strategy(|e1, <local-current-type(|<local-current-type> st1)> st2)> s2
-  ; (s6, st4) := <local-insertCasts-Strategy(|e1, st1)> s3
-  ; st5 := <local-st-merge(local-LUB <+ !DynT(Dyn()))> (st3, st4)
+    (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s5, st3) := <insertCasts-Strategy(|e1, <current-type(|<current-type> st1)> st2)> s2
+  ; (s6, st4) := <insertCasts-Strategy(|e1, st1)> s3
+  ; st5 := <st-merge(LUB <+ !DynT(Dyn()))> (st3, st4)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   IfThen(s1, s2) -> (IfThen(s3, s4), st3)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, <local-current-type(|<local-current-type> st1)> st2)> s2
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type(|<current-type> st1)> st2)> s2
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   SwitchChoiceNoOtherwise(s1, sc1*) -> (SwitchChoiceNoOtherwise(s2, sc2*), st3)
   with
-    (s2, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; t1 := <local-current-type> st1
-  ; t2 := <local-current-type> st2
-  ; (sc2*, _, st3) := <map-local-LUB(local-insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; t1 := <current-type> st1
+  ; t2 := <current-type> st2
+  ; (sc2*, _, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
 
-local-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy-(|e1, st1):
   SwitchChoice(s1, sc1*, s2) -> (SwitchChoice(s3, sc2*, s4), st4)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, st1)> s1
-  ; t1 := <local-current-type> st1
-  ; t2 := <local-current-type> st2
-  ; (sc2*, _, st3) := <map-local-LUB(local-insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
-  ; (s4, st4) := <local-insertCasts-Strategy(|e1, <local-current-type(|t1)> st3)> s2
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; t1 := <current-type> st1
+  ; t2 := <current-type> st2
+  ; (sc2*, _, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
+  ; (s4, st4) := <insertCasts-Strategy(|e1, <current-type(|t1)> st3)> s2
 
-local-insertCasts-SwitchCase(|e1, t1, t2) = otf22(local-insertCasts-SwitchCase-(|e1, t1, t2))
+insertCasts-SwitchCase(|e1, t1, t2) = otf22(insertCasts-SwitchCase-(|e1, t1, t2))
 
-local-insertCasts-SwitchCase-(|e1, t1, t2):
+insertCasts-SwitchCase-(|e1, t1, t2):
   (SwitchCase(s1, s2), st1) -> (SwitchCase(s3, s4), st3)
   with
-    (s3, st2) := <local-insertCasts-Strategy(|e1, <local-current-type(|t2)> st1)> s1
-  ; (s4, st3) := <local-insertCasts-Strategy(|e1, <local-current-type(|t1)> st2)> s2
+    (s3, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
+  ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type(|t1)> st2)> s2
 
-//local-insertCasts-Strategy-(|e1, st1):
+//insertCasts-Strategy-(|e1, st1):
 //  TypedCong(t@TypedId(x1, x2), s1*) -> (s, st3)
 //  with 
-//    t1 := <local-current-type> st1
-//  ; t* := <local-constr-lookup(|x2, <length> s1*, <desugar-Type> x1)> e1
+//    t1 := <current-type> st1
+//  ; t* := <constr-lookup(|x2, <length> s1*, <desugar-Type> x1)> e1
 //  ; if [ConstrType(t1*, t2)] := t*
 //    then
-//      (s2*, st2) := <thread-map(local-insertCasts-Sarg(|e1))> (<zip> (s1*, <map(!FunTType(<id>))> t1*), st1)
-//    ; st3 := <local-current-type(|t2)> st2
+//      (s2*, st2) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, <map(!FunTType(<id>))> t1*), st1)
+//    ; st3 := <current-type(|t2)> st2
 //    ; s := <insertCastBefore(|t1, t2)> Call(SVar(x2), s2*)
 //    else if [] := t*
 //        then err := UnresolvedConstructor(<length> s1*, x1)
 //        else err := AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*)
 //      end
-//    ; <local-report-Err> (t, err)
-//    ; (s2*, st2) := <thread-map(local-insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
-//    ; st3 := <local-current-type(|ErrT())> st1
+//    ; <report-Err> (t, err)
+//    ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
+//    ; st3 := <current-type(|ErrT())> st1
 //    ; s := Call(SVar(x2), s2*)
 //    end
 
 strategies // The Cast & Proxy extension
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s@Cast(Fail()) -> (s, st2)
   with
-    st2 := <local-current-type(|ErrT())> st1
+    st2 := <current-type(|ErrT())> st1
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s@Cast(Id()) -> (s, st1)
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s@Cast(RuntimeCheck(t)) -> (s, st2)
   with
-    st2 := <local-current-type(|t)> st1
+    st2 := <current-type(|t)> st1
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   Proxy(c1, c2, s1) -> (Proxy(c1, c2, s2), st2)
   with
-    (_, st2) := <local-insertCasts-Strategy(|e1, st1)> Cast(c1)
-  ; (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1
-  ; (_, st4) := <local-insertCasts-Strategy(|e1, st3)> Cast(c2)
+    (_, st2) := <insertCasts-Strategy(|e1, st1)> Cast(c1)
+  ; (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1
+  ; (_, st4) := <insertCasts-Strategy(|e1, st3)> Cast(c2)
 
-local-insertCasts-Strategy(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s1@ProxyT(sc1*, tc1*, c1, c2, SVar(x)) -> (s1, st1)
   with
-    t1 := <local-strat-lookup(|x{}, 0, 0)> e1
+    t1 := <strat-lookup(|x{}, 0, 0)> e1
     // TODO: check that t1 corresponds to the coercions in the ProxyT

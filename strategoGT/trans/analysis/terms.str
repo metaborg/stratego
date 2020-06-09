@@ -3,14 +3,15 @@ module analysis/terms
 imports
 
 libstratego-lib
-libstrc
 libstratego-aterm
 
 libspoofax/term/annotation
 libspoofax/stratego/debug
 
+signatures/core/terms-sig
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/sugar/terms-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/terms-sig
 signatures/gradual-types/internal-sig
@@ -24,79 +25,79 @@ analysis/main
 
 strategies // Terms in match position (core)
 
-local-insertCasts-MatchTerm(|e1, st1) =
-    local-insertCasts-StMatchTerm(|e1, <local-stMatchTerm-from-st> st1)
-  ; (id, st-from-local-stMatchTerm)
+insertCasts-MatchTerm(|e1, st1) =
+    insertCasts-StMatchTerm(|e1, <stMatchTerm-from-st> st1)
+  ; (id, st-from-stMatchTerm)
 
-local-insertCasts-StMatchTerm-Type(|e1):
-  ((trm, t), st1) -> <local-insertCasts-StMatchTerm(|e1, <local-current-type(|t)> st1)> trm
+insertCasts-StMatchTerm-Type(|e1):
+  ((trm, t), st1) -> <insertCasts-StMatchTerm(|e1, <current-type(|t)> st1)> trm
 
-local-insertCasts-StMatchTerm-Type(|e1, t):
-  (trm, st1) -> <local-insertCasts-StMatchTerm(|e1, <local-current-type(|t)> st1)> trm
+insertCasts-StMatchTerm-Type(|e1, t):
+  (trm, st1) -> <insertCasts-StMatchTerm(|e1, <current-type(|t)> st1)> trm
 
-local-insertCasts-StMatchTerm(|e1, st1) = otf12(local-insertCasts-StMatchTerm-(|e1, st1))
+insertCasts-StMatchTerm(|e1, st1) = otf12(insertCasts-StMatchTerm-(|e1, st1))
 
-local-insertCasts-StMatchTerm(|e1, st1):
+insertCasts-StMatchTerm(|e1, st1):
   trm@Var(v) -> (trm, st2)
   with
-    t1 := <local-current-type> st1
-  ; if t2 := <local-term-lookup(|v{})> st1
-      then if t3 := <local-LUB> (t1, t2)
-        then st2 := <local-term-put(|v{}, t3)> st1
+    t1 := <current-type> st1
+  ; if t2 := <term-lookup(|v{})> st1
+      then if t3 := <LUB> (t1, t2)
+        then st2 := <term-put(|v{}, t3)> st1
         else
-//          where(try(<debug> (t2, t1); <lub(|());debug> (t1, t2); <local-LUB;debug> (t1, t2)));
-          <local-report-Err> (v, VariableBoundToIncompatibleType(t2, t1))
+//          where(try(<debug> (t2, t1); <lub(|());debug> (t1, t2); <LUB;debug> (t1, t2)));
+          <report-Err> (v, VariableBoundToIncompatibleType(t2, t1))
         ; st2 := st1
         end // TODO: do this for both unresolved names and unbound names
-      else st2 := <local-term-put(|v{}, t1)> st1
+      else st2 := <term-put(|v{}, t1)> st1
     end
 
-local-insertCasts-StMatchTerm(|e1, st1):
+insertCasts-StMatchTerm(|e1, st1):
   trm@Wld() -> (trm, st1)
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   Anno(trm1, trm2) -> (trm6, st4)
   with
-    (trm3, st2) := <local-insertCasts-StMatchTerm(|e1, st1)> trm1
-  ; (trm4, st3) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
-  ; st4 := <local-current-type(|<local-current-type> st2)> st3
+    (trm3, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
+  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
+  ; st4 := <current-type(|<current-type> st2)> st3
   ; if App(c@Cast(_), trm5) := trm3
       then trm6 := App(c, Anno(trm5, trm4))
       else trm6 := Anno(trm3, trm4)
     end
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   As(v1, trm1) -> (As(v2, trm2), st3)
   with
-    (v2, st2) := <local-insertCasts-StMatchTerm(|e1, st1)> v1
-  ; (trm2, st3) := <local-insertCasts-StMatchTerm(|e1, st2)> trm1
+    (v2, st2) := <insertCasts-StMatchTerm(|e1, st1)> v1
+  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, st2)> trm1
 
-local-insertCasts-StMatchTerm(|e1, st1):
-  Int(_) -> <local-insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
+insertCasts-StMatchTerm(|e1, st1):
+  Int(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
 
-local-insertCasts-StMatchTerm(|e1, st1):
-  Real(_) -> <local-insertCasts-StMatchTerm-Lit(|e1, st1, RealT())>
+insertCasts-StMatchTerm(|e1, st1):
+  Real(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, RealT())>
 
-local-insertCasts-StMatchTerm(|e1, st1):
-  Str(_) -> <local-insertCasts-StMatchTerm-Lit(|e1, st1, StringT())>
+insertCasts-StMatchTerm(|e1, st1):
+  Str(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, StringT())>
 
-local-insertCasts-StMatchTerm-Lit(|e1, st1, t1):
-  trm -> (trm, <local-current-type(|t1)> st1)
+insertCasts-StMatchTerm-Lit(|e1, st1, t1):
+  trm -> (trm, <current-type(|t1)> st1)
   with
-    t2 := <local-current-type> st1
-  ; if not(<local-CanCoerce>(t1, t2))
-      then <local-report-Err> (trm, TypeMismatch(t1, t2))
+    t2 := <current-type> st1
+  ; if not(<CanCoerce>(t1, t2))
+      then <report-Err> (trm, TypeMismatch(t1, t2))
     end
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
   with
-    t1 := <local-current-type> st1
-  ; t* := <local-constr-lookup-to(|cnstr, <length> trm1*, t1)> e1
+    t1 := <current-type> st1
+  ; t* := <constr-lookup-to(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
-      if not(<local-CanCoerce> (t2, t1))
-        then <local-report-Err> (cnstr, TypeMismatch(t2, t1))
+      if not(<CanCoerce> (t2, t1))
+        then <report-Err> (cnstr, TypeMismatch(t2, t1))
            ; t2* := <map(!ErrT())> trm1*
         else if DynT(_) := t1
           then t2* := <map(!DynT(<id>))> t1*
@@ -105,107 +106,107 @@ local-insertCasts-StMatchTerm-(|e1, st1):
       end
     ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
-        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-        else <local-report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+        then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        else <report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
     end
-  ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
-  ; st3 := <local-current-type(|t3)> st2
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
+  ; st3 := <current-type(|t3)> st2
 
-local-insertCasts-StMatchTerm(|e1, st1) =
+insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
-  ; local-insertCasts-StMatchTerm(|e1, st1)
+  ; insertCasts-StMatchTerm(|e1, st1)
   ; (otf(\Op(c, c*) -> OpQ(c, c*)\), id)
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
     // Note that constructors can be strings (in case of applications, strings and tuples)
     //  or the empty list (in case of a list), or an int (in case of an int), etc.
-    (trm3, st2) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|DynT(Dyn()))> st1)> trm1
-  ; (trm4, st3) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+    (trm3, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT(Dyn()))> st1)> trm1
+  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
 strategies // Terms in build position (core)
 
-local-insertCasts-BuildTerm(|e1, st1, t1) =
-    local-insertCasts-StBuildTerm(|e1, <local-stBuildTerm-from-st;local-current-type(|t1)> st1)
-  ; (id, st-from-local-stBuildTerm)
+insertCasts-BuildTerm(|e1, st1, t1) =
+    insertCasts-StBuildTerm(|e1, <stBuildTerm-from-st;current-type(|t1)> st1)
+  ; (id, st-from-stBuildTerm)
 
-local-insertCasts-BuildTerm(|e1, st1) = local-insertCasts-BuildTerm(|e1, st1, DynT(Dyn()))
+insertCasts-BuildTerm(|e1, st1) = insertCasts-BuildTerm(|e1, st1, DynT(Dyn()))
 
-local-insertCasts-StBuildTerm(|e1):
-  (trm, st1) -> <local-insertCasts-StBuildTerm(|e1, st1)> trm
+insertCasts-StBuildTerm(|e1):
+  (trm, st1) -> <insertCasts-StBuildTerm(|e1, st1)> trm
 
-local-insertCasts-local-StBuildTerm-Type(|e1, t1):
-  (trm, st1) -> <local-insertCasts-StBuildTerm(|e1, <local-current-type(|t1)> st1)> trm
+insertCasts-StBuildTerm-Type(|e1, t1):
+  (trm, st1) -> <insertCasts-StBuildTerm(|e1, <current-type(|t1)> st1)> trm
 
-local-insertCasts-StBuildTerm(|e1, st1) = otf12(local-insertCasts-local-StBuildTerm-(|e1, st1))
+insertCasts-StBuildTerm(|e1, st1) = otf12(insertCasts-StBuildTerm-(|e1, st1))
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@Var(v) -> (trm2, st4)
   with
-    t1 := <local-current-type> st1
-  ; if t2 := <local-term-lookup(|v{})> st1
+    t1 := <current-type> st1
+  ; if t2 := <term-lookup(|v{})> st1
       then st2 := st1
       else // We put the expected type here if the var is not found as this call may be in a
            //  top-level defined rule with a type. In that case we infer the types of local
            //  variables from the tld type before checking the whereclause(s).
            // This _does_ mean we cannot give a warning or error here when a variable is built
            //  but unbound.
-        st2 := <local-term-put(|v{}, t1)> st1
+        st2 := <term-put(|v{}, t1)> st1
       ; t2 := t1
     end
   ; (trm2, st3) := <insertCastApp(|t2, t1)> (trm1, st2)
   ; if DynT(_) := t2; not(DynT(_) := t1)
       then
         // Strengthen the type of a variable that was previously dynamic
-        st4 := <local-term-put(|v{}, t1)> st3
+        st4 := <term-put(|<debuga> v{}, <debugb> t1)> st3
       else
         st4 := st3
     end
 
-local-insertCasts-StBuildTerm(|e1, st1):
-  trm@Wld() -> (trm, <local-current-type(|ErrT())> st1)
+insertCasts-StBuildTerm(|e1, st1):
+  trm@Wld() -> (trm, <current-type(|ErrT())> st1)
   with
-    <local-report-Err> (trm, WldInBuildTerm())
+    <report-Err> (trm, WldInBuildTerm())
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   Anno(trm1, trm2) -> (trm6, st4)
   with
-    (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|DynT(Dyn()))> st2)> trm2
-  ; if not(<local-CanCoerce> (<local-current-type> st3, Sort("List", [DynT(Dyn())])))
-      then <local-report-Err> (trm2, NonListInAnno(<local-current-type> st3))
+    (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
+  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT(Dyn()))> st2)> trm2
+  ; if not(<CanCoerce> (<current-type> st3, Sort("List", [DynT(Dyn())])))
+      then <report-Err> (trm2, NonListInAnno(<current-type> st3))
     end
-  ; st4 := <local-current-type(|<local-current-type> st2)> st3
+  ; st4 := <current-type(|<current-type> st2)> st3
   ; if App(c@Cast(_), trm5) := trm3
       then trm6 := App(c, Anno(trm5, trm4))
       else trm6 := Anno(trm3, trm4)
     end
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
-  trm1@As(Var(v), trm2) -> (As(Var(v), trm3), <local-current-type(|ErrT())> st2)
+insertCasts-StBuildTerm-(|e1, st1):
+  trm1@As(Var(v), trm2) -> (As(Var(v), trm3), <current-type(|ErrT())> st2)
   with
-    (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm2
-  ; <local-report-Err> (trm1, AsInBuildTerm())
+    (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm2
+  ; <report-Err> (trm1, AsInBuildTerm())
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
-  trm1@Int(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, IntT())>
+insertCasts-StBuildTerm-(|e1, st1):
+  trm1@Int(_) -> <insertCasts-StBuildTerm-Lit(|st1, IntT())>
 
-local-insertCasts-StBuildTerm(|e1, st1):
-  trm@Real(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, RealT())>
+insertCasts-StBuildTerm(|e1, st1):
+  trm@Real(_) -> <insertCasts-StBuildTerm-Lit(|st1, RealT())>
 
-local-insertCasts-StBuildTerm(|e1, st1):
-  trm@Str(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, StringT())>
+insertCasts-StBuildTerm(|e1, st1):
+  trm@Str(_) -> <insertCasts-StBuildTerm-Lit(|st1, StringT())>
 
-local-insertCasts-local-StBuildTerm-Lit(|st1, t1):
+insertCasts-StBuildTerm-Lit(|st1, t1):
   trm1 -> (trm1, st2)
   with
-    st2 := <local-current-type(|t1)> st1
-  ; t2 := <local-current-type> st1
+    st2 := <current-type(|t1)> st1
+  ; t2 := <current-type> st1
   ; _ := <computeCoercion(|t1, t2)> trm1
 
 signature constructors
@@ -215,19 +216,19 @@ signature constructors
 
 strategies
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@Op(cnstr, trm1*) -> (trm2, st3)
   with
-    t1 := <local-current-type> st1
+    t1 := <current-type> st1
   // In a top-level term e.g. in Build(Op(..., ...)) the current term type in DynT(Dyn()).
-  ; t* := <local-constr-lookup-from(|cnstr, <length> trm1*, t1)> e1
+  ; t* := <constr-lookup-from(|cnstr, <length> trm1*, t1)> e1
   ; if [ConstrType(t1*, t2)] := t*
     then
       t2* := t1*
     ; t3 := t2  // workaround for backtracking issue in strj
     else if [] := t*
-        then <local-report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-        else <local-report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+        then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        else <report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
@@ -236,372 +237,372 @@ local-insertCasts-local-StBuildTerm-(|e1, st1):
   ; if DynT(_) := t1
     then
       let
-        set-type(|t) = local-current-type(|DynT(t))
-      in (trm2*, t3*, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; switch <local-StBuildTerm-Op-type-relation> (t3*, t2*)
+        set-type(|t) = current-type(|DynT(t))
+      in (trm2*, t3*, st2) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
+      ; switch <StBuildTerm-Op-type-relation> (t3*, t2*)
           case ?AllCanCoerce():
-            st3 := <local-current-type(|t3)> st2
+            st3 := <current-type(|t3)> st2
           ; trm2 := Op(cnstr, trm2*)
           case ?SomeDyn():
             // insertCastApp here only generates warnings, not casts, because DynT(_) := t1
             (trm2, st3) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
           case ?Unrelated():
-            st3 := <local-current-type(|IllFormedTermT(cnstr, t3*))> st2
+            st3 := <current-type(|IllFormedTermT(cnstr, t3*))> st2
           ; trm2 := Op(cnstr, trm2*)
         end
       end
     else
       let
-        // defined to disambiguate between local-current-type/0/0 and local-current-type/0/1
-        set-type(|t) = local-current-type(|t)
-      in (trm2*, _, st2) := <map-st-local-LUB(local-StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; st3 := <local-current-type(|t3)> st2
+        // defined to disambiguate between current-type/0/0 and current-type/0/1
+        set-type(|t) = current-type(|t)
+      in (trm2*, _, st2) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
+      ; st3 := <current-type(|t3)> st2
       ; trm2 := Op(cnstr, trm2*)
       end
     end
 
-local-StBuildTerm-Op-threader(set-type|e1):
+StBuildTerm-Op-threader(set-type|e1):
   ((trm1, t), st1) -> (trm2, st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, <set-type(|t)> st1)> trm1
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, <set-type(|t)> st1)> trm1
 
-local-StBuildTerm-Op-type-relation: (t2*, t1*) -> result
+StBuildTerm-Op-type-relation: (t2*, t1*) -> result
   with
-    zipped := <zip(local-CanCoerce;!AllCanCoerce()
+    zipped := <zip(CanCoerce;!AllCanCoerce()
                 <+ ?(DynT(_), _);!SomeDyn()
                 <+ !Unrelated())> (t2*, t1*)
   ; result := <foldl(one(?Unrelated());!Unrelated()
                   <+ one(?SomeDyn());!SomeDyn()
                   <+ !AllCanCoerce())> (zipped, AllCanCoerce())
 
-local-insertCasts-StBuildTerm(|e1, st1) =
+insertCasts-StBuildTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
-  ; local-insertCasts-StBuildTerm(|e1, st1)
+  ; insertCasts-StBuildTerm(|e1, st1)
   ; (otf(\Op(c, c*) -> OpQ(c, c*)\), id)
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
-    (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|DynT(Dyn()))> st1)> trm1
-  ; (trm4, st3) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
-  ; t1 := <local-current-type> st2
+    (trm3, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT(Dyn()))> st1)> trm1
+  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm2
+  ; t1 := <current-type> st2
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
   ; if DynT(t2) := t1
-    then if not(<local-CanCoerce> (t2, StringT()) + <local-CanCoerce> (t2, Sort("List", [DynT(Dyn())])))
-      then <local-report-Warn> (trm1, NonStringOrListInExplodeConsPosition(<local-current-type> st2))
+    then if not(<CanCoerce> (t2, StringT()) + <CanCoerce> (t2, Sort("List", [DynT(Dyn())])))
+      then <report-Warn> (trm1, NonStringOrListInExplodeConsPosition(<current-type> st2))
     end
-    else if not(<local-CanCoerce> (t1, StringT()) + <local-CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
-      then <local-report-Err> (trm1, NonStringOrListInExplodeConsPosition(<local-current-type> st2))
+    else if not(<CanCoerce> (t1, StringT()) + <CanCoerce> (t1, Sort("List", [DynT(Dyn())])))
+      then <report-Err> (trm1, NonStringOrListInExplodeConsPosition(<current-type> st2))
     end end
-  ; st4 := <local-current-type(|DynT(Dyn()))> st3
+  ; st4 := <current-type(|DynT(Dyn()))> st3
 
 strategies // Terms in match position (sugar)
 
-local-insertCasts-StMatchTerm(|e1, st1):
+insertCasts-StMatchTerm(|e1, st1):
   trm@BuildDefault(_) -> (trm, st1)
   with
-    <local-report-Err> (trm, BuildDefaultInMatchTerm())
+    <report-Err> (trm, BuildDefaultInMatchTerm())
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   AnnoList(trm1, trm1*) -> (trm4, st4)
   with
-    (trm2, st2) := <local-insertCasts-StMatchTerm(|e1, st1)> trm1
-  ; (trm2*, st3) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1, DynT(Dyn())))> (trm1*, st2)
-  ; st4 := <local-current-type(|<local-current-type> st2)> st3
+    (trm2, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
+  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1, DynT(Dyn())))> (trm1*, st2)
+  ; st4 := <current-type(|<current-type> st2)> st3
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, AnnoList(trm3, trm2*))
       else trm4 := AnnoList(trm2, trm2*)
     end
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   NoAnnoList(trm1) -> (trm4, st2)
   with
-    (trm2, st2) := <local-insertCasts-StMatchTerm(|e1, st1)> trm1
+    (trm2, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, NoAnnoList(trm3))
       else trm4 := NoAnnoList(trm2)
     end
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   App(s1, trm1) -> (App(s2, trm2), st5)
   with
     !st1
-  ; local-stMatchTerm-as-st(\st2 -> st4 where
-        (trm2, st3) := <local-insertCasts-BuildTerm(|e1, st2)> trm1
-      ; (s2, st4) := <local-insertCasts-Strategy(|e1, st3)> s1\
+  ; stMatchTerm-as-st(\st2 -> st4 where
+        (trm2, st3) := <insertCasts-BuildTerm(|e1, st2)> trm1
+      ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1\
     | (s1, MultipleAppsInMatch()))
   ; ?st5
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   RootApp(s1) -> (RootApp(s2), st4)
   with
     !st1
-  ; local-stMatchTerm-as-st(\st2 -> st3 where
-      (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1\
+  ; stMatchTerm-as-st(\st2 -> st3 where
+      (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1\
     | (s1, MultipleAppsInMatch()))
   ; ?st4
 
-local-insertCasts-StMatchTerm(|e1, st1):
-  Char(_) -> <local-insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
+insertCasts-StMatchTerm(|e1, st1):
+  Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   Tuple(trm1*) -> (Tuple(trm2*), st3)
   with
-    t1 := <local-current-type> st1
+    t1 := <current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("Tuple", t1*)
-  ; if not(<local-CanCoerce> (t2, t1))
-      then <local-report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> (t2, t1))
+      then <report-Err> ("", TypeMismatch(t2, t1))
     end
-  ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; st3 := <local-current-type(|t2)> st2
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
+  ; st3 := <current-type(|t2)> st2
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   List(trm1*) -> (List(trm2*), st3)
   with
-    t1 := <local-current-type> st1
+    t1 := <current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("List", [DynT(Dyn())])
-  ; if not(<local-CanCoerce> (t2, t1))
-      then <local-report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> (t2, t1))
+      then <report-Err> ("", TypeMismatch(t2, t1))
     end
-  ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; st3 := <local-current-type(|t2)> st2
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
+  ; st3 := <current-type(|t2)> st2
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
   with
-    t1 := <local-current-type> st1
+    t1 := <current-type> st1
   ; t1* := <map(!DynT(Dyn()))> trm1*
   ; t2 := Sort("List", [DynT(Dyn())])
-  ; if not(<local-CanCoerce> (t2, t1))
-      then <local-report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> (t2, t1))
+      then <report-Err> ("", TypeMismatch(t2, t1))
     end
-  ; (trm2*, st2) := <thread-map(local-insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; (trm2, st3) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm1
-  ; st4 := <local-current-type(|t2)> st3
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
+  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm1
+  ; st4 := <current-type(|t2)> st3
 
-local-insertCasts-StMatchTerm(|e1, st1):
+insertCasts-StMatchTerm(|e1, st1):
   trm@BuildDefaultPT(_) -> (trm, st1)
   with
-    <local-report-Err> (trm, BuildDefaultInMatchTerm())
+    <report-Err> (trm, BuildDefaultInMatchTerm())
 
 strategies // Terms in build position (sugar)
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm@BuildDefault(trm1) -> (BuildDefault(trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; <local-report-Err> (trm, BuildDefaultInBuildTerm())
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
+  ; <report-Err> (trm, BuildDefaultInBuildTerm())
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   AnnoList(trm1, trm1*) -> (trm4, st4)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; (trm2*, st3) := <thread-map(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st2)
-  ; st4 := <local-current-type(|<local-current-type> st2)> st3
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
+  ; (trm2*, st3) := <thread-map(insertCasts-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st2)
+  ; st4 := <current-type(|<current-type> st2)> st3
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, AnnoList(trm3, trm2*))
       else trm4 := AnnoList(trm2, trm2*)
     end
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   NoAnnoList(trm1) -> (trm4, st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, NoAnnoList(trm3))
       else trm4 := NoAnnoList(trm2)
     end
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   App(s1, trm1) -> (App(s2, trm2), st5)
   with
     !st1
-  ; local-stBuildTerm-as-st(\st2 -> st4 where
-      (trm2, st3) := <local-insertCasts-BuildTerm(|e1, st2)> trm1
-    ; (s2, st4) := <local-insertCasts-Strategy(|e1, st3)> s1\)
+  ; stBuildTerm-as-st(\st2 -> st4 where
+      (trm2, st3) := <insertCasts-BuildTerm(|e1, st2)> trm1
+    ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1\)
   ; ?st5
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   RootApp(s1) -> (RootApp(s2), st4)
   with
     !st1
-  ; local-stBuildTerm-as-st(\st2 -> st3 where
-      (s2, st3) := <local-insertCasts-Strategy(|e1, st2)> s1\)
+  ; stBuildTerm-as-st(\st2 -> st3 where
+      (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1\)
   ; ?st4
 
-local-insertCasts-StBuildTerm(|e1, st1):
-  trm@Char(_) -> <local-insertCasts-local-StBuildTerm-Lit(|st1, IntT())>
+insertCasts-StBuildTerm(|e1, st1):
+  trm@Char(_) -> <insertCasts-StBuildTerm-Lit(|st1, IntT())>
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@Tuple(trm1*) -> (Tuple(trm2*), st3)
   with
-    (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
+    (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
   ; t1 := Sort("Tuple", t*)
-  ; _ := <computeCoercion(|t1, <local-current-type> st1)> trm1
-  ; st3 := <local-current-type(|t1)> st2
+  ; _ := <computeCoercion(|t1, <current-type> st1)> trm1
+  ; st3 := <current-type(|t1)> st2
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@List(trm1*) -> (List(trm2*), st3)
   with
-    (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
-  ; t1 := Sort("List", [<foldr1(?[<id>], local-LUB <+ !DynT(Dyn())) <+ !DynT(Dyn())> t*])
-  ; _ := <computeCoercion(|t1, <local-current-type> st1)> trm1
-  ; st3 := <local-current-type(|t1)> st2
+    (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
+  ; t1 := Sort("List", [<foldr1(?[<id>], LUB <+ !DynT(Dyn())) <+ !DynT(Dyn())> t*])
+  ; _ := <computeCoercion(|t1, <current-type> st1)> trm1
+  ; st3 := <current-type(|t1)> st2
 
 // TODO: extract types from expected type to support the type parameters properly here
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
   with
-    (trm2*, t*, st2) := <thread-map-local-LUB(local-insertCasts-local-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
-  ; (trm2, st3) := <local-insertCasts-StBuildTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm1
+    (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, DynT(Dyn())))> (trm1*, st1)
+  ; (trm2, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|Sort("List", [DynT(Dyn())]))> st2)> trm1
   // TODO: Use returned current types to inform list type
-  // Cannot use the same as before. <local-current-type> st3 must be a list and cast to it if DynT(Dyn()).
-  // But if not <local-CanCoerce> (<local-current-type> st3, t1), local-current-type in st4 should be Sort("List", [DynT(Dyn())])
-  ; t1 := Sort("List", [DynT(Dyn())]) //<foldr1(?[<id>], local-LUB <+ !DynT(Dyn()))> t*
-  ; _ := <computeCoercion(|t1, <local-current-type> st3)> trm1
-  ; st4 := <local-current-type(|t1)> st3
+  // Cannot use the same as before. <current-type> st3 must be a list and cast to it if DynT(Dyn()).
+  // But if not <CanCoerce> (<current-type> st3, t1), current-type in st4 should be Sort("List", [DynT(Dyn())])
+  ; t1 := Sort("List", [DynT(Dyn())]) //<foldr1(?[<id>], LUB <+ !DynT(Dyn()))> t*
+  ; _ := <computeCoercion(|t1, <current-type> st3)> trm1
+  ; st4 := <current-type(|t1)> st3
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm@BuildDefaultPT(trm1) -> (BuildDefaultPT(trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; <local-report-Err> (trm, BuildDefaultInBuildTerm())
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
+  ; <report-Err> (trm, BuildDefaultInBuildTerm())
 
 strategies // Terms in match position (string quotations)
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   trm@StringQuotation1(p, sqp1*) -> (StringQuotation1(p, sqp2*), st2)
   with
-    (sqp2*, st2) := <thread-map(local-insertCasts-Match-StringQuotedPart(|e1))> (sqp1*, st1)
-  ; <local-report-Err> (trm, StringQuotationInMatchTerm())
+    (sqp2*, st2) := <thread-map(insertCasts-Match-StringQuotedPart(|e1))> (sqp1*, st1)
+  ; <report-Err> (trm, StringQuotationInMatchTerm())
 
-local-insertCasts-StMatchTerm(|e1, st1) =
+insertCasts-StMatchTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation2(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StMatchTerm(|e1, st1)
+    , insertCasts-StMatchTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation2(p, sqp*)\)
 
-local-insertCasts-StMatchTerm(|e1, st1) =
+insertCasts-StMatchTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation3(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StMatchTerm(|e1, st1)
+    , insertCasts-StMatchTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation3(p, sqp*)\)
 
-local-insertCasts-StMatchTerm(|e1, st1) =
+insertCasts-StMatchTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation4(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StMatchTerm(|e1, st1)
+    , insertCasts-StMatchTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation4(p, sqp*)\)
 
-local-insertCasts-Match-StringQuotedPart(|e1) = otf22(local-insertCasts-Match-StringQuotedPart-(|e1))
+insertCasts-Match-StringQuotedPart(|e1) = otf22(insertCasts-Match-StringQuotedPart-(|e1))
 
-local-insertCasts-Match-StringQuotedPart(|e1):
+insertCasts-Match-StringQuotedPart(|e1):
   (sqp@QStr(_), st1) -> (sqp, st1)
 
-local-insertCasts-Match-StringQuotedPart(|e1):
+insertCasts-Match-StringQuotedPart(|e1):
   (sqp@QDollar(_), st1) -> (sqp, st1)
 
-local-insertCasts-Match-StringQuotedPart(|e1):
+insertCasts-Match-StringQuotedPart(|e1):
   (sqp@QBr(_), st1) -> (sqp, st1)
 
-local-insertCasts-Match-StringQuotedPart-(|e1):
+insertCasts-Match-StringQuotedPart-(|e1):
   (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|StringT())> st1)> trm1
+    (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|StringT())> st1)> trm1
 
-local-insertCasts-Match-StringQuotedPart(|e1) =
+insertCasts-Match-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape2(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Match-StringQuotedPart(|e1)
+    , insertCasts-Match-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape2(p, sqp*)\)
 
-local-insertCasts-Match-StringQuotedPart(|e1) =
+insertCasts-Match-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape3(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Match-StringQuotedPart(|e1)
+    , insertCasts-Match-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape3(p, sqp*)\)
 
-local-insertCasts-Match-StringQuotedPart(|e1) =
+insertCasts-Match-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape4(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Match-StringQuotedPart(|e1)
+    , insertCasts-Match-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape4(p, sqp*)\)
 
 strategies // Terms in build position (string quotations)
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm@StringQuotation1(p, sqp1*) -> (StringQuotation1(p, sqp2*), st2)
   with
     t1 := StringT()
-  ; t2 := <local-current-type> st1
-  ; if not(<local-CanCoerce>(t1, t2))
-      then <local-report-Err> (trm, TypeMismatch(t1, t2))
+  ; t2 := <current-type> st1
+  ; if not(<CanCoerce>(t1, t2))
+      then <report-Err> (trm, TypeMismatch(t1, t2))
     end
-  ; (sqp2*, st2) := <thread-map(local-insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <local-current-type(|StringT())> st1)
+  ; (sqp2*, st2) := <thread-map(insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <current-type(|StringT())> st1)
 
-local-insertCasts-StBuildTerm(|e1, st1) =
+insertCasts-StBuildTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation2(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StBuildTerm(|e1, st1)
+    , insertCasts-StBuildTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation2(p, sqp*)\)
 
-local-insertCasts-StBuildTerm(|e1, st1) =
+insertCasts-StBuildTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation3(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StBuildTerm(|e1, st1)
+    , insertCasts-StBuildTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation3(p, sqp*)\)
 
-local-insertCasts-StBuildTerm(|e1, st1) =
+insertCasts-StBuildTerm(|e1, st1) =
   otf12-sugar(
       \StringQuotation4(p, sqp*) -> StringQuotation1(p, sqp*)\
-    , local-insertCasts-StBuildTerm(|e1, st1)
+    , insertCasts-StBuildTerm(|e1, st1)
     , \StringQuotation1(p, sqp*) -> StringQuotation4(p, sqp*)\)
 
-local-insertCasts-Build-StringQuotedPart(|e1) = otf22(local-insertCasts-Build-StringQuotedPart-(|e1))
+insertCasts-Build-StringQuotedPart(|e1) = otf22(insertCasts-Build-StringQuotedPart-(|e1))
 
-local-insertCasts-Build-StringQuotedPart(|e1):
+insertCasts-Build-StringQuotedPart(|e1):
   (sqp@QStr(_), st1) -> (sqp, st1)
 
-local-insertCasts-Build-StringQuotedPart(|e1):
+insertCasts-Build-StringQuotedPart(|e1):
   (sqp@QDollar(_), st1) -> (sqp, st1)
 
-local-insertCasts-Build-StringQuotedPart(|e1):
+insertCasts-Build-StringQuotedPart(|e1):
   (sqp@QBr(_), st1) -> (sqp, st1)
 
-local-insertCasts-Build-StringQuotedPart-(|e1):
+insertCasts-Build-StringQuotedPart-(|e1):
   (StringEscape1(p, trm1), st1) -> (StringEscape1(p, trm2), st2)
   with
-    (trm2, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|StringT())> st1)> trm1
+    (trm2, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|StringT())> st1)> trm1
 
-local-insertCasts-Build-StringQuotedPart(|e1) =
+insertCasts-Build-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape2(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Build-StringQuotedPart(|e1)
+    , insertCasts-Build-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape2(p, sqp*)\)
 
-local-insertCasts-Build-StringQuotedPart(|e1) =
+insertCasts-Build-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape3(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Build-StringQuotedPart(|e1)
+    , insertCasts-Build-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape3(p, sqp*)\)
 
-local-insertCasts-Build-StringQuotedPart(|e1) =
+insertCasts-Build-StringQuotedPart(|e1) =
   otf22-sugar(
       \StringEscape4(p, sqp*) -> StringEscape1(p, sqp*)\
-    , local-insertCasts-Build-StringQuotedPart(|e1)
+    , insertCasts-Build-StringQuotedPart(|e1)
     , \StringEscape1(p, sqp*) -> StringEscape4(p, sqp*)\)
 
 strategies
 
-local-insertCasts-StMatchTerm-(|e1, st1):
+insertCasts-StMatchTerm-(|e1, st1):
   ta@TypeAscription(trm1, t1) -> (As(trm3, trm2), st3)
   with
     t2 := <desugar-Type> t1
-  ; t3 := <local-current-type> st1
-  ; (trm2, st2) := <local-insertCasts-StMatchTerm(|e1, <local-current-type(|t2)> st1)> trm1
-  ; if ErrT() := <local-current-type> st2
+  ; t3 := <current-type> st1
+  ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
+  ; if ErrT() := <current-type> st2
     then trm3 := trm2; st3 := st2
     else
       c := <computeCoercion(|t3, t2)> ta
@@ -609,18 +610,18 @@ local-insertCasts-StMatchTerm-(|e1, st1):
         then trm3 := trm2; st3 := st2
         else
           trm3 := Var(<newname> "typeAscribed")
-        ; st3 := <local-after-match(|BA(Cast(c), trm3))> st2
+        ; st3 := <after-match(|BA(Cast(c), trm3))> st2
       end
     end
 
-local-insertCasts-local-StBuildTerm-(|e1, st1):
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@TypeAscription(trm2, t1) -> (trm3, st3)
   with
     t2 := <desugar-Type> t1
-  ; t3 := <local-current-type> st1
-  ; if not(<local-CanCoerce> (t2, t3) + DynT(_) := t2)
-      then <local-report-Err> (trm1, TypeMismatch(t2, t3))
+  ; t3 := <current-type> st1
+  ; if not(<CanCoerce> (t2, t3) + DynT(_) := t2)
+      then <report-Err> (trm1, TypeMismatch(t2, t3))
     end
-  ; (trm3, st2) := <local-insertCasts-StBuildTerm(|e1, <local-current-type(|t2)> st1)> trm2
-  ; st3 := <local-current-type(|t2)> st2
+  ; (trm3, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st1)> trm2
+  ; st3 := <current-type(|t2)> st2
 

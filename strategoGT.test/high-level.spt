@@ -80,7 +80,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
     typed: e1 -> Add(e1, e2)
     where Add([[e2 :: str]], _) :: ? := e1
 ]] 1 errors at #1
-   0 warnings
+   1 warning at #1
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on literal that doesn't match the ascription [[
     typed :: Expr -> Expr
@@ -125,6 +125,7 @@ test Type ascription inside an untyped strategy is ok [[
 ]] 0 errors
    0 warnings
 
+// TODO: requires tracking current-type originated from a specific variable
 test Strengthen type of dyn variable after use in typed position [[
     typed1 :: Expr -> Expr
     typed1: e -> Add(e, e)
@@ -135,12 +136,12 @@ test Strengthen type of dyn variable after use in typed position [[
     untyped: Add(e1, _) -> e1
     where
       <typed1> e1
-    ; <typed2> [[e1]]
+    ; <[[typed2]]> e1
 ]] 1 error at #1
    0 warnings
 
 test Different types in different branches [[
-  map :: (? -> ?|) List(?) -> List(?)
+  map(? -> ?|) :: List(?) -> List(?)
   map(s) = fail
   Snd :: ? * ? -> ?
   Snd = fail
@@ -165,7 +166,7 @@ test Different types in different branches [[
    0 warnings
 
 test Dynamic type after different types in branches #1 [[
-  map :: (? -> ?|) List(?) -> List(?)
+  map(? -> ?|) :: List(?) -> List(?)
   map(s) = fail
   Snd :: ? * ? -> ?
   Snd = fail
@@ -191,7 +192,7 @@ test Dynamic type after different types in branches #1 [[
    0 warnings
 
 test Dynamic type after different types in branches #2 [[
-  map :: (? -> ?|) List(?) -> List(?)
+  map(? -> ?|) :: List(?) -> List(?)
   map(s) = fail
   Snd :: ? * ? -> ?
   Snd = fail
@@ -222,7 +223,7 @@ test Duplicate type definitions not allowed [[
   something-else = fail
 ]] 1 error at #1
 
-test Just an extract of generated code [[
+test Overloaded constructor, unambiguous use [[
   RightContext(s) = fail
 
   strategoGTParenthesize-deep :
@@ -235,28 +236,4 @@ signature constructors
   As                  : Var * Term -> Term 
   As                  : Var * PreTerm -> PreTerm
 ]] analysis succeeds
-
-test explode build with wrong constructor gives error [[
-  explode1 = ![[()]]#([])
-]] 1 error at #1
-
-test explode build with wrong arguments gives error [[
-  explode1 = !""#([[1]])
-]] 1 error at #1
-
-test explode match with wrong constructor gives error [[
-  explode1 = ?[[()]]#([])
-]] 1 error at #1
-
-test explode match with wrong arguments gives error [[
-  explode1 = ?""#([[1]])
-]] 1 error at #1
-
-test explode congruence with wrong constructor gives error [[
-  explode1 = [[()]]#([])
-]] 1 error at #1
-
-test explode congruence with wrong arguments gives error [[
-  explode1 = ""#([[1]])
-]] 1 error at #1
 

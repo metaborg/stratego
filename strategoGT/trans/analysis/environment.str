@@ -3,7 +3,6 @@ module analysis/environment
 imports
 
 libstratego-lib
-libstrc
 
 analysis/utils
 analysis/signatures
@@ -25,91 +24,93 @@ StBuildTerm : Map/*(str, Type)*/ * Type *                     Type -> Store
 
 strategies
 
-local-new-env: (strats, constrs) -> Env(strats, constrs)
-local-new-st = !St(<immap-new>, DynT(Dyn()))
-local-stMatchTerm-from-st: St(te, t) -> StMatchTerm(te, t, None(), [])
-local-stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, DynT(Dyn()), t)
-st-from-local-stMatchTerm: StMatchTerm(te, _, Some(t), s*) -> (St(te, t), s*)
-st-from-local-stMatchTerm: StMatchTerm(te, t, None(), s*) -> (St(te, t), s*)
-st-from-local-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
+new-env: (strats, constrs) -> Env(strats, constrs)
+new-st = !St(<immap-new>, DynT(Dyn()))
+stMatchTerm-from-st: St(te, t) -> StMatchTerm(te, t, None(), [])
+stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, DynT(Dyn()), t)
+st-from-stMatchTerm: StMatchTerm(te, _, Some(t), s*) -> (St(te, t), s*)
+st-from-stMatchTerm: StMatchTerm(te, t, None(), s*) -> (St(te, t), s*)
+st-from-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
 
-local-stMatchTerm-as-st(s|msg): StMatchTerm(te1, t1, ot1, s*) -> StMatchTerm(te1, t2, ot2, s*)
+stMatchTerm-as-st(s|msg): StMatchTerm(te1, t1, ot1, s*) -> StMatchTerm(te1, t2, ot2, s*)
   where
     St(_, t2) := <s> St(te1, t1)
   ; if(None() := ot1)
       then ot2 := Some(t2)
-      else ot2 := ot1; <local-report-Warn> msg
+      else ot2 := ot1; <report-Warn> msg
     end
-local-stBuildTerm-as-st(s): StBuildTerm(te1, t1, t2) -> StBuildTerm(te2, t3, t2)
+stBuildTerm-as-st(s): StBuildTerm(te1, t1, t2) -> StBuildTerm(te2, t3, t2)
   where
     // note we're using the inputtype here, not the current type
     St(te2, t3) := <s> St(te1, t2)
 
-local-strat-env = ?Env(<id>, _)
-local-strat-env(s) = Env(s, id)
+strat-env = ?Env(<id>, _)
+strat-env(s) = Env(s, id)
 
 // Note that this also tries to find a congruence if it fails to find a strategy
-local-strat-lookup(|name, snum, tnum) =
-  local-strat-env; immap-get(|(name, snum, tnum))
-  <+ where(0 := tnum); local-constr-lookup(|name, snum); not(imset-empty); !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
-  <+ local-strat-env; immap-get(|(name, 0, 0)); ?SDyn()
-local-strat-put(|name, snum, tnum, value) = local-strat-env(immap-put(|(name, snum, tnum), value))
-local-strat-merge-env(s): (e, se) -> <local-strat-env(immap-union(s|se))> e
-local-strat-copy-type(|name, snum, tnum, as) = local-strat-env(local-env-copy-type(|(name, snum, tnum), as))
-strat-zip-local-new-env: (names, types) -> <zip-local-new-env> (names-arities, types)
+strat-lookup(|name, snum, tnum) =
+  strat-env; immap-get(|(name, snum, tnum))
+strat-lookup(|name, snum, tnum) =
+  where(0 := tnum); constr-env; imrel-get(|(name, snum)); not(imset-empty); !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
+strat-lookup(|name, snum, tnum) =
+  strat-env; immap-get(|(name, 0, 0)); ?SDyn()
+strat-put(|name, snum, tnum, value) = strat-env(immap-put(|(name, snum, tnum), value))
+strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
+strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), as))
+strat-zip-new-env: (names, types) -> <zip-new-env> (names-arities, types)
 where if <map(is-string)> names
   then names-arities := <zip(\(n, FunTType(st*, tt*, _, _)) -> (n, <length> st*, <length> tt*)\ <+ \(n, SDyn()) -> (n, 0, 0)\)> (names, types)
   else names-arities := names
 end
 
-local-constr-env = ?Env(_, <id>)
-local-constr-env(s) = Env(id, s)
+constr-env = ?Env(_, <id>)
+constr-env(s) = Env(id, s)
 
-// N.B. Use local-constr-lookup/3 from main.str to filter on sort of the constructor.
-local-constr-lookup(|name, arity) = local-constr-env; imrel-get(|(name, arity)); imset-to-list
-local-constr-put(|name, arity, value) = local-constr-env(imrel-insert(|(name, arity), value))
-local-constr-merge-env: (e, ce) -> <local-constr-env(imrel-union(|ce))> e
+// N.B. Use constr-lookup/3 from main.str to filter on sort of the constructor.
+constr-lookup(|name, arity) = constr-env; imrel-get(|(name, arity)); imset-to-list
+constr-put(|name, arity, value) = constr-env(imrel-insert(|(name, arity), value))
+constr-merge-env: (e, ce) -> <constr-env(imrel-union(|ce))> e
 
-local-term-env = ?St(<id>, _)
-local-term-env = ?StMatchTerm(<id>, _, _, _)
-local-term-env = ?StBuildTerm(<id>, _, _)
-local-term-env(s) = St(s, id)
-local-term-env(s) = StMatchTerm(s, id, id, id)
-local-term-env(s) = StBuildTerm(s, id, id)
+term-env = ?St(<id>, _)
+term-env = ?StMatchTerm(<id>, _, _, _)
+term-env = ?StBuildTerm(<id>, _, _)
+term-env(s) = St(s, id)
+term-env(s) = StMatchTerm(s, id, id, id)
+term-env(s) = StBuildTerm(s, id, id)
 
-local-term-lookup(|name) = local-term-env; immap-get(|name)
-local-term-put(|name, value) = local-term-env(immap-put(|name, value))
-local-term-merge-env(s): (e, te) -> <local-term-env(immap-union(s|te))> e
-local-term-zip-local-new-env = zip-local-new-env
+term-lookup(|name) = term-env; immap-get(|name)
+term-put(|name, value) = term-env(immap-put(|name, value))
+term-merge-env(s): (e, te) -> <term-env(immap-union(s|te))> e
+term-zip-new-env = zip-new-env
 
-local-current-type = ?St(_, <id>)
-local-current-type = ?StMatchTerm(_, <id>, _, _)
-local-current-type = ?StBuildTerm(_, <id>, _)
-local-current-type(|t) = St(id, !t)
-local-current-type(|t) = StMatchTerm(id, !t, id, id)
-local-current-type(|t) = StBuildTerm(id, !t, id)
+current-type = ?St(_, <id>)
+current-type = ?StMatchTerm(_, <id>, _, _)
+current-type = ?StBuildTerm(_, <id>, _)
+current-type(|t) = St(id, !t)
+current-type(|t) = StMatchTerm(id, !t, id, id)
+current-type(|t) = StBuildTerm(id, !t, id)
 
-local-st-merge(s): (St(terms1, type1), St(terms2, type2)) -> St(terms3, type3)
+st-merge(s): (St(terms1, type1), St(terms2, type2)) -> St(terms3, type3)
   with
     terms3 := <immap-union(s|terms2)> terms1
   ; type3 := <s> (type1, type2)
 
-local-st-merge(s): (StBuildTerm(terms1, type1, input), StBuildTerm(terms2, type2, input)) -> StBuildTerm(terms3, type3, input)
-  with St(terms3, type3) := <local-st-merge(s)> (St(terms1, type1), St(terms2, type2))
+st-merge(s): (StBuildTerm(terms1, type1, input), StBuildTerm(terms2, type2, input)) -> StBuildTerm(terms3, type3, input)
+  with St(terms3, type3) := <st-merge(s)> (St(terms1, type1), St(terms2, type2))
 
-local-output-type(|t) = StMatchTerm(id, id, \None() -> Some(t)\, id)
-local-after-match(|s) = StMatchTerm(id, id, id, ![s | <id>])
-local-after-match = ?StMatchTerm(_, _, _, <id>)
+output-type(|t) = StMatchTerm(id, id, \None() -> Some(t)\, id)
+after-match(|s) = StMatchTerm(id, id, id, ![s | <id>])
+after-match = ?StMatchTerm(_, _, _, <id>)
 
 strategies
 
 /**
  * Copy type of `name` and bind it to the new name (`as`) as well. 
  */
-local-env-copy-type(|name, as): env -> <immap-put(|as, <immap-get(|name)> env)> env
+env-copy-type(|name, as): env -> <immap-put(|as, <immap-get(|name)> env)> env
 
-zip-local-new-env = zip;immap-from-list
-zip-local-new-env = zip;immap-from-list
+zip-new-env = zip;immap-from-list
+zip-new-env = zip;immap-from-list
 
-local-keep-left = Fst
-local-keep-right = Snd
+keep-left = Fst
+keep-right = Snd

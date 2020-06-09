@@ -1,0 +1,82 @@
+module strategies
+
+language strategoGT
+
+fixture [[
+specification
+
+signature
+  constructors
+    Foo : Bar
+
+strategies
+  [[...]]
+]]
+
+test fail strategy can be used in any typed strategy [[
+int-id :: int -> int
+int-id = fail
+
+str-id :: str -> str
+str-id = fail
+
+bar-id :: Bar -> Bar
+bar-id = fail
+]] 0 errors
+   0 warnings
+
+test fail strategy can be used as any typed strategy [[
+int-id(int -> int) :: ? -> ?
+int-id(s) = s
+
+str-id(str -> str) :: ? -> ?
+str-id(s) = s
+
+bar-id(Bar -> Bar) :: ? -> ?
+bar-id(s) = s
+
+testing =
+  int-id(fail)
+; str-id(fail)
+; bar-id(fail)
+]] 0 errors
+   0 warnings
+
+test id strategy can be used in any typed strategy [[
+int-id :: int -> int
+int-id = id
+
+str-id :: str -> str
+str-id = id
+
+bar-id :: Bar -> Bar
+bar-id = id
+]] 0 errors
+   0 warnings
+
+test id strategy can be used as any typed identity strategy [[
+int-id(int -> int) :: ? -> ?
+int-id(s) = s
+
+str-id(str -> str) :: ? -> ?
+str-id(s) = s
+
+bar-id(Bar -> Bar) :: ? -> ?
+bar-id(s) = s
+
+testing =
+  int-id(id)
+; str-id(id)
+; bar-id(id)
+]] 0 errors
+   0 warnings
+
+test proceed may not be used in a normal strategy [[
+foobar = [[proceed]]
+]] 1 error at #1
+   0 warnings
+
+test proceed should use the arity of the strategy it's in [[
+external foobar(a|) = [[proceed(a)]]
+]] 1 error at #1
+   0 warnings

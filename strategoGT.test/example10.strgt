@@ -2,6 +2,6 @@ module example
 
 strategies
 
-// topdown-TP :: (forall a. a -> a) b -> b // rank N polymorphism
-// topdown-TP :: (TP) TP                   // special TypePreserving type
+// topdown-TP(forall a. a -> a) :: b -> b // rank N polymorphism
+// topdown-TP(TP) :: TP                   // special TypePreserving type
   topdown-TP(s) = s; all(topdown-TP(s))

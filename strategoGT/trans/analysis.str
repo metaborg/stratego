@@ -6,20 +6,22 @@ imports
 
   analysis/modules
   analysis/main
-  libstrc
   pp
 
 rules // Analysis
 
-  editor-analyze:
-    (Module(_, decl*), path, project-path) -> (ast, errs, warns, notes)
-    with
-      (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
+  test-analysis = strip-annos
 
   editor-analyze:
-    (Specification(decl*), path, project-path) -> (ast, errs, warns, notes)
+    (m@Module(_, decl*), path, project-path) -> (ast, errs, warns, notes)
     with
-      (ast, errs, warns, notes)  := <insert-casts-top-level> Specification(decl*)
+      s := <origin-track-forced(!Specification(decl*))> m
+    ; (ast, errs, warns, notes)  := <insert-casts-top-level> s
+
+  editor-analyze:
+    (s@Specification(_), path, project-path) -> (ast, errs, warns, notes)
+    with
+      (ast, errs, warns, notes)  := <insert-casts-top-level> s
 
 rules // Editor services
 
@@ -47,7 +49,7 @@ rules // Debugging
     _ -> <try(id);pair-id;!"correct";debug> (1,2)
 
   test-cast-incorrect:
-    _ -> <pair-id;!"unreachable";debug> (1,2,3)
+    _ -> <try(id);pair-id;!"unreachable";debug> (1,2,3)
 
   pair-id :: ? * ? -> ? * ?
   pair-id = \c -> c\

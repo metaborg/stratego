@@ -16,7 +16,7 @@ strategies
   something-else :: ? * ? -> ?
   something-else = fail
 
-  map :: (? -> ?) List(?) -> List(?)
+  map(? -> ?) :: List(?) -> List(?)
   map(s) = fail
 
   Snd :: ? * ? -> ?

@@ -20,7 +20,7 @@ language:
       prefix: "$"
   stratego:
     build: incremental
-    gradual: "on"
+    gradual: dynamic
     format: jar
     args:
     - -la
@@ -35,5 +35,3 @@ language:
     - stratego-aterm
     - -la
     - stratego-sdf
-    - -la
-    - strc

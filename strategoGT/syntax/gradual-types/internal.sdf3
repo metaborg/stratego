@@ -11,6 +11,8 @@ context-free syntax
   MessageType.MTWarning = [warning]
   MessageType.MTNote = [note]
 
+  Def.DefHasType = [[Id] :: [SFunType]]
+
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.ErrT = [err]
 

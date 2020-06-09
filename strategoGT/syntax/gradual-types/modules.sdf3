@@ -6,4 +6,6 @@ imports
 sorts Def
 context-free syntax
 
-  Def.DefHasType = [[Id] :: [SFunType]]
+  Def.DefHasTypeNoArgs = [[Id] :: [Type] -> [Type]]
+  Def.DefHasType = [[Id]([{SType ", "}*]) :: [Type] -> [Type]]
+  Def.DefHasTType = [[Id]([{SType ", "}*] | [{Type ", "}*]) :: [Type] -> [Type]]

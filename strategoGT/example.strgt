@@ -21,6 +21,8 @@ IAdd : Instr
 
 strategies
 
+  hello = call( "" | !1 | 2, 3 )
+
   typed0 :: Expr -> Expr
   typed0: e1 -> Add(e1, e2)
   where e2 := Add(Int("1"), "1")
@@ -31,15 +33,15 @@ strategies
   typed2 :: Stat -> Stat
   typed2 = id
 
-  untyped: Add(e1, _) -> e1
+  untyped: Add(e1, _) -> Add(e1, "1")
   where
     <typed1> e1
   ; <typed2> e1
 
-  even :: (? -> ?) int -> int
+  even(? -> ?) :: int -> int
   even(k): n -> <if ?0 then <k> 1 else odd(k) end> n
 
-  odd :: (int -> int) int -> int
+  odd(int -> int) :: int -> int
   odd(k): n -> <if ?0 then <k> 0 else even(k) end> n
 
 //  test-warning :: Module -> Module
@@ -70,20 +72,20 @@ strategies
 //  desugar: a -> b
 //  where // a: 
 
-//  map :: (? -> ?) List(?) -> List(?)
-//  map :: (a -> b) List(a) -> List(b)
+//  map(? -> ?) :: List(?) -> List(?)
+//  map(a -> b) :: List(a) -> List(b)
 
-  create-Add :: (|?, ?) ? -> Expr
+  create-Add(|?, ?) :: ? -> Expr
   create-Add(|left, right) = !Add(left, right)
 
   desugar-Expr :: Expr -> Stat
   desugar-Expr: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
 
-  desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
+  desugar-Module( (|?) ? -> ? | String) :: Module -> Module
   desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
   where b := <lookup(|name)> globalName
 
-  desugar :: (? -> ? | ?) ? -> ?
+  desugar(? -> ? | ?) :: ? -> ?
   desugar(s | t) = fail
 
 //  foo: Int(e) -> Add(Int(e), Int("1"))
@@ -103,17 +105,17 @@ desugar-Stat = fail
 // desugar :: a -> a
 // Hd :: List(a) -> a
 
-// topdown-TP :: (forall a. a -> a) b -> b // rank N polymorphism
-// topdown-TP :: (TP) TP                   // special TypePreserving type
+// topdown-TP(forall a. a -> a) :: b -> b // rank N polymorphism
+// topdown-TP(TP) :: TP                   // special TypePreserving type
   topdown-TP(s) = s; all(topdown-TP(s))
 
-// topdown :: (? -> ?) ? -> ?              // not typed
+// topdown(? -> ?) :: ? -> ?              // not typed
 
-// all :: (TP) TP
-// all :: (? -> ?) ? -> ?
+// all(TP) :: TP
+// all(? -> ?) :: ? -> ?
 
-// collect-TU :: (forall a. a -> b) c -> List(b)
-// collect-TU :: (TU(b)) TU(List(b))       // special TypeUnifying type
+// collect-TU(forall a. a -> b) :: c -> List(b)
+// collect-TU(TU(b) ::) TU(List(b))       // special TypeUnifying type
   collect-TU(s) = ![<s> | <children;mapconcat(collect-TU(s))>]
 
   children :: ? -> List(?)
@@ -145,7 +147,7 @@ for(var i = 0; i <= 10; i++) {
 
   bottomup(s) = fail
   map(s) = fail
-  mapconcat :: (? -> List(?)) List(?) -> List(?)
+  mapconcat(? -> List(?)) :: List(?) -> List(?)
   mapconcat(s) = fail
   Snd :: ? * ? -> ?
   Snd = fail
@@ -178,7 +180,7 @@ signature constructors
 
 strategies
 
-  foo :: (Stat -> Stat) Stat -> Stat
+  foo(Stat -> Stat) :: Stat -> Stat
   foo(s) = foo2(s)
   
   foo2(s) = if id then s else foo(s) end
@@ -187,3 +189,12 @@ strategies
   bar = id
   
   baz = foo(bar)
+  
+  hello =
+    let
+      local-typed-strategy-is-defined :: int -> int
+      local-typed-strategy-is-defined = id
+    in local-typed-strategy-is-defined
+    end
+
+external foobar(a|) = proceed(a)

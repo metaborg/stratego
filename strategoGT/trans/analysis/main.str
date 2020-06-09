@@ -3,7 +3,6 @@ module analysis/main
 imports
 
 libstratego-lib
-libstrc
 
 libspoofax/term/annotation
 libspoofax/stratego/debug
@@ -29,52 +28,52 @@ strategies // entry-points from Java
  * ast: the stratego strategy/rule ast
  */
 // insert-casts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
-local-insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
-  with {| local-CanCoerce, local-LUB, local-Message:
-    ast' := <local-insertCasts(|strats, constrs, injection-closure, lub-map)> ast
-    ; msg* := <bagof-local-Message>
+insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
+  with {| CanCoerce, LUB:
+    ast' := <insertCasts(|strats, constrs, injection-closure, lub-map)> ast
+    ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
   |}
 
 // insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
-local-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
+insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
   with
-    rules(local-CanCoerce: (from, to) -> <id>
-      where <local-can-coerce(|injection-closure)> (from, to))
-  ; rules(local-LUB: pair -> <local-lub(|lub-map)> pair)
-  ; (ast', _) := <local-insertCasts-Def(|<local-new-env> (strats, constrs), <local-new-st>)> ast
+    rules(CanCoerce: (from, to) -> <id>
+      where <can-coerce(|injection-closure)> (from, to))
+  ; rules(LUB: pair -> <lub(|lub-map)> pair)
+  ; (ast', _) := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
 
-local-can-coerce(|injection-closure) = ?(ErrT(), _)
-local-can-coerce(|injection-closure) = ?(_, ErrT())
-local-can-coerce(|injection-closure) = ?(_, DynT(_))
+can-coerce(|injection-closure) = ?(ErrT(), _)
+can-coerce(|injection-closure) = ?(_, ErrT())
+can-coerce(|injection-closure) = ?(_, DynT(_))
 // We assume co-variant type parameters
-local-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
+can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
   where
-    <zip(local-CanCoerce)> (t1*, t2*)
-local-can-coerce(|injection-closure) = eq
-local-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
+    <zip(CanCoerce)> (t1*, t2*)
+can-coerce(|injection-closure) = eq
+can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
 
-local-lub(|lub-map): (x, x) -> x
-local-lub(|lub-map): (ErrT(), x) -> x
-local-lub(|lub-map): (x, ErrT()) -> x
-local-lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
-local-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
+lub(|lub-map): (x, x) -> x
+lub(|lub-map): (ErrT(), x) -> x
+lub(|lub-map): (x, ErrT()) -> x
+lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
+lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
 // pointwise lift LUB over type parameters
-local-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
-local-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
+lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
+lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
-local-constr-lookup-from(|name, arity, t1) =
-    local-constr-env
+constr-lookup-from(|name, arity, t1) =
+    constr-env
   ; imrel-get(|(name, arity))
   ; if not(DynT(_) := t1)
-      then imset-filter(where(\ConstrType(_, t2) -> <local-CanCoerce> (t1, t2)\))
+      then imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t1, t2)\))
     end
   ; imset-to-list
 
-local-constr-lookup-to(|name, arity, t1) =
-    local-constr-env
+constr-lookup-to(|name, arity, t1) =
+    constr-env
   ; imrel-get(|(name, arity))
-  ; imset-filter(where(\ConstrType(_, t2) -> <local-CanCoerce> (t2, t1)\))
+  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t2, t1)\))
   ; imset-to-list
