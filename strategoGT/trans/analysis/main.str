@@ -37,6 +37,14 @@ insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs,
     ; notes := <filter(?(MTNote(), <id>))> msg*
   |}
 
+/**
+ * Some strange "backward compatibility" rules in the grammar give these rule alternatives.
+ * This strategies desugars those.
+ */
+fix-Rule = bottomup(try(
+    \RuleNoCond(t1,t2) -> Rule(t1, t2, [])\
+  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
+))
 // insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
 insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
   with
@@ -47,7 +55,7 @@ insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
 
 can-coerce(|injection-closure) = ?(ErrT(), _)
 can-coerce(|injection-closure) = ?(_, ErrT())
-can-coerce(|injection-closure) = ?(_, DynT(_))
+can-coerce(|injection-closure) = ?(_, DynT())
 // We assume co-variant type parameters
 can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
   where
@@ -58,8 +66,8 @@ can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> inject
 lub(|lub-map): (x, x) -> x
 lub(|lub-map): (ErrT(), x) -> x
 lub(|lub-map): (x, ErrT()) -> x
-lub(|lub-map): (DynT(_), _) -> DynT(Dyn())
-lub(|lub-map): (_, DynT(_)) -> DynT(Dyn())
+lub(|lub-map): (DynT(), _) -> DynT()
+lub(|lub-map): (_, DynT()) -> DynT()
 // pointwise lift LUB over type parameters
 lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
 lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map

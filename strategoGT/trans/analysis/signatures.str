@@ -9,7 +9,7 @@ overlays
 
   FunTType(from, to) = FunTType([], [], from, to)
   FunTType(ft) = FunTType([], [], ft, ft)
-  FunTType() = FunTType([], [], DynT(_Dyn()), DynT(_Dyn()))
+  FunTType() = FunTType([], [], DynT(), DynT())
   ListT(elem) = Sort("List", [elem])
   ListT() = Sort("List", [_DynT()])
   TupleT(elems) = Sort("Tuple", elems)

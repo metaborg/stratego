@@ -25,9 +25,9 @@ StBuildTerm : Map/*(str, Type)*/ * Type *                     Type -> Store
 strategies
 
 new-env: (strats, constrs) -> Env(strats, constrs)
-new-st = !St(<immap-new>, DynT(Dyn()))
+new-st = !St(<immap-new>, DynT())
 stMatchTerm-from-st: St(te, t) -> StMatchTerm(te, t, None(), [])
-stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, DynT(Dyn()), t)
+stBuildTerm-from-st: St(te, t) -> StBuildTerm(te, DynT(), t)
 st-from-stMatchTerm: StMatchTerm(te, _, Some(t), s*) -> (St(te, t), s*)
 st-from-stMatchTerm: StMatchTerm(te, t, None(), s*) -> (St(te, t), s*)
 st-from-stBuildTerm: StBuildTerm(te, t, _) -> St(te, t)
