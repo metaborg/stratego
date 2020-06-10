@@ -56,7 +56,7 @@ strat-lookup(|name, snum, tnum) =
   strat-env; immap-get(|(name, 0, 0)); ?SDyn()
 strat-put(|name, snum, tnum, value) = strat-env(immap-put(|(name, snum, tnum), value))
 strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
-strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), as))
+strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), (as, snum, tnum)))
 strat-zip-new-env: (names, types) -> <zip-new-env> (names-arities, types)
 where if <map(is-string)> names
   then names-arities := <zip(\(n, FunTType(st*, tt*, _, _)) -> (n, <length> st*, <length> tt*)\ <+ \(n, SDyn()) -> (n, 0, 0)\)> (names, types)

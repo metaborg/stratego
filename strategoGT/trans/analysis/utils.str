@@ -223,8 +223,10 @@ getDefTypes-detect-duplicates: (name-arity, set) -> <imset-insert(|name-arity)> 
     then <report-Err> (<Fst> name-arity, DuplicateTypeDefinition())
   end
 
+extToNormal = ?AnnoDef(_, <extToNormal>)
 extToNormal: ExtSDefInl(n, s, t, b) -> SDefT(n, s, t, b)
 
+simpleDef = ?AnnoDef(_, <simpleDef>)
 simpleDef: ExtSDefInl(n, s, t, _) -> ExtSDef(n, s, t)
 simpleDef: SDefT(n, s, t, _) -> ExtSDef(n, s, t)
 simpleDef: SDef(n, s, _) -> ExtSDef(n, s, [])

@@ -39,9 +39,9 @@ insertCasts-Def-(|e1, st1):
 insertCasts-Def(|e1, st1):
   d@AnnoDef(_, ExtSDef(_, _, _)) -> (d, st1)
 
-insertCasts-Def-(|e1, st1) = insertCasts-StrategyDef(|e1, st1)
+insertCasts-Def(|e1, st1) = insertCasts-StrategyDef(|e1, st1)
 
-insertCasts-Def-(|e1, st1) = insertCasts-RuleDef(|e1, st1)
+insertCasts-Def(|e1, st1) = insertCasts-RuleDef(|e1, st1)
 insertCasts-Def-(|e1, st1):
   d -> (<desugar-DefHasType> d, st1)
 
@@ -84,7 +84,7 @@ insertCasts-StrategyDef-(|e1, st1):
 insertCasts-StrategyDef-(|e1, st1) =
     \ExtSDefInl(name, sargs, targs, body) -> SDefT(name, sargs, targs, body)\
   ; insertCasts-StrategyDef(|e1, st1)
-  ; (\SDefT(name, sargs, targs, body) -> ExtSDefInl(name, sargs, targs, body)\, id, id)
+  ; (\SDefT(name, sargs, targs, body) -> ExtSDefInl(name, sargs, targs, body)\, id)
 
 insertCasts-StrategyDef-(|e1, st1):
   d@ExtSDef(_, _, _) -> (d, st1)

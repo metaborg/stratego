@@ -8,7 +8,9 @@ libspoofax/term/annotation
 libspoofax/stratego/debug
 
 signatures/strategoGT-sig
+signatures/core/strategies-sig
 signatures/sugar/modules-sig
+signatures/sugar/strategies-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/strategies-sig
 signatures/gradual-types/internal-sig
@@ -538,18 +540,27 @@ insertCasts-Strategy-(|e1, st1):
 insertCasts-Strategy-(|e1, st1):
   p@Proceed(s1*) -> (call, st3)
   with
-    if FunTType(st*, [], t1, t2) := <strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
+    if FunTType(st*, tt*, t1, t2) := <strat-lookup(|ProceedNoArgs(), <length> s1*, 0)> e1
     then
-      s2* := <zip> (s1*, st*)
-    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-    ; st3 := <current-type(|t2)> st2
-    ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Proceed(s3*))> p
+      if 0 := <length> tt*; <eq> (<length> s1*, <length> st*)
+      then
+        s2* := <zip> (s1*, st*)
+      ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+      ; st3 := <current-type(|t2)> st2
+      ; call := <insertCastBefore(|<current-type> st1, t1)> <otf(!Proceed(s3*))> p
+      else
+        <report-Err> (p, ProceedWrongNumberOfArguments(<length> st*, 0))
+      ; s2* := <map-pair-right(|SDyn())> s1*
+      ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+      ; st3 := <current-type(|ErrT())> st2
+      ; call := Proceed(s3*)
+      end
     else
-      <report-Err> (p, ProceedInNonExtendStrategy())
-    ; s2* := <map-pair-right(|SDyn())> s1*
-    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-    ; st3 := <current-type(|ErrT())> st2
-    ; call := Proceed(s3*)
+        <report-Err> (p, ProceedInNonExtendStrategy())
+      ; s2* := <map-pair-right(|SDyn())> s1*
+      ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+      ; st3 := <current-type(|ErrT())> st2
+      ; call := Proceed(s3*)
     end
 
 insertCasts-Strategy-(|e1, st1):

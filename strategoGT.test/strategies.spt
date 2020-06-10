@@ -71,12 +71,34 @@ testing =
 ]] 0 errors
    0 warnings
 
-test proceed may not be used in a normal strategy [[
+test proceed may not be used in a non-extend strategy 1 [[
+foobar = [[proceed(|"a")]]
+]] 1 error at #1
+   0 warnings
+
+test proceed may not be used in a non-extend strategy 2 [[
 foobar = [[proceed]]
 ]] 1 error at #1
    0 warnings
 
-test proceed should use the arity of the strategy it's in [[
-external foobar(a|) = [[proceed(a)]]
+test proceed should use the arity of the strategy it's in 1 [[
+extend foobar = [[proceed(|"a")]]
 ]] 1 error at #1
    0 warnings
+
+test proceed should use the arity of the strategy it's in 2 [[
+extend foobar(|a) = [[proceed]]
+]] 1 error at #1
+   0 warnings
+
+test proceed in extend [[
+extend foobar = proceed
+]] 0 errors
+   0 warnings
+
+test proceed in override [[
+override foobar = proceed
+]] 0 errors
+   0 warnings
+
+

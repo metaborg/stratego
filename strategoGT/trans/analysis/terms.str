@@ -13,6 +13,7 @@ signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/sugar/terms-sig
 signatures/gradual-types/signatures-sig
+signatures/gradual-types/strategies-sig
 signatures/gradual-types/terms-sig
 signatures/gradual-types/internal-sig
 
@@ -163,7 +164,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   ; if DynT(_) := t2; not(DynT(_) := t1)
       then
         // Strengthen the type of a variable that was previously dynamic
-        st4 := <term-put(|<debuga> v{}, <debugb> t1)> st3
+        st4 := <term-put(|v{}, t1)> st3
       else
         st4 := st3
     end

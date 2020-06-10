@@ -196,5 +196,3 @@ strategies
       local-typed-strategy-is-defined = id
     in local-typed-strategy-is-defined
     end
-
-external foobar(a|) = proceed(a)
