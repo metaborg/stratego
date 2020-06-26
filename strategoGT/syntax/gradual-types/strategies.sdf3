@@ -20,6 +20,7 @@ context-free syntax
   Coercion.Id = [id]
   Coercion.RuntimeCheck = Type
 
+  SCoercion.SFail = [fail]
   SCoercion.SId = [id]
   SCoercion.SRuntimeCheck = SType
 

@@ -29,7 +29,7 @@ strategies // entry-points from Java
  */
 // insert-casts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
 insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
-  with {| CanCoerce, LUB:
+  with {| CanCoerce, CanCoerceSType, LUB:
     ast' := <insertCasts(|strats, constrs, injection-closure, lub-map)> ast
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
@@ -37,31 +37,113 @@ insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs,
     ; notes := <filter(?(MTNote(), <id>))> msg*
   |}
 
-/**
- * Some strange "backward compatibility" rules in the grammar give these rule alternatives.
- * This strategies desugars those.
- */
-fix-Rule = bottomup(try(
-    \RuleNoCond(t1,t2) -> Rule(t1, t2, [])\
-  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
-))
+///**
+// * Some strange "backward compatibility" rules in the grammar give these rule alternatives.
+// * This strategies desugars those.
+// */
+//fix-Rule = bottomup(try(
+//    \RuleNoCond(t1,t2) -> Rule(t1, t2, [])\
+//  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
+//))
 // insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
 insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
   with
-    rules(CanCoerce: (from, to) -> <id>
-      where <can-coerce(|injection-closure)> (from, to))
+    rules(CanCoerce: p -> <can-coerce(|injection-closure)> p)
+  ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
   ; rules(LUB: pair -> <lub(|lub-map)> pair)
   ; (ast', _) := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
 
-can-coerce(|injection-closure) = ?(ErrT(), _)
-can-coerce(|injection-closure) = ?(_, ErrT())
-can-coerce(|injection-closure) = ?(_, DynT())
-// We assume co-variant type parameters
-can-coerce(|injection-closure): (Sort(x, t1*), Sort(x, t2*)) -> <id>
+strategies
+
+can-coerce(|injection-closure): ((from, to), _) -> <id>
   where
-    <zip(CanCoerce)> (t1*, t2*)
-can-coerce(|injection-closure) = eq
-can-coerce(|injection-closure): (from, to) -> <imrel-contains(|from, to)> injection-closure
+    <imrel-contains(|from, to)> injection-closure
+
+can-coerce(|injection-closure) = ?((ErrT(), _), _)
+can-coerce(|injection-closure) = ?((_, ErrT()), _)
+can-coerce(|injection-closure) = ?((_, DynT()), _)
+can-coerce(|injection-closure) = ?((SortVar(x), SortVar(x)), st1); where(not(<type-var-lookup(|x)> st1))
+// We assume co-variant type parameters
+can-coerce(|injection-closure): ((Sort(x, t1*), Sort(x, t2*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+  where
+    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<zip> (t1*, t2*), st1)
+  ; (t3*, t4*) := <unzip> pairs
+
+can-coerce(|injection-closure):
+  ((SortVar(x), t1@SortVar(y)), st1) -> (p, st2)
+  where
+    if t2 := <type-var-lookup(|x)> st1
+    then p := (t2, t2); st2 := st1
+    else if t2 := <type-var-lookup(|y)> st1
+      then p := (t2, t2); st2 := st1
+      else st2 := <type-var-put(|x, t1)> st1
+         ; p := (t1, t1)
+      end
+    end
+
+can-coerce(|injection-closure):
+  ((SortVar(x), t1), st1) -> ((t2, t1), st2)
+  where
+    t2 := <type-var-lookup(|x) <+ !t1> st1
+  ; st2 := <type-var-put(|x, t2)> st1
+
+can-coerce(|injection-closure):
+  ((t1, SortVar(x)), st1) -> ((t1, t2), st2)
+  where
+    t2 := <type-var-lookup(|x) <+ !t1> st1
+  ; st2 := <type-var-put(|x, t2)> st1
+
+can-coerce(|injection-closure):
+  ((t, t), st1) -> ((t, t), st1)
+
+can-coerce(|injection-closure):
+  ((Sort(x, t1*), DynT()), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+  where
+    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map(!(<id>, DynT()))> t1*, st1)
+  ; (t3*, t4*) := <unzip> pairs
+
+can-coerce(|injection-closure):
+  ((DynT(), Sort(x, t1*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+  where
+    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map(!(DynT(), <id>))> t1*, st1)
+  ; (t3*, t4*) := <unzip> pairs
+
+can-coerce-stype(|injection-closure):
+  ((FunTType(st1*, tt1*, t1, t2), SDyn()), st1) ->
+    ((FunTType(st2*, tt2*, t3, t5), FunTType(st3*, tt3*, t4, t6)), st5)
+  where
+    ((t3, t4), st2) := <can-coerce(|injection-closure)> ((t1, DynT()), st1)
+  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map(!(<id>, SDyn()))> st1*, st2)
+  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map(!(<id>, DynT()))> tt1*, st3)
+  ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((t2, DynT()), st4)
+
+can-coerce-stype(|injection-closure):
+  ((SDyn(), FunTType(st1*, tt1*, t1, t2)), st1) ->
+    ((FunTType(st2*, tt2*, t3, t5), FunTType(st3*, tt3*, t4, t6)), st5)
+  where
+    ((t3, t4), st2) := <can-coerce(|injection-closure)> ((DynT(), t1), st1)
+  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map(!(SDyn(), <id>))> st1*, st2)
+  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map(!(DynT(), <id>))> tt1*, st3)
+  ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((DynT(), t2), st4)
+
+can-coerce-stype(|injection-closure):
+  ((FunTType(st1*, tt1*, t1, t2), FunTType(st2*, tt2*, t3, t4)), st1) ->
+    ((FunTType(st3*, tt3*, t5, t7), FunTType(st4*, tt4*, t6, t8)), st5)
+  where
+    ((t5, t6), st2) := <can-coerce(|injection-closure)> ((t1, t3), st1)
+  ; ((st3*, st4*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
+  ; ((tt3*, tt4*), st4) := <thread-map(can-coerce(|injection-closure))> (<zip> (tt1*, tt2*), st3)
+  ; ((t7, t8), st5) := <can-coerce(|injection-closure)> ((t2,t4), st4)
+
+instantiate-type-vars(|st1): t1 -> t2
+  with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x) <+ !DynT()> st1 + id})> t1
+
+fresh-type-vars(newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
+  with
+    tvmap := <collect(?SortVar(<id>));map(!(<id>, <newname>))> t1
+  ; <unzip;Snd;newvars> tvmap
+
+strategies
 
 lub(|lub-map): (x, x) -> x
 lub(|lub-map): (ErrT(), x) -> x
@@ -72,16 +154,16 @@ lub(|lub-map): (_, DynT()) -> DynT()
 lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
 lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
-constr-lookup-from(|name, arity, t1) =
+constr-lookup-from(|name, arity, t1, st1) =
     constr-env
   ; imrel-get(|(name, arity))
   ; if not(DynT(_) := t1)
-      then imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t1, t2)\))
+      then imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> ((t1, t2), st1)\))
     end
   ; imset-to-list
 
-constr-lookup-to(|name, arity, t1) =
+constr-lookup-to(|name, arity, t1, st1) =
     constr-env
   ; imrel-get(|(name, arity))
-  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> (t2, t1)\))
+  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> ((t2, t1), st1)\))
   ; imset-to-list

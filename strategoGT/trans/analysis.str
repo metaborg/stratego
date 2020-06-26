@@ -45,11 +45,8 @@ rules // Debugging
       filename := <guarantee-extension(|"analyzed.strgt")> path;
       result   := <pp-strategoGT-string> ast
 
-  test-cast-correct:
-    _ -> <try(id);pair-id;!"correct";debug> (1,2)
+  count-inserted-casts = count-bottomup(?Cast(_));Snd
 
-  test-cast-incorrect:
-    _ -> <try(id);pair-id;!"unreachable";debug> (1,2,3)
+  count-inserted-proxies = count-bottomup(?Proxy(_,_,_) + ?ProxyT(_,_,_,_,_));Snd
 
-  pair-id :: ? * ? -> ? * ?
-  pair-id = \c -> c\
+  count-inserted-casts-and-proxies = count-bottomup(?Cast(_) + ?Proxy(_,_,_) + ?ProxyT(_,_,_,_,_));Snd
