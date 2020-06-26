@@ -7,6 +7,7 @@ specification
 rules
   hello = [[this-is-undefined]]
 ]] 1 error at #1
+   has origin locations
 
 test defined strategy can be found [[
 specification
@@ -15,12 +16,14 @@ rules
 
   hello = strategy-is-defined
 ]] 0 errors
+   has origin locations
 
 test call dynamic is not supported [[
 specification
 rules
   hello = [[call( "" | !1 | 2, 3 )]]
 ]] 1 error at #1
+   has origin locations
 
 test strategy type is used, cast is inserted [[
 specification

@@ -19,33 +19,42 @@ test Untyped Well-Formed AST [[
     untyped: e -> Add(e, e)
 ]] 0 errors
    0 warnings
+   has origin locations
+   run count-inserted-casts-and-proxies to 0
 
 test Typed Well-Formed AST [[
     typed :: Expr -> Expr
     typed: e -> Add(e, e)
 ]] 0 errors
    0 warnings
+   has origin locations
+   run count-inserted-casts-and-proxies to 0
 
 test Untyped Ill-Formed AST [[
     untyped: e -> Add(e, [["1"]])
 ]] 0 errors
    1 warning at #1
+   has origin locations
+   run count-inserted-casts-and-proxies to 0
 
 test Ill-formed AST derived from likely types of input [[
   untyped: Module(name, stats) -> Module([[stats]], [[name]])
 ]] 2 warnings at #1, #2
+   has origin locations
 
 test Typed Ill-Formed AST gives error [[
     typed :: Expr -> Expr
     typed: e -> [["1"]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST gives error [[
     typed :: Expr -> Expr
     typed: e -> Add(e, [["1"]])
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with indirection gives error inside where clause because it's a rule, not a strategy [[
     typed :: Expr -> Expr
@@ -53,6 +62,7 @@ test Typed Ill-Formed AST with indirection gives error inside where clause becau
     where [[e2]] := "1"
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
@@ -60,6 +70,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
     where [[e2 :: Expr]] := "1"
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
@@ -67,6 +78,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
     where [[Add]](e2 :: Expr, _) := "1"
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
@@ -74,6 +86,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
     where Add([[e2 :: str]], _) := e1
 ]] 2 errors at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
@@ -81,6 +94,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
     where Add([[e2 :: str]], _) :: ? := e1
 ]] 1 errors at #1
    1 warning at #1
+   has origin locations
 
 test Typed Ill-Formed AST with indirection and type ascription gives error on literal that doesn't match the ascription [[
     typed :: Expr -> Expr
@@ -88,6 +102,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on li
     where e2 := [["1"]] :: Expr
 ]] 1 errors at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with more indirection gives error inside where clause because it's a rule, not a strategy [[
     typed :: Expr -> Expr
@@ -95,6 +110,7 @@ test Typed Ill-Formed AST with more indirection gives error inside where clause 
     where [[e2]] := Add(Int("1"), [["1"]])
 ]] 1 error at #1
    1 warning at #2
+   has origin locations
 
 test Typed Ill-Formed AST with inner type ascription gives error on ill-formed part [[
     typed :: Expr -> Expr
@@ -102,6 +118,7 @@ test Typed Ill-Formed AST with inner type ascription gives error on ill-formed p
     where e2 := Add(Int("1"), [["1"]] :: Expr)
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST with outer type ascription gives error on ill-formed part [[
     typed :: Expr -> Expr
@@ -109,12 +126,14 @@ test Typed Ill-Formed AST with outer type ascription gives error on ill-formed p
     where e2 := Add(Int("1"), [["1"]]) :: Expr
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Typed Ill-Formed AST in annotation only gives warning [[
     typed :: Expr -> Expr
     typed: e -> Add(e, e){Add(Int("1"), [["1"]])}
 ]] 1 warning at #1
    0 errors
+   has origin locations
 
 test Type ascription inside an untyped strategy is ok [[
     typed :: Expr -> Expr
@@ -124,6 +143,8 @@ test Type ascription inside an untyped strategy is ok [[
     where <typed> e1
 ]] 0 errors
    0 warnings
+   has origin locations
+   run count-inserted-casts-and-proxies to 0
 
 // TODO: requires tracking current-type originated from a specific variable
 test Strengthen type of dyn variable after use in typed position [[
@@ -139,6 +160,7 @@ test Strengthen type of dyn variable after use in typed position [[
     ; <[[typed2]]> e1
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test Different types in different branches [[
   map(? -> ?|) :: List(?) -> List(?)
@@ -164,6 +186,7 @@ test Different types in different branches [[
   ; b := <something-else> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test Dynamic type after different types in branches #1 [[
   map(? -> ?|) :: List(?) -> List(?)
@@ -190,6 +213,7 @@ test Dynamic type after different types in branches #1 [[
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test Dynamic type after different types in branches #2 [[
   map(? -> ?|) :: List(?) -> List(?)
@@ -216,12 +240,14 @@ test Dynamic type after different types in branches #2 [[
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test Duplicate type definitions not allowed [[
   something-else :: List(?) -> ?
   [[something-else]] :: ? * ? -> ?
   something-else = fail
 ]] 1 error at #1
+   has origin locations
 
 test Overloaded constructor, unambiguous use [[
   RightContext(s) = fail
@@ -235,5 +261,7 @@ signature constructors
   Explode             : Term * Term -> PreTerm
   As                  : Var * Term -> Term 
   As                  : Var * PreTerm -> PreTerm
-]] analysis succeeds
+]] 0 errors
+   0 warnings
+   has origin locations
 
