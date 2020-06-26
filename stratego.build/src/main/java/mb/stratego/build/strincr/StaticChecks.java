@@ -531,7 +531,7 @@ public class StaticChecks {
             }
             final Set<String> defs = new HashSet<>();
             for(String s : theVisibleStrategies.readSet()) {
-                if(s.startsWith(usedAmbStrategyStart.name)) {
+                if(StrategySignature.fromCified(s).name.equals(usedAmbStrategyStart.name)) {
                     defs.add(s);
                 }
             }
