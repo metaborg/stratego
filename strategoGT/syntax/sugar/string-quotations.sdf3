@@ -56,10 +56,10 @@ lexical restrictions
   Dollar4 -/- [\<\>].[\$]
 
 syntax
-  StringQuotation-CF.StringQuotation1 = "$" "[" Padding-CF StringQuotedPart1-CF* "]"
-  StringQuotation-CF.StringQuotation2 = "$" "{" Padding-CF StringQuotedPart2-CF* "}"
-  StringQuotation-CF.StringQuotation3 = "$" "(" Padding-CF StringQuotedPart3-CF* ")"
-  StringQuotation-CF.StringQuotation4 = "$" "<" Padding-CF StringQuotedPart4-CF* ">"
+  StringQuotation-CF.StringQuotation1 = "$" "[" Padding-LEX StringQuotedPart1-CF* "]"
+  StringQuotation-CF.StringQuotation2 = "$" "{" Padding-LEX StringQuotedPart2-CF* "}"
+  StringQuotation-CF.StringQuotation3 = "$" "(" Padding-LEX StringQuotedPart3-CF* ")"
+  StringQuotation-CF.StringQuotation4 = "$" "<" Padding-LEX StringQuotedPart4-CF* ">"
 
   StringQuotedPart1-CF.StringEscape1 = Padding-LEX "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
   StringQuotedPart2-CF.StringEscape2 = Padding-LEX "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}"
