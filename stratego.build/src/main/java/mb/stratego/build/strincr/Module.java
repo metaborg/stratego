@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -38,16 +37,15 @@ public final class Module implements Serializable {
     }
 
     /**
-     * Create source module with a normalized, relative path from the projectLocation to the module file. This
+     * Create source module with a normalized, absolute path to the module file. This
      * should give us a unique string to use to identify the module file within this pipeline.
      */
-    public static Module source(Path projectLocationPath, Path path) {
-        return new Module(projectLocationPath.relativize(path.toAbsolutePath().normalize()).toString(),
-            Type.source);
+    public static Module source(Path path) {
+        return new Module(path.toAbsolutePath().normalize().toString(), Type.source);
     }
 
     static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<File> includeDirs,
-        Path projectLocation, List<Message<?>> outputMessages, CheckedFunction1<Path, FSResource, IOException> require) throws ExecException, IOException {
+        List<Message<?>> outputMessages, CheckedFunction1<Path, FSResource, IOException> require) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {
@@ -61,11 +59,11 @@ public final class Module implements Serializable {
                             if(isLibraryRTree(rtreePath)) {
                                 result.add(Module.library(rtreePath.toString()));
                             } else {
-                                result.add(Module.source(projectLocation, rtreePath));
+                                result.add(Module.source(rtreePath));
                             }
                         } else if(Files.exists(strPath)) {
                             foundSomethingToImport = true;
-                            result.add(Module.source(projectLocation, strPath));
+                            result.add(Module.source(strPath));
                         }
                     }
                     if(!foundSomethingToImport) {
@@ -88,7 +86,7 @@ public final class Module implements Serializable {
                             for(File strFile : strFiles) {
                                 foundSomethingToImport = true;
                                 Path p = strFile.toPath();
-                                result.add(Module.source(projectLocation, p));
+                                result.add(Module.source(p));
                             }
                         }
                     }
@@ -117,10 +115,6 @@ public final class Module implements Serializable {
         char[] chars = new char[4];
         BufferedReader r = Files.newBufferedReader(rtreePath);
         return r.read(chars) != -1 && Arrays.equals(chars, "Spec".toCharArray());
-    }
-
-    String resolveFrom(Path projectLocation) throws MalformedURLException {
-        return projectLocation.resolve(path).normalize().toAbsolutePath().toString();
     }
 
     @Override public boolean equals(Object o) {

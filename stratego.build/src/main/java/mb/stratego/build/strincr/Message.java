@@ -87,7 +87,7 @@ public abstract class Message<T extends IStrategoTerm> {
     }
 
     public String toString() {
-        return "In module '" + moduleFilePath + "': " + getMessage();
+        return "In '" + moduleFilePath + "':\n" + getMessage();
     }
 
     public abstract String getMessage();

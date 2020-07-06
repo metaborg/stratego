@@ -149,7 +149,7 @@ public class Analysis {
     protected Output collectInformation(ExecContext execContext, Input input, Path projectLocationPath)
         throws IOException, ExecException, InterruptedException {
         timestamps.add(System.nanoTime());
-        final Module inputModule = Module.source(projectLocationPath, Paths.get(input.inputFile.toURI()));
+        final Module inputModule = Module.source(Paths.get(input.inputFile.toURI()));
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
 
@@ -253,7 +253,7 @@ public class Analysis {
 
             final String projectName = projectName(module.path);
             final Frontend.Input frontInput =
-                new Frontend.Input(projectLocationPath.toFile(), module.resolveFrom(projectLocationPath), projectName,
+                new Frontend.Input(projectLocationPath.toFile(), module.path, projectName,
                     input.originTasks);
             timestamps.add(System.nanoTime());
             final @Nullable Frontend.NormalOutput frontOutput =
@@ -261,10 +261,10 @@ public class Analysis {
             timestamps.add(System.nanoTime());
 
             if(frontOutput == null) {
-                execContext.logger().debug("File deletion detected: " + module.resolveFrom(projectLocationPath));
+                execContext.logger().debug("File deletion detected: " + module.path);
                 continue;
             }
-            execContext.logger().debug("File parsed: " + module.resolveFrom(projectLocationPath));
+            execContext.logger().debug("File parsed: " + module.path);
 
             for(Map.Entry<String, Integer> strategyNoOfDefs : frontOutput.noOfDefinitions.entrySet()) {
                 Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, strategyNoOfDefs.getKey(), ArrayList::new)
@@ -321,8 +321,7 @@ public class Analysis {
 
             // resolving imports
             final java.util.Set<Module> expandedImports = Module
-                .resolveWildcards(module.path, theImports, input.includeDirs, projectLocationPath,
-                    messages, path -> {
+                .resolveWildcards(module.path, theImports, input.includeDirs, messages, path -> {
                         timestamps.add(System.nanoTime());
                         final FSResource res = execContext.require(path);
                         timestamps.add(System.nanoTime());
