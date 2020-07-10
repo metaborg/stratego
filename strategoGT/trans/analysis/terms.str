@@ -11,7 +11,9 @@ libspoofax/stratego/debug
 signatures/core/terms-sig
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
+signatures/sugar/strategies-sig
 signatures/sugar/terms-sig
+signatures/sugar/string-quotations-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/strategies-sig
 signatures/gradual-types/terms-sig
@@ -46,7 +48,6 @@ insertCasts-StMatchTerm(|e1, st1):
       then if t3 := <LUB> (t1, t2)
         then st2 := <term-put(|v{}, t3)> st1
         else
-//          where(try(<debug> (t2, t1); <lub(|());debug> (t1, t2); <LUB;debug> (t1, t2)));
           <report-Err> (v, VariableBoundToIncompatibleType(t2, t1))
         ; st2 := st1
         end // TODO: do this for both unresolved names and unbound names
@@ -143,6 +144,9 @@ insertCasts-StBuildTerm(|e1):
 
 insertCasts-StBuildTerm-Type(|e1, t1):
   (trm, st1) -> <insertCasts-StBuildTerm(|e1, <current-type(|t1)> st1)> trm
+
+insertCasts-StBuildTerm-Type(|e1):
+  ((trm, t1), st1) -> <insertCasts-StBuildTerm(|e1, <current-type(|t1)> st1)> trm
 
 insertCasts-StBuildTerm(|e1, st1) = otf12(insertCasts-StBuildTerm-(|e1, st1))
 
@@ -269,7 +273,7 @@ StBuildTerm-Op-threader(set-type|e1):
 
 StBuildTerm-Op-type-relation(|st1): (t2*, t1*) -> result
   with
-    zipped := <zip(!(<id>, st1); CanCoerce;!AllCanCoerce()
+    zipped := <zip(!(<id>, st1); CanCoerce; !AllCanCoerce()
                 <+ ?(DynT(), _);!SomeDyn()
                 <+ !Unrelated())> (t2*, t1*)
   ; result := <foldl(one(?Unrelated());!Unrelated()
@@ -320,8 +324,8 @@ insertCasts-StMatchTerm-(|e1, st1):
   with
     (trm2, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
   ; if App(c@Cast(_), trm3) := trm2
-      then trm4 := App(c, NoAnnoList(trm3))
-      else trm4 := NoAnnoList(trm2)
+      then trm4 := App(c, NoAnnoList(<try(?NoAnnoList(<id>))> trm3))
+      else trm4 := NoAnnoList(<try(?NoAnnoList(<id>))> trm2)
     end
 
 insertCasts-StMatchTerm-(|e1, st1):
@@ -347,6 +351,9 @@ insertCasts-StMatchTerm(|e1, st1):
   Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
 
 insertCasts-StMatchTerm-(|e1, st1):
+  Tuple([trm1]) -> <insertCasts-StMatchTerm-(|e1, st1)> trm1
+
+insertCasts-StMatchTerm-(|e1, st1):
   Tuple(trm1*) -> (Tuple(trm2*), st3)
   with
     t1 := <current-type> st1
@@ -355,7 +362,10 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if not(<CanCoerce> ((t2, t1), st1))
       then <report-Err> ("", TypeMismatch(t2, t1))
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
+  ; if not(TupleT(t2*) := t1)
+      then t2* := t1*
+    end
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
   ; st3 := <current-type(|t2)> st2
 
 insertCasts-StMatchTerm-(|e1, st1):
@@ -374,13 +384,16 @@ insertCasts-StMatchTerm-(|e1, st1):
   ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
   with
     t1 := <current-type> st1
-  ; t1* := <map(!DynT())> trm1*
+  ; if ListT(t) := t1
+      then t1* := <map(!t)> trm1*
+      else t1* := <map(!DynT())> trm1*
+    end
   ; t2 := ListT()
   ; if not(<CanCoerce> ((t2, t1), st1))
       then <report-Err> ("", TypeMismatch(t2, t1))
     end
   ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|ListT())> st2)> trm1
+  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st2)> trm1
   ; st4 := <current-type(|t2)> st3
 
 insertCasts-StMatchTerm(|e1, st1):
@@ -412,8 +425,8 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
   ; if App(c@Cast(_), trm3) := trm2
-      then trm4 := App(c, NoAnnoList(trm3))
-      else trm4 := NoAnnoList(trm2)
+      then trm4 := App(c, NoAnnoList(<try(?NoAnnoList(<id>))> trm3))
+      else trm4 := NoAnnoList(<try(?NoAnnoList(<id>))> trm2)
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
@@ -437,12 +450,19 @@ insertCasts-StBuildTerm(|e1, st1):
   trm@Char(_) -> <insertCasts-StBuildTerm-Lit(|st1, IntT())>
 
 insertCasts-StBuildTerm-(|e1, st1):
+  Tuple([trm1]) -> <insertCasts-StBuildTerm-(|e1, st1)> trm1
+
+insertCasts-StBuildTerm-(|e1, st1):
   trm1@Tuple(trm1*) -> (Tuple(trm2*), st3)
   with
-    (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, DynT()))> (trm1*, st1)
-  ; t1 := TupleT(t*)
-  ; _ := <computeCoercion(|trm1, st2)> (<current-type> st1, t1)
-  ; st3 := <current-type(|t1)> st2
+    t1 := <current-type> st1
+  ; if TupleT(t1*) := t1
+      then (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
+      else (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, DynT()))> (trm1*, st1)
+    end
+  ; t2 := TupleT(t*)
+  ; _ := <computeCoercion(|trm1, st2)> (t1, t2)
+  ; st3 := <current-type(|t2)> st2
 
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@List(trm1*) -> (List(trm2*), st3)
@@ -600,7 +620,7 @@ strategies
 insertCasts-StMatchTerm-(|e1, st1):
   ta@TypeAscription(trm1, t1) -> (As(trm3, trm2), st4)
   with
-    t2 := <desugar-Type> t1
+    t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
   ; if ErrT() := <current-type> st2
@@ -618,7 +638,7 @@ insertCasts-StMatchTerm-(|e1, st1):
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@TypeAscription(trm2, t1) -> (trm3, st3)
   with
-    t2 := <desugar-Type> t1
+    t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
   ; if not(<CanCoerce> ((t2, t3), st1) + DynT() := t2)
       then <report-Err> (trm1, TypeMismatch(t2, t3))

@@ -31,6 +31,8 @@ test typed map [[
 //   has origin locations
 
 test untyped collect-all [[
+    mapconcat(s) = fail
+
     collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 
     test-collect-all :: ? -> List(str)
@@ -40,6 +42,13 @@ test untyped collect-all [[
    has origin locations
 
 test typed collect-all [[
+    conc :: List(a) * List(a) -> List(a)
+    conc = fail
+
+    mapconcat(a -> List(b)) :: List(a) -> List(b)
+    mapconcat(s): [t@_#(c*) | t] -> <conc> (<s> t, <mapconcat(s)> c*)
+    mapconcat(s): [] -> []
+
     collect-all(? -> b) :: ? -> List(b)
     collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 

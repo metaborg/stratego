@@ -97,33 +97,33 @@ can-coerce(|injection-closure):
   ((t, t), st1) -> ((t, t), st1)
 
 can-coerce(|injection-closure):
-  ((Sort(x, t1*), DynT()), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+  ((Sort(x, t1*), DynT()), st1) -> ((Sort(x, t3*), DynT()), st2)
   where
-    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map(!(<id>, DynT()))> t1*, st1)
+    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map-pair-right(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
 
 can-coerce(|injection-closure):
-  ((DynT(), Sort(x, t1*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+  ((DynT(), Sort(x, t1*)), st1) -> ((DynT(), Sort(x, t4*)), st2)
   where
-    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map(!(DynT(), <id>))> t1*, st1)
+    (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map-pair-left(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
 
 can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, t1, t2), SDyn()), st1) ->
-    ((FunTType(st2*, tt2*, t3, t5), FunTType(st3*, tt3*, t4, t6)), st5)
+    ((FunTType(st2*, tt2*, t3, t5), SDyn()), st5)
   where
     ((t3, t4), st2) := <can-coerce(|injection-closure)> ((t1, DynT()), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map(!(<id>, SDyn()))> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map(!(<id>, DynT()))> tt1*, st3)
+  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
+  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map-pair-right(|DynT())> tt1*, st3)
   ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((t2, DynT()), st4)
 
 can-coerce-stype(|injection-closure):
   ((SDyn(), FunTType(st1*, tt1*, t1, t2)), st1) ->
-    ((FunTType(st2*, tt2*, t3, t5), FunTType(st3*, tt3*, t4, t6)), st5)
+    ((SDyn(), FunTType(st3*, tt3*, t4, t6)), st5)
   where
     ((t3, t4), st2) := <can-coerce(|injection-closure)> ((DynT(), t1), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map(!(SDyn(), <id>))> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map(!(DynT(), <id>))> tt1*, st3)
+  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
+  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map-pair-left(|DynT())> tt1*, st3)
   ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((DynT(), t2), st4)
 
 can-coerce-stype(|injection-closure):
@@ -137,6 +137,8 @@ can-coerce-stype(|injection-closure):
 
 instantiate-type-vars(|st1): t1 -> t2
   with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x) <+ !DynT()> st1 + id})> t1
+
+fresh-type-vars(newvars): LocalDef(t1) -> t1 with <newvars> []
 
 fresh-type-vars(newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
   with

@@ -7,6 +7,7 @@ libstratego-lib
 analysis/utils
 analysis/signatures
 signatures/-
+signatures/gradual-types/internal-sig
 signatures/gradual-types/signatures-sig
 signatures/core/signatures-sig
 
@@ -60,9 +61,12 @@ strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
 strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), (as, snum, tnum)))
 strat-zip-new-env: (names, types) -> <zip-new-env> (names-arities, types)
 where if <map(is-string)> names
-  then names-arities := <zip(\(n, FunTType(st*, tt*, _, _)) -> (n, <length> st*, <length> tt*)\ <+ \(n, SDyn()) -> (n, 0, 0)\)> (names, types)
+  then names-arities := <zip(name-type-to-arity)> (names, types)
   else names-arities := names
 end
+
+name-type-to-arity: (n, LocalDef(FunTType(st*, tt*, _, _))) -> (n, <length> st*, <length> tt*)
+name-type-to-arity: (n, LocalDef(SDyn())) -> (n, 0, 0)
 
 constr-env = ?Env(_, <id>)
 constr-env(s) = Env(id, s)
