@@ -14,6 +14,11 @@
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>stratego.build</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>pie.taskdefs.guice</artifactId>
     </dependency>
     <dependency>
@@ -25,10 +30,6 @@
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.spoofax.core</artifactId>
       <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-vfs2</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
