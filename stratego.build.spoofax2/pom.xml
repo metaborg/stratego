@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>stratego.build</artifactId>
+  <artifactId>stratego.build.spoofax2</artifactId>
 
   <parent>
     <groupId>org.metaborg</groupId>
@@ -14,40 +14,21 @@
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>pie.api</artifactId>
+      <artifactId>pie.taskdefs.guice</artifactId>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.util</artifactId>
+      <artifactId>org.metaborg.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.terms</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.interpreter.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.strategoxt.strj</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>stratego.compiler.pack</artifactId>
+      <artifactId>org.metaborg.spoofax.core</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
+      <artifactId>commons-vfs2</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>

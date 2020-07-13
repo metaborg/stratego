@@ -6,7 +6,8 @@ plugins {
 dependencies {
   api(platform("org.metaborg:parent:$version"))
   api(project(":stratego.build"))
-  implementation("org.metaborg:org.metaborg.core:$version")
-  implementation("org.metaborg:org.metaborg.spoofax.core:$version")
+  api("org.metaborg:pie.taskdefs.guice")
+  api("org.metaborg:org.metaborg.core:$version")
+  api("org.metaborg:org.metaborg.spoofax.core:$version")
   compileOnly("com.google.code.findbugs:jsr305")
 }
