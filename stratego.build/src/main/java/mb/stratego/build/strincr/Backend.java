@@ -13,11 +13,9 @@ import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 
+import mb.stratego.build.util.IOAgentTrackerFactory;
+import mb.stratego.build.util.StrategoConstants;
 import org.apache.commons.io.output.NullOutputStream;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -39,7 +37,7 @@ import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.termvisitors.TermSize;
-import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.IOAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
@@ -134,14 +132,14 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
     }
 
-    private final IResourceService resourceService;
     private final ITermFactory termFactory;
+    private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public Backend(IResourceService resourceService, ITermFactory termFactory, StrIncrContext strContext) {
-        this.resourceService = resourceService;
+    @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.termFactory = termFactory;
+        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
     }
 
@@ -197,9 +195,9 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
 
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
-            if(line.contains(SpoofaxConstants.STRJ_INFO_WRITING_FILE)) {
-                String fileName = line.substring(line.indexOf(SpoofaxConstants.STRJ_INFO_WRITING_FILE)
-                    + SpoofaxConstants.STRJ_INFO_WRITING_FILE.length()).trim();
+            if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {
+                String fileName = line.substring(line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
+                    + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
                 timestamps.add(System.nanoTime());
                 execContext.provide(new File(fileName));
@@ -213,7 +211,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
     }
 
     public static StrategoExecutor.ExecutionResult runLocallyUniqueStringStrategy(Logger logger, boolean silent,
-        @Nullable ResourceAgentTracker tracker, Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
+        @Nullable IOAgentTracker tracker, Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
         strContext.resetUsedStringsInFactory();
 
         final String name = strategy.getName();
@@ -306,17 +304,17 @@ public class Backend implements TaskDef<Backend.Input, None> {
         return B.list(args);
     }
 
-    private ResourceAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
-        final FileObject base = resourceService.resolve(baseFile);
-        final ResourceAgentTracker tracker;
+    private IOAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
+        final IOAgentTracker tracker;
         if(silent) {
-            tracker = new ResourceAgentTracker(resourceService, base, new NullOutputStream(), new NullOutputStream());
+            tracker = ioAgentTrackerFactory.create(baseFile, new NullOutputStream(), new NullOutputStream());
         } else {
-            tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
+            tracker = ioAgentTrackerFactory.create(baseFile, excludePatterns);
         }
-        final ResourceAgent agent = tracker.agent();
-        agent.setAbsoluteWorkingDir(base);
-        agent.setAbsoluteDefinitionDir(base);
+        // GK: Not needed, creating the ResourceAgent with baseFile as the initial dir will set the working and definition dir?
+        //final IOAgent agent = tracker.agent();
+        //agent.setAbsoluteWorkingDir(base);
+        //agent.setAbsoluteDefinitionDir(base);
         return tracker;
     }
 

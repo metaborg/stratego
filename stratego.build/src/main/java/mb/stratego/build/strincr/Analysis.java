@@ -23,7 +23,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.metaborg.core.resource.IResourceService;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.terms.util.B;
 import com.google.common.collect.Sets;
@@ -127,8 +126,6 @@ public class Analysis {
         }
     }
 
-    protected final IResourceService resourceService;
-
     protected final Frontend strIncrFront;
 //    protected final InsertCasts strIncrInsertCasts;
     protected final LibFrontend strIncrFrontLib;
@@ -137,9 +134,8 @@ public class Analysis {
     static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject
-    public Analysis(IResourceService resourceService, Frontend strIncrFront/*, InsertCasts strIncrInsertCasts*/,
+    public Analysis(Frontend strIncrFront/*, InsertCasts strIncrInsertCasts*/,
         LibFrontend strIncrFrontLib, StrIncrContext strContext) {
-        this.resourceService = resourceService;
         this.strIncrFront = strIncrFront;
 //        this.strIncrInsertCasts = strIncrInsertCasts;
         this.strIncrFrontLib = strIncrFrontLib;
@@ -230,7 +226,7 @@ public class Analysis {
 
             if(module.type == Module.Type.library) {
                 final LibFrontend.Input frontLibInput =
-                    new LibFrontend.Input(Library.fromString(resourceService, module.path));
+                    new LibFrontend.Input(Library.fromString(execContext.getResourceService(), module.path));
                 timestamps.add(System.nanoTime());
                 final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
                 timestamps.add(System.nanoTime());

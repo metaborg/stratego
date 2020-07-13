@@ -1,10 +1,10 @@
 package mb.stratego.build.strincr;
 
+import mb.resource.ResourceKeyString;
+import mb.resource.ResourceService;
 import org.spoofax.terms.util.B;
 import mb.pie.api.ExecException;
 
-import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.resource.IResourceService;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -23,12 +23,12 @@ public interface Library extends Serializable {
 
     @Nullable File fileToRead() throws MalformedURLException;
 
-    static Library fromString(IResourceService resourceService, String name) throws FileSystemException {
+    static Library fromString(ResourceService resourceService, String name) throws IOException {
         final @Nullable Builtin builtinLibrary = Builtin.fromString(name);
         if(builtinLibrary != null) {
             return builtinLibrary;
         }
-        return new RTree(resourceService.resolve(name).getURL().toString());
+        return new RTree(resourceService.getReadableResource(ResourceKeyString.of(name)).readString());
     }
 
     static IStrategoString normalizeBuiltin(IStrategoString name) {

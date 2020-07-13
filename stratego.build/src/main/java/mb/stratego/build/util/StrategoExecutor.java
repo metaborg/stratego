@@ -54,7 +54,7 @@ public class StrategoExecutor {
 
     private @Nullable Context context;
     private @Nullable Strategy strategy;
-    private @Nullable ResourceAgentTracker tracker;
+    private @Nullable IOAgentTracker tracker;
     private @Nullable String name;
     private boolean silent;
 
@@ -74,7 +74,7 @@ public class StrategoExecutor {
         return this;
     }
 
-    public StrategoExecutor withTracker(ResourceAgentTracker tracker) {
+    public StrategoExecutor withTracker(IOAgentTracker tracker) {
         this.tracker = tracker;
         return this;
     }
