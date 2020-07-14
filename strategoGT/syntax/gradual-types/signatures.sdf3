@@ -7,14 +7,14 @@ sorts Type SortT Dyn ConstrType
 context-free syntax
   Dyn.Dyn = [?]
   Type.DynT = Dyn
-  Type.StringT    = "str"
+  Type.StringT    = "string"
   Type.IntT       = "int"
   Type.RealT      = "real"
   Type.TupleT     = [[Type] * [Type]] {right}
   Type = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
-  SortT.SortVar    = LCID {avoid}
+  SortT.SortVar    = SortVar
 
 sorts SType SFunType
 context-free syntax
@@ -23,8 +23,3 @@ context-free syntax
   SFunType.FunNoArgsType = [[Type] -> [Type]]
   SFunType.FunType = [([{SType ", "}*]) [Type] -> [Type]]
   SFunType.FunTType = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
-
-context-free syntax
-  Sort.StringT = "str" {avoid}
-  Sort.IntT = "int" {avoid}
-  Sort.RealT = "real" {avoid}

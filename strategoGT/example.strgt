@@ -4,20 +4,20 @@ imports
 
 libstratego-lib
 
-signature constructors
-
-Incr : str -> Expr
-Add  : Expr * Expr -> Expr
-Int  : str -> Expr
-Var  : str -> Expr
-
-VarDecl : str * Type * Expr -> Stat
-VarDecl : str * Type -> Stat
-Assign  : str * Expr -> Stat
-Seq     : Stat * Stat -> Stat
-Module  : str * List(Stat) -> Module
-
-IAdd : Instr
+//signature constructors
+//
+//Incr : str -> Expr
+//Add  : Expr * Expr -> Expr
+//Int  : str -> Expr
+//Var  : str -> Expr
+//
+//VarDecl : str * Type * Expr -> Stat
+//VarDecl : str * Type -> Stat
+//Assign  : str * Expr -> Stat
+//Seq     : Stat * Stat -> Stat
+//Module  : str * List(Stat) -> Module
+//
+//IAdd : Instr
 
 //strategies
 //
@@ -196,18 +196,21 @@ IAdd : Instr
 //      local-typed-strategy-is-defined = id
 //    in local-typed-strategy-is-defined
 //    end
-
+//
 strategies
 
-  conc :: List(a) * List(a) -> List(a)
-  conc = fail
+//  conc :: List(a) * List(a) -> List(a)
+//  conc = fail
+//
+//  mapconcat(a -> List(b)) :: List(a) -> List(b)
+//  mapconcat(s): [h | t] -> <conc> (<s> h, <mapconcat(s)> t)
+//  mapconcat(s): [] -> []
+//
+//  collect-all(? -> b) :: ? -> List(b)
+//  collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+//
+//  test-collect-all :: ? -> List(str)
+//  test-collect-all = ![1,2,3]; collect-all(!"hi!")
 
-  mapconcat(a -> List(b)) :: List(a) -> List(b)
-  mapconcat(s): [h | t] -> <conc> (<s> h, <mapconcat(s)> t)
-  mapconcat(s): [] -> []
-
-  collect-all(? -> b) :: ? -> List(b)
-  collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
-
-  test-collect-all :: ? -> List(str)
-  test-collect-all = ![1,2,3]; collect-all(!"hi!")
+  t :: int * string -> string * string
+  t = id;cast(string * string)

@@ -113,7 +113,7 @@ st-merge(s): (St(terms1, type1, tve1), St(terms2, type2, tve2)) -> St(terms3, ty
   with
     terms3 := <immap-union(s|terms2)> terms1
   ; type3 := <s> (type1, type2)
-  ; tve3 := (tve1, tve2) // TODO: unify somehow
+  ; tve3 := <immap-union(s|tve2)> tve1
 
 st-merge(s): (StBuildTerm(st1, input), StBuildTerm(st2, input)) -> StBuildTerm(st3, input)
   with st3 := <st-merge(s)> (st1, st2)

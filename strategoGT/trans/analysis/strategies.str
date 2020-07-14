@@ -11,6 +11,7 @@ signatures/strategoGT-sig
 signatures/core/strategies-sig
 signatures/sugar/modules-sig
 signatures/sugar/strategies-sig
+signatures/sugar/rules-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/strategies-sig
 signatures/gradual-types/internal-sig
@@ -635,7 +636,7 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy(|e1, st1):
   s@Cast(RuntimeCheck(t)) -> (s, st2)
   with
-    st2 := <current-type(|t)> st1
+    st2 := <current-type(|<desugar-Type> t)> st1
 
 insertCasts-Strategy(|e1, st1):
   Proxy(c1, c2, s1) -> (Proxy(c1, c2, s2), st2)

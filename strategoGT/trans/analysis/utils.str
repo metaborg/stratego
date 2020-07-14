@@ -61,10 +61,11 @@ desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], <desugar-Type> i, <
 desugar-SType = otf(\FunType(sargs, i, o) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> i, <desugar-Type> o)\)
 desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-Type, desugar-Type);not(?a))
 
-desugar-Type- = otf(\SortVar("str") -> StringT()\)
+desugar-Type- = otf(\SortVar("string") -> StringT()\)
 desugar-Type- = otf(\SortVar("int") -> IntT()\)
 desugar-Type- = otf(\SortVar("real") -> RealT()\)
 desugar-Type- = otf(\SortNoArgs(x) -> Sort(x, [])\)
+desugar-Type- = otf(?a;Sort(id, map(desugar-Type-));not(?a))
 desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type- = otf(\SortTuple(xs) -> TupleT(<map(desugar-Type)> xs)\)
@@ -76,6 +77,22 @@ desugar-TupleType =
   <+ otf(![<desugar-Type>])
 
 arityOf-SType: FunTType(st*, tt*, _, _) -> (<length> st*, <length> tt*)
+
+strategies
+
+unDyn = try(?DynT(<not(?Dyn())>))
+pushDyn = try(\DynT(Sort(x, t*@[_| _])) -> Sort(x, <map(!DynT(<id>))> t*)\)
+listType: t1 -> t3
+  where if ListT(t2) := <pushDyn> t1
+    then t3 := t2
+    else t3 := DynT()
+  end
+tupleTypes(|n): t1 -> t2*
+  // TODO: Should we do better than give dyn children if expected type has different number of children than the literal?
+  where if TupleT(t1*) := <pushDyn> t1; n := <length> t1*
+    then t2* := t1*
+    else t2* := <copy> (n, DynT())
+  end
 
 strategies
 
@@ -103,25 +120,15 @@ computeCoercion-(|subj, st1): (from@IllFormedTermT(_, _), DynT(to)) -> (<otf(!Id
   // N.B. We're preventing cascading warnings here on ill-formed terms by not reporting a warning
   //      If used in a typed position it will still raise an error, and the first place an
   //      ill-formed term is constructed does get a warning. 
-
-computeCoercion-(|subj, st1): (from@DynT(Dyn()), DynT(to)) -> (<otf(!Id(){DynT(to)})> subj, st1)
-
-computeCoercion-(|subj, st1): (from@DynT(f), DynT(to)) -> (<otf(!Id(){t})> subj, st2)
-where
-  ((_, to2), st2) := <CanCoerce> ((f, to), st1)
-  ; t := DynT(to2)
-  <+
-    <report-Warn> (subj, NoInjectionBetween(from, DynT(to)))
-  ; t := from
-  ; st2 := st1
-
 computeCoercion-(|subj, st1): (from, DynT(Dyn())) -> (<otf(!Id(){from})> subj, st1)
-computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){from2})> subj, st2)
+
+computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
   where
-    ((from2, _), st2) := <CanCoerce> ((from, to), st1)
+    ((_, to2), st2) := <CanCoerce> ((<unDyn> from, to), st1)
+    ; t := DynT(to2)
     <+
       <report-Warn> (subj, NoInjectionBetween(from, DynT(to)))
-    ; from2 := from
+    ; t := from
     ; st2 := st1
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to){to})> subj, st1)
