@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;

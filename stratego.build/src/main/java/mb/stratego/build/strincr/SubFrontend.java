@@ -11,7 +11,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strc.split_module_0_0;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;

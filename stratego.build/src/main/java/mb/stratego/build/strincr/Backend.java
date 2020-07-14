@@ -28,7 +28,7 @@ import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;

@@ -40,23 +40,21 @@ import org.spoofax.terms.io.TAFTermReader;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
-import mb.resource.ResourceKeyString;
 import mb.resource.ResourceService;
 import mb.resource.fs.FSPath;
-import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
-import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
@@ -419,13 +417,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private final ParseStratego parseStratego;
     private final SubFrontend strIncrSubFront;
-    private final StrIncrContext strContext;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public Frontend(ParseStratego parseStratego, SubFrontend strIncrSubFront, StrIncrContext strContext) {
+    @Inject public Frontend(ParseStratego parseStratego, SubFrontend strIncrSubFront) {
         this.parseStratego = parseStratego;
         this.strIncrSubFront = strIncrSubFront;
-        this.strContext = strContext;
     }
 
     private static final int LOCAL_DEFS = 0;
@@ -451,7 +447,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         final ResourcePath location = new FSPath(input.projectLocation);
-        final HierarchicalResource inputFile = execContext.getHierarchicalResource(execContext.getResourceService().getResourcePath(ResourceKeyString.of(input.inputFileString)));
+        final FSResource inputFile = new FSResource(input.inputFileString);
         execContext.require(inputFile);
         if(!inputFile.exists()) {
             return FileRemovedOutput.instance;

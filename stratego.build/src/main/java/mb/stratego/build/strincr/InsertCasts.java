@@ -5,7 +5,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.util.StrIncrContext;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import org.spoofax.interpreter.terms.IStrategoAppl;

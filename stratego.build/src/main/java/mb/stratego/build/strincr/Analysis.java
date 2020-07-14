@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.terms.util.B;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 public class Analysis {
     public static class Input implements Serializable {
