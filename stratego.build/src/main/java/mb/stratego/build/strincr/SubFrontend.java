@@ -4,23 +4,20 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import org.apache.commons.io.output.NullOutputStream;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strc.split_module_0_0;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.termvisitors.TermSize;
-import mb.stratego.build.util.ResourceAgentTracker;
+import mb.stratego.build.util.IOAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 
@@ -133,12 +130,11 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         }
     }
 
-    private final IResourceService resourceService;
+    private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
-    ILanguageImpl strategoLang;
 
-    @Inject public SubFrontend(IResourceService resourceService, StrIncrContext strContext) {
-        this.resourceService = resourceService;
+    @Inject public SubFrontend(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
+        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
     }
 
@@ -170,17 +166,13 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         return new Output(result.result);
     }
 
-    private ResourceAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
-        final FileObject base = resourceService.resolve(baseFile);
-        final ResourceAgentTracker tracker;
+    private IOAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
+        final IOAgentTracker tracker;
         if(silent) {
-            tracker = new ResourceAgentTracker(resourceService, base, new NullOutputStream(), new NullOutputStream());
+            tracker = ioAgentTrackerFactory.create(baseFile, new NullOutputStream(), new NullOutputStream());
         } else {
-            tracker = new ResourceAgentTracker(resourceService, base, excludePatterns);
+            tracker = ioAgentTrackerFactory.create(baseFile, excludePatterns);
         }
-        final ResourceAgent agent = tracker.agent();
-        agent.setAbsoluteWorkingDir(base);
-        agent.setAbsoluteDefinitionDir(base);
         return tracker;
     }
 

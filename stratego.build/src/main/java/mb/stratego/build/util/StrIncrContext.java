@@ -1,6 +1,6 @@
 package mb.stratego.build.util;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;

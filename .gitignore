@@ -1,2 +1,28 @@
-/.metadata/
-/.recommenders/
+# macOS
+*.DS_Store
+
+# Java
+*.class
+*.jar
+hs_err_pid*
+
+# Gradle
+**/.gradle
+
+# IntelliJ
+**/.idea
+*.iml
+**/out
+
+# Eclipse
+**/.project
+**/.settings
+**/.classpath
+**/.factorypath
+**/.metadata
+**/.recommenders
+**/bin
+
+# Spoofax
+**/src-gen
+**/target

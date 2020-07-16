@@ -8,6 +8,7 @@
 /target
 /trans/*.pp.generated.str
 /lib/*.generated.*
+/build
 
 /.classpath
 /.project

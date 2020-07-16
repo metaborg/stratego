@@ -7,7 +7,6 @@ import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.StringSetWithPositions;
 
 import com.google.common.collect.Sets;
-import org.metaborg.core.messages.MessageSeverity;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import java.util.Arrays;

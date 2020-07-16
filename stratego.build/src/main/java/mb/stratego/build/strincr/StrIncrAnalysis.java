@@ -2,7 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.nio.file.Path;
 
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;

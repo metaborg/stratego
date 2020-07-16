@@ -2,7 +2,6 @@ package mb.stratego.build.strincr;
 
 import java.util.Set;
 
-import org.metaborg.core.messages.MessageSeverity;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
