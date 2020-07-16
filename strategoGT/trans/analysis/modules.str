@@ -26,12 +26,13 @@ strategies
 insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   with {| CanCoerce, LUB, Message:
     (constrs, injs) := <extract-constrs-inj> ast1
+  ; aliases := <extract-aliases> (constrs, injs)
   ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types> ast1
   ; let
       process-defs = map(
-          insertCasts(|strats, constrs, injection-closure, lub-map)
+          insertCasts(|strats, constrs, injection-closure, aliases, lub-map)
 //        ; where(try(
 //            not(?DefHasType(_, _))
 //          ; ![Strategies([<id>])]
@@ -61,6 +62,16 @@ extract-constrs-inj:
   ; (constr*, inj*) := <partition(extract-constr, extract-inj)> opdecl*
   ; constrMap := <imrel-from-list> constr*
   ; injMap := <imrel-from-list> inj*
+
+extract-aliases: (constrs, injs) -> aliases
+  with
+    invInjs := <imrel-invert> injs
+  ; <imrel-filter(\(k,v) -> <id> where <imrel-get(|k);imset-to-list;?[_]> injs; <imrel-get(|v);imset-to-list;?[_]> invInjs\)> injs
+    // bijective injections
+  ; imrel-filter(\(_, v) -> <id> where <imrel-filter(?(_, ConstrType(_, v)));equal(|<imrel-new>)> constrs\)
+    // where both have no constructors
+  ; imrel-reflexive-transitive-closure
+    => aliases
 
 lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
   with

@@ -212,5 +212,5 @@ strategies
 //  test-collect-all :: ? -> List(str)
 //  test-collect-all = ![1,2,3]; collect-all(!"hi!")
 
-  t :: int * string -> string * string
+  t :: int * string -> string * string * string
   t = id;cast(string * string)

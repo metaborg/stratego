@@ -6,12 +6,14 @@ imports
 sorts Type SortT Dyn ConstrType
 context-free syntax
   Dyn.Dyn = [?]
-  Type.DynT = Dyn
-  Type.StringT    = "string"
-  Type.IntT       = "int"
-  Type.RealT      = "real"
-  Type.TupleT     = [[Type] * [Type]] {right}
-  Type = SortT
+  Type.TupleT     = [[SubTupleType] * [{SubTupleType " * "}+]]
+  Type = SubTupleType
+  SubTupleType.DynT = Dyn
+  SubTupleType.StringT    = "string"
+  SubTupleType.IntT       = "int"
+  SubTupleType.RealT      = "real"
+  SubTupleType = [([Type])] {bracket}
+  SubTupleType = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
   SortT.SortVar    = SortVar

@@ -32,7 +32,7 @@ strat-lookup-call(register-fresh|x, sn, tn) =
 
 strategies // Strategy (core)
 
-insertCasts-Strategy(|e1, st1) = otf12(insertCasts-Strategy-(|e1, st1))
+insertCasts-Strategy(|e1, st1) = otf12(debug0;insertCasts-Strategy-(|e1, st1))
 
 // insertCasts-Strategy-(|Environment, Store) :: Strategy -> (Strategy, Store)
 insertCasts-Strategy-(|e1, st1):

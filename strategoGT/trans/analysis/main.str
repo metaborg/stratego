@@ -28,9 +28,9 @@ strategies // entry-points from Java
  * ast: the stratego strategy/rule ast
  */
 // insert-casts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Decl -> (Decl, List(Message))
-insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs, warns, notes)
+insert-casts: (strats, constrs, injection-closure, lub-map, aliases, ast) -> (ast', errs, warns, notes)
   with {| CanCoerce, CanCoerceSType, LUB:
-    ast' := <insertCasts(|strats, constrs, injection-closure, lub-map)> ast
+    ast' := <insertCasts(|strats, constrs, injection-closure, aliases, lub-map)> ast
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
@@ -46,14 +46,21 @@ insert-casts: (strats, constrs, injection-closure, lub-map, ast) -> (ast', errs,
 //  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
 //))
 // insertCasts :: Map(String * Int * Int, SType) * Rel(String * Int, ConstrType) * Rel(String, String) * Map(Type * Type, Type) * MessageType * Module -> Module
-insertCasts(|strats, constrs, injection-closure, lub-map): ast -> ast'
+insertCasts(|strats, constrs, injection-closure, aliases, lub-map): ast -> ast'
   with
-    rules(CanCoerce: p -> <can-coerce(|injection-closure)> p)
+    rules(CanCoerce: p -> <can-coerce(|injection-closure, aliases)> p)
   ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
   ; rules(LUB: pair -> <lub(|lub-map)> pair)
   ; (ast', _) := <insertCasts-Def(|<new-env> (strats, constrs), <new-st>)> ast
 
 strategies
+
+can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
+  where
+    <imrel-contains(|from, to)> aliases
+
+can-coerce(|injection-closure, aliases) = can-coerce(|injection-closure)
+
 
 can-coerce(|injection-closure): ((from, to), _) -> <id>
   where
@@ -112,28 +119,28 @@ can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, t1, t2), SDyn()), st1) ->
     ((FunTType(st2*, tt2*, t3, t5), SDyn()), st5)
   where
-    ((t3, t4), st2) := <can-coerce(|injection-closure)> ((t1, DynT()), st1)
+    ((t3, t4), st2) := <CanCoerce> ((t1, DynT()), st1)
   ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map-pair-right(|DynT())> tt1*, st3)
-  ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((t2, DynT()), st4)
+  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; ((t5, t6), st5) := <CanCoerce> ((t2, DynT()), st4)
 
 can-coerce-stype(|injection-closure):
   ((SDyn(), FunTType(st1*, tt1*, t1, t2)), st1) ->
     ((SDyn(), FunTType(st3*, tt3*, t4, t6)), st5)
   where
-    ((t3, t4), st2) := <can-coerce(|injection-closure)> ((DynT(), t1), st1)
+    ((t3, t4), st2) := <CanCoerce> ((DynT(), t1), st1)
   ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(can-coerce(|injection-closure))> (<map-pair-left(|DynT())> tt1*, st3)
-  ; ((t5, t6), st5) := <can-coerce(|injection-closure)> ((DynT(), t2), st4)
+  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; ((t5, t6), st5) := <CanCoerce> ((DynT(), t2), st4)
 
 can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, t1, t2), FunTType(st2*, tt2*, t3, t4)), st1) ->
     ((FunTType(st3*, tt3*, t5, t7), FunTType(st4*, tt4*, t6, t8)), st5)
   where
-    ((t5, t6), st2) := <can-coerce(|injection-closure)> ((t1, t3), st1)
+    ((t5, t6), st2) := <CanCoerce> ((t1, t3), st1)
   ; ((st3*, st4*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
-  ; ((tt3*, tt4*), st4) := <thread-map(can-coerce(|injection-closure))> (<zip> (tt1*, tt2*), st3)
-  ; ((t7, t8), st5) := <can-coerce(|injection-closure)> ((t2,t4), st4)
+  ; ((tt3*, tt4*), st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
 instantiate-type-vars(|st1): t1 -> t2
   with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x) <+ !DynT()> st1 + id})> t1

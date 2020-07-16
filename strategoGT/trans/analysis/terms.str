@@ -471,16 +471,22 @@ insertCasts-StBuildTerm-(|e1, st1):
   trm1@List(trm1*) -> (List(trm2*), st3)
   with
     t := <current-type;listType> st1
-  ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, t))> (trm1*, st1)
+  ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
   ; t1 := ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ErrT()> t*)
   ; _ := <computeCoercion(|trm1, st1)> (t1, <current-type> st1)
   ; st3 := <current-type(|t1)> st2
+
+insertCasts-StBuildTerm-ListVar(|e1, t1): (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
+  where
+    t2 := DynT(ListT(<unDyn> t1))
+
+insertCasts-StBuildTerm-ListVar(|e1, t) = insertCasts-StBuildTerm-Type(|e1, t)
 
 insertCasts-StBuildTerm-(|e1, st1):
   ListTail(trm1*, trm1) -> (ListTail(trm2*, trm3), st4)
   with
     t := <current-type;listType> st1
-  ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1, t))> (trm1*, st1)
+  ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
   ; (trm2, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|ListT())> st2)> trm1
   ; if ListT(t) := <current-type> st3 
       then
