@@ -311,10 +311,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
         } else {
             tracker = ioAgentTrackerFactory.create(baseFile, excludePatterns);
         }
-        // GK: Not needed, creating the ResourceAgent with baseFile as the initial dir will set the working and definition dir?
-        //final IOAgent agent = tracker.agent();
-        //agent.setAbsoluteWorkingDir(base);
-        //agent.setAbsoluteDefinitionDir(base);
         return tracker;
     }
 

@@ -676,8 +676,6 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 internalStrats.add(strategyName);
             }
         }
-        // final ResourcePath boilerplateFile = CommonPaths.strSepCompBoilerplateFile(location, projectName, moduleName); // GK: boilerplateFile is not used
-        //assert boilerplateFile != null : "Bug in strSepCompBoilerplateFile or the arguments thereof: returned path is not a file"; // GK: strSepCompBoilerplateFile cannot return null
 
         for(IStrategoTerm noOfDef : noOfDefs) {
             final String defName = TermUtils.toJavaStringAt(noOfDef, 0);

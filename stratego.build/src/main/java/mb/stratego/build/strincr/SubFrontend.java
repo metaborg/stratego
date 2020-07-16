@@ -132,7 +132,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
-    //ILanguageImpl strategoLang; // GK: removed, does not seem to be used.
 
     @Inject public SubFrontend(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
@@ -174,10 +173,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         } else {
             tracker = ioAgentTrackerFactory.create(baseFile, excludePatterns);
         }
-        // GK: Not needed, creating the ResourceAgent with baseFile as the initial dir will set the working and definition dir?
-        //final ResourceAgent agent = tracker.agent();
-        //agent.setAbsoluteWorkingDir(base);
-        //agent.setAbsoluteDefinitionDir(base);
         return tracker;
     }
 
