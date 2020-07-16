@@ -1,23 +1,7 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
-import mb.pie.api.None;
-import mb.pie.api.STask;
-import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.Analysis.Output;
-import mb.stratego.build.util.CommonPaths;
-import mb.stratego.build.util.Relation;
-
-import com.google.inject.Inject;
-import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.cmd.Arguments;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +12,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+
+import javax.annotation.Nullable;
+
+import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoAppl;
+
+import javax.inject.Inject;
+
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.None;
+import mb.pie.api.STask;
+import mb.pie.api.TaskDef;
+import mb.resource.fs.FSPath;
+import mb.stratego.build.strincr.Analysis.Output;
+import mb.stratego.build.util.CommonPaths;
+import mb.stratego.build.util.Relation;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
@@ -95,22 +96,17 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
     }
 
-    private final IResourceService resourceService;
     private final Backend strIncrBack;
     private final StrIncrAnalysis strIncrAnalysis;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public StrIncr(IResourceService resourceService, Backend strIncrBack, StrIncrAnalysis analysis) {
-        this.resourceService = resourceService;
+    @Inject public StrIncr(Backend strIncrBack, StrIncrAnalysis analysis) {
         this.strIncrBack = strIncrBack;
         this.strIncrAnalysis = analysis;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         timestamps.add(System.nanoTime());
-        final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
-        final FileObject projectLocation = resourceService.resolve(projectLocationPath.toFile());
-        final File projectLocationFile = resourceService.localFile(projectLocation);
 
         timestamps.add(System.nanoTime());
         final Output result = execContext.require(strIncrAnalysis, input);
@@ -139,14 +135,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, projectLocation, projectLocationFile, result.staticData, result.backendData,
+        backends(execContext, input, input.projectLocation, result.staticData, result.backendData,
             result.staticCheckOutput);
 
         timestamps.add(System.nanoTime());
         return None.instance;
     }
 
-    private void backends(ExecContext execContext, Input input, FileObject projectLocation, File projectLocationFile,
+    private void backends(ExecContext execContext, Input input, File projectLocation,
         StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput)
         throws mb.pie.api.ExecException, InterruptedException {
         long backendStart = System.nanoTime();
@@ -159,7 +155,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         for(String strategyName : backendData.strategyASTs.keySet()) {
             backendStart = System.nanoTime();
             /* This set is used right now to eliminate overhead in the generated helper strategies of dynamic rules,
-               which should be defined once per rule-name but are defined once per rule-name per module. 
+               which should be defined once per rule-name but are defined once per rule-name per module.
                If that can be fixed in a principled way, then this can go back to a list.
              */
             final Set<IStrategoAppl> strategyContributions;
@@ -170,13 +166,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final @Nullable File strategyDir =
-                resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
-                new Backend.Input(projectLocationFile, strategyName, strategyContributions,
+                new Backend.Input(projectLocation, strategyName, strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -204,11 +200,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final @Nullable File strategyDir =
-                resourceService.localPath(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), congrName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
-                new Backend.Input(projectLocationFile, congrName, strategyContributions,
+                new Backend.Input(projectLocation, congrName, strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -228,11 +224,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
             final @Nullable File strSrcGenDir =
-                resourceService.localPath(CommonPaths.strSepCompSrcGenDir(projectLocation));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompSrcGenDir(new FSPath(projectLocation)));
             assert strSrcGenDir
                 != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
-                new Backend.Input(projectLocationFile, null, decls, Collections.emptyList(),
+                new Backend.Input(projectLocation, null, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;

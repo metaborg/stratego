@@ -1,47 +1,45 @@
 package mb.stratego.build.util;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.MetaborgRuntimeException;
+import mb.resource.hierarchical.ResourcePath;
 
 public class CommonPaths {
-    public static FileObject strSepCompSrcGenDir(FileObject root) {
+    public static ResourcePath strSepCompSrcGenDir(ResourcePath root) {
         return resolve(srcGenDir(root), "stratego_sugar");
     }
 
-    public static FileObject strSepCompStrategyDir(FileObject root, String strategy) {
+    public static ResourcePath strSepCompStrategyDir(ResourcePath root, String strategy) {
         return resolve(strSepCompSrcGenDir(root), capitalsForDollars(strategy));
     }
 
-    public static FileObject strSepCompStrategyFile(FileObject root, String projectName, String moduleName,
+    public static ResourcePath strSepCompStrategyFile(ResourcePath root, String projectName, String moduleName,
         String strategy) {
         return resolve(strSepCompStrategyDir(root, strategy), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
-    public static FileObject strSepCompConstrListFile(FileObject root, String projectName, String moduleName,
+    public static ResourcePath strSepCompConstrListFile(ResourcePath root, String projectName, String moduleName,
         String strategy) {
         return resolve(strSepCompStrategyDir(root, strategy),
             prepareConstrListName(projectName, moduleName) + ".aterm");
     }
 
-    public static FileObject strSepCompOverlayDir(FileObject root, String overlayName) {
+    public static ResourcePath strSepCompOverlayDir(ResourcePath root, String overlayName) {
         return resolve(strSepCompSrcGenDir(root), "overlays", capitalsForDollars(overlayName));
     }
 
-    public static FileObject strSepCompOverlayFile(FileObject root, String projectName, String moduleName,
+    public static ResourcePath strSepCompOverlayFile(ResourcePath root, String projectName, String moduleName,
         String overlayName) {
         return resolve(strSepCompOverlayDir(root, overlayName), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
-    public static FileObject strSepCompBoilerplateFile(FileObject root, String projectName, String moduleName) {
+    public static ResourcePath strSepCompBoilerplateFile(ResourcePath root, String projectName, String moduleName) {
         return resolve(strSepCompSrcGenDir(root), prepareModuleName(projectName, moduleName) + ".aterm");
     }
 
-    public static FileObject strSepCompPackedStrategyFile(FileObject root, String strategy) {
+    public static ResourcePath strSepCompPackedStrategyFile(ResourcePath root, String strategy) {
         return resolve(strSepCompStrategyDir(root, strategy), "packed$" + ".aterm");
     }
 
-    public static FileObject strSepCompPackedBoilerplateFile(FileObject root) {
+    public static ResourcePath strSepCompPackedBoilerplateFile(ResourcePath root) {
         return resolve(strSepCompSrcGenDir(root), "packed$" + ".aterm");
     }
 
@@ -57,20 +55,16 @@ public class CommonPaths {
         return projectName + "&" + capitalsForDollars(moduleName).replace('/', '+') + "&constrs";
     }
 
-    public static FileObject srcGenDir(FileObject root) {
+    public static ResourcePath srcGenDir(ResourcePath root) {
         return resolve(root, "src-gen");
     }
 
-    public static FileObject resolve(FileObject dir, String path) {
-        try {
-            return dir.resolveFile(path);
-        } catch(FileSystemException e) {
-            throw new MetaborgRuntimeException(e);
-        }
+    public static ResourcePath resolve(ResourcePath dir, String path) {
+        return dir.appendString(path);
     }
 
-    public static FileObject resolve(FileObject dir, String... paths) {
-        FileObject file = dir;
+    public static ResourcePath resolve(ResourcePath dir, String... paths) {
+        ResourcePath file = dir;
         for(String path : paths) {
             file = resolve(file, path);
         }
