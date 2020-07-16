@@ -2,10 +2,13 @@ module jasmin-all
 
 strategies // definition stubs
 
+is-string :: ? -> string
 is-string = fail
 
+string-replace(|string, string) :: string -> string
 string-replace(|from, to) = fail
 
+box2text-string(|int) :: ? -> string
 box2text-string(|len) = fail
 
 strip-annos = fail
@@ -16,10 +19,14 @@ prettyprint-jasmin-FieldName = fail
 prettyprint-jasmin-ParameterDescriptor = fail
 prettyprint-jasmin-ReturnDescriptor = fail
 
+map(a -> b) :: List(a) -> List(b)
 map(s) = fail
+concat-strings :: List(string) -> string
 concat-strings = fail
 
+string-starts-with(|string) :: string -> string
 string-starts-with(|prefix) = fail
+has-annotation(? -> ?) :: ? -> ?
 has-annotation(s) = fail
 
 task-create-error-on-failure(|t1,t2,t3) = fail
@@ -29,75 +36,130 @@ nabl-lookup-lexical(|t1,t2) = fail
 type-lookup(|t1) = fail
 type-match(|t1,t2) = fail
 
+filter(a -> b) :: List(a) -> List(b)
 filter(s) = fail
 
+get-in-stack :: ? -> string
 get-in-stack = fail
+get-out-stack :: ? -> string
 get-out-stack = fail
 
+foldl(a * b -> b) :: List(a) * b -> b
 foldl(s) = fail
+Snd :: a * b -> b // stricter than the implementation
 Snd = fail
+partition(a -> b) :: List(a) -> List(b) * List(a)
 partition(s) = fail
+concat :: List(List(a)) -> List(a)
 concat = fail
+alltd(? -> ?) :: ? -> ?
 alltd(s) = fail
 
 get-pop-type = fail
 get-push-type = fail
 get-next-instr = fail
 
+dec :: int -> int
 dec = fail
+dec-string-to-int :: string -> int
 dec-string-to-int = fail
+try(a -> b) :: a -> ?
 try(s) = fail
+reverse :: List(a) -> List(a)
 reverse = fail
+preserve-annos(a -> b) :: a -> b
 preserve-annos(s) = fail
+split-after :: string * string -> string * string
 split-after = fail
+rtrim-chars(int -> int) :: string -> string
 rtrim-chars(s) = fail
+string-ends-with(|string) :: string -> string
 string-ends-with(|t) = fail
+conc :: List(a) * List(a) -> List(a)
 conc = fail
+new :: ? -> string
 new = fail
+leq :: a * a -> a * a
 leq = fail
+repeat(? -> a | int) :: ? -> a
 repeat(s|t) = fail
+mapconcat(a -> List(b)) :: List(a) -> List(b)
+mapconcat(s) = fail
+uniq :: List(a) -> List(a)
 uniq = fail
+lookup :: a * List(a * b) -> b
 lookup = fail
+eq :: a * a -> a * a
 eq = fail
+unify(? -> a) :: List(? * ?) -> List(a * ?)
 unify(s) = fail
+mkterm :: ? * List(?) -> ?
 mkterm = fail
+fetch(a -> b) :: List(a) -> List(?)
 fetch(s) = fail
+if(? -> a, a -> b, ? -> b) :: ? -> b
+if(s1,s2,s3) = fail
+topdown(? -> ?) :: ? -> ?
 topdown(s) = fail
-
+is-subterm :: a * b -> a * b
 is-subterm = fail
-
+elem :: a * List(a) -> List(a)
 elem = fail
 
 task-create-id(|t1,t2) = fail
 type-is(|t) = fail
 
+newname :: string -> string
 newname = fail
 
 store-in-stack(|t1,t2) = fail
 store-out-stack(|t1,t2) = fail
 
+string-tokenize(|List(int)) :: string -> List(string)
 string-tokenize(|t) = fail
+init :: List(a) -> List(a)
 init = fail
+separate-by(|?) :: List(?) -> List(?)
 separate-by(|t) = fail
+guarantee-extension(|string) :: string -> string
 guarantee-extension(|t) = fail
+dirname :: string -> string
 dirname = fail
+addS :: string * string -> string
 addS = fail
+subtS :: string * string -> string
 subtS = fail
+mulS :: string * string -> string
 mulS = fail
+index :: int * List(a) -> a
 index = fail
+string-to-int :: string -> int
 string-to-int = fail
+at-index(a -> ?) :: int * List(a) -> List(?)
 at-index(s) = fail
+inc :: int -> int
 inc = fail
+length :: List(?) -> int
 length = fail
+int-to-string :: int -> string
 int-to-string = fail
+geqS :: string * string -> string * string
 geqS = fail
+gtS :: string * string -> string * string
 gtS = fail
+leqS :: string * string -> string * string
 leqS = fail
+ltS :: string * string -> string * string
 ltS = fail
+getfirst(a -> b) :: List(a) -> b
 getfirst(s) = fail
+drop(|int) :: List(a) -> List(a)
 drop(|t) = fail
+take(|int) :: List(a) -> List(a)
 take(|t) = fail
+Tl :: List(a) -> List(a)
 Tl = fail
+at-index(a -> ? | int) :: List(a) -> List(?)
 at-index(s|t) = fail
 
 analyze-all(s1,s2,s3|t) = fail
@@ -114,17 +176,29 @@ analysis-debug-task-partition(|t) = fail
 analysis-debug-task-selection(|t) = fail
 pp-debug = fail
 
+get-extension :: string -> string
 get-extension = fail
+bottomup(? -> ?) :: ? -> ?
 bottomup(s) = fail
+is-list :: ? -> List(?)
 is-list = fail
+mod :: a * a -> a
 mod = fail
+divi :: int * int -> int
 divi = fail
+muli :: int * int -> int
 muli = fail
+addi :: int * int -> int
 addi = fail
+foldr(List(a) -> b, a * b -> b) :: List(a) -> b
 foldr(s1, s2) = fail
+explode-term :: ? -> ? * List(?)
 explode-term = fail
+unzip(a -> b * c) :: List(a) -> List(b) * List(c)
 unzip(s) = fail
+is-int :: ? -> int
 is-int = fail
+subti :: int * int -> int
 subti = fail
 
 signature constructors
