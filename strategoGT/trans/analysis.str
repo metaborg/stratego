@@ -3,6 +3,8 @@ module analysis
 imports
 
   signatures/sugar/modules-sig
+  
+  immutable/-
 
   analysis/modules
   analysis/main
