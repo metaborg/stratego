@@ -20,14 +20,14 @@ context-free syntax
   Coercion.Id = [id]
   Coercion.RuntimeCheck = Type
 
-  SCoercion.SFail = [fail]
-  SCoercion.SId = [id]
+  SCoercion.SFail         = [fail]
+  SCoercion.SId           = [id]
   SCoercion.SRuntimeCheck = SType
 
   TypedId.TypedId = [[SortT].[Id]]
 
-  Strategy = Proxy
-  Proxy.Proxy = [proxy([Coercion], [Coercion])([SVar])]
+  Strategy     = Proxy
+  Proxy.Proxy  = [proxy([Coercion], [Coercion])([SVar])]
   Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([SVar])]
 
   SVar = "cast" {reject}

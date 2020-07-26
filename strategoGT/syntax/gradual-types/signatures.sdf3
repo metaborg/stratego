@@ -39,10 +39,21 @@ context-free priorities
 sorts SType SFunType
 context-free syntax
   SType.SDyn             = [?]
-  SType.TP               = [TP]
   SType                  = SFunType
-  SFunType.FunNoArgsType = [[Type] -> [Type]]
-  SFunType.FunType       = [([{SType ", "}*]) [Type] -> [Type]]
-  SFunType.FunTType      = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
+  
+  SSimpleFunType.TP                 = [TP]
+  SSimpleFunType.FunNoArgsType      = [[Type] -> [Type]]
+  
+  SFunType               = SSimpleFunType
+  SFunType.FunType       = [([{SType ", "}*]) [SSimpleFunType]]
+  SFunType.FunTType      = [([{SType ", "}*] | [{Type ", "}*]) [SSimpleFunType]]
 
-
+//sorts SType SFunType
+//context-free syntax
+//  SType.SDyn             = [?]
+//  SType.TP               = [TP]
+//  SType                  = SFunType
+//  SFunType.FunNoArgsType = [[Type] -> [Type]]
+//  SFunType.FunType       = [([{SType ", "}*]) [Type] -> [Type]]
+//  SFunType.FunTType      = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
+  
