@@ -21,15 +21,7 @@ rules
   
   desugar :: TP 
   
-  desugar : e -> e // should fail
-  
-  desugar : Add(e1, e2) -> Assign("x", e2) // should fail
-  
-  desugar : Stat(stat, e) -> stat // should fail
-  
   desugar : Stat(stat, e) -> e // should succeed
-  
-  desugar : e -> Add(e, e) // should fail
   
   desugar : 
     Min(e) -> Sub(Int("0"), e)
@@ -53,9 +45,28 @@ rules
     stat@<is-stat> -> Seq(stat1, stat2)
     where <oncetd((Stat(stat1, e) -> e))> stat => stat2
     
+rules // domain too large
+
+  desugar : e -> e // should fail
+  
+  desugar : e -> Add(e, e) // should fail
+    
   desugar : // error: applies also to expressions
     stat -> Seq(stat1, stat2)
     where <oncetd((Stat(stat1, e) -> e))> stat => stat2
+    
+rules // not type preserving
+  
+  desugar : Add(e1, e2) -> Assign("x", e2) // should fail
+  
+  desugar : Stat(stat, e) -> stat // should fail
+    
+rules // arity mismatch
+
+  desugar : // constructor with wrong arity
+    Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))))  
+    
+rules // non-well-formed term construction
     
   desugar : // error: has type errors
     For(x, e1, e2, stat) -> 
