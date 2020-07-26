@@ -226,22 +226,6 @@ signature
     AnnotationDefault          : AnnotationName * List(Constant) -> Annotation
     AnnotationField            : AnnotationName * AnnotationDescriptor * List(Constant) -> AnnotationField
     NestedAnnotation           : AnnotationName * Annotation -> AnnotationField
-    Int-Plhdr                  : Int
-    ClassName-Plhdr            : ClassName
-    AnnotationDescriptor-Plhdr : AnnotationDescriptor
-    Constant-Plhdr             : Constant
-    AnnotationField-Plhdr      : AnnotationField
-    AnnotationName-Plhdr       : AnnotationName
-    Annotation-Plhdr           : Annotation
-    Int-Plhdr                  : COMPLETION-INSERTION -> Int
-    ClassName-Plhdr            : COMPLETION-INSERTION -> ClassName
-    AnnotationDescriptor-Plhdr : COMPLETION-INSERTION -> AnnotationDescriptor
-    Constant-Plhdr             : COMPLETION-INSERTION -> Constant
-    AnnotationField-Plhdr      : COMPLETION-INSERTION -> AnnotationField
-    AnnotationName-Plhdr       : COMPLETION-INSERTION -> AnnotationName
-    Annotation-Plhdr           : COMPLETION-INSERTION -> Annotation
-    AnnotationField-Opt-Plhdr  : AnnotationField
-    Constant-Opt-Plhdr         : Constant
 
 imports
   signatures/JasminXT-Names-sig
@@ -295,16 +279,6 @@ signature
     DCMPG             : Instruction
     DCMPL             : Instruction
     LCMP              : Instruction
-    VarRef-Plhdr      : VarRef
-    Int-Plhdr         : Int
-    Amount-Plhdr      : Amount
-    NegInt-Plhdr      : NegInt
-    Instruction-Plhdr : Instruction
-    VarRef-Plhdr      : COMPLETION-INSERTION -> VarRef
-    Int-Plhdr         : COMPLETION-INSERTION -> Int
-    Amount-Plhdr      : COMPLETION-INSERTION -> Amount
-    NegInt-Plhdr      : COMPLETION-INSERTION -> NegInt
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 imports
   signatures/JasminXT-Names-sig
@@ -317,14 +291,6 @@ signature
     RelativeBwd           : Int -> RelOffset
                           : LabelRef -> Target
                           : RelOffset -> Target
-    Int-Plhdr             : Int
-    LabelRef-Plhdr        : LabelRef
-    Target-Plhdr          : Target
-    RelOffset-Plhdr       : RelOffset
-    Int-Plhdr             : COMPLETION-INSERTION -> Int
-    LabelRef-Plhdr        : COMPLETION-INSERTION -> LabelRef
-    Target-Plhdr          : COMPLETION-INSERTION -> Target
-    RelOffset-Plhdr       : COMPLETION-INSERTION -> RelOffset
     IFEQ                  : Target -> Instruction
     IFLT                  : Target -> Instruction
     IFLE                  : Target -> Instruction
@@ -349,20 +315,6 @@ signature
     GOTO_W                : LabelRef -> Instruction
     JSR                   : LabelRef -> Instruction
     JSR_W                 : LabelRef -> Instruction
-    Target-Plhdr          : Target
-    TableEntry-Plhdr      : TableEntry
-    LookupEntry-Plhdr     : LookupEntry
-    Int-Plhdr             : Int
-    Instruction-Plhdr     : Instruction
-    LabelRef-Plhdr        : LabelRef
-    Target-Plhdr          : COMPLETION-INSERTION -> Target
-    TableEntry-Plhdr      : COMPLETION-INSERTION -> TableEntry
-    LookupEntry-Plhdr     : COMPLETION-INSERTION -> LookupEntry
-    Int-Plhdr             : COMPLETION-INSERTION -> Int
-    Instruction-Plhdr     : COMPLETION-INSERTION -> Instruction
-    LabelRef-Plhdr        : COMPLETION-INSERTION -> LabelRef
-    TableEntry-Opt-Plhdr  : TableEntry
-    LookupEntry-Opt-Plhdr : LookupEntry
 
 signature
   constructors
@@ -381,8 +333,6 @@ signature
     D2I               : Instruction
     D2L               : Instruction
     D2F               : Instruction
-    Instruction-Plhdr : Instruction
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 imports
   signatures/JasminXT-Types-sig
@@ -395,23 +345,7 @@ signature
                                : FieldType -> AnnotationDescriptor
                                : FieldType -> ReturnDescriptor
     Void                       : ReturnDescriptor
-    FieldDescriptor-Plhdr      : FieldDescriptor
-    ParameterDescriptor-Plhdr  : ParameterDescriptor
-    AnnotationDescriptor-Plhdr : AnnotationDescriptor
-    FieldType-Plhdr            : FieldType
-    ReturnDescriptor-Plhdr     : ReturnDescriptor
-    FieldDescriptor-Plhdr      : COMPLETION-INSERTION -> FieldDescriptor
-    ParameterDescriptor-Plhdr  : COMPLETION-INSERTION -> ParameterDescriptor
-    AnnotationDescriptor-Plhdr : COMPLETION-INSERTION -> AnnotationDescriptor
-    FieldType-Plhdr            : COMPLETION-INSERTION -> FieldType
-    ReturnDescriptor-Plhdr     : COMPLETION-INSERTION -> ReturnDescriptor
     JBCMethodDesc              : List(ParameterDescriptor) * ReturnDescriptor -> MethodDescriptor
-    MethodDescriptor-Plhdr     : MethodDescriptor
-    ParameterDescriptor-Plhdr  : ParameterDescriptor
-    ReturnDescriptor-Plhdr     : ReturnDescriptor
-    MethodDescriptor-Plhdr     : COMPLETION-INSERTION -> MethodDescriptor
-    ParameterDescriptor-Plhdr  : COMPLETION-INSERTION -> ParameterDescriptor
-    ReturnDescriptor-Plhdr     : COMPLETION-INSERTION -> ReturnDescriptor
 
 imports
   signatures/JasminXT-Descriptors-sig
@@ -447,43 +381,10 @@ signature
     UninitThis                 : VerificationType
     Object                     : ClassName -> VerificationType
     Uninit                     : LabelRef -> VerificationType
-    VarName-Plhdr              : VarName
-    FieldDescriptor-Plhdr      : FieldDescriptor
-    ClassRef-Plhdr             : ClassRef
-    STRING-Plhdr               : STRING
-    Int-Plhdr                  : Int
-    Directive-Plhdr            : Directive
-    AttributeName-Plhdr        : AttributeName
-    FileName-Plhdr             : FileName
-    StackDirOffset-Plhdr       : StackDirOffset
-    StackDirLocalVar-Plhdr     : StackDirLocalVar
-    StackDirStackVar-Plhdr     : StackDirStackVar
-    ClassName-Plhdr            : ClassName
-    VerificationType-Plhdr     : VerificationType
-    LabelRef-Plhdr             : LabelRef
-    VarName-Plhdr              : COMPLETION-INSERTION -> VarName
-    FieldDescriptor-Plhdr      : COMPLETION-INSERTION -> FieldDescriptor
-    ClassRef-Plhdr             : COMPLETION-INSERTION -> ClassRef
-    STRING-Plhdr               : COMPLETION-INSERTION -> STRING
-    Int-Plhdr                  : COMPLETION-INSERTION -> Int
-    Directive-Plhdr            : COMPLETION-INSERTION -> Directive
-    AttributeName-Plhdr        : COMPLETION-INSERTION -> AttributeName
-    FileName-Plhdr             : COMPLETION-INSERTION -> FileName
-    StackDirOffset-Plhdr       : COMPLETION-INSERTION -> StackDirOffset
-    StackDirLocalVar-Plhdr     : COMPLETION-INSERTION -> StackDirLocalVar
-    StackDirStackVar-Plhdr     : COMPLETION-INSERTION -> StackDirStackVar
-    ClassName-Plhdr            : COMPLETION-INSERTION -> ClassName
-    VerificationType-Plhdr     : COMPLETION-INSERTION -> VerificationType
-    LabelRef-Plhdr             : COMPLETION-INSERTION -> LabelRef
-    StackDirLocalVar-Opt-Plhdr : StackDirLocalVar
-    StackDirStackVar-Opt-Plhdr : StackDirStackVar
-    StackDirOffset-Opt-Plhdr   : StackDirOffset
 
 signature
   constructors
     ATHROW            : Instruction
-    Instruction-Plhdr : Instruction
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 imports
   signatures/JasminXT-Names-sig
@@ -514,34 +415,6 @@ signature
     TRANSIENT                    : FieldAccess
     FPSTRICT                     : FieldAccess
     SYNTHETIC                    : FieldAccess
-    Field-Plhdr                  : Field
-    FieldName-Plhdr              : FieldName
-    FieldDescriptor-Plhdr        : FieldDescriptor
-    AttributeName-Plhdr          : AttributeName
-    FileName-Plhdr               : FileName
-    FieldAttribute-Plhdr         : FieldAttribute
-    Annotation-Plhdr             : Annotation
-    STRING-Plhdr                 : STRING
-    FieldSignatureSpec-Plhdr     : FieldSignatureSpec
-    Constant-Plhdr               : Constant
-    InitialValue-Plhdr           : InitialValue
-    FieldAccess-Plhdr            : FieldAccess
-    Field-Plhdr                  : COMPLETION-INSERTION -> Field
-    FieldName-Plhdr              : COMPLETION-INSERTION -> FieldName
-    FieldDescriptor-Plhdr        : COMPLETION-INSERTION -> FieldDescriptor
-    AttributeName-Plhdr          : COMPLETION-INSERTION -> AttributeName
-    FileName-Plhdr               : COMPLETION-INSERTION -> FileName
-    FieldAttribute-Plhdr         : COMPLETION-INSERTION -> FieldAttribute
-    Annotation-Plhdr             : COMPLETION-INSERTION -> Annotation
-    STRING-Plhdr                 : COMPLETION-INSERTION -> STRING
-    FieldSignatureSpec-Plhdr     : COMPLETION-INSERTION -> FieldSignatureSpec
-    Constant-Plhdr               : COMPLETION-INSERTION -> Constant
-    InitialValue-Plhdr           : COMPLETION-INSERTION -> InitialValue
-    FieldAccess-Plhdr            : COMPLETION-INSERTION -> FieldAccess
-    FieldAccess-Opt-Plhdr        : FieldAccess
-    FieldAttribute-Opt-Plhdr     : FieldAttribute
-    FieldSignatureSpec-Opt-Plhdr : FieldSignatureSpec
-    InitialValue-Opt-Plhdr       : InitialValue
 
 imports
   signatures/JasminXT-Names-sig
@@ -553,32 +426,6 @@ imports
 signature
   constructors
     JBCHeader                    : BytecodeSpec * SourceSpec * ClassSpec * SuperSpec * List(ImplementsSpec) * SignatureSpec * EnclosingSpec * List(DebugSpec) * List(InnerClassSpec) * List(InnerInterfaceSpec) -> JasminHeader
-    JasminHeader-Plhdr           : JasminHeader
-    BytecodeSpec-Plhdr           : BytecodeSpec
-    SourceSpec-Plhdr             : SourceSpec
-    ClassSpec-Plhdr              : ClassSpec
-    SuperSpec-Plhdr              : SuperSpec
-    ImplementsSpec-Plhdr         : ImplementsSpec
-    SignatureSpec-Plhdr          : SignatureSpec
-    EnclosingSpec-Plhdr          : EnclosingSpec
-    DebugSpec-Plhdr              : DebugSpec
-    InnerClassSpec-Plhdr         : InnerClassSpec
-    InnerInterfaceSpec-Plhdr     : InnerInterfaceSpec
-    JasminHeader-Plhdr           : COMPLETION-INSERTION -> JasminHeader
-    BytecodeSpec-Plhdr           : COMPLETION-INSERTION -> BytecodeSpec
-    SourceSpec-Plhdr             : COMPLETION-INSERTION -> SourceSpec
-    ClassSpec-Plhdr              : COMPLETION-INSERTION -> ClassSpec
-    SuperSpec-Plhdr              : COMPLETION-INSERTION -> SuperSpec
-    ImplementsSpec-Plhdr         : COMPLETION-INSERTION -> ImplementsSpec
-    SignatureSpec-Plhdr          : COMPLETION-INSERTION -> SignatureSpec
-    EnclosingSpec-Plhdr          : COMPLETION-INSERTION -> EnclosingSpec
-    DebugSpec-Plhdr              : COMPLETION-INSERTION -> DebugSpec
-    InnerClassSpec-Plhdr         : COMPLETION-INSERTION -> InnerClassSpec
-    InnerInterfaceSpec-Plhdr     : COMPLETION-INSERTION -> InnerInterfaceSpec
-    ImplementsSpec-Opt-Plhdr     : ImplementsSpec
-    DebugSpec-Opt-Plhdr          : DebugSpec
-    InnerClassSpec-Opt-Plhdr     : InnerClassSpec
-    InnerInterfaceSpec-Opt-Plhdr : InnerInterfaceSpec
     JBCVersion                   : MajorVersion * MinorVersion -> BytecodeSpec
     None                         : BytecodeSpec
     Major                        : Int -> MajorVersion
@@ -586,21 +433,6 @@ signature
     None                         : MinorVersion
     JBCSource                    : STRING -> SourceSpec
     None                         : SourceSpec
-    BytecodeSpec-Plhdr           : BytecodeSpec
-    MajorVersion-Plhdr           : MajorVersion
-    Int-Plhdr                    : Int
-    MinorVersion-Plhdr           : MinorVersion
-    STRING-Plhdr                 : STRING
-    SourceSpec-Plhdr             : SourceSpec
-    BytecodeSpec-Plhdr           : COMPLETION-INSERTION -> BytecodeSpec
-    MajorVersion-Plhdr           : COMPLETION-INSERTION -> MajorVersion
-    Int-Plhdr                    : COMPLETION-INSERTION -> Int
-    MinorVersion-Plhdr           : COMPLETION-INSERTION -> MinorVersion
-    STRING-Plhdr                 : COMPLETION-INSERTION -> STRING
-    SourceSpec-Plhdr             : COMPLETION-INSERTION -> SourceSpec
-    BytecodeSpec-Opt-Plhdr       : BytecodeSpec
-    MinorVersion-Opt-Plhdr       : MinorVersion
-    SourceSpec-Opt-Plhdr         : SourceSpec
     JBCClass                     : List(ClassAccess) * ClassName -> ClassSpec
     JBCInterface                 : List(ClassAccess) * ClassName -> ClassSpec
     PUBLIC                       : ClassAccess
@@ -610,34 +442,11 @@ signature
     SUPER                        : ClassAccess
     JBCSuper                     : ClassName -> SuperSpec
     JBCImplements                : ClassName -> ImplementsSpec
-    ClassSpec-Plhdr              : ClassSpec
-    ClassAccess-Plhdr            : ClassAccess
-    SuperSpec-Plhdr              : SuperSpec
-    ImplementsSpec-Plhdr         : ImplementsSpec
-    ClassName-Plhdr              : ClassName
-    ClassSpec-Plhdr              : COMPLETION-INSERTION -> ClassSpec
-    ClassAccess-Plhdr            : COMPLETION-INSERTION -> ClassAccess
-    SuperSpec-Plhdr              : COMPLETION-INSERTION -> SuperSpec
-    ImplementsSpec-Plhdr         : COMPLETION-INSERTION -> ImplementsSpec
-    ClassName-Plhdr              : COMPLETION-INSERTION -> ClassName
-    ClassAccess-Opt-Plhdr        : ClassAccess
     JBCSignature                 : STRING -> SignatureSpec
     None                         : SignatureSpec
     JBCEnclosing                 : MethodDescriptor -> EnclosingSpec
     None                         : EnclosingSpec
     JBCDebug                     : STRING -> DebugSpec
-    SignatureSpec-Plhdr          : SignatureSpec
-    MethodDescriptor-Plhdr       : MethodDescriptor
-    EnclosingSpec-Plhdr          : EnclosingSpec
-    DebugSpec-Plhdr              : DebugSpec
-    STRING-Plhdr                 : STRING
-    SignatureSpec-Plhdr          : COMPLETION-INSERTION -> SignatureSpec
-    MethodDescriptor-Plhdr       : COMPLETION-INSERTION -> MethodDescriptor
-    EnclosingSpec-Plhdr          : COMPLETION-INSERTION -> EnclosingSpec
-    DebugSpec-Plhdr              : COMPLETION-INSERTION -> DebugSpec
-    STRING-Plhdr                 : COMPLETION-INSERTION -> STRING
-    SignatureSpec-Opt-Plhdr      : SignatureSpec
-    EnclosingSpec-Opt-Plhdr      : EnclosingSpec
     JBCInnerClass                : InnerClassAccess * InnerClassName * InnerName * OuterName -> InnerClassSpec
     JBCInnerInterface            : InnerClassAccess * InnerClassName * InnerName * OuterName -> InnerInterfaceSpec
                                  : ClassAccess -> InnerClassAccess
@@ -648,26 +457,6 @@ signature
     None                         : InnerName
     OuterNameSpec                : ClassName -> OuterName
     None                         : OuterName
-    InnerClassSpec-Plhdr         : InnerClassSpec
-    InnerInterfaceSpec-Plhdr     : InnerInterfaceSpec
-    ClassAccess-Plhdr            : ClassAccess
-    InnerClassAccess-Plhdr       : InnerClassAccess
-    InnerClassName-Plhdr         : InnerClassName
-    InnerName-Plhdr              : InnerName
-    ClassName-Plhdr              : ClassName
-    OuterName-Plhdr              : OuterName
-    InnerClassSpec-Plhdr         : COMPLETION-INSERTION -> InnerClassSpec
-    InnerInterfaceSpec-Plhdr     : COMPLETION-INSERTION -> InnerInterfaceSpec
-    ClassAccess-Plhdr            : COMPLETION-INSERTION -> ClassAccess
-    InnerClassAccess-Plhdr       : COMPLETION-INSERTION -> InnerClassAccess
-    InnerClassName-Plhdr         : COMPLETION-INSERTION -> InnerClassName
-    InnerName-Plhdr              : COMPLETION-INSERTION -> InnerName
-    ClassName-Plhdr              : COMPLETION-INSERTION -> ClassName
-    OuterName-Plhdr              : COMPLETION-INSERTION -> OuterName
-    InnerClassAccess-Opt-Plhdr   : InnerClassAccess
-    InnerClassName-Opt-Plhdr     : InnerClassName
-    InnerName-Opt-Plhdr          : InnerName
-    OuterName-Opt-Plhdr          : OuterName
 
 imports
   signatures/JasminXT-Arithmetic-sig
@@ -688,12 +477,6 @@ signature
     BREAKPOINT          : Instruction
     PC                  : Int * Instruction -> PCInstruction
                         : Instruction -> PCInstruction
-    Int-Plhdr           : Int
-    PCInstruction-Plhdr : PCInstruction
-    Instruction-Plhdr   : Instruction
-    Int-Plhdr           : COMPLETION-INSERTION -> Int
-    PCInstruction-Plhdr : COMPLETION-INSERTION -> PCInstruction
-    Instruction-Plhdr   : COMPLETION-INSERTION -> Instruction
 
 imports
   signatures/JasminXT-Names-sig
@@ -715,14 +498,6 @@ signature
     ARETURN           : Instruction
     RET               : VarRef -> Instruction
     RET_W             : VarRef -> Instruction
-    MethodRef-Plhdr   : MethodRef
-    Int-Plhdr         : Int
-    Instruction-Plhdr : Instruction
-    VarRef-Plhdr      : VarRef
-    MethodRef-Plhdr   : COMPLETION-INSERTION -> MethodRef
-    Int-Plhdr         : COMPLETION-INSERTION -> Int
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
-    VarRef-Plhdr      : COMPLETION-INSERTION -> VarRef
 
 imports
   signatures/JasminXT-Names-sig
@@ -752,12 +527,6 @@ signature
     LDC               : Constant -> Instruction
     LDC_W             : Constant -> Instruction
     LDC2_W            : Constant -> Instruction
-    Int-Plhdr         : Int
-    Instruction-Plhdr : Instruction
-    Constant-Plhdr    : Constant
-    Int-Plhdr         : COMPLETION-INSERTION -> Int
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
-    Constant-Plhdr    : COMPLETION-INSERTION -> Constant
     ILOAD             : VarRef -> Instruction
     LLOAD             : VarRef -> Instruction
     FLOAD             : VarRef -> Instruction
@@ -818,10 +587,6 @@ signature
     DSTORE_1          : Instruction
     DSTORE_2          : Instruction
     DSTORE_3          : Instruction
-    VarRef-Plhdr      : VarRef
-    Instruction-Plhdr : Instruction
-    VarRef-Plhdr      : COMPLETION-INSERTION -> VarRef
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 imports
   signatures/JasminXT-Names-sig
@@ -843,32 +608,10 @@ signature
     SYNCHRONIZED           : MethodAccess
     NATIVE                 : MethodAccess
     ABSTRACT               : MethodAccess
-    Method-Plhdr           : Method
-    MethodName-Plhdr       : MethodName
-    MethodDescriptor-Plhdr : MethodDescriptor
-    Statement-Plhdr        : Statement
-    MethodAccess-Plhdr     : MethodAccess
-    Method-Plhdr           : COMPLETION-INSERTION -> Method
-    MethodName-Plhdr       : COMPLETION-INSERTION -> MethodName
-    MethodDescriptor-Plhdr : COMPLETION-INSERTION -> MethodDescriptor
-    Statement-Plhdr        : COMPLETION-INSERTION -> Statement
-    MethodAccess-Plhdr     : COMPLETION-INSERTION -> MethodAccess
-    MethodAccess-Opt-Plhdr : MethodAccess
-    Statement-Opt-Plhdr    : Statement
                            : PCInstruction -> Statement
                            : Directive -> Statement
                            : Label -> Statement
     JBCLabel               : LabelName -> Label
-    PCInstruction-Plhdr    : PCInstruction
-    Directive-Plhdr        : Directive
-    Statement-Plhdr        : Statement
-    Label-Plhdr            : Label
-    LabelName-Plhdr        : LabelName
-    PCInstruction-Plhdr    : COMPLETION-INSERTION -> PCInstruction
-    Directive-Plhdr        : COMPLETION-INSERTION -> Directive
-    Statement-Plhdr        : COMPLETION-INSERTION -> Statement
-    Label-Plhdr            : COMPLETION-INSERTION -> Label
-    LabelName-Plhdr        : COMPLETION-INSERTION -> LabelName
 
 imports
   signatures/JasminXT-Strings-sig
@@ -890,70 +633,14 @@ signature
                            : Identifier -> MethodName
     Init                   : MethodName
                            : SQIdentifier -> VarName
-    FileName-Plhdr         : FileName
-    STRING-Plhdr           : STRING
-    ClassName-Plhdr        : ClassName
-    QualifiedName-Plhdr    : QualifiedName
-    AttributeName-Plhdr    : AttributeName
-    AnnotationName-Plhdr   : AnnotationName
-    FieldName-Plhdr        : FieldName
-    Identifier-Plhdr       : Identifier
-    MethodName-Plhdr       : MethodName
-    VarName-Plhdr          : VarName
-    SQIdentifier-Plhdr     : SQIdentifier
-    FileName-Plhdr         : COMPLETION-INSERTION -> FileName
-    STRING-Plhdr           : COMPLETION-INSERTION -> STRING
-    ClassName-Plhdr        : COMPLETION-INSERTION -> ClassName
-    QualifiedName-Plhdr    : COMPLETION-INSERTION -> QualifiedName
-    AttributeName-Plhdr    : COMPLETION-INSERTION -> AttributeName
-    AnnotationName-Plhdr   : COMPLETION-INSERTION -> AnnotationName
-    FieldName-Plhdr        : COMPLETION-INSERTION -> FieldName
-    Identifier-Plhdr       : COMPLETION-INSERTION -> Identifier
-    MethodName-Plhdr       : COMPLETION-INSERTION -> MethodName
-    VarName-Plhdr          : COMPLETION-INSERTION -> VarName
-    SQIdentifier-Plhdr     : COMPLETION-INSERTION -> SQIdentifier
     CRef                   : ClassName -> ClassRef
     VarNum                 : Int -> VarRef
     LabelRef               : LabelName -> LabelRef
     Absolute               : Int -> LabelRef
     FRef                   : FieldName -> FRef
     MRef                   : MethodName -> MRef
-    ClassRef-Plhdr         : ClassRef
-    ClassName-Plhdr        : ClassName
-    VarRef-Plhdr           : VarRef
-    LabelName-Plhdr        : LabelName
-    LabelRef-Plhdr         : LabelRef
-    Int-Plhdr              : Int
-    FRef-Plhdr             : FRef
-    FieldName-Plhdr        : FieldName
-    MRef-Plhdr             : MRef
-    MethodName-Plhdr       : MethodName
-    ClassRef-Plhdr         : COMPLETION-INSERTION -> ClassRef
-    ClassName-Plhdr        : COMPLETION-INSERTION -> ClassName
-    VarRef-Plhdr           : COMPLETION-INSERTION -> VarRef
-    LabelName-Plhdr        : COMPLETION-INSERTION -> LabelName
-    LabelRef-Plhdr         : COMPLETION-INSERTION -> LabelRef
-    Int-Plhdr              : COMPLETION-INSERTION -> Int
-    FRef-Plhdr             : COMPLETION-INSERTION -> FRef
-    FieldName-Plhdr        : COMPLETION-INSERTION -> FieldName
-    MRef-Plhdr             : COMPLETION-INSERTION -> MRef
-    MethodName-Plhdr       : COMPLETION-INSERTION -> MethodName
     JBCFieldRef            : ClassRef * FRef * FieldDescriptor -> FieldRef
     JBCMethodRef           : ClassRef * MRef * MethodDescriptor -> MethodRef
-    FieldRef-Plhdr         : FieldRef
-    FRef-Plhdr             : FRef
-    FieldDescriptor-Plhdr  : FieldDescriptor
-    MethodRef-Plhdr        : MethodRef
-    ClassRef-Plhdr         : ClassRef
-    MRef-Plhdr             : MRef
-    MethodDescriptor-Plhdr : MethodDescriptor
-    FieldRef-Plhdr         : COMPLETION-INSERTION -> FieldRef
-    FRef-Plhdr             : COMPLETION-INSERTION -> FRef
-    FieldDescriptor-Plhdr  : COMPLETION-INSERTION -> FieldDescriptor
-    MethodRef-Plhdr        : COMPLETION-INSERTION -> MethodRef
-    ClassRef-Plhdr         : COMPLETION-INSERTION -> ClassRef
-    MRef-Plhdr             : COMPLETION-INSERTION -> MRef
-    MethodDescriptor-Plhdr : COMPLETION-INSERTION -> MethodDescriptor
     ByteName               : BaseTypeName
     CharName               : BaseTypeName
     DoubleName             : BaseTypeName
@@ -962,18 +649,8 @@ signature
     LongName               : BaseTypeName
     ShortName              : BaseTypeName
     BooleanName            : BaseTypeName
-    BaseTypeName-Plhdr     : BaseTypeName
-    BaseTypeName-Plhdr     : COMPLETION-INSERTION -> BaseTypeName
     Reference              : ClassRef -> ObjectType
-    ObjectType-Plhdr       : ObjectType
-    ClassRef-Plhdr         : ClassRef
-    ObjectType-Plhdr       : COMPLETION-INSERTION -> ObjectType
-    ClassRef-Plhdr         : COMPLETION-INSERTION -> ClassRef
                            : ObjectType -> FieldType
-    FieldType-Plhdr        : FieldType
-    ObjectType-Plhdr       : ObjectType
-    FieldType-Plhdr        : COMPLETION-INSERTION -> FieldType
-    ObjectType-Plhdr       : COMPLETION-INSERTION -> ObjectType
 
 signature
   constructors
@@ -984,14 +661,6 @@ signature
     Double         : Double -> Constant
     Float          : Float -> Constant
     Int            : Int -> Constant
-    Double-Plhdr   : Double
-    Float-Plhdr    : Float
-    Constant-Plhdr : Constant
-    Int-Plhdr      : Int
-    Double-Plhdr   : COMPLETION-INSERTION -> Double
-    Float-Plhdr    : COMPLETION-INSERTION -> Float
-    Constant-Plhdr : COMPLETION-INSERTION -> Constant
-    Int-Plhdr      : COMPLETION-INSERTION -> Int
 
 imports
   signatures/JasminXT-Names-sig
@@ -1030,20 +699,6 @@ signature
     ARRAYLENGTH        : Instruction
     CHECKCAST          : ClassRef -> Instruction
     INSTANCEOF         : ClassRef -> Instruction
-    BaseTypeName-Plhdr : BaseTypeName
-    ANewArrayArg-Plhdr : ANewArrayArg
-    ArrayType-Plhdr    : ArrayType
-    Int-Plhdr          : Int
-    FieldRef-Plhdr     : FieldRef
-    Instruction-Plhdr  : Instruction
-    ClassRef-Plhdr     : ClassRef
-    BaseTypeName-Plhdr : COMPLETION-INSERTION -> BaseTypeName
-    ANewArrayArg-Plhdr : COMPLETION-INSERTION -> ANewArrayArg
-    ArrayType-Plhdr    : COMPLETION-INSERTION -> ArrayType
-    Int-Plhdr          : COMPLETION-INSERTION -> Int
-    FieldRef-Plhdr     : COMPLETION-INSERTION -> FieldRef
-    Instruction-Plhdr  : COMPLETION-INSERTION -> Instruction
-    ClassRef-Plhdr     : COMPLETION-INSERTION -> ClassRef
 
 signature
   constructors
@@ -1056,8 +711,6 @@ signature
     DUP_X2            : Instruction
     DUP2_X2           : Instruction
     SWAP              : Instruction
-    Instruction-Plhdr : Instruction
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 signature
   constructors
@@ -1065,17 +718,11 @@ signature
                    : string -> StringChar
                    : string -> HexDigit
     String         : STRING -> Constant
-    Constant-Plhdr : Constant
-    STRING-Plhdr   : STRING
-    Constant-Plhdr : COMPLETION-INSERTION -> Constant
-    STRING-Plhdr   : COMPLETION-INSERTION -> STRING
 
 signature
   constructors
     MONITORENTER      : Instruction
     MONITOREXIT       : Instruction
-    Instruction-Plhdr : Instruction
-    Instruction-Plhdr : COMPLETION-INSERTION -> Instruction
 
 signature
   constructors
@@ -1090,19 +737,7 @@ signature
                         : BaseType -> FieldType
                         : ArrayType -> FieldType
                         : FieldType -> ComponentType
-    BaseType-Plhdr      : BaseType
-    ArrayType-Plhdr     : ArrayType
-    ComponentType-Plhdr : ComponentType
-    FieldType-Plhdr     : FieldType
-    BaseType-Plhdr      : COMPLETION-INSERTION -> BaseType
-    ArrayType-Plhdr     : COMPLETION-INSERTION -> ArrayType
-    ComponentType-Plhdr : COMPLETION-INSERTION -> ComponentType
-    FieldType-Plhdr     : COMPLETION-INSERTION -> FieldType
     Array               : ComponentType -> ArrayType
-    ArrayType-Plhdr     : ArrayType
-    ComponentType-Plhdr : ComponentType
-    ArrayType-Plhdr     : COMPLETION-INSERTION -> ArrayType
-    ComponentType-Plhdr : COMPLETION-INSERTION -> ComponentType
 
 signature
   constructors
@@ -1119,18 +754,6 @@ signature
   constructors
                        : JasminFile -> Start
     JBCFile            : JasminHeader * List(Field) * List(Method) -> JasminFile
-    Start-Plhdr        : Start
-    JasminFile-Plhdr   : JasminFile
-    JasminHeader-Plhdr : JasminHeader
-    Field-Plhdr        : Field
-    Method-Plhdr       : Method
-    Start-Plhdr        : COMPLETION-INSERTION -> Start
-    JasminFile-Plhdr   : COMPLETION-INSERTION -> JasminFile
-    JasminHeader-Plhdr : COMPLETION-INSERTION -> JasminHeader
-    Field-Plhdr        : COMPLETION-INSERTION -> Field
-    Method-Plhdr       : COMPLETION-INSERTION -> Method
-    Field-Opt-Plhdr    : Field
-    Method-Opt-Plhdr   : Method
 
 imports
   signatures/-    // jasmin AST nodes
@@ -1154,6 +777,7 @@ imports
   analysis/types/constraints
 
 rules
+  analysis-builtin-partitions :: ? -> List(string * JasminFile)
   analysis-builtin-partitions:
         _ -> [ ( "String.class"
              , JBCFile(
@@ -2374,13 +1998,20 @@ strategies
   nabl-check-disable-hiding(|uri, ns) = id
   nabl-check-disable-unresolved = id
 
+  html-escape :: ? -> string
   html-escape = is-string ; string-replace(|"&", "&amp;") ; string-replace(|"<", "&lt;") ; string-replace(|">", "&gt;")
 
+  abox2text :: Box -> string
   abox2text = box2text-string(|10000)
+  pp-ClassName :: ClassName -> string
   pp-ClassName  = strip-annos ; prettyprint-jasmin-ClassName  ; abox2text <+ !"PRETTYPRINTFAILURE"
+  pp-MethodName :: MethodName -> string
   pp-MethodName = strip-annos ; prettyprint-jasmin-MethodName ; abox2text; html-escape <+ !"PRETTYPRINTFAILURE"
+  pp-FieldName :: FieldName -> string
   pp-FieldName  = strip-annos ; prettyprint-jasmin-FieldName  ; abox2text <+ !"PRETTYPRINTFAILURE"
+  pp-ParameterDescriptors :: List(ParameterDescriptor) -> string
   pp-ParameterDescriptors = map(prettyprint-jasmin-ParameterDescriptor ; abox2text);concat-strings <+ !"PRETTYPRINTFAILURE"
+  pp-ReturnDescriptor :: ReturnDescriptor -> string
   pp-ReturnDescriptor = prettyprint-jasmin-ReturnDescriptor ; abox2text <+ !"PRETTYPRINTFAILURE"
 
 rules
@@ -2388,7 +2019,7 @@ rules
   nabl-constraint(|ctx):
     CRef(c) -> <fail>
       where
-        not(<string-starts-with(|"java/")> c)
+        not(<is-string;string-starts-with(|"java/")> c)
       where
         <has-annotation(?Use(task))> c
       ; msg  := $[Class [<pp-ClassName> c] is undefined]
@@ -2397,7 +2028,7 @@ rules
   nabl-constraint(|ctx):
     JBCSuper(c) -> <fail>
       where
-        not(<string-starts-with(|"java/")> c)
+        not(<is-string;string-starts-with(|"java/")> c)
       where
         <has-annotation(?Use(task))> c
       ; msg  := $[Class [<pp-ClassName> c] is undefined]
@@ -2406,7 +2037,7 @@ rules
   nabl-constraint(|ctx):
     JBCMethodRef(CRef(c), MRef(m), _) -> <fail>
       where
-        not(<string-starts-with(|"java/")> c)
+        not(<is-string;string-starts-with(|"java/")> c)
       where
         <has-annotation(?Use(task))> m
       ; msg  := $[Method [<pp-MethodName> m] is undefined]
@@ -2415,7 +2046,7 @@ rules
   nabl-constraint(|ctx):
     JBCFieldRef(CRef(c), FRef(f), _) -> <fail>
       where
-        not(<string-starts-with(|"java/")> c)
+        not(<is-string;string-starts-with(|"java/")> c)
       where
         <has-annotation(?Use(task))> f
       ; msg  := $[Field [<pp-FieldName> f] is undefined]
@@ -2452,6 +2083,7 @@ imports
 
 rules
 
+  class-name :: JasminFile -> ClassName
   class-name: JBCFile(JBCHeader(_, _, JBCClass(_, name), _, _, _, _, _, _, _), _, _) -> name
 
 
@@ -2467,8 +2099,10 @@ imports
 
 rules
   // Deprecated: legacy name
+  stack-constraints(|?, ClassName) :: ? -> List(Constraint)
   stack-constraints(|ctx, classname) = collect-constraints(|ctx, classname)
 
+  collect-constraints(|?, ClassName) :: ? -> List(Constraint)
   collect-constraints(|ctx, classname): JBCMethod(_, _, JBCMethodDesc(_,r), []) -> [CEq(r, Void())]
   collect-constraints(|ctx, classname): JBCMethod(_, _, JBCMethodDesc(p,r), l) -> [st-start, push-pop*, next*, cc*, reg-start, reg-next*]
     where l'@[h|t] := <filter(match-Instruction)> l
@@ -2487,6 +2121,7 @@ rules
           // limit locals can be done with a single constraint wherever it is found, setting the locals CSub of [TOP(), ..., TOP()] of the size given in the limit locals phrase
           // limit stack may need intelligent constaints on every in/out stack.. Not sure yet how to solve this
 
+  push-pop-constraints :: Instruction -> List(Constraint)
   push-pop-constraints: instr -> [n*,nr*]
     where push* := <push-type> instr
         ; pop*  := <pop-type> instr
@@ -2495,17 +2130,23 @@ rules
         ; rest  := <fresh-var>
         ; n*    := [ CEq(TypeVar(i-out), (push*, rest)), CEq(TypeVar(i-in), (pop*, rest)) ]
         ; nr*   := [ CEq(<var-rename-hack> TypeVar(i-in), <var-rename-hack> TypeVar(i-out)) ]
+  pop-type :: ? -> List(Type)
   pop-type = get-pop-type;not(?[])
+  push-type :: ? -> List(Type)
   push-type = get-push-type;not(?[])
 
+  next-constraints(|?) :: Instruction * (string * List(Constraint)) -> string * List(Constraint)
   next-constraints(|ctx): (instr, (prev-out, c*)) -> (<get-out-stack> instr, [c*, n*])
     where i-in := <get-in-stack> instr
         ; n* := <next-instr;map(next-helper(|ctx, prev-out, i-in))> instr
 
+  next-helper(|?, string, string) :: Target -> Constraint
   next-helper(|ctx,prev-out,i-in) = \NEXT() -> CEq(TypeVar(prev-out),TypeVar(i-in))\
                                  <+ \LabelRef(l) -> CEq(TypeVar(prev-out),TypeVar(<get-in-stack> l))\
+  next-instr :: ? -> List(Target)
   next-instr = get-next-instr <+ ![NEXT()]
 
+  complex-constraints(|FieldType) :: Instruction -> List(Constraint)
   complex-constraints(|ret) = complex-constraint(|ret) <+ complex-constraint
 
 
@@ -2516,16 +2157,18 @@ imports
   analysis/types/constraints
 
 rules
+  cc-r-match-int(|int) :: ? -> List(FieldType) * Type
   cc-r-match-int(|at) = where( rest := <fresh-var>
       ; first  := <safe-repeat(![<fresh-var> | <id>] | <dec> at)> [Int()])
     ; !(first, rest)
 
   // IINC and IINC_W
+  complex-constraint :: Instruction -> List(Constraint)
   complex-constraint: instr@name#([VarNum(vn), _]) -> [nc*, nr*]
     where <string-starts-with(|"IINC")> name
     with i-in  := <get-in-stack> instr
        ; i-out := <get-out-stack> instr
-       ; vn'   := <dec-string-to-int> vn
+       ; vn'   := <is-string;dec-string-to-int> vn
        ; stack := <cc-r-match-int(|vn')>
        ; nr*   := [ CEq(<var-rename-hack> TypeVar(i-in),  stack) // pop-reg-type
                   , CEq(<var-rename-hack> TypeVar(i-out), stack) // push-reg-type
@@ -2573,6 +2216,7 @@ rules
                , CSub(TypeVar(i-out), (ret-type, rest))   ] // push-type
        ; nr*   := [ CEq(<var-rename-hack> TypeVar(i-in), <var-rename-hack> TypeVar(i-out)) ]
 
+  cc-return(|ReturnDescriptor, ReturnDescriptor) :: Instruction -> List(Constraint)
   cc-return(|r, type): instr -> [n*,nr*]
     with i-out := <get-out-stack> instr
        ; i-in  := <get-in-stack> instr
@@ -2583,6 +2227,7 @@ rules
                , CEq(TypeVar(i-in), (ret-type, rest)) // pop-type
                , CEq(r, type) ]
        ; nr*   := [ CEq(<var-rename-hack> TypeVar(i-in), <var-rename-hack> TypeVar(i-out)) ]
+  complex-constraint(|ReturnDescriptor) :: Instruction -> List(Constraint)
   complex-constraint(|r): RETURN()  -> <cc-return(|r, Void())>
   complex-constraint(|r): IRETURN() -> <cc-return(|r, Int())>
   complex-constraint(|r): LRETURN() -> <cc-return(|r, Long())>
@@ -2613,9 +2258,11 @@ rules
             ; <string-ends-with(|"STORE") + string-ends-with(|"LOAD")> name'\
     )> instr
 
+  cc-r-match(|int, FieldType) :: string -> Constraint
   cc-r-match(|at, var): i-in -> CEq(<var-rename-hack> TypeVar(i-in), (first, rest))
     with rest   := <fresh-var>
        ; first  := <safe-repeat(![<fresh-var> | <id>] | <dec> at)> [var]
+  cc-r-subst(|int, FieldType) :: string * string -> List(Constraint)
   cc-r-subst(|at, var): (i-in, i-out) ->
       [ CEq(<var-rename-hack> TypeVar(i-in),  (f-i-in, rest))
       , CEq(<var-rename-hack> TypeVar(i-out), (fSubst, rest)) ]
@@ -2656,6 +2303,7 @@ rules
        ; vn'   := <dec-string-to-int> vn
        ; nr*   := <cc-r-subst(|vn', var)> (i-in, i-out)
 
+  cc-load-helper(|FieldType, string) :: Instruction -> List(Constraint)
   cc-load-helper(|type, vn): instr -> [nc*, nr*]
     with i-out := <get-out-stack> instr
        ; i-in  := <get-in-stack>  instr
@@ -2666,6 +2314,7 @@ rules
        ; nc*   := [ CEq(TypeVar(i-out), ([type],rest))   // push-type
                   , CEq(TypeVar(i-in), rest)           ]
 
+  cc-store-helper(|FieldType, string) :: Instruction -> List(Constraint)
   cc-store-helper(|type, vn): instr -> [nc*, nr*]
     with i-out := <get-out-stack> instr
        ; i-in  := <get-in-stack>  instr
@@ -2676,14 +2325,14 @@ rules
        ; nr*   := <cc-r-subst(|vn', type)> (i-in, i-out)
 
 
-  complex-constraint: DLOAD (VarNum(vn)) -> <cc-load-helper (|Double(), vn)>
-  complex-constraint: DSTORE(VarNum(vn)) -> <cc-store-helper(|Double(), vn)>
-  complex-constraint: FLOAD (VarNum(vn)) -> <cc-load-helper (|Float() , vn)>
-  complex-constraint: FSTORE(VarNum(vn)) -> <cc-store-helper(|Float() , vn)>
-  complex-constraint: ILOAD (VarNum(vn)) -> <cc-load-helper (|Int()   , vn)>
-  complex-constraint: ISTORE(VarNum(vn)) -> <cc-store-helper(|Int()   , vn)>
-  complex-constraint: LLOAD (VarNum(vn)) -> <cc-load-helper (|Long()  , vn)>
-  complex-constraint: LSTORE(VarNum(vn)) -> <cc-store-helper(|Long()  , vn)>
+  complex-constraint: DLOAD (VarNum(vn)) -> <cc-load-helper (|Double(), <is-string> vn)>
+  complex-constraint: DSTORE(VarNum(vn)) -> <cc-store-helper(|Double(), <is-string> vn)>
+  complex-constraint: FLOAD (VarNum(vn)) -> <cc-load-helper (|Float() , <is-string> vn)>
+  complex-constraint: FSTORE(VarNum(vn)) -> <cc-store-helper(|Float() , <is-string> vn)>
+  complex-constraint: ILOAD (VarNum(vn)) -> <cc-load-helper (|Int()   , <is-string> vn)>
+  complex-constraint: ISTORE(VarNum(vn)) -> <cc-store-helper(|Int()   , <is-string> vn)>
+  complex-constraint: LLOAD (VarNum(vn)) -> <cc-load-helper (|Long()  , <is-string> vn)>
+  complex-constraint: LSTORE(VarNum(vn)) -> <cc-store-helper(|Long()  , <is-string> vn)>
 
 
 imports
@@ -2729,12 +2378,14 @@ rules
                    , [ CEq(TypeVar(i-in), ([Byte(), Int(), Array(Byte())], rest)) ]       // pop-type
                    ])]
 
+  cc-aload-helper(|FieldType) :: Instruction -> List(Constraint)
   cc-aload-helper(|type): instr -> n*
     where i-out := <get-out-stack> instr
         ; i-in  := <get-in-stack>  instr
         ; rest  := <fresh-var>
       ; n* := [ CEq(TypeVar(i-in), ([Int(), Array(type)], rest))   // pop-type
                 , CEq(TypeVar(i-out), ([type],rest))               ] // push-type
+  cc-astore-helper(|FieldType) :: Instruction -> List(Constraint)
   cc-astore-helper(|type): instr -> n*
     where i-out := <get-out-stack> instr
         ; i-in  := <get-in-stack>  instr
@@ -3007,7 +2658,7 @@ signature
             : List(Type) -> Stack
             : Stack -> Type
     CEq     : Type /*always TypeVar*/ * a -> Constraint
-    CNEq    : Type /*always TypeVar*/ * Type -> Constraint
+    CNEq    : Type /*always TypeVar*/ * a -> Constraint
     CSub    : Type /*always TypeVar*/ * Type -> Constraint
     CSup    : Type /*always TypeVar*/ * Type -> Constraint
     COr     : List(List(Constraint)) -> Constraint
@@ -3018,13 +2669,16 @@ signature
     Alias   : string -> Type
 
 strategies
+  fresh-var :: ? -> Type
   fresh-var = !TypeVar(<new>)
 
+  var-rename-hack :: Type -> Type
   var-rename-hack: TypeVar(string) -> TypeVar(string')
     where <string-starts-with(|"in") + string-starts-with(|"out")> string
         ; string' := $[[string]-locals]
 
   // repeat that checks against negative numbers
+  safe-repeat(a -> a | int) :: a -> a
   safe-repeat(s | n) =
     if <leq>(n, 0)
     then
@@ -3098,7 +2752,7 @@ rules
                          [CEq(TypeVar("a"), [Boolean()])]]),
                        CEq(TypeVar("a"), [Int()])]
       ; b := <try(solve-constraints)> [COr([[CEq(TypeVar("test"), [Int()]), CEq(TypeVar("test2"), []), CEq(TypeVar("abc"), TypeVar("test"))],
-                          [CEq(TypeVar("test"), [Double()])]])]
+                          [CEq(TypeVar("test"), [Double() :: BaseType])]])]
       ; c := <try(solve-constraints)> [COr([[CEq(TypeVar("fail"), [Int()])],
                          [CEq(TypeVar("fail"), [Boolean()])]]),
                        CEq(TypeVar("fail"), [Byte()])]
@@ -3382,7 +3036,7 @@ rules
     with
       filename := <guarantee-extension(|"result.txt")> path
     with
-      cname := <class-name ; string-replace(|"/",".")> ast;
+      cname := <class-name ; is-string; string-replace(|"/",".")> ast;
       cpath := <concat-strings; prim("local_path")> [project-path, "/", <dirname> path];
       <execute-java(|cpath); process-output> cname => result
 
@@ -3397,7 +3051,7 @@ rules
       filename := <guarantee-extension(|"result.txt")> path
     with
       <write-class-file(|class-filename)> asm-ast;
-      cname := <class-name ; string-replace(|"/",".")> ast;
+      cname := <class-name ; is-string; string-replace(|"/",".")> ast;
       cpath := <concat-strings; prim("local_path")> [project-path, "/", <dirname> path];
       <execute-java(|cpath); process-output> cname => result
 
@@ -3941,8 +3595,10 @@ rules // Debugging
 
 // this file was semi-automatically generated from the syntax definition of the Instruction sort
 rules
-  match-Instruction: a#(_) -> <id> where <match-Instruction-constr> a
+  match-Instruction :: ? -> Instruction
+  match-Instruction: a#(_) -> <id> where <is-string;match-Instruction-constr> a
 
+  match-Instruction-constr :: string -> string
   match-Instruction-constr: "IADD"                     -> <id>
   match-Instruction-constr: "IAND"                     -> <id>
   match-Instruction-constr: "IDIV"                     -> <id>
@@ -4196,7 +3852,7 @@ imports
 signature
   constructors
     Label  :  String -> Instruction
-    Maxs  :  Int * Int -> Instruction
+    Maxs  :  int * int -> Instruction
     TryCatch:  String * String * String * String -> Instruction
     LocalVar:  String * String * String * String * String * Int -> Instruction
     Line    :   Int -> Instruction

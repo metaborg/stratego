@@ -6,7 +6,7 @@ imports
 
 sorts ID Var Wld
 context-free syntax
-  Var.Var = Id
+  Var.Var = ID
   ID      = Id
 
 sorts Term // term with annotations

@@ -6,7 +6,3 @@ imports
 context-free syntax
 
   Term.TypeAscription = [[Term] :: [Type]]
-//  Term.MatchVar = [=[Var]] {prefer}
-//  Term.AssignVar = [[Var]=] {prefer}
-//  PreTerm.MatchVar = [=[Var]]
-//  PreTerm.AssignVar = [[Var]=]

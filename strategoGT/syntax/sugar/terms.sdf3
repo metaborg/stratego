@@ -5,11 +5,8 @@ imports
   sugar/constants
   sugar/strategies
 
-sorts LID
 context-free syntax
-  LID.ListVar = LId
-  Var.Var     = LID
-  ID          = LID
+  ID.ListVar        = LId
 
 context-free syntax
 

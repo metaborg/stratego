@@ -41,17 +41,19 @@ insertCasts-StMatchTerm-Type(|e1, t):
 insertCasts-StMatchTerm(|e1, st1) = otf12(insertCasts-StMatchTerm-(|e1, st1))
 
 insertCasts-StMatchTerm(|e1, st1):
-  trm@Var(v) -> (trm, st2)
+  trm1@Var(v) -> (trm1, st3)
   with
     t1 := <current-type> st1
   ; if t2 := <term-lookup(|v{})> st1
-      then if t3 := <LUB> (t1, t2)
-        then st2 := <term-put(|v{}, t3)> st1
-        else
-          <report-Err> (v, VariableBoundToIncompatibleType(t2, t1))
-        ; st2 := st1
-        end // TODO: do this for both unresolved names and unbound names
-      else st2 := <term-put(|v{}, t1)> st1
+      then
+        (c, st2) := <computeCoercion(|trm1, st1)> (t1, t2)
+      ; if Id() := c
+          then st3 := st2
+          // Doing a cast after the fact in case the var was unbound before the match,
+          //    but already had a type due to its use in the rhs of a rule def
+          else st3 := <after-match(|BA(Cast(c{}), trm1))> st2
+        end
+      else st3 := <term-put(|v{}, t1)> st1
     end
 
 insertCasts-StMatchTerm(|e1, st1):
@@ -109,7 +111,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
         then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-        else <report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+        else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
@@ -182,10 +184,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   Anno(trm1, trm2) -> (trm6, st4)
   with
     (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
-  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT())> st2)> trm2
-  ; if not(<CanCoerce> ((<current-type> st3, ListT()), st1))
-      then <report-Err> (trm2, NonListInAnno(<current-type> st3))
-    end
+  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
   ; st4 := <current-type(|<current-type> st2)> st3
   ; if App(c@Cast(_), trm5) := trm3
       then trm6 := App(c, Anno(trm5, trm4))
@@ -240,7 +239,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       else
         if [] := t*
           then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-          else <report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+          else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
         end
       ; t3 := ErrT() // workaround for backtracking issue in strj
       ; t3* := <map(!ErrT())> trm1*
@@ -362,13 +361,13 @@ insertCasts-StMatchTerm-(|e1, st1):
   Tuple([trm1]) -> <insertCasts-StMatchTerm-(|e1, st1)> trm1
 
 insertCasts-StMatchTerm-(|e1, st1):
-  Tuple(trm1*) -> (Tuple(trm2*), st3)
+  trm@Tuple(trm1*) -> (Tuple(trm2*), st3)
   with
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := TupleT(t1*)
-  ; if not(<CanCoerce> ((t2, t1), st1))
-      then <report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> ((t1, t2), st1))
+      then <report-Err> (trm, TypeMismatch(t1, t2))
     end
   ; if not(TupleT(t2*) := t1)
       then t2* := t1*
@@ -377,19 +376,19 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; st3 := <current-type(|t2)> st2
 
 insertCasts-StMatchTerm-(|e1, st1):
-  List(trm1*) -> (List(trm2*), st3)
+  trm@List(trm1*) -> (List(trm2*), st3)
   with
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := ListT()
-  ; if not(<CanCoerce> ((t2, t1), st1))
-      then <report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> ((t1, t2), st1))
+      then <report-Err> (trm, TypeMismatch(t1, t2))
     end
   ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
   ; st3 := <current-type(|t2)> st2
 
 insertCasts-StMatchTerm-(|e1, st1):
-  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
+  trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
   with
     t1 := <current-type> st1
   ; if ListT(t) := t1
@@ -397,8 +396,8 @@ insertCasts-StMatchTerm-(|e1, st1):
       else t1* := <map(!DynT())> trm1*
     end
   ; t2 := ListT()
-  ; if not(<CanCoerce> ((t2, t1), st1))
-      then <report-Err> ("", TypeMismatch(t2, t1))
+  ; if not(<CanCoerce> ((t1, t2), st1))
+      then <report-Err> (trm, TypeMismatch(t1, t2))
     end
   ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
   ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st2)> trm1
@@ -477,7 +476,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   ; st3 := <current-type(|t1)> st2
 
 insertCasts-StBuildTerm-ListVar(|e1, t1): (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
-  where
+  where if((Var(ListVar(?"c*" + ?"n*")), id)) then debuga end;
     t2 := DynT(ListT(<unDyn> t1))
 
 insertCasts-StBuildTerm-ListVar(|e1, t) = insertCasts-StBuildTerm-Type(|e1, t)
@@ -630,7 +629,7 @@ insertCasts-Build-StringQuotedPart(|e1) =
 strategies
 
 insertCasts-StMatchTerm-(|e1, st1):
-  ta@TypeAscription(trm1, t1) -> (As(trm3, trm2), st4)
+  ta@TypeAscription(trm1, t1) -> (trm3, st4)
   with
     t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
@@ -642,7 +641,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     ; if Id() := c
         then trm3 := trm2; st4 := st3
         else
-          trm3 := Var(<newname> "typeAscribed")
+          trm3 := As(Var(<newname> "typeAscribed"), trm2)
         ; st4 := <after-match(|BA(Cast(c{}), trm3))> st3
       end
     end
@@ -652,7 +651,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
-  ; if not(<CanCoerce> ((t2, t3), st1) + DynT() := t2)
+  ; if not(<CanCoerce> ((t2, t3), st1))
       then <report-Err> (trm1, TypeMismatch(t2, t3))
     end
   ; (trm3, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st1)> trm2

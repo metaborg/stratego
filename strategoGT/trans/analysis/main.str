@@ -69,7 +69,6 @@ can-coerce(|injection-closure): ((from, to), _) -> <id>
 can-coerce(|injection-closure) = ?((ErrT(), _), _)
 can-coerce(|injection-closure) = ?((_, ErrT()), _)
 can-coerce(|injection-closure) = ?((_, DynT()), _)
-can-coerce(|injection-closure) = ?((SortVar(x), SortVar(x)), st1); where(not(<type-var-lookup(|x)> st1))
 // We assume co-variant type parameters
 can-coerce(|injection-closure): ((Sort(x, t1*), Sort(x, t2*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
   where
@@ -83,32 +82,41 @@ can-coerce(|injection-closure):
     then p := (t2, t2); st2 := st1
     else if t2 := <type-var-lookup(|y)> st1
       then p := (t2, t2); st2 := st1
-      else st2 := <type-var-put(|x, t1)> st1
+      else not(<eq> (x,y))
+         ; st2 := <type-var-put(|x, t1)> st1
          ; p := (t1, t1)
       end
     end
 
 can-coerce(|injection-closure):
-  ((SortVar(x), t1), st1) -> ((t2, t1), st2)
+  ((SortVar(x), t1), st1) -> result
   where
-    t2 := <type-var-lookup(|x) <+ !t1> st1
-  ; st2 := <type-var-put(|x, t2)> st1
+    if t2 := <type-var-lookup(|x)> st1
+      then result := <can-coerce(|injection-closure)> ((t2, t1), st1)
+      else st2 := <type-var-put(|x, t1)> st1
+        ; result := ((t1, t1), st2)
+    end
 
 can-coerce(|injection-closure):
   ((t1, SortVar(x)), st1) -> ((t1, t2), st2)
   where
-    t2 := <type-var-lookup(|x) <+ !t1> st1
-  ; st2 := <type-var-put(|x, t2)> st1
+    if t2 := <type-var-lookup(|x)> st1
+      then result := <can-coerce(|injection-closure)> ((t1, t2), st1)
+      else st2 := <type-var-put(|x, t1)> st1
+        ; result := ((t1, t1), st2)
+    end
 
 can-coerce(|injection-closure):
   ((t, t), st1) -> ((t, t), st1)
 
+// dead code, why is this here? instantiating variables?
 can-coerce(|injection-closure):
   ((Sort(x, t1*), DynT()), st1) -> ((Sort(x, t3*), DynT()), st2)
   where
     (pairs, st2) := <thread-map(can-coerce(|injection-closure))> (<map-pair-right(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
 
+// dyn on left only succeeds if right is variable. Here for instantiating variables?
 can-coerce(|injection-closure):
   ((DynT(), Sort(x, t1*)), st1) -> ((DynT(), Sort(x, t4*)), st2)
   where

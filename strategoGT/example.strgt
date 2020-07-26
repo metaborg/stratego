@@ -4,20 +4,20 @@ imports
 
 libstratego-lib
 
-//signature constructors
-//
-//Incr : str -> Expr
-//Add  : Expr * Expr -> Expr
-//Int  : str -> Expr
-//Var  : str -> Expr
-//
-//VarDecl : str * Type * Expr -> Stat
-//VarDecl : str * Type -> Stat
-//Assign  : str * Expr -> Stat
-//Seq     : Stat * Stat -> Stat
-//Module  : str * List(Stat) -> Module
-//
-//IAdd : Instr
+signature constructors
+
+Incr : str -> Expr
+Add  : Expr * Expr -> Expr
+Int  : str -> Expr
+Var  : str -> Expr
+
+VarDecl : str * Type * Expr -> Stat
+VarDecl : str * Type -> Stat
+Assign  : str * Expr -> Stat
+Seq     : Stat * Stat -> Stat
+Module  : str * List(Stat) -> Module
+
+IAdd : Instr
 
 //strategies
 //
@@ -212,5 +212,14 @@ strategies
 //  test-collect-all :: ? -> List(str)
 //  test-collect-all = ![1,2,3]; collect-all(!"hi!")
 
-  t :: int * string -> string * string * string
-  t = id;cast(string * string)
+  partition(a -> b) :: List(a) -> List(b) * List(a)
+  partition(s) = fail
+
+
+  testing1 :: List(Instr) -> List(Expr)
+  testing1 : l' -> cc
+    with
+      (cc, _) := <partition(testing2)> l'
+
+  testing2 :: ? -> ?
+  testing2 = fail

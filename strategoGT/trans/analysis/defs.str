@@ -10,8 +10,10 @@ libspoofax/stratego/debug
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/sugar/rules-sig
+signatures/sugar/strategies-sig
 signatures/core/strategies-sig
 signatures/gradual-types/modules-sig
+signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 
 analysis/utils
