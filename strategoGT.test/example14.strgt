@@ -90,6 +90,8 @@ strategies // traversal strategies
 
   desugar-all = topdown(try(desugar))
   
+//  topdown(TP) :: TP
+  topdown(? -> ?) :: ? -> ?
   topdown(s|) = s; all(topdown(s))
   
   try(s|) = s <+ id  

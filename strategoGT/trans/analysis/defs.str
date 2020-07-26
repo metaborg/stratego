@@ -107,15 +107,10 @@ insertCasts-StrategyDef-(|e1, st1):
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
 
-insertCasts-StrategyDef-(|e1, st1):
-  SDef(x, s1*, s1) -> (SDef(x, s1*, s3), st5)
-  with
-    (FunTType(st*, [], t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, 0, st1)> e1
-  ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
-  ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(!LocalDef(<id>))> st*))
-  ; st3 := <current-type(|t1)> st2
-  ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
-  ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
+insertCasts-StrategyDef(|e1, st1) =
+  otf(\SDef(x, s1*, s1) -> SDefT(x, s1*, [], s1)\)
+; insertCasts-StrategyDef(|e1, st1)
+; otf(\SDefT(x, s1*, [], s1) -> SDef(x, s1*, s1)\)
 
 insertCasts-StrategyDef-(|e1, st1):
   SDefNoArgs(x, s1) -> (SDefNoArgs(x, s3), st5)

@@ -42,7 +42,7 @@ rules
     Inc(Var(x)) -> Assign(x, Add(Var(x), Int("1")))
     
   desugar : // lifting statement expressions
-    stat@<is-stat> -> Seq(stat1, stat2)
+    stat@<is(Stat)> -> Seq(stat1, stat2)
     where <oncetd((Stat(stat1, e) -> e))> stat => stat2
     
 rules // domain too large
@@ -83,9 +83,9 @@ rules // non-well-formed term construction
     
 strategies
 
-  is-stat :: ? -> Stat
-  is-stat = ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) 
-         <+ ?For(_,_,_,_) <+ ?Exp(_)
+  is-stat(|) :: Stat -> Stat
+  is-stat(|) = 
+    ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
 
   oncetd(TP|) :: TP
   oncetd(s|) = s <+ one(oncetd(s))

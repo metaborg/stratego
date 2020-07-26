@@ -193,32 +193,35 @@ insertCasts-Strategy-(|e1, st1):
   ; st4 := <current-type(|DynT())> st3
 
 insertCasts-Strategy-(|e1, st1):
-  Some(s1) -> (Some(s2), st1)
+  Some(s1) -> (Some(s2), <current-type(|<current-type> st1)> st2)
   where
-    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
+    not(DynT() := <current-type> st1)
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
 
 insertCasts-Strategy-(|e1, st1):
-  Some(s1) -> (Some(s2), <current-type(|DynT())> st1)
+  Some(s1) -> (Some(s2), <current-type(|DynT())> st2)
   with
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
 insertCasts-Strategy-(|e1, st1):
-  One(s1) -> (One(s2), st1)
+  One(s1) -> (One(s2), <current-type(|<current-type> st1)> st2)
   where
-    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
+    not(DynT() := <current-type> st1)
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
 
 insertCasts-Strategy-(|e1, st1):
-  One(s1) -> (One(s2), <current-type(|DynT())> st1)
+  One(s1) -> (One(s2), <current-type(|DynT())> st2)
   with
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
 insertCasts-Strategy-(|e1, st1):
-  All(s1) -> (All(s2), st1)
+  All(s1) -> (All(s2), <current-type(|<current-type> st1)> st2)
   where
-    (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
+    not(DynT() := <current-type> st1)
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
 
 insertCasts-Strategy-(|e1, st1):
-  All(s1) -> (All(s2), <current-type(|DynT())> st1)
+  All(s1) -> (All(s2), <current-type(|DynT())> st2)
   with
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
@@ -663,6 +666,18 @@ insertCasts-Strategy(|e1, st1):
   s@Cast(RuntimeCheck(t)) -> (s, st2)
   with
     st2 := <current-type(|<desugar-Type> t)> st1
+
+insertCasts-Strategy(|e1, st1):
+  s@TypeTest(t) -> (s, st3)
+  with
+    t1 := <current-type> st1
+  ; t2 := <desugar-Type> t
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then st2 := <Snd> r
+      else <report-Err> (s, TypeMismatch(t1,t2))
+         ; st2 := st1
+    end
+  ; st3 := <current-type(|t2)> st2
 
 insertCasts-Strategy(|e1, st1):
   Proxy(c1, c2, s1) -> (Proxy(c1, c2, s2), st2)
