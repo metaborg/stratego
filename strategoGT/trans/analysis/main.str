@@ -99,7 +99,7 @@ can-coerce(|injection-closure):
     end
 
 can-coerce(|injection-closure):
-  ((t1, SortVar(x)), st1) -> ((t1, t2), st2)
+  ((t1, SortVar(x)), st1) -> result
   where
     if t2 := <type-var-lookup(|x)> st1
       then result := <CanCoerce> ((t1, t2), st1)
