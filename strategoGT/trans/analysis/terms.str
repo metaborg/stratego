@@ -369,10 +369,11 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if not(<CanCoerce> ((t1, t2), st1))
       then <report-Err> (trm, TypeMismatch(t1, t2))
     end
-  ; if not(TupleT(t2*) := t1)
-      then t2* := t1*
+  ; if TupleT(t2*) := t1; <eq> (<length> t2*, <length> t1*)
+      then t3* := t2*
+      else t3* := t1*
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
+  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t3*), st1)
   ; st3 := <current-type(|t2)> st2
 
 insertCasts-StMatchTerm-(|e1, st1):
