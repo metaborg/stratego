@@ -8,7 +8,7 @@ Int  : str -> Expr
 Var  : str -> Expr
 
 VarDecl : str * Type * Expr -> Stat
-VarDecl : str * Type -> Stat
+VarDecl : str * Type -> Stat 
 Assign  : str * Expr -> Stat
 Seq     : Stat * Stat -> Stat
 
@@ -22,3 +22,4 @@ strategies
   lift-assign-Expr: Add(Assign(x, e1), e2) -> Seq(Assign(x, e1), Add(Var(x), e2))
 
   lift-statements-from-expressions = bottomup(lift-assign-Expr)
+ 
