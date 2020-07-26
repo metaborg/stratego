@@ -73,8 +73,8 @@ insertCasts-StMatchTerm-(|e1, st1):
 insertCasts-StMatchTerm-(|e1, st1):
   As(v1, trm1) -> (As(v2, trm2), st3)
   with
-    (v2, st2) := <insertCasts-StMatchTerm(|e1, st1)> v1
-  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, st2)> trm1
+    (trm2, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
+  ; (v2, st3) := <insertCasts-StMatchTerm(|e1, st2)> v1
 
 insertCasts-StMatchTerm(|e1, st1):
   Int(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>

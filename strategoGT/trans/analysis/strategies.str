@@ -353,9 +353,10 @@ insertCasts-Strategy-(|e1, st1):
   ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
 
 insertCasts-Strategy-(|e1, st1):
-  Not(s1) -> (Not(s2), st2)
+  Not(s1) -> (Not(s2), st3)
   with
     (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type(|<current-type> st1)> st2
 
 insertCasts-Strategy-(|e1, st1):
   Where(s1) -> (Where(s2), st3)
