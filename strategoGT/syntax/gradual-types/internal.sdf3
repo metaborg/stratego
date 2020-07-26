@@ -49,3 +49,4 @@ context-free syntax
   ErrorDesc.MultipleAppsInMatch = [Multiple projections in one pattern, only one is actually returned. ]
 
   ErrorDesc.BuildUnboundTerm = [Use of unbound local variable. ]
+  ErrorDesc.MatchNotSpecificEnoughForTP = [Cannot infer specific type for TP rule match. Found result: [Type]. ]

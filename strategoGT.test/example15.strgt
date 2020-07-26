@@ -1,4 +1,4 @@
-module example14
+module example15
 
 signature
   sorts Exp constructors 
@@ -21,7 +21,7 @@ rules
   
   desugar :: TP 
   
-  desugar : e -> e // should succeed
+  desugar : e -> e // should fail
   
   desugar : Add(e1, e2) -> Assign("x", e2) // should fail
   
@@ -45,6 +45,9 @@ rules
     
   desugar : 
     Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))), Var(x))
+    
+  desugar-dyn : 
+    Inc(Var(x)) -> Assign(x, Add(Var(x), Int("1")))
     
   desugar : // lifting statement expressions
     stat@<is-stat> -> Seq(stat1, stat2)
@@ -73,8 +76,23 @@ strategies
   is-stat = 
     ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
 
-
+  oncetd(TP|) :: TP
+  oncetd(s|) = s <+ one(oncetd(s))
   
+  foo(|) :: TP
+  foo(|) = try(desugar)
   
+  bar(|) :: TP
+  bar(|) = ?"" // should succeed
   
+  bar-rule :: TP
+  bar-rule: "" -> "" // should succeed
   
+  baz(|) :: TP
+  baz(|) = ?x; !"" // should fail
+  
+  try(TP|) :: TP
+  try(s|) = s <+ id
+  
+  topdown(TP|) :: TP
+  topdown(s|) = s; all(topdown(s))

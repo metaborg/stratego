@@ -17,7 +17,7 @@ analysis/environment
 analysis/signatures
 analysis/defs
 
-immutable/-
+//immutable/-
 
 strategies // entry-points from Java
 
@@ -174,16 +174,20 @@ lub(|lub-map): (_, DynT()) -> DynT()
 lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
 lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
-constr-lookup-from(|name, arity, t1, st1) =
+constr-lookup-from(st|name, arity, t1, st1) =
     constr-env
   ; imrel-get(|(name, arity))
   ; if not(DynT(_) := t1)
-      then imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> ((t1, t2), st1)\))
+      then imset-filter(constr-lookup-filter(|t1, st1))
     end
   ; imset-to-list
 
 constr-lookup-to(|name, arity, t1, st1) =
     constr-env
   ; imrel-get(|(name, arity))
-  ; imset-filter(where(\ConstrType(_, t2) -> <CanCoerce> ((t2, t1), st1)\))
+  ; imset-filter(constr-lookup-filter(|t1, st1))
   ; imset-to-list
+
+constr-lookup-filter(|t1, st1):
+  t@ConstrType(_, t2) -> (t, st2)
+  where (_, st2) := <CanCoerce> ((t2, t1), st1)

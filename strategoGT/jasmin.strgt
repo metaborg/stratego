@@ -2657,10 +2657,10 @@ signature
     TypeVar : TypeVar -> Type
             : List(Type) -> Stack
             : Stack -> Type
-    CEq     : Type /*always TypeVar*/ * a -> Constraint
-    CNEq    : Type /*always TypeVar*/ * a -> Constraint
-    CSub    : Type /*always TypeVar*/ * Type -> Constraint
-    CSup    : Type /*always TypeVar*/ * Type -> Constraint
+    CEq     : FieldType /*always TypeVar*/ * a -> Constraint
+    CNEq    : FieldType /*always TypeVar*/ * FieldType -> Constraint
+    CSub    : FieldType /*always TypeVar*/ * a -> Constraint
+    CSup    : FieldType /*always TypeVar*/ * FieldType -> Constraint
     COr     : List(List(Constraint)) -> Constraint
     : ObjectType -> Type
     : List(Type) -> Type
@@ -2673,7 +2673,7 @@ strategies
   fresh-var = !TypeVar(<new>)
 
   var-rename-hack :: Type -> Type
-  var-rename-hack: TypeVar(string) -> TypeVar(string')
+  var-rename-hack: TypeVar(string) -> TypeVar(string') // Bug: note how aliases don't work here
     where <string-starts-with(|"in") + string-starts-with(|"out")> string
         ; string' := $[[string]-locals]
 
@@ -2696,6 +2696,7 @@ imports
   trans/analysis/names/-
 
 rules
+  solve-test-constraints :: ? -> List(?)
   solve-test-constraints: x -> ["Equality", eq*, "Subtyping", sub*, "Or", or*, "inequality", notEq*, "complex", complex*, "stack", stack*, "real", real*]
     where eq* := <solve-eq-test-constraints> x
       ; sub* := <solve-sub-test-constraints> x
@@ -2706,6 +2707,7 @@ rules
       ; real* := <solve-real-test-constraints> x
 
 rules
+  solve-eq-test-constraints :: ? -> List(?)
   solve-eq-test-constraints: _ -> [a, b, c, d, e, f, g, h, i, j, k, l]
     where a := <try(solve-constraints)> [] // empty list
       ; b := <try(solve-constraints)> [CEq(TypeVar("test"), [])] // one element in list
@@ -2734,6 +2736,7 @@ rules
                          CEq(TypeVar("b"), TypeVar("a"))]
 
 
+  solve-sub-test-constraints :: ? -> List(?)
   solve-sub-test-constraints: _ -> [a, b, c, d, e, f]
     where a := <try(solve-constraints)> [CSub(TypeVar("a"), Int())]
       ; b := <try(solve-constraints)> [CSub(TypeVar("a"), Boolean())]
@@ -2747,6 +2750,7 @@ rules
                          CEq(TypeVar("a"), TypeVar("b")),
                          CSub(TypeVar("a"), Reference(CRef("java/lang/Object")))]
 
+  solve-or-test-constraints :: ? -> List(?)
   solve-or-test-constraints: _ -> []
     where a := <try(solve-constraints)> [COr([[CEq(TypeVar("a"), [Int()])],
                          [CEq(TypeVar("a"), [Boolean()])]]),
@@ -2757,6 +2761,7 @@ rules
                          [CEq(TypeVar("fail"), [Boolean()])]]),
                        CEq(TypeVar("fail"), [Byte()])]
 
+  solve-not-test-constraints :: ? -> List(?)
   solve-not-test-constraints: _ -> [a, b, c, d, e]
     where a := <try(solve-constraints)> [CEq(TypeVar("a"), Int()),
                        CNEq(TypeVar("a"), Byte())]
@@ -2772,6 +2777,7 @@ rules
                          CNEq(TypeVar("a"), TypeVar("b")),
                          CEq(TypeVar("b"), Boolean())]
 
+  solve-stack-test-constraints :: ? -> List(?)
   solve-stack-test-constraints: _ -> [a, b, c]
     where a := <try(solve-constraints)> [CEq(TypeVar("a"), [Int()]),
                        CEq(TypeVar("a"), ([Int()], TypeVar("b")))]
@@ -2781,6 +2787,7 @@ rules
       ; c := <try(solve-constraints)> [CEq(TypeVar("a"), ([TypeVar("b")], TypeVar("c"))),
                          CEq(TypeVar("a"), ([Int()], TypeVar("d")))]
 
+  solve-real-test-constraints :: ? -> List(?)
   solve-real-test-constraints: _ -> [a]
     where a := <try(solve-constraints)> [CEq(TypeVar("in0"), []),
                        CEq(TypeVar("out0"), TypeVar("in1")),
@@ -2814,29 +2821,33 @@ imports
 // TODO document the strategies
 strategies
   //the input of this strategy should be a list of constraints!
+  solve-constraints :: List(Constraint) -> List(Type * Constraint) * List(Constraint)
   solve-constraints = !([], <id>);fixed-point(solve-constraints-step)
 
-    solve-step(|x*) = solve-constraints-sub-eliminate(|x*);
-              solve-constraints-rename;
-              mapconcat(
-                        solve-constraints-stack(|x*) <+
-                        ![<id>]
-            );
-            mapconcat(
-                solve-constraints-lookup(|x*) <+
-                        solve-constraints-unify(|x*) <+
-                        solve-constraints-simple-subtype(|x*) <+
-                        solve-constraints-neq(|x*) <+
-                        ![<id>]
-                      );
-                      solve-constraints-sub-single(|x*);
-              uniq
+  solve-step(|List(Type * Constraint)) :: List(Constraint) -> ?
+  solve-step(|x*) =
+    solve-constraints-sub-eliminate(|x*)
+  ; solve-constraints-rename
+  ; mapconcat(
+       solve-constraints-stack(|x*)
+    <+ ![<id>])
+  ; mapconcat(
+       solve-constraints-lookup(|x*)
+    <+ solve-constraints-unify(|x*)
+    <+ solve-constraints-simple-subtype(|x*)
+    <+ solve-constraints-neq(|x*)
+    <+ ![<id>])
+  ; solve-constraints-sub-single(|x*)
+  ; uniq
 
-    fixed-point(s) = !(<id>, <s> <id>); if(not(eq), Snd; fixed-point(s), Snd)
+  fixed-point(a * b -> a * b) :: a * b -> a * b
+  fixed-point(s) = !(<id>, <s> <id>); if(not(eq), Snd; fixed-point(s), Snd)
 
-    is-simple-type = ?Int() <+ ?Double() <+ ?Float() <+ ?Boolean() <+ ?Char() <+ ?Byte() <+ ?Long() <+ ?Short()
+  is-simple-type :: ? -> BaseType
+  is-simple-type = ?Int() <+ ?Double() <+ ?Float() <+ ?Boolean() <+ ?Char() <+ ?Byte() <+ ?Long() <+ ?Short()
 
 rules // general rules
+  solve-constraints-step :: List(Type * Constraint) * List(Constraint) -> List(Type * Constraint) * List(Constraint)
   solve-constraints-step: (x, []) -> (x, [])
 
   solve-constraints-step: (x*, c) -> (xnew*, constr)
@@ -2844,16 +2855,19 @@ rules // general rules
       ; (xn*, constr) := <partition(solve-constraints-simplify(|x*))> mapconstr
       ; xnew* := <uniq; unique-keys> [x*, xn*]
 
+  unique-keys :: List(a * b) -> List(a * b)
   unique-keys: [] -> <id>
   unique-keys: ([x@(key, _) | tail]) ->  [x | <unique-keys> tail]
       where <not(lookup)> (key, tail)
 
-    has-vars: TypeVar(_) -> <id>
-    has-vars: _#(children*) -> <id>
-      where <fetch(has-vars)> children*
+  has-vars :: ? -> ? // Bug: Note the problem with looking for a constructor in the sort that the type variable was promoted to
+  has-vars: TypeVar(_) -> <id>
+  has-vars: _#(children*) -> <id>
+    where <fetch(has-vars)> children*
 
 
 rules // equality constraints
+  solve-constraints-simplify(|List(Type * Constraint)) :: Constraint -> FieldType * ?
   solve-constraints-simplify(|x*): CEq(var@TypeVar(_), type) -> (var, type)
     where <not(has-vars)> type
       ; <not(?Alias(_))> type
@@ -2864,12 +2878,14 @@ rules // equality constraints
   solve-constraints-simplify(|x*): CEq(var@TypeVar(_), Alias(al)) -> (var, t)
     where t := <lookup> (TypeVar(al), x*)
 
+  solve-constraints-unify(|List(Type * Constraint)) :: Constraint -> List(Constraint)
   solve-constraints-unify(|x*): n#([lt, rt]) -> result
     where <?"CEq" <+ ?"CSub"> n
-        ; not(TypeVar(_) := lt)
+      ; not(TypeVar(_) := lt)
       ; vars := <unify(?TypeVar(_))> [(lt, rt)]
-          ; result := <map(\ (l,r) -> <mkterm> (n, [l,r]) \)> vars
+      ; result := <map(\ (l,r) -> <mkterm> (n, [l,r]) \)> vars
 
+  solve-constraints-lookup(|List(Type * Constraint)) :: Constraint -> List(Constraint)
   solve-constraints-lookup(|x*): CEq(var, type@TypeVar(_)) -> [CEq(var, t)]
     where t := <lookup> (type, x*)
 
@@ -2883,6 +2899,7 @@ rules // equality constraints
       ; super := <find-upper-bound> [t, type]
       ; <eq> (super, type)
 
+  rename-equality :: List(Constraint) * Constraint * List(Constraint) -> List(Constraint) * List(Constraint)
   rename-equality: (l*, ceq@CEq(a@TypeVar(name_a), b@TypeVar(_)), r*) -> (nl*, [nr*, na*, alias])
     where <not(has-identity)> ceq
       ; concat := [l*, r*]
@@ -2892,32 +2909,41 @@ rules // equality constraints
       ; alias := CEq(b, Alias(name_a))
       ; temp := (nl*, [nr*, na*, alias])
 
+  has-subterm(|?) :: a -> a
   has-subterm(|t): x -> x
     where <is-subterm> (t, x)
 
-  has-identity: CEq(x, x) -> []
+  has-identity :: Constraint -> Constraint
+  has-identity = ?CEq(x, x)
 
+  solve-constraints-rename :: List(Constraint) -> List(Constraint)
   solve-constraints-rename: [] -> []
   solve-constraints-rename: l -> <walk-values(rename-equality)> l
 
 strategies
+  walk-values(List(a) * a * List(a) -> List(a) * List(a)) :: List(a) -> List(a)
   walk-values(s) = !([], <id>); walk-value-tuple(s); ?(res, []); !res
 
+  continue-value-tuple :: List(a) * a * b -> List(a) * b
   continue-value-tuple = ?(ln*, e, tailn); !([ln*, e], tailn)
-   walk-value-tuple(s) = ?(_, [])
+  walk-value-tuple(List(a) * a * List(a) -> List(a) * List(a)) :: List(a) * List(a) -> List(a) * List(a)
+  walk-value-tuple(s) = ?(_, [])
       < id
       + ?(l*, [e | tail]) ; !(l*, e, tail); (s <+ continue-value-tuple) ; walk-value-tuple(s)
 
 rules // subtype constraints
+  solve-constraints-simple-subtype(|List(Type * Constraint)) :: Constraint -> List(Constraint)
   solve-constraints-simple-subtype(|x*): CSub(var@TypeVar(_), type) -> [CEq(var, type)]
     where <is-simple-type <+ ?[]> type
 
+  collect-csub-types :: List(Constraint) -> List(TypeVar * List(Constraint))
   collect-csub-types: [] -> []
   collect-csub-types: [CSub(TypeVar(x), t) | tail] -> [pair | ftail]
     where tailpairs := <collect-csub-types> tail
       ; l := <lookup <+ ![]> (x, tailpairs)
       ; pair := (x, [t | l])
       ; ftail := <filter(not(?(x, _)))> tailpairs
+  inflate-csub-types :: List(TypeVar * List(FieldType)) -> List(Constraint)
   inflate-csub-types: [] -> []
   inflate-csub-types: [(x, l) | tail] -> result
     where csub* := <map(\ t -> CSub(TypeVar(x), t) \)> l
@@ -2925,20 +2951,24 @@ rules // subtype constraints
       ; result := [csub*, tail*]
 
   // TODO: make the upper bound finder
+  find-upper-bound :: List(FieldType) -> FieldType
   find-upper-bound: [x] -> x
   find-upper-bound: [Reference(CRef("java/lang/Object")),Reference(CRef("java/lang/String"))] -> Reference(CRef("java/lang/String"))
   find-upper-bound: [Reference(CRef("java/lang/String")),Reference(CRef("java/lang/Object"))] -> Reference(CRef("java/lang/String"))
   find-upper-bound: [Reference(CRef("java/lang/Object")),Reference(CRef("examples/Count"))] -> Reference(CRef("examples/Count"))
   find-upper-bound: [Reference(CRef("examples/Count")),Reference(CRef("java/lang/Object"))] -> Reference(CRef("examples/Count"))
 
+  solve-constraints-sub-eliminate(|List(Type * Constraint)) :: List(Constraint) -> List(Constraint)
   solve-constraints-sub-eliminate(|x*): c* -> cnew*
     where (csub*, cold*) := <partition(?CSub(TypeVar(_), _);id)> c*
       ; club* := <collect-csub-types;map(\ (a,b) -> CSub(TypeVar(a), <find-upper-bound> b) \)> csub*
       ; cnew* := [club*, cold*]
 
+  is-sub-of-one-of(|List(TypeVar)) :: Constraint -> Constraint
   is-sub-of-one-of(|vars): CSub(TypeVar(x), _) -> <id>
     where <elem> (x, vars)
 
+  solve-constraints-sub-single(|List(Type * Constraint)) :: List(Constraint) -> List(Constraint)
   solve-constraints-sub-single(|x*): c* -> cnew*
     where (csub*, cother*) := <partition(?CSub(TypeVar(_), _);id)> c*
       ; csubs := <collect-csub-types> csub*
@@ -2947,6 +2977,7 @@ rules // subtype constraints
       ; ckeep* := <filter(not(is-sub-of-one-of(|removed-vars)))> c*
       ; cnew* := [ckeep*, ceq*]
 
+  find-references(|List(Constraint)) :: FieldType -> List(Constraint)
   find-references(|constraints): t@TypeVar(_) -> l
     where l := <filter(\ x -> x where <is-subterm> (t, x) \)> constraints
 
@@ -2954,6 +2985,7 @@ rules // or constraints
   // TODO
 
 rules // not equals constraints
+  solve-constraints-neq(|List(Type * Constraint)) :: Constraint -> List(Constraint)
   solve-constraints-neq(|x*): CNEq(var@TypeVar(_), type) -> []
     where <not(?TypeVar(_))> type
       ; t := <lookup> (var, x*)
@@ -2963,6 +2995,7 @@ rules // not equals constraints
     where b := <lookup> (type, x*)
 
 rules // stack constraints CEq
+  solve-constraints-stack(|List(Type * Constraint)) :: Constraint -> List(Constraint)
   solve-constraints-stack(|x*): CEq(var, ([], ts)) -> [CEq(var, ts)]
 
   solve-constraints-stack(|x*): CEq(var, ([headT|tailT], ts)) -> [CEq(headA, headT), CEq(varTail, tailA), CEq(varTail, (tailT, ts))]
@@ -2988,6 +3021,7 @@ imports
   trans/match-Instruction
 
 rules
+  create-in-stack-task(|?) :: ? -> ?
   create-in-stack-task(|ctx):
     a -> <task-create-id(|ctx,[x848])> x848
     where
@@ -3000,6 +3034,7 @@ rules
       <match-Instruction> a
     ; x848 := <type-is(|ctx)> <newname> "out"
 
+  nabl-prop-site(|?, ?, ?, ?, ?) :: ? -> ?
   nabl-prop-site(|lang__, partition__, uris__, states__, implicits__):
     JBCLabel(l) -> <fail>
     where <store-in-stack(|partition__, <newname> "in")> l
@@ -3012,6 +3047,7 @@ imports
 
 rules
 
+  generate-class :: ? * ? * ? * ? * ? -> ?
   generate-class:
     (selected, position, ast, path, project-path) -> None()
     where
@@ -3057,7 +3093,7 @@ rules
 
 
 
-
+  process-output :: Term -> string
   process-output: Output(result, "") -> result
 
   process-output: Output(result, error) -> $[[result] Runtime error: [error]]
@@ -3065,7 +3101,7 @@ rules
 
 signature constructors
 
-  Output: String * String -> Term
+  Output: string * string -> Term
 
 strategies
 
@@ -3080,6 +3116,7 @@ imports
 
 rules
 
+  step(|State) :: ?  -> State
   step(|state): IADD() -> <pop(|2) ; push(|r) ; next> state
     where
       <top(|2)> state => [Int(v1), Int(v2)] ;
@@ -3144,6 +3181,7 @@ imports
 
 rules
 
+  desugar :: Instruction -> Instruction
   desugar: ALOAD_0() -> ALOAD("0")
   desugar: ALOAD_1() -> ALOAD("1")
   desugar: ALOAD_2() -> ALOAD("2")
@@ -3221,7 +3259,7 @@ rules // comparison with null
 
   step(|state): IFNONNULL(LabelRef(l)) -> state'
     where
-      <top> state => Int(r) ;
+      <top> state => Ref(r) ;
       <not(eq)> (r, NULL())
         < <pop ; goto(|l)> state => state'
         + <pop ; next> state => state'
@@ -3230,42 +3268,42 @@ rules // integer comparison
 
   step(|state): IF_ICMPEQ(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <eq> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ICMPNE(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <not(eq)> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ICMPGE(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <geqS> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ICMPGT(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <gtS> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ICMPLE(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <leqS> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ICMPLT(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Int(v1), Int(v2)) ;
+      <top(|2)> state => [Int(v1), Int(v2)] ;
       <ltS> (v2, v1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
@@ -3274,14 +3312,14 @@ rules // reference comparison
 
   step(|state): IF_ACMPEQ(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Ref(r1), Ref(r2)) ;
+      <top(|2)> state => [Ref(r1), Ref(r2)] ;
       <eq> (r2, r1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
 
   step(|state): IF_ACMPNE(LabelRef(l)) -> state'
     where
-      <top(|2)> state => (Ref(r1), Ref(r2)) ;
+      <top(|2)> state => [Ref(r1), Ref(r2)] ;
       <not(eq)> (r2, r1)
         < <pop(|2) ; goto(|l)> state => state'
         + <pop(|2) ; next> state => state'
@@ -3377,6 +3415,7 @@ rules
 
   load-class-file = fail
 
+  init-object :: ClassName -> HeapElement
   init-object: "java/lang/Object" -> Object("java/lang/Object", [])
   init-object: cn -> Object(cn, slots)
     where
@@ -3385,9 +3424,11 @@ rules
       <map(init-slot)> fs => oss ;
       <conc> (iss, oss) => slots
 
+  init-slot :: Field -> FieldName * Value
   init-slot: JBCField(_, fn, JBCFieldDesc(t), _, v) -> (fn, <init-value> (t, v))
   init-slot: JBCExtField(_, fn, JBCFieldDesc(t), _, v, _) -> (fn, <init-value> (t, v))
 
+  init-value :: FieldType * InitialValue -> Value
   init-value: (Int(), None()) -> Int("0")
   init-value: (Int(), v) -> Int(v) where <not(eq)> (None(), v)
 
@@ -3408,6 +3449,7 @@ signature constructors
         : Int -> PC
 
   JBCStack  : List(Value) -> Stack
+  : string -> Value
   Int      : string -> Value
   Ref      : RefValue -> Value
   NULL    : RefValue
@@ -3424,25 +3466,34 @@ signature constructors
 
 strategies // manipulate PC in top-most frame
 
+  next :: State -> State
   next = JBCState([JBCFrame(id, id, inc, id, id)|id], id)
 
+  goto(|?) :: State -> State
   goto(|l) = JBCState([JBCFrame(id, ?is, <getfirst(?(<id>,l))> is, id, id)|id], id)
 
 strategies // manipulate stack in top-most frame
 
+  push(|Value) :: State -> State
   push(|v) = JBCState([JBCFrame(id, id, id, JBCStack(![v|<id>]), id)|id], id)
 
+  pop(|int) :: State -> State
   pop(|n) = JBCState([JBCFrame(id, id, id, JBCStack(drop(|n)), id)|id], id)
 
+  pop :: State -> State
   pop = pop(|1)
 
+  top(|int) :: State -> List(Value)
   top(|n) = ?JBCState([JBCFrame(_, _, _, JBCStack(<take(|n)>), _)|_], _)
 
-  top = top(|1)
+  top :: State -> Value
+  top = top(|1); ?[<id>]
 
 strategies // manipulate local variables in top-most frame
 
+  load(|string) :: State -> List(Value)
   load(|n) = ?JBCState([JBCFrame(_, _, _, _, JBCLocals(<at-index(id|<string-to-int> n)>))|_], _)
+  store(|string, Value) :: State -> State
   store(|n, v) = JBCState([JBCFrame(id, id, id, JBCStack(at-index(!v|<string-to-int> n)), id)|id], id)
 
 strategies // manipulate heap

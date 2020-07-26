@@ -12,7 +12,7 @@ signatures/gradual-types/signatures-sig
 signatures/core/signatures-sig
  
 libspoofax/stratego/debug
-immutable/-
+//immutable/-
 
 signature constructors
 
@@ -35,9 +35,9 @@ st-from-stMatchTerm: StMatchTerm(st, Some(t), s*) -> (<current-type(|t)> st, s*)
 st-from-stMatchTerm: StMatchTerm(st, None(), s*) -> (st, s*)
 st-from-stBuildTerm: StBuildTerm(st, _) -> st
 
-stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(|t2)> st1, ot2, s*)
+stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(|t2);type-var-env(!tv)> st1, ot2, s*)
   where
-    St(_, t2, _) := <s> st1
+    St(_, t2, tv) := <s> st1
   ; if(None() := ot1)
       then ot2 := Some(t2)
       else ot2 := ot1; <report-Warn> msg
@@ -66,7 +66,7 @@ where if <map(is-string)> names
   else names-arities := names
 end
 
-name-type-to-arity: (n, LocalDef(FunTType(st*, tt*, _, _))) -> (n, <length> st*, <length> tt*)
+name-type-to-arity: (n, LocalDef(FunTType(st*, tt*, _))) -> (n, <length> st*, <length> tt*)
 name-type-to-arity: (n, LocalDef(SDyn())) -> (n, 0, 0)
 
 constr-env = ?Env(_, <id>)

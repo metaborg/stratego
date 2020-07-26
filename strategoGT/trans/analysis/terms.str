@@ -86,27 +86,29 @@ insertCasts-StMatchTerm(|e1, st1):
   Str(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, StringT())>
 
 insertCasts-StMatchTerm-Lit(|e1, st1, t1):
-  trm -> (trm, <current-type(|t1)> st1)
+  trm -> (trm, <current-type(|t1)> st3)
   with
     t2 := <current-type> st1
-  ; if not(<CanCoerce> ((t1, t2), st1))
-      then <report-Err> (trm, TypeMismatch(t1, t2))
+  ; if (_, st2) := <CanCoerce> ((t1, t2), st1)
+      then st3 := st2
+      else <report-Err> (trm, TypeMismatch(t1, t2))
+         ; st3 := st1
     end
 
 insertCasts-StMatchTerm-(|e1, st1):
-  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st3)
+  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st4)
   with
     t1 := <current-type> st1
   ; t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
-  ; if [ConstrType(t1*, t2)] := t*
+  ; if [(ConstrType(t1*, t2), st2)] := t*
     then
-      if not(<CanCoerce> ((t2, t1), st1))
-        then <report-Err> (cnstr, TypeMismatch(t2, t1))
+      if <CanCoerce> ((t2, t1), st2)
+        then if DynT() := t1
+            then t2* := <map(!DynT(<id>))> t1*
+            else t2* := t1*
+          end
+        else <report-Err> (cnstr, TypeMismatch(t2, t1))
            ; t2* := <map(!ErrT())> trm1*
-        else if DynT() := t1
-          then t2* := <map(!DynT(<id>))> t1*
-          else t2* := t1*
-        end
       end
     ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
@@ -115,9 +117,10 @@ insertCasts-StMatchTerm-(|e1, st1):
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
+    ; st2 := st1
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st1)
-  ; st3 := <current-type(|t3)> st2
+  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st2)
+  ; st4 := <current-type(|t3)> st3
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
@@ -221,27 +224,30 @@ signature constructors
 strategies
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@Op(cnstr, trm1*) -> (trm2, st3)
+  trm1@Op(cnstr, trm1*) -> (trm2, st6)
   with
     t1 := <current-type> st1
   // In a top-level term e.g. in Build(Op(..., ...)) the current term type in DynT().
   ; t1* := <constr-lookup-to(|cnstr, <length> trm1*, <unDyn> t1, st1)> e1
-  ; if [ConstrType(t2*, t2)] := t1*
+  ; if [(ConstrType(t2*, t2), st2)] := t1*
     then
       t3* := t2*
     ; t3 := t2  // workaround for backtracking issue in strj
+    ; st4 := st2
     else
       t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
-    ; if [ConstrType(t6*, t6)] := t*
+    ; if [(ConstrType(t6*, t6), st3)] := t*
       then
         t3* := t6*
       ; t3 := t6  // workaround for backtracking issue in strj
+      ; st4 := st3
       else
         if [] := t*
           then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
           else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
         end
       ; t3 := ErrT() // workaround for backtracking issue in strj
+      ; st4 := st1
       ; t3* := <map(!ErrT())> trm1*
       end
     end
@@ -250,16 +256,16 @@ insertCasts-StBuildTerm-(|e1, st1):
     then
       let
         set-type(|t) = current-type(|DynT(t))
-      in (trm2*, t4*, st2) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; switch <StBuildTerm-Op-type-relation(|st2)> (t4*, t3*)
+      in (trm2*, t4*, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st4)
+      ; switch <StBuildTerm-Op-type-relation(|st5)> (t4*, t3*)
           case ?AllCanCoerce():
-            st3 := <current-type(|t3)> st2
+            st6 := <current-type(|t3)> st5
           ; trm2 := Op(cnstr, trm2*)
           case ?SomeDyn():
             // insertCastApp here only generates warnings, not casts, because DynT(_) := t1
-            (trm2, st3) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st2)
+            (trm2, st6) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st5)
           case ?Unrelated():
-            st3 := <current-type(|IllFormedTermT(cnstr, t4*))> st2
+            st6 := <current-type(|IllFormedTermT(cnstr, t4*))> st5
           ; trm2 := Op(cnstr, trm2*)
         end
       end
@@ -267,8 +273,8 @@ insertCasts-StBuildTerm-(|e1, st1):
       let
         // defined to disambiguate between current-type/0/0 and current-type/0/1
         set-type(|t) = current-type(|t)
-      in (trm2*, _, st2) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st1)
-      ; st3 := <current-type(|t3)> st2
+      in (trm2*, _, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st4)
+      ; st6 := <current-type(|t3)> st5
       ; trm2 := Op(cnstr, trm2*)
       end
     end
