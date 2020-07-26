@@ -35,14 +35,27 @@ rules
     Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))), Var(x))
     
   desugar : // lifting statement expressions
-    stat@<is-stat> -> Seq(stat1, stat2)
-    where <oncetd((Stat(stat1, e) -> e))> stat => stat2
+    stat@<is-simple-stat> -> Seq(stat1, stat2)
+    where <oncetd-hd((Stat(stat1, e) -> e))> stat => stat2
     
-  desugar : // error: applies also to expressions
+rules // errors that are caught by current compiler
+
+  desugar : // constructor with wrong arity
+    Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))))  
+    
+rules // rules with typical errors
+
+  desugar : // expression replaced with statement
+    Add(e1, e2) -> Assign("x", e2) 
+    
+  desugar : // expression replace with statement
+    Stat(stat, e) -> stat 
+    
+  desugar : // lifting also applied to expressions
     stat -> Seq(stat1, stat2)
     where <oncetd((Stat(stat1, e) -> e))> stat => stat2
     
-  desugar : // error: has type errors
+  desugar : // terms with type errors
     For(x, e1, e2, stat) -> 
     Seq(
       Assign(x, e1),
@@ -55,13 +68,25 @@ rules
       )
     )
     
-strategies
+strategies // 'type' strategies
 
-  is-exp = ?Var(_) 
+  is-exp = 
+    ?Var(_) <+ ?Int(_) <+ ?Add(_,_) <+ ?Sub(_,_) <+ ?Gt(_,_)
+    <+ ?Inc(_) <+ ?Stat(_,_)
+
+  is-stat = 
+    ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
+    
+  is-simple-stat = 
+    ?Assign(_,_) <+ ?Exp(_) <+ ?While(_,_) <+ ?For(_,_,_,_)
+
+rules // 'type' strategies with errors
 
   is-stat = 
     ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
     <+ ?Inc(_) // is not a statement
+
+strategies // traversal strategies
 
   desugar-all = topdown(try(desugar))
   
@@ -70,6 +95,11 @@ strategies
   try(s) = s <+ id  
   
   oncetd(s) = s <+ one(oncetd(s))
+  
+  oncetd-hd(s) = 
+    While(oncetd(s), id) <+ For(oncetd(s),id,id,id) 
+    <+ For(id,oncetd(s),id,id) <+ Exp(oncetd(s)) 
+    <+ Assign(id, oncetd(s))
   
 rules // a typing for the above rules 
 
