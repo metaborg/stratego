@@ -1,0 +1,8 @@
+---
+id: org.example:stratego.gradual.example:0.1.0-SNAPSHOT
+name: strategogradual
+dependencies:
+  compile:
+  - org.example:stratego.gradual:0.1.0-SNAPSHOT
+build:
+  useBuildSystemSpec: true

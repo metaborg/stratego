@@ -1,0 +1,5 @@
+module example
+
+signature constructors
+  amb : List(a) -> Amb(a)
+  // for each sort X have an injection `: Amb(X) -> X`

@@ -1,0 +1,18 @@
+module example
+
+imports
+
+libstratego-lib
+
+signature constructors
+
+Incr : Expr -> Expr
+Add  : Expr * Expr -> Expr
+Int  : str -> Expr
+Var  : str -> Expr
+
+strategies
+
+//  typed0 :: Expr -> Expr
+  typed0: e1 -> Add(e1, e2)
+  where e2 := Add(Int("1"), "1")

@@ -1,0 +1,19 @@
+module example
+
+imports
+
+libstratego-lib
+
+strategies
+
+decr = fail
+
+//  strat(? -> ?, ? -> ? | ?, ?) :: ? -> ?
+//  strat(? -> ?, ? -> ? | ?, ?) :: ? -> ?
+  strat(s1, s2 | t1, t2): t0 -> t4
+
+  even(? -> ?) :: int -> int
+  even(k): n -> <if ?0 then <k> 1 else decr;odd(k) end> n
+
+  odd(int -> int) :: int -> int
+  odd(k): n -> <if ?0 then <k> 0 else decr;even(k) end> n
