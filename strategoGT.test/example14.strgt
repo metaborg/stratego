@@ -77,8 +77,8 @@ strategies // 'type' strategies
   is-stat = 
     ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
     
-  is-simple-stat = 
-    ?Assign(_,_) <+ ?Exp(_) <+ ?While(_,_) <+ ?For(_,_,_,_)
+  is-simple-stat = is(Stat); 
+    (?Assign(_,_) <+ ?Exp(_) <+ ?While(_,_) <+ ?For(_,_,_,_))
 
 rules // 'type' strategies with errors
 

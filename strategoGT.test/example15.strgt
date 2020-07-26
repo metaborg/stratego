@@ -72,7 +72,7 @@ rules // non-well-formed term construction
     For(x, e1, e2, stat) -> 
     Seq(
       Assign(x, e1),
-      While(Gt(Var(x), e2), 
+      While(Lt(Var(x), e2), 
         Seq(stat, 
           Assign(
             Var(x),           // Exp instead of string
@@ -83,9 +83,9 @@ rules // non-well-formed term construction
     
 strategies
 
-  is-stat :: Stat -> Stat
-  is-stat = 
-    ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
+  is-stat :: ? -> Stat
+  is-stat = ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) 
+         <+ ?For(_,_,_,_) <+ ?Exp(_)
 
   oncetd(TP|) :: TP
   oncetd(s|) = s <+ one(oncetd(s))
