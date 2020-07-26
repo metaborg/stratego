@@ -1,0 +1,75 @@
+module example14
+
+signature
+  sorts Exp constructors 
+    Var  : string -> Exp
+    Int  : string -> Exp
+    Add  : Exp * Exp -> Exp
+    Min  : Exp -> Exp
+    Sub  : Exp * Exp -> Exp
+    Gt   : Exp * Exp -> Exp
+    Inc  : Exp -> Exp
+    Stat : Stat * Exp -> Exp
+  sorts Stat constructors
+    Assign : string * Exp -> Stat
+    Seq    : Stat * Stat -> Stat
+    While  : Exp * Stat -> Stat
+    For    : string * Exp * Exp * Stat -> Stat 
+    Exp    : Exp -> Stat
+    
+rules
+
+  desugar : Exp -> Exp 
+  
+  //desugar : TP 
+  
+  desugar : 
+    Min(e) -> Sub(Int("0"), e)
+  
+  desugar : 
+    For(x, e1, e2, stat) -> 
+    Seq(
+      Assign(x, e1),
+      While(Gt(Var(x), e2), 
+        Seq(stat, Assign(x, Add(Var(x), Int("1"))))
+      )
+    )
+    
+  desugar : 
+    Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))), Var(x))
+    
+  desugar : 
+    stat@<is-stat> -> Seq(stat1, stat2)
+    where <oncetd(\Stat(stat1, e) -> e\)> stat => stat2
+  
+  desugar : // wrong
+    For(x, e1, e2, stat) -> 
+    Seq(
+      Assign(x, e1),
+      While(Gt(Var(x), e2), 
+        Seq(stat, 
+          Assign(
+            Var(x),           // Exp instead of string
+            Add(x,            // string instead of Exp
+                Int(1))))     //  int instead of string
+      )
+    )
+  
+strategies
+
+  is-stat = ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
+
+  //desugar-all : TP 
+
+  desugar-all = topdown(try(desugar))
+  
+  topdown(? -> ?) :: ? -> ?
+  topdown(s) = s; all(topdown(s))
+  
+  try(? -> ?) :: ? -> ?
+  try(s) = s <+ id  
+  
+  oncetd(s) = s <+ one(oncetd(s))
+  
+  
+  
