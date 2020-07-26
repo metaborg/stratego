@@ -14,17 +14,19 @@ signatures/sugar/modules-sig
 signatures/sugar/strategies-sig
 signatures/sugar/rules-sig
 signatures/gradual-types/signatures-sig
-signatures/gradual-types/strategies-sig
+signatures/gradual-types/strategies-sig 
 signatures/gradual-types/internal-sig
 
 analysis/utils
-analysis/environment
+analysis/environment 
 analysis/signatures
 analysis/defs
 analysis/terms
 analysis/main
 analysis/dynamic-rules
 analysis/terms
+
+immutable/-
 
 strategies
 
@@ -58,7 +60,7 @@ insertCasts-Strategy(|e1, st1):
 
 insertCasts-CallT(|e1, st1) = otf22(insertCasts-CallT-(|e1, st1))
 
-insertCasts-CallT(|e1, st1):
+insertCasts-CallT(|e1, st1): 
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, t1, t2)) -> (c2, st6)
   with
     s2* := <zip> (s1*, st*)

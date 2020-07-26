@@ -59,9 +59,10 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
 
 strategies
 
-desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], <desugar-Type> i, <desugar-Type> o)\)
-desugar-SType = otf(\FunType(sargs, i, o) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> i, <desugar-Type> o)\)
-desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-Type, desugar-Type);not(?a))
+desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
+desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], FunNoArgsType(<desugar-Type> i, <desugar-Type> o))\)
+desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
+desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), FunNoArgsType(desugar-Type, desugar-Type));not(?a))
 
 desugar-Type- = otf(\SortVar("string") -> StringT()\)
 desugar-Type- = otf(\SortVar("int") -> IntT()\)
@@ -72,9 +73,10 @@ desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>
 desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type- = otf(\SortTuple(xs) -> TupleT(<map(desugar-Type)> xs)\)
 desugar-Type- = otf(\TupleT(t1, t2) -> TupleT([<desugar-Type> t1 | <map(desugar-Type)> t2])\)
+
 desugar-Type = desugar-Type- <+ id
 
-arityOf-SType: FunTType(st*, tt*, _, _) -> (<length> st*, <length> tt*)
+arityOf-SType: FunTType(st*, tt*, _) -> (<length> st*, <length> tt*)
 
 strategies
 
@@ -105,7 +107,7 @@ nameOf-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
 nameOf-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
 
 nameOf-DefHasType: DefHasType(name, <try(desugar-SType)>) -> (name{}, <length> s*, <length> t*)
-  with ?FunTType(s*, t*, _, _)
+  with ?FunTType(s*, t*, _)
 
 strategies
 
@@ -170,7 +172,7 @@ computeSCoercion(|subj): ((from1 ,to1), st1) -> (SFail(), st1)
 
 // computeSCoercion-(|?) :: (SType, SType) -> SCoercion
 computeSCoercion-(|subj): (from, SDyn()) -> <otf(!SId())> subj
-computeSCoercion-(|subj): (from@SDyn(), sft@FunTType(_, _, _, _)) -> <otf(!SRuntimeCheck(sft))> subj
+computeSCoercion-(|subj): (from@SDyn(), sft@FunTType(_, _, _)) -> <otf(!SRuntimeCheck(sft))> subj
 
 // Add a cast after the current strategy (in sequence) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()).
@@ -212,10 +214,10 @@ toBinding-ExtSDef: d@ExtSDef(name, sargs, targs) ->
   , <otf(!FunTType(
       <map(otf(toBinding-ExtSDef-Typedid))> sargs
     , <map(otf(!DynT()))> targs
-    , <otf(!DynT())> d
-    , <otf(!DynT())> d))> d)
+    , FunNoArgsType(<otf(!DynT())> d
+                   , <otf(!DynT())> d)))> d)
 toBinding-ExtSDef-Typedid = ?VarDec(_, <toBinding-ExtSDef-ConstType + toBinding-ExtSDef-FunType>)
-toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], DynT(), DynT())
+toBinding-ExtSDef-Typedid: DefaultVarDec(_) -> FunTType([], [], FunNoArgsType(DynT(), DynT()))
 toBinding-ExtSDef-ConstType: ConstType(s) -> DynT()
 toBinding-ExtSDef-FunType: FunType(a*, r) -> SDyn()
 
@@ -262,19 +264,19 @@ simpleDef: RDef(n, s, _) -> ExtSDef(n, s, [])
 simpleDef: RDefNoArgs(n, _) -> ExtSDef(n, [], [])
 
 desugar-DefHasType:
-  d1@DefHasTypeNoArgs(n, f, t) -> d2
+  d1@DefHasTypeNoArgs(n, t) -> d2
   where
-    t1 := <otf(!FunTType(<desugar-Type> f, <desugar-Type> t))> d1
+    t1 := <otf(!<desugar-Type> t)> d1
   ; d2 := <otf(!DefHasType(n, t1))> d1
 desugar-DefHasType:
-  d1@DefHasType(n, s*, f, t) -> d2
+  d1@DefHasType(n, s*, t) -> d2
   where
-    t1 := <otf(!FunTType(<map(try(desugar-SType))> s*, [], <desugar-Type> f, <desugar-Type> t))> d1
+    t1 := <otf(!FunTType(<map(try(desugar-SType))> s*, [], <desugar-Type> t))> d1
   ; d2 := <otf(!DefHasType(n, t1))> d1
 desugar-DefHasType:
-  d1@DefHasTType(n, s*, t*, f, t) -> d2
+  d1@DefHasTType(n, s*, t*, t) -> d2
   where
-    t1 := <otf(!FunTType(<map(try(desugar-SType))> s*, <map(desugar-Type)> t*, <desugar-Type> f, <desugar-Type> t))> d1
+    t1 := <otf(!FunTType(<map(try(desugar-SType))> s*, <map(desugar-Type)> t*, <desugar-Type> t))> d1
   ; d2 := <otf(!DefHasType(n, t1))> d1
 
 strategies
@@ -317,8 +319,8 @@ internal seqs(|) = foldr1(Hd, \(s1, s2) -> Seq(s1, s2)\)
 strategies
 
 def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
-def-type-pair: DefHasType(name, t@FunType(sarg*, _, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
-def-type-pair: DefHasType(name, t@FunTType(sarg*, targ*, _, _)) ->
+def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
+def-type-pair: DefHasType(name, t@FunTType(sarg*, targ*, _)) ->
   ((name, <length> sarg*, <length> targ*), <try(desugar-SType)> t)
 
 strategies

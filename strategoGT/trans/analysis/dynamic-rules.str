@@ -6,7 +6,7 @@ libstratego-lib
 
 libspoofax/term/annotation
 libspoofax/stratego/debug
-
+ 
 signatures/strategoGT-sig
 signatures/sugar/modules-sig
 signatures/sugar/dynamic-rules-sig

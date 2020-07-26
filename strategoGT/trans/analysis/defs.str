@@ -55,7 +55,7 @@ strategies
 last-seq(s) = otf(Seq(id, last-seq(s))) <+ s
 
 prepare-strategy-def(|st1):
-  t1@FunTType(_, _, _, _) -> (t2, st2)
+  t1@FunTType(_, _, _) -> (t2, st2) 
   where
     t2 := <alltd(\SortVar(x) -> Sort(x, [])\)> t1
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
@@ -76,7 +76,7 @@ insertCasts-StrategyDef(|e1, st1) = otf12(insertCasts-StrategyDef-(|e1, st1))
 
 // insertCasts-StrategyDef(|Environment, Store) :: Decl -> (Decl, Store)
 insertCasts-StrategyDef-(|e1, st1):
-  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5)
+  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5) 
   with
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
@@ -116,6 +116,18 @@ strategies // RuleDef
 
 insertCasts-RuleDef(|e1, st1) = otf12(insertCasts-RuleDef-(|e1, st1))
 
+insertCasts-RuleDef-(|e1, st1):
+  RDefNoArgs(x, Rule(trm1, trm2, cs1)) -> (RDefNoArgs(x, Rule(trm3, trm4, cs3)), st5)
+  with
+    (FunTType([], [], TP()), st2) := <strat-lookup-def(|x{}, 0, 0, st1)> e1
+  ; (trm3, (st3, s*)) := <insertCasts-MatchTerm(|e1, <current-type(|DynT())> st2)> trm1
+  ; t3 := <current-type> st3
+  ; (trm4, st4) := <insertCasts-BuildTerm(|e1, st3, t3)> trm2
+  ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e1))> (cs1, <current-type(|t3)> st4)
+  ; cs3 := <RuleDef-after-match> (s*, cs2)
+  
+  // check that the type is specific
+  
 insertCasts-RuleDef-(|e1, st1):
   RDefNoArgs(x, Rule(trm1, trm2, cs1)) -> (RDefNoArgs(x, Rule(trm3, trm4, cs3)), st5)
   with
