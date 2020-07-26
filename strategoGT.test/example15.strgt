@@ -19,6 +19,18 @@ signature
     
 rules
   
+  desugar :: TP 
+  
+  desugar : e -> e // should succeed
+  
+  desugar : Add(e1, e2) -> Assign("x", e2) // should fail
+  
+  desugar : Stat(stat, e) -> stat // should fail
+  
+  desugar : Stat(stat, e) -> e // should succeed
+  
+  desugar : e -> Add(e, e) // should fail
+  
   desugar : 
     Min(e) -> Sub(Int("0"), e)
   
@@ -57,49 +69,11 @@ rules
     
 strategies
 
-  is-exp = ?Var(_) 
-
+  is-stat :: Stat -> Stat
   is-stat = 
     ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
-    <+ ?Inc(_) // is not a statement
 
-  desugar-all = topdown(try(desugar))
-  
-  topdown(s) = s; all(topdown(s))
-  
-  try(s) = s <+ id  
-  
-  oncetd(s) = s <+ one(oncetd(s))
-  
-rules // a typing for the above rules 
 
-  //desugar :: Exp -> Exp
-  //desugar :: Stat -> Stat
-  
-  desugar :: TP 
-  desugar-all :: TP 
-  topdown(TP) :: TP
-  try(TP) :: TP
-  
-  //is-stat :: Stat -> Stat
-  
-  //topdown(? -> ?) :: ? -> ?
-  //try(? -> ?) :: ? -> ?
-  //try(a -> ?) :: ? -> ?
-  
-  
-//rules 
-//
-//  Fst :: a * b * c -> a 
-//  
-//  Fst : (x, y, z) -> x 
-//  
-//  
-//  Snd :: int * string * int -> string
-//  
-//  Snd : (x, y, z) -> y 
-//  
-//  foo = <Snd>(1, "b", 3)
   
   
   
