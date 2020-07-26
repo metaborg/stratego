@@ -3,25 +3,46 @@ module gradual-types/signatures
 imports
   core/identifiers
 
+//sorts Type SortT Dyn ConstrType
+//context-free syntax
+//  Dyn.Dyn              = [?]
+//  Type.TupleT          = [[Type] * [{Type " * "}+]]
+//  Type                 = Type
+//  Type.DynT    = Dyn
+//  Type.StringT = "string"
+//  Type.IntT    = "int"
+//  Type.RealT   = "real"
+//  Type         = [([Type])] {bracket}
+//  Type         = SortT
+//  SortT.Sort           = [[Id]([{Type ", "}*])]
+//  SortT.SortNoArgs     = UCID
+//  SortT.SortVar        = SortVar
+
 sorts Type SortT Dyn ConstrType
 context-free syntax
-  Dyn.Dyn = [?]
-  Type.TupleT     = [[SubTupleType] * [{SubTupleType " * "}+]]
-  Type = SubTupleType
-  SubTupleType.DynT = Dyn
-  SubTupleType.StringT    = "string"
-  SubTupleType.IntT       = "int"
-  SubTupleType.RealT      = "real"
-  SubTupleType = [([Type])] {bracket}
-  SubTupleType = SortT
+  Dyn.Dyn          = [?]
+  Type.TupleT      = [[Type] * [{Type " * "}+]]
+  Type.DynT        = Dyn
+  Type.StringT     = "string"
+  Type.IntT        = "int"
+  Type.RealT       = "real"
+  Type             = [([Type])] {bracket}
+  Type             = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
   SortT.SortVar    = SortVar
-
+context-free priorities
+  Type.TupleT <0> .> Type.TupleT,
+  {Type "*"}+ = Type <0> .> Type.TupleT,
+  {Type "*"}+ = {Type "*"}+ "*" Type <2> .> Type.TupleT
+  
 sorts SType SFunType
 context-free syntax
-  SType.SDyn = [?]
-  SType = SFunType
+  SType.SDyn             = [?]
+  SType.TP               = [TP]
+  SType                  = SFunType
   SFunType.FunNoArgsType = [[Type] -> [Type]]
-  SFunType.FunType = [([{SType ", "}*]) [Type] -> [Type]]
-  SFunType.FunTType = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
+  SFunType.FunType       = [([{SType ", "}*]) [Type] -> [Type]]
+  SFunType.FunTType      = [([{SType ", "}*] | [{Type ", "}*]) [Type] -> [Type]]
+
+
