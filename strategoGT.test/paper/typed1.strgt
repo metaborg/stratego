@@ -22,6 +22,7 @@ rules
   desugar-all :: TP
   
   try(TP) :: TP
+  topdown(TP) :: TP
   bottomup(TP) :: TP
   oncetd(TP) :: TP
   alltd(TP) :: TP
@@ -59,12 +60,13 @@ strategies // traversal strategies
 
   oncetd-hd(TP) :: Stat -> Stat
   oncetd-hd(s) =
-    While(oncetd(s), id) <+ For(oncetd(s),id,id,id)
-    <+ For(id,oncetd(s),id,id) <+ Exp(oncetd(s))
+    While(oncetd(s), id) <+ For(id,oncetd(s),id,id) 
+    <+ For(id,id,oncetd(s),id) <+ Exp(oncetd(s))
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies
   try(s)      = s <+ id
+  topdown(s)  = s; all(topdown(s))
   bottomup(s) = all(bottomup(s)); s
   oncetd(s)   = s <+ one(oncetd(s))
   alltd(s)    = s <+ all(alltd(s)) 

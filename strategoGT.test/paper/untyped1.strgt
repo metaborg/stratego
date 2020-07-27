@@ -48,8 +48,8 @@ strategies // traversal strategies
   desugar-all = bottomup(try(desugar))
 
   oncetd-hd(s) =
-    While(oncetd(s), id) <+ For(oncetd(s),id,id,id)
-    <+ For(id,oncetd(s),id,id) <+ Exp(oncetd(s))
+    While(oncetd(s), id) <+ For(id,oncetd(s),id,id) 
+    <+ For(id,id,oncetd(s),id) <+ Exp(oncetd(s))
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies

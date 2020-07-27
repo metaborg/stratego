@@ -1,4 +1,4 @@
-module typed-transformation2
+module untyped-transformation2
 signature
   sorts Exp constructors
     Var  : string -> Exp
@@ -17,15 +17,6 @@ signature
 
 rules
 
-  transform   :: Stat -> Stat
-  desugar-inc :: Exp -> Stat
-  lift-assign :: Stat -> Stat
-  
-  bottomup(? -> ?) :: ? -> ?
-  alltd(? -> ?) :: ? -> ?
-  
-rules
-
   desugar :
     Min(e) -> Sub(Int("0"), e)
 
@@ -38,7 +29,7 @@ rules
 
 rules
 
-  desugar-inc :
+  desugar :
     Inc(Var(x)) -> Assign(x, Add(Var(x), Int("1")))
     
   lift-assign : 
@@ -47,9 +38,9 @@ rules
       <oncetd-hd((Assign(x, e) -> Var(x)))> stat => stat2
       
 strategies
-   
+
   desugar-all = 
-    bottomup(try(desugar-inc))
+    bottomup(try(desugar))
 
   lift-all = 
     alltd(lift-assign; lift-all)
@@ -59,14 +50,15 @@ strategies
 
 strategies // type strategies
 
-  is-simple-stat = ?Assign(_,_) <+ ?Exp(_)
-    <+ ?While(_,_) <+ ?For(_,_,_,_)
+  is-simple-stat = 
+    ?Assign(_,_) <+ ?Exp(_)
+  <+ ?While(_,_) <+ ?For(_,_,_,_)
 
 strategies // traversal strategies
 
   oncetd-hd(s) =
-    While(oncetd(s), id) <+ For(oncetd(s),id,id,id)
-    <+ For(id,oncetd(s),id,id) <+ Exp(oncetd(s)) 
+    While(oncetd(s), id) <+ For(id,oncetd(s),id,id) 
+    <+ For(id,id,oncetd(s),id) <+ Exp(oncetd(s))
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies
