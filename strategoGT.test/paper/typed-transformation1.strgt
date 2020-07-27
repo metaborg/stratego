@@ -1,4 +1,4 @@
-module untyped-transformation
+module typed-transformation1
 signature
   sorts Exp constructors
     Var  : string -> Exp
@@ -22,7 +22,7 @@ rules
   desugar-all :: TP
   
   try(TP) :: TP
-  topdown(TP) :: TP
+  bottomup(TP) :: TP
   oncetd(TP) :: TP
   alltd(TP) :: TP
 
@@ -55,7 +55,7 @@ strategies // type strategies
 
 strategies // traversal strategies
 
-  desugar-all = topdown(try(desugar))
+  desugar-all = bottomup(try(desugar))
 
   oncetd-hd(TP) :: Stat -> Stat
   oncetd-hd(s) =
@@ -64,10 +64,10 @@ strategies // traversal strategies
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies
-  try(s)     = s <+ id
-  topdown(s) = s; all(topdown(s))
-  oncetd(s)  = s <+ one(oncetd(s))
-  alltd(s)   = s <+ all(alltd(s))
+  try(s)      = s <+ id
+  bottomup(s) = all(bottomup(s)); s
+  oncetd(s)   = s <+ one(oncetd(s))
+  alltd(s)    = s <+ all(alltd(s)) 
 
 rules // errors that are caught by current compiler
 
@@ -83,7 +83,7 @@ rules // errors that are not caught by current compiler
   desugar : // statement replaced by expression
     Assign("x", e2) -> Add(e1, e2) 
     
-  desugar : // expression replaced with statement
+  desugar : // expression replaced with statement 
     Stat(stat, e) -> stat 
     
   desugar : // lifting also applied to expressions

@@ -1,4 +1,4 @@
-module untyped-transformation
+module untyped-transformation2
 signature
   sorts Exp constructors
     Var  : string -> Exp
@@ -40,7 +40,7 @@ rules
 strategies
 
   desugar-all = 
-    topdown(try(desugar))
+    bottomup(try(desugar))
 
   lift-all = 
     alltd(lift-assign; lift-all)
@@ -62,7 +62,7 @@ strategies // traversal strategies
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies
-  try(s)     = s <+ id
-  topdown(s) = s; all(topdown(s))
-  oncetd(s)  = s <+ one(oncetd(s))
-  alltd(s)   = s <+ all(alltd(s))
+  try(s)      = s <+ id
+  bottomup(s) = all(bottomup(s)); s
+  oncetd(s)   = s <+ one(oncetd(s))
+  alltd(s)    = s <+ all(alltd(s))
