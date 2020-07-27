@@ -127,7 +127,7 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
     ((_, to2), st2) := <CanCoerce> ((<unDyn> from, to), st1)
     ; t := DynT(to2)
     <+
-      <report-Warn> (subj, NoInjectionBetween(from, DynT(to)))
+      <report-Warn> (subj, NoInjectionBetween(<itv(|st1)> from, DynT(<itv(|st1)> to)))
     ; t := from
     ; st2 := st1
 
@@ -137,7 +137,7 @@ computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2}
   where
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
-      <report-Warn> (subj, NoInjectionBetween(from, to1))
+      <report-Warn> (subj, NoInjectionBetween(<itv(|st1)> from, <itv(|st1)> to1))
     ; to2 := to1
     ; st2 := st1
 
@@ -158,7 +158,7 @@ computeCoercion-(|subj, st1):
 computeCoercion-(|subj, st1): (from, to) -> (<otf(!coercion)> subj, st2)
   where if (_, st2) := <CanCoerce> ((from, to), st1)
     then coercion := Id(){from}
-    else <report-Err> (subj, NoInjectionBetween(from, to))
+    else <report-Err> (subj, NoInjectionBetween(<itv(|st1)> from, <itv(|st1)> to))
        ; coercion := Fail(){ErrT()}
        ; st2 := st1
   end
@@ -345,12 +345,6 @@ extract-constr:
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>))> t1*
 
-extract-constr:
-  OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (("", <length> t1*), ConstrType(t2*, t2))
-  with
-    t2 := <desugar-Type> t1
-  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
-
 // TODO: allow type definition?
 extract-constr:
   OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
@@ -389,4 +383,10 @@ extract-inj:
 
 extract-inj:
   ExtOpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
+
+extract-inj:
+  OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) -> (TupleT(t2*), t2)
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>))> t1*
 

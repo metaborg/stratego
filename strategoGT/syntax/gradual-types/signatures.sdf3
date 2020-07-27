@@ -20,6 +20,7 @@ imports
 
 sorts Type SortT Dyn ConstrType
 context-free syntax
+  ConstType.DynT = Dyn
   Dyn.Dyn          = [?]
   Type.TupleT      = [[Type] * [{Type " * "}+]]
   Type.DynT        = Dyn

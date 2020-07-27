@@ -3695,7 +3695,7 @@ strategies // manipulate PC in top-most frame
 
   next = JBCState([JBCFrame(id, id, inc, id, id)|id], id)
 
-  goto(|l) = JBCState([JBCFrame(id, ?is, <getfirst(?(<id>,l))> is, id, id)|id], id)
+  goto(|l) = JBCState([JBCFrame(id, ?'is, <getfirst(?(<id>,l))> 'is, id, id)|id], id)
 
 strategies // manipulate stack in top-most frame
 
@@ -4299,9 +4299,9 @@ rules
     ;  res := <jasmin-op-to-asm> (opt, iop, p)
 
   jasmin-op-to-asm:  (T_INSN(), opcode, [])    -> Insn(opcode)
-  jasmin-op-to-asm:  (T_INTINSN(), opcode, [is])  -> IntInsn(opcode, i)
+  jasmin-op-to-asm:  (T_INTINSN(), opcode, ['is])  -> IntInsn(opcode, i)
     where
-      i := <try(to-int)> is
+      i := <try(to-int)> 'is
   jasmin-op-to-asm:  (T_VARINSN(), opcode, [v])  -> VarInsn(opcode, <try(normalize-varnum)> v)
   jasmin-op-to-asm:  (T_TYPEINSN(), opcode, [CRef(tt)])  -> TypeInsn(opcode, tt)
   jasmin-op-to-asm:  (T_TYPEINSN(), opcode, [t])  -> TypeInsn(opcode, tt)
@@ -4519,7 +4519,7 @@ strategies
   jasmin-instructions-to-asm   =  map(jasmin-instruction-to-asm)
 
   // to-int = (?Neg(is); !is; to-int; neg) <+ string-to-int
-  to-int = (is-int; id) <+ (?Neg(is); !is; to-int; ?i; !(0, i); subti) <+ (is-string; string-to-int)
+  to-int = (is-int; id) <+ (?Neg('is); !'is; to-int; ?i; !(0, i); subti) <+ (is-string; string-to-int)
 
 imports
   signatures/-

@@ -570,7 +570,7 @@ insertCasts-Strategy-(|e1, st1):
   ; st4 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st3
 
 insertCasts-Strategy-(|e1, st1):
-  SRule(r1) -> (LRule(r2), st2)
+  SRule(r1) -> (SRule(r2), st2)
   with
     (r2, st2) := <insertCasts-Rule(|e1, st1)> r1
 
@@ -673,9 +673,9 @@ insertCasts-Strategy(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <desugar-Type> t
-  ; if r := <CanCoerce> ((t1, t2), st1)
+  ; if r := <CanCoerce> ((t2, t1), st1)
       then st2 := <Snd> r
-      else <report-Err> (s, TypeMismatch(t1,t2))
+      else <report-Err> (s, NoInjectionBetween(t2,t1))
          ; st2 := st1
     end
   ; st3 := <current-type(|t2)> st2

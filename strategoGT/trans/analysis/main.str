@@ -61,24 +61,21 @@ can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
   where
     <imrel-contains(|from, to)> aliases
 
-can-coerce(|injection-closure, aliases) = can-coerce(|injection-closure)
-
-
-can-coerce(|injection-closure): ((from, to), _) -> <id>
+can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
   where
     <imrel-contains(|from, to)> injection-closure
 
-can-coerce(|injection-closure) = ?((ErrT(), _), _)
-can-coerce(|injection-closure) = ?((_, ErrT()), _)
-can-coerce(|injection-closure) = ?((_, DynT()), _)
-can-coerce(|injection-closure) = ?((SortVar(x), SortVar(x)), st1);where(not(<type-var-lookup(|x)> st1))
+can-coerce(|injection-closure, aliases) = ?((ErrT(), _), _)
+can-coerce(|injection-closure, aliases) = ?((_, ErrT()), _)
+can-coerce(|injection-closure, aliases) = ?((_, DynT()), _)
+can-coerce(|injection-closure, aliases) = ?((SortVar(x), SortVar(x)), st1);where(not(<type-var-lookup(|x)> st1))
 // We assume co-variant type parameters
-can-coerce(|injection-closure): ((Sort(x, t1*), Sort(x, t2*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
+can-coerce(|injection-closure, aliases): ((Sort(x, t1*), Sort(x, t2*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
   where
     (pairs, st2) := <thread-map(CanCoerce)> (<zip> (t1*, t2*), st1)
   ; (t3*, t4*) := <unzip> pairs
 
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((SortVar(x), t1@SortVar(y)), st1) -> (p, st2)
   where
     if t2 := <type-var-lookup(|x)> st1
@@ -91,7 +88,7 @@ can-coerce(|injection-closure):
       end
     end
 
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((SortVar(x), t1), st1) -> result
   where
     if t2 := <type-var-lookup(|x)> st1
@@ -100,7 +97,7 @@ can-coerce(|injection-closure):
         ; result := ((t1, t1), st2)
     end
 
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((t1, SortVar(x)), st1) -> result
   where
     if t2 := <type-var-lookup(|x)> st1
@@ -109,22 +106,28 @@ can-coerce(|injection-closure):
         ; result := ((t1, t1), st2)
     end
 
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((t, t), st1) -> ((t, t), st1)
 
 // dead code, why is this here? instantiating variables?
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((Sort(x, t1*), DynT()), st1) -> ((Sort(x, t3*), DynT()), st2)
   where
     (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
 
 // dyn on left only succeeds if right is variable. Here for instantiating variables?
-can-coerce(|injection-closure):
+can-coerce(|injection-closure, aliases):
   ((DynT(), Sort(x, t1*)), st1) -> ((DynT(), Sort(x, t4*)), st2)
   where
     (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
+
+can-coerce(|injection-closure, aliases): ((from, to), st1) ->
+  <imrel-get(|from);imset-to-list;immap-remove(|from);getfirst(\from2 -> <CanCoerce> ((from2, to), st1)\)> aliases
+
+can-coerce(|injection-closure, aliases): ((from, to), st1) ->
+  <imrel-get(|from);imset-to-list;immap-remove(|from);getfirst(\from2 -> <CanCoerce> ((from2, to), st1)\)> injection-closure
 
 can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, t1, t2), SDyn()), st1) ->
@@ -153,8 +156,11 @@ can-coerce-stype(|injection-closure):
   ; ((tt3*, tt4*), st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
-instantiate-type-vars(|st1): t1 -> t2
-  with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x) <+ !DynT()> st1 + id})> t1
+instantiate-type-vars(|st1) = instantiate-type-vars(!DynT()|st1)
+itv(|st1) = instantiate-type-vars(id|st1)
+
+instantiate-type-vars(s|st1): t1 -> t2
+  with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x)> st1 <+ <s> SortVar(x) + id})> t1
 
 fresh-type-vars(newvars): LocalDef(t1) -> t1 with <newvars> []
 

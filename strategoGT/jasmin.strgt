@@ -205,8 +205,8 @@ signature constructors
   Use : Task -> Query
   NablNsMethod : NablNs
   NablNsField : NablNs
-  ASMClass : int * int * ClassName * None * ClassName * List(T1) * List(ASMField) * List(ASMMethod) -> ASMClass
-  ASMMethod : int * MethodName * string * None * List(T1) * List(Instruction) -> ASMMethod
+  ASMClass : int * int * ClassName * None * ClassName * List(a) * List(ASMField) * List(ASMMethod) -> ASMClass
+  ASMMethod : int * MethodName * string * None * List(a) * List(OpInstruction) -> ASMMethod
   ASMField : int * FieldName * string * None * None -> ASMField
   None : None
 
@@ -2657,10 +2657,10 @@ signature
     TypeVar : TypeVar -> Type
             : List(Type) -> Stack
             : Stack -> Type
-    CEq     : FieldType /*always TypeVar*/ * a -> Constraint
-    CNEq    : FieldType /*always TypeVar*/ * FieldType -> Constraint
-    CSub    : FieldType /*always TypeVar*/ * a -> Constraint
-    CSup    : FieldType /*always TypeVar*/ * FieldType -> Constraint
+    CEq     : a * b -> Constraint
+    CNEq    : a * b -> Constraint
+    CSub    : a * b -> Constraint
+    CSup    : a * b -> Constraint
     COr     : List(List(Constraint)) -> Constraint
     : ObjectType -> Type
     : List(Type) -> Type
@@ -2756,7 +2756,7 @@ rules
                          [CEq(TypeVar("a"), [Boolean()])]]),
                        CEq(TypeVar("a"), [Int()])]
       ; b := <try(solve-constraints)> [COr([[CEq(TypeVar("test"), [Int()]), CEq(TypeVar("test2"), []), CEq(TypeVar("abc"), TypeVar("test"))],
-                          [CEq(TypeVar("test"), [Double() :: BaseType])]])]
+                          [CEq(TypeVar("test"), [Double()])]])]
       ; c := <try(solve-constraints)> [COr([[CEq(TypeVar("fail"), [Int()])],
                          [CEq(TypeVar("fail"), [Boolean()])]]),
                        CEq(TypeVar("fail"), [Byte()])]
@@ -2821,7 +2821,7 @@ imports
 // TODO document the strategies
 strategies
   //the input of this strategy should be a list of constraints!
-  solve-constraints :: List(Constraint) -> List(Type * Constraint) * List(Constraint)
+  solve-constraints :: List(?) -> List(Type * Constraint) * List(Constraint)
   solve-constraints = !([], <id>);fixed-point(solve-constraints-step)
 
   solve-step(|List(Type * Constraint)) :: List(Constraint) -> ?
@@ -3147,7 +3147,7 @@ rules
       <resolve(|r)> state => Array(Int(), vs) ;
       <index> (<string-to-int> i, vs) => Int(v)
 
-  step(|state): IASTORE() -> <pop(|3) ; update(|r, vs') ; next> state
+  step(|state): IASTORE() -> <pop(|3) ; update(|r, Array(Int(), vs')) ; next> state
     where
       <top(|2)> state => [Int(v), Int(i), Ref(r)] ;
       <resolve(|r)> state => Array(Int(), vs) ;
@@ -3156,7 +3156,7 @@ rules
   step(|state): ARRAYLENGTH() -> <pop ; push(|Int(l)) ; next> state
     where
       <top> state => Ref(ar) ;
-      <resolve(|ar)> state => Array(_, vs) ;
+      <resolve(|<is-string> ar)> state => Array(_, vs) ;
       <length ; int-to-string> vs => l
 
   step(|state): NEWARRAY(IntName()) -> <alloc(|Array(Int(), [])) ; next> state
@@ -3170,7 +3170,7 @@ rules
 
   step(|state): ICONST_0() -> <push(|Int("0")) ; next> state
   step(|state): ICONST_1() -> <push(|Int("1")) ; next> state
-  step(|state): LDC(i) -> <push(|Int(i)) ; next> state
+  step(|state): LDC(Int(i)) -> <push(|Int(i)) ; next> state
 
 
 
@@ -3181,7 +3181,7 @@ imports
 
 rules
 
-  desugar :: Instruction -> Instruction
+  desugar :: Instruction -> ?
   desugar: ALOAD_0() -> ALOAD("0")
   desugar: ALOAD_1() -> ALOAD("1")
   desugar: ALOAD_2() -> ALOAD("2")
@@ -3402,7 +3402,7 @@ rules
   step(|state): GETFIELD(JBCFieldRef(_, fn, _)) -> <pop; push(|v) ; next> state
     where
       <top> state => Ref(r) ;
-      <resolve(|r)> state => Object(_, fields) ;
+      <resolve(|<is-string> r)> state => Object(_, fields) ;
       <lookup> (fn, fields) => v
 
   step(|state): PUTFIELD(JBCFieldRef(_, fn, _)) -> <pop(|2); update(|r, Object(cn, fields')) ; next> state
@@ -3430,10 +3430,10 @@ rules
 
   init-value :: FieldType * InitialValue -> Value
   init-value: (Int(), None()) -> Int("0")
-  init-value: (Int(), v) -> Int(v) where <not(eq)> (None(), v)
+  init-value: (Int(), v) -> Int(<is-string> v)
 
   init-value: (Boolean(), None()) -> Int("0")
-  init-value: (Boolean(), v) -> Int(v) where <not(eq)> (None(), v)
+  init-value: (Boolean(), v) -> Int(<is-string> v)
 
   init-value: (Array(_), None()) -> Ref(NULL())
   init-value: (Reference(_), None()) -> Ref(NULL())
@@ -3458,7 +3458,7 @@ signature constructors
   JBCLocals  : List(Value) -> Locals
 
   JBCHeap    : List(HeapEntry) -> Heap
-        : String * HeapElement -> HeapEntry
+        : string * HeapElement -> HeapEntry
 
   Array    : ComponentType * List(Value) -> HeapElement
   Object    : ClassName * List(Slot) -> HeapElement
@@ -3491,21 +3491,26 @@ strategies // manipulate stack in top-most frame
 
 strategies // manipulate local variables in top-most frame
 
-  load(|string) :: State -> List(Value)
-  load(|n) = ?JBCState([JBCFrame(_, _, _, _, JBCLocals(<at-index(id|<string-to-int> n)>))|_], _)
+  load(|string) :: State -> Value
+  load(|n) = ?JBCState([JBCFrame(_, _, _, _, JBCLocals(<at-index(?v|<string-to-int> n);!v>))|_], _)
   store(|string, Value) :: State -> State
   store(|n, v) = JBCState([JBCFrame(id, id, id, JBCStack(at-index(!v|<string-to-int> n)), id)|id], id)
 
 strategies // manipulate heap
 
-  resolve(|r) = ?JBCState(_, JBCHeap(<id>)) ; <lookup> (r, <id>)
+  resolve(|string) :: State -> HeapElement
+  resolve(|r) = ?JBCState(_, JBCHeap(<id>)) ; <lookup> (r, <id> :: List(string * HeapElement))
+  alloc(|HeapElement) :: State -> State
   alloc(|v) = where(<newname> "ref" => r) ; JBCState([JBCFrame(id, id, id, JBCStack(![Ref(r)|<id>]), id)|id], JBCHeap(![(r,v)|<id>]))
+  update(|string, HeapElement) :: State -> State
   update(|r, v) = JBCState(id, JBCHeap(update-key-value(|r, v)))
 
+  update-key-value(|a, b) :: List(a * b) -> List(a * b)
   update-key-value(|r, v) = fetch(?(r, _) ; !(r, v))
 
 strategies // manipulate frames
 
+  drop-frame :: State -> State
   drop-frame = not(top) ; JBCState(Tl, id)
 
 
@@ -3874,6 +3879,7 @@ imports
 
 rules
 
+  outline-expand-to-level :: ? -> int
   outline-expand-to-level = !3
 
 
@@ -3902,15 +3908,20 @@ imports
 
 signature
   constructors
-    Label  :  String -> Instruction
-    Maxs  :  int * int -> Instruction
-    TryCatch:  String * String * String * String -> Instruction
-    LocalVar:  String * String * String * String * String * Int -> Instruction
-    Line    :   Int -> Instruction
+    Label  :  LabelName -> Instruction
+    TryCatch:  LabelName * LabelName * LabelName * ClassName -> Instruction
+    LocalVar:  VarName * string * None * LabelName * LabelName * int -> Instruction
+    Line    :   int -> Instruction
+    : Maxs -> Instruction
+    
+    Maxs  :  int * int -> Maxs
+    : Maxs -> Statement
+    
 
 rules
+  jasmin-directive-to-asm :: Statement -> Instruction
   jasmin-directive-to-asm:
-    Maxs(sl, ll) -> Maxs(<to-int> sl, <to-int> ll)
+    Maxs(sl, ll) -> <id> //Maxs(<to-int> sl, <to-int> ll)
   jasmin-directive-to-asm:
     JBCCatch(CRef(t), LabelRef(from), LabelRef(to), LabelRef(handler)) -> TryCatch(from, to, handler, t)
   jasmin-directive-to-asm:
@@ -3925,34 +3936,37 @@ rules
     where
       line := <to-int> l
 
+  collect-maxs :: List(Statement) -> List(Statement)
   collect-maxs:
     l      ->  result
     where
-      <is-list>  l
-    ;  result := <collect-maxs> (Maxs(1,1), [], l)
-  collect-maxs:
+      result := <collect-maxs'> (Maxs(1,1), [], l)
+
+  collect-maxs' :: Maxs * List(Statement) * List(Statement) -> List(Statement)
+  collect-maxs':
     (m, l, []) -> [m | l]
-  collect-maxs:
+  collect-maxs':
     (Maxs(sl, ll), tail, [h | t])  ->  result
     where
       JBCLimitStack(nsl) := h
-    ;  result := <collect-maxs> (Maxs(nsl, ll), tail, t)
-  collect-maxs:
+    ;  result := <collect-maxs'> (Maxs(<to-int> nsl, ll), tail, t)
+  collect-maxs':
     (Maxs(sl, ll), tail, [h | t])  ->  result
     where
       JBCLimitLocals(nll) := h
-    ;  result := <collect-maxs> (Maxs(sl, nll), tail, t)
-  collect-maxs:
+    ;  result := <collect-maxs'> (Maxs(sl, <to-int> nll), tail, t)
+  collect-maxs':
     (Maxs(sl, ll), tail*, [h | t])  ->  result
     where
       not(JBCLimitLocals(_) := h)
     ;  not(JBCLimitStack(_) := h)
-    ;  result := <collect-maxs> (Maxs(sl, ll), [tail*, h], t)
+    ;  result := <collect-maxs'> (Maxs(sl, ll), [tail*, h], t)
 
 imports
   signatures/-
 
 rules
+  bitwise-or :: int * int -> int
   bitwise-or:
     (0, 0) -> 0
   bitwise-or:
@@ -3981,7 +3995,13 @@ rules
   //     i := <jasmin-flag-intvalue> f
   //   ;  it := <jasmin-flags-to-int> t
   //   ;  result := <bitwise-or> (i, it)
+signature constructors
+  : MethodAccess -> JasminFlag
+  : ClassAccess -> JasminFlag
+  : FieldAccess -> JasminFlag
+rules
 
+  jasmin-flag-intvalue :: JasminFlag -> int
   jasmin-flag-intvalue: PUBLIC() -> 1
   jasmin-flag-intvalue: PRIVATE() -> 2
   jasmin-flag-intvalue: PROTECTED() -> 4
@@ -4005,6 +4025,7 @@ rules
   // jasmin-flag-intvalue: DEPRECATED() -> 131072
 
 strategies
+  jasmin-flags-to-int :: List(JasminFlag) -> int
   jasmin-flags-to-int = map(jasmin-flag-intvalue); foldr(!0, bitwise-or)
 
 
@@ -4024,18 +4045,19 @@ signature
     T_LOOKUPSWITCH    :  Optype
     T_MULTIANEWARRAY  :  Optype
 
+    : int -> Opcode
     Insn        :  Opcode -> OpInstruction
-    IntInsn        :  Opcode * Int -> OpInstruction
-    VarInsn        :  Opcode * Int -> OpInstruction
-    TypeInsn      :  Opcode * String -> OpInstruction
-    FieldInsn      :  Opcode * String * String * String -> OpInstruction
-    MethodInsn      :  Opcode * String * String * String -> OpInstruction
-    JumpInsn      :  Opcode * String -> OpInstruction
+    IntInsn        :  Opcode * int -> OpInstruction
+    VarInsn        :  Opcode * int -> OpInstruction
+    TypeInsn      :  Opcode * ClassName -> OpInstruction
+    FieldInsn      :  Opcode * ClassName * FieldName * string -> OpInstruction
+    MethodInsn      :  Opcode * ClassName * MethodName * string -> OpInstruction
+    JumpInsn      :  Opcode * LabelName -> OpInstruction
     LdcInsn        :  Opcode * Constant -> OpInstruction
-    IincInsn      :  Int * Int -> OpInstruction
-    LookupSwitchInsn  :  String * List(Int) * List(String) -> OpInstruction
-    TableSwitchInsn    :  Int * Int * String * List(String) -> OpInstruction
-    MultiANewArrayInsn  :  String * Int -> OpInstruction
+    IincInsn      :  int * int -> OpInstruction
+    LookupSwitchInsn  :  LabelName * List(int) * List(LabelName) -> OpInstruction
+    TableSwitchInsn    :  int * int * LabelName * List(LabelName) -> OpInstruction
+    MultiANewArrayInsn  :  string * int -> OpInstruction
 
 imports
   signatures/-
@@ -4044,6 +4066,7 @@ imports
 
 rules
   // TODO: This should be in a desugar pass.
+  simplify-insn :: Instruction -> ?
   simplify-insn:  ILOAD_0() -> ILOAD(0)
   simplify-insn:  ILOAD_1() -> ILOAD(1)
   simplify-insn:  ILOAD_2() -> ILOAD(2)
@@ -4063,6 +4086,7 @@ rules
 
   simplify-insn:  NEWARRAY(n) -> NEWARRAY(<jasmin-arraytype-num> n)
 
+  jasmin-arraytype-num :: BaseTypeName -> int
   jasmin-arraytype-num:  ByteName() -> 8
   jasmin-arraytype-num:  CharName() -> 5
   jasmin-arraytype-num:  DoubleName() -> 7
@@ -4072,9 +4096,11 @@ rules
   jasmin-arraytype-num:  ShortName() -> 9
   jasmin-arraytype-num:  BooleanName() -> 4
 
+  normalize-constant :: ? -> ?
   normalize-constant: Int(i) -> Int(<to-int> i)
   normalize-varnum  : VarNum(i) -> <try(to-int)> i
 
+  jasmin-instruction-to-asm :: Instruction -> OpInstruction
   jasmin-instruction-to-asm:
     i -> res
     where
@@ -4082,6 +4108,7 @@ rules
     ;  (iop, opt) := <jasmin-opcode> c
     ;  res := <jasmin-op-to-asm> (opt, iop, p)
 
+  jasmin-op-to-asm :: Optype * Opcode * List(?) -> OpInstruction
   jasmin-op-to-asm:  (T_INSN(), opcode, [])    -> Insn(opcode)
   jasmin-op-to-asm:  (T_INTINSN(), opcode, ['is])  -> IntInsn(opcode, i)
     where
@@ -4122,10 +4149,13 @@ rules
       type := <jasmin-fieldtype-to-descriptor> ttype
     ;  num := <to-int> tnum
 
+  npair-to-tuple :: LookupEntry -> int * LabelName
   npair-to-tuple: NPAIR(i, LabelRef(l)) -> (<to-int> i, l)
+  jumplabel-name :: LabelRef -> LabelName
   jumplabel-name: LabelRef(l) -> l
 
   // Zero-operand instructions
+  jasmin-opcode :: string -> int * Optype
   jasmin-opcode:  "NOP"    ->  (0,  T_INSN())
   jasmin-opcode:  "ACONST_NULL"    ->  (1,  T_INSN())
   jasmin-opcode:  "ICONST_M1"    ->  (2,  T_INSN())
@@ -4300,9 +4330,11 @@ rules
 
 
 strategies
+  jasmin-instructions-to-asm :: List(Instruction) -> List(OpInstruction)
   jasmin-instructions-to-asm   =  map(jasmin-instruction-to-asm)
 
   // to-int = (?Neg('is); !'is; to-int; neg) <+ string-to-int
+  to-int :: ? -> int
   to-int = (is-int; id) <+ (?Neg('is); !'is; to-int; ?i; !(0, i); subti) <+ (is-string; string-to-int)
 
 imports
@@ -4313,6 +4345,7 @@ imports
   trans/translator/instructions
 
 rules
+  jasmin-file-to-asm-class :: JasminFile -> ASMClass
   jasmin-file-to-asm-class:
     JBCFile(JBCHeader(_, _, cspec, sspec, _, _, _, _, _, _), jfields, jmethods) -> ASMClass(196653, iflags, name, None(), super, [], fields, methods)
     where
@@ -4322,26 +4355,31 @@ rules
     ;  methods := <map(jasmin-method-to-asm-method)> jmethods
     ;  iflags := <jasmin-flags-to-int> <jasmin-classspec-get-flags> cspec
 
+  jasmin-classspec-get-name :: ClassSpec -> ClassName
   jasmin-classspec-get-name:
     JBCClass(_, name) -> name
   jasmin-classspec-get-name:
     JBCInterface(_, name) -> name
+  jasmin-classspec-get-flags :: ClassSpec -> List(ClassAccess)
   jasmin-classspec-get-flags:
     JBCClass(flags, _) -> flags
   jasmin-classspec-get-flags:
     JBCInterface(flags, _) -> flags
 
+  jasmin-superspec-to-asm :: ? -> ?
   jasmin-superspec-to-asm:
     None() -> None()
   jasmin-superspec-to-asm:
     JBCSuper(s) -> s
 
+  jasmin-field-to-asm-field :: Field -> ASMField
   jasmin-field-to-asm-field:
     JBCField(jflags, name, JBCFieldDesc(jdesc), jsignature, jinit) -> ASMField(iflags, name, desc, None(), None())
     where
       desc := <jasmin-fieldtype-to-descriptor> jdesc
     ;  iflags := <jasmin-flags-to-int> jflags
 
+  jasmin-fieldtype-to-descriptor :: FieldType -> string
   jasmin-fieldtype-to-descriptor:
     Byte() -> "B"
   jasmin-fieldtype-to-descriptor:
@@ -4366,6 +4404,7 @@ rules
       lb := "["
     ;  dt := <jasmin-fieldtype-to-descriptor> t
 
+  jasmin-method-to-asm-method :: Method -> ASMMethod
   jasmin-method-to-asm-method:
     JBCMethod(jflags, jname, JBCMethodDesc(paramdesc, returndesc), jinstructions) -> ASMMethod(iflags, name, desc, None(), [], instr)
     where
@@ -4374,13 +4413,13 @@ rules
     ;  iflags := <jasmin-flags-to-int> jflags
     ;  instr := <jasmin-instructions-directives-to-asm> jinstructions
 
+  jasmin-methodname-to-name :: MethodName -> string
   jasmin-methodname-to-name:
     Init() -> "<init>"
   jasmin-methodname-to-name:
-    str -> str
-    where
-      <is-string> str
+    str -> <is-string> str
 
+  jasmin-methodtype-to-descriptor :: List(ParameterDescriptor) * ReturnDescriptor -> string
   jasmin-methodtype-to-descriptor:
     (paramdesc, returndesc) -> result
     where
@@ -4388,10 +4427,12 @@ rules
     ;  retstr := <jasmin-returntype-to-descriptor> returndesc
     ;  result := $[([paramstr])[retstr]]
 
+  jasmin-returntype-to-descriptor :: ReturnDescriptor -> string
   jasmin-returntype-to-descriptor:
     Void() -> "V"
   jasmin-returntype-to-descriptor:
-    type -> <jasmin-fieldtype-to-descriptor> type
+    type -> <is(FieldType);jasmin-fieldtype-to-descriptor> type
 
 strategies
+  jasmin-instructions-directives-to-asm :: List(Statement) -> List(OpInstruction)
   jasmin-instructions-directives-to-asm  =  collect-maxs; map(jasmin-instruction-to-asm <+ jasmin-directive-to-asm)
