@@ -367,7 +367,7 @@ insertCasts-Targ(|e1):
 strategies // Strategy (sugar)
 
 insertCasts-Strategy(|e1, st1) =
-  otf(\Call(SVar(x), s*) -> CallT(SVar(x), s*, [])\)
+  otf(\Call(svar, s*) -> CallT(svar, s*, [])\)
 ; insertCasts-Strategy(|e1, st1)
 
 insertCasts-Strategy-(|e1, st1):
@@ -547,7 +547,7 @@ insertCasts-Strategy-(|e1, st1):
 
 
 insertCasts-Strategy(|e1, st1) =
-    otf(\CallNoArgs(SVar(x)) -> CallT(SVar(x), [], [])\)
+    otf(\CallNoArgs(svar) -> CallT(svar, [], [])\)
   ; insertCasts-Strategy(|e1, st1)
 
 insertCasts-Rule(|e1, st1) = otf12(insertCasts-Rule-(|e1, st1))
