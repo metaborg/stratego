@@ -68,15 +68,11 @@ extract-constrs-inj:
 extract-aliases: (constrs, injs) -> aliases
   with
     invInjs := <imrel-invert> injs
-    ;debug1
   ; <imrel-filter(\(k,v) -> <id> where <imrel-get(|k);imset-to-list;?[_]> injs; <imrel-get(|v);imset-to-list;?[_]> invInjs\)> injs
-    ;debug2
     // bijective injections
   ; imrel-filter(\(_, v) -> <id> where <imrel-filter(?(_, ConstrType(_, v)));equal(|<imrel-new>)> constrs\)
-    ;debug3
     // where both have no constructors
   ; imrel-reflexive-transitive-closure
-    ;debug4
     => aliases
 
 lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation

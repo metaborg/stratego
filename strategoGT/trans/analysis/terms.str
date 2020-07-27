@@ -482,8 +482,9 @@ insertCasts-StBuildTerm-(|e1, st1):
   ; _ := <computeCoercion(|trm1, st1)> (t1, <current-type> st1)
   ; st3 := <current-type(|t1)> st2
 
-insertCasts-StBuildTerm-ListVar(|e1, t1): (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
-  where if((Var(ListVar(?"c*" + ?"n*")), id)) then debuga end;
+insertCasts-StBuildTerm-ListVar(|e1, t1):
+  (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
+  where
     t2 := DynT(ListT(<unDyn> t1))
 
 insertCasts-StBuildTerm-ListVar(|e1, t) = insertCasts-StBuildTerm-Type(|e1, t)

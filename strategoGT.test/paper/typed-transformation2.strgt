@@ -44,7 +44,7 @@ rules
   lift-assign : 
     stat@<is-simple-stat> -> Seq(Assign(x, e), stat2)
     where 
-      <oncetd-hd((Assign(x, e) -> Var(x))> stat => stat2
+      <oncetd-hd((Assign(x, e) -> Var(x)))> stat => stat2
       
 strategies
   
@@ -53,14 +53,14 @@ strategies
 
   lift-all = 
     alltd(lift-assign; lift-all)
-    
+
   transform = 
     desugar-all; lift-all
-    	      
+
 strategies // type strategies
 
   is-simple-stat = ?Assign(_,_) <+ ?Exp(_)
-	  <+ ?While(_,_) <+ ?For(_,_,_,_)
+    <+ ?While(_,_) <+ ?For(_,_,_,_)
 
 strategies // traversal strategies
 

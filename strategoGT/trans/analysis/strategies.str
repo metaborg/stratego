@@ -10,6 +10,7 @@ libspoofax/stratego/debug
 
 signatures/strategoGT-sig
 signatures/core/strategies-sig
+signatures/core/terms-sig
 signatures/sugar/modules-sig
 signatures/sugar/strategies-sig
 signatures/sugar/rules-sig
@@ -265,7 +266,7 @@ insertCasts-Sarg(|e1, st1):
   with
     if t2 := <strat-lookup-call(?freshvars|x{}, 0, 0)> e1
       then
-        (s, st2) := <debugx;insertCasts-Sarg-CallNoArgs(|st1);debugy> (v, t1, t2)
+        (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
       ; st3 := <type-var-clear(|freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(0, 0))
@@ -289,16 +290,16 @@ insertCasts-Sarg(|e1, st1):
   with
     tv := <newname> "tp"
   ; t2 := SortVar(tv)
-  ; (s2, st2) := <debug1;insertCasts-Strategy(|e1, <current-type(|t2)> st1);debug2> s1
+  ; (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
   ; if not([] := st*; [] := tt*)
       then <report-Err> (s1, CallStrategyArgumentTakesParameters(t1))
     end
   ; t4 := <current-type> st2
-  ; if(<debugf;eq> (t2, t4)
-      <+ <debugg;eq> (t4, <type-var-lookup(|tv)> st2)
+  ; if(<eq> (t2, t4)
+      <+ <eq> (t4, <type-var-lookup(|tv)> st2)
          ; <not(oncetd(?DynT()))> t4)
       then id
-      else <debugh;report-Err> (s1, MatchNotSpecificEnoughForTP(t4{t2}))
+      else <report-Err> (s1, MatchNotSpecificEnoughForTP(t4{t2}))
     end
 
 insertCasts-Sarg(|e1, st1):
@@ -366,7 +367,7 @@ insertCasts-Targ(|e1):
 strategies // Strategy (sugar)
 
 insertCasts-Strategy(|e1, st1) =
-  debuga;otf(\Call(SVar(x), s*) -> CallT(SVar(x), s*, [])\);debugb
+  otf(\Call(SVar(x), s*) -> CallT(SVar(x), s*, [])\)
 ; insertCasts-Strategy(|e1, st1)
 
 insertCasts-Strategy-(|e1, st1):
@@ -546,7 +547,7 @@ insertCasts-Strategy-(|e1, st1):
 
 
 insertCasts-Strategy(|e1, st1) =
-    debuga;otf(\CallNoArgs(SVar(x)) -> CallT(SVar(x), [], [])\);debugb
+    otf(\CallNoArgs(SVar(x)) -> CallT(SVar(x), [], [])\)
   ; insertCasts-Strategy(|e1, st1)
 
 insertCasts-Rule(|e1, st1) = otf12(insertCasts-Rule-(|e1, st1))

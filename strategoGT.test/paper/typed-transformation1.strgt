@@ -21,10 +21,10 @@ rules
   desugar :: TP
   desugar-all :: TP
   
-  try(TP) : TP
+  try(TP) :: TP
   topdown(TP) :: TP
-  oncetd(TP) : TP
-  alltd(TP) : TP
+  oncetd(TP) :: TP
+  alltd(TP) :: TP
 
 rules
 
@@ -46,17 +46,18 @@ rules
     stat@<is(Stat)> -> Seq(stat1, stat2)
     where is-simple-stat
     where <oncetd-hd((Stat(stat1, e) -> e))> stat
-		      => stat2
-		      
+          => stat2
+
 strategies // type strategies
 
   is-simple-stat = ?Assign(_,_) <+ ?Exp(_)
-	  <+ ?While(_,_) <+ ?For(_,_,_,_)
+    <+ ?While(_,_) <+ ?For(_,_,_,_)
 
 strategies // traversal strategies
 
   desugar-all = topdown(try(desugar))
 
+  oncetd-hd(TP) :: Stat -> Stat
   oncetd-hd(s) =
     While(oncetd(s), id) <+ For(oncetd(s),id,id,id)
     <+ For(id,oncetd(s),id,id) <+ Exp(oncetd(s))
