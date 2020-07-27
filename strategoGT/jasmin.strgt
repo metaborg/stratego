@@ -2657,10 +2657,10 @@ signature
     TypeVar : TypeVar -> Type
             : List(Type) -> Stack
             : Stack -> Type
-    CEq     : a * b -> Constraint
-    CNEq    : a * b -> Constraint
-    CSub    : a * b -> Constraint
-    CSup    : a * b -> Constraint
+    CEq     : ? * ? -> Constraint
+    CNEq    : ? * ? -> Constraint
+    CSub    : ? * ? -> Constraint
+    CSup    : ? * ? -> Constraint
     COr     : List(List(Constraint)) -> Constraint
     : ObjectType -> Type
     : List(Type) -> Type
@@ -2821,10 +2821,10 @@ imports
 // TODO document the strategies
 strategies
   //the input of this strategy should be a list of constraints!
-  solve-constraints :: List(?) -> List(Type * Constraint) * List(Constraint)
+  solve-constraints :: List(Constraint) -> List(Type * Constraint) * List(Constraint)
   solve-constraints = !([], <id>);fixed-point(solve-constraints-step)
 
-  solve-step(|List(Type * Constraint)) :: List(Constraint) -> ?
+  solve-step(|List(Type * Constraint)) :: List(Constraint) -> List(Constraint)
   solve-step(|x*) =
     solve-constraints-sub-eliminate(|x*)
   ; solve-constraints-rename
@@ -3047,7 +3047,6 @@ imports
 
 rules
 
-  generate-class :: ? * ? * ? * ? * ? -> ?
   generate-class:
     (selected, position, ast, path, project-path) -> None()
     where
@@ -3403,13 +3402,13 @@ rules
     where
       <top> state => Ref(r) ;
       <resolve(|<is-string> r)> state => Object(_, fields) ;
-      <lookup> (fn, fields) => v
+      <lookup> (fn, fields :: List(?)) => v
 
   step(|state): PUTFIELD(JBCFieldRef(_, fn, _)) -> <pop(|2); update(|r, Object(cn, fields')) ; next> state
     where
       <top(|2)> state => [v, Ref(r)] ;
       <resolve(|r)> state => Object(cn, fields) ;
-      <update-key-value(|r, v)> fields => fields'
+      <update-key-value(|r, v)> fields :: List(?) => fields' :: List(?)
 
 rules
 
