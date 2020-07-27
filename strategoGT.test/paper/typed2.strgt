@@ -18,6 +18,7 @@ signature
 rules
 
   transform   :: Stat -> Stat
+  desugar     :: TP
   desugar-inc :: Exp -> Stat
   lift-assign :: Stat -> Stat
   
@@ -49,7 +50,7 @@ rules
 strategies
    
   desugar-all = 
-    bottomup(try(desugar-inc))
+    bottomup(try(desugar <+ desugar-inc))
 
   lift-all = 
     alltd(lift-assign; lift-all)

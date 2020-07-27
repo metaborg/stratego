@@ -45,7 +45,7 @@ strategies // type strategies
 
 strategies // traversal strategies
 
-  desugar-all = bottomup(try(desugar))
+  transform = bottomup(try(desugar))
 
   oncetd-hd(s) =
     While(oncetd(s), id) <+ For(id,oncetd(s),id,id) 
