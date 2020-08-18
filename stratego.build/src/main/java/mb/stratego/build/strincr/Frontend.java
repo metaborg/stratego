@@ -61,12 +61,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     public static final String id = Frontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final File projectLocation;
+        final ResourcePath projectLocation;
         final String inputFileString;
         final String projectName;
         final Collection<STask> originTasks;
 
-        Input(File projectLocation, String inputFileString, String projectName, Collection<STask> originTasks) {
+        Input(ResourcePath projectLocation, String inputFileString, String projectName, Collection<STask> originTasks) {
             this.projectLocation = projectLocation;
             this.inputFileString = inputFileString;
             this.projectName = projectName;
@@ -446,7 +446,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
-        final ResourcePath location = new FSPath(input.projectLocation);
+        final ResourcePath location = input.projectLocation;
         final FSResource inputFile = new FSResource(input.inputFileString);
         execContext.require(inputFile);
         if(!inputFile.exists()) {

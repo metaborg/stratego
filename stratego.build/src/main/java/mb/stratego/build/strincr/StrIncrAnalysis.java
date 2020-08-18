@@ -30,9 +30,7 @@ public class StrIncrAnalysis implements TaskDef<Analysis.Input, Analysis.Output>
             execContext.require(t);
         }
 
-        final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
-
-        return analysis.collectInformation(execContext, input, projectLocationPath);
+        return analysis.collectInformation(execContext, input, input.projectLocation);
     }
 
     @Override public String getId() {

@@ -1,8 +1,16 @@
 package mb.stratego.build.strincr;
 
+import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.stamp.resource.ResourceStampers;
+import mb.resource.ReadableResource;
+import mb.resource.ResourceService;
 import mb.resource.fs.FSResource;
 
+import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.hierarchical.ResourcePath;
+import mb.resource.hierarchical.match.PathResourceMatcher;
+import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.metaborg.util.functions.CheckedFunction1;
 import javax.annotation.Nullable;
@@ -10,14 +18,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class Module implements Serializable {
     public enum Type {
@@ -40,28 +51,31 @@ public final class Module implements Serializable {
      * Create source module with a normalized, absolute path to the module file. This
      * should give us a unique string to use to identify the module file within this pipeline.
      */
-    public static Module source(Path path) {
-        return new Module(path.toAbsolutePath().normalize().toString(), Type.source);
+    public static Module source(ResourcePath path) {
+        return new Module(path.getNormalized().toString(), Type.source);
     }
 
-    static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<File> includeDirs,
-        List<Message<?>> outputMessages, CheckedFunction1<Path, FSResource, IOException> require) throws ExecException, IOException {
+    static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<ResourcePath> includeDirs,
+        List<Message<?>> outputMessages, ExecContext execContext) throws ExecException, IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {
                 case normal: {
                     boolean foundSomethingToImport = false;
-                    for(File dir : includeDirs) {
-                        final Path strPath = dir.toPath().resolve(anImport.path + ".str");
-                        final Path rtreePath = dir.toPath().resolve(anImport.path + ".rtree");
-                        if(Files.exists(rtreePath)) {
+                    for(ResourcePath dir : includeDirs) {
+                        final ResourcePath strPath = dir.appendOrReplaceWithPath(anImport.path + ".str");
+                        final HierarchicalResource strResource = execContext.require(strPath, ResourceStampers.<HierarchicalResource>exists()); // Only checking if it exists.
+                        final ResourcePath rtreePath = dir.appendOrReplaceWithPath(anImport.path + ".rtree");
+                        // Checking if exists, but also checking the first 4 bytes. OPTO: create stamper that only compares first 4 bytes.
+                        final HierarchicalResource rtreeResource = execContext.require(rtreePath);
+                        if(rtreeResource.exists()) {
                             foundSomethingToImport = true;
-                            if(isLibraryRTree(rtreePath)) {
+                            if(isLibraryRTree(rtreeResource)) {
                                 result.add(Module.library(rtreePath.toString()));
                             } else {
                                 result.add(Module.source(rtreePath));
                             }
-                        } else if(Files.exists(strPath)) {
+                        } else if(strResource.exists()) {
                             foundSomethingToImport = true;
                             result.add(Module.source(strPath));
                         }
@@ -73,20 +87,17 @@ public final class Module implements Serializable {
                 }
                 case wildcard: {
                     boolean foundSomethingToImport = false;
-                    for(File dir : includeDirs) {
-                        final Path path = dir.toPath().resolve(anImport.path);
-                        require.apply(path);
-                        if(Files.exists(path)) {
-                            final @Nullable File[] strFiles = path.toFile()
-                                .listFiles((FilenameFilter) new SuffixFileFilter(Arrays.asList(".str", ".rtree")));
-                            if(strFiles == null) {
-                                throw new ExecException(
-                                    "Reading file list in directory failed for directory: " + path);
-                            }
-                            for(File strFile : strFiles) {
+                    for(ResourcePath includeDir : includeDirs) {
+                        final ResourcePath path = includeDir.appendOrReplaceWithPath(anImport.path);
+                        execContext.require(path);
+                        final HierarchicalResource dir = execContext.getResourceService().getHierarchicalResource(path);
+                        if(dir.exists()) {
+                            final List<HierarchicalResource> strFiles = dir
+                                .list(new PathResourceMatcher(new ExtensionsPathMatcher("str", "rtree")))
+                                .collect(Collectors.toList());
+                            for(HierarchicalResource strFile : strFiles) {
                                 foundSomethingToImport = true;
-                                Path p = strFile.toPath();
-                                result.add(Module.source(p));
+                                result.add(Module.source(strFile.getPath()));
                             }
                         }
                     }
@@ -107,14 +118,15 @@ public final class Module implements Serializable {
     /**
      * Check if file starts with Specification/1 instead of Module/2
      *
-     * @param rtreePath Path to the file
+     * @param rtreeFile Path to the file
      * @return if file starts with Specification/1
      * @throws IOException on file system trouble
      */
-    private static boolean isLibraryRTree(Path rtreePath) throws IOException {
+    private static boolean isLibraryRTree(ReadableResource rtreeFile) throws IOException {
         char[] chars = new char[4];
-        BufferedReader r = Files.newBufferedReader(rtreePath);
-        return r.read(chars) != -1 && Arrays.equals(chars, "Spec".toCharArray());
+        try(BufferedReader r = new BufferedReader(new InputStreamReader(rtreeFile.openRead()))) {
+            return r.read(chars) != -1 && Arrays.equals(chars, "Spec".toCharArray());
+        }
     }
 
     @Override public boolean equals(Object o) {

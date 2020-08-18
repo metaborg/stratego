@@ -15,6 +15,7 @@ import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 
+import mb.resource.hierarchical.ResourcePath;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
@@ -35,14 +36,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     public static final class Input extends Analysis.Input {
         final @Nullable String javaPackageName;
-        final @Nullable File cacheDir;
+        final @Nullable ResourcePath cacheDir;
         final List<String> constants;
         final Arguments extraArgs;
-        final File outputPath;
+        final ResourcePath outputPath;
 
-        public Input(File inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
-            Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
-            File outputPath, Collection<STask> originTasks, File projectLocation) {
+        public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
+            Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
+            ResourcePath outputPath, Collection<STask> originTasks, ResourcePath projectLocation) {
             super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;
@@ -142,7 +143,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return None.instance;
     }
 
-    private void backends(ExecContext execContext, Input input, File projectLocation,
+    private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
         StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput)
         throws mb.pie.api.ExecException, InterruptedException {
         long backendStart = System.nanoTime();
@@ -166,7 +167,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), strategyName));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
@@ -200,7 +201,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             }
 
             final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), congrName));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
             assert strategyDir
                 != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
@@ -224,7 +225,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
             final @Nullable File strSrcGenDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompSrcGenDir(new FSPath(projectLocation)));
+                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompSrcGenDir(projectLocation));
             assert strSrcGenDir
                 != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
