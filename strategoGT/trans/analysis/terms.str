@@ -96,19 +96,21 @@ insertCasts-StMatchTerm-Lit(|e1, st1, t1):
     end
 
 insertCasts-StMatchTerm-(|e1, st1):
-  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st4)
+  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st5)
   with
     t1 := <current-type> st1
   ; t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
   ; if [(ConstrType(t1*, t2), st2)] := t*
     then
-      if <CanCoerce> ((t2, t1), st2)
+      if r := <CanCoerce> ((t2, t1), st2)
         then if DynT() := t1
-            then t2* := <map(!DynT(<id>))> t1*
-            else t2* := t1*
-          end
+               then t2* := <map(!DynT(<id>))> t1*
+               else t2* := t1*
+             end
+           ; (_, st3) := r
         else <report-Err> (cnstr, TypeMismatch(t2, t1))
            ; t2* := <map(!ErrT())> trm1*
+           ; st3 := st2
       end
     ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
@@ -117,10 +119,10 @@ insertCasts-StMatchTerm-(|e1, st1):
       end
     ; t3 := ErrT() // workaround for backtracking issue in strj
     ; t2* := <map(!ErrT())> trm1*
-    ; st2 := st1
+    ; st3 := st1
     end
-  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st2)
-  ; st4 := <current-type(|t3)> st3
+  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st3)
+  ; st5 := <current-type(|t3)> st4
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(c, c*)\)
@@ -367,35 +369,39 @@ insertCasts-StMatchTerm-(|e1, st1):
   Tuple([trm1]) -> <insertCasts-StMatchTerm-(|e1, st1)> trm1
 
 insertCasts-StMatchTerm-(|e1, st1):
-  trm@Tuple(trm1*) -> (Tuple(trm2*), st3)
+  trm@Tuple(trm1*) -> (Tuple(trm2*), st4)
   with
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := TupleT(t1*)
-  ; if not(<CanCoerce> ((t1, t2), st1))
-      then <report-Err> (trm, TypeMismatch(t1, t2))
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then (_, st2) := r
+      else <report-Err> (trm, TypeMismatch(t1, t2))
+         ; st2 := st1
     end
   ; if TupleT(t2*) := t1; <eq> (<length> t2*, <length> t1*)
       then t3* := t2*
       else t3* := t1*
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t3*), st1)
-  ; st3 := <current-type(|t2)> st2
+  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t3*), st2)
+  ; st4 := <current-type(|t2)> st3
 
 insertCasts-StMatchTerm-(|e1, st1):
-  trm@List(trm1*) -> (List(trm2*), st3)
+  trm@List(trm1*) -> (List(trm2*), st4)
   with
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := ListT()
-  ; if not(<CanCoerce> ((t1, t2), st1))
-      then <report-Err> (trm, TypeMismatch(t1, t2))
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then (_, st2) := r
+      else <report-Err> (trm, TypeMismatch(t1, t2))
+         ; st2 := st1
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; st3 := <current-type(|t2)> st2
+  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
+  ; st4 := <current-type(|t2)> st3
 
 insertCasts-StMatchTerm-(|e1, st1):
-  trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
+  trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st5)
   with
     t1 := <current-type> st1
   ; if ListT(t) := t1
@@ -403,12 +409,14 @@ insertCasts-StMatchTerm-(|e1, st1):
       else t1* := <map(!DynT())> trm1*
     end
   ; t2 := ListT()
-  ; if not(<CanCoerce> ((t1, t2), st1))
-      then <report-Err> (trm, TypeMismatch(t1, t2))
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then (_, st2) := r
+      else <report-Err> (trm, TypeMismatch(t1, t2))
+         ; st2 := st1
     end
-  ; (trm2*, st2) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
-  ; (trm2, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st2)> trm1
-  ; st4 := <current-type(|t2)> st3
+  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
+  ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
+  ; st5 := <current-type(|t2)> st4
 
 insertCasts-StMatchTerm(|e1, st1):
   trm@BuildDefaultPT(_) -> (trm, st1)
@@ -573,14 +581,16 @@ insertCasts-Match-StringQuotedPart(|e1) =
 strategies // Terms in build position (string quotations)
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm@StringQuotation1(p, sqp1*) -> (StringQuotation1(p, sqp2*), st2)
+  trm@StringQuotation1(p, sqp1*) -> (StringQuotation1(p, sqp2*), st3)
   with
     t1 := StringT()
   ; t2 := <current-type> st1
-  ; if not(<CanCoerce> ((t1, t2), st1))
-      then <report-Err> (trm, TypeMismatch(t1, t2))
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then (_, st2) := r
+      else <report-Err> (trm, TypeMismatch(t1, t2))
+         ; st2 := st1
     end
-  ; (sqp2*, st2) := <thread-map(insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <current-type(|StringT())> st1)
+  ; (sqp2*, st3) := <thread-map(insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <current-type(|StringT())> st2)
 
 insertCasts-StBuildTerm(|e1, st1) =
   otf12-sugar(
@@ -655,13 +665,15 @@ insertCasts-StMatchTerm-(|e1, st1):
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@TypeAscription(trm2, t1) -> (trm3, st3)
+  trm1@TypeAscription(trm2, t1) -> (trm3, st4)
   with
     t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
-  ; if not(<CanCoerce> ((t2, t3), st1))
-      then <report-Err> (trm1, TypeMismatch(t2, t3))
+  ; if r := <CanCoerce> ((t1, t2), st1)
+      then (_, st2) := r
+      else <report-Err> (trm1, TypeMismatch(t1, t2))
+         ; st2 := st1
     end
-  ; (trm3, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st1)> trm2
-  ; st3 := <current-type(|t2)> st2
+  ; (trm3, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st2)> trm2
+  ; st4 := <current-type(|t2)> st3
 
