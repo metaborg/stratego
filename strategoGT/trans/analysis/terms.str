@@ -669,9 +669,9 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
-  ; if r := <CanCoerce> ((t1, t2), st1)
+  ; if r := <CanCoerce> ((t3, t2), st1)
       then (_, st2) := r
-      else <report-Err> (trm1, TypeMismatch(t1, t2))
+      else <report-Err> (trm1, TypeMismatch(t3, t2))
          ; st2 := st1
     end
   ; (trm3, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st2)> trm2
