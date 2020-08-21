@@ -2,7 +2,7 @@ module jasmin-all
 
 strategies // definition stubs
 
-is-string :: ? -> str
+is-string :: ? -> string
 is-string = fail
 string-replace(|from, to) = fail
 
