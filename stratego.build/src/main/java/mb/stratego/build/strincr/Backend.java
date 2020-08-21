@@ -13,6 +13,7 @@ import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 
+import mb.resource.ResourceService;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrategoConstants;
@@ -158,9 +159,10 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
         BuildStats.strategyBackendCTreeSize.put(input.strategyName, TermSize.computeTermSize(ctree));
 
+        final ResourceService resourceService = execContext.getResourceService();
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", input.outputPath)
+        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", resourceService.toString(input.outputPath))
             //            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
@@ -170,11 +172,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
 
         for(ResourcePath includeDir : input.includeDirs) {
-            arguments.add("-I", includeDir);
+            arguments.add("-I", resourceService.toString(includeDir));
         }
 
         if(input.cacheDir != null) {
-            arguments.add("--cache-dir", input.cacheDir);
+            arguments.add("--cache-dir", resourceService.toString(input.cacheDir));
         }
 
         for(String constant : input.constants) {

@@ -51,8 +51,8 @@ public final class Module implements Serializable {
      * Create source module with a normalized, absolute path to the module file. This
      * should give us a unique string to use to identify the module file within this pipeline.
      */
-    public static Module source(ResourcePath path) {
-        return new Module(path.getNormalized().toString(), Type.source);
+    public static Module source(ResourcePath path, ResourceService resourceService) {
+        return new Module(resourceService.toString(path.getNormalized()), Type.source);
     }
 
     static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<ResourcePath> includeDirs,
@@ -73,11 +73,11 @@ public final class Module implements Serializable {
                             if(isLibraryRTree(rtreeResource)) {
                                 result.add(Module.library(rtreePath.toString()));
                             } else {
-                                result.add(Module.source(rtreePath));
+                                result.add(Module.source(rtreePath, execContext.getResourceService()));
                             }
                         } else if(strResource.exists()) {
                             foundSomethingToImport = true;
-                            result.add(Module.source(strPath));
+                            result.add(Module.source(strPath, execContext.getResourceService()));
                         }
                     }
                     if(!foundSomethingToImport) {
@@ -97,7 +97,7 @@ public final class Module implements Serializable {
                                 .collect(Collectors.toList());
                             for(HierarchicalResource strFile : strFiles) {
                                 foundSomethingToImport = true;
-                                result.add(Module.source(strFile.getPath()));
+                                result.add(Module.source(strFile.getPath(), execContext.getResourceService()));
                             }
                         }
                     }

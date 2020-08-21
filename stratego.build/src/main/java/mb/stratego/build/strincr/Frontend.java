@@ -29,6 +29,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import mb.resource.ResourceKeyString;
+import mb.resource.hierarchical.HierarchicalResource;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -446,8 +448,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             execContext.require(t, InconsequentialOutputStamper.instance);
         }
 
+        final ResourceService resourceService = execContext.getResourceService();
         final ResourcePath location = input.projectLocation;
-        final FSResource inputFile = new FSResource(input.inputFileString);
+        final HierarchicalResource inputFile = resourceService.getHierarchicalResource(ResourceKeyString.parse(input.inputFileString));
         execContext.require(inputFile);
         if(!inputFile.exists()) {
             return FileRemovedOutput.instance;
