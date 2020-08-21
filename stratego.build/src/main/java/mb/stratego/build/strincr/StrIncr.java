@@ -166,10 +166,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
-            assert strategyDir
-                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
+            // GK: commented dead code
+//            final @Nullable File strategyDir =
+//                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
+//            assert strategyDir
+//                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
