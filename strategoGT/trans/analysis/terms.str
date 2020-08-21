@@ -51,7 +51,7 @@ insertCasts-StMatchTerm(|e1, st1):
           then st3 := st2
           // Doing a cast after the fact in case the var was unbound before the match,
           //    but already had a type due to its use in the rhs of a rule def
-          else st3 := <after-match(|BA(Cast(c{}), trm1))> st2
+          else st3 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> trm1, trm1))> trm1)> st2
         end
       else st3 := <term-put(|v{}, t1)> st1
     end
@@ -659,8 +659,8 @@ insertCasts-StMatchTerm-(|e1, st1):
     ; if Id() := c
         then trm3 := trm2; st4 := st3
         else
-          trm3 := As(Var(<newname> "typeAscribed"), trm2)
-        ; st4 := <after-match(|BA(Cast(c{}), trm3))> st3
+          trm3 := <otf(!As(<otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta, trm2))> ta
+        ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, trm3))> ta)> st3
       end
     end
 

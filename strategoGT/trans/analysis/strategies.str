@@ -535,14 +535,14 @@ insertCasts-Strategy-(|e1, st1):
   ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType(DynT(ListT())))
   ; st4 := <current-type(|DynT())> st3
 
-insertCasts-Strategy-(|e1, st1):
-  AM(s1, trm1) -> (<seqs> [AM(s2, trm2) | s*], st3)
+insertCasts-Strategy(|e1, st1):
+  s@AM(s1, trm1) -> (<seqs> [<otf(!AM(s2, trm2))> s | s*], st3)
   with
     (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (trm2, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1
 
-insertCasts-Strategy-(|e1, st1):
-  Assign(trm1, trm2) -> (<seqs> [Assign(trm3, trm4) | s*], st3)
+insertCasts-Strategy(|e1, st1):
+  s@Assign(trm1, trm2) -> (<seqs> [<otf(!Assign(trm3, trm4))> s | s*], st3)
   with
     (trm4, st2) := <insertCasts-BuildTerm(|e1, st1)> trm2
   ; (trm3, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1

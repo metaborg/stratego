@@ -177,7 +177,7 @@ lub(|lub-map): (x, ErrT()) -> x
 lub(|lub-map): (DynT(), _) -> DynT()
 lub(|lub-map): (_, DynT()) -> DynT()
 // pointwise lift LUB over type parameters
-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> Sort(x, <zip(lub(|lub-map))> (t1*, t2*))
+lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> <otf(!Sort(x, <zip(lub(|lub-map))> (t1*, t2*)))> x
 lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 
 constr-lookup-from(st|name, arity, t1, st1) =

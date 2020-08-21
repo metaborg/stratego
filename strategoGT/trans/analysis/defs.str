@@ -64,7 +64,7 @@ prepare-strategy-def(|st1):
 prepare-strategy-def(|st1):
   LocalDef(t1) -> (t2, st2)
   where
-    t2 := <alltd(\SortVar(x) -> <type-var-lookup(|x)> st1\ <+ \SortVar(x) -> Sort(x, [])\)> t1
+    t2 := <alltd(\SortVar(x) -> <type-var-lookup(|x)> st1\ <+ otf(\SortVar(x) -> Sort(x, [])\))> t1
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
   ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, SortVar(tv))> st\)> (tvs, st1)
 
@@ -176,7 +176,7 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> (s*, cs2)
 
 RuleDef-after-match: ([], cs) -> cs
-RuleDef-after-match: (s*, cs) -> [WhereClause(<seqs> s*) | cs]
+RuleDef-after-match: (s*, cs) -> [<otf(!WhereClause(s))> s | cs] where s := <seqs> s*
 
 insertCasts-RuleCond(|e1) = otf22(insertCasts-RuleCond-(|e1))
 

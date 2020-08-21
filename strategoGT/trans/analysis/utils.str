@@ -81,7 +81,7 @@ arityOf-SType: FunTType(st*, tt*, _) -> (<length> st*, <length> tt*)
 strategies
 
 unDyn = try(?DynT(<not(?Dyn())>))
-pushDyn = try(\DynT(Sort(x, t*@[_| _])) -> Sort(x, <map(!DynT(<id>))> t*)\)
+pushDyn = try(\DynT(Sort(x, t*@[_| _])) -> Sort(x, <map(otf(!DynT(<id>)))> t*)\)
 listType: t1 -> t3
   where if ListT(t2) := <pushDyn> t1
     then t3 := t2
@@ -149,7 +149,7 @@ computeCoercion-(|subj, st1):
   ; zipped := <zip> (c1*, c2*)
   ; not(<map(eq)> zipped)
   ; (coercions, st2) := <thread-map(\(pair, st) -> <computeCoercion(|subj, st)> pair\)> (zipped, st1)
-  ; to2 := Sort(x, <map(?_{<id>})> coercions)
+  ; to2 := <otf(!Sort(x, <map(?_{<id>})> coercions))> to
   ; if <fetch(?RuntimeCheck(_))> coercions
       then coercion := RuntimeCheck(to2){to2}
       else coercion := Id(){to2}
@@ -163,12 +163,12 @@ computeCoercion-(|subj, st1): (from, to) -> (<otf(!coercion)> subj, st2)
        ; st2 := st1
   end
 
-computeSCoercion(|subj): ((from1 ,to1), st1) -> (scoercion, st2)
+computeSCoercion(|subj): ((from1, to1), st1) -> (scoercion, st2)
   where
     ((from2, to2), st2) := <CanCoerceSType> ((from1, to1), st1)
   ; scoercion := <computeSCoercion-(|subj) <+ !SId()> (from2, to2)
 
-computeSCoercion(|subj): ((from1 ,to1), st1) -> (SFail(), st1)
+computeSCoercion(|subj): ((from1, to1), st1) -> (SFail(), st1)
 
 // computeSCoercion-(|?) :: (SType, SType) -> SCoercion
 computeSCoercion-(|subj): (from, SDyn()) -> <otf(!SId())> subj
@@ -314,7 +314,7 @@ map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)
 map-pair-left(|l) = map(split(!l, id))
 map-pair-right(|r) = map(split(id, !r))
 
-internal seqs(|) = foldr1(Hd, \(s1, s2) -> Seq(s1, s2)\)
+internal seqs(|) = foldr1(Hd, \(s1, s2) -> <otf(!Seq(s1, s2))> s1\)
 
 strategies
 
