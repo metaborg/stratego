@@ -54,7 +54,15 @@ strat-env(s) = Env(s, id)
 strat-lookup(|name, snum, tnum) =
   strat-env; immap-get(|(name, snum, tnum))
 strat-lookup(|name, snum, tnum) =
-  where(0 := tnum); constr-env; imrel-get(|(name, snum)); not(imset-empty); !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
+    where(0 := tnum)
+  ; constr-env
+  ; imrel-get(|(name, snum))
+  ; imset-to-list
+  ; not(?[])
+  ; (
+    \[ConstrType(args, sort)] -> FunTType(<map(!FunTType(<id>, <id>))> args, [], sort, sort)\
+    <+ !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
+    )
 strat-lookup(|name, snum, tnum) =
   strat-env; immap-get(|(name, 0, 0)); ?SDyn()
 strat-put(|name, snum, tnum, value) = strat-env(immap-put(|(name, snum, tnum), value))
