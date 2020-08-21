@@ -11,10 +11,10 @@ constructors
 
 Incr : Expr -> Expr // ++
 Add  : Expr * Expr -> Expr // +
-Int  : str -> Expr // 123
-Var  : str -> Expr // x,y
+Int  : string -> Expr // 123
+Var  : string -> Expr // x,y
 
-VarDecl : str * Type * Expr -> Stat
+VarDecl : string * Type * Expr -> Stat
 
 strategies
 

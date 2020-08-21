@@ -5,7 +5,7 @@ signature
     Const
     Expr
   constructors
-    Int : str -> Const
+    Int : string -> Const
     : Const -> Expr
     Plus : Expr * Expr -> Expr
     Array : Expr * Const -> Expr

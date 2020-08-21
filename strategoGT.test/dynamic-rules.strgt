@@ -5,15 +5,15 @@ imports
 libstratego-lib
 
 signature constructors
-  Int : str -> Expr
-  Bar : str * str -> Expr
+  Int : string -> Expr
+  Bar : string * string -> Expr
 
 rules
 
 // TODO: allow type definition for dynamic rules
 Foo :: int -> int
 
-main :: str -> int
+main :: string -> int
 main = ?a; {| Foo:
     rules(Foo: Bar(a, b) -> <foo> (a, b))
 //             ^ expected int but got Expr

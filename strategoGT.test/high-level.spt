@@ -6,10 +6,10 @@ fixture [[
   specification
 
   signature constructors
-    Int : str -> Expr
+    Int : string -> Expr
     Add : Expr * Expr -> Expr
 
-    Module  : str * List(Stat) -> Module
+    Module  : string * List(Stat) -> Module
 
   rules
     [[...]]
@@ -83,7 +83,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
     typed: e1 -> Add(e1, e2)
-    where Add([[e2 :: str]], _) := e1
+    where Add([[e2 :: string]], _) := e1
 ]] 2 errors at #1
    0 warnings
    has origin locations
@@ -91,7 +91,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
 test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
     typed :: Expr -> Expr
     typed: e1 -> Add(e1, e2)
-    where Add([[e2 :: str]], _) :: ? := e1
+    where Add([[e2 :: string]], _) :: ? := e1
 ]] 1 errors at #1
    1 warning at #1
    has origin locations

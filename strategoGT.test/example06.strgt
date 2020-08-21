@@ -8,14 +8,14 @@ signature constructors
 
 Incr : Expr -> Expr
 Add  : Expr * Expr -> Expr
-Int  : str -> Expr
-Var  : str -> Expr
+Int  : string -> Expr
+Var  : string -> Expr
 
-VarDecl : str * Type * Expr -> Stat
-VarDecl : str * Type -> Stat
-Assign  : str * Expr -> Stat
+VarDecl : string * Type * Expr -> Stat
+VarDecl : string * Type -> Stat
+Assign  : string * Expr -> Stat
 Seq     : Stat * Stat -> Stat
-Module  : str * List(Stat) -> Module
+Module  : string * List(Stat) -> Module
 
 strategies
 

@@ -8,8 +8,8 @@ signature constructors
 
 Incr : Expr -> Expr
 Add  : Expr * Expr -> Expr
-Int  : str -> Expr
-Var  : str -> Expr
+Int  : string -> Expr
+Var  : string -> Expr
 
 strategies
 

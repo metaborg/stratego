@@ -2,14 +2,14 @@ module example
 
 signature constructors
 
-Incr : str -> Expr
+Incr : string -> Expr
 Add  : Expr * Expr -> Expr
-Int  : str -> Expr
-Var  : str -> Expr
+Int  : string -> Expr
+Var  : string -> Expr
 
-VarDecl : str * Type * Expr -> Stat
-VarDecl : str * Type -> Stat
-Assign  : str * Expr -> Stat
+VarDecl : string * Type * Expr -> Stat
+VarDecl : string * Type -> Stat
+Assign  : string * Expr -> Stat
 Seq     : Stat * Stat -> Stat
 
 strategies

@@ -12,7 +12,7 @@ fixture [[
 test untyped map [[
     map(s) = [s | map(s)] <+ ?[]
 
-    test-map :: ? -> List(str)
+    test-map :: ? -> List(string)
     test-map = ![1,2,3]; map(!"hi!")
 ]] 0 errors
    0 warnings
@@ -22,10 +22,10 @@ test typed map [[
     map(a -> b) :: List(a) -> List(b)
     map(s) = [s | map(s)] <+ ?[]
 
-    test-map :: ? -> List(str)
+    test-map :: ? -> List(string)
     test-map = ![1,2,3]; map(!"hi!")
-    // `map`'s type is ideally instantiated as `(int -> str) List(int) -> List(str)`
-    // but `(? -> str) List(?) -> List(str)` is also possible, since `!"hi!" :: ? -> str` by itself
+    // `map`'s type is ideally instantiated as `(int -> string) List(int) -> List(string)`
+    // but `(? -> string) List(?) -> List(string)` is also possible, since `!"hi!" :: ? -> string` by itself
 ]] 0 errors
    0 warnings
 //   has origin locations
@@ -35,7 +35,7 @@ test untyped collect-all [[
 
     collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 
-    test-collect-all :: ? -> List(str)
+    test-collect-all :: ? -> List(string)
     test-collect-all = ![1,2,3]; collect-all(!"hi!")
 ]] 0 errors
    0 warnings
@@ -52,7 +52,7 @@ test typed collect-all [[
     collect-all(? -> b) :: ? -> List(b)
     collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 
-    test-collect-all :: ? -> List(str)
+    test-collect-all :: ? -> List(string)
     test-collect-all = ![1,2,3]; collect-all(!"hi!")
 ]] 0 errors
    0 warnings
