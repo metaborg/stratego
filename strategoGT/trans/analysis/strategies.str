@@ -78,6 +78,9 @@ insertCasts-CallT(|e1, st1):
     s2* := <zip> (s1*, st*)
   ; t2* := <zip> (t1*, tt*)
   ; t3 := <current-type> st1
+  ; if <oncetd(?DynT())> t3
+      then <report-Err> (c1, MatchNotSpecificEnoughForTP(t3))
+    end
   ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
   ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1))> (t2*, st3)
   ; c2 := <otf(!CallT(v, s3*, t3*))> c1
@@ -335,7 +338,13 @@ insertCasts-Sarg-CallNoArgs-(|st1):
   ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
 
 insertCasts-Sarg-CallNoArgs-(|st1):
-  (v, t1@FunTType(st1*, tt1*, TP()), t4@FunTType(st2*, tt2*, t5, t6)) ->
+  (v, t1@FunTType(st1*, tt1*, TP()), _) ->
+    (v, st1)
+  with
+    <report-Err> (v, MatchNotSpecificEnoughForTP(t1))
+
+insertCasts-Sarg-CallNoArgs-(|st1):
+  (v, t1@FunTType(st1*, tt1*, t5, t6), t4@FunTType(st2*, tt2*, TP())) ->
     (<rm-redundant-proxy> ProxyT(sc*, tc*, RuntimeCheck(t5), Id(), v), st3)
   with
     if not(<eq> (<length> st1*, <length> st2*); <eq> (<length> tt1*, <length> tt2*))
