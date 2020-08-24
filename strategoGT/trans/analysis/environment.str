@@ -38,7 +38,7 @@ st-from-stBuildTerm: StBuildTerm(st, _) -> st
 stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(|t2);type-var-env(!tv)> st1, ot2, s*)
   where
     St(_, t2, tv) := <s> st1
-  ; if(None() := ot1)
+  ; if None() := ot1
       then ot2 := Some(t2)
       else ot2 := ot1; <report-Warn> msg
     end
@@ -110,6 +110,10 @@ current-type = ?StBuildTerm(<current-type>, _)
 current-type(|t) = St(id, !t, id)
 current-type(|t) = StMatchTerm(current-type(|t), id, id)
 current-type(|t) = StBuildTerm(current-type(|t), id)
+current-type(s) = St(id, s, id)
+current-type(s) = StMatchTerm(current-type(s), id, id)
+current-type(s) = StBuildTerm(current-type(s), id)
+current-type-of(|st) = current-type(|<current-type> st)
 
 type-var-env = ?St(_, _, <id>)
 type-var-env = ?StMatchTerm(<type-var-env>, _, _)

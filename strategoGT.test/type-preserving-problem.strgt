@@ -19,13 +19,14 @@ strategies
   not-truly-type-preserving :: Expr -> Expr
   not-truly-type-preserving = topdown(try(add-one))
   // ^ This breaks the guarantee that the second child of Array is a constant
+//  not-truly-type-preserving = topdown(try(is(Expr); add-one))
 
 strategies
 
-// topdown( TP ) :: TP
-  topdown(? -> ?) :: ? -> ?
+ topdown( TP ) :: TP
+//  topdown(? -> ?) :: ? -> ?
   topdown(s) = s; all(s)
 
-// try( TP ) :: TP
-  try(? -> ?) :: ? -> ?
-  try(s) = fail
+ try( TP ) :: TP
+//  try(? -> ?) :: ? -> ?
+  try(s) = s <+ id

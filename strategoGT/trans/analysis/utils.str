@@ -78,6 +78,12 @@ desugar-Type = desugar-Type- <+ id
 
 arityOf-SType: FunTType(st*, tt*, _) -> (<length> st*, <length> tt*)
 
+TP2tv(s): Sort(TP(), []){tv} -> SortVar(tv) where <s> tv
+TP2tv(s) = where(<s> ErrT())
+
+tv2TP(|tv): SortVar(tv) -> Sort(TP(), []){tv}
+tv2TP(|tv) = id
+
 strategies
 
 unDyn = try(?DynT(<not(?Dyn())>))

@@ -44,7 +44,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     e2 := <strat-merge-env(keep-right)> (e1, <getDefTypes> d1*)
   ; (d2*, st2) := <thread-map(insertCasts-Def(|e2))> (d1*, st1)
-  ; (s2, st3) := <insertCasts-Strategy(|e2, <current-type(|<current-type> st1)> st2)> s1
+  ; (s2, st3) := <insertCasts-Strategy(|e2, <current-type-of(| st1)> st2)> s1
 
 insertCasts-Strategy(|e1, st1):
   c1@CallT(SVar(x), s*, t*) -> result
@@ -84,7 +84,7 @@ insertCasts-CallT(|e1, st1):
   ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
   ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1))> (t2*, st3)
   ; c2 := <otf(!CallT(v, s3*, t3*))> c1
-  ; st5 := <current-type(|<current-type> st1)> st4
+  ; st5 := <current-type-of(| st1)> st4
 
 insertCasts-CallT-(|e1, st1):
   (c1@CallT(v, s1*, t1*), SDyn()) -> (CallT(v, s3*, t3*), st4)
@@ -207,7 +207,7 @@ insertCasts-Strategy-(|e1, st1):
   ; st4 := <current-type(|DynT())> st3
 
 insertCasts-Strategy-(|e1, st1):
-  Some(s1) -> (Some(s2), <current-type(|<current-type> st1)> st2)
+  Some(s1) -> (Some(s2), <current-type-of(| st1)> st2)
   where
     not(DynT() := <current-type> st1)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
@@ -218,7 +218,7 @@ insertCasts-Strategy-(|e1, st1):
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
 insertCasts-Strategy-(|e1, st1):
-  One(s1) -> (One(s2), <current-type(|<current-type> st1)> st2)
+  One(s1) -> (One(s2), <current-type-of(| st1)> st2)
   where
     not(DynT() := <current-type> st1)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
@@ -229,7 +229,7 @@ insertCasts-Strategy-(|e1, st1):
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
 insertCasts-Strategy-(|e1, st1):
-  All(s1) -> (All(s2), <current-type(|<current-type> st1)> st2)
+  All(s1) -> (All(s2), <current-type-of(| st1)> st2)
   where
     not(DynT() := <current-type> st1)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType([], [], TP()))
@@ -302,15 +302,15 @@ insertCasts-Sarg(|e1, st1):
   (s1, t1@FunTType(st*, tt*, TP())) -> (s2, st2)
   with
     tv := <newname> "tp"
-  ; t2 := SortVar(tv)
+  ; t2 := Sort(TP(), []){tv}
   ; (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
   ; if not([] := st*; [] := tt*)
       then <report-Err> (s1, CallStrategyArgumentTakesParameters(t1))
     end
   ; t4 := <current-type> st2
-  ; if(<eq> (t2, t4)
+  ; if <eq> (t2, t4)
       <+ <eq> (t4, <type-var-lookup(|tv)> st2)
-         ; <not(oncetd(?DynT()))> t4)
+         ; <not(oncetd(?DynT()))> t4
       then id
       else <report-Err> (s1, MatchNotSpecificEnoughForTP(t4{t2}))
     end
@@ -364,7 +364,7 @@ insertCasts-Sarg-CallNoArgs-(|st1):
     if not(<eq> (<length> st1*, <length> st2*); <eq> (<length> tt1*, <length> tt2*))
       then <report-Err> (v, TypeMismatch(t1, t4))
     end
-  ; if not(<eq> (t5, t6)) <+ <oncetd(?DynT())> t5
+  ; if not(<eq> (t5, t6)) <+ <oncetd(?DynT())> (t5, t6)
       then <report-Err> (v, MatchNotSpecificEnoughForTP(t6{t5}))
     end
   ; (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
@@ -402,7 +402,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     (s2, st2) := <insertCasts-Strategy(|e1, <new-st;current-type(|<current-type> st1)>)> s1
     // Note how we only preserve the current type of st2 here 
-  ; st3 := <current-type(|<current-type> st2)> st1
+  ; st3 := <current-type-of(| st2)> st1
 
 insertCasts-Strategy-(|e1, st1):
   BA(s1, trm1) -> (BA(s2, trm2), st3)
@@ -427,7 +427,7 @@ insertCasts-Strategy-(|e1, st1):
   Not(s1) -> (Not(s2), st3)
   with
     (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
-  ; st3 := <current-type(|<current-type> st1)> st2
+  ; st3 := <current-type-of(| st1)> st2
 
 insertCasts-Strategy-(|e1, st1):
   Where(s1) -> (Where(s2), st3)
@@ -645,7 +645,7 @@ insertCasts-Strategy-(|e1, st1):
   CondChoice(s1, s2, s3) -> (CondChoice(s4, s5, s6), st5)
   with
     (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
-  ; (s5, st3) := <insertCasts-Strategy(|e1, <current-type(|<current-type> st1)> st2)> s2
+  ; (s5, st3) := <insertCasts-Strategy(|e1, <current-type-of(| st1)> st2)> s2
   ; (s6, st4) := <insertCasts-Strategy(|e1, st1)> s3
   ; st5 := <st-merge(LUB <+ !DynT())> (st3, st4)
 
@@ -653,7 +653,7 @@ insertCasts-Strategy-(|e1, st1):
   IfThen(s1, s2) -> (IfThen(s3, s4), st3)
   with
     (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
-  ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type(|<current-type> st1)> st2)> s2
+  ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type-of(| st1)> st2)> s2
 
 insertCasts-Strategy-(|e1, st1):
   SwitchChoiceNoOtherwise(s1, sc1*) -> (SwitchChoiceNoOtherwise(s2, sc2*), st3)
@@ -700,9 +700,13 @@ insertCasts-Strategy(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <desugar-Type> t
-  ; if r := <CanCoerce> ((t2, t1), st1)
+  ; t3 := <TP2tv(?tv)> t1
+  ; if Sort(TP(), []) := t1; <oncetd(?DynT())> t2
+      then <report-Err> (t, MatchNotSpecificEnoughForTP(t2))
+    end
+  ; if r := <CanCoerce> ((t2, t3), st1)
       then st2 := <Snd> r
-      else <report-Err> (s, NoInjectionBetween(t2,t1))
+      else <report-Err> (s, NoInjectionBetween(t2,t3))
          ; st2 := st1
     end
   ; st3 := <current-type(|t2)> st2

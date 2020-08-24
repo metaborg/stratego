@@ -29,8 +29,8 @@ analysis/main
 strategies // Terms in match position (core)
 
 insertCasts-MatchTerm(|e1, st1) =
-    insertCasts-StMatchTerm(|e1, <stMatchTerm-from-st> st1)
-  ; (id, st-from-stMatchTerm)
+    insertCasts-StMatchTerm(|e1, <current-type(TP2tv(?tv));stMatchTerm-from-st> st1)
+  ; (id, st-from-stMatchTerm;(current-type(tv2TP(|tv)), id))
 
 insertCasts-StMatchTerm-Type(|e1):
   ((trm, t), st1) -> <insertCasts-StMatchTerm(|e1, <current-type(|t)> st1)> trm
@@ -64,7 +64,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   with
     (trm3, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
   ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|ListT())> st2)> trm2
-  ; st4 := <current-type(|<current-type> st2)> st3
+  ; st4 := <current-type-of(| st2)> st3
   ; if App(c@Cast(_), trm5) := trm3
       then trm6 := App(c, Anno(trm5, trm4))
       else trm6 := Anno(trm3, trm4)
@@ -184,7 +184,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
   ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
-  ; st4 := <current-type(|<current-type> st2)> st3
+  ; st4 := <current-type-of(| st2)> st3
   ; if App(c@Cast(_), trm5) := trm3
       then trm6 := App(c, Anno(trm5, trm4))
       else trm6 := Anno(trm3, trm4)
@@ -322,7 +322,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   with
     (trm2, st2) := <insertCasts-StMatchTerm(|e1, st1)> trm1
   ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1, DynT()))> (trm1*, st2)
-  ; st4 := <current-type(|<current-type> st2)> st3
+  ; st4 := <current-type-of(| st2)> st3
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, AnnoList(trm3, trm2*))
       else trm4 := AnnoList(trm2, trm2*)
@@ -418,7 +418,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     (trm2, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm1
   ; (trm2*, st3) := <thread-map(insertCasts-StBuildTerm-Type(|e1, DynT()))> (trm1*, st2)
-  ; st4 := <current-type(|<current-type> st2)> st3
+  ; st4 := <current-type-of(| st2)> st3
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, AnnoList(trm3, trm2*))
       else trm4 := AnnoList(trm2, trm2*)
