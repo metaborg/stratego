@@ -16,6 +16,7 @@ context-free syntax
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.ErrT = [err]
   Type.LocalDef = [local [Type]]
+  SType.SErrT = [s-err]
   Dyn = Type // to allow DynT(<some type>)
 
   ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]

@@ -171,6 +171,8 @@ computeSCoercion(|subj): ((from1, to1), st1) -> (scoercion, st2)
 computeSCoercion(|subj): ((from1, to1), st1) -> (SFail(), st1)
 
 // computeSCoercion-(|?) :: (SType, SType) -> SCoercion
+computeSCoercion-(|subj): (from, SErrT()) -> <otf(!SId())> subj
+computeSCoercion-(|subj): (SErrT(), to) -> <otf(!SId())> subj
 computeSCoercion-(|subj): (from, SDyn()) -> <otf(!SId())> subj
 computeSCoercion-(|subj): (from@SDyn(), sft@FunTType(_, _, _)) -> <otf(!SRuntimeCheck(sft))> subj
 

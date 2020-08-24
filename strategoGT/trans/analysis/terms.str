@@ -86,14 +86,10 @@ insertCasts-StMatchTerm(|e1, st1):
   Str(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, StringT())>
 
 insertCasts-StMatchTerm-Lit(|e1, st1, t1):
-  trm -> (trm, <current-type(|t1)> st3)
+  trm -> (trm, <current-type(|t1)> st2)
   with
     t2 := <current-type> st1
-  ; if (_, st2) := <CanCoerce> ((t1, t2), st1)
-      then st3 := st2
-      else <report-Err> (trm, TypeMismatch(t1, t2))
-         ; st3 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
 
 insertCasts-StMatchTerm-(|e1, st1):
   Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st5)
@@ -102,15 +98,13 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
   ; if [(ConstrType(t1*, t2), st2)] := t*
     then
-      if r := <CanCoerce> ((t2, t1), st2)
+      (c, st3) := <computeCoercion(|cnstr, st2)> (t2, t1)
+    ; if not(Fail() := c)
         then if DynT() := t1
                then t2* := <map(!DynT(<id>))> t1*
                else t2* := t1*
              end
-           ; (_, st3) := r
-        else <report-Err> (cnstr, TypeMismatch(t2, t1))
-           ; t2* := <map(!ErrT())> trm1*
-           ; st3 := st2
+        else t2* := <map(!ErrT())> trm1*
       end
     ; t3 := t2 // workaround for backtracking issue in strj
     else if [] := t*
@@ -135,7 +129,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     // Note that constructors can be strings (in case of applications, strings and tuples)
     //  or the empty list (in case of a list), or an int (in case of an int), etc.
     (trm3, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT())> st1)> trm1
-  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|ListT())> st2)> trm2
+  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
   ; st4 := <current-type(|DynT())> st3
 
 strategies // Terms in build position (core)
@@ -374,11 +368,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := TupleT(t1*)
-  ; if r := <CanCoerce> ((t1, t2), st1)
-      then (_, st2) := r
-      else <report-Err> (trm, TypeMismatch(t1, t2))
-         ; st2 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
   ; if TupleT(t2*) := t1; <eq> (<length> t2*, <length> t1*)
       then t3* := t2*
       else t3* := t1*
@@ -392,11 +382,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     t1 := <current-type> st1
   ; t1* := <map(!DynT())> trm1*
   ; t2 := ListT()
-  ; if r := <CanCoerce> ((t1, t2), st1)
-      then (_, st2) := r
-      else <report-Err> (trm, TypeMismatch(t1, t2))
-         ; st2 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
   ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
   ; st4 := <current-type(|t2)> st3
 
@@ -409,11 +395,7 @@ insertCasts-StMatchTerm-(|e1, st1):
       else t1* := <map(!DynT())> trm1*
     end
   ; t2 := ListT()
-  ; if r := <CanCoerce> ((t1, t2), st1)
-      then (_, st2) := r
-      else <report-Err> (trm, TypeMismatch(t1, t2))
-         ; st2 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
   ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
   ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
   ; st5 := <current-type(|t2)> st4
@@ -472,23 +454,23 @@ insertCasts-StBuildTerm(|e1, st1):
   trm@Char(_) -> <insertCasts-StBuildTerm-Lit(|st1, IntT())>
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@Tuple(trm1*) -> (Tuple(trm2*), st3)
+  trm1@Tuple(trm1*) -> (Tuple(trm2*), st4)
   with
     t1 := <current-type> st1
   ; t1* := <tupleTypes(|<length> trm1*)> t1
   ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-Type(|e1))> (<zip> (trm1*, t1*), st1)
   ; t2 := TupleT(t*)
-  ; _ := <computeCoercion(|trm1, st2)> (t2, t1)
-  ; st3 := <current-type(|t2)> st2
+  ; (_, st3) := <computeCoercion(|trm1, st2)> (t2, t1)
+  ; st4 := <current-type(|t2)> st3
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@List(trm1*) -> (List(trm2*), st3)
+  trm1@List(trm1*) -> (List(trm2*), st4)
   with
     t := <current-type;listType> st1
   ; (trm2*, t*, st2) := <thread-map-LUB(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
   ; t1 := ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ErrT()> t*)
-  ; _ := <computeCoercion(|trm1, st1)> (t1, <current-type> st1)
-  ; st3 := <current-type(|t1)> st2
+  ; (_, st3) := <computeCoercion(|trm1, st1)> (t1, <current-type> st1)
+  ; st4 := <current-type(|t1)> st3
 
 insertCasts-StBuildTerm-ListVar(|e1, t1):
   (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
@@ -585,11 +567,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t1 := StringT()
   ; t2 := <current-type> st1
-  ; if r := <CanCoerce> ((t1, t2), st1)
-      then (_, st2) := r
-      else <report-Err> (trm, TypeMismatch(t1, t2))
-         ; st2 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
   ; (sqp2*, st3) := <thread-map(insertCasts-Build-StringQuotedPart(|e1))> (sqp1*, <current-type(|StringT())> st2)
 
 insertCasts-StBuildTerm(|e1, st1) =
@@ -669,11 +647,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
-  ; if r := <CanCoerce> ((t3, t2), st1)
-      then (_, st2) := r
-      else <report-Err> (trm1, TypeMismatch(t3, t2))
-         ; st2 := st1
-    end
+  ; (_, st2) := <computeCoercion(|trm1, st1)> (t3, t2)
   ; (trm3, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st2)> trm2
   ; st4 := <current-type(|t2)> st3
 

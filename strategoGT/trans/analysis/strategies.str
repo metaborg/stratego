@@ -55,7 +55,7 @@ insertCasts-Strategy(|e1, st1):
       ; result := (c2, <type-var-clear(|freshvars)> st2)
       else
         <report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
-      ; (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, SDyn())
+      ; (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, SErrT())
       ; result := (c2, <current-type(|ErrT())> st2)
     end
 
@@ -96,6 +96,16 @@ insertCasts-CallT-(|e1, st1):
   ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
   ; st4 := <current-type(|DynT())> st3
 
+insertCasts-CallT-(|e1, st1):
+  (c1@CallT(v, s1*, t1*), SErrT()) -> (CallT(v, s3*, t3*), st4)
+  with
+    s2* := <map-pair-right(|SErrT())> s1*
+  ; t2* := <map-pair-right(|ErrT())> t1*
+  ; t3 := <current-type> st1
+  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+  ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
+  ; st4 := <current-type(|ErrT())> st3
+
 insertCasts-Strategy-(|e1, st1):
   c1@CallDynamic(trm1, s1*, t1*) -> (CallDynamic(trm3, s3*, t3*), st6)
   with
@@ -129,7 +139,7 @@ insertCasts-Strategy-(|e1, st1):
     ; st6 := <type-var-clear(|freshvars)> st5
     else
       <report-Err> (p, ProceedInNonExtendStrategy())
-    ; s2* := <map-pair-right(|SDyn())> s1*
+    ; s2* := <map-pair-right(|SErrT())> s1*
     ; t2* := <map-pair-right(|ErrT())> t1*
     ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
     ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
@@ -247,7 +257,7 @@ insertCasts-Sarg(|e1, st1):
       ; st3 := <type-var-clear(|freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(0, 0))
-      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
+      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
       ; st3 := <current-type(|ErrT())> st2
     end
 
@@ -260,7 +270,7 @@ insertCasts-Sarg(|e1, st1):
       ; st3 := <type-var-clear(|freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(0, 0))
-      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
+      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
       ; st3 := <current-type(|ErrT())> st2
     end
 
@@ -273,7 +283,7 @@ insertCasts-Sarg(|e1, st1):
       ; st3 := <type-var-clear(|freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(0, 0))
-      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
+      ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
       ; st3 := <current-type(|ErrT())> st2
     end
 
@@ -308,6 +318,10 @@ insertCasts-Sarg(|e1, st1):
 insertCasts-Sarg(|e1, st1):
   (s1, SDyn()) -> (s2, st2)
   with (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|DynT())> st1)> s1
+
+insertCasts-Sarg(|e1, st1):
+  (s1, SErrT()) -> (s2, st2)
+  with (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|ErrT())> st1)> s1
 
 insertCasts-Sarg-CallNoArgs(|st1) = otf32(insertCasts-Sarg-CallNoArgs-(|st1))
 
@@ -364,6 +378,10 @@ insertCasts-Sarg-CallNoArgs-(|st1):
     sc* := <map(!SId())> st*
   ; tc* := <map(!Id())> tt*
   ; (c, st3) := <computeCoercion(|v, st1)> (DynT(), t2)
+
+insertCasts-Sarg-CallNoArgs-(|st1):
+  (v, t0@FunTType(st*, tt*, t1, t2), SErrT()) ->
+    (v, st1)
 
 rm-redundant-proxy =
      ?Proxy(Id(){^_}, Id(){^_}, <!CallNoArgs(<id>)>)
@@ -617,7 +635,7 @@ insertCasts-Strategy-(|e1, st1):
       end
     else
         <report-Err> (p, ProceedInNonExtendStrategy())
-      ; s2* := <map-pair-right(|SDyn())> s1*
+      ; s2* := <map-pair-right(|SErrT())> s1*
       ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
       ; st4 := <current-type(|ErrT())> st2
       ; call := Proceed(s3*)

@@ -68,7 +68,10 @@ can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
 can-coerce(|injection-closure, aliases) = ?((ErrT(), _), _)
 can-coerce(|injection-closure, aliases) = ?((_, ErrT()), _)
 can-coerce(|injection-closure, aliases) = ?((_, DynT()), _)
-can-coerce(|injection-closure, aliases) = ?((SortVar(x), SortVar(x)), st1);where(not(<type-var-lookup(|x)> st1))
+can-coerce(|injection-closure, aliases): ((SortVar(x), SortVar(x)), st1) -> <id>
+  where
+    not(<type-var-lookup(|x)> st1)
+
 // We assume co-variant type parameters
 can-coerce(|injection-closure, aliases): ((Sort(x, t1*), Sort(x, t2*)), st1) -> ((Sort(x, t3*), Sort(x, t4*)), st2)
   where
@@ -128,6 +131,9 @@ can-coerce(|injection-closure, aliases): ((from, to), st1) ->
 
 can-coerce(|injection-closure, aliases): ((from, to), st1) ->
   <imrel-get(|from);imset-to-list;immap-remove(|from);getfirst(\from2 -> <CanCoerce> ((from2, to), st1)\)> injection-closure
+
+can-coerce-stype(|injection-closure) = ?((SErrT(), _), _)
+can-coerce-stype(|injection-closure) = ?((_, SErrT()), _)
 
 can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, t1, t2), SDyn()), st1) ->
