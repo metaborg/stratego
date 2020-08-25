@@ -96,10 +96,9 @@ listType: t1 -> t3
     else t3 := DynT()
   end
 tupleTypes(|n): t1 -> t2*
-  // TODO: Should we do better than give dyn children if expected type has different number of children than the literal?
   where if TupleT(t1*) := <pushDyn> t1; n := <length> t1*
     then t2* := t1*
-    else t2* := <copy> (n, DynT())
+    else t2* := <copy> (n, ErrT())
   end
 
 strategies
