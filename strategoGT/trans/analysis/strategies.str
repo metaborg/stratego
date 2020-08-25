@@ -700,7 +700,7 @@ insertCasts-Strategy(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <desugar-Type> t
-  ; t3 := <TP2tv(?tv)> t1
+  ; t3 := <TP2tv> t1
   ; if Sort(TP(), []) := t1; <oncetd(?DynT())> t2
       then <report-Err> (t, MatchNotSpecificEnoughForTP(t2))
     end

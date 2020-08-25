@@ -29,8 +29,8 @@ analysis/main
 strategies // Terms in match position (core)
 
 insertCasts-MatchTerm(|e1, st1) =
-    insertCasts-StMatchTerm(|e1, <current-type(TP2tv(?tv));stMatchTerm-from-st> st1)
-  ; (id, st-from-stMatchTerm;(current-type(tv2TP(|tv)), id))
+    insertCasts-StMatchTerm(|e1, <stMatchTerm-from-st> st1)
+  ; (id, st-from-stMatchTerm)
 
 insertCasts-StMatchTerm-Type(|e1):
   ((trm, t), st1) -> <insertCasts-StMatchTerm(|e1, <current-type(|t)> st1)> trm

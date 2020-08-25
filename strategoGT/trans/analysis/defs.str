@@ -149,7 +149,7 @@ insertCasts-RuleDef-(|e1, st1):
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(!LocalDef(<id>))> st*))
   ; st3 := <term-merge-env(keep-right)> (st2, <term-zip-new-env> (t2*, tt*))
   ; tv := <newname> "tp"
-  ; t1 := SortVar(tv)
+  ; t1 := SortVar(tv){TP()}
   ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; if <type-var-lookup(|tv);not(?SortVar(_) + oncetd(?DynT()))> st4
       then id

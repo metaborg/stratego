@@ -78,11 +78,13 @@ desugar-Type = desugar-Type- <+ id
 
 arityOf-SType: FunTType(st*, tt*, _) -> (<length> st*, <length> tt*)
 
-TP2tv(s): Sort(TP(), []){tv} -> SortVar(tv) where <s> tv
-TP2tv(s) = where(<s> ErrT())
+strategies
 
-tv2TP(|tv): SortVar(tv) -> Sort(TP(), []){tv}
-tv2TP(|tv) = id
+TP2tv: Sort(TP(), []){tv} -> SortVar(tv){TP()}
+TP2tv = id
+
+tv2TP: SortVar(tv){TP()} -> Sort(TP(), []){tv}
+tv2TP = id
 
 strategies
 

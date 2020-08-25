@@ -166,7 +166,7 @@ instantiate-type-vars(|st1) = instantiate-type-vars(!DynT()|st1)
 itv(|st1) = instantiate-type-vars(id|st1)
 
 instantiate-type-vars(s|st1): t1 -> t2
-  with t2 := <bottomup({x: ?SortVar(x) < <type-var-lookup(|x)> st1 <+ <s> SortVar(x) + id})> t1
+  with t2 := <bottomup({x,t: ?t@SortVar(x) < <type-var-lookup(|x)> st1 <+ <s> t + id})> t1
 
 fresh-type-vars(newvars): LocalDef(t1) -> t1 with <newvars> []
 

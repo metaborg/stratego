@@ -29,15 +29,15 @@ strategies
 
 new-env: (strats, constrs) -> Env(strats, constrs)
 new-st = !St(<immap-new>, DynT(), <immap-new>)
-stMatchTerm-from-st: st -> StMatchTerm(st, None(), [])
+stMatchTerm-from-st: st -> StMatchTerm(<current-type(TP2tv)> st, None(), [])
 stBuildTerm-from-st: st -> StBuildTerm(<current-type(|DynT())> st, <current-type> st)
-st-from-stMatchTerm: StMatchTerm(st, Some(t), s*) -> (<current-type(|t)> st, s*)
-st-from-stMatchTerm: StMatchTerm(st, None(), s*) -> (st, s*)
-st-from-stBuildTerm: StBuildTerm(st, _) -> st
+st-from-stMatchTerm: StMatchTerm(st, Some(t), s*) -> (<current-type(|<tv2TP> t)> st, s*)
+st-from-stMatchTerm: StMatchTerm(st, None(), s*) -> (<current-type(tv2TP)> st, s*)
+st-from-stBuildTerm: StBuildTerm(st, _) -> <current-type(tv2TP)> st
 
-stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(|t2);type-var-env(!tv)> st1, ot2, s*)
+stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(|<TP2tv> t2);type-var-env(!tv)> st1, ot2, s*)
   where
-    St(_, t2, tv) := <s> st1
+    St(_, t2, tv) := <current-type(tv2TP);s> st1
   ; if None() := ot1
       then ot2 := Some(t2)
       else ot2 := ot1; <report-Warn> msg
