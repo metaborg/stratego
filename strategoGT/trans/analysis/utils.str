@@ -290,18 +290,12 @@ desugar-DefHasType:
 
 strategies
 
-thread-map-reduce(s, reduce): ([], st) -> ([], st)
-thread-map-reduce(s, reduce): (trm1*@[_ | _], st1) -> (trm2*, st2)
+thread-map-Type(s): ([], st) -> ([], [], st)
+thread-map-Type(s): (trm1*@[_ | _], st1) -> (trm2*, <reverse> t*, st2)
   where
-    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
-  ; st2 := <foldl(reduce)> (st*, st)
+    (trm2*, (st2, t*)) := <thread-map(thread-map-Type-threader(s))> (trm1*, (st1, []))
 
-thread-map-LUB(s): ([], st) -> ([], [], st)
-thread-map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, <reverse> t*, st2)
-  where
-    (trm2*, (st2, t*)) := <thread-map(thread-map-LUB-threader(s))> (trm1*, (st1, []))
-
-thread-map-LUB-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
+thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
   where
     (trm2, st2) := <s> (trm1, st1)
   ; t2* := [<current-type> st2 | t1*]
