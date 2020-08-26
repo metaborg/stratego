@@ -51,8 +51,8 @@ public final class Module implements Serializable {
      * Create source module with a normalized, absolute path to the module file. This
      * should give us a unique string to use to identify the module file within this pipeline.
      */
-    public static Module source(ResourcePath path, ResourceService resourceService) {
-        return new Module(resourceService.toString(path.getNormalized()), Type.source);
+    public static Module source(ResourcePath path) {
+        return new Module(path.getNormalized().asString(), Type.source);
     }
 
     static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<ResourcePath> includeDirs,
@@ -71,13 +71,13 @@ public final class Module implements Serializable {
                         if(rtreeResource.exists()) {
                             foundSomethingToImport = true;
                             if(isLibraryRTree(rtreeResource)) {
-                                result.add(Module.library(rtreePath.toString()));
+                                result.add(Module.library(rtreePath.asString()));
                             } else {
-                                result.add(Module.source(rtreePath, execContext.getResourceService()));
+                                result.add(Module.source(rtreePath));
                             }
                         } else if(strResource.exists()) {
                             foundSomethingToImport = true;
-                            result.add(Module.source(strPath, execContext.getResourceService()));
+                            result.add(Module.source(strPath));
                         }
                     }
                     if(!foundSomethingToImport) {
@@ -97,7 +97,7 @@ public final class Module implements Serializable {
                                 .collect(Collectors.toList());
                             for(HierarchicalResource strFile : strFiles) {
                                 foundSomethingToImport = true;
-                                result.add(Module.source(strFile.getPath(), execContext.getResourceService()));
+                                result.add(Module.source(strFile.getPath()));
                             }
                         }
                     }

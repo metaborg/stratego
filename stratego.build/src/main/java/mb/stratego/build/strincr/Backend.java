@@ -159,10 +159,9 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
         BuildStats.strategyBackendCTreeSize.put(input.strategyName, TermSize.computeTermSize(ctree));
 
-        final ResourceService resourceService = execContext.getResourceService();
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", resourceService.toString(input.outputPath))
+        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", input.outputPath.asString())
             //            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
@@ -172,11 +171,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
 
         for(ResourcePath includeDir : input.includeDirs) {
-            arguments.add("-I", resourceService.toString(includeDir));
+            arguments.add("-I", includeDir.asString());
         }
 
         if(input.cacheDir != null) {
-            arguments.add("--cache-dir", resourceService.toString(input.cacheDir));
+            arguments.add("--cache-dir", input.cacheDir.asString());
         }
 
         for(String constant : input.constants) {

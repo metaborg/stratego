@@ -146,7 +146,7 @@ public class Analysis {
     protected Output collectInformation(ExecContext execContext, Input input, ResourcePath projectLocationPath)
         throws IOException, ExecException, InterruptedException {
         timestamps.add(System.nanoTime());
-        final Module inputModule = Module.source(input.inputFile, execContext.getResourceService());
+        final Module inputModule = Module.source(input.inputFile);
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
 
