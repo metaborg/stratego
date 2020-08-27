@@ -32,8 +32,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.STask;
-import mb.resource.ResourceService;
-import mb.resource.fs.FSPath;
 import mb.resource.fs.FSResource;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
@@ -120,11 +118,9 @@ public class Frontends {
     private final StaticChecks staticChecks;
     private final SubFrontend strIncrSubFront;
     private final ParseStratego parseStratego;
-    private final ResourceService resourceService;
 
-    @Inject public Frontends(ResourceService resourceService, LibFrontend strIncrFrontLib, StaticChecks staticChecks, StrIncrContext strContext,
+    @Inject public Frontends(LibFrontend strIncrFrontLib, StaticChecks staticChecks, StrIncrContext strContext,
         ParseStratego parseStratego, SubFrontend strIncrSubFront) {
-        this.resourceService = resourceService;
         this.strIncrFrontLib = strIncrFrontLib;
         this.staticChecks = staticChecks;
         this.strIncrSubFront = strIncrSubFront;
@@ -176,7 +172,7 @@ public class Frontends {
 
             if(module.type == Module.Type.library) {
                 final LibFrontend.Input frontLibInput =
-                    new LibFrontend.Input(Library.fromString(resourceService, module.path));
+                    new LibFrontend.Input(Library.fromString(execContext.getResourceService(), module.path));
                 final LibFrontend.Output frontLibOutput = execContext.require(strIncrFrontLib, frontLibInput);
 
                 shuffleStartTime = System.nanoTime();
@@ -205,11 +201,10 @@ public class Frontends {
                 continue;
             }
 
-            final String inputFileString = new FSPath(projectLocationPath).appendOrReplaceWithPath(module.path).getNormalized().toString();
-            final FSResource inputFile = new FSResource(inputFileString);
+            final FSResource inputFile = new FSResource(module.path);
             // File existence:
             if(!inputFile.exists()) {
-                execContext.logger().trace("File deletion detected: " + inputFileString);
+                execContext.logger().trace("File deletion detected: " + module.path);
                 continue;
             }
             // Parse file:
@@ -219,16 +214,16 @@ public class Frontends {
                 if("rtree".equals(inputFile.getLeafExtension())) {
                     ast = parseStratego.parseRtree(inputStream);
                 } else {
-                    ast = parseStratego.parse(inputStream, StandardCharsets.UTF_8, inputFileString);
+                    ast = parseStratego.parse(inputStream, StandardCharsets.UTF_8, module.path);
                 }
             }
-            execContext.logger().trace("File parsed: " + inputFileString);
+            execContext.logger().trace("File parsed: " + module.path);
             staticData.sugarASTs.put(module.path, ast);
             // Split file up with PIE task:
             final SubFrontend.Input splitInput =
-                SubFrontend.Input.split(input.originTasks, inputFileString, inputFileString, ast);
+                SubFrontend.Input.split(input.originTasks, module.path, module.path, ast);
             final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, splitInput).result;
-            final SplitResult splitResult = SplitResult.fromTerm(splitTerm, inputFileString);
+            final SplitResult splitResult = SplitResult.fromTerm(splitTerm, module.path);
             // Save results for use in different order during type checking
             splitModules.put(module.path, splitResult);
             // Resolve imports
