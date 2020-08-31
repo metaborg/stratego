@@ -26,7 +26,7 @@ public class StrIncrAnalysis implements TaskDef<Frontends.Input, Frontends.Outpu
          * _files_ change, we need the front-end to depend on the sdf tasks with a simple stamper that allows the
          * execution of the sdf task to be ignored.
          */
-        for(final STask t : input.originTasks) {
+        for(final STask<?> t : input.originTasks) {
             execContext.require(t);
         }
 

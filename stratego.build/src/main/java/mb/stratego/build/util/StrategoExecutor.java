@@ -1,5 +1,9 @@
 package mb.stratego.build.util;
 
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.metaborg.util.cmd.Arguments;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -9,10 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
-import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
-import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
-import javax.annotation.Nullable;
-import java.util.List;
 
 public class StrategoExecutor {
     public static class ExecutionResult {

@@ -42,7 +42,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         public Input(File inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
             Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
-            File outputPath, Collection<STask> originTasks, File projectLocation, boolean strGradualSetting) {
+            File outputPath, Collection<STask<?>> originTasks, File projectLocation, boolean strGradualSetting) {
             super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;

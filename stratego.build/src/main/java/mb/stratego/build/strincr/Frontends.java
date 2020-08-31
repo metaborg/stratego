@@ -45,12 +45,12 @@ public class Frontends {
         protected final File inputFile;
         protected final Collection<File> includeDirs;
         protected final Collection<String> builtinLibs;
-        protected final Collection<STask> originTasks;
+        protected final Collection<STask<?>> originTasks;
         protected final File projectLocation;
         protected final boolean strGradualSetting;
 
         public Input(File inputFile, Collection<File> includeDirs, Collection<String> builtinLibs,
-            Collection<STask> originTasks, File projectLocation, boolean strGradualSetting) {
+            Collection<STask<?>> originTasks, File projectLocation, boolean strGradualSetting) {
             this.inputFile = inputFile;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;

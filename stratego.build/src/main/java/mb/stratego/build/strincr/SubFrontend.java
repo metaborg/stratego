@@ -30,7 +30,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
     public static final String id = SubFrontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        private final Collection<STask> originTasks;
+        private final Collection<STask<?>> originTasks;
         public final String moduleName;
         public final String cifiedName;
         public final InputType inputType;
@@ -40,7 +40,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             this(Collections.emptyList(), moduleName, cifiedName, inputType, ast);
         }
 
-        protected Input(Collection<STask> originTasks, String moduleName, String cifiedName, InputType inputType, IStrategoTerm ast) {
+        protected Input(Collection<STask<?>> originTasks, String moduleName, String cifiedName, InputType inputType, IStrategoTerm ast) {
             this.originTasks = originTasks;
             this.moduleName = moduleName;
             this.cifiedName = cifiedName;
@@ -72,7 +72,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             return new Input(inputFileString, cifiedName, InputType.TopLevelDefinition, ast);
         }
 
-        public static Input split(Collection<STask> originTasks, String inputFileString, String cifiedName, IStrategoTerm ast) {
+        public static Input split(Collection<STask<?>> originTasks, String inputFileString, String cifiedName, IStrategoTerm ast) {
             return new Input(originTasks, inputFileString, cifiedName, InputType.Split, ast);
         }
 
@@ -154,7 +154,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
          * through imports.
          */
         if(input.inputType == InputType.Split) {
-            for(STask t : input.originTasks) {
+            for(STask<?> t : input.originTasks) {
                 context.require(t, InconsequentialOutputStamper.instance);
             }
         } else {

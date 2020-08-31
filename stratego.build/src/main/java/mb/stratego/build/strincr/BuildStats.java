@@ -1,16 +1,11 @@
 package mb.stratego.build.strincr;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import org.metaborg.util.log.ILogger;
-import org.metaborg.util.log.LoggerUtils;
 
 public class BuildStats {
     public static long executedFrontTasks = 0;

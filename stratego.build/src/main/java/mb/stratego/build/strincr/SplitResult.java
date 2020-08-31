@@ -195,7 +195,7 @@ public class SplitResult {
             for(int i = 0; i < noTermArgs; i++) {
                 targTypes.add(dyn);
             }
-            return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(targTypes), dyn, dyn);
+            return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(targTypes), tf.makeAppl("FunNoArgsType", dyn, dyn));
         }
 
         public Map<StrategySignature, IStrategoTerm> dynamicRuleSignatures(ITermFactory tf) {

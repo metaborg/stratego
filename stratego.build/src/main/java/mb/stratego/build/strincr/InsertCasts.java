@@ -2,7 +2,6 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -153,9 +152,10 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         assert input.strategyEnvironment.backingMap.containsKey(input.sig) : "Cannot find strategy " + input.sig
             + " to type check in given environment.";
 
+        // (strats, constrs, injection-closure, lub-map, aliases, ast)
         final IStrategoTerm tuple =
             tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
-                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.ast);
+                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), new StrategoImmutableRelation().withWrapper(tf), input.ast);
         final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
         final IStrategoTerm astWithCasts = output.result.getSubterm(0);

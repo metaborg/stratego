@@ -199,6 +199,8 @@ public class Backend implements TaskDef<Backend.Input, None> {
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
                 logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
+            } else if(result == null) {
+                logger.debug("Executing " + name + " failed with normal Stratego failure. ");
             }
             final String stdout;
             final String stderr;
@@ -227,6 +229,8 @@ public class Backend implements TaskDef<Backend.Input, None> {
             strContext.popOnExit(false);
             if(!silent) {
                 logger.error("Executing " + name + " failed: ", e);
+            } else {
+                logger.debug("Executing " + name + " failed: " + e);
             }
             final String stdout;
             final String stderr;

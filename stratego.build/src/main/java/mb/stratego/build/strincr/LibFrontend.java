@@ -339,12 +339,12 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
             } else if(TermUtils.isAppl(extSDefTerm, "DefHasType", 2)) {
                 IStrategoTerm name = extSDefTerm.getSubterm(0);
                 IStrategoTerm sfuntype = extSDefTerm.getSubterm(1);
-                if(!(TermUtils.isString(name) && TermUtils.isAppl(sfuntype, "FunTType", 4)
+                if(!(TermUtils.isString(name) && TermUtils.isAppl(sfuntype, "FunTType", 3)
                     && TermUtils.isListAt(sfuntype, 0)
                     && TermUtils.isListAt(sfuntype, 1))) {
                     throw new ExecException(
                         "Malformed built-in library AST. "
-                            + "Expected DefHasType(\"...\", FunTType([...], [...], ..., ...)) but got: "
+                            + "Expected DefHasType(\"...\", FunTType([...], [...], ...)) but got: "
                             + extSDefTerm.toString(1));
                 }
                 IStrategoTerm sargs = sfuntype.getSubterm(0);
