@@ -15,7 +15,7 @@ context-free syntax
 
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.ErrT = [err]
-  Type.LocalDef = [local [Type]]
+  Anno.LocalDef = [localdef]
   SType.SErrT = [s-err]
   Dyn = Type // to allow DynT(<some type>)
 
@@ -29,6 +29,7 @@ context-free syntax
   ErrorDesc.ProceedWrongNumberOfArguments = [Wrong number of arguments to proceed: ([Int]|[Int]).]
   ErrorDesc.ProceedInNonExtendStrategy = [Cannot call proceed in a strategy or rule defined without the `extend` keyword.]
   ErrorDesc.CallStrategyArgumentTakesParameters = [This call takes parameters, it has type: [SFunType].]
+  ErrorDesc.AmbiguousStrategyResolution = [Call to strategy was ambiguous, could resolve to the following: [{SFunType ", "}+].]
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
