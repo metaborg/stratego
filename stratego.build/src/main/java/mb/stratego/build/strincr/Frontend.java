@@ -55,7 +55,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         @Override public String toString() {
-            return "StrIncrFront$Input(" + inputFileString + ')';
+            return "Frontend$Input(" + inputFileString + ')';
         }
 
         @Override

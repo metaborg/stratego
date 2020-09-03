@@ -15,7 +15,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
-import io.usethesource.capsule.Map;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -31,17 +30,19 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategoImmutableMap strategyEnvironment;
         final StrategoImmutableRelation constructors;
         final StrategoImmutableRelation injectionClosure;
-        final StrategoImmutableMap lubMap;
+        final StrategoImmutableRelation lubMap;
+        final StrategoImmutableRelation aliasMap;
         final IStrategoTerm ast;
         final StrategySignature sig;
 
         Input(String moduleName, StrategoImmutableMap strategyEnvironment, StrategoImmutableRelation constructors,
-            StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap, IStrategoTerm ast, StrategySignature sig) {
+            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
             this.constructors = constructors;
             this.injectionClosure = injectionClosure;
             this.lubMap = lubMap;
+            this.aliasMap = aliasMap;
             this.ast = ast;
             this.sig = sig;
         }
@@ -74,7 +75,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final StrategoImmutableMap strategyEnvironment;
             final StrategoImmutableRelation constructors;
             final StrategoImmutableRelation injectionClosure;
-            final StrategoImmutableMap lubMap;
+            final StrategoImmutableRelation lubMap;
+            final StrategoImmutableRelation aliasMap;
 
             public Builder(String moduleName, java.util.Map<StrategySignature, IStrategoTerm> strategyEnv,
                 BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
@@ -84,27 +86,55 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 constructors = new StrategoImmutableRelation(constrs);
                 injectionClosure =
                     StrategoImmutableRelation.transitiveClosure(new StrategoImmutableRelation(injections));
-                this.lubMap = new StrategoImmutableMap(lubMapFromInjClosure(injectionClosure, tf));
+                this.lubMap = new StrategoImmutableRelation(lubMapFromInjClosure(injectionClosure, tf));
+                this.aliasMap = StrategoImmutableRelation
+                    .transitiveClosure(new StrategoImmutableRelation(extractAliases(constrs, injections)));
             }
 
-            private static Map.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> lubMapFromInjClosure(
+            private static BinaryRelation.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> extractAliases(
+                BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
+                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections) {
+                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> invInjections =
+                    injections.inverse();
+                BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> aliases = BinaryRelation.Transient.of();
+                outer:
+                for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> e : injections.entrySet()) {
+                    final IStrategoTerm key = e.getKey();
+                    final IStrategoTerm value = e.getValue();
+                    // we select injections where no other injections go into the target type
+                    if(invInjections.get(value).size() == 1) {
+                        // and there are no constructors, for the target type
+                        for(IStrategoTerm t : constrs.values()) {
+                            if(TermUtils.isAppl(t, "ConstrType", 2) && t.getSubterm(1).equals(value)) {
+                                continue outer;
+                            }
+                        }
+                        // then save that as the inverse of the original injection
+                        aliases.__insert(value, key);
+                    }
+                }
+                return aliases.freeze();
+            }
+
+            private static BinaryRelation.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> lubMapFromInjClosure(
                 StrategoImmutableRelation injectionClosure, ITermFactory tf) {
                 /* TODO: find cyclic injections through entries that have the same type on both sides (x,x)
                  *  Use an arbitrary but deterministic method to choose a representative type in a cycle
                  *  Map members x,y from the same cycle to the representative type
                  */
-                final Map.Transient<IStrategoTerm, IStrategoTerm> lubMap = Map.Transient.of();
+                final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> lubMap = BinaryRelation.Transient.of();
                 for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> entry : injectionClosure.backingRelation
                     .entrySet()) {
                     final IStrategoTerm from = entry.getKey();
                     final IStrategoTerm to = entry.getValue();
                     lubMap.__put(tf.makeTuple(from, to), to);
+                    lubMap.__put(tf.makeTuple(to, from), to);
                 }
                 return lubMap.freeze();
             }
 
             public Input build(IStrategoTerm ast, StrategySignature sig) {
-                return new Input(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap,
+                return new Input(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap, aliasMap,
                     ast, sig);
             }
         }
@@ -155,7 +185,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         // (strats, constrs, injection-closure, lub-map, aliases, ast)
         final IStrategoTerm tuple =
             tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
-                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), new StrategoImmutableRelation().withWrapper(tf), input.ast);
+                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.aliasMap.withWrapper(tf), input.ast);
         final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
         final IStrategoTerm astWithCasts = output.result.getSubterm(0);
