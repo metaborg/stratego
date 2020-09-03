@@ -13,7 +13,6 @@ import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 
-import mb.resource.ResourceService;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrategoConstants;
@@ -134,15 +133,21 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
     }
 
+    public interface ResourcePathConverter {
+        String toString(ResourcePath resourcePath);
+    }
+
     private final ITermFactory termFactory;
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
+    private final ResourcePathConverter resourcePathConverter;
     static ArrayList<Long> timestamps = new ArrayList<>();
 
-    @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
+    @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext, ResourcePathConverter resourcePathConverter) {
         this.termFactory = termFactory;
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
+        this.resourcePathConverter = resourcePathConverter;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
@@ -161,7 +166,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", input.outputPath.asString())
+        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", resourcePathConverter.toString(input.outputPath))
             //            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
@@ -171,11 +176,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
 
         for(ResourcePath includeDir : input.includeDirs) {
-            arguments.add("-I", includeDir.asString());
+            arguments.add("-I", resourcePathConverter.toString(includeDir));
         }
 
         if(input.cacheDir != null) {
-            arguments.add("--cache-dir", input.cacheDir.asString());
+            arguments.add("--cache-dir", resourcePathConverter.toString(input.cacheDir));
         }
 
         for(String constant : input.constants) {

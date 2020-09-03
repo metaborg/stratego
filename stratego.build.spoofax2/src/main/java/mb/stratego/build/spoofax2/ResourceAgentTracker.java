@@ -25,7 +25,7 @@ public class ResourceAgentTracker implements IOAgentTracker {
         OutputStream stderrStream) {
         final TeeOutputStream stdout = new TeeOutputStream(stdoutStream, stdoutLog);
         final TeeOutputStream stderr = new TeeOutputStream(stderrStream, stderrLog);
-        this.ioAgent = new PieCompatibleResourceAgent(resourceService, initialDir, stdout, stderr);
+        this.ioAgent = new ResourceAgent(resourceService, initialDir, stdout, stderr);
     }
 
 
