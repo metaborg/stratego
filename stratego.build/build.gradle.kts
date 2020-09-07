@@ -7,6 +7,7 @@ dependencies {
   api(platform("org.metaborg:parent:$version"))
 
   api("org.metaborg:pie.api")
+  api("org.metaborg:resource")
   implementation("org.metaborg:org.metaborg.util:$version")
   api("org.metaborg:org.spoofax.terms:$version")
   api("org.metaborg:org.spoofax.interpreter.core:$version")

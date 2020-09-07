@@ -6,6 +6,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.STask;
 import mb.resource.fs.FSResource;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
@@ -30,14 +31,14 @@ import javax.inject.Inject;
 
 public class Analysis {
     public static class Input implements Serializable {
-        protected final File inputFile;
-        protected final Collection<File> includeDirs;
+        protected final ResourcePath inputFile;
+        protected final Collection<ResourcePath> includeDirs;
         protected final Collection<String> builtinLibs;
         protected final Collection<STask> originTasks;
-        protected final File projectLocation;
+        protected final ResourcePath projectLocation;
 
-        public Input(File inputFile, Collection<File> includeDirs, Collection<String> builtinLibs,
-            Collection<STask> originTasks, File projectLocation) {
+        public Input(ResourcePath inputFile, Collection<ResourcePath> includeDirs, Collection<String> builtinLibs,
+            Collection<STask> originTasks, ResourcePath projectLocation) {
             this.inputFile = inputFile;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;
@@ -142,10 +143,10 @@ public class Analysis {
         this.strContext = strContext;
     }
 
-    protected Output collectInformation(ExecContext execContext, Input input, Path projectLocationPath)
+    protected Output collectInformation(ExecContext execContext, Input input, ResourcePath projectLocationPath)
         throws IOException, ExecException, InterruptedException {
         timestamps.add(System.nanoTime());
-        final Module inputModule = Module.source(Paths.get(input.inputFile.toURI()));
+        final Module inputModule = Module.source(input.inputFile);
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
 
@@ -195,7 +196,7 @@ public class Analysis {
 //        output.backendData.strategyASTs = icOutput.astsWithCasts;
 //    }
 
-    public Output frontends(ExecContext execContext, Input input, Path projectLocationPath, Module inputModule)
+    public Output frontends(ExecContext execContext, Input input, ResourcePath projectLocationPath, Module inputModule)
         throws IOException, mb.pie.api.ExecException, InterruptedException {
         timestamps.add(System.nanoTime());
         // FRONTEND
@@ -210,7 +211,7 @@ public class Analysis {
         }
         timestamps.add(System.nanoTime());
         // depend on the include directories in which we search for str and rtree files
-        for(File includeDir : input.includeDirs) {
+        for(ResourcePath includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
         timestamps.add(System.nanoTime());
@@ -249,7 +250,7 @@ public class Analysis {
 
             final String projectName = projectName(module.path);
             final Frontend.Input frontInput =
-                new Frontend.Input(projectLocationPath.toFile(), module.path, projectName,
+                new Frontend.Input(projectLocationPath, module.path, projectName,
                     input.originTasks);
             timestamps.add(System.nanoTime());
             final @Nullable Frontend.NormalOutput frontOutput =
@@ -317,12 +318,7 @@ public class Analysis {
 
             // resolving imports
             final java.util.Set<Module> expandedImports = Module
-                .resolveWildcards(module.path, theImports, input.includeDirs, messages, path -> {
-                        timestamps.add(System.nanoTime());
-                        final FSResource res = execContext.require(path);
-                        timestamps.add(System.nanoTime());
-                        return res;
-                    });
+                .resolveWildcards(module.path, theImports, input.includeDirs, messages, execContext);
             for(Module m : expandedImports) {
                 Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
             }
