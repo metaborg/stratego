@@ -166,11 +166,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            // GK: commented dead code
-//            final @Nullable File strategyDir =
-//                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, strategyName));
-//            assert strategyDir
-//                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
@@ -225,11 +220,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         {
             backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
-            // GK: commented out dead code
-//            final @Nullable File strSrcGenDir =
-//                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompSrcGenDir(projectLocation));
-//            assert strSrcGenDir
-//                != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, null, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
