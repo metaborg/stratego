@@ -1,7 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.nio.file.Path;
-
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
@@ -30,9 +28,7 @@ public class StrIncrAnalysis implements TaskDef<Frontends.Input, Frontends.Outpu
             execContext.require(t);
         }
 
-        final Path projectLocationPath = input.projectLocation.toPath().toAbsolutePath().normalize();
-
-        return frontends.collectInformation(execContext, input, projectLocationPath);
+        return frontends.collectInformation(execContext, input, input.projectLocation);
     }
 
     @Override public String getId() {

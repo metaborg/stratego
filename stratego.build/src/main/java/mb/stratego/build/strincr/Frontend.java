@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +27,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.resource.ResourceService;
-import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
@@ -42,12 +40,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     public static final String id = Frontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final File projectLocation;
+        final ResourcePath projectLocation;
         final String inputFileString;
         final String projectName;
         final SplitResult splitResult;
 
-        Input(File projectLocation, String inputFileString, String projectName, SplitResult splitResult) {
+        Input(ResourcePath projectLocation, String inputFileString, String projectName, SplitResult splitResult) {
             this.projectLocation = projectLocation;
             this.inputFileString = inputFileString;
             this.projectName = projectName;
@@ -93,7 +91,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-name to file with CTree definition of that strategy [static linking]
          */
-        final Map<String, File> strategyFiles;
+        final Map<String, ResourcePath> strategyFiles;
         /**
          * Cified-strategy-names referred to in this module [name checks]
          */
@@ -115,7 +113,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Overlay_arity names to file with CTree definition of that overlay [static linking / name checks]
          */
-        final Map<String, File> overlayFiles;
+        final Map<String, ResourcePath> overlayFiles;
         /**
          * Imports in this module (normal, library or wildcard) [import tracking / name checks]
          */
@@ -156,7 +154,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Constructor_arity to file with CTree definition of that congruence [static linking]
          */
-        final Map<String, File> congrFiles;
+        final Map<String, ResourcePath> congrFiles;
         /**
          * Cified-strategy-name to no. of separate definitions found in the file before merging [statistics]
          */
@@ -174,13 +172,13 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         final Map<String, IStrategoAppl> congrASTs;
 
-        NormalOutput(String moduleName, Map<String, File> strategyFiles, StringSetWithPositions usedStrategies,
+        NormalOutput(String moduleName, Map<String, ResourcePath> strategyFiles, StringSetWithPositions usedStrategies,
             Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions,
-            Map<String, StringSetWithPositions> strategyConstrs, Map<String, File> overlayFiles, List<Import> imports,
+            Map<String, StringSetWithPositions> strategyConstrs, Map<String, ResourcePath> overlayFiles, List<Import> imports,
             StringSetWithPositions strats, StringSetWithPositions internalStrats, StringSetWithPositions externalStrats,
             StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
             List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs,
-            Map<String, File> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
+            Map<String, ResourcePath> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
             this.moduleName = moduleName;
             this.strategyFiles = strategyFiles;
@@ -289,7 +287,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     @Override public Output exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedFrontTasks++;
         final long startTime = System.nanoTime();
-        final ResourcePath location = new FSPath(input.projectLocation);
+        final ResourcePath location = input.projectLocation;
         final String moduleName = input.splitResult.moduleName;
         final List<Import> imports = new ArrayList<>(input.splitResult.imports.size());
         for(IStrategoTerm importTerm : input.splitResult.imports) {
@@ -297,7 +295,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         final Map<String, IStrategoAppl> strategyASTs = new HashMap<>();
-        final Map<String, File> strategyFiles = new HashMap<>();
+        final Map<String, ResourcePath> strategyFiles = new HashMap<>();
         final Map<String, StringSetWithPositions> strategyConstrs = new HashMap<>();
         final List<IStrategoString> strategyNeedsExternal = new ArrayList<>();
         final Map<String, Set<String>> usedAmbStrats = new HashMap<>();
@@ -308,12 +306,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final StringSetWithPositions internalStrats = new StringSetWithPositions();
         final StringSetWithPositions externalStrats = new StringSetWithPositions();
         final StringSetWithPositions definedOverlays = new StringSetWithPositions();
-        final Map<String, File> overlayFiles = new HashMap<>();
+        final Map<String, ResourcePath> overlayFiles = new HashMap<>();
         final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
         final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
         final StringSetWithPositions congrs = new StringSetWithPositions();
-        final Map<String, File> congrFiles = new HashMap<>();
+        final Map<String, ResourcePath> congrFiles = new HashMap<>();
         final Map<String, Integer> noOfDefinitions = new HashMap<>();
 
         for(Map.Entry<StrategySignature, IStrategoTerm> e : input.splitResult.strategyDefs.entrySet()) {
@@ -364,7 +362,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private void overlayFrontEnd(ExecContext execContext, Input input, final ResourcePath location,
         final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
-        final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        final Map<String, IStrategoAppl> strategyASTs, final Map<String, ResourcePath> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
         final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
@@ -413,7 +411,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
         final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
         final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
-        final StringSetWithPositions congrs, final Map<String, File> congrFiles, final Map<String, Integer> noOfDefinitions)
+        final StringSetWithPositions congrs, final Map<String, ResourcePath> congrFiles, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         // LOCAL_DEFS == Anno__Cong_____2_0
@@ -452,7 +450,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final ResourcePath location,
         final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
-        StringSetWithPositions internalStrats, StringSetWithPositions externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, File> strategyFiles,
+        StringSetWithPositions internalStrats, StringSetWithPositions externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, ResourcePath> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
         final Map<String, Integer> noOfDefinitions)
@@ -536,22 +534,14 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         return annoDefAnnotations.contains("Internal");
     }
 
-    private void storeDef(ResourcePath location, String moduleName, String strategy, Map<String, File> strategyFiles,
+    private void storeDef(ResourcePath location, String moduleName, String strategy, Map<String, ResourcePath> strategyFiles,
         String projectName, ResourceService resourceService) {
-        final @Nullable File strategyFile = resourceService
-            .toLocalFile(CommonPaths.strSepCompStrategyFile(location, projectName, moduleName, strategy));
-        assert strategyFile != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-
-        strategyFiles.put(strategy, strategyFile);
+        strategyFiles.put(strategy, CommonPaths.strSepCompStrategyFile(location, projectName, moduleName, strategy));
     }
 
     private void storeOverlay(ResourcePath location, String moduleName, String overlayName,
-        Map<String, File> overlayFiles, String projectName, ResourceService resourceService) {
-        final @Nullable File overlayFile = resourceService
-            .toLocalFile(CommonPaths.strSepCompOverlayFile(location, projectName, moduleName, overlayName));
-        assert overlayFile != null : "Bug in strSepCompStrategyFile or the arguments thereof: returned path is not a file";
-
-        overlayFiles.put(overlayName, overlayFile);
+        Map<String, ResourcePath> overlayFiles, String projectName, ResourceService resourceService) {
+        overlayFiles.put(overlayName, CommonPaths.strSepCompOverlayFile(location, projectName, moduleName, overlayName));
     }
 
     @Override public String getId() {

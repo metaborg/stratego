@@ -2,7 +2,6 @@ package mb.stratego.build.strincr;
 
 import static mb.stratego.build.strincr.Frontends.reportOverlappingStrategies;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +30,7 @@ import com.google.inject.Inject;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.termvisitors.SugarAnalysis;
@@ -203,7 +203,7 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, Path projectLocationPath, boolean gradualChecksOn) throws ExecException, InterruptedException {
+        List<Message<?>> outputMessages, ResourcePath projectLocationPath, boolean gradualChecksOn) throws ExecException, InterruptedException {
         final Data staticData = output.staticData;
 
         // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
@@ -253,7 +253,7 @@ public class StaticChecks {
                 final String projectName = projectName(moduleName);
 
                 final Frontend.Input frontInput =
-                    new Frontend.Input(projectLocationPath.toFile(), splitResult.inputFileString, projectName,
+                    new Frontend.Input(projectLocationPath, splitResult.inputFileString, projectName,
                         splitResult);
                 final @Nullable Frontend.NormalOutput frontOutput =
                     execContext.require(strIncrFront, frontInput).normalOutput();

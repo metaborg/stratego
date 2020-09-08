@@ -9,9 +9,8 @@ import java.util.Objects;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
-import mb.stratego.build.util.IOAgentTrackerFactory;
-import mb.stratego.build.util.StrategoConstants;
 import org.apache.commons.io.output.NullOutputStream;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -25,16 +24,17 @@ import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
-import javax.inject.Inject;
-
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.IOAgentTracker;
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoConstants;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
@@ -42,23 +42,23 @@ public class Backend implements TaskDef<Backend.Input, None> {
     public static final String id = Backend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final File projectLocation;
+        final ResourcePath projectLocation;
         final String strategyName;
         final Collection<IStrategoTerm> constructors;
         final Collection<IStrategoAppl> strategyContributions;
         final Collection<IStrategoAppl> overlayContributions;
         final SortedMap<String, String> ambStrategyResolution;
         final @Nullable String packageName;
-        final File outputPath;
-        final @Nullable File cacheDir;
+        final ResourcePath outputPath;
+        final @Nullable ResourcePath cacheDir;
         final List<String> constants;
-        final Collection<File> includeDirs;
+        final Collection<ResourcePath> includeDirs;
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
-        Input(File projectLocation, @Nullable String strategyName, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions,
+        Input(ResourcePath projectLocation, @Nullable String strategyName, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions,
             Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
-            @Nullable String packageName, File outputPath, @Nullable File cacheDir, List<String> constants, Collection<File> includeDirs, Arguments extraArgs,
+            @Nullable String packageName, ResourcePath outputPath, @Nullable ResourcePath cacheDir, List<String> constants, Collection<ResourcePath> includeDirs, Arguments extraArgs,
             boolean isBoilerplate) {
             this.projectLocation = projectLocation;
             this.strategyName = strategyName == null ? "" : strategyName;
@@ -107,14 +107,20 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
     }
 
+    public interface ResourcePathConverter {
+        String toString(ResourcePath resourcePath);
+    }
+
     private final ITermFactory termFactory;
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
+    private final ResourcePathConverter resourcePathConverter;
 
-    @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
+    @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext, ResourcePathConverter resourcePathConverter) {
         this.termFactory = termFactory;
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
+        this.resourcePathConverter = resourcePathConverter;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
@@ -132,7 +138,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").addFile("-o", input.outputPath)
+        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree").add("-o", resourcePathConverter.toString(input.outputPath))
             //            .add("--verbose", 3)
             .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library").add("--fusion");
         if(input.isBoilerplate) {
@@ -141,12 +147,12 @@ public class Backend implements TaskDef<Backend.Input, None> {
             arguments.add("--single-strategy");
         }
 
-        for(File includeDir : input.includeDirs) {
-            arguments.add("-I", includeDir);
+        for(ResourcePath includeDir : input.includeDirs) {
+            arguments.add("-I", resourcePathConverter.toString(includeDir));
         }
 
         if(input.cacheDir != null) {
-            arguments.addFile("--cache-dir", input.cacheDir);
+            arguments.add("--cache-dir", resourcePathConverter.toString(input.cacheDir));
         }
 
         for(String constant : input.constants) {

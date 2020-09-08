@@ -3,6 +3,9 @@ package mb.stratego.build.spoofax2;
 import com.google.inject.Singleton;
 
 import mb.pie.taskdefs.guice.TaskDefsModule;
+import mb.resource.DefaultResourceService;
+import mb.resource.ResourceService;
+import mb.resource.fs.FSResourceRegistry;
 import mb.stratego.build.strincr.Backend;
 import mb.stratego.build.strincr.Frontend;
 import mb.stratego.build.strincr.Frontends;
@@ -29,7 +32,9 @@ public class StrIncrModule extends TaskDefsModule {
         bind(StrIncrContext.class).in(Singleton.class);
         bind(Frontends.class).in(Singleton.class);
 
+        bind(ResourceService.class).toInstance(new DefaultResourceService(new FSResourceRegistry()));
         bind(ParseStratego.class).to(Spoofax2ParseStratego.class).in(Singleton.class);
         bind(IOAgentTrackerFactory.class).to(ResourceAgentTrackerFactory.class).in(Singleton.class);
+        bind(Backend.ResourcePathConverter.class).to(FileResourcePathConverter.class).in(Singleton.class);
     }
 }

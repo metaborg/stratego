@@ -1,13 +1,10 @@
 package mb.stratego.build.strincr;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +16,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.metaborg.util.functions.CheckedFunction1;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoString;
@@ -32,7 +28,10 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.STask;
-import mb.resource.fs.FSResource;
+import mb.resource.ResourceKeyString;
+import mb.resource.ResourceService;
+import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.StaticChecks.Data;
@@ -42,15 +41,15 @@ import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontends {
     public static class Input implements Serializable {
-        protected final File inputFile;
-        protected final Collection<File> includeDirs;
+        protected final ResourcePath inputFile;
+        protected final Collection<ResourcePath> includeDirs;
         protected final Collection<String> builtinLibs;
         protected final Collection<STask<?>> originTasks;
-        protected final File projectLocation;
+        protected final ResourcePath projectLocation;
         protected final boolean strGradualSetting;
 
-        public Input(File inputFile, Collection<File> includeDirs, Collection<String> builtinLibs,
-            Collection<STask<?>> originTasks, File projectLocation, boolean strGradualSetting) {
+        public Input(ResourcePath inputFile, Collection<ResourcePath> includeDirs, Collection<String> builtinLibs,
+            Collection<STask<?>> originTasks, ResourcePath projectLocation, boolean strGradualSetting) {
             this.inputFile = inputFile;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;
@@ -127,9 +126,9 @@ public class Frontends {
         this.parseStratego = parseStratego;
     }
 
-    protected Output collectInformation(ExecContext execContext, Input input, Path projectLocationPath)
+    protected Output collectInformation(ExecContext execContext, Input input, ResourcePath projectLocationPath)
         throws Exception {
-        final Module inputModule = Module.source(Paths.get(input.inputFile.toURI()));
+        final Module inputModule = Module.source(input.inputFile);
 
         final Output output = frontends(execContext, input, projectLocationPath, inputModule);
 
@@ -143,7 +142,7 @@ public class Frontends {
         return output;
     }
 
-    public Output frontends(ExecContext execContext, Input input, Path projectLocationPath, Module inputModule)
+    public Output frontends(ExecContext execContext, Input input, ResourcePath projectLocationPath, Module inputModule)
         throws Exception {
         // FRONTEND
         final java.util.Set<Module> seen = new HashSet<>();
@@ -156,7 +155,7 @@ public class Frontends {
             defaultImports.add(Import.library(B.string(builtinLib)));
         }
         // depend on the include directories in which we search for str and rtree files
-        for(File includeDir : input.includeDirs) {
+        for(ResourcePath includeDir : input.includeDirs) {
             execContext.require(includeDir);
         }
 
@@ -201,7 +200,8 @@ public class Frontends {
                 continue;
             }
 
-            final FSResource inputFile = new FSResource(module.path);
+            final ResourceService resourceService = execContext.getResourceService();
+            final HierarchicalResource inputFile = resourceService.getHierarchicalResource(ResourceKeyString.parse(module.path));
             // File existence:
             if(!inputFile.exists()) {
                 execContext.logger().trace("File deletion detected: " + module.path);
@@ -229,7 +229,7 @@ public class Frontends {
             // Resolve imports
             final Set<Module> expandedImports =
                 resolveImports(input, defaultImports, messages, module, splitResult,
-                    execContext::require);
+                    execContext);
             for(Module m : expandedImports) {
                 Relation.getOrInitialize(staticData.imports, module.path, HashSet::new).add(m.path);
             }
@@ -242,7 +242,7 @@ public class Frontends {
 
     public static Set<Module> resolveImports(Input input, List<Import> defaultImports,
         List<Message<?>> messages, Module module, SplitResult splitResult,
-        CheckedFunction1<Path, FSResource, IOException> require) throws IOException, ExecException {
+        ExecContext execContext) throws IOException, ExecException {
         final List<Import> theImports = new ArrayList<>(splitResult.imports.size());
         for(IStrategoTerm importTerm : splitResult.imports) {
             theImports.add(Import.fromTerm(importTerm));
@@ -250,7 +250,7 @@ public class Frontends {
         theImports.addAll(defaultImports);
 
         return Module
-            .resolveWildcards(module.path, theImports, input.includeDirs, messages, require);
+            .resolveWildcards(module.path, theImports, input.includeDirs, messages, execContext);
     }
 
     public static void reportOverlappingStrategies(StringSetWithPositions externalStrategies,

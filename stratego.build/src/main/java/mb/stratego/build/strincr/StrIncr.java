@@ -25,7 +25,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.fs.FSPath;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
@@ -35,14 +35,14 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     public static final class Input extends Frontends.Input {
         final @Nullable String javaPackageName;
-        final @Nullable File cacheDir;
+        final @Nullable ResourcePath cacheDir;
         final List<String> constants;
         final Arguments extraArgs;
-        final File outputPath;
+        final ResourcePath outputPath;
 
-        public Input(File inputFile, @Nullable String javaPackageName, Collection<File> includeDirs,
-            Collection<String> builtinLibs, @Nullable File cacheDir, List<String> constants, Arguments extraArgs,
-            File outputPath, Collection<STask<?>> originTasks, File projectLocation, boolean strGradualSetting) {
+        public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
+            Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
+            ResourcePath outputPath, Collection<STask<?>> originTasks, ResourcePath projectLocation, boolean strGradualSetting) {
             super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;
@@ -109,7 +109,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         return None.instance;
     }
 
-    private void backends(ExecContext execContext, Input input, File projectLocation,
+    private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
         StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput)
         throws mb.pie.api.ExecException, InterruptedException {
         long backendStart = System.nanoTime();
@@ -132,10 +132,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), strategyName));
-            assert strategyDir
-                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
@@ -164,10 +160,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(new FSPath(projectLocation), congrName));
-            assert strategyDir
-                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, congrName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
@@ -186,10 +178,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         {
             backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
-            final @Nullable File strSrcGenDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompSrcGenDir(new FSPath(projectLocation)));
-            assert strSrcGenDir
-                != null : "Bug in strSepCompSrcGenDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
