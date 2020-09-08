@@ -173,7 +173,7 @@ insertCasts-Strategy-(|e1, st1):
   Match(trm1) -> (<seqs> [Match(trm2) | s2*], st2)
   with
     (trm2, (st2, s*)) := <insertCasts-MatchTerm(|e1, st1)> trm1
-  ; s2* := <?[] <+ ![Where(s*)]> s*
+  ; s2* := <?[] <+ ![Where(<seqs> s*)]> s*
 
 insertCasts-Strategy-(|e1, st1):
   Build(trm1) -> (Build(trm2), st2)
