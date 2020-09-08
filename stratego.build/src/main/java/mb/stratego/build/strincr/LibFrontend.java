@@ -11,7 +11,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoList.Builder;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
@@ -234,13 +236,18 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
 
     private IStrategoTerm constrTypeFromFunType(ITermFactory tf, IStrategoTerm funType) throws ExecException {
         // FunType([...], ...)
-        IStrategoList args = TermUtils.toListAt(funType, 0);
-        IStrategoList.Builder b = tf.arrayListBuilder(args.size());
+        final IStrategoAppl dynt = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+        final IStrategoList args = TermUtils.toListAt(funType, 0);
+        final IStrategoList.Builder b = tf.arrayListBuilder(args.size());
         for(IStrategoTerm t : args) {
-            b.add(desugarType(tf, t));
+            if(TermUtils.isAppl(t, "ConstType", 1)) {
+                b.add(desugarType(tf, t.getSubterm(0)));
+            } else {
+                b.add(dynt);
+            }
         }
         return tf
-            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(b), desugarType(tf, funType.getSubterm(0))), funType);
+            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(b), desugarType(tf, funType.getSubterm(1).getSubterm(0))), funType);
     }
 
     private IStrategoTerm desugarType(ITermFactory tf, IStrategoTerm term) throws ExecException {
@@ -250,7 +257,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         // desugar-Type = otf(\SortVar("real") -> RealT()\)
         if(TermUtils.isAppl(term, "SortVar", 1)) {
             switch(TermUtils.toJavaStringAt(term, 0)) {
-                case "str":
+                case "string":
                     result = tf.makeAppl("StringT");
                     break;
                 case "int":
@@ -260,12 +267,20 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     result = tf.makeAppl("RealT");
                     break;
                 default:
+                    result = term;
                     break;
             }
         } else {
             if(TermUtils.isAppl(term, "SortNoArgs", 1)) {
                 // desugar-Type = otf(\SortNoArgs(x) -> Sort(x, [])\)
                 result = tf.makeAppl("Sort", term.getSubterm(0), tf.makeList());
+            } else if(TermUtils.isAppl(term, "Sort", 2)) {
+                final IStrategoList params = TermUtils.toListAt(term, 1);
+                final Builder types = tf.arrayListBuilder(params.size());
+                for(IStrategoTerm t : params) {
+                    types.add(desugarType(tf, t));
+                }
+                result = tf.makeAppl("Sort", term.getSubterm(0), tf.makeList(types));
             } else if(TermUtils.isAppl(term, "SortList", 1)) {
                 // desugar-Type = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
                 IStrategoTerm desugared = tf.makeAppl("Sort", tf.makeString("Nil"), tf.makeList());
@@ -292,24 +307,12 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                 // desugar-TupleType =
                 //   \TupleT(t1, t2) -> [<desugar-Type> t1 | <desugar-TupleType> t2]\
                 //   <+ ![<desugar-Type>]
-                IStrategoList.Builder b = tf.arrayListBuilder();
-                while(true) {
-                    if(TermUtils.isAppl(term, "TupleT", 2)) {
-                        b.add(desugarType(tf, term.getSubterm(0)));
-                        term = term.getSubterm(1);
-                        continue;
-                    }
-                    if(TermUtils.isList(term, 1)) {
-                        b.add(desugarType(tf, term.getSubterm(0)));
-                        result = tf.makeList(b);
-                    }
-                    break;
+                IStrategoList.Builder types = tf.arrayListBuilder();
+                types.add(desugarType(tf, term.getSubterm(0)));
+                for(IStrategoTerm t : term.getSubterm(1)) {
+                    types.add(desugarType(tf, t));
                 }
-                if(result == null) {
-                    throw new ExecException(
-                        "Malformed built-in library AST. " + "Expected TupleT(..., ...) or [...]: "
-                            + term.toString(0));
-                }
+                result = tf.makeAppl("TupleT", tf.makeList(types));
             } else {
                 // desugar-Type = id
                 result = term;
