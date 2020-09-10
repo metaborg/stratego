@@ -37,6 +37,7 @@ import mb.stratego.build.termvisitors.SugarAnalysis;
 import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoGradualSetting;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class StaticChecks {
@@ -203,7 +204,7 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, ResourcePath projectLocationPath, boolean gradualChecksOn) throws ExecException, InterruptedException {
+        List<Message<?>> outputMessages, ResourcePath projectLocationPath, StrategoGradualSetting strGradualSetting) throws ExecException, InterruptedException {
         final Data staticData = output.staticData;
 
         // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
@@ -241,9 +242,17 @@ public class StaticChecks {
                 warnConstCongrAndNullaryConstr(execContext, outputMessages, staticData, moduleName);
                 // Insert casts (mutates splitResult.strategyDefs)
                 final SplitResult splitResult = output.splitModules.get(moduleName);
-                if(gradualChecksOn) {
-                    insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
-                        sccInjEnv, splitResult);
+                switch(strGradualSetting) {
+                    case DYNAMIC:
+                        insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
+                            sccInjEnv, splitResult, true);
+                        break;
+                    case STATIC:
+                        insertCasts(moduleName, execContext, outputMessages, sccStrategyEnv, tf, sccConstructorEnv,
+                            sccInjEnv, splitResult, false);
+                        break;
+                    case NONE:
+                        break;
                 }
                 for(List<IStrategoTerm> consDefs : splitResult.consDefs.values()) {
                     output.backendData.consDefs.addAll(consDefs);
@@ -345,14 +354,16 @@ public class StaticChecks {
     public void insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
         Map<StrategySignature, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
         BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> sccConstructorEnv,
-        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult)
+        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult, boolean keepCasts)
         throws ExecException, InterruptedException {
         final InsertCasts.Input.Builder builder =
             new InsertCasts.Input.Builder(moduleName, sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
         for(Map.Entry<StrategySignature, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
             final InsertCasts.Input insertCastsInput = builder.build(e.getValue(), e.getKey());
             final InsertCasts.Output result = execContext.require(strIncrInsertCasts, insertCastsInput);
-            e.setValue(result.astWithCasts);
+            if(keepCasts) {
+                e.setValue(result.astWithCasts);
+            }
             outputMessages.addAll(result.messages);
         }
     }

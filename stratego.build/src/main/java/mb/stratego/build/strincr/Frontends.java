@@ -37,6 +37,7 @@ import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoGradualSetting;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontends {
@@ -46,10 +47,10 @@ public class Frontends {
         protected final Collection<String> builtinLibs;
         protected final Collection<STask<?>> originTasks;
         protected final ResourcePath projectLocation;
-        protected final boolean strGradualSetting;
+        protected final StrategoGradualSetting strGradualSetting;
 
         public Input(ResourcePath inputFile, Collection<ResourcePath> includeDirs, Collection<String> builtinLibs,
-            Collection<STask<?>> originTasks, ResourcePath projectLocation, boolean strGradualSetting) {
+            Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting) {
             this.inputFile = inputFile;
             this.includeDirs = includeDirs;
             this.builtinLibs = builtinLibs;

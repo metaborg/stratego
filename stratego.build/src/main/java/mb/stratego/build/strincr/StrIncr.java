@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -27,8 +26,8 @@ import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Frontends.Output;
-import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
@@ -42,7 +41,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
             Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
-            ResourcePath outputPath, Collection<STask<?>> originTasks, ResourcePath projectLocation, boolean strGradualSetting) {
+            ResourcePath outputPath, Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting) {
             super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;
