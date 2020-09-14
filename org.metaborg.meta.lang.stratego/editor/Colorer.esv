@@ -65,6 +65,7 @@ colorer Extension
   _.App     : strategycalls
   
   SVar      : strategycalls
+  TypedId   : strategycalls
   //Term      : terms
   //PreTerm   : terms
   //Var       : vars

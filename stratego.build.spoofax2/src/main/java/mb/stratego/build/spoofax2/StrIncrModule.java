@@ -1,13 +1,14 @@
 package mb.stratego.build.spoofax2;
 
 import com.google.inject.Singleton;
+
 import mb.pie.taskdefs.guice.TaskDefsModule;
 import mb.resource.DefaultResourceService;
 import mb.resource.ResourceService;
 import mb.resource.fs.FSResourceRegistry;
-import mb.stratego.build.strincr.Analysis;
 import mb.stratego.build.strincr.Backend;
 import mb.stratego.build.strincr.Frontend;
+import mb.stratego.build.strincr.Frontends;
 import mb.stratego.build.strincr.InsertCasts;
 import mb.stratego.build.strincr.LibFrontend;
 import mb.stratego.build.strincr.ParseStratego;
@@ -29,7 +30,7 @@ public class StrIncrModule extends TaskDefsModule {
 
         // bind special strategoxt context object used in all Tasks
         bind(StrIncrContext.class).in(Singleton.class);
-        bind(Analysis.class).in(Singleton.class);
+        bind(Frontends.class).in(Singleton.class);
 
         bind(ResourceService.class).toInstance(new DefaultResourceService(new FSResourceRegistry()));
         bind(ParseStratego.class).to(Spoofax2ParseStratego.class).in(Singleton.class);

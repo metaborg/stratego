@@ -1,45 +1,40 @@
 package mb.stratego.build.strincr;
 
-import static org.strategoxt.lang.Term.NO_STRATEGIES;
-import static org.strategoxt.lang.Term.NO_TERMS;
-
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
-import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.util.IOAgentTrackerFactory;
-import mb.stratego.build.util.StrategoConstants;
 import org.apache.commons.io.output.NullOutputStream;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.lang.StackSaver;
+import org.spoofax.terms.util.B;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
-import javax.inject.Inject;
-
-import org.spoofax.terms.util.B;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.IOAgentTracker;
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoConstants;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
@@ -49,6 +44,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
     public static final class Input implements Serializable {
         final ResourcePath projectLocation;
         final String strategyName;
+        final Collection<IStrategoTerm> constructors;
         final Collection<IStrategoAppl> strategyContributions;
         final Collection<IStrategoAppl> overlayContributions;
         final SortedMap<String, String> ambStrategyResolution;
@@ -60,12 +56,13 @@ public class Backend implements TaskDef<Backend.Input, None> {
         final Arguments extraArgs;
         final boolean isBoilerplate;
 
-        Input(ResourcePath projectLocation, @Nullable String strategyName, Collection<IStrategoAppl> strategyContributions,
+        Input(ResourcePath projectLocation, @Nullable String strategyName, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions,
             Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
-            @Nullable String packageName, ResourcePath outputPath, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, boolean isBoilerplate) {
+            @Nullable String packageName, ResourcePath outputPath, @Nullable ResourcePath cacheDir, List<String> constants, Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            boolean isBoilerplate) {
             this.projectLocation = projectLocation;
             this.strategyName = strategyName == null ? "" : strategyName;
+            this.constructors = constructors;
             this.strategyContributions = strategyContributions;
             this.overlayContributions = overlayContributions;
             this.ambStrategyResolution = ambStrategyResolution;
@@ -78,58 +75,35 @@ public class Backend implements TaskDef<Backend.Input, None> {
             this.isBoilerplate = isBoilerplate;
         }
 
-        @Override public String toString() {
-            return "StrIncrBack$Input(" + strategyName + ')';
+        @Override
+        public String toString() {
+            if(isBoilerplate) {
+                return "StrIncrBack$Input[boilerplate]";
+            } else {
+                return "StrIncrBack$Input(" + strategyName + ')';
+            }
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(o == null || getClass() != o.getClass())
+            if(!(o instanceof Input))
                 return false;
-
             Input input = (Input) o;
-
-            if(isBoilerplate != input.isBoilerplate)
-                return false;
-            if(!projectLocation.equals(input.projectLocation))
-                return false;
-            if(!strategyName.equals(input.strategyName))
-                return false;
-            if(!strategyContributions.equals(input.strategyContributions))
-                return false;
-            if(!overlayContributions.equals(input.overlayContributions))
-                return false;
-            if(!ambStrategyResolution.equals(input.ambStrategyResolution))
-                return false;
-            if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
-                return false;
-            if(!outputPath.equals(input.outputPath))
-                return false;
-            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
-                return false;
-            if(!constants.equals(input.constants))
-                return false;
-            //noinspection SimplifiableIfStatement
-            if(!includeDirs.equals(input.includeDirs))
-                return false;
-            return extraArgs.equals(input.extraArgs);
+            return isBoilerplate == input.isBoilerplate && projectLocation.equals(input.projectLocation) && strategyName
+                .equals(input.strategyName) && strategyContributions.equals(input.strategyContributions)
+                && overlayContributions.equals(input.overlayContributions) && ambStrategyResolution
+                .equals(input.ambStrategyResolution) && Objects.equals(packageName, input.packageName) && outputPath
+                .equals(input.outputPath) && Objects.equals(cacheDir, input.cacheDir) && constants
+                .equals(input.constants) && includeDirs.equals(input.includeDirs) && extraArgs.equals(input.extraArgs);
         }
 
-        @Override public int hashCode() {
-            int result = projectLocation.hashCode();
-            result = 31 * result + strategyName.hashCode();
-            result = 31 * result + strategyContributions.hashCode();
-            result = 31 * result + overlayContributions.hashCode();
-            result = 31 * result + ambStrategyResolution.hashCode();
-            result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
-            result = 31 * result + outputPath.hashCode();
-            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
-            result = 31 * result + constants.hashCode();
-            result = 31 * result + includeDirs.hashCode();
-            result = 31 * result + extraArgs.hashCode();
-            result = 31 * result + (isBoilerplate ? 1 : 0);
-            return result;
+        @Override
+        public int hashCode() {
+            return Objects
+                .hash(projectLocation, strategyName, strategyContributions, overlayContributions, ambStrategyResolution,
+                    packageName, outputPath, cacheDir, constants, includeDirs, extraArgs, isBoilerplate);
         }
     }
 
@@ -141,7 +115,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
     private final ResourcePathConverter resourcePathConverter;
-    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public Backend(ITermFactory termFactory, IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext, ResourcePathConverter resourcePathConverter) {
         this.termFactory = termFactory;
@@ -152,12 +125,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedBackTasks++;
-        timestamps.add(System.nanoTime());
 
         final long startTime = System.nanoTime();
         final IStrategoTerm ctree;
         if(input.isBoilerplate) {
-            ctree = Packer.packBoilerplate(termFactory, input.strategyContributions);
+            ctree = Packer.packBoilerplate(termFactory, input.constructors, input.strategyContributions);
         } else {
             ctree = Packer.packStrategy(termFactory, input.overlayContributions, input.strategyContributions,
                 input.ambStrategyResolution);
@@ -197,8 +169,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
-            timestamps.add(System.nanoTime());
-            throw new ExecException("Call to strj failed (" + result.exception.getMessage() + ")", result.exception);
+            throw new ExecException("Call to strj failed:\n" + result.exception, null);
         }
 
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
@@ -206,14 +177,11 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 String fileName = line.substring(line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
                     + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
-                timestamps.add(System.nanoTime());
                 execContext.provide(new File(fileName));
-                timestamps.add(System.nanoTime());
             }
         }
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
-        timestamps.add(System.nanoTime());
         return None.instance;
     }
 
@@ -231,16 +199,14 @@ public class Backend implements TaskDef<Backend.Input, None> {
 
         final long start = System.nanoTime();
         try {
-            final IStrategoTerm result;
-            // Launch with a clean operand stack when launched from SSL_java_call, Ant, etc.
-            if(new Exception().getStackTrace().length > 20) {
-                result = new StackSaver(strategy).invokeStackFriendly(strContext, input, NO_STRATEGIES, NO_TERMS);
-            } else {
-                result = strategy.invoke(strContext, input);
-            }
+            // We don't use StackSaver because we do not expect that the strategy invoked here will be more recursive
+            //  than the already generous stack limit.
+            final IStrategoTerm result = strategy.invoke(strContext, input);
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
                 logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
+            } else if(result == null) {
+                logger.debug("Executing " + name + " failed with normal Stratego failure. ");
             }
             final String stdout;
             final String stderr;
@@ -269,6 +235,8 @@ public class Backend implements TaskDef<Backend.Input, None> {
             strContext.popOnExit(false);
             if(!silent) {
                 logger.error("Executing " + name + " failed: ", e);
+            } else {
+                logger.debug("Executing " + name + " failed: " + e);
             }
             final String stdout;
             final String stderr;

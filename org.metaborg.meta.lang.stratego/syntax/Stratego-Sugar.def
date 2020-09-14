@@ -1,4 +1,84 @@
 definition
+module Stratego-Gradual-Terms
+imports Stratego-Core-Terms Stratego-Gradual-Signatures
+
+exports
+  context-free syntax
+    Term "::" Type -> Term {cons("TypeAscription")}
+
+module Stratego-Gradual-Strategies
+imports Stratego-Gradual-Signatures Stratego-Core-Identifiers Stratego-Core-Strategies
+
+exports
+  sorts Strategy Coercion Proxy
+
+  context-free syntax
+    "cast" "(" Coercion ")"                                                                   -> Strategy  {cons("Cast")}
+    "fail"                                                                                    -> Coercion  {cons("Fail")}
+    "id"                                                                                      -> Coercion  {cons("Id")}
+    Type                                                                                      -> Coercion  {cons("RuntimeCheck")}
+    "id"                                                                                      -> SCoercion {cons("SId")}
+    Type                                                                                      -> SCoercion {cons("SRuntimeCheck")}
+    SortT "." Id                                                                              -> TypedId   {cons("TypedId")}
+    Proxy                                                                                     -> Strategy  
+    "proxy" "(" Coercion "," Coercion ")(" SVar ")"                                           -> Proxy     {cons("Proxy")}
+    "proxy" "(" {SCoercion ","}* "|" {Coercion ","}* ")(" Coercion "," Coercion ")(" SVar ")" -> Proxy     {cons("ProxyT")}
+
+  lexical syntax
+    "cast"  -> SVar {reject}
+
+  lexical restrictions
+    "cast" "fail" "id" "proxy" -/- [a-zA-Z0-9\'\-\_]
+
+module Stratego-Gradual-Signatures
+imports Stratego-Core-Identifiers
+
+exports
+  sorts Type SortT Dyn ConstrType
+
+  context-free syntax
+    "?"                    -> Dyn   {cons("Dyn")}
+    Dyn                    -> Type  {cons("DynT")}
+    "str"                  -> Type  {cons("StringT")}
+    "int"                  -> Type  {cons("IntT")}
+    "real"                 -> Type  {cons("RealT")}
+    Type "*" Type          -> Type  {cons("TupleT"), right}
+    SortT                  -> Type  
+    Id "(" {Type ","}* ")" -> SortT {cons("Sort")}
+    UCID                   -> SortT {cons("SortNoArgs")}
+    LCID                   -> SortT {cons("SortVar"), avoid}
+
+  sorts SType SFunType
+
+  context-free syntax
+    "?"                                                 -> SType    {cons("SDyn")}
+    SFunType                                            -> SType    
+    Type "->" Type                                      -> SFunType {cons("FunNoArgsType")}
+    "(" {SType ","}* ")" Type "->" Type                 -> SFunType {cons("FunType")}
+    "(" {SType ","}* "|" {Type ","}* ")" Type "->" Type -> SFunType {cons("FunTType")}
+
+  context-free syntax
+    "str"  -> Sort {cons("StringT"), avoid}
+    "int"  -> Sort {cons("IntT"), avoid}
+    "real" -> Sort {cons("RealT"), avoid}
+
+module Stratego-Gradual-Modules
+imports Stratego-Core-Identifiers Stratego-Gradual-Signatures
+
+exports
+  sorts Def
+
+  context-free syntax
+    Id "::" SFunType -> Def {cons("DefHasType")}
+
+module Stratego-Gradual
+
+imports
+  Stratego-Gradual-Modules
+  Stratego-Gradual-Signatures
+  Stratego-Gradual-Strategies
+  Stratego-Gradual-Terms
+
 module Stratego-Sugar-Overlays
 imports
   Stratego-Core-Identifiers
@@ -364,38 +444,41 @@ imports
   Stratego-Core-Constants
 exports
   sorts Sdecl
+
   context-free syntax
-    "sorts" Sort* 		-> Sdecl {cons("Sorts")}
-    "constructors" Opdecl* 	-> Sdecl {cons("Constructors")}
+    "sorts" Sort*          -> Sdecl {cons("Sorts")}
+    "constructors" Opdecl* -> Sdecl {cons("Constructors")}
 
   sorts Sort
+
   context-free syntax
-    LCID 			 -> Sort {cons("SortVar")}
-    UCID 			 -> Sort {cons("SortNoArgs")}
-    Id "(" {Sort ","}* ")" 	 -> Sort {cons("Sort")}
+    LCID                   -> Sort {cons("SortVar")}
+    UCID                   -> Sort {cons("SortNoArgs")}
+    Id "(" {Sort ","}* ")" -> Sort {cons("Sort")}
 
   sorts Opdecl
-  context-free syntax
-    Id     ":" Type 		-> Opdecl {cons("OpDecl")}
-    String ":" Type 		-> Opdecl {cons("OpDeclQ")}
-           ":" Type 		-> Opdecl {cons("OpDeclInj")}
 
   context-free syntax
-    "external" Id     ":" Type 	-> Opdecl {cons("ExtOpDecl")}
-    "external" String ":" Type 	-> Opdecl {cons("ExtOpDeclQ")}
-    "external"        ":" Type 	-> Opdecl {cons("ExtOpDeclInj")}
+    Id ":" OpType                -> Opdecl {cons("OpDecl")}
+    String ":" OpType            -> Opdecl {cons("OpDeclQ")}
+    ":" OpType                   -> Opdecl {cons("OpDeclInj")}
+    "external" Id ":" OpType     -> Opdecl {cons("ExtOpDecl")}
+    "external" String ":" OpType -> Opdecl {cons("ExtOpDeclQ")}
+    "external" ":" OpType        -> Opdecl {cons("ExtOpDeclInj")}
 
-  sorts Type ArgType ConstType FunType RetType
+  sorts OldType OldArgType ConstType FunType RetType OpType
+
   context-free syntax
-    Sort	                -> ConstType {cons("ConstType")}
-    {ArgType "*"}+ "->" RetType -> FunType {cons("FunType")}
-    "(" Type ")"                -> ArgType {bracket}
-    ConstType			-> ArgType
-    Type	                -> RetType
-    FunType			-> RetType {reject}
-
-    FunType			-> Type
-    ConstType			-> Type
+    Sort                            -> ConstType  {cons("ConstType")}
+    {OldArgType "*"}+ "->" RetType  -> FunType    {cons("FunType")}
+    "(" OldType ")"                 -> OldArgType {bracket}
+    ConstType                       -> OldArgType 
+    OldType                         -> RetType    
+    FunType                         -> RetType    {reject}
+    FunType                         -> OldType    
+    ConstType                       -> OldType    
+    ConstType                       -> OpType     
+    {ConstType "*"}+ "->" ConstType -> OpType     {cons("FunType")}
 
   %%%
    %% Restriction is required for the Sort* in Sdecl: List(a) is
@@ -513,7 +596,7 @@ exports
 
   sorts Typedid
   context-free syntax
-    ID ":" Type 			  -> Typedid {cons("VarDec")}
+    ID ":" OldType 			  -> Typedid {cons("VarDec")}
 
 
   sorts Strategy SVar StrategyParen StrategyMid 
@@ -865,6 +948,7 @@ imports
   Stratego-Sugar-Rules
   Stratego-Sugar-DynamicRules
   Stratego-Sugar-Overlays
+  Stratego-Gradual
 
 hiddens
   context-free start-symbols Module

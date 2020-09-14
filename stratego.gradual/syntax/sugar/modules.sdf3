@@ -1,0 +1,21 @@
+module sugar/modules
+imports
+  core/modules
+  core/identifiers
+  sugar/strategies
+  sugar/signatures
+  sugar/overlays
+  sugar/rules
+
+sorts Decl Def
+
+context-free syntax
+  Decl.Rules =
+<rules
+  <{Def "\n\n"}*>>
+
+  Decl.Overlays =
+<overlays
+  <{Overlay "\n\n"}*>>
+
+  Def = <<RuleDef>>

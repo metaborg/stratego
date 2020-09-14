@@ -55,7 +55,9 @@ colorer Extension
   RuleDef      : 0 64 128 bold
   RuleDec      : 0 64 128 bold
   StrategyDef  : 0 64 128 bold
+  _.DefHasTypeNoArgs : 0 64 128 bold
   _.DefHasType : 0 64 128 bold
+  _.DefHasTType : 0 64 128 bold
   Overlay      : 0 64 128 bold
 
   strategycalls = 0 64 128

@@ -1,9 +1,7 @@
 package mb.stratego.build.strincr;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,18 +39,6 @@ public class BuildStats {
         + "\"Shuffle backend time\"";
     // @formatter:on
 
-    // @formatter:off
-    public static final String CSV_HEADER2 = "\"Total time\","
-        + "\"PIE overhead\","
-        + "\"Frontend time\","
-        + "\"SubFrontend time\","
-        + "\"Backend time\","
-        + "\"Lib time\","
-        + "\"Analysis time\","
-        + "\"InsertCasts time\","
-        + "\"StrIncr time\"";
-    // @formatter:on
-
     public static void reset() {
         executedFrontTasks = 0;
         executedFrontLibTasks = 0;
@@ -68,14 +54,6 @@ public class BuildStats {
         modulesDefiningStrategy.clear();
         tldSubFrontendCTreeSize.clear();
         strategyBackendCTreeSize.clear();
-
-        Frontend.timestamps.clear();
-        SubFrontend.timestamps.clear();
-        Backend.timestamps.clear();
-        LibFrontend.timestamps.clear();
-        Analysis.timestamps.clear();
-        InsertCasts.timestamps.clear();
-        StrIncr.timestamps.clear();
     }
 
     public static String csv() {
@@ -96,38 +74,5 @@ public class BuildStats {
             + "," + checkTime
             + "," + shuffleBackendTime;
         // @formatter:on
-    }
-
-    public static String csv2(long totalTime) {
-        final long frontTime = computeTime(Frontend.timestamps);
-        final long subFrontTime = computeTime(SubFrontend.timestamps);
-        final long backTime = computeTime(Backend.timestamps);
-        final long libTime = computeTime(LibFrontend.timestamps);
-        final long analysisTime = computeTime(Analysis.timestamps);
-        final long castTime = computeTime(InsertCasts.timestamps);;
-        final long strIncrTime = computeTime(StrIncr.timestamps);
-        long totalRecordedTime = frontTime + subFrontTime + backTime + libTime + analysisTime + castTime + strIncrTime;
-        final long pieTime = totalTime - totalRecordedTime;
-        // @formatter:off
-        return totalTime +
-            "," + pieTime +
-            "," + frontTime +
-            "," + subFrontTime +
-            "," +  backTime +
-            "," +  libTime +
-            "," +  analysisTime +
-            "," +  castTime +
-            "," +  strIncrTime;
-        // @formatter:on
-    }
-
-    public static long computeTime(ArrayList<Long> timestamps) {
-        long frontTime = 0L;
-        for(Iterator<Long> iterator = timestamps.iterator(); iterator.hasNext(); ) {
-            Long l1 = iterator.next();
-            Long l2 = iterator.next();
-            frontTime += l2 - l1;
-        }
-        return frontTime;
     }
 }

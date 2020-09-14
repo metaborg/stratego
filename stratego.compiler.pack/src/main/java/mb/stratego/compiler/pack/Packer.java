@@ -347,9 +347,9 @@ public class Packer {
     }
 
 
-    public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoAppl> strategyContributions) {
+    public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions) {
         return f.makeAppl("Specification",
-            f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
+            f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList(constructors)))),
                 f.makeAppl("Strategies", f.makeList(strategyContributions))));
     }
 

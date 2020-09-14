@@ -13,7 +13,7 @@ context-free syntax
   ModName = "signature"   {reject}
   ModName = "strategies"  {reject}
 
-sorts Id LId LCID UCID Wld
+sorts Id LId LCID UCID Wld SortVar
 lexical syntax
 // Removed leading underscore option, nearly always conflicts with Term.BuildDefault
 //  Id   = [a-zA-Z\_] [a-zA-Z0-9\'\-\_]*
@@ -24,6 +24,12 @@ lexical syntax
 
   LCID = [a-z] [a-zA-Z0-9\'\-\_]*
   UCID = [A-Z] [a-zA-Z0-9\'\-\_]*
+  
+  SortVar = LCID
+  SortVar = BuiltInType {reject}
+  BuiltInType = "string"
+  BuiltInType = "int"
+  BuiltInType = "real"
 
 lexical restrictions
   Id   -/- [a-zA-Z0-9\'\_\*]
@@ -66,6 +72,7 @@ lexical syntax
   Keyword = "test"
   Keyword = "where"
   Keyword = "import-term"
+  Keyword = "is"
 
 lexical restrictions
   "all"
@@ -78,6 +85,7 @@ lexical restrictions
   "id"
   "if"            // not reserved kw
   "in"
+  "is"
   "imports"       // not reserved kw
   "let"
   "module"

@@ -1,0 +1,32 @@
+module type-preserving-problem
+
+signature
+  sorts
+    Const
+    Expr
+  constructors
+    Int : string -> Const
+    : Const -> Expr
+    Plus : Expr * Expr -> Expr
+    Array : Expr * Const -> Expr
+    // ^ Makes a new array with initial value from the Expr, and length of the const
+
+strategies
+
+  add-one :: Expr -> Expr
+  add-one: e -> Plus(e, Int("1"))
+
+  not-truly-type-preserving :: Expr -> Expr
+  not-truly-type-preserving = topdown(try(add-one))
+  // ^ This breaks the guarantee that the second child of Array is a constant
+//  not-truly-type-preserving = topdown(try(is(Expr); add-one))
+
+strategies
+
+ topdown( TP ) :: TP
+//  topdown(? -> ?) :: ? -> ?
+  topdown(s) = s; all(s)
+
+ try( TP ) :: TP
+//  try(? -> ?) :: ? -> ?
+  try(s) = s <+ id

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -31,9 +30,7 @@ public class SugarAnalysis {
         this.sugarAnalysisMessages = sugarAnalysisMessages;
         this.definedConstructors = new HashSet<>();
         for(StringSetWithPositions sswp : allDefinedConstructors.values()) {
-            for(String constr : sswp.readSet()) {
-                this.definedConstructors.add(constr);
-            }
+            this.definedConstructors.addAll(sswp.readSet());
         }
     }
 

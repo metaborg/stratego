@@ -7,6 +7,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.pie.api.Logger;
+
 public abstract class Message<T extends IStrategoTerm> {
     public final String moduleFilePath;
     public final T locationTerm;
@@ -85,11 +87,69 @@ public abstract class Message<T extends IStrategoTerm> {
         return new VarConstrOverlap(module, name);
     }
 
+    public static Message<IStrategoTerm> from(Logger logger, String module, IStrategoTerm messageTuple, MessageSeverity severity) {
+        IStrategoTerm locationTerm = messageTuple.getSubterm(0);
+        final IStrategoTerm messageTerm = messageTuple.getSubterm(1);
+        switch(TermUtils.toAppl(messageTerm).getName()) {
+            case "CallDynamicNotSupported":
+                return new CallDynamicNotSupported(module, locationTerm, severity);
+            case "TermVariableTypedWithStrategyType":
+                return new TermVariableTypedWithStrategyType(module, locationTerm, severity);
+            case "StrategyVariableTypedWithTermType":
+                return new StrategyVariableTypedWithTermType(module, locationTerm, severity);
+            case "DuplicateTypeDefinition":
+                return new DuplicateTypeDefinition(module, locationTerm, severity);
+            case "MissingDefinitionForTypeDefinition":
+                return new MissingDefinitionForTypeDefinition(module, locationTerm, severity);
+            case "ProceedWrongNumberOfArguments":
+                return new ProceedWrongNumberOfArguments(module, locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
+                    TermUtils.toJavaIntAt(messageTerm, 1), severity);
+            case "ProceedInNonExtendStrategy":
+                return new ProceedInNonExtendStrategy(module, locationTerm, severity);
+            default:
+                logger.warn("Unrecognised message from type checker, passing raw message. ", null);
+                return new RawTermMessage(module, locationTerm, messageTerm, severity);
+        }
+        /* TODO: implement
+         *  CallStrategyArgumentTakesParameters  : SFunType -> ErrorDesc
+         *  NoInjectionBetween                   : Type * Type -> ErrorDesc
+         *  VariableBoundToIncompatibleType      : Type * Type -> ErrorDesc
+         *  TypeMismatch                         : Type * Type -> ErrorDesc
+         *  STypeMismatch                        : SType * SType -> ErrorDesc
+         *  UnresolvedLocal                      : ErrorDesc
+         *  UnresolvedConstructor                : Int * Type -> ErrorDesc
+         *  UnresolvedStrategy                   : Int * Int -> ErrorDesc
+         *  AmbiguousConstructorUse              : List(Type) -> ErrorDesc
+         *  AsInBuildTerm                        : ErrorDesc
+         *  WldInBuildTerm                       : ErrorDesc
+         *  BuildDefaultInBuildTerm              : ErrorDesc
+         *  BuildDefaultInMatchTerm              : ErrorDesc
+         *  StringQuotationInMatchTerm           : ErrorDesc
+         *  NonStringOrListInExplodeConsPosition : Type -> ErrorDesc
+         *  NonListInAnno                        : Type -> ErrorDesc
+         *  MultipleAppsInMatch                  : ErrorDesc
+         *  BuildUnboundTerm                     : ErrorDesc
+         */
+    }
+
     public String toString() {
         return "In '" + moduleFilePath + "':\n" + getMessage();
     }
 
     public abstract String getMessage();
+}
+
+abstract class InsertCastsMessage extends Message<IStrategoTerm> {
+    public InsertCastsMessage(String module, IStrategoTerm locationTerm, MessageSeverity severity) {
+        super(module, locationTerm, severity);
+    }
+
+    @Override
+    public String getMessage() {
+        return getMessageWithoutLocation() + " @ " + locationTerm.toString();
+    }
+
+    public abstract String getMessageWithoutLocation();
 }
 
 class ExternalStrategyNotFound extends Message<IStrategoString> {
@@ -199,5 +259,103 @@ class VarConstrOverlap extends Message<IStrategoString> {
 
     @Override public String getMessage() {
         return "Nullary constructor '" + locationTerm.stringValue() + "' should be followed by round brackets ().";
+    }
+}
+
+class RawTermMessage extends InsertCastsMessage {
+    private final IStrategoTerm messageTerm;
+
+    public RawTermMessage(String module, IStrategoTerm locationTerm, IStrategoTerm messageTerm,
+        MessageSeverity severity) {
+        super(module, locationTerm, severity);
+        this.messageTerm = messageTerm;
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return this.messageTerm.toString();
+    }
+}
+
+class CallDynamicNotSupported extends InsertCastsMessage {
+    public CallDynamicNotSupported(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "The dynamic call construct is no longer supported.";
+    }
+}
+
+class TermVariableTypedWithStrategyType extends InsertCastsMessage {
+    public TermVariableTypedWithStrategyType(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "This is a term variable, but it has a strategy type.";
+    }
+}
+
+class StrategyVariableTypedWithTermType extends InsertCastsMessage {
+    public StrategyVariableTypedWithTermType(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "This is a strategy variable, but it has a term type.";
+    }
+}
+
+class DuplicateTypeDefinition extends InsertCastsMessage {
+    public DuplicateTypeDefinition(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "Duplicate type definition.";
+    }
+}
+
+class MissingDefinitionForTypeDefinition extends InsertCastsMessage {
+    public MissingDefinitionForTypeDefinition(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
+        super(module, callDynTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "Cannot find definition corresponding to this type definition.";
+    }
+}
+
+class ProceedWrongNumberOfArguments extends InsertCastsMessage {
+    private final int sarg;
+    private final int targ;
+
+    public ProceedWrongNumberOfArguments(String module, IStrategoTerm locationTerm, int sarg,
+        int targ, MessageSeverity severity) {
+        super(module, locationTerm, severity);
+        this.sarg = sarg;
+        this.targ = targ;
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "Proceed call expected " + sarg + " strategy arguments, and " + targ + " term arguments. ";
+    }
+}
+
+class ProceedInNonExtendStrategy extends InsertCastsMessage {
+    public ProceedInNonExtendStrategy(String module, IStrategoTerm locationTerm, MessageSeverity severity) {
+        super(module, locationTerm, severity);
+    }
+
+    @Override
+    public String getMessageWithoutLocation() {
+        return "Unexpected call to proceed in strategy that does not extend an external strategy. ";
     }
 }

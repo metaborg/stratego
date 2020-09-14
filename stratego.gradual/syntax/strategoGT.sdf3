@@ -1,0 +1,10 @@
+module strategoGT
+
+imports
+  sugar/main
+  core/main
+  gradual-types/main
+
+  core/modules
+
+context-free start-symbols Module

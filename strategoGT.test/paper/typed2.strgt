@@ -1,0 +1,77 @@
+module typed-transformation2
+signature
+  sorts Exp constructors
+    Var  : string -> Exp
+    Int  : string -> Exp
+    Add  : Exp * Exp -> Exp
+    Sub  : Exp * Exp -> Exp
+    Lt   : Exp * Exp -> Exp
+    Min  : Exp -> Exp
+    Inc  : Exp -> Exp
+  sorts Stat constructors
+    Exp    : Exp -> Stat
+    Assign : string * Exp -> Stat
+    Seq    : Stat * Stat -> Stat
+    While  : Exp * Stat -> Stat
+    For    : string * Exp * Exp * Stat -> Stat
+
+rules
+
+  transform   :: Stat -> Stat
+  desugar     :: TP
+  desugar-inc :: Exp -> Stat
+  lift-assign :: Stat -> Stat
+  
+  bottomup(? -> ?) :: ? -> ?
+  alltd(? -> ?) :: ? -> ?
+  
+rules
+
+  desugar :
+    Min(e) -> Sub(Int("0"), e)
+
+  desugar :
+    For(x, e1, e2, stat) ->
+    Seq(Assign(x, e1),
+      While(Lt(Var(x), e2),
+        Seq(stat, Assign(x, Add(Var(x), Int("1"))))
+      ))
+
+rules
+
+  desugar-inc :
+    Inc(Var(x)) -> Assign(x, Add(Var(x), Int("1")))
+    
+  lift-assign : 
+    stat@<is-simple-stat> -> Seq(Assign(x, e), stat2)
+    where 
+      <oncetd-hd((Assign(x, e) -> Var(x)))> stat => stat2
+      
+strategies
+   
+  desugar-all = 
+    bottomup(try(desugar <+ desugar-inc))
+
+  lift-all = 
+    alltd(lift-assign; lift-all)
+
+  transform = 
+    desugar-all; lift-all
+
+strategies // type strategies
+
+  is-simple-stat = ?Assign(_,_) <+ ?Exp(_)
+    <+ ?While(_,_) <+ ?For(_,_,_,_)
+
+strategies // traversal strategies
+
+  oncetd-hd(s) =
+    While(oncetd(s), id) <+ For(id,oncetd(s),id,id) 
+    <+ For(id,id,oncetd(s),id) <+ Exp(oncetd(s))
+    <+ Assign(id, oncetd(s))
+
+strategies // generic strategies
+  try(s)      = s <+ id
+  bottomup(s) = all(bottomup(s)); s
+  oncetd(s)   = s <+ one(oncetd(s))
+  alltd(s)    = s <+ all(alltd(s))

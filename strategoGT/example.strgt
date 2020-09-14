@@ -5,179 +5,24 @@ imports
 libstratego-lib
 
 signature constructors
-
-Incr : Expr -> Expr
-Add  : Expr * Expr -> Expr
-Int  : str -> Expr
-Var  : str -> Expr
-
-VarDecl : str * Type * Expr -> Stat
-VarDecl : str * Type -> Stat
-Assign  : str * Expr -> Stat
-Seq     : Stat * Stat -> Stat
-Module  : str * List(Stat) -> Module
-
-IAdd : Instr
-
-strategies
-  typed0 :: Expr -> Expr
-  typed0: e1 -> Add(e1, e2)
-  where e2 := Add(Int("1"), "1")
-
-  typed1 :: Expr -> Expr
-  typed1: e -> Add(e, e)
-
-  typed2 :: Stat -> Stat
-  typed2 = id
-
-  untyped: Add(e1, _) -> e1
-  where
-    <typed1> e1
-  ; <typed2> e1
-
-//  test-warning :: Module -> Module
-  test-warning: Module(name, stats) -> Module(stats, name)
-
-//  desugar-Expr :: Expr -> Expr
-//  desugar-Expr: Int(e) -> Add(e, "1")
-
-  typed :: Expr -> Expr
-  typed: e1 -> Add(e1, e2)
-  where e2 := "1" :: Expr
-
-  untyped: Add(e1 :: Expr, _) -> e1
-  where <typed> e1
-/* //turns into:
-  untyped: Add(e10, _) -> e1
-  where e1 := <Cast(Expr())> e10
-  where <typed> e1
-*/
-
-  banana :: Expr -> Expr
-  banana = Var(id)
-
-// banana = Var(id)
-
-  foo = ?A(<id>, B(<f>))
-  
-//  desugar: a -> b
-//  where // a: 
-
-//  map :: (? -> ?) List(?) -> List(?)
-//  map :: (a -> b) List(a) -> List(b)
-
-  create-Add :: (|?, ?) ? -> Expr
-  create-Add(|left, right) = !Add(left, right)
-
-  desugar-Expr :: Expr -> Stat
-  desugar-Expr: VarDecl(x, t, init) -> Seq(VarDecl(x, t), Assign(x, init))
-
-  desugar-Module :: ( (|?) ? -> ? | String) Module -> Module
-  desugar-Module(lookup|globalName): Module(name, body) -> Module(name, body)
-  where b := <lookup(|name)> globalName
-
-  desugar :: (? -> ? | ?) ? -> ?
-  desugar(s | t) = fail
-
-//  foo: Int(e) -> Add(Int(e), Int("1"))
-//  foo: Seq(e1, e2) -> Seq(e2, e1)
-
-//  desugar :: ? -> ?
-//  desugar: Incr(e) -> Incr(e)
-
-//desugar-Stat :: Stat -> Stat
-desugar-Stat = fail
-
-// desugar :: TP
-  desugar = cast(Foo( )); desugar-Expr
-
-  desugar1 = !Add(Int("1"), Int("1")); desugar
-
-// desugar :: a -> a
-// Hd :: List(a) -> a
-
-// topdown-TP :: (forall a. a -> a) b -> b // rank N polymorphism
-// topdown-TP :: (TP) TP                   // special TypePreserving type
-  topdown-TP(s) = s; all(topdown-TP(s))
-
-// topdown :: (? -> ?) ? -> ?              // not typed
-
-// all :: (TP) TP
-// all :: (? -> ?) ? -> ?
-
-// collect-TU :: (forall a. a -> b) c -> List(b)
-// collect-TU :: (TU(b)) TU(List(b))       // special TypeUnifying type
-  collect-TU(s) = ![<s> | <children;mapconcat(collect-TU(s))>]
-
-  children :: ? -> List(?)
-  children: _#(l) -> l
-
-//strategies
-
-  // Tiger to list of instructions
-  // usage: bottomup(codegen); flatten
-
-  codegen :: Expr -> List(?)
-  codegen: Add(e1, e2) -> [e1, e2, IAdd()]
-
-  /*
-for(var i = 0; i <= 10; i++) {
-
-}
-
-
-  */
-
-  lift-assign-Expr :: ? -> ? // ?Expr -> ?Stat
-  lift-assign-Expr: Add(e1, Assign(x, e2)) -> Seq(Assign(x, e2), Add(e1, Var(x)))
-  lift-assign-Expr: Add(Assign(x, e1), e2) -> Seq(Assign(x, e1), Add(Var(x), e2))
-
-  desugar-Expr: Incr(x) -> Assign(x, Add(x, 1))
-
-  lift-statements-from-expressions = bottomup(lift-assign-Expr)
-
-  bottomup(s) = fail
-  map(s) = fail
-  mapconcat :: (? -> List(?)) List(?) -> List(?)
-  mapconcat(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
-  lookup(|s) = fail
+  Parenthetical : Term -> Term
 
 strategies
 
-  s = fail 
-  returns-a-list :: ? -> List(?)
-  returns-a-list = fail
-  do-something = fail
-  returns-a-pair :: ? -> ? * ?
-  returns-a-pair = fail
-  something-else :: List(?) -> ?
-//  something-else :: ? * ? -> ?
-  something-else = fail
-
-  local-variable-type-inference: a -> b
-  where if <s> a
-    then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
-    else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
-    end
-  ; b := <something-else> c // c :: ?, cast necessary when matching to anything
-
-signature constructors
-  amb : List(a) -> Amb(a)
-  // for each sort X have an injection `: Amb(X) -> X`
+alltd(s) = fail
+is-string = fail
+is-completion-placeholder = fail
+construct-text-with-comments(s1, s2, s3|t) = fail
+DEFAULT-INDENT = fail
+try(s) = fail
 
 strategies
 
-  foo :: (Stat -> Stat) Stat -> Stat
-  foo(s) = foo2(s)
-  
-  foo2(s) = if id then s else foo(s) end
-  
-  bar :: ? -> ?
-  bar = id
-  
-  baz = foo(bar)
-  
+construct-text-by-pp(pp, override-reconstruction, resugar):
+  node -> text
+  where 
+    text := < ?Parenthetical(<id>);
+      all(alltd(is-string <+ is-completion-placeholder <+ try(construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))));
+      !Parenthetical(<id>);
+      pp
+    > node

@@ -3,9 +3,9 @@ module gradual-types/strategies
 imports
   gradual-types/signatures
   core/identifiers
+  core/strategies
 
 template options
-  Id = keyword {reject}
   keyword -/- [a-zA-Z0-9\'\-\_]
   tokenize: ")(|"
 
@@ -14,17 +14,21 @@ sorts Strategy Coercion Proxy
 context-free syntax
 // Extension for highlighting casts
   Strategy.Cast   = [cast([Coercion])]
+  Strategy.TypeTest   = [is([Type])]
 //  Strategy.TypedCong = [[TypedId]([{Strategy ", "}*])]
 
   Coercion.Fail = [fail]
   Coercion.Id = [id]
   Coercion.RuntimeCheck = Type
 
-  SCoercion.SId = [id]
-  SCoercion.SRuntimeCheck = Type
+  SCoercion.SFail         = [fail]
+  SCoercion.SId           = [id]
+  SCoercion.SRuntimeCheck = SType
 
   TypedId.TypedId = [[SortT].[Id]]
 
-  Strategy = Proxy
-  Proxy.Proxy = [proxy([Coercion], [Coercion])([Strategy])]
-  Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([Strategy])]
+  Strategy     = Proxy
+  Proxy.Proxy  = [proxy([Coercion], [Coercion])([SVar])]
+  Proxy.ProxyT = [proxy([{SCoercion ", "}*] | [{Coercion ", "}*])([Coercion], [Coercion])([SVar])]
+
+  SVar = "cast" {reject}

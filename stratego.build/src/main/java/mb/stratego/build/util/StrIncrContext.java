@@ -12,6 +12,7 @@ public class StrIncrContext extends Context {
     /**
      * Hide zero-argument constructor from superclass so Guice understands to use the @Inject constructor
      */
+    @SuppressWarnings("unused")
     private StrIncrContext() {
         super();
     }

@@ -1,0 +1,23 @@
+module example
+
+imports
+
+libstratego-lib
+
+signature constructors
+
+Incr : Expr -> Expr
+Add  : Expr * Expr -> Expr
+Int  : str -> Expr
+Var  : str -> Expr
+
+VarDecl : str * Type * Expr -> Stat
+VarDecl : str * Type -> Stat
+Assign  : str * Expr -> Stat
+Seq     : Stat * Stat -> Stat
+Module  : str * List(Stat) -> Module
+
+strategies
+
+//  test-warning :: Module -> Module
+  test-warning: Module(name, stats) -> Module(stats, name)

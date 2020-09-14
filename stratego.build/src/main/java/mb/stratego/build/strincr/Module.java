@@ -1,34 +1,24 @@
 package mb.stratego.build.strincr;
 
-import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
-import mb.pie.api.stamp.resource.ResourceStampers;
-import mb.resource.ReadableResource;
-import mb.resource.ResourceService;
-import mb.resource.fs.FSResource;
-
-import mb.resource.hierarchical.HierarchicalResource;
-import mb.resource.hierarchical.ResourcePath;
-import mb.resource.hierarchical.match.PathResourceMatcher;
-import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.metaborg.util.functions.CheckedFunction1;
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
+import mb.pie.api.stamp.resource.ResourceStampers;
+import mb.resource.ReadableResource;
+import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.hierarchical.ResourcePath;
+import mb.resource.hierarchical.match.PathResourceMatcher;
+import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
 
 public final class Module implements Serializable {
     public enum Type {

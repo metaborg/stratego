@@ -1,14 +1,18 @@
 package mb.stratego.build.strincr;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class BackendData {
+    final List<IStrategoTerm> consDefs = new ArrayList<>();
     // Cified-strategy-name to definitions of that strategy
-    Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
+    final Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
     // Constructor_arity of congruence to definition of that strategy
     final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
     // Cified-strategy-name to constructor_arity names that were used in the body

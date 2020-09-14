@@ -1,0 +1,25 @@
+module example
+
+signature
+sorts
+
+Expr
+Stat
+Type
+
+constructors
+
+Incr : Expr -> Expr // ++
+Add  : Expr * Expr -> Expr // +
+Int  : string -> Expr // 123
+Var  : string -> Expr // x,y
+
+VarDecl : string * Type * Expr -> Stat
+
+strategies
+
+  typed1 :: Expr -> Expr
+  typed1: e -> Add(e, <untyped> e)
+
+  untyped :: ? -> ?
+  untyped: Add(e1, _) -> <typed1> e1

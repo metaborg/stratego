@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -10,31 +9,30 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
-import mb.resource.hierarchical.ResourcePath;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.fs.FSPath;
-import mb.stratego.build.strincr.Analysis.Output;
-import mb.stratego.build.util.CommonPaths;
+import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
 
-    public static final class Input extends Analysis.Input {
+    public static final class Input extends Frontends.Input {
         final @Nullable String javaPackageName;
         final @Nullable ResourcePath cacheDir;
         final List<String> constants;
@@ -43,8 +41,8 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
         public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
             Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
-            ResourcePath outputPath, Collection<STask> originTasks, ResourcePath projectLocation) {
-            super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation);
+            ResourcePath outputPath, Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting) {
+            super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;
             this.constants = constants;
@@ -52,54 +50,28 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             this.outputPath = outputPath;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override
+        public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(o == null || getClass() != o.getClass())
+            if(!(o instanceof Input))
                 return false;
-
+            if(!super.equals(o))
+                return false;
             Input input = (Input) o;
-
-            if(!inputFile.equals(input.inputFile))
-                return false;
-            if(javaPackageName != null ? !javaPackageName.equals(input.javaPackageName) : input.javaPackageName != null)
-                return false;
-            if(!includeDirs.equals(input.includeDirs))
-                return false;
-            if(!builtinLibs.equals(input.builtinLibs))
-                return false;
-            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
-                return false;
-            if(!constants.equals(input.constants))
-                return false;
-            if(!extraArgs.equals(input.extraArgs))
-                return false;
-            if(!outputPath.equals(input.outputPath))
-                return false;
-            //noinspection SimplifiableIfStatement
-            if(!originTasks.equals(input.originTasks))
-                return false;
-            return projectLocation.equals(input.projectLocation);
+            return Objects.equals(javaPackageName, input.javaPackageName) && Objects.equals(cacheDir, input.cacheDir)
+                && constants.equals(input.constants) && extraArgs.equals(input.extraArgs) && outputPath
+                .equals(input.outputPath);
         }
 
-        @Override public int hashCode() {
-            int result = inputFile.hashCode();
-            result = 31 * result + (javaPackageName != null ? javaPackageName.hashCode() : 0);
-            result = 31 * result + includeDirs.hashCode();
-            result = 31 * result + builtinLibs.hashCode();
-            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
-            result = 31 * result + constants.hashCode();
-            result = 31 * result + extraArgs.hashCode();
-            result = 31 * result + outputPath.hashCode();
-            result = 31 * result + originTasks.hashCode();
-            result = 31 * result + projectLocation.hashCode();
-            return result;
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), javaPackageName, cacheDir, constants, extraArgs, outputPath);
         }
     }
 
     private final Backend strIncrBack;
     private final StrIncrAnalysis strIncrAnalysis;
-    static ArrayList<Long> timestamps = new ArrayList<>();
 
     @Inject public StrIncr(Backend strIncrBack, StrIncrAnalysis analysis) {
         this.strIncrBack = strIncrBack;
@@ -107,11 +79,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
-        timestamps.add(System.nanoTime());
-
-        timestamps.add(System.nanoTime());
         final Output result = execContext.require(strIncrAnalysis, input);
-        timestamps.add(System.nanoTime());
 
         if(!result.messages.isEmpty()) {
             boolean error = false;
@@ -130,7 +98,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 }
             }
             if(error) {
-                timestamps.add(System.nanoTime());
                 throw new ExecException("One of the static checks failed. See above for error messages in the log. ");
             }
         }
@@ -138,8 +105,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // BACKEND
         backends(execContext, input, input.projectLocation, result.staticData, result.backendData,
             result.staticCheckOutput);
-
-        timestamps.add(System.nanoTime());
         return None.instance;
     }
 
@@ -169,13 +134,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final SortedMap<String, String> ambStrategyResolution =
                 staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, strategyName, strategyContributions,
+                new Backend.Input(projectLocation, strategyName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
-            timestamps.add(System.nanoTime());
         }
         ArrayList<String> droppedCongruences = new ArrayList<>();
         for(Map.Entry<String, IStrategoAppl> entry : backendData.congrASTs.entrySet()) {
@@ -196,18 +159,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            final @Nullable File strategyDir =
-                execContext.getResourceService().toLocalFile(CommonPaths.strSepCompStrategyDir(projectLocation, congrName));
-            assert strategyDir
-                != null : "Bug in strSepCompStrategyDir or the arguments thereof: returned path is not a directory";
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, congrName, strategyContributions,
+                new Backend.Input(projectLocation, congrName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
-            timestamps.add(System.nanoTime());
 
             Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
         }
@@ -221,13 +178,11 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             backendStart = System.nanoTime();
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
             Backend.Input backEndInput =
-                new Backend.Input(projectLocation, null, decls, Collections.emptyList(),
+                new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            timestamps.add(System.nanoTime());
             execContext.require(strIncrBack.createTask(backEndInput));
-            timestamps.add(System.nanoTime());
         }
     }
 

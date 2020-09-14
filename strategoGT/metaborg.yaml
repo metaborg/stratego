@@ -5,7 +5,6 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
-  - org.metaborg:dynsem:${metaborgVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 pardonedLanguages:
@@ -21,6 +20,7 @@ language:
       prefix: "$"
   stratego:
     build: incremental
+    gradual: none
     format: jar
     args:
     - -la
@@ -35,5 +35,3 @@ language:
     - stratego-aterm
     - -la
     - stratego-sdf
-    - -la
-    - strc
