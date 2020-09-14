@@ -271,7 +271,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private final ITermFactory tf;
     private final SubFrontend strIncrSubFront;
 
-    @Inject public Frontend(ITermFactory tf, ParseStratego parseStratego, SubFrontend strIncrSubFront) {
+    @Inject public Frontend(ITermFactory tf, SubFrontend strIncrSubFront) {
         this.tf = tf;
         this.strIncrSubFront = strIncrSubFront;
     }
