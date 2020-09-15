@@ -12,7 +12,6 @@ signatures/gradual-types/signatures-sig
 signatures/core/signatures-sig
  
 libspoofax/stratego/debug
-immutable/-
 
 signature constructors
 

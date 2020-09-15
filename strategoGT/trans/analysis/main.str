@@ -17,8 +17,6 @@ analysis/environment
 analysis/signatures
 analysis/defs
 
-immutable/-
-
 strategies // entry-points from Java
 
 /**

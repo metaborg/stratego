@@ -19,8 +19,6 @@ pp
 
 libspoofax/stratego/debug
 
-immutable/-
-
 strategies
 
 // This is a quick&dirty testing entry point for running this code on an AST
