@@ -71,6 +71,7 @@ strategies // traversal strategies
     <+ Assign(id, oncetd(s))
 
 strategies // generic strategies
+  try(TP) :: TP
   try(s)      = s <+ id
   bottomup(s) = all(bottomup(s)); s
   oncetd(s)   = s <+ one(oncetd(s))
