@@ -25,7 +25,7 @@ import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoString;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;

@@ -22,7 +22,7 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
