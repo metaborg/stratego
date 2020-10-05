@@ -31,7 +31,7 @@ import mb.stratego.build.util.Relation;
 
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class SplitResult {
+public class SplitResult implements Serializable {
     public final String moduleName;
     public final String inputFileString;
     public final List<IStrategoTerm> imports;
@@ -352,5 +352,25 @@ public class SplitResult {
         public StrategySignature toCongruenceSig() {
             return new StrategySignature(name, noArgs, 0);
         }
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        final SplitResult that = (SplitResult)o;
+        return Objects.equals(moduleName, that.moduleName) &&
+            Objects.equals(inputFileString, that.inputFileString) &&
+            Objects.equals(imports, that.imports) &&
+            Objects.equals(strategyDefs, that.strategyDefs) &&
+            Objects.equals(consDefs, that.consDefs) &&
+            Objects.equals(olayDefs, that.olayDefs) &&
+            Objects.equals(defTypes, that.defTypes) &&
+            Objects.equals(dynRuleSigs, that.dynRuleSigs) &&
+            Objects.equals(consTypes, that.consTypes) &&
+            Objects.equals(injections, that.injections);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hash(moduleName, inputFileString, imports, strategyDefs, consDefs, olayDefs, defTypes, dynRuleSigs, consTypes, injections);
     }
 }
