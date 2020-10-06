@@ -38,6 +38,7 @@ import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
+import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontends {
@@ -177,7 +178,7 @@ public class Frontends {
 
                 shuffleStartTime = System.nanoTime();
 
-                final StringSetWithPositions strategies = new StringSetWithPositions();
+                final StrategyEnvironment strategies = new StrategyEnvironment();
                 for(StrategySignature strategy : frontLibOutput.strategies.keySet()) {
                     strategies.add(new StrategoString(strategy.cifiedName(), AbstractTermFactory.EMPTY_LIST));
                 }
@@ -254,8 +255,8 @@ public class Frontends {
             .resolveWildcards(module.path, theImports, input.includeDirs, messages, execContext);
     }
 
-    public static void reportOverlappingStrategies(StringSetWithPositions externalStrategies,
-        StringSetWithPositions newExternalStrategies, Logger logger) {
+    public static void reportOverlappingStrategies(StrategyEnvironment externalStrategies,
+        StrategyEnvironment newExternalStrategies, Logger logger) {
         final java.util.Set<String> overlappingStrategies = Sets.difference(
             Sets.intersection(externalStrategies.readSet(), newExternalStrategies.readSet()),
             StaticChecks.ALWAYS_DEFINED);
