@@ -15,16 +15,16 @@ import org.spoofax.interpreter.terms.IStrategoString;
 
 public class StringSetWithPositions {
     private final List<Map<String, List<IStrategoString>>> maps;
-    private boolean latestMutatable;
+    private boolean latestMutable;
 
     public StringSetWithPositions() {
         this.maps = new ArrayList<>();
-        this.latestMutatable = false;
+        this.latestMutable = false;
     }
 
     public StringSetWithPositions(StringSetWithPositions toCopy) {
         this.maps = new ArrayList<>(toCopy.maps);
-        this.latestMutatable = toCopy.latestMutatable = false;
+        this.latestMutable = toCopy.latestMutable = false;
     }
 
     public Set<String> cloneSet() {
@@ -130,10 +130,10 @@ public class StringSetWithPositions {
 
     private Map<String, List<IStrategoString>> getMap() {
         final Map<String, List<IStrategoString>> map;
-        if(!latestMutatable) {
+        if(!latestMutable) {
             map = new TreeMap<>();
             maps.add(map);
-            latestMutatable = true;
+            latestMutable = true;
         } else {
             map = maps.get(maps.size()-1);
         }
@@ -156,7 +156,13 @@ public class StringSetWithPositions {
     }
 
     public void addAll(StringSetWithPositions other) {
-        maps.addAll(other.maps);
+        if(!other.isEmpty()) {
+            maps.addAll(other.maps);
+        }
+    }
+
+    private boolean isEmpty() {
+        return maps.isEmpty() || size() == 0;
     }
 
     public boolean contains(String str) {
