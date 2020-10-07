@@ -15,6 +15,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.SplitResult;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class UsedNames extends UsedConstrs {
@@ -22,14 +23,14 @@ public class UsedNames extends UsedConstrs {
     private final Deque<Set<String>> scopes = new ArrayDeque<>();
     private final Set<String> inScope = new HashSet<>();
 
-    private final StringSetWithPositions usedStrats;
+    private final StrategyEnvironment usedStrats;
     private final Map<String, Set<String>> usedAmbStrats;
     private final StringSetWithPositions ambStratPositions;
 
     private @Nullable String currentTopLevelStrategyName = null;
     public int ambiguousStrategyNamesFound = 0;
 
-    public UsedNames(StringSetWithPositions usedConstrs, StringSetWithPositions usedStrats,
+    public UsedNames(StringSetWithPositions usedConstrs, StrategyEnvironment usedStrats,
         Map<String, Set<String>> usedAmbStrats, StringSetWithPositions ambStratPositions) {
         super(usedConstrs);
 

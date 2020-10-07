@@ -34,6 +34,7 @@ import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
@@ -95,7 +96,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-names referred to in this module [name checks]
          */
-        final StringSetWithPositions usedStrategies;
+        final StrategyEnvironment usedStrategies;
         /**
          * Cified-strategy-names-without-arity referred to in this module in an ambiguous position (strategy argument to
          *  other strategy) to cified-strategy-names where the ambiguous call occurs [name checks]
@@ -121,15 +122,15 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-name defined in this module [name checks]
          */
-        final StringSetWithPositions strats;
+        final StrategyEnvironment strats;
         /**
          * Cified-strategy-name defined in this module annotated with internal [name checks]
          */
-        final StringSetWithPositions internalStrats;
+        final Set<String> internalStrats;
         /**
          * Cified-strategy-name defined in this module to be external [name checks]
          */
-        final StringSetWithPositions externalStrats;
+        final StrategyEnvironment externalStrats;
         /**
          * Constructor_arity names defined in this module [name checks]
          */
@@ -141,7 +142,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         /**
          * Cified-strategy-name of a generated congruence [static linking]
          */
-        final StringSetWithPositions congrs;
+        final StrategyEnvironment congrs;
         /**
          * Cified-strategy-names of strategies that need a corresponding strategy in a library because it overrides or
          *  extends it. [name checks]
@@ -172,11 +173,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
          */
         final Map<String, IStrategoAppl> congrASTs;
 
-        NormalOutput(String moduleName, Map<String, ResourcePath> strategyFiles, StringSetWithPositions usedStrategies,
+        NormalOutput(String moduleName, Map<String, ResourcePath> strategyFiles, StrategyEnvironment usedStrategies,
             Map<String, Set<String>> ambStratUsed, StringSetWithPositions ambStratPositions,
             Map<String, StringSetWithPositions> strategyConstrs, Map<String, ResourcePath> overlayFiles, List<Import> imports,
-            StringSetWithPositions strats, StringSetWithPositions internalStrats, StringSetWithPositions externalStrats,
-            StringSetWithPositions constrs, StringSetWithPositions overlays, StringSetWithPositions congrs,
+            StrategyEnvironment strats, Set<String> internalStrats, StrategyEnvironment externalStrats,
+            StringSetWithPositions constrs, StringSetWithPositions overlays, StrategyEnvironment congrs,
             List<IStrategoString> strategyNeedsExternal, Map<String, StringSetWithPositions> overlayConstrs,
             Map<String, ResourcePath> congrFiles, Map<String, Integer> noOfDefinitions, Map<String, IStrategoAppl> strategyASTs,
             Map<String, List<IStrategoAppl>> overlayASTs, Map<String, IStrategoAppl> congrASTs) {
@@ -300,17 +301,17 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         final List<IStrategoString> strategyNeedsExternal = new ArrayList<>();
         final Map<String, Set<String>> usedAmbStrats = new HashMap<>();
         final StringSetWithPositions ambStratPositions = new StringSetWithPositions();
-        final StringSetWithPositions usedStrats = new StringSetWithPositions();
+        final StrategyEnvironment usedStrats = new StrategyEnvironment();
         final StringSetWithPositions definedConstrs = new StringSetWithPositions();
-        final StringSetWithPositions definedStrats = new StringSetWithPositions();
-        final StringSetWithPositions internalStrats = new StringSetWithPositions();
-        final StringSetWithPositions externalStrats = new StringSetWithPositions();
+        final StrategyEnvironment definedStrats = new StrategyEnvironment();
+        final Set<String> internalStrats = new HashSet<>();
+        final StrategyEnvironment externalStrats = new StrategyEnvironment();
         final StringSetWithPositions definedOverlays = new StringSetWithPositions();
         final Map<String, ResourcePath> overlayFiles = new HashMap<>();
         final Map<String, StringSetWithPositions> overlayConstrs = new HashMap<>();
         final Map<String, List<IStrategoAppl>> overlayASTs = new HashMap<>();
         final Map<String, IStrategoAppl> congrASTs = new HashMap<>();
-        final StringSetWithPositions congrs = new StringSetWithPositions();
+        final StrategyEnvironment congrs = new StrategyEnvironment();
         final Map<String, ResourcePath> congrFiles = new HashMap<>();
         final Map<String, Integer> noOfDefinitions = new HashMap<>();
 
@@ -361,11 +362,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     }
 
     private void overlayFrontEnd(ExecContext execContext, Input input, final ResourcePath location,
-        final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
+        final SubFrontend.Input frontInput, final String moduleName, StrategyEnvironment definedStrats,
         final Map<String, IStrategoAppl> strategyASTs, final Map<String, ResourcePath> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
-        final StringSetWithPositions usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
+        final StrategyEnvironment usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
         final Map<String, Integer> noOfDefinitions) throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = TermUtils.toListAt(result, LOCAL_DEFS);
@@ -409,9 +410,9 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private void consFrontEnd(ExecContext execContext, Input input, final ResourcePath location,
         final SubFrontend.Input frontInput, final String moduleName,
         final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
-        final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
+        final StringSetWithPositions ambStratPositions, final StrategyEnvironment usedStrats,
         final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
-        final StringSetWithPositions congrs, final Map<String, ResourcePath> congrFiles, final Map<String, Integer> noOfDefinitions)
+        final StrategyEnvironment congrs, final Map<String, ResourcePath> congrFiles, final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         // LOCAL_DEFS == Anno__Cong_____2_0
@@ -449,10 +450,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
 
     private void stratFrontEnd(ExecContext execContext, String projectName, final ResourcePath location,
-        final SubFrontend.Input frontInput, final String moduleName, StringSetWithPositions definedStrats,
-        StringSetWithPositions internalStrats, StringSetWithPositions externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, ResourcePath> strategyFiles,
+        final SubFrontend.Input frontInput, final String moduleName, StrategyEnvironment definedStrats,
+        Set<String> internalStrats, StrategyEnvironment externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, ResourcePath> strategyFiles,
         final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
-        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StringSetWithPositions usedStrats,
+        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StrategyEnvironment usedStrats,
         final Map<String, Integer> noOfDefinitions)
         throws ExecException, InterruptedException {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
@@ -485,7 +486,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
                 strategyNeedsExternal.add(strategyName);
             }
             if(isInternal(annoDefAnnotations)) {
-                internalStrats.add(strategyName);
+                internalStrats.add(strategyName.stringValue());
             }
         }
 
@@ -501,7 +502,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
      * extract-used-strategies
      */
     private static void collectUsedNames(IStrategoTerm strategyAST, StringSetWithPositions usedConstrs,
-        StringSetWithPositions usedStrats, Map<String, Set<String>> usedAmbStrats,
+        StrategyEnvironment usedStrats, Map<String, Set<String>> usedAmbStrats,
         StringSetWithPositions ambStratPositions) {
         final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
         visitor.visit(strategyAST);

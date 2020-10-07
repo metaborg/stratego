@@ -38,6 +38,7 @@ import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
+import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class StaticChecks {
@@ -101,7 +102,7 @@ public class StaticChecks {
         // Module-path to module-path
         public final Map<String, Set<String>> imports = new HashMap<>();
         // Module-path to cified-strategy-names used (to AST names of actual use)
-        public final Map<String, StringSetWithPositions> usedStrategies = new HashMap<>();
+        public final Map<String, StrategyEnvironment> usedStrategies = new HashMap<>();
         // Module-path to cified-strategy-name used in ambiguous call position to cified-strategy-names where the calls
         // occur
         public final Map<String, Map<String, Set<String>>> usedAmbStrategies = new HashMap<>();
@@ -110,22 +111,22 @@ public class StaticChecks {
         // Module-path to constructor_arity names used (to AST names of actual use)
         public final Map<String, StringSetWithPositions> usedConstructors = new HashMap<>();
         // Module-path to cified-strategy-names defined here (to AST names of actual definitions)
-        public final Map<String, StringSetWithPositions> definedStrategies = new HashMap<>();
+        public final Map<String, StrategyEnvironment> definedStrategies = new HashMap<>();
         // Module-path to cified-strategy-names defined here as congruences
-        public final Map<String, StringSetWithPositions> definedCongruences = new HashMap<>();
+        public final Map<String, StrategyEnvironment> definedCongruences = new HashMap<>();
         // Module-path to external cified-strategy-names that will be imported in Java
-        public final Map<String, StringSetWithPositions> externalStrategies = new HashMap<>();
+        public final Map<String, StrategyEnvironment> externalStrategies = new HashMap<>();
         // External cified-strategy-names that will be imported in Java
-        public final StringSetWithPositions libraryExternalStrategies = new StringSetWithPositions();
+        public final StrategyEnvironment libraryExternalStrategies = new StrategyEnvironment();
         // Internal cified-strategy-names that will be imported in Java
-        public final Map<String, StringSetWithPositions> internalStrategies = new HashMap<>();
+        public final Map<String, Set<String>> internalStrategies = new HashMap<>();
         // External constructors that will be imported in Java
         public final StringSetWithPositions externalConstructors = new StringSetWithPositions();
         // Module-path to constructor_arity names defined there (to AST names of actual definitions)
         public final Map<String, StringSetWithPositions> definedConstructors = new HashMap<>();
         // Cified-strategy-names that need a corresponding name in a library because it overrides or extends it. (to
         // strategy definition AST names)
-        public final StringSetWithPositions strategyNeedsExternal = new StringSetWithPositions();
+        public final StrategyEnvironment strategyNeedsExternal = new StrategyEnvironment();
         // Constructor_arity overlay name. (to overlay definition AST names)
         public final StringSetWithPositions overlayDefs = new StringSetWithPositions();
         // Constructor strictness for each strategy
@@ -442,8 +443,8 @@ public class StaticChecks {
 
     public static Output check(String mainFileModulePath, Data staticData, Map<String, Set<String>> overlayConstrs,
         List<Message<?>> outputMessages) {
-        StringSetWithPositions allExternals = new StringSetWithPositions(staticData.libraryExternalStrategies);
-        for(StringSetWithPositions s : staticData.externalStrategies.values()) {
+        StrategyEnvironment allExternals = new StrategyEnvironment(staticData.libraryExternalStrategies);
+        for(StrategyEnvironment s : staticData.externalStrategies.values()) {
             allExternals.addAll(s);
         }
         //        StringSetWithPositions globalStrategies = new StringSetWithPositions();
@@ -460,22 +461,22 @@ public class StaticChecks {
         // call resolves to)
         final Map<String, SortedMap<String, String>> ambStratResolution = new HashMap<>();
         // Module-path to visible when imported (transitive closure of strategy definitions)
-        final Map<String, StringSetWithPositions> visibleStrategies =
+        final Map<String, StrategyEnvironment> visibleStrategies =
             new HashMap<>(2 * (staticData.definedStrategies.size() + staticData.definedCongruences.size()));
-        for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedStrategies.entrySet()) {
+        for(Map.Entry<String, StrategyEnvironment> entry : staticData.definedStrategies.entrySet()) {
             final String moduleName = entry.getKey();
-            final StringSetWithPositions set = entry.getValue();
-            visibleStrategies.put(moduleName, new StringSetWithPositions(set));
+            final StrategyEnvironment env = entry.getValue();
+            visibleStrategies.put(moduleName, new StrategyEnvironment(env));
         }
-        for(Map.Entry<String, StringSetWithPositions> entry : staticData.externalStrategies.entrySet()) {
+        for(Map.Entry<String, StrategyEnvironment> entry : staticData.externalStrategies.entrySet()) {
             final String moduleName = entry.getKey();
-            final StringSetWithPositions set = entry.getValue();
-            getOrInitialize(visibleStrategies, moduleName, StringSetWithPositions::new).addAll(set);
+            final StrategyEnvironment set = entry.getValue();
+            getOrInitialize(visibleStrategies, moduleName, StrategyEnvironment::new).addAll(set);
         }
-        for(Map.Entry<String, StringSetWithPositions> entry : staticData.definedCongruences.entrySet()) {
+        for(Map.Entry<String, StrategyEnvironment> entry : staticData.definedCongruences.entrySet()) {
             final String moduleName = entry.getKey();
-            final StringSetWithPositions set = entry.getValue();
-            getOrInitialize(visibleStrategies, moduleName, StringSetWithPositions::new).addAll(set);
+            final StrategyEnvironment set = entry.getValue();
+            getOrInitialize(visibleStrategies, moduleName, StrategyEnvironment::new).addAll(set);
         }
         // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
         //        final Map<String, Set<ConstructorSignature>> visibleConstructors =
@@ -491,15 +492,15 @@ public class StaticChecks {
         final Deque<Set<String>> sccs = Algorithms.topoSCCs(Collections.singleton(mainFileModulePath),
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
         for(Set<String> scc : sccs) {
-            final StringSetWithPositions theVisibleStrategies = new StringSetWithPositions();
+            final StrategyEnvironment theVisibleStrategies = new StrategyEnvironment();
             //            StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
             for(String moduleName : scc) {
                 //                theVisibleConstructors
                 //                    .addAll(visibleConstructors.getOrDefault(moduleName, new StringSetWithPositions()));
-                theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, new StringSetWithPositions()));
+                theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, new StrategyEnvironment()));
                 for(String mod : staticData.imports.getOrDefault(moduleName, Collections.emptySet())) {
                     //                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, new StringSetWithPositions()));
-                    theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, new StringSetWithPositions()));
+                    theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, new StrategyEnvironment()));
                 }
             }
             for(String moduleName : scc) {
@@ -523,7 +524,7 @@ public class StaticChecks {
      * TODO: move this into the type checker (insertCasts)
      */
     private static void resolveAmbiguousStrategyCalls(Data staticData, List<Message<?>> outputMessages,
-        final Map<String, SortedMap<String, String>> ambStratResolution, StringSetWithPositions theVisibleStrategies,
+        final Map<String, SortedMap<String, String>> ambStratResolution, StrategyEnvironment theVisibleStrategies,
         String moduleName) {
         Map<String, Set<String>> theUsedAmbStrategies =
             new HashMap<>(staticData.usedAmbStrategies.getOrDefault(moduleName, Collections.emptyMap()));
@@ -531,22 +532,17 @@ public class StaticChecks {
             staticData.ambStratPositions.getOrDefault(moduleName, new StringSetWithPositions());
         for(Map.Entry<String, Set<String>> entry : theUsedAmbStrategies.entrySet()) {
             final String usedAmbStrategy = entry.getKey();
-            final @Nullable StrategySignature usedAmbStrategyStart = StrategySignature.fromCified(usedAmbStrategy);
+            final @Nullable StrategySignature usedAmbStrategySig = StrategySignature.fromCified(usedAmbStrategy);
             // local strategies (which don't have proper cified names) are not ambiguous
-            if(usedAmbStrategyStart == null) {
+            if(usedAmbStrategySig == null) {
                 continue;
             }
             // By default a _0_0 strategy is used in the ambiguous call situation if one is defined.
             if(theVisibleStrategies.contains(usedAmbStrategy)) {
                 continue;
             }
-            final Set<String> defs = new HashSet<>();
-            for(String s : theVisibleStrategies.readSet()) {
-                if(StrategySignature.fromCified(s).name.equals(usedAmbStrategyStart.name)) {
-                    defs.add(s);
-                }
-            }
-            switch(defs.size()) {
+            final List<StrategyEnvironment.Entry> ambStratSigs = theVisibleStrategies.getByPrefix(usedAmbStrategySig.name);
+            switch(ambStratSigs.size()) {
                 case 0:
                     for(IStrategoString ambStrategyPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
                         outputMessages
@@ -554,13 +550,17 @@ public class StaticChecks {
                     }
                     break;
                 case 1:
-                    final String resolvedDef = defs.iterator().next();
+                    final StrategyEnvironment.Entry resolvedDef = ambStratSigs.iterator().next();
                     for(String useSite : entry.getValue()) {
                         getOrInitialize(ambStratResolution, useSite, TreeMap::new)
-                            .put(usedAmbStrategy, resolvedDef);
+                            .put(usedAmbStrategy, resolvedDef.strategySig.cifiedName());
                     }
                     break;
                 default:
+                    final Set<String> defs = new HashSet<>(2*ambStratSigs.size());
+                    for(StrategyEnvironment.Entry e : ambStratSigs) {
+                        defs.add(e.strategySig.cifiedName());
+                    }
                     for(IStrategoString ambStratPosition : ambStratPositions.getPositions(usedAmbStrategy)) {
                         outputMessages.add(Message.ambiguousStrategyCall(moduleName, ambStratPosition, defs));
                     }
@@ -573,14 +573,14 @@ public class StaticChecks {
      * TODO: move this into the type checker (insertCasts)
      */
     private static void overlapWithExternals(Data staticData, List<Message<?>> outputMessages, String moduleName,
-        StringSetWithPositions allExternals) {
-        final StringSetWithPositions definedStrategies =
-            staticData.definedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
-        final StringSetWithPositions internalStrategies =
-            staticData.internalStrategies.getOrDefault(moduleName, new StringSetWithPositions());
+        StrategyEnvironment allExternals) {
+        final StrategyEnvironment definedStrategies =
+            staticData.definedStrategies.getOrDefault(moduleName, new StrategyEnvironment());
+        final Set<String> internalStrategies =
+            staticData.internalStrategies.getOrDefault(moduleName, Collections.emptySet());
         final Set<String> strategiesOverlapWithExternal = Sets.difference(
             Sets.difference(Sets.intersection(definedStrategies.readSet(), allExternals.readSet()), ALWAYS_DEFINED),
-            internalStrategies.readSet());
+            internalStrategies);
         for(String name : strategiesOverlapWithExternal) {
             if(!staticData.strategyNeedsExternal.contains(name)) {
                 for(IStrategoString strategyDef : definedStrategies.getPositions(name)) {
@@ -661,7 +661,7 @@ public class StaticChecks {
      * TODO: move this into the type checker (insertCasts)
      */
     private static void strategyNeedsExternal(String mainFileModulePath, Data staticData,
-        List<Message<?>> outputMessages, StringSetWithPositions allExternals) {
+        List<Message<?>> outputMessages, StrategyEnvironment allExternals) {
         Set<String> strategyNeedsExternalNonOverlap =
             Sets.difference(staticData.strategyNeedsExternal.readSet(), allExternals.readSet());
         for(String name : strategyNeedsExternalNonOverlap) {
