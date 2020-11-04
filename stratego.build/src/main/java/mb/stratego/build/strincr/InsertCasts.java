@@ -52,22 +52,30 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             return "InsertCasts$Input(moduleName="+moduleName+", cifiedName="+ sig +")";
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(!(o instanceof Input))
-                return false;
-            Input input = (Input) o;
-            return moduleName.equals(input.moduleName) && strategyEnvironment.equals(input.strategyEnvironment)
-                && constructors.equals(input.constructors) && injectionClosure.equals(input.injectionClosure) && lubMap
-                .equals(input.lubMap) && ast.equals(input.ast) && sig.equals(input.sig);
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Input input = (Input) o;
+            if(!moduleName.equals(input.moduleName)) return false;
+            if(!strategyEnvironment.equals(input.strategyEnvironment)) return false;
+            if(!constructors.equals(input.constructors)) return false;
+            if(!injectionClosure.equals(input.injectionClosure)) return false;
+            if(!lubMap.equals(input.lubMap)) return false;
+            if(!aliasMap.equals(input.aliasMap)) return false;
+            if(!ast.equals(input.ast)) return false;
+            return sig.equals(input.sig);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects
-                .hash(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap, ast, sig);
+        @Override public int hashCode() {
+            int result = moduleName.hashCode();
+            result = 31 * result + strategyEnvironment.hashCode();
+            result = 31 * result + constructors.hashCode();
+            result = 31 * result + injectionClosure.hashCode();
+            result = 31 * result + lubMap.hashCode();
+            result = 31 * result + aliasMap.hashCode();
+            result = 31 * result + ast.hashCode();
+            result = 31 * result + sig.hashCode();
+            return result;
         }
 
         public static class Builder {

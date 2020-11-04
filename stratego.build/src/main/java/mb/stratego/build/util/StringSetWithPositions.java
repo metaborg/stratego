@@ -1,5 +1,6 @@
 package mb.stratego.build.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,9 +14,9 @@ import java.util.TreeMap;
 import org.metaborg.util.iterators.CompoundIterator;
 import org.spoofax.interpreter.terms.IStrategoString;
 
-public class StringSetWithPositions {
+public class StringSetWithPositions implements Serializable {
     private final List<Map<String, List<IStrategoString>>> maps;
-    private boolean latestMutable;
+    private transient boolean latestMutable;
 
     public StringSetWithPositions() {
         this.maps = new ArrayList<>();
