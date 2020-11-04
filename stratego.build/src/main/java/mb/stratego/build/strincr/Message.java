@@ -8,7 +8,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.pie.api.Logger;
+import mb.log.api.Logger;
 
 public abstract class Message<T extends IStrategoTerm> implements Serializable {
     public final String moduleFilePath;
@@ -108,7 +108,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
             case "ProceedInNonExtendStrategy":
                 return new ProceedInNonExtendStrategy(module, locationTerm, severity);
             default:
-                logger.warn("Unrecognised message from type checker, passing raw message. ", null);
+                logger.warn("Unrecognised message from type checker, passing raw message. ");
                 return new RawTermMessage(module, locationTerm, messageTerm, severity);
         }
         /* TODO: implement

@@ -26,7 +26,7 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
+import mb.log.api.Logger;
 import mb.pie.api.None;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
@@ -218,7 +218,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
             final IStrategoTerm result = strategy.invoke(strContext, input);
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
-                logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
+                logger.error("Executing " + name + " failed with normal Stratego failure. ");
             } else if(result == null) {
                 logger.debug("Executing " + name + " failed with normal Stratego failure. ");
             }

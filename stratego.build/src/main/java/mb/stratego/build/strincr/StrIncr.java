@@ -89,10 +89,10 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                         execContext.logger().info(message.toString());
                         break;
                     case WARNING:
-                        execContext.logger().warn(message.toString(), null);
+                        execContext.logger().warn(message.toString());
                         break;
                     case ERROR:
-                        execContext.logger().error(message.toString(), null);
+                        execContext.logger().error(message.toString());
                         error = true;
                         break;
                 }

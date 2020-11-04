@@ -26,7 +26,7 @@ import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
+import mb.log.api.Logger;
 import mb.pie.api.STask;
 import mb.resource.ResourceKeyString;
 import mb.resource.ResourceService;
@@ -261,7 +261,7 @@ public class Frontends {
             Sets.intersection(externalStrategies.readSet(), newExternalStrategies.readSet()),
             StaticChecks.ALWAYS_DEFINED);
         if(!overlappingStrategies.isEmpty()) {
-            logger.warn("Overlapping external strategy definitions: " + overlappingStrategies, null);
+            logger.warn("Overlapping external strategy definitions: " + overlappingStrategies);
         }
     }
 }
