@@ -84,26 +84,40 @@ public class Backend implements TaskDef<Backend.Input, None> {
             }
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(!(o instanceof Input))
-                return false;
-            Input input = (Input) o;
-            return isBoilerplate == input.isBoilerplate && projectLocation.equals(input.projectLocation) && strategyName
-                .equals(input.strategyName) && strategyContributions.equals(input.strategyContributions)
-                && overlayContributions.equals(input.overlayContributions) && ambStrategyResolution
-                .equals(input.ambStrategyResolution) && Objects.equals(packageName, input.packageName) && outputPath
-                .equals(input.outputPath) && Objects.equals(cacheDir, input.cacheDir) && constants
-                .equals(input.constants) && includeDirs.equals(input.includeDirs) && extraArgs.equals(input.extraArgs);
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Input input = (Input) o;
+            if(isBoilerplate != input.isBoilerplate) return false;
+            if(!projectLocation.equals(input.projectLocation)) return false;
+            if(!strategyName.equals(input.strategyName)) return false;
+            if(!constructors.equals(input.constructors)) return false;
+            if(!strategyContributions.equals(input.strategyContributions)) return false;
+            if(!overlayContributions.equals(input.overlayContributions)) return false;
+            if(!ambStrategyResolution.equals(input.ambStrategyResolution)) return false;
+            if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null) return false;
+            if(!outputPath.equals(input.outputPath)) return false;
+            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null) return false;
+            if(!constants.equals(input.constants)) return false;
+            if(!includeDirs.equals(input.includeDirs)) return false;
+            return extraArgs.equals(input.extraArgs);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects
-                .hash(projectLocation, strategyName, strategyContributions, overlayContributions, ambStrategyResolution,
-                    packageName, outputPath, cacheDir, constants, includeDirs, extraArgs, isBoilerplate);
+        @Override public int hashCode() {
+            int result = projectLocation.hashCode();
+            result = 31 * result + strategyName.hashCode();
+            result = 31 * result + constructors.hashCode();
+            result = 31 * result + strategyContributions.hashCode();
+            result = 31 * result + overlayContributions.hashCode();
+            result = 31 * result + ambStrategyResolution.hashCode();
+            result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
+            result = 31 * result + outputPath.hashCode();
+            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
+            result = 31 * result + constants.hashCode();
+            result = 31 * result + includeDirs.hashCode();
+            result = 31 * result + extraArgs.hashCode();
+            result = 31 * result + (isBoilerplate ? 1 : 0);
+            return result;
         }
     }
 

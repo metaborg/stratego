@@ -1,5 +1,6 @@
 package mb.stratego.build.strincr;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -9,7 +10,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.Logger;
 
-public abstract class Message<T extends IStrategoTerm> {
+public abstract class Message<T extends IStrategoTerm> implements Serializable {
     public final String moduleFilePath;
     public final T locationTerm;
     public final MessageSeverity severity;
@@ -134,6 +135,24 @@ public abstract class Message<T extends IStrategoTerm> {
 
     public String toString() {
         return "In '" + moduleFilePath + "':\n" + getMessage();
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        final Message<?> message = (Message<?>) o;
+        if(!moduleFilePath.equals(message.moduleFilePath)) return false;
+        if(!locationTerm.equals(message.locationTerm)) return false;
+        if(severity != message.severity) return false;
+        return getMessage().equals(message.getMessage());
+    }
+
+    @Override public int hashCode() {
+        int result = moduleFilePath.hashCode();
+        result = 31 * result + locationTerm.hashCode();
+        result = 31 * result + severity.hashCode();
+        result = 31 * result +  getMessage().hashCode();
+        return result;
     }
 
     public abstract String getMessage();

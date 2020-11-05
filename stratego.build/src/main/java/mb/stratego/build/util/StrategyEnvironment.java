@@ -1,5 +1,6 @@
 package mb.stratego.build.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,9 +26,9 @@ import mb.stratego.build.strincr.SplitResult;
  *
  * Adding another StrategyEnvironment to this one results in a slower lookup of prefixes make the cost of the add operation cheaper (in time and more importantly in memory).
  */
-public class StrategyEnvironment {
+public class StrategyEnvironment implements Serializable {
     private final Set<Map<String, List<Entry>>> maps;
-    private @Nullable Map<String, List<Entry>> latestMutable = null;
+    private transient @Nullable Map<String, List<Entry>> latestMutable = null;
 
     public StrategyEnvironment(StrategyEnvironment env) {
         this.maps = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -288,5 +289,19 @@ public class StrategyEnvironment {
         public int hashCode() {
             return Objects.hash(strategySig, occurrences);
         }
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        final StrategyEnvironment that = (StrategyEnvironment) o;
+        if(!maps.equals(that.maps)) return false;
+        return Objects.equals(latestMutable, that.latestMutable);
+    }
+
+    @Override public int hashCode() {
+        int result = maps.hashCode();
+        result = 31 * result + (latestMutable != null ? latestMutable.hashCode() : 0);
+        return result;
     }
 }

@@ -216,30 +216,56 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             return null;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(!(o instanceof NormalOutput))
-                return false;
-            NormalOutput that = (NormalOutput) o;
-            return moduleName.equals(that.moduleName) && strategyFiles.equals(that.strategyFiles) && usedStrategies
-                .equals(that.usedStrategies) && ambStratUsed.equals(that.ambStratUsed) && ambStratPositions
-                .equals(that.ambStratPositions) && strategyConstrs.equals(that.strategyConstrs) && overlayFiles
-                .equals(that.overlayFiles) && imports.equals(that.imports) && strats.equals(that.strats)
-                && internalStrats.equals(that.internalStrats) && externalStrats.equals(that.externalStrats) && constrs
-                .equals(that.constrs) && overlays.equals(that.overlays) && congrs.equals(that.congrs)
-                && strategyNeedsExternal.equals(that.strategyNeedsExternal) && overlayConstrs
-                .equals(that.overlayConstrs) && congrFiles.equals(that.congrFiles) && noOfDefinitions
-                .equals(that.noOfDefinitions);
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final NormalOutput that = (NormalOutput) o;
+            if(!moduleName.equals(that.moduleName)) return false;
+            if(!strategyFiles.equals(that.strategyFiles)) return false;
+            if(!usedStrategies.equals(that.usedStrategies)) return false;
+            if(!ambStratUsed.equals(that.ambStratUsed)) return false;
+            if(!ambStratPositions.equals(that.ambStratPositions)) return false;
+            if(!strategyConstrs.equals(that.strategyConstrs)) return false;
+            if(!overlayFiles.equals(that.overlayFiles)) return false;
+            if(!imports.equals(that.imports)) return false;
+            if(!strats.equals(that.strats)) return false;
+            if(!internalStrats.equals(that.internalStrats)) return false;
+            if(!externalStrats.equals(that.externalStrats)) return false;
+            if(!constrs.equals(that.constrs)) return false;
+            if(!overlays.equals(that.overlays)) return false;
+            if(!congrs.equals(that.congrs)) return false;
+            if(!strategyNeedsExternal.equals(that.strategyNeedsExternal)) return false;
+            if(!overlayConstrs.equals(that.overlayConstrs)) return false;
+            if(!congrFiles.equals(that.congrFiles)) return false;
+            if(!noOfDefinitions.equals(that.noOfDefinitions)) return false;
+            if(!strategyASTs.equals(that.strategyASTs)) return false;
+            if(!overlayASTs.equals(that.overlayASTs)) return false;
+            return congrASTs.equals(that.congrASTs);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects
-                .hash(moduleName, strategyFiles, usedStrategies, ambStratUsed, ambStratPositions, strategyConstrs,
-                    overlayFiles, imports, strats, internalStrats, externalStrats, constrs, overlays, congrs,
-                    strategyNeedsExternal, overlayConstrs, congrFiles, noOfDefinitions);
+        @Override public int hashCode() {
+            int result = moduleName.hashCode();
+            result = 31 * result + strategyFiles.hashCode();
+            result = 31 * result + usedStrategies.hashCode();
+            result = 31 * result + ambStratUsed.hashCode();
+            result = 31 * result + ambStratPositions.hashCode();
+            result = 31 * result + strategyConstrs.hashCode();
+            result = 31 * result + overlayFiles.hashCode();
+            result = 31 * result + imports.hashCode();
+            result = 31 * result + strats.hashCode();
+            result = 31 * result + internalStrats.hashCode();
+            result = 31 * result + externalStrats.hashCode();
+            result = 31 * result + constrs.hashCode();
+            result = 31 * result + overlays.hashCode();
+            result = 31 * result + congrs.hashCode();
+            result = 31 * result + strategyNeedsExternal.hashCode();
+            result = 31 * result + overlayConstrs.hashCode();
+            result = 31 * result + congrFiles.hashCode();
+            result = 31 * result + noOfDefinitions.hashCode();
+            result = 31 * result + strategyASTs.hashCode();
+            result = 31 * result + overlayASTs.hashCode();
+            result = 31 * result + congrASTs.hashCode();
+            return result;
         }
     }
 
@@ -259,13 +285,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
 
         @Override
         public int hashCode() {
-            return System.identityHashCode(this);
+            return 0;
         }
 
-        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         @Override
         public boolean equals(Object obj) {
-            return obj == instance;
+            return this == obj || obj != null && this.getClass() == obj.getClass();
         }
     }
 

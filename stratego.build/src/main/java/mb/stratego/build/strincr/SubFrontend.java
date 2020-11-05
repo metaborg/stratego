@@ -52,20 +52,24 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
             return "SubFront$Input(" + inputType.name() + ", " + cifiedName + ')';
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(!(o instanceof Input))
-                return false;
-            Input input = (Input) o;
-            return moduleName.equals(input.moduleName) && cifiedName.equals(input.cifiedName)
-                && inputType == input.inputType && ast.equals(input.ast);
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Input input = (Input) o;
+            if(!originTasks.equals(input.originTasks)) return false;
+            if(!moduleName.equals(input.moduleName)) return false;
+            if(!cifiedName.equals(input.cifiedName)) return false;
+            if(inputType != input.inputType) return false;
+            return ast.equals(input.ast);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(moduleName, cifiedName, inputType, ast);
+        @Override public int hashCode() {
+            int result = originTasks.hashCode();
+            result = 31 * result + moduleName.hashCode();
+            result = 31 * result + cifiedName.hashCode();
+            result = 31 * result + inputType.hashCode();
+            result = 31 * result + ast.hashCode();
+            return result;
         }
 
         public static Input topLevelDefinition(String inputFileString, String cifiedName, IStrategoTerm ast) {

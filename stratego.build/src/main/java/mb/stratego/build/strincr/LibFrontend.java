@@ -69,25 +69,19 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
             this.injs = injs;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-
-            Output output = (Output) o;
-
-            //noinspection SimplifiableIfStatement
-            if(!strategies.equals(output.strategies))
-                return false;
-            return constrs.equals(output.constrs);
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Output output = (Output) o;
+            if(!strategies.equals(output.strategies)) return false;
+            if(!constrs.equals(output.constrs)) return false;
+            return injs.equals(output.injs);
         }
 
-        @Override
-        public int hashCode() {
+        @Override public int hashCode() {
             int result = strategies.hashCode();
             result = 31 * result + constrs.hashCode();
+            result = 31 * result + injs.hashCode();
             return result;
         }
 

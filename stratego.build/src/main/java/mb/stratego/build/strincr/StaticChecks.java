@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import static mb.stratego.build.strincr.Frontends.reportOverlappingStrategies;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -42,7 +44,7 @@ import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
 
 public class StaticChecks {
-    public static final class Output {
+    public static final class Output implements Serializable {
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
         public final Map<String, SortedMap<String, String>> ambStratResolution;
@@ -89,7 +91,7 @@ public class StaticChecks {
         }
     }
 
-    public static final class Data {
+    public static final class Data implements Serializable {
         // Module-path to strategy "signatures" (name + arity) to types (FunTType)
         public final Map<String, Map<StrategySignature, IStrategoTerm>> libraryStrategies = new HashMap<>();
         // Module-path to constructor "signatures" (name + arity) to types (ConstrType)
@@ -132,44 +134,52 @@ public class StaticChecks {
         // Constructor strictness for each strategy
         public final Map<String, Boolean> strictnessLevel = new HashMap<>();
 
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + sugarASTs.hashCode();
-            result = prime * result + definedCongruences.hashCode();
-            result = prime * result + definedConstructors.hashCode();
-            result = prime * result + definedStrategies.hashCode();
-            result = prime * result + externalConstructors.hashCode();
-            result = prime * result + externalStrategies.hashCode();
-            result = prime * result + libraryExternalStrategies.hashCode();
-            result = prime * result + internalStrategies.hashCode();
-            result = prime * result + imports.hashCode();
-            result = prime * result + strategyNeedsExternal.hashCode();
-            result = prime * result + usedAmbStrategies.hashCode();
-            result = prime * result + usedConstructors.hashCode();
-            result = prime * result + usedStrategies.hashCode();
-            result = prime * result + usedStrategies.hashCode();
-            return result;
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Data data = (Data) o;
+            if(!libraryStrategies.equals(data.libraryStrategies)) return false;
+            if(!libraryConstructors.equals(data.libraryConstructors)) return false;
+            if(!libraryInjections.equals(data.libraryInjections)) return false;
+            if(!sugarASTs.equals(data.sugarASTs)) return false;
+            if(!imports.equals(data.imports)) return false;
+            if(!usedStrategies.equals(data.usedStrategies)) return false;
+            if(!usedAmbStrategies.equals(data.usedAmbStrategies)) return false;
+            if(!ambStratPositions.equals(data.ambStratPositions)) return false;
+            if(!usedConstructors.equals(data.usedConstructors)) return false;
+            if(!definedStrategies.equals(data.definedStrategies)) return false;
+            if(!definedCongruences.equals(data.definedCongruences)) return false;
+            if(!externalStrategies.equals(data.externalStrategies)) return false;
+            if(!libraryExternalStrategies.equals(data.libraryExternalStrategies)) return false;
+            if(!internalStrategies.equals(data.internalStrategies)) return false;
+            if(!externalConstructors.equals(data.externalConstructors)) return false;
+            if(!definedConstructors.equals(data.definedConstructors)) return false;
+            if(!strategyNeedsExternal.equals(data.strategyNeedsExternal)) return false;
+            if(!overlayDefs.equals(data.overlayDefs)) return false;
+            return strictnessLevel.equals(data.strictnessLevel);
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if(this == obj)
-                return true;
-            if(obj == null)
-                return false;
-            if(getClass() != obj.getClass())
-                return false;
-            Data other = (Data) obj;
-            return sugarASTs.equals(other.sugarASTs) && definedCongruences.equals(other.definedCongruences)
-                && definedConstructors.equals(other.definedConstructors) && definedStrategies
-                .equals(other.definedStrategies) && externalConstructors.equals(other.externalConstructors)
-                && externalStrategies.equals(other.externalStrategies) && libraryExternalStrategies
-                .equals(other.libraryExternalStrategies) && internalStrategies.equals(other.internalStrategies)
-                && imports.equals(other.imports) && strategyNeedsExternal.equals(other.strategyNeedsExternal)
-                && usedAmbStrategies.equals(other.usedAmbStrategies) && usedConstructors.equals(other.usedConstructors)
-                && usedStrategies.equals(other.usedStrategies) && strictnessLevel.equals(other.strictnessLevel);
+        @Override public int hashCode() {
+            int result = libraryStrategies.hashCode();
+            result = 31 * result + libraryConstructors.hashCode();
+            result = 31 * result + libraryInjections.hashCode();
+            result = 31 * result + sugarASTs.hashCode();
+            result = 31 * result + imports.hashCode();
+            result = 31 * result + usedStrategies.hashCode();
+            result = 31 * result + usedAmbStrategies.hashCode();
+            result = 31 * result + ambStratPositions.hashCode();
+            result = 31 * result + usedConstructors.hashCode();
+            result = 31 * result + definedStrategies.hashCode();
+            result = 31 * result + definedCongruences.hashCode();
+            result = 31 * result + externalStrategies.hashCode();
+            result = 31 * result + libraryExternalStrategies.hashCode();
+            result = 31 * result + internalStrategies.hashCode();
+            result = 31 * result + externalConstructors.hashCode();
+            result = 31 * result + definedConstructors.hashCode();
+            result = 31 * result + strategyNeedsExternal.hashCode();
+            result = 31 * result + overlayDefs.hashCode();
+            result = 31 * result + strictnessLevel.hashCode();
+            return result;
         }
 
         public void registerConstructorDefinitions(String modulePath, Map<ConstructorSignature, IStrategoTerm> constrs) {
