@@ -161,7 +161,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Output))
+            if(getClass() != o.getClass())
                 return false;
             Output output = (Output) o;
             return astWithCasts.equals(output.astWithCasts) && messages.equals(output.messages);
