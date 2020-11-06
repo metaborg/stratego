@@ -64,7 +64,7 @@ public class Frontends {
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Input))
+            if(getClass() != o.getClass())
                 return false;
             Input input = (Input) o;
             return inputFile.equals(input.inputFile) && includeDirs.equals(input.includeDirs) && builtinLibs
@@ -108,7 +108,7 @@ public class Frontends {
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Output))
+            if(getClass() != o.getClass())
                 return false;
             Output output = (Output) o;
             return staticData.equals(output.staticData) && backendData.equals(output.backendData) && splitModules

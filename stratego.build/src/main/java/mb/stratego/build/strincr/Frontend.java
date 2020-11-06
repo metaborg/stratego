@@ -66,7 +66,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Input))
+            if(getClass() != o.getClass())
                 return false;
             Input input = (Input) o;
             return projectLocation.equals(input.projectLocation) && inputFileString.equals(input.inputFileString)
