@@ -32,22 +32,23 @@ import mb.stratego.build.util.StrategoGradualSetting;
 public class StrIncr implements TaskDef<StrIncr.Input, None> {
     public static final String id = StrIncr.class.getCanonicalName();
 
-    public static final class Input extends Frontends.Input {
+    public static final class Input implements Serializable {
         final @Nullable String javaPackageName;
         final @Nullable ResourcePath cacheDir;
         final List<String> constants;
         final Arguments extraArgs;
         final ResourcePath outputPath;
+        final Frontends.Input frontendsInput;
 
         public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
             Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
             ResourcePath outputPath, Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting) {
-            super(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
             this.javaPackageName = javaPackageName;
             this.cacheDir = cacheDir;
             this.constants = constants;
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
+            this.frontendsInput = new Frontends.Input(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
         }
 
         @Override
@@ -61,12 +62,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Input input = (Input) o;
             return Objects.equals(javaPackageName, input.javaPackageName) && Objects.equals(cacheDir, input.cacheDir)
                 && constants.equals(input.constants) && extraArgs.equals(input.extraArgs) && outputPath
-                .equals(input.outputPath);
+                .equals(input.outputPath) && frontendsInput.equals(input.frontendsInput);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), javaPackageName, cacheDir, constants, extraArgs, outputPath);
+            return Objects.hash(super.hashCode(), javaPackageName, cacheDir, constants, extraArgs, outputPath, frontendsInput);
         }
     }
 
@@ -79,7 +80,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
-        final Output result = execContext.require(strIncrAnalysis, input);
+        final Output result = execContext.require(strIncrAnalysis, input.frontendsInput);
 
         if(!result.messages.isEmpty()) {
             boolean error = false;
@@ -103,7 +104,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, input.projectLocation, result.staticData, result.backendData,
+        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData,
             result.staticCheckOutput);
         return None.instance;
     }
@@ -114,7 +115,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
-        for(String builtinLib : input.builtinLibs) {
+        for(String builtinLib : input.frontendsInput.builtinLibs) {
             args.add("-la", builtinLib);
         }
         BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
@@ -136,7 +137,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, strategyName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
-                    input.cacheDir, input.constants, input.includeDirs, args, false);
+                    input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
         }
@@ -162,7 +163,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, congrName, Collections.emptyList(), strategyContributions,
                     strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
-                    input.cacheDir, input.constants, input.includeDirs, args, false);
+                    input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
 
@@ -180,7 +181,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
                     Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
-                    input.constants, input.includeDirs, args, true);
+                    input.constants, input.frontendsInput.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
         }
@@ -209,6 +210,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public Serializable key(Input input) {
-        return input.inputFile;
+        return input.frontendsInput.inputFile;
     }
 }
