@@ -78,7 +78,14 @@ public class Frontends {
         }
 
         @Override public String toString() {
-            return "FrontEnds$Input(inputFile=" + inputFile + ", projectLocation=" + projectLocation + ")";
+            return "FrontEnds$Input(" +
+                "inputFile=" + inputFile +
+                ", includeDirs=" + includeDirs +
+                ", builtinLibs=" + builtinLibs +
+                ", originTasks=" + originTasks +
+                ", projectLocation=" + projectLocation +
+                ", strGradualSetting=" + strGradualSetting +
+                ')';
         }
     }
 

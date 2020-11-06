@@ -69,6 +69,17 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         public int hashCode() {
             return Objects.hash(super.hashCode(), javaPackageName, cacheDir, constants, extraArgs, outputPath, frontendsInput);
         }
+
+        @Override public String toString() {
+            return "StrIncr$Input(" +
+                "javaPackageName='" + javaPackageName + '\'' +
+                ", cacheDir=" + cacheDir +
+                ", constants=" + constants +
+                ", extraArgs=" + extraArgs +
+                ", outputPath=" + outputPath +
+                ", frontendsInput=" + frontendsInput +
+                ')';
+        }
     }
 
     private final Backend strIncrBack;

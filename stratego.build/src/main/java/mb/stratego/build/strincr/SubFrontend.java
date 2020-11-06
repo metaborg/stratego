@@ -49,7 +49,13 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         }
 
         @Override public String toString() {
-            return "SubFront$Input(" + inputType.name() + ", " + cifiedName + ')';
+            return "SubFrontend$Input(" +
+                "originTasks=" + originTasks +
+                ", moduleName='" + moduleName + '\'' +
+                ", cifiedName='" + cifiedName + '\'' +
+                ", inputType=" + inputType +
+                ", ast=" + ast +
+                ')';
         }
 
         @Override public boolean equals(Object o) {
@@ -93,7 +99,7 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         }
 
         @Override public String toString() {
-            return "StrIncrSubFront$Output";
+            return "SubFrontend$Output(" + result + ")";
         }
 
         @Override public int hashCode() {
