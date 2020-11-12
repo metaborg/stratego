@@ -279,7 +279,7 @@ public class StrategyEnvironment implements Serializable {
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Entry))
+            if(getClass() != o.getClass())
                 return false;
             Entry entry = (Entry) o;
             return strategySig.equals(entry.strategySig) && occurrences.equals(entry.occurrences);

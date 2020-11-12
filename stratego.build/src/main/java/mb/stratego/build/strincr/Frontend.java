@@ -54,14 +54,19 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         @Override public String toString() {
-            return "Frontend$Input(" + inputFileString + ')';
+            return "Frontend$Input(" +
+                "projectLocation=" + projectLocation +
+                ", inputFileString='" + inputFileString + '\'' +
+                ", projectName='" + projectName + '\'' +
+                ", splitResult=" + splitResult +
+                ')';
         }
 
         @Override
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof Input))
+            if(getClass() != o.getClass())
                 return false;
             Input input = (Input) o;
             return projectLocation.equals(input.projectLocation) && inputFileString.equals(input.inputFileString)
@@ -205,7 +210,7 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         }
 
         @Override public String toString() {
-            return "StrIncrFront$Output(" + moduleName + ')';
+            return "Frontend$NormalOutput(" + moduleName + ')';
         }
 
         @Override NormalOutput normalOutput() {
@@ -291,6 +296,10 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
         @Override
         public boolean equals(Object obj) {
             return this == obj || obj != null && this.getClass() == obj.getClass();
+        }
+
+        @Override public String toString() {
+            return "Frontend$FileRemovedOutput()";
         }
     }
 

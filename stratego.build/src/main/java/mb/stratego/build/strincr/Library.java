@@ -198,7 +198,7 @@ public interface Library extends Serializable {
         public boolean equals(Object o) {
             if(this == o)
                 return true;
-            if(!(o instanceof RTree))
+            if(getClass() != o.getClass())
                 return false;
             RTree rTree = (RTree) o;
             return pathURLString.equals(rTree.pathURLString);
