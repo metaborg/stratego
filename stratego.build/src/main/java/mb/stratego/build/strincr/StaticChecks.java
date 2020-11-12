@@ -35,6 +35,7 @@ import mb.pie.api.ExecException;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.termvisitors.SugarAnalysis;
 import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.Relation;

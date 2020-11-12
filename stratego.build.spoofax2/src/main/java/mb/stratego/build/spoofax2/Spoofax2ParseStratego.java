@@ -1,6 +1,7 @@
 package mb.stratego.build.spoofax2;
 
 import java.io.InputStream;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
 
 import javax.annotation.Nullable;
@@ -83,7 +84,12 @@ public class Spoofax2ParseStratego implements ParseStratego {
         }
 
         @Nullable IStrategoTerm ast;
-        final String text = IOUtils.toString(inputStream, charset);
+        final String text;
+        try {
+            text = IOUtils.toString(inputStream, charset);
+        } catch(ClosedByInterruptException e) {
+            throw new ExecException("Interrupted while reading file", e);
+        }
         final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLangImpl, strategoDialect);
         final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, JSGLRVersion.v2);
         ast = parseResult.ast();

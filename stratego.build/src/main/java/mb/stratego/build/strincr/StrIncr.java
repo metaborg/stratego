@@ -26,6 +26,7 @@ import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Frontends.Output;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrategoGradualSetting;
 

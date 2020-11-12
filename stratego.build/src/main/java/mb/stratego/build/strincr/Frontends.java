@@ -35,6 +35,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.StaticChecks.Data;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
