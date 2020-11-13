@@ -257,7 +257,7 @@ public class StrategyEnvironment implements Serializable {
         };
     }
 
-    public static final class Entry {
+    public static final class Entry implements Serializable {
         public final SplitResult.StrategySignature strategySig;
         public final List<IStrategoString> occurrences;
 

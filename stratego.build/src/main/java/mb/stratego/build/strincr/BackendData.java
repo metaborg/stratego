@@ -3,13 +3,14 @@ package mb.stratego.build.strincr;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BackendData {
+public class BackendData implements Serializable {
     final List<IStrategoTerm> consDefs = new ArrayList<>();
     // Cified-strategy-name to definitions of that strategy
     final Map<String, List<IStrategoAppl>> strategyASTs = new HashMap<>();
