@@ -14,7 +14,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
-import mb.stratego.build.strincr.Message;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.StringSetWithPositions;
 
 /**

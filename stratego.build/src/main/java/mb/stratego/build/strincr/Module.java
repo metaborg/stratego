@@ -19,6 +19,7 @@ import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.resource.hierarchical.match.PathResourceMatcher;
 import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
+import mb.stratego.build.strincr.message.Message;
 
 public final class Module implements Serializable {
     public enum Type {

@@ -20,6 +20,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.StrIncrContext;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
@@ -212,7 +213,6 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             messages.add(Message.from(execContext.logger(), input.moduleName, noteTerm, MessageSeverity.NOTE));
         }
         return new Output(astWithCasts, messages);
-//        return new Output(input.ast, messages);
     }
 
     @Override
