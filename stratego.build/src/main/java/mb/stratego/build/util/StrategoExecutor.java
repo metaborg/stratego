@@ -139,6 +139,6 @@ public class StrategoExecutor {
 
     private String[] getArgumentStrings(Arguments arguments) {
         List<String> strings = arguments.asStrings(null);
-        return strings.toArray(new String[strings.size()]);
+        return strings.toArray(new String[0]);
     }
 }

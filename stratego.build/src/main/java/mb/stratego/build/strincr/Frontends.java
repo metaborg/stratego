@@ -41,6 +41,7 @@ import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
 import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
+import mb.stratego.build.util.TermEqWithAttachments;
 
 public class Frontends {
     public static class Input implements Serializable {
@@ -231,7 +232,7 @@ public class Frontends {
             staticData.sugarASTs.put(module.path, ast);
             // Split file up with PIE task:
             final SubFrontend.Input splitInput =
-                SubFrontend.Input.split(input.originTasks, module.path, module.path, ast);
+                SubFrontend.Input.split(input.originTasks, module.path, module.path, new TermEqWithAttachments(ast));
             final IStrategoTerm splitTerm = execContext.require(strIncrSubFront, splitInput).result;
             final SplitResult splitResult = SplitResult.fromTerm(splitTerm, module.path);
             // Save results for use in different order during type checking
