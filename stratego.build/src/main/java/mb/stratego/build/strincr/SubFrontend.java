@@ -25,6 +25,7 @@ import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.IOAgentTracker;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
+import mb.stratego.build.util.TermEqWithAttachments;
 
 public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Output> {
     public static final String id = SubFrontend.class.getCanonicalName();
@@ -180,8 +181,10 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
         if(!result.success) {
             throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.exception);
+        } else {
+            assert result.result != null;
         }
-        return new Output(result.result);
+        return new Output(new TermEqWithAttachments(result.result));
     }
 
     private IOAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
