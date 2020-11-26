@@ -1,8 +1,5 @@
 package mb.stratego.build.util;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -10,21 +7,19 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoReal;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.TermType;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.attachments.ITermAttachment;
+import org.spoofax.terms.StrategoWrapped;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.spoofax.terms.attachments.TermAttachmentType;
 
-public class TermEqWithAttachments implements IStrategoTerm {
+public class TermEqWithAttachments extends StrategoWrapped {
     public final IStrategoTerm term;
 
     public TermEqWithAttachments(IStrategoTerm term) {
+        super(term);
         if(term instanceof TermEqWithAttachments) {
             this.term = ((TermEqWithAttachments) term).term;
         } else {
@@ -33,10 +28,10 @@ public class TermEqWithAttachments implements IStrategoTerm {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean doSlowMatch(IStrategoTerm o) {
         if(this == o)
             return true;
-        if(o == null || getClass() != o.getClass())
+        if(o == null)
             return false;
 
         TermEqWithAttachments that = (TermEqWithAttachments) o;
@@ -45,7 +40,7 @@ public class TermEqWithAttachments implements IStrategoTerm {
     }
 
     @Override
-    public int hashCode() {
+    public int hashFunction() {
         final @Nullable OriginAttachment origin = term.getAttachment(OriginAttachment.TYPE);
         final @Nullable ImploderAttachment location = term.getAttachment(ImploderAttachment.TYPE);
         int result = term.hashCode();
@@ -123,93 +118,6 @@ public class TermEqWithAttachments implements IStrategoTerm {
                 return false;
         }
         return true;
-    }
-
-    @Override
-    public int getSubtermCount() {
-        return term.getSubtermCount();
-    }
-
-    @Override
-    public IStrategoTerm getSubterm(int index) {
-        return term.getSubterm(index);
-    }
-
-    @Override
-    public IStrategoTerm[] getAllSubterms() {
-        return term.getAllSubterms();
-    }
-
-    @Override
-    public List<IStrategoTerm> getSubterms() {
-        return term.getSubterms();
-    }
-
-    @Override
-    public int getTermType() {
-        return term.getTermType();
-    }
-
-    @Override
-    public TermType getType() {
-        return term.getType();
-    }
-
-    @Override
-    public IStrategoList getAnnotations() {
-        return term.getAnnotations();
-    }
-
-    @Override
-    public boolean match(IStrategoTerm second) {
-        return term.match(second);
-    }
-
-    @Override
-    public void prettyPrint(ITermPrinter pp) {
-        term.prettyPrint(pp);
-    }
-
-    @Override
-    public String toString(int maxDepth) {
-        return term.toString(maxDepth);
-    }
-
-    @Override
-    public void writeAsString(Appendable output) throws IOException {
-        term.writeAsString(output);
-    }
-
-    @Override
-    public void writeAsString(Appendable output, int maxDepth) throws IOException {
-        term.writeAsString(output, maxDepth);
-    }
-
-    @Override
-    public Iterator<IStrategoTerm> iterator() {
-        return term.iterator();
-    }
-
-    @Override
-    @Nullable
-    public <T extends ITermAttachment> T getAttachment(@Nullable TermAttachmentType<T> type) {
-        return term.getAttachment(type);
-    }
-
-    @Override
-    public void putAttachment(ITermAttachment resourceAttachment) {
-        term.putAttachment(resourceAttachment);
-    }
-
-    @Override
-    @Nullable
-    public ITermAttachment removeAttachment(TermAttachmentType<?> attachmentType) {
-        return term.removeAttachment(attachmentType);
-    }
-
-    @Override
-    public boolean isList() {
-        return term.isList();
     }
 
 }
