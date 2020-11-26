@@ -11,13 +11,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -27,7 +27,6 @@ import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoString;
 
 import com.google.common.collect.Sets;
-import javax.inject.Inject;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
