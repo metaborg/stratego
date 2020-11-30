@@ -16,16 +16,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import com.google.common.collect.Sets;
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
 import mb.pie.api.Logger;
 import mb.pie.api.STask;
 import mb.resource.ResourceKeyString;
@@ -37,7 +39,6 @@ import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.StaticChecks.Data;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
-import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
 import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
@@ -51,6 +52,8 @@ public class Frontends {
         protected final Collection<STask<?>> originTasks;
         protected final ResourcePath projectLocation;
         protected final StrategoGradualSetting strGradualSetting;
+        public final @Nullable String moduleName;
+        public final @Nullable IStrategoAppl ast;
 
         public Input(ResourcePath inputFile, Collection<ResourcePath> includeDirs, Collection<String> builtinLibs,
             Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting) {
@@ -60,6 +63,21 @@ public class Frontends {
             this.originTasks = originTasks;
             this.projectLocation = projectLocation;
             this.strGradualSetting = strGradualSetting;
+            this.moduleName = null;
+            this.ast = null;
+        }
+
+        public Input(ResourcePath inputFile, Collection<ResourcePath> includeDirs, Collection<String> builtinLibs,
+            Collection<STask<?>> originTasks, ResourcePath projectLocation, StrategoGradualSetting strGradualSetting, String moduleName,
+            IStrategoAppl ast) {
+            this.inputFile = inputFile;
+            this.includeDirs = includeDirs;
+            this.builtinLibs = builtinLibs;
+            this.originTasks = originTasks;
+            this.projectLocation = projectLocation;
+            this.strGradualSetting = strGradualSetting;
+            this.moduleName = moduleName;
+            this.ast = ast;
         }
 
         @Override
@@ -71,12 +89,13 @@ public class Frontends {
             Input input = (Input) o;
             return inputFile.equals(input.inputFile) && includeDirs.equals(input.includeDirs) && builtinLibs
                 .equals(input.builtinLibs) && originTasks.equals(input.originTasks) && projectLocation
-                .equals(input.projectLocation) && strGradualSetting == input.strGradualSetting;
+                .equals(input.projectLocation) && strGradualSetting == input.strGradualSetting
+                && Objects.equals(moduleName, input.moduleName) && Objects.equals(ast, input.ast);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
+            return Objects.hash(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting, moduleName, ast);
         }
 
         @Override public String toString() {
@@ -87,6 +106,8 @@ public class Frontends {
                 ", originTasks=" + originTasks +
                 ", projectLocation=" + projectLocation +
                 ", strGradualSetting=" + strGradualSetting +
+                ", moduleName=" + moduleName +
+                ", ast=" + ast.toString(5) +
                 ')';
         }
     }
@@ -129,7 +150,7 @@ public class Frontends {
     private final SubFrontend strIncrSubFront;
     private final ParseStratego parseStratego;
 
-    @Inject public Frontends(LibFrontend strIncrFrontLib, StaticChecks staticChecks, StrIncrContext strContext,
+    @Inject public Frontends(LibFrontend strIncrFrontLib, StaticChecks staticChecks,
         ParseStratego parseStratego, SubFrontend strIncrSubFront) {
         this.strIncrFrontLib = strIncrFrontLib;
         this.staticChecks = staticChecks;
@@ -141,7 +162,7 @@ public class Frontends {
         throws Exception {
         final Module inputModule = Module.source(input.inputFile);
 
-        final Output output = frontends(execContext, input, projectLocationPath, inputModule);
+        final Output output = frontends(execContext, input, inputModule);
 
         long preCheckTime = System.nanoTime();
 
@@ -153,7 +174,7 @@ public class Frontends {
         return output;
     }
 
-    public Output frontends(ExecContext execContext, Input input, ResourcePath projectLocationPath, Module inputModule)
+    public Output frontends(ExecContext execContext, Input input, Module inputModule)
         throws Exception {
         // FRONTEND
         final java.util.Set<Module> seen = new HashSet<>();
@@ -213,19 +234,23 @@ public class Frontends {
 
             final ResourceService resourceService = execContext.getResourceService();
             final HierarchicalResource inputFile = resourceService.getHierarchicalResource(ResourceKeyString.parse(module.path));
-            // File existence:
-            if(!inputFile.exists()) {
-                execContext.logger().trace("File deletion detected: " + module.path);
-                continue;
-            }
-            // Parse file:
-            execContext.require(inputFile);
             final IStrategoTerm ast;
-            try(final InputStream inputStream = new BufferedInputStream(inputFile.openRead())) {
-                if("rtree".equals(inputFile.getLeafExtension())) {
-                    ast = parseStratego.parseRtree(inputStream);
-                } else {
-                    ast = parseStratego.parse(inputStream, StandardCharsets.UTF_8, module.path);
+            if(module.path.endsWith(input.moduleName)) {
+                ast = input.ast;
+            } else {
+                // File existence:
+                if(!inputFile.exists()) {
+                    execContext.logger().trace("File deletion detected: " + module.path);
+                    continue;
+                }
+                // Parse file:
+                execContext.require(inputFile);
+                try(final InputStream inputStream = new BufferedInputStream(inputFile.openRead())) {
+                    if("rtree".equals(inputFile.getLeafExtension())) {
+                        ast = parseStratego.parseRtree(inputStream);
+                    } else {
+                        ast = parseStratego.parse(inputStream, StandardCharsets.UTF_8, module.path);
+                    }
                 }
             }
             execContext.logger().trace("File parsed: " + module.path);
@@ -253,7 +278,7 @@ public class Frontends {
 
     public static Set<Module> resolveImports(Input input, List<Import> defaultImports,
         List<Message<?>> messages, Module module, SplitResult splitResult,
-        ExecContext execContext) throws IOException, ExecException {
+        ExecContext execContext) throws IOException {
         final List<Import> theImports = new ArrayList<>(splitResult.imports.size());
         for(IStrategoTerm importTerm : splitResult.imports) {
             theImports.add(Import.fromTerm(importTerm));

@@ -1,10 +1,11 @@
 package mb.stratego.build.strincr;
 
+import static org.spoofax.interpreter.core.Interpreter.cify;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,8 +32,6 @@ import org.spoofax.terms.util.TermUtils;
 import io.usethesource.capsule.BinaryRelation;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.TermEqWithAttachments;
-
-import static org.spoofax.interpreter.core.Interpreter.cify;
 
 public class SplitResult implements Serializable {
     public final String moduleName;
@@ -160,7 +159,7 @@ public class SplitResult implements Serializable {
         return packedValuesMap;
     }
 
-    public static class StrategySignature extends StrategoTuple implements Serializable {
+    public static class StrategySignature extends StrategoTuple {
         public final String name;
         public final int noStrategyArgs;
         public final int noTermArgs;
@@ -278,7 +277,7 @@ public class SplitResult implements Serializable {
         }
     }
 
-    public static class ConstructorSignature extends StrategoTuple implements Serializable {
+    public static class ConstructorSignature extends StrategoTuple {
         public final String name;
         public final int noArgs;
 

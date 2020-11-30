@@ -1,8 +1,6 @@
 package mb.stratego.build.strincr;
 
-import java.io.Serializable;
-
-public enum MessageSeverity implements Serializable {
+public enum MessageSeverity {
     NOTE(0), WARNING(1), ERROR(2);
 
     public final int value;

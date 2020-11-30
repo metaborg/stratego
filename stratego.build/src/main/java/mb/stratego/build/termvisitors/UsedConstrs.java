@@ -1,15 +1,14 @@
 package mb.stratego.build.termvisitors;
 
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
-
 import org.spoofax.terms.util.B;
-import mb.stratego.build.util.StringSetWithPositions;
 import org.spoofax.terms.util.TermUtils;
+
+import mb.stratego.build.util.StringSetWithPositions;
 
 public class UsedConstrs extends TermVisitor {
     private final StringSetWithPositions usedConstrs;
@@ -24,7 +23,7 @@ public class UsedConstrs extends TermVisitor {
     }
 
     void registerConsUse(IStrategoTerm term) {
-        if(TermUtils.isAppl(term) && TermUtils.isAppl((IStrategoAppl) term, "Op", 2)) {
+        if(TermUtils.isAppl(term) && TermUtils.isAppl(term, "Op", 2)) {
             if(TermUtils.isString(term.getSubterm(0))) {
                 final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
                 final String name = nameAST.stringValue();
