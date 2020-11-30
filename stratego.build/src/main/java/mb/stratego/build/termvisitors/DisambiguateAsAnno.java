@@ -55,9 +55,8 @@ public class DisambiguateAsAnno {
                 final DisambiguationResult ambiguityResolved = resolveAmbiguity(visited);
                 if(ambiguityResolved.ambiguityFound()) {
                     return ambiguityResolved.resolution();
-                } else {
-                    return visited;
                 }
+                return visited;
             }
         };
     }

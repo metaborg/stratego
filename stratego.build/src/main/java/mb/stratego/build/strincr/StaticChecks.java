@@ -65,9 +65,8 @@ public class StaticChecks {
                     }
                 }
                 return b.toString();
-            } else {
-                return "  (none)";
             }
+            return "  (none)";
         }
 
         @Override
@@ -215,7 +214,7 @@ public class StaticChecks {
     }
 
     public Output insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
-        List<Message<?>> outputMessages, ResourcePath projectLocationPath, StrategoGradualSetting strGradualSetting) throws ExecException, InterruptedException {
+        List<Message<?>> outputMessages, ResourcePath projectLocationPath, StrategoGradualSetting strGradualSetting) throws ExecException {
         final Data staticData = output.staticData;
 
         // Module-path to cified_strategy names to FunTType visible in the module (def or import of def)
@@ -270,11 +269,9 @@ public class StaticChecks {
                 }
 
                 long shuffleStartTime;
-                final String projectName = projectName(moduleName);
 
                 final Frontend.Input frontInput =
-                    new Frontend.Input(projectLocationPath, splitResult.inputFileString, projectName,
-                        splitResult);
+                    new Frontend.Input(projectLocationPath, splitResult.inputFileString, splitResult);
                 final @Nullable Frontend.NormalOutput frontOutput =
                     execContext.require(strIncrFront, frontInput).normalOutput();
                 // Shuffle information
@@ -365,8 +362,7 @@ public class StaticChecks {
     public void insertCasts(String moduleName, ExecContext execContext, List<Message<?>> outputMessages,
         Map<StrategySignature, IStrategoTerm> sccStrategyEnv, ITermFactory tf,
         BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> sccConstructorEnv,
-        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult, boolean keepCasts)
-        throws ExecException, InterruptedException {
+        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> sccInjEnv, SplitResult splitResult, boolean keepCasts) {
         final InsertCasts.Input.Builder builder =
             new InsertCasts.Input.Builder(moduleName, sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
         for(Map.Entry<StrategySignature, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
@@ -684,11 +680,6 @@ public class StaticChecks {
     static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
         map.computeIfAbsent(key, ignore -> initialize.get());
         return map.get(key);
-    }
-
-    private static String projectName(String inputFile) {
-        // *can* we get the project name somehow? This is probably more portable for non-project based compilation
-        return Integer.toString(inputFile.hashCode());
     }
 
 }

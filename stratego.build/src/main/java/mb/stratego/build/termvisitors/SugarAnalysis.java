@@ -19,6 +19,8 @@ import mb.stratego.build.util.StringSetWithPositions;
 
 /**
  * Static analysis which requires the non-desugared AST
+ * Warn on local variable that overlaps with nullary constructor
+ * Warn on congruence with only constant data, recommend to match, or build if that was the intention
  */
 public class SugarAnalysis {
     private final String module;
@@ -174,12 +176,11 @@ public class SugarAnalysis {
                 visit(term);
             }
             return constCongruence;
-        } else {
-            if(constCongruence) {
-                registerConstantCongruence(term);
-            }
-            return isCongruence;
         }
+        if(constCongruence) {
+            registerConstantCongruence(term);
+        }
+        return isCongruence;
     }
 
     /**

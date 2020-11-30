@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.SortedMap;
 
 import javax.annotation.Nullable;
@@ -79,9 +78,8 @@ public class Backend implements TaskDef<Backend.Input, None> {
         public String toString() {
             if(isBoilerplate) {
                 return "StrIncrBack$Input[boilerplate]";
-            } else {
-                return "StrIncrBack$Input(" + strategyName + ')';
             }
+            return "StrIncrBack$Input(" + strategyName + ')';
         }
 
         @Override public boolean equals(Object o) {

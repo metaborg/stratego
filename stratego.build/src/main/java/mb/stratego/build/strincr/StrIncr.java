@@ -122,8 +122,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
-        StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput)
-        throws mb.pie.api.ExecException, InterruptedException {
+        StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput) {
         long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);

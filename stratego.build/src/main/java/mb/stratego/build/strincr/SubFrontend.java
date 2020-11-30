@@ -4,17 +4,15 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
-import mb.stratego.build.util.IOAgentTrackerFactory;
+import javax.inject.Inject;
+
 import org.apache.commons.io.output.NullOutputStream;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strc.insert_casts_0_0;
 import org.strategoxt.strc.split_module_0_0;
-
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -23,6 +21,7 @@ import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
 import mb.stratego.build.termvisitors.TermSize;
 import mb.stratego.build.util.IOAgentTracker;
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.build.util.TermEqWithAttachments;
@@ -181,9 +180,8 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
         if(!result.success) {
             throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.exception);
-        } else {
-            assert result.result != null;
         }
+        assert result.result != null;
         return new Output(new TermEqWithAttachments(result.result));
     }
 

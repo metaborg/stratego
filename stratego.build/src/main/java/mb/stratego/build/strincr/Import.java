@@ -45,9 +45,8 @@ public final class Import implements Serializable {
                 IStrategoString importString = TermUtils.toStringAt(appl, 0);
                 if(Library.Builtin.isBuiltinLibrary(importString.stringValue())) {
                     return library(importString);
-                } else {
-                    return normal(importString);
                 }
+                return normal(importString);
             case "ImportWildcard":
                 return wildcard(TermUtils.toStringAt(appl, 0));
             default:
