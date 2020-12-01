@@ -453,15 +453,6 @@ public class StaticChecks {
         for(StrategyEnvironment s : staticData.externalStrategies.values()) {
             allExternals.addAll(s);
         }
-        //        StringSetWithPositions globalStrategies = new StringSetWithPositions();
-        //        StringSetWithPositions globalConstructors = new StringSetWithPositions();
-        //        for(StringSetWithPositions s : staticData.definedStrategies.values()) {
-        //            globalStrategies.addAll(s);
-        //        }
-        //        for(StringSetWithPositions s : staticData.definedConstructors.values()) {
-        //            globalConstructors.addAll(s);
-        //        }
-        //        globalStrategies.addAll(allExternals);
 
         // Cified-strategy-name (where the call occurs) to cified-strategy-name (amb call) to cified-strategy-name (amb
         // call resolves to)
@@ -484,12 +475,6 @@ public class StaticChecks {
             final StrategyEnvironment set = entry.getValue();
             getOrInitialize(visibleStrategies, moduleName, StrategyEnvironment::new).addAll(set);
         }
-        // Module-path to constructor_arity names visible when imported (transitive closure of constructor definitions)
-        //        final Map<String, Set<ConstructorSignature>> visibleConstructors =
-        //            new HashMap<>(2 * staticData.definedConstructors.size());
-        //        for(Map.Entry<String, Set<ConstructorSignature>> entry : staticData.definedConstructors.entrySet()) {
-        //            visibleConstructors.put(entry.getKey(), new HashSet<>(entry.getValue()));
-        //        }
 
         strategyNeedsExternal(mainFileModulePath, staticData, outputMessages, allExternals);
         cyclicOverlays(mainFileModulePath, staticData, overlayConstrs, outputMessages);
@@ -499,13 +484,9 @@ public class StaticChecks {
             k -> staticData.imports.getOrDefault(k, Collections.emptySet()));
         for(Set<String> scc : sccs) {
             final StrategyEnvironment theVisibleStrategies = new StrategyEnvironment();
-            //            StringSetWithPositions theVisibleConstructors = new StringSetWithPositions();
             for(String moduleName : scc) {
-                //                theVisibleConstructors
-                //                    .addAll(visibleConstructors.getOrDefault(moduleName, new StringSetWithPositions()));
                 theVisibleStrategies.addAll(visibleStrategies.getOrDefault(moduleName, new StrategyEnvironment()));
                 for(String mod : staticData.imports.getOrDefault(moduleName, Collections.emptySet())) {
-                    //                    theVisibleConstructors.addAll(visibleConstructors.getOrDefault(mod, new StringSetWithPositions()));
                     theVisibleStrategies.addAll(visibleStrategies.getOrDefault(mod, new StrategyEnvironment()));
                 }
             }
@@ -513,10 +494,7 @@ public class StaticChecks {
                 if(Library.Builtin.isBuiltinLibrary(moduleName)) {
                     continue;
                 }
-                //                visibleConstructors.put(moduleName, theVisibleConstructors);
                 visibleStrategies.put(moduleName, theVisibleStrategies);
-                //                resolveConstructors(outputMessages, globalConstructors, theVisibleConstructors, moduleName, staticData);
-                //                resolveStrategies(staticData, outputMessages, globalStrategies, theVisibleStrategies, moduleName);
                 overlapWithExternals(staticData, outputMessages, moduleName, allExternals);
                 resolveAmbiguousStrategyCalls(staticData, outputMessages, ambStratResolution, theVisibleStrategies,
                     moduleName);
@@ -595,49 +573,6 @@ public class StaticChecks {
             }
         }
     }
-
-    //    /**
-    //     * CHECK for strategies that cannot be resolved (error/warning condition)
-    //     */
-    //    private static void resolveStrategies(Data staticData, List<Message<?>> outputMessages,
-    //        StringSetWithPositions globalStrategies, StringSetWithPositions theVisibleStrategies, String moduleName) {
-    //        final StringSetWithPositions usedStrategies =
-    //            staticData.usedStrategies.getOrDefault(moduleName, new StringSetWithPositions());
-    //        Set<String> unresolvedStrategies = Sets.difference(usedStrategies.readSet(), theVisibleStrategies.readSet());
-    //        for(String name : unresolvedStrategies) {
-    //            final MessageSeverity severity;
-    //            if(globalStrategies.contains(name)) {
-    //                severity = MessageSeverity.WARNING;
-    //            } else {
-    //                severity = MessageSeverity.ERROR;
-    //            }
-    //            for(IStrategoString strategyUse : usedStrategies.getPositions(name)) {
-    //                outputMessages.add(Message.strategyNotFound(moduleName, strategyUse, severity));
-    //            }
-    //        }
-    //    }
-    //
-    //    /**
-    //     * CHECK for constructors that cannot be resolved (error/warning condition)
-    //     */
-    //    private static void resolveConstructors(List<Message<?>> outputMessages, StringSetWithPositions globalConstructors,
-    //        StringSetWithPositions theVisibleConstructors, String moduleName, final Data staticData) {
-    //        final StringSetWithPositions usedConstructors =
-    //            staticData.usedConstructors.getOrDefault(moduleName, new StringSetWithPositions());
-    //        final Set<String> unresolvedConstructors =
-    //            Sets.difference(usedConstructors.readSet(), theVisibleConstructors.readSet());
-    //        for(String name : unresolvedConstructors) {
-    //            final MessageSeverity severity;
-    //            if(globalConstructors.contains(name)) {
-    //                severity = MessageSeverity.WARNING;
-    //            } else {
-    //                severity = MessageSeverity.ERROR;
-    //            }
-    //            for(IStrategoString constructorUse : usedConstructors.getPositions(name)) {
-    //                outputMessages.add(Message.constructorNotFound(moduleName, constructorUse, severity));
-    //            }
-    //        }
-    //    }
 
     /**
      * CHECK that overlays do not cyclically use each other (error condition) (New check, old compiler looped)
