@@ -107,7 +107,7 @@ public class Frontends {
                 ", projectLocation=" + projectLocation +
                 ", strGradualSetting=" + strGradualSetting +
                 ", moduleName=" + moduleName +
-                ", ast=" + ast.toString(5) +
+                ", ast=" + (ast == null ? "null" : ast.toString(5)) +
                 ')';
         }
     }
@@ -117,7 +117,6 @@ public class Frontends {
         public final BackendData backendData;
         public final Map<String, SplitResult> splitModules;
         public final List<Message<?>> messages;
-        public StaticChecks.Output staticCheckOutput;
 
         public Output(Data staticData, BackendData backendData, Map<String, SplitResult> splitModules,
             List<Message<?>> messages) {
@@ -135,13 +134,12 @@ public class Frontends {
                 return false;
             Output output = (Output) o;
             return staticData.equals(output.staticData) && backendData.equals(output.backendData) && splitModules
-                .equals(output.splitModules) && messages.equals(output.messages) && staticCheckOutput
-                .equals(output.staticCheckOutput);
+                .equals(output.splitModules) && messages.equals(output.messages);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(staticData, backendData, splitModules, messages, staticCheckOutput);
+            return Objects.hash(staticData, backendData, splitModules, messages);
         }
     }
 
@@ -167,7 +165,7 @@ public class Frontends {
         long preCheckTime = System.nanoTime();
 
         // CHECK: constructor/strategy uses have definition which is imported
-        output.staticCheckOutput = staticChecks.insertCasts(execContext, inputModule.path, output, output.messages,
+        staticChecks.insertCasts(execContext, inputModule.path, output,
             projectLocationPath, input.strGradualSetting);
 
         BuildStats.checkTime = System.nanoTime() - preCheckTime;
@@ -235,7 +233,7 @@ public class Frontends {
             final ResourceService resourceService = execContext.getResourceService();
             final HierarchicalResource inputFile = resourceService.getHierarchicalResource(ResourceKeyString.parse(module.path));
             final IStrategoTerm ast;
-            if(module.path.endsWith(input.moduleName)) {
+            if(input.moduleName != null && module.path.endsWith(input.moduleName)) {
                 ast = input.ast;
             } else {
                 // File existence:

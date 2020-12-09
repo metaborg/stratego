@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -46,7 +45,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
         final Collection<IStrategoTerm> constructors;
         final Collection<IStrategoAppl> strategyContributions;
         final Collection<IStrategoAppl> overlayContributions;
-        final SortedMap<String, String> ambStrategyResolution;
         final @Nullable String packageName;
         final ResourcePath outputPath;
         final @Nullable ResourcePath cacheDir;
@@ -56,7 +54,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
         final boolean isBoilerplate;
 
         Input(ResourcePath projectLocation, @Nullable String strategyName, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions,
-            Collection<IStrategoAppl> overlayContributions, SortedMap<String, String> ambStrategyResolution,
+            Collection<IStrategoAppl> overlayContributions,
             @Nullable String packageName, ResourcePath outputPath, @Nullable ResourcePath cacheDir, List<String> constants, Collection<ResourcePath> includeDirs, Arguments extraArgs,
             boolean isBoilerplate) {
             this.projectLocation = projectLocation;
@@ -64,7 +62,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
             this.constructors = constructors;
             this.strategyContributions = strategyContributions;
             this.overlayContributions = overlayContributions;
-            this.ambStrategyResolution = ambStrategyResolution;
             this.packageName = packageName;
             this.outputPath = outputPath;
             this.cacheDir = cacheDir;
@@ -92,7 +89,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
             if(!constructors.equals(input.constructors)) return false;
             if(!strategyContributions.equals(input.strategyContributions)) return false;
             if(!overlayContributions.equals(input.overlayContributions)) return false;
-            if(!ambStrategyResolution.equals(input.ambStrategyResolution)) return false;
             if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null) return false;
             if(!outputPath.equals(input.outputPath)) return false;
             if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null) return false;
@@ -107,7 +103,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
             result = 31 * result + constructors.hashCode();
             result = 31 * result + strategyContributions.hashCode();
             result = 31 * result + overlayContributions.hashCode();
-            result = 31 * result + ambStrategyResolution.hashCode();
             result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
             result = 31 * result + outputPath.hashCode();
             result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
@@ -143,8 +138,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
         if(input.isBoilerplate) {
             ctree = Packer.packBoilerplate(termFactory, input.constructors, input.strategyContributions);
         } else {
-            ctree = Packer.packStrategy(termFactory, input.overlayContributions, input.strategyContributions,
-                input.ambStrategyResolution);
+            ctree = Packer.packStrategy(termFactory, input.overlayContributions, input.strategyContributions);
         }
         BuildStats.strategyBackendCTreeSize.put(input.strategyName, TermSize.computeTermSize(ctree));
 

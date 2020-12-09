@@ -38,7 +38,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategySignature sig;
 
         Input(String moduleName, StrategoImmutableMap strategyEnvironment, StrategoImmutableRelation constructors,
-            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
+            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap,
+            StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
             this.constructors = constructors;
@@ -90,7 +91,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
             public Builder(String moduleName, java.util.Map<StrategySignature, IStrategoTerm> strategyEnv,
                 BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
-                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections, ITermFactory tf) {
+                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections,
+                ITermFactory tf) {
                 this.moduleName = moduleName;
                 strategyEnvironment = StrategoImmutableMap.fromMap(strategyEnv);
                 constructors = new StrategoImmutableRelation(constrs);
