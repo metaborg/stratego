@@ -354,13 +354,7 @@ public class Packer {
     }
 
     public static IStrategoTerm packStrategy(ITermFactory f, Collection<IStrategoAppl> overlayContributions,
-        Collection<IStrategoAppl> strategyContributions, Map<String, String> ambStrategyResolution) {
-        final IStrategoTerm[] annos = new IStrategoTerm[ambStrategyResolution.size()];
-        int i = 0;
-        for(Map.Entry<String, String> entry : ambStrategyResolution.entrySet()) {
-            annos[i] = f.makeTuple(f.makeString(entry.getKey()), f.makeString(entry.getValue()));
-            i++;
-        }
+        Collection<IStrategoAppl> strategyContributions) {
         final IStrategoAppl term;
         if(overlayContributions.isEmpty()) {
             term = f.makeAppl("Specification",
@@ -374,10 +368,6 @@ public class Packer {
                     f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(
                         EMPTY_TERM_ARRAY)))));
         }
-        if(ambStrategyResolution.isEmpty()) {
-            return term;
-        } else {
-            return f.annotateTerm(term, f.makeList(annos));
-        }
+        return term;
     }
 }

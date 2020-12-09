@@ -362,11 +362,12 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             strategyNeedsExternal, overlayConstrs, noOfDefinitions, strategyASTs, overlayASTs, congrASTs);
     }
 
-    private void overlayFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput, StrategyEnvironment definedStrats,
-        final Map<String, IStrategoAppl> strategyASTs, final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
+    private void overlayFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput,
+        StrategyEnvironment definedStrats, final Map<String, IStrategoAppl> strategyASTs,
+        final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
         final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions,
-        final StrategyEnvironment usedStrats, StringSetWithPositions definedOverlays, final Map<String, List<IStrategoAppl>> overlayASTs,
-        final Map<String, Integer> noOfDefinitions) {
+        final StrategyEnvironment usedStrats, StringSetWithPositions definedOverlays,
+        final Map<String, List<IStrategoAppl>> overlayASTs, final Map<String, Integer> noOfDefinitions) {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = TermUtils.toListAt(result, LOCAL_DEFS);
         // EXT_DEFS == empty
@@ -405,7 +406,8 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     }
 
 
-    private void consFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput, final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
+    private void consFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput,
+        final Map<String, StringSetWithPositions> strategyConstrs, final Map<String, Set<String>> usedAmbStrats,
         final StringSetWithPositions ambStratPositions, final StrategyEnvironment usedStrats,
         final StringSetWithPositions definedConstrs, final Map<String, IStrategoAppl> congrASTs,
         final StrategyEnvironment congrs, final Map<String, Integer> noOfDefinitions) {
@@ -443,9 +445,11 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     }
 
 
-    private void stratFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput, StrategyEnvironment definedStrats,
-        Set<String> internalStrats, StrategyEnvironment externalStrats, final Map<String, IStrategoAppl> strategyASTs, final Map<String, StringSetWithPositions> strategyConstrs, final List<IStrategoString> strategyNeedsExternal,
-        final Map<String, Set<String>> usedAmbStrats, final StringSetWithPositions ambStratPositions, final StrategyEnvironment usedStrats,
+    private void stratFrontEnd(ExecContext execContext, final SubFrontend.Input frontInput,
+        StrategyEnvironment definedStrats, Set<String> internalStrats, StrategyEnvironment externalStrats,
+        final Map<String, IStrategoAppl> strategyASTs, final Map<String, StringSetWithPositions> strategyConstrs,
+        final List<IStrategoString> strategyNeedsExternal, final Map<String, Set<String>> usedAmbStrats,
+        final StringSetWithPositions ambStratPositions, final StrategyEnvironment usedStrats,
         final Map<String, Integer> noOfDefinitions) {
         final IStrategoTerm result = execContext.require(strIncrSubFront, frontInput).result;
         final IStrategoList defs3 = TermUtils.toListAt(result, LOCAL_DEFS);
@@ -460,7 +464,6 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             externalStrats.add(strategyName);
             // We don't add to strategyASTs so that no backend task is created for this external definition
             // We don't add to definedStrats as the external strategy is defined elsewhere, and defined strategies may not overlap with external ones
-//            definedStrats.add(strategyName);
         }
         for(IStrategoTerm defPair : defs3) {
             final IStrategoString strategyName = TermUtils.toStringAt(defPair, 0);
