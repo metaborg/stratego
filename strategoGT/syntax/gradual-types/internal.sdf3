@@ -16,6 +16,7 @@ context-free syntax
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.ErrT = [err]
   Anno.LocalDef = [localdef]
+  Anno.AmbiguousStrategyResolution = [ambiguous strategy resolves to arities: [Int], [Int]]
   SType.SErrT = [s-err]
   Dyn = Type // to allow DynT(<some type>)
 
