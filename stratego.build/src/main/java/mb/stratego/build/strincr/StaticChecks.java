@@ -1,6 +1,6 @@
 package mb.stratego.build.strincr;
 
-import static mb.stratego.build.strincr.Frontends.reportOverlappingStrategies;
+import static mb.stratego.build.strincr.StrIncrAnalysis.reportOverlappingStrategies;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -212,7 +212,7 @@ public class StaticChecks {
         this.strContext = strContext;
     }
 
-    public void insertCasts(ExecContext execContext, String mainFileModulePath, Frontends.Output output,
+    public void insertCasts(ExecContext execContext, String mainFileModulePath, StrIncrAnalysis.Output output,
         ResourcePath projectLocationPath, StrategoGradualSetting strGradualSetting) throws ExecException {
         final Data staticData = output.staticData;
         final StrategyEnvironment allExternals = new StrategyEnvironment(staticData.libraryExternalStrategies);
@@ -380,7 +380,7 @@ public class StaticChecks {
         }
     }
 
-    public static void prepareSCCEnv(Frontends.Output output, Data staticData,
+    public static void prepareSCCEnv(StrIncrAnalysis.Output output, Data staticData,
         Map<String, Map<StrategySignature, IStrategoTerm>> stratEnvInclImports,
         Map<String, BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm>> constrEnvInclImports,
         Map<String, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm>> injEnvInclImports, Set<String> scc,
