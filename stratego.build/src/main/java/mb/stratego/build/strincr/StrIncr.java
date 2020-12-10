@@ -24,7 +24,6 @@ import mb.pie.api.None;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.Frontends.Output;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrategoGradualSetting;
@@ -38,7 +37,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final List<String> constants;
         final Arguments extraArgs;
         final ResourcePath outputPath;
-        final Frontends.Input frontendsInput;
+        final StrIncrAnalysis.Input frontendsInput;
 
         public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
             Collection<String> builtinLibs, @Nullable ResourcePath cacheDir, List<String> constants, Arguments extraArgs,
@@ -48,7 +47,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             this.constants = constants;
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
-            this.frontendsInput = new Frontends.Input(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
+            this.frontendsInput = new StrIncrAnalysis.Input(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
         }
 
         @Override
@@ -91,7 +90,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
-        final Output result = execContext.require(strIncrAnalysis, input.frontendsInput);
+        final StrIncrAnalysis.Output result = execContext.require(strIncrAnalysis, input.frontendsInput);
 
         if(!result.messages.isEmpty()) {
             boolean error = false;
