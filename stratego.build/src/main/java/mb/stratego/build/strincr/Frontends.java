@@ -234,6 +234,8 @@ public class Frontends {
             final HierarchicalResource inputFile = resourceService.getHierarchicalResource(ResourceKeyString.parse(module.path));
             final IStrategoTerm ast;
             if(input.moduleName != null && module.path.endsWith(input.moduleName)) {
+                execContext.require(inputFile);
+                execContext.logger().debug("File open in editor: " + module.path);
                 ast = input.ast;
             } else {
                 // File existence:
@@ -247,6 +249,9 @@ public class Frontends {
                     if("rtree".equals(inputFile.getLeafExtension())) {
                         ast = parseStratego.parseRtree(inputStream);
                     } else {
+                        // TODO: The metaborg resource service uses strings like java##file:///Users/jeff/... for paths
+                        //       but this is not recognised as a path by the VFS2 used in Spoofax 2, which results in
+                        //       debug messages in the following method:
                         ast = parseStratego.parse(inputStream, StandardCharsets.UTF_8, module.path);
                     }
                 }

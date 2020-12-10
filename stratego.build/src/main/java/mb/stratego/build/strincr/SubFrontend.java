@@ -1,17 +1,14 @@
 package mb.stratego.build.strincr;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 
 import javax.inject.Inject;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.strc.compile_top_level_def_0_0;
-import org.strategoxt.strc.insert_casts_0_0;
 import org.strategoxt.strc.split_module_0_0;
 
 import mb.pie.api.ExecContext;
@@ -20,7 +17,6 @@ import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.InconsequentialOutputStamper;
 import mb.stratego.build.termvisitors.TermSize;
-import mb.stratego.build.util.IOAgentTracker;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
@@ -85,10 +81,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         public static Input split(Collection<STask<?>> originTasks, String inputFileString, String cifiedName, IStrategoTerm ast) {
             return new Input(originTasks, inputFileString, cifiedName, InputType.Split, ast);
         }
-
-        public static Input insertCasts(String moduleName, String cifiedName, IStrategoTerm ast) {
-            return new Input(moduleName, cifiedName, InputType.InsertCasts, ast);
-        }
     }
 
     public static final class Output implements Serializable {
@@ -128,7 +120,6 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
 
     private enum InputType {
         TopLevelDefinition(compile_top_level_def_0_0.instance),
-        InsertCasts(insert_casts_0_0.instance),
         Split(split_module_0_0.instance); // Split is for convenience, not because it *must* be cached
         public final Strategy strategy;
 
@@ -173,26 +164,14 @@ public class SubFrontend implements TaskDef<SubFrontend.Input, SubFrontend.Outpu
         if(input.inputType == InputType.TopLevelDefinition) {
             BuildStats.tldSubFrontendCTreeSize.put(input.toString(), TermSize.computeTermSize(input.ast));
         }
-        final IOAgentTracker tracker = newResourceTracker(new File(System.getProperty("user.dir")), true);
-        final StrategoExecutor.ExecutionResult result = Backend.runLocallyUniqueStringStrategy(context.logger(), true,
-            tracker, input.inputType.strategy, input.ast,
-            strContext);
+        final StrategoExecutor.ExecutionResult result = StrategoExecutor.runLocallyUniqueStringStrategy(
+            ioAgentTrackerFactory, context.logger(), true, input.inputType.strategy, input.ast, strContext);
 
         if(!result.success) {
             throw new ExecException("Call to strc frontend failed on " + input.toString() + ": \n" + result.exception);
         }
         assert result.result != null;
         return new Output(new TermEqWithAttachments(result.result));
-    }
-
-    private IOAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
-        final IOAgentTracker tracker;
-        if(silent) {
-            tracker = ioAgentTrackerFactory.create(baseFile, new NullOutputStream(), new NullOutputStream());
-        } else {
-            tracker = ioAgentTrackerFactory.create(baseFile, excludePatterns);
-        }
-        return tracker;
     }
 
 }
