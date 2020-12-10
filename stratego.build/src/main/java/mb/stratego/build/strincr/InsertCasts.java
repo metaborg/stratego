@@ -13,6 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
+import org.strategoxt.strc.insert_casts_0_0;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
@@ -21,7 +22,9 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.build.util.TermEqWithAttachments;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
@@ -177,12 +180,12 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         }
     }
 
-    private final SubFrontend strIncrSubFront;
+    private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
 
     @Inject
-    public InsertCasts(SubFrontend strIncrSubFront, StrIncrContext strContext) {
-        this.strIncrSubFront = strIncrSubFront;
+    public InsertCasts(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
+        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
     }
 
@@ -198,8 +201,13 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final IStrategoTerm tuple =
             tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
                 input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.aliasMap.withWrapper(tf), input.ast);
-        final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
-        final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
+
+        final StrategoExecutor.ExecutionResult output = StrategoExecutor.runLocallyUniqueStringStrategy(
+            ioAgentTrackerFactory, execContext.logger(), true, insert_casts_0_0.instance, tuple, strContext);
+        if(!output.success) {
+            throw new ExecException("Call to insert_casts failed on " + input.moduleName + ":" + input.sig.cifiedName() + ": \n" + output.exception);
+        }
+
         final IStrategoTerm astWithCasts = new TermEqWithAttachments(output.result.getSubterm(0));
         final IStrategoList errors = TermUtils.toListAt(output.result, 1);
         final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
