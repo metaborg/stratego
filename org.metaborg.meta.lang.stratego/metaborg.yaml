@@ -1,7 +1,7 @@
 ---
 id: org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
 name: Stratego-Sugar
-metaborgVersion: 2.6.0-SNAPSHOT
+metaborgVersion: 2.5.14
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
