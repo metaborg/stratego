@@ -1,7 +1,5 @@
 package mb.stratego.build.strincr;
 
-import static mb.stratego.build.strincr.StrIncrAnalysis.reportOverlappingStrategies;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,9 +28,6 @@ import com.google.common.collect.Sets;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
-import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.termvisitors.SugarAnalysis;
 import mb.stratego.build.util.Algorithms;
@@ -41,6 +36,8 @@ import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoGradualSetting;
 import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
+
+import static mb.stratego.build.strincr.StrIncrAnalysis.reportOverlappingStrategies;
 
 public class StaticChecks {
     public static final class Output implements Serializable {
@@ -213,7 +210,7 @@ public class StaticChecks {
     }
 
     public void insertCasts(ExecContext execContext, String mainFileModulePath, StrIncrAnalysis.Output output,
-        ResourcePath projectLocationPath, StrategoGradualSetting strGradualSetting) throws ExecException {
+        StrategoGradualSetting strGradualSetting) throws ExecException {
         final Data staticData = output.staticData;
         final StrategyEnvironment allExternals = new StrategyEnvironment(staticData.libraryExternalStrategies);
         for(StrategyEnvironment s : staticData.externalStrategies.values()) {
@@ -285,7 +282,7 @@ public class StaticChecks {
                 long shuffleStartTime;
 
                 final Frontend.Input frontInput =
-                    new Frontend.Input(projectLocationPath, splitResult.inputFileString, splitResult);
+                    new Frontend.Input(splitResult.inputFileString, splitResult);
                 final @Nullable Frontend.NormalOutput frontOutput =
                     execContext.require(strIncrFront, frontInput).normalOutput();
                 // Shuffle information

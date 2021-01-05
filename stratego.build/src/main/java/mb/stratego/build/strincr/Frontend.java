@@ -25,9 +25,6 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
-import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
-import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNames;
 import mb.stratego.build.util.Relation;
@@ -38,19 +35,16 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     public static final String id = Frontend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
-        final ResourcePath projectLocation;
         final String inputFileString;
         final SplitResult splitResult;
 
-        Input(ResourcePath projectLocation, String inputFileString, SplitResult splitResult) {
-            this.projectLocation = projectLocation;
+        Input(String inputFileString, SplitResult splitResult) {
             this.inputFileString = inputFileString;
             this.splitResult = splitResult;
         }
 
         @Override public String toString() {
             return "Frontend$Input(" +
-                "projectLocation=" + projectLocation +
                 ", inputFileString='" + inputFileString + '\'' +
                 ", splitResult=" + splitResult +
                 ')';
@@ -63,13 +57,13 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
             if(getClass() != o.getClass())
                 return false;
             Input input = (Input) o;
-            return projectLocation.equals(input.projectLocation) && inputFileString.equals(input.inputFileString)
+            return inputFileString.equals(input.inputFileString)
                 && splitResult.equals(input.splitResult);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(projectLocation, inputFileString, splitResult);
+            return Objects.hash(inputFileString, splitResult);
         }
     }
 

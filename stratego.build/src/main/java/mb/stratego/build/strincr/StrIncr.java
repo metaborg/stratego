@@ -37,6 +37,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         final List<String> constants;
         final Arguments extraArgs;
         final ResourcePath outputPath;
+        final ResourcePath projectLocation;
         final StrIncrAnalysis.Input frontendsInput;
 
         public Input(ResourcePath inputFile, @Nullable String javaPackageName, Collection<ResourcePath> includeDirs,
@@ -47,6 +48,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             this.constants = constants;
             this.extraArgs = extraArgs;
             this.outputPath = outputPath;
+            this.projectLocation = projectLocation;
             this.frontendsInput = new StrIncrAnalysis.Input(inputFile, includeDirs, builtinLibs, originTasks, projectLocation, strGradualSetting);
         }
 
@@ -114,7 +116,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData);
+        backends(execContext, input, input.projectLocation, result.staticData, result.backendData);
         return None.instance;
     }
 

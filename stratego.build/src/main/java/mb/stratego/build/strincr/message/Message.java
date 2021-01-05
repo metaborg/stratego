@@ -113,7 +113,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
         return new AmbiguousStrategyCall(module, name, defs);
     }
 
-    public static JavaMessage<IStrategoString> unresolvedImport(String module, IStrategoString path) {
+    public static JavaMessage<IStrategoTerm> unresolvedImport(String module, IStrategoString path) {
         return new UnresolvedImport(module, path);
     }
 

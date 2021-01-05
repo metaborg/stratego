@@ -34,9 +34,14 @@ public class TermEqWithAttachments extends StrategoWrapped {
         if(o == null)
             return false;
 
-        TermEqWithAttachments that = (TermEqWithAttachments) o;
+        final IStrategoTerm that;
+        if(o instanceof TermEqWithAttachments) {
+            that = ((TermEqWithAttachments) o).term;
+        } else {
+            that = o;
+        }
 
-        return equalsWithAttachments(term, that.term);
+        return equalsWithAttachments(this.term, that);
     }
 
     @Override

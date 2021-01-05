@@ -17,12 +17,12 @@ import javax.annotation.Nullable;
 import org.metaborg.util.iterators.CompoundIterator;
 import org.spoofax.interpreter.terms.IStrategoString;
 
-import mb.stratego.build.strincr.SplitResult;
+import mb.stratego.build.strincr.StrategySignature;
 
 /**
  * This is a collection of cified strategy names. It can be searched for a strategy name by prefix, by
- * {@link SplitResult.StrategySignature}, or by cified strategy as a string. The prefix is the fastest. Each entry
- * contains the {@link SplitResult.StrategySignature} and a list of IStrategoString occurrences of that name.
+ * {@link StrategySignature}, or by cified strategy as a string. The prefix is the fastest. Each entry
+ * contains the {@link StrategySignature} and a list of IStrategoString occurrences of that name.
  *
  * Adding another StrategyEnvironment to this one results in a slower lookup of prefixes make the cost of the add operation cheaper (in time and more importantly in memory).
  */
@@ -44,7 +44,7 @@ public class StrategyEnvironment implements Serializable {
         this.maps.addAll(other.maps);
     }
 
-    public @Nullable Entry get(SplitResult.StrategySignature sig) {
+    public @Nullable Entry get(StrategySignature sig) {
         @Nullable Entry result = null;
         for(Map<String, List<Entry>> map : maps) {
             final @Nullable List<Entry> entries = map.get(sig.name);
@@ -75,11 +75,11 @@ public class StrategyEnvironment implements Serializable {
     }
 
     public @Nullable Entry get(String cifiedName) {
-        return get(Objects.requireNonNull(SplitResult.StrategySignature.fromCified(cifiedName)));
+        return get(Objects.requireNonNull(StrategySignature.fromCified(cifiedName)));
     }
 
     public List<IStrategoString> getPositions(String cifiedName) {
-        final @Nullable Entry entry = get(Objects.requireNonNull(SplitResult.StrategySignature.fromCified(cifiedName)));
+        final @Nullable Entry entry = get(Objects.requireNonNull(StrategySignature.fromCified(cifiedName)));
         return entry != null ? entry.occurrences : Collections.emptyList();
     }
 
@@ -96,8 +96,8 @@ public class StrategyEnvironment implements Serializable {
     }
 
     public boolean contains(String usedAmbStrategy) {
-        final @Nullable SplitResult.StrategySignature sig =
-            SplitResult.StrategySignature.fromCified(usedAmbStrategy);
+        final @Nullable StrategySignature sig =
+            StrategySignature.fromCified(usedAmbStrategy);
         if(sig != null) {
             for(Map<String, List<Entry>> map : maps) {
                 final @Nullable List<Entry> entries = map.get(sig.name);
@@ -114,8 +114,8 @@ public class StrategyEnvironment implements Serializable {
     }
 
     public void add(IStrategoString str) {
-        final SplitResult.StrategySignature sig =
-            Objects.requireNonNull(SplitResult.StrategySignature.fromCified(str.stringValue()));
+        final StrategySignature sig =
+            Objects.requireNonNull(StrategySignature.fromCified(str.stringValue()));
         final Map<String, List<Entry>> map = getMap();
         final List<Entry> entries = map.getOrDefault(sig.name, new ArrayList<>(1));
         for(Entry entry : entries) {
@@ -257,10 +257,10 @@ public class StrategyEnvironment implements Serializable {
     }
 
     public static final class Entry {
-        public final SplitResult.StrategySignature strategySig;
+        public final StrategySignature strategySig;
         public final List<IStrategoString> occurrences;
 
-        public Entry(SplitResult.StrategySignature strategyName, List<IStrategoString> occurrences) {
+        public Entry(StrategySignature strategyName, List<IStrategoString> occurrences) {
             this.strategySig = strategyName;
             this.occurrences = occurrences;
         }

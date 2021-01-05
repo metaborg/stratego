@@ -12,8 +12,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.B;
 import org.strategoxt.strj.strj;
 
-import mb.stratego.build.strincr.SplitResult.StrategySignature;
-
 public final class StrategyStubs {
     private StrategyStubs() {}
 

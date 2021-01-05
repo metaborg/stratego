@@ -19,8 +19,6 @@ import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
-import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;

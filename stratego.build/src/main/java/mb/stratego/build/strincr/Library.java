@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.B;
 import org.strategoxt.lang.compat.override.strc_compat.Main;
@@ -23,8 +23,7 @@ import mb.resource.ResourceService;
 public interface Library extends Serializable {
     IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException;
 
-    @Nullable
-    File fileToRead() throws MalformedURLException;
+    @Nullable File fileToRead() throws MalformedURLException;
 
     static Library fromString(ResourceService resourceService, String name) throws IOException {
         final @Nullable Builtin builtinLibrary = Builtin.fromString(name);
@@ -35,17 +34,16 @@ public interface Library extends Serializable {
     }
 
     static IStrategoString normalizeBuiltin(IStrategoString name) {
-        final @Nullable String normalizedName = Builtin.fromString(name.stringValue()).libString;
-        if(normalizedName == null) {
+        final @Nullable Builtin builtin = Builtin.fromString(name.stringValue());
+        if(builtin == null) {
             return name;
         }
-        final IStrategoString normNameTerm = B.string(normalizedName);
-        new TermFactory().copyAttachments(name, normNameTerm);
+        final IStrategoString normNameTerm = B.string(builtin.libString);
+        AbstractTermFactory.staticCopyAttachments(name, normNameTerm);
         return normNameTerm;
     }
 
     enum Builtin implements Library {
-        // @formatter:off
         StrategoLib("stratego-lib"),
         StrategoSglr("stratego-sglr"),
         StrategoGpp("stratego-gpp"),
@@ -54,7 +52,6 @@ public interface Library extends Serializable {
         StrategoSdf("stratego-sdf"),
         Strc("strc"),
         JavaFront("java-front");
-        // @formatter:on
 
         public final String libString;
         public final String cmdArgString;
@@ -64,14 +61,11 @@ public interface Library extends Serializable {
             this.libString = "lib" + cmdArgString;
         }
 
-        @Override
-        public @Nullable
-        File fileToRead() {
+        @Override public @Nullable File fileToRead() {
             return null;
         }
 
-        @Override
-        public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException {
+        @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException {
             switch(this) {
                 case StrategoLib:
                     return Main.getLibstrategolibRtree();
@@ -118,8 +112,7 @@ public interface Library extends Serializable {
             }
         }
 
-        public static @Nullable
-        Builtin fromString(String name) {
+        public static @Nullable Builtin fromString(String name) {
             switch(name) {
                 case "stratego-lib":
                 case "libstrategolib":
@@ -167,9 +160,7 @@ public interface Library extends Serializable {
             this.pathURLString = pathURLString;
         }
 
-        @Override
-        public @Nullable
-        File fileToRead() throws MalformedURLException {
+        @Override public @Nullable File fileToRead() throws MalformedURLException {
             URL url = new URL(pathURLString);
             if(url.getProtocol().equals("jar")) {
                 url = new URL(url.getPath().split("!", 2)[0]);
@@ -183,18 +174,15 @@ public interface Library extends Serializable {
             return new File(url.toString());
         }
 
-        @Override
-        public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
+        @Override public IStrategoTerm readLibraryFile(ITermFactory factory) throws ExecException, IOException {
             return new TermReader(factory).parseFromStream(new URL(pathURLString).openStream());
         }
 
-        @Override
-        public String toString() {
+        @Override public String toString() {
             return "RTree(" + pathURLString + ")";
         }
 
-        @Override
-        public boolean equals(Object o) {
+        @Override public boolean equals(Object o) {
             if(this == o)
                 return true;
             if(getClass() != o.getClass())
@@ -203,8 +191,7 @@ public interface Library extends Serializable {
             return pathURLString.equals(rTree.pathURLString);
         }
 
-        @Override
-        public int hashCode() {
+        @Override public int hashCode() {
             return pathURLString.hashCode();
         }
     }

@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.strincr.SplitResult;
+import mb.stratego.build.strincr.StrategySignature;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrategyEnvironment;
 import mb.stratego.build.util.StringSetWithPositions;
@@ -106,7 +106,7 @@ public class UsedNames extends UsedConstrs {
                         final String ambName = ambNameAST.stringValue();
                         // Inner strategies that were lifted don't have any arity info in their name and aren't
                         //  ambiguous uses
-                        if(!SplitResult.StrategySignature.isCified(ambName)) {
+                        if(!StrategySignature.isCified(ambName)) {
                             continue;
                         }
                         Relation.getOrInitialize(usedAmbStrats, ambName, HashSet::new).add(currentTopLevelStrategyName);

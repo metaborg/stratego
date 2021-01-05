@@ -36,7 +36,7 @@ public final class Import implements Serializable {
     }
 
     static Import fromTerm(IStrategoTerm importTerm) throws IOException {
-        if(!(TermUtils.isAppl(importTerm))) {
+        if(!TermUtils.isAppl(importTerm)) {
             throw new IOException("Import term was not a constructor: " + importTerm);
         }
         final IStrategoAppl appl = (IStrategoAppl) importTerm;

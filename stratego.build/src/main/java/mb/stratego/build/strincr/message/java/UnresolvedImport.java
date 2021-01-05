@@ -1,16 +1,16 @@
 package mb.stratego.build.strincr.message.java;
 
-import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.strincr.message.JavaMessage;
 
-public class UnresolvedImport extends JavaMessage<IStrategoString> {
-    public UnresolvedImport(String module, IStrategoString name) {
-        super(module, name, MessageSeverity.ERROR);
+public class UnresolvedImport extends JavaMessage<IStrategoTerm> {
+    public UnresolvedImport(String module, IStrategoTerm importTerm) {
+        super(module, importTerm, MessageSeverity.ERROR);
     }
 
     @Override public String getMessage() {
-        return "Cannot find module for import '" + locationTerm.stringValue() + "'";
+        return "Cannot find module for import '" + locationTerm.toString(1) + "'";
     }
 }
