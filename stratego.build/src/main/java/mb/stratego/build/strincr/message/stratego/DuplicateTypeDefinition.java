@@ -6,8 +6,8 @@ import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategoMessage;
 
 public class DuplicateTypeDefinition extends StrategoMessage {
-    public DuplicateTypeDefinition(String module, IStrategoTerm callDynTerm, MessageSeverity severity) {
-        super(module, callDynTerm, severity);
+    public DuplicateTypeDefinition(String module, IStrategoTerm locationTerm, MessageSeverity severity) {
+        super(module, locationTerm, severity);
     }
 
     @Override

@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import mb.stratego.build.strincr.message.Message;
+
 /**
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
@@ -14,13 +16,16 @@ public class ModuleIndex implements Serializable {
     public final Set<ConstructorSignature> constructors;
     public final Set<StrategySignature> strategies;
     public final Set<ConstructorSignature> overlays;
+    public final List<Message<?>> messages;
 
     public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
-        Set<StrategySignature> strategies, Set<ConstructorSignature> overlays) {
+        Set<StrategySignature> strategies, Set<ConstructorSignature> overlays,
+        List<Message<?>> messages) {
         this.imports = imports;
         this.constructors = constructors;
         this.strategies = strategies;
         this.overlays = overlays;
+        this.messages = messages;
     }
 
     @Override public boolean equals(Object o) {

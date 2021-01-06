@@ -20,7 +20,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.termvisitors.AllTdDesugarType;
+import mb.stratego.build.termvisitors.DesugarType;
 
 public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Output> {
     public static final String id = LibFrontend.class.getCanonicalName();
@@ -153,7 +153,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     final IStrategoTerm to = optype.getSubterm(1);
                     if(TermUtils.isAppl(from, "ConstType", 1)
                         && TermUtils.isAppl(to, "ConstType", 1)) {
-                        injs.add(tf.makeTuple(AllTdDesugarType.tryDesugarType(tf, from.getSubterm(0)), AllTdDesugarType
+                        injs.add(tf.makeTuple(DesugarType.tryDesugarType(tf, from.getSubterm(0)), DesugarType
                             .tryDesugarType(tf, to.getSubterm(0))));
                     }
                 }
@@ -224,7 +224,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
     private IStrategoTerm constrTypeFromConstType(ITermFactory tf, IStrategoTerm constType) throws ExecException {
         // ConstType(...)
         return tf
-            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(), AllTdDesugarType
+            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(), DesugarType
                 .tryDesugarType(tf, constType.getSubterm(0))), constType);
     }
 
@@ -235,13 +235,13 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
         final IStrategoList.Builder b = tf.arrayListBuilder(args.size());
         for(IStrategoTerm t : args) {
             if(TermUtils.isAppl(t, "ConstType", 1)) {
-                b.add(AllTdDesugarType.tryDesugarType(tf, t.getSubterm(0)));
+                b.add(DesugarType.tryDesugarType(tf, t.getSubterm(0)));
             } else {
                 b.add(dynt);
             }
         }
         return tf
-            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(b), AllTdDesugarType
+            .replaceTerm(tf.makeAppl("ConstrType", tf.makeList(b), DesugarType
                 .tryDesugarType(tf, funType.getSubterm(1).getSubterm(0))), funType);
     }
 
@@ -262,7 +262,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                 final StrategySignature sig =
                     new StrategySignature(TermUtils.toJavaString(name), sargs.getSubtermCount(),
                         targs.getSubtermCount());
-                strategyConstrs.put(sig, sig.standardType(tf));
+                strategyConstrs.put(sig, sig.standardType(tf).toTerm(tf));
             } else if(TermUtils.isAppl(extSDefTerm, "DefHasType", 2)) {
                 IStrategoTerm name = extSDefTerm.getSubterm(0);
                 IStrategoTerm sfuntype = extSDefTerm.getSubterm(1);

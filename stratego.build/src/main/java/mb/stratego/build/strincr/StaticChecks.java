@@ -413,13 +413,16 @@ public class StaticChecks {
             final Map<StrategySignature, IStrategoTerm> moduleEnv = new HashMap<>(2 * splitResult.defTypes.size());
             // untyped definitions
             for(StrategySignature sig : splitResult.strategyDefs.keySet()) {
-                moduleEnv.put(sig, sig.standardType(tf));
+                moduleEnv.put(sig, sig.standardType(tf).toTerm(tf));
             }
             // typed definitions
             moduleEnv.putAll(splitResult.defTypes);
             // generated strategies for dynamic rules
             for(StrategySignature dynRuleSig : splitResult.dynRuleSigs) {
-                moduleEnv.putAll(dynRuleSig.dynamicRuleSignatures(tf));
+                for(Map.Entry<StrategySignature, StrategyType> e : dynRuleSig
+                    .dynamicRuleSignatures(tf).entrySet()) {
+                    moduleEnv.put(e.getKey(), e.getValue().toTerm(tf));
+                }
             }
             // congruences
             for(Map.Entry<ConstructorSignature, IStrategoTerm> e : splitResult.consTypes.entrySet()) {

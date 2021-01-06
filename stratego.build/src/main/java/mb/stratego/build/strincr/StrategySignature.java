@@ -1,5 +1,6 @@
 package mb.stratego.build.strincr;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,30 +48,22 @@ public class StrategySignature extends StrategoTuple {
         return cify(name) + "_" + noStrategyArgs + "_" + noTermArgs;
     }
 
-    public IStrategoTerm standardType(ITermFactory tf) {
+    public StrategyType standardType(ITermFactory tf) {
         return standardType(tf, noStrategyArgs, noTermArgs);
     }
 
-    public static IStrategoTerm standardType(ITermFactory tf, int noStrategyArgs, int noTermArgs) {
+    public static StrategyType standardType(ITermFactory tf, int noStrategyArgs, int noTermArgs) {
         final IStrategoAppl sdyn = tf.makeAppl("SDyn");
-        final IStrategoList.Builder sargTypes = tf.arrayListBuilder(noStrategyArgs);
-        for(int i = 0; i < noStrategyArgs; i++) {
-            sargTypes.add(sdyn);
-        }
         final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-        final IStrategoList.Builder targTypes = tf.arrayListBuilder(noTermArgs);
-        for(int i = 0; i < noTermArgs; i++) {
-            targTypes.add(dyn);
-        }
-        return tf.makeAppl("FunTType", tf.makeList(sargTypes), tf.makeList(targTypes),
-            tf.makeAppl("FunNoArgsType", dyn, dyn));
+        return new StrategyType(dyn, dyn, Collections.nCopies(noStrategyArgs, sdyn),
+            Collections.nCopies(noTermArgs, dyn));
     }
 
-    public Map<StrategySignature, IStrategoTerm> dynamicRuleSignatures(ITermFactory tf) {
+    public Map<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {
         final String n = cify(this.name);
         final int s = this.noStrategyArgs;
         final int t = this.noTermArgs;
-        final Map<StrategySignature, IStrategoTerm> result = new HashMap<>(40);
+        final Map<StrategySignature, StrategyType> result = new HashMap<>(40);
         result.put(this, standardType(tf));
         result.put(new StrategySignature("new-" + n, 0, 2), standardType(tf, 0, 2));
         result.put(new StrategySignature("undefine-" + n, 0, 1), standardType(tf, 0, 1));

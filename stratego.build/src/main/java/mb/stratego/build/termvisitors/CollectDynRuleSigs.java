@@ -11,9 +11,6 @@ import mb.stratego.build.strincr.StrategySignature;
 public class CollectDynRuleSigs {
     private final Collection<StrategySignature> signatures = new HashSet<>();
 
-    private CollectDynRuleSigs() {
-    }
-
     public static Collection<StrategySignature> collect(IStrategoTerm ast) {
         CollectDynRuleSigs instance = new CollectDynRuleSigs();
         instance.visit(ast);

@@ -1,44 +1,45 @@
 package mb.stratego.build.util;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.StrategoWrapped;
 
-public class TermWithLastModified extends StrategoWrapped {
+public class TermWithLastModified {
+    public final IStrategoTerm term;
     public final long lastModified;
 
-    private TermWithLastModified(IStrategoTerm wrapped, long lastModified) {
-        super(wrapped);
+    private TermWithLastModified(IStrategoTerm term, long lastModified) {
+        this.term = term;
         this.lastModified = lastModified;
     }
 
     public static TermWithLastModified fromTimestamp(IStrategoTerm wrapped, long lastModified) {
         if(wrapped instanceof TermWithLastModified) {
-            wrapped = ((TermWithLastModified) wrapped).getWrapped();
+            wrapped = ((TermWithLastModified) wrapped).term;
         }
         return new TermWithLastModified(wrapped, lastModified);
     }
 
     public static TermWithLastModified fromParent(IStrategoTerm wrapped, TermWithLastModified parent) {
         if(wrapped instanceof TermWithLastModified) {
-            wrapped = ((TermWithLastModified) wrapped).getWrapped();
+            wrapped = ((TermWithLastModified) wrapped).term;
         }
         return new TermWithLastModified(wrapped, parent.lastModified);
     }
 
-    public boolean doSlowMatch(IStrategoTerm second) {
-        if(!super.doSlowMatch(second))
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
             return false;
 
-        if(!(second instanceof TermWithLastModified)) {
-            return false;
-        }
+        TermWithLastModified that = (TermWithLastModified) o;
 
-        final TermWithLastModified that = (TermWithLastModified) second;
-        return this.lastModified == that.lastModified;
+        if(lastModified != that.lastModified)
+            return false;
+        return term.equals(that.term);
     }
 
-    @Override public int hashFunction() {
-        int result = super.hashCode();
+    @Override public int hashCode() {
+        int result = term.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }

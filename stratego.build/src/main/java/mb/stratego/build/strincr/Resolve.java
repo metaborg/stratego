@@ -25,7 +25,7 @@ import mb.stratego.build.strincr.message.java.UnresolvedImport;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
-public class Resolve implements TaskDef<Resolve.Input, Resolve.GlobalData> {
+public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
     public static final String id = Resolve.class.getCanonicalName();
 
     public static class Input implements Serializable {
@@ -55,20 +55,6 @@ public class Resolve implements TaskDef<Resolve.Input, Resolve.GlobalData> {
             int result = mainModuleIdentifier.hashCode();
             result = 31 * result + moduleImportService.hashCode();
             return result;
-        }
-    }
-
-    public static class GlobalData implements Serializable {
-        final Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks;
-        final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
-        final List<Message<?>> messages;
-
-        public GlobalData(Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks,
-            Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
-            List<Message<?>> messages) {
-            this.moduleDataTasks = moduleDataTasks;
-            this.constructorIndex = constructorIndex;
-            this.messages = messages;
         }
     }
 
@@ -118,6 +104,7 @@ public class Resolve implements TaskDef<Resolve.Input, Resolve.GlobalData> {
                     Relation.getOrInitialize(overlayIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
                 }
+                messages.addAll(index.messages);
 
                 final Set<ModuleIdentifier> expandedImports = new HashSet<>();
                 for(IStrategoTerm anImport : index.imports) {
@@ -137,7 +124,7 @@ public class Resolve implements TaskDef<Resolve.Input, Resolve.GlobalData> {
             }
         } while(!workList.isEmpty());
 
-        return new GlobalData(moduleDataTasks, constructorIndex, messages);
+        return new GlobalData(moduleDataTasks, constructorIndex, strategyIndex, overlayIndex, messages);
     }
 
     @Override public String getId() {

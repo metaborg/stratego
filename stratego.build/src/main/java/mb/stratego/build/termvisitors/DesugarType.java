@@ -10,8 +10,12 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.SRTS_all;
 import org.strategoxt.lang.Strategy;
 
-public class AllTdDesugarType {
-    public static IStrategoTerm visit(Context context, IStrategoTerm t) {
+public class DesugarType {
+    public static IStrategoTerm alltd(Context context, IStrategoTerm t) {
+        return visit(context, t);
+    }
+
+    private static IStrategoTerm visit(Context context, IStrategoTerm t) {
         IStrategoTerm result = desugarType(context.getFactory(), t);
         if(result == null) {
             return SRTS_all.instance.invoke(context, t, new Strategy() {
@@ -97,5 +101,15 @@ public class AllTdDesugarType {
             }
         }
         return tf.replaceTerm(result, term);
+    }
+
+    public static IStrategoTerm tryDesugarSType(ITermFactory tf, IStrategoTerm term) {
+        IStrategoTerm result = desugarSType(tf, term);
+        return result == null ? term : result;
+    }
+
+    private static IStrategoTerm desugarSType(ITermFactory tf, IStrategoTerm term) {
+        // TODO
+        return null;
     }
 }
