@@ -8,6 +8,6 @@ module stratego/sugar/constants
   sorts Char CharChar
   lexical syntax
     Char     = "'" CharChar "'"
-    CharChar = ~[\']		
-    CharChar = [\\] [\'ntr\ ]
+    CharChar = ~[\'] %% add the new line and backslash characters (\n\\) to be consistent with other languages but break backwards compatibility
+    CharChar = [\\] [tnrbf\"\'\\\ ] %% remove the space character (\ ) to be consistent with other languages but break backwards compatability
     Id       = Char {reject}
