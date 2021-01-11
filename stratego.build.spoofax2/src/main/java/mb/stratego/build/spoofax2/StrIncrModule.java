@@ -11,6 +11,7 @@ import mb.stratego.build.strincr.Frontend;
 import mb.stratego.build.strincr.InsertCasts;
 import mb.stratego.build.strincr.LibFrontend;
 import mb.stratego.build.strincr.ParseStratego;
+import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrIncr;
 import mb.stratego.build.strincr.StrIncrAnalysis;
 import mb.stratego.build.strincr.SubFrontend;
@@ -33,6 +34,6 @@ public class StrIncrModule extends TaskDefsModule {
         bind(ResourceService.class).toInstance(new DefaultResourceService(new FSResourceRegistry()));
         bind(ParseStratego.class).to(Spoofax2ParseStratego.class).in(Singleton.class);
         bind(IOAgentTrackerFactory.class).to(ResourceAgentTrackerFactory.class).in(Singleton.class);
-        bind(Backend.ResourcePathConverter.class).to(FileResourcePathConverter.class).in(Singleton.class);
+        bind(ResourcePathConverter.class).to(FileResourcePathConverter.class).in(Singleton.class);
     }
 }
