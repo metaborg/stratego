@@ -18,7 +18,7 @@ public class PieUtils {
             OutputStampers.funcEquals((Serializable in) -> mapping.apply((O) in))));
     }
 
-    public static <I extends Serializable, O extends Serializable, P extends Serializable> P requirePartial(
+    public static <O extends Serializable, P extends Serializable> P requirePartial(
         ExecContext c, Task<O> task, Function<O, P> mapping) {
         return mapping.apply(
             c.require(task, OutputStampers.funcEquals((Serializable in) -> mapping.apply((O) in))));

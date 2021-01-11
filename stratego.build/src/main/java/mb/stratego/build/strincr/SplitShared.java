@@ -2,8 +2,10 @@ package mb.stratego.build.strincr;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -13,13 +15,20 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.stratego.build.strincr.StrategyFrontData.Kind;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.java.ManualStrategyOverlapsWithDynamicRuleHelper;
-import mb.stratego.build.strincr.message.stratego.DuplicateTypeDefinition;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.TermWithLastModified;
+
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.DynRuleGenerated;
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.Extend;
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.External;
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.Internal;
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.Normal;
+import static mb.stratego.build.strincr.StrategyFrontData.Kind.TypeDefinition;
 
 public class SplitShared {
     protected final StrIncrContext strContext;
@@ -33,8 +42,8 @@ public class SplitShared {
     }
 
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        Map<StrategySignature, StrategyData> strategyData, Iterable<IStrategoTerm> strategyDefs,
-        List<Message<?>> messages) throws WrongASTException {
+        Map<StrategySignature, Set<StrategyFrontData>> strategyData,
+        TermWithLastModified strategyDefs, List<Message<?>> messages) throws WrongASTException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -51,7 +60,7 @@ public class SplitShared {
             <+ \ DefHasType(f, FunTType(xs, ys, _, _)) -> (f, <length>xs, <length>ys) \
             <+ \ AnnoDef(a*, def)         -> <m-def-signature> def\)
          */
-        for(IStrategoTerm strategyDef : strategyDefs) {
+        for(IStrategoTerm strategyDef : strategyDefs.term) {
             if(TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 final IStrategoTerm funTType = strategyDef.getSubterm(1);
                 final StrategyType strategyType = StrategyType.fromTerm(funTType);
@@ -62,16 +71,20 @@ public class SplitShared {
                     new StrategySignature(TermUtils.toJavaStringAt(strategyDef, 0),
                         strategyType.getStrategyArguments().size(),
                         strategyType.getTermArguments().size());
-                StrategyData data = strategyData.getOrDefault(strategySignature,
-                    new StrategyData(strategySignature, new ArrayList<>(), strategyType, false));
-                if(data.type == null) {
-                    data.type = strategyType;
-                } else {
-                    messages.add(new DuplicateTypeDefinition(moduleIdentifier.moduleString(), strategyDef, MessageSeverity.ERROR));
-                }
-                strategyData.put(strategySignature, data);
+                Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
+                    .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
             } else {
+                Kind kind = Normal;
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
+                    for(IStrategoTerm anno : strategyDef.getSubterm(0)) {
+                        if(TermUtils.isAppl(anno, "Internal", 0)) {
+                            kind = Internal;
+                        } else if(TermUtils.isAppl(anno, "Extend", 0)) {
+                            kind = Extend;
+                        } else if(TermUtils.isAppl(anno, "Override", 0)) {
+                            kind = Kind.Override;
+                        }
+                    }
                     strategyDef = strategyDef.getSubterm(1);
                 }
                 if(!TermUtils.isAppl(strategyDef)) {
@@ -84,11 +97,12 @@ public class SplitShared {
                 final int sArity;
                 final int tArity;
                 switch(TermUtils.toAppl(strategyDef).getName()) {
+                    case "ExtSDef":
+                        kind = External;
+                        // fall-through
                     case "SDef":
                         // fall-through
-                    case "RDef":
-                        // fall-through
-                    case "ExtSDef": {
+                    case "RDef": {
                         final IStrategoTerm sargs = strategyDef.getSubterm(1);
                         if(!TermUtils.isList(sargs)) {
                             throw new WrongASTException(moduleIdentifier, sargs);
@@ -103,9 +117,10 @@ public class SplitShared {
                         sArity = 0;
                         tArity = 0;
                         break;
-                    case "SDefT":
-                        // fall-through
                     case "ExtSDefInl":
+                        kind = External;
+                        // fall-through
+                    case "SDefT":
                         // fall-through
                     case "RDefT":
                         // fall-through
@@ -127,13 +142,8 @@ public class SplitShared {
                 }
                 final StrategySignature strategySignature =
                     new StrategySignature(name, sArity, tArity);
-                StrategyData data = strategyData.getOrDefault(strategySignature,
-                    new StrategyData(strategySignature, new ArrayList<>(), null, false));
-                if(data.generatedFromDynamicRule) {
-                    messages.add(new ManualStrategyOverlapsWithDynamicRuleHelper(moduleIdentifier, strategyDef, strategySignature, MessageSeverity.ERROR));
-                }
-                data.astTerms.add(strategyDef);
-                strategyData.put(strategySignature, data);
+                Relation.getOrInitialize(strategyData, strategySignature, HashSet::new).add(new StrategyFrontData(strategySignature, null,
+                    kind));
             }
 
             // collect-om(dyn-rule-sig)
@@ -143,14 +153,7 @@ public class SplitShared {
                     final StrategySignature signature = e.getKey();
                     final StrategyType type = e.getValue();
 
-                    final StrategyData oldData = strategyData.get(signature);
-                    if(oldData != null && !oldData.generatedFromDynamicRule) {
-                        messages.add(new ManualStrategyOverlapsWithDynamicRuleHelper(moduleIdentifier, strategyDef, signature, MessageSeverity.ERROR));
-                    }
-
-                    final StrategyData newData =
-                        new StrategyData(signature, new ArrayList<>(), type, true);
-                    strategyData.put(signature, newData);
+                    Relation.getOrInitialize(strategyData, signature, HashSet::new).add(new StrategyFrontData(signature, null, DynRuleGenerated));
                 }
             }
         }
@@ -158,8 +161,8 @@ public class SplitShared {
 
     protected void addOverlayData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         Map<ConstructorSignature, List<ConstructorData>> overlayData,
-        Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Iterable<IStrategoTerm> overlays) throws WrongASTException {
+        Map<ConstructorSignature, List<ConstructorData>> constrData, TermWithLastModified overlays)
+        throws WrongASTException {
         /*
         extract-constr:
           OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
@@ -168,7 +171,7 @@ public class SplitShared {
           Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
          */
         final IStrategoTerm dynT = b.applShared("DynT", b.applShared("Dyn"));
-        for(IStrategoTerm overlay : overlays) {
+        for(IStrategoTerm overlay : overlays.term) {
             final int arity;
             final ConstructorType type;
             final String name;
@@ -196,9 +199,9 @@ public class SplitShared {
 
     protected void addSigData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections, Iterable<IStrategoTerm> sigs)
+        Map<TermWithLastModified, List<TermWithLastModified>> injections, TermWithLastModified sigs)
         throws WrongASTException {
-        for(IStrategoTerm sig : sigs) {
+        for(IStrategoTerm sig : sigs.term) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
                 final IStrategoTerm constrs = sig.getSubterm(1);
                 if(TermUtils.isList(constrs)) {
@@ -206,7 +209,9 @@ public class SplitShared {
                         final ConstructorSignature constrSig =
                             ConstructorSignature.fromTerm(constrDef);
                         if(constrSig == null) {
-                            addInjectionData(moduleIdentifier, constrDef, injections, constrData);
+                            addInjectionData(moduleIdentifier,
+                                TermWithLastModified.fromParent(constrDef, sigs), injections,
+                                constrData);
                             continue;
                         }
                         final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
@@ -219,8 +224,8 @@ public class SplitShared {
         }
     }
 
-    private ConstructorType constrType(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm constrDef)
-        throws WrongASTException {
+    private ConstructorType constrType(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        IStrategoTerm constrDef) throws WrongASTException {
         /*
         extract-constr =
           (  ?OpDecl(c, ConstType(t1))
@@ -270,8 +275,9 @@ public class SplitShared {
         return type;
     }
 
-    private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm constrDef,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections,
+    private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        TermWithLastModified constrDefWLM,
+        Map<TermWithLastModified, List<TermWithLastModified>> injections,
         Map<ConstructorSignature, List<ConstructorData>> constrData) throws WrongASTException {
         /*
         extract-inj:
@@ -296,6 +302,7 @@ public class SplitShared {
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
          */
+        final IStrategoTerm constrDef = constrDefWLM.term;
         if(!TermUtils.isAppl(constrDef)) {
             throw new WrongASTException(moduleIdentifier, constrDef);
         }
@@ -312,18 +319,21 @@ public class SplitShared {
                     throw new WrongASTException(moduleIdentifier, opType);
                 }
 
-                final IStrategoTerm to = constrType.to;
-                final IStrategoTerm from;
+                final TermWithLastModified to =
+                    TermWithLastModified.fromParent(constrType.to, constrDefWLM);
+                final TermWithLastModified from;
                 final List<IStrategoTerm> froms = constrType.getFrom();
                 switch(froms.size()) {
                     case 0:
                         throw new WrongASTException(moduleIdentifier, opType);
                     case 1:
-                        from = froms.get(0);
+                        from = TermWithLastModified.fromParent(froms.get(0), constrDefWLM);
                         break;
                     default:
                         final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = b.applShared("Sort", b.stringShared("Tuple"), tupleTypes);
+                        from = TermWithLastModified
+                            .fromParent(b.applShared("Sort", b.stringShared("Tuple"), tupleTypes),
+                                constrDefWLM);
 
                         final ConstructorSignature constrSig =
                             new ConstructorSignature("", froms.size());
@@ -333,7 +343,7 @@ public class SplitShared {
                             .add(new ConstructorData(constrSig, constrTerm, constrType));
                         break;
                 }
-                Relation.getOrInitialize(injections, from, ArrayList::new).add(constrType.to);
+                Relation.getOrInitialize(injections, from, ArrayList::new).add(to);
         }
     }
 }

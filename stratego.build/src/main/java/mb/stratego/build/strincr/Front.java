@@ -2,28 +2,23 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.java.ManualStrategyOverlapsWithDynamicRuleHelper;
-import mb.stratego.build.strincr.message.stratego.DuplicateTypeDefinition;
-import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.termvisitors.DesugarType;
-import mb.stratego.build.util.Relation;
+import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.TermWithLastModified;
 
@@ -70,12 +65,12 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
 
     @Override public ModuleData exec(ExecContext context, Input input) throws Exception {
         final TermWithLastModified ast =
-            input.moduleImportService.getModuleAst(input.moduleIdentifier);
-        final List<IStrategoTerm> imports = new ArrayList<>();
+            input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
+        final List<TermWithLastModified> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
         final Map<ConstructorSignature, List<ConstructorData>> overlayData = new HashMap<>();
-        final Map<StrategySignature, StrategyData> strategyData = new HashMap<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
+        final Map<TermWithLastModified, List<TermWithLastModified>> injections = new HashMap<>();
         final List<Message<?>> messages = new ArrayList<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
@@ -83,28 +78,38 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new WrongASTException(input.moduleIdentifier, def);
             }
+            final TermWithLastModified defWLM =
+                TermWithLastModified.fromParent(def.getSubterm(0), ast);
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
-                    imports.addAll(def.getSubterm(0).getSubterms());
+                    for(IStrategoTerm importTerm : def.getSubterm(0)) {
+                        imports.add(TermWithLastModified.fromParent(importTerm, ast));
+                    }
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def);
+                    addSigData(input.moduleIdentifier, constrData, injections, defWLM);
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def);
+                    addOverlayData(input.moduleIdentifier, overlayData, constrData, defWLM);
                     break;
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, def, messages);
+                    addStrategyData(input.moduleIdentifier, strategyData, defWLM, messages);
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
             }
         }
 
-        return new ModuleData(input.moduleIdentifier, ast, imports, constrData, injections, strategyData,
-            overlayData, messages);
+        final Set<ConstructorSignature> usedConstructors = new HashSet<>();
+        final Set<StrategySignature> usedStrategies = new HashSet<>();
+        final Set<String> usedAmbiguousStrategies = new HashSet<>();
+        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies).visit(ast.term);
+
+        return new ModuleData(input.moduleIdentifier, ast, imports, constrData, injections,
+            strategyData, overlayData, usedConstructors, usedStrategies, usedAmbiguousStrategies,
+            messages);
     }
 
     private static IStrategoList getDefs(ModuleIdentifier moduleIdentifier,

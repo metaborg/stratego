@@ -512,9 +512,4 @@ public class StaticChecks {
         }
     }
 
-    static <K, V> V getOrInitialize(Map<K, V> map, K key, Supplier<V> initialize) {
-        map.computeIfAbsent(key, ignore -> initialize.get());
-        return map.get(key);
-    }
-
 }

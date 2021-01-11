@@ -1,33 +1,103 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Function;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.util.PieUtils;
 
 public class Check implements TaskDef<Check.Input, Check.Output> {
     public static final String id = Check.class.getCanonicalName();
 
     public static class Input implements Serializable {
-        public final String mainModuleName;
-        public final Function<String, IStrategoTerm> astFunc;
+        public final ModuleIdentifier mainModuleIdentifier;
+        public final IModuleImportService moduleImportService;
 
-        public Input(String mainModuleName, Function<String, IStrategoTerm> astFunc) {
-            this.mainModuleName = mainModuleName;
-            this.astFunc = astFunc;
+        public Input(ModuleIdentifier mainModuleIdentifier, IModuleImportService moduleImportService) {
+            this.mainModuleIdentifier = mainModuleIdentifier;
+            this.moduleImportService = moduleImportService;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Input input = (Input) o;
+
+            if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
+                return false;
+            return moduleImportService.equals(input.moduleImportService);
+        }
+
+        @Override public int hashCode() {
+            int result = mainModuleIdentifier.hashCode();
+            result = 31 * result + moduleImportService.hashCode();
+            return result;
         }
     }
 
     public static class Output implements Serializable {
+        public final Map<StrategySignature, StrategyAnalysisData> strategyDataWithCasts;
+        public final List<Message<?>> messages;
+
+        public Output(Map<StrategySignature, StrategyAnalysisData> strategyDataWithCasts,
+            List<Message<?>> messages) {
+            this.strategyDataWithCasts = strategyDataWithCasts;
+            this.messages = messages;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            if(!strategyDataWithCasts.equals(output.strategyDataWithCasts))
+                return false;
+            return messages.equals(output.messages);
+        }
+
+        @Override public int hashCode() {
+            int result = strategyDataWithCasts.hashCode();
+            result = 31 * result + messages.hashCode();
+            return result;
+        }
+    }
+
+    public final Resolve resolve;
+
+    @Inject public Check(Resolve resolve) {
+        this.resolve = resolve;
     }
 
     @Override
     public Output exec(ExecContext context, Input input) throws ExecException {
-        return new Output();
+        // TODO: depend on all Front tasks and the Resolve task for messages.
+        // TODO: depend on the Resolve task for GlobalData for types and module asts to process
+        // TODO: run actual type checking job in separate tasks per module
+        final GlobalData gd = PieUtils.requirePartial(context, resolve, input, Function.identity());
+        // Checks:
+        //     - Cyclic overlays.
+        //     - Gradual type check.
+        //         - Provide relevant externals (overlapping with definitions in module), for checks
+        //             of overlap between normal and external, and override/extend and external.
+        //         - Provide overlays for desugaring
+        //         - In stratego: provide externals checks, continue with desugaring immediately
+        //             after
+        return new Output(Collections.emptyMap(), Collections.emptyList());
     }
 
     @Override

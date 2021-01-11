@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -25,34 +26,40 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
     }
 
     @Override public ModuleData exec(ExecContext context, Front.Input input) throws Exception {
-        final List<IStrategoTerm> imports = Collections.emptyList();
+        final List<TermWithLastModified> imports = Collections.emptyList();
         final Map<ConstructorSignature, List<ConstructorData>> overlayData = Collections.emptyMap();
         final List<Message<?>> messages = Collections.emptyList();
+        final Set<ConstructorSignature> usedConstructors = Collections.emptySet();
+        final Set<StrategySignature> usedStrategies = Collections.emptySet();
+        final Set<String> usedAmbiguousStrategies = Collections.emptySet();
 
         final TermWithLastModified ast =
-            input.moduleImportService.getModuleAst(input.moduleIdentifier);
+            input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
-        final Map<StrategySignature, StrategyData> strategyData = new HashMap<>();
+        final Map<TermWithLastModified, List<TermWithLastModified>> injections = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new WrongASTException(input.moduleIdentifier, def);
             }
+            final TermWithLastModified defWLM = TermWithLastModified.fromParent(def, ast);
             switch(TermUtils.toAppl(def).getName()) {
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def);
+                    addSigData(input.moduleIdentifier, constrData, injections,
+                        defWLM);
                     break;
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, def, messages);
+                    addStrategyData(input.moduleIdentifier, strategyData, defWLM, messages);
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
             }
-        }
+        };
         return new ModuleData(input.moduleIdentifier, ast, imports, constrData, injections,
-            strategyData, overlayData, messages);
+            strategyData, overlayData, usedConstructors, usedStrategies, usedAmbiguousStrategies,
+            messages);
     }
 
     private IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,

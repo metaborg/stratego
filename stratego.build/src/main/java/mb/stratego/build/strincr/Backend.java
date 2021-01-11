@@ -106,10 +106,6 @@ public class Backend implements TaskDef<Backend.Input, None> {
         }
     }
 
-    public interface ResourcePathConverter {
-        String toString(ResourcePath resourcePath);
-    }
-
     private final ITermFactory termFactory;
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;

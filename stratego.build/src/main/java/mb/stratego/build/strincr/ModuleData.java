@@ -3,8 +3,7 @@ package mb.stratego.build.strincr;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import java.util.Set;
 
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
@@ -16,17 +15,24 @@ import mb.stratego.build.util.TermWithLastModified;
 public class ModuleData implements Serializable {
     public final ModuleIdentifier moduleIdentifier;
     public final TermWithLastModified ast;
-    public final List<IStrategoTerm> imports;
+    public final List<TermWithLastModified> imports;
     public final Map<ConstructorSignature, List<ConstructorData>> constrData;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> injections;
-    public final Map<StrategySignature, StrategyData> strategyData;
+    public final Map<TermWithLastModified, List<TermWithLastModified>> injections;
+    public final Map<StrategySignature, Set<StrategyFrontData>> strategyData;
     public final Map<ConstructorSignature, List<ConstructorData>> overlayData;
+    public final Set<ConstructorSignature> usedConstructors;
+    public final Set<StrategySignature> usedStrategies;
+    public final Set<String> usedAmbiguousStrategies;
     public final List<Message<?>> messages;
 
     public ModuleData(ModuleIdentifier moduleIdentifier, TermWithLastModified ast,
-        List<IStrategoTerm> imports, Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections, Map<StrategySignature, StrategyData> strategyData,
-        Map<ConstructorSignature, List<ConstructorData>> overlayData, List<Message<?>> messages) {
+        List<TermWithLastModified> imports,
+        Map<ConstructorSignature, List<ConstructorData>> constrData,
+        Map<TermWithLastModified, List<TermWithLastModified>> injections,
+        Map<StrategySignature, Set<StrategyFrontData>> strategyData,
+        Map<ConstructorSignature, List<ConstructorData>> overlayData,
+        Set<ConstructorSignature> usedConstructors, Set<StrategySignature> usedStrategies,
+        Set<String> usedAmbiguousStrategies, List<Message<?>> messages) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
         this.imports = imports;
@@ -34,6 +40,9 @@ public class ModuleData implements Serializable {
         this.injections = injections;
         this.strategyData = strategyData;
         this.overlayData = overlayData;
+        this.usedConstructors = usedConstructors;
+        this.usedStrategies = usedStrategies;
+        this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.messages = messages;
     }
 

@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,15 @@ public final class StrategyStubs {
             } else {
                 decls.add(sdefStub(b, strategyName, 0, 0));
             }
+        }
+        return decls;
+    }
+
+    static List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
+        final List<IStrategoAppl> decls = new ArrayList<>(strategySignatures.size());
+        final B b = new B(strj.init().getFactory());
+        for(StrategySignature sig : strategySignatures) {
+            decls.add(sdefStub(b, sig.name, sig.noStrategyArgs, sig.noTermArgs));
         }
         return decls;
     }

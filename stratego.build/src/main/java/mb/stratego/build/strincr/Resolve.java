@@ -24,39 +24,10 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.java.UnresolvedImport;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.TermWithLastModified;
 
-public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
+public class Resolve implements TaskDef<Check.Input, GlobalData> {
     public static final String id = Resolve.class.getCanonicalName();
-
-    public static class Input implements Serializable {
-        public final ModuleIdentifier mainModuleIdentifier;
-        public final IModuleImportService moduleImportService;
-
-        public Input(ModuleIdentifier mainModuleIdentifier,
-            IModuleImportService moduleImportService) {
-            this.mainModuleIdentifier = mainModuleIdentifier;
-            this.moduleImportService = moduleImportService;
-        }
-
-        @Override public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-
-            Input input = (Input) o;
-
-            if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
-                return false;
-            return moduleImportService.equals(input.moduleImportService);
-        }
-
-        @Override public int hashCode() {
-            int result = mainModuleIdentifier.hashCode();
-            result = 31 * result + moduleImportService.hashCode();
-            return result;
-        }
-    }
 
     public final Front front;
     public final Lib lib;
@@ -66,7 +37,7 @@ public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
         this.lib = lib;
     }
 
-    @Override public GlobalData exec(ExecContext context, Input input) throws IOException {
+    @Override public GlobalData exec(ExecContext context, Check.Input input) throws IOException {
         final List<Message<?>> messages = new ArrayList<>();
 
         final java.util.Set<ModuleIdentifier> seen = new HashSet<>();
@@ -77,6 +48,7 @@ public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
         final Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks = new HashMap<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
+        final Map<String, Set<ModuleIdentifier>> ambStrategyIndex = new HashMap<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex = new HashMap<>();
 
         do {
@@ -99,20 +71,20 @@ public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
                 for(StrategySignature signature : index.strategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
+                    Relation.getOrInitialize(ambStrategyIndex, signature.name, HashSet::new).add(moduleIdentifier);
                 }
                 for(ConstructorSignature signature : index.overlays) {
                     Relation.getOrInitialize(overlayIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
                 }
-                messages.addAll(index.messages);
 
                 final Set<ModuleIdentifier> expandedImports = new HashSet<>();
-                for(IStrategoTerm anImport : index.imports) {
+                for(TermWithLastModified anImport : index.imports) {
                     final ImportResolution importResolution =
-                        input.moduleImportService.resolveImport(anImport);
+                        input.moduleImportService.resolveImport(context, anImport.term);
                     if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                         messages
-                            .add(new UnresolvedImport(moduleIdentifier.moduleString(), anImport));
+                            .add(new UnresolvedImport(moduleIdentifier.moduleString(), anImport.term));
                     } else if(importResolution instanceof IModuleImportService.ResolvedImport) {
                         expandedImports.addAll(
                             ((IModuleImportService.ResolvedImport) importResolution).modules);
@@ -124,7 +96,7 @@ public class Resolve implements TaskDef<Resolve.Input, GlobalData> {
             }
         } while(!workList.isEmpty());
 
-        return new GlobalData(moduleDataTasks, constructorIndex, strategyIndex, overlayIndex, messages);
+        return new GlobalData(moduleDataTasks, constructorIndex, strategyIndex, ambStrategyIndex, overlayIndex, messages);
     }
 
     @Override public String getId() {

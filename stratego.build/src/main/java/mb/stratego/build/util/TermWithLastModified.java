@@ -1,8 +1,10 @@
 package mb.stratego.build.util;
 
+import java.io.Serializable;
+
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class TermWithLastModified {
+public class TermWithLastModified implements Serializable {
     public final IStrategoTerm term;
     public final long lastModified;
 

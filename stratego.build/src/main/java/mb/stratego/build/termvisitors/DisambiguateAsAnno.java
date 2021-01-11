@@ -29,16 +29,12 @@ public class DisambiguateAsAnno {
     private final Context context;
 
     private static class DisambiguationResult {
-        private boolean ambiguityFound;
+        private final boolean ambiguityFound;
         private @Nullable IStrategoTerm resolution;
 
         private DisambiguationResult(boolean ambiguityFound, @Nullable IStrategoTerm resolution) {
             this.ambiguityFound = ambiguityFound;
             this.resolution = resolution;
-        }
-
-        boolean ambiguityFound() {
-            return ambiguityFound;
         }
 
         IStrategoTerm resolution() {
@@ -53,7 +49,7 @@ public class DisambiguateAsAnno {
             public IStrategoTerm invoke(Context context, IStrategoTerm current) {
                 final IStrategoTerm visited = visit(current);
                 final DisambiguationResult ambiguityResolved = resolveAmbiguity(visited);
-                if(ambiguityResolved.ambiguityFound()) {
+                if(ambiguityResolved.ambiguityFound) {
                     return ambiguityResolved.resolution();
                 }
                 return visited;
