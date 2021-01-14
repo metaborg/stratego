@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -24,7 +23,6 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.java.UnresolvedImport;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
-import mb.stratego.build.util.TermWithLastModified;
 
 public class Resolve implements TaskDef<Check.Input, GlobalData> {
     public static final String id = Resolve.class.getCanonicalName();
@@ -61,9 +59,11 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
             } else {
                 final STask<ModuleData> sTask = front
                     .createSupplier(new Front.Input(moduleIdentifier, input.moduleImportService));
-                final ModuleIndex index =
-                    PieUtils.requirePartial(context, sTask, ModuleData::toModuleIndex);
                 moduleDataTasks.put(moduleIdentifier, sTask);
+
+                final ModuleIndex index =
+                    PieUtils.requirePartial(context, sTask, ModuleData.ToModuleIndex.INSTANCE);
+
                 for(ConstructorSignature signature : index.constructors) {
                     Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
@@ -71,7 +71,8 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 for(StrategySignature signature : index.strategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
-                    Relation.getOrInitialize(ambStrategyIndex, signature.name, HashSet::new).add(moduleIdentifier);
+                    Relation.getOrInitialize(ambStrategyIndex, signature.name, HashSet::new)
+                        .add(moduleIdentifier);
                 }
                 for(ConstructorSignature signature : index.overlays) {
                     Relation.getOrInitialize(overlayIndex, signature, HashSet::new)
@@ -79,12 +80,12 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 }
 
                 final Set<ModuleIdentifier> expandedImports = new HashSet<>();
-                for(TermWithLastModified anImport : index.imports) {
+                for(IStrategoTerm anImport : index.imports) {
                     final ImportResolution importResolution =
-                        input.moduleImportService.resolveImport(context, anImport.term);
+                        input.moduleImportService.resolveImport(context, anImport);
                     if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                         messages
-                            .add(new UnresolvedImport(moduleIdentifier.moduleString(), anImport.term));
+                            .add(new UnresolvedImport(moduleIdentifier.moduleString(), anImport));
                     } else if(importResolution instanceof IModuleImportService.ResolvedImport) {
                         expandedImports.addAll(
                             ((IModuleImportService.ResolvedImport) importResolution).modules);
@@ -96,7 +97,8 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
             }
         } while(!workList.isEmpty());
 
-        return new GlobalData(moduleDataTasks, constructorIndex, strategyIndex, ambStrategyIndex, overlayIndex, messages);
+        return new GlobalData(moduleDataTasks, constructorIndex, strategyIndex, ambStrategyIndex,
+            overlayIndex, messages);
     }
 
     @Override public String getId() {

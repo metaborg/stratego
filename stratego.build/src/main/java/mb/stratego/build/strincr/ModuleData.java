@@ -1,38 +1,42 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.util.TermWithLastModified;
+import mb.stratego.build.util.WithLastModified;
 
 /**
  * The AST of a module and some of it's data pre-extracted.
  */
-public class ModuleData implements Serializable {
+public class ModuleData implements Serializable, WithLastModified {
     public final ModuleIdentifier moduleIdentifier;
-    public final TermWithLastModified ast;
-    public final List<TermWithLastModified> imports;
+    public final IStrategoTerm ast;
+    public final List<IStrategoTerm> imports;
     public final Map<ConstructorSignature, List<ConstructorData>> constrData;
-    public final Map<TermWithLastModified, List<TermWithLastModified>> injections;
+    public final Map<IStrategoTerm, List<IStrategoTerm>> injections;
     public final Map<StrategySignature, Set<StrategyFrontData>> strategyData;
     public final Map<ConstructorSignature, List<ConstructorData>> overlayData;
     public final Set<ConstructorSignature> usedConstructors;
     public final Set<StrategySignature> usedStrategies;
     public final Set<String> usedAmbiguousStrategies;
     public final List<Message<?>> messages;
+    public final long lastModified;
 
-    public ModuleData(ModuleIdentifier moduleIdentifier, TermWithLastModified ast,
-        List<TermWithLastModified> imports,
-        Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<TermWithLastModified, List<TermWithLastModified>> injections,
+    public ModuleData(ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
+        List<IStrategoTerm> imports, Map<ConstructorSignature, List<ConstructorData>> constrData,
+        Map<IStrategoTerm, List<IStrategoTerm>> injections,
         Map<StrategySignature, Set<StrategyFrontData>> strategyData,
         Map<ConstructorSignature, List<ConstructorData>> overlayData,
         Set<ConstructorSignature> usedConstructors, Set<StrategySignature> usedStrategies,
-        Set<String> usedAmbiguousStrategies, List<Message<?>> messages) {
+        Set<String> usedAmbiguousStrategies, List<Message<?>> messages, long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
         this.imports = imports;
@@ -44,47 +48,40 @@ public class ModuleData implements Serializable {
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.messages = messages;
+        this.lastModified = lastModified;
     }
 
-    public ModuleIndex toModuleIndex() {
-        return new ModuleIndex(imports, constrData.keySet(), strategyData.keySet(),
-            overlayData.keySet(), messages);
+    public static class ToModuleIndex implements Function<ModuleData, ModuleIndex>, Serializable {
+        public static final ModuleData.ToModuleIndex INSTANCE = new ModuleData.ToModuleIndex();
+
+        private ToModuleIndex() {
+        }
+
+        @Override public ModuleIndex apply(ModuleData moduleData) {
+            return new ModuleIndex(moduleData.imports,
+                new HashSet<>(moduleData.constrData.keySet()),
+                new HashSet<>(moduleData.strategyData.keySet()),
+                new HashSet<>(moduleData.overlayData.keySet()), moduleData.messages,
+                moduleData.lastModified);
+        }
     }
 
-    @Override public boolean equals(Object o) {
-        if(this == o)
-            return true;
-        if(o == null || getClass() != o.getClass())
-            return false;
+    public static class ToModuleUsageData
+        implements Function<ModuleData, ModuleUsageData>, Serializable {
+        public static final ModuleData.ToModuleUsageData INSTANCE =
+            new ModuleData.ToModuleUsageData();
 
-        ModuleData that = (ModuleData) o;
+        private ToModuleUsageData() {
+        }
 
-        if(!moduleIdentifier.equals(that.moduleIdentifier))
-            return false;
-        if(!ast.equals(that.ast))
-            return false;
-        if(!imports.equals(that.imports))
-            return false;
-        if(!constrData.equals(that.constrData))
-            return false;
-        if(!injections.equals(that.injections))
-            return false;
-        if(!strategyData.equals(that.strategyData))
-            return false;
-        if(!overlayData.equals(that.overlayData))
-            return false;
-        return messages.equals(that.messages);
+        @Override public ModuleUsageData apply(ModuleData moduleData) {
+            return new ModuleUsageData(moduleData.ast, moduleData.usedConstructors,
+                moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+                moduleData.lastModified);
+        }
     }
 
-    @Override public int hashCode() {
-        int result = moduleIdentifier.hashCode();
-        result = 31 * result + ast.hashCode();
-        result = 31 * result + imports.hashCode();
-        result = 31 * result + constrData.hashCode();
-        result = 31 * result + injections.hashCode();
-        result = 31 * result + strategyData.hashCode();
-        result = 31 * result + overlayData.hashCode();
-        result = 31 * result + messages.hashCode();
-        return result;
+    @Override public long lastModified() {
+        return lastModified;
     }
 }

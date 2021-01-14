@@ -1,21 +1,19 @@
 package mb.stratego.compiler.pack.cmd;
 
-import mb.pie.api.ExecException;
-import mb.pie.api.Logger;
-import mb.stratego.build.strincr.Backend;
-import mb.stratego.build.util.ResourceAgentTracker;
-import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.StrategoExecutor;
-import mb.stratego.gradual_types.Main;
-import mb.stratego.gradual_types.insert_casts_top_level_0_0;
+import java.io.File;
 
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.ResourceAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.strj.strj;
-import java.io.File;
+
+import mb.pie.api.ExecException;
+import mb.pie.api.Logger;
+import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoExecutor;
+import mb.stratego.gradual_types.Main;
+import mb.stratego.gradual_types.insert_casts_top_level_0_0;
 
 public class GradualTypesRunner {
 
@@ -29,7 +27,7 @@ public class GradualTypesRunner {
 
     public IStrategoTerm exec(Logger logger, IStrategoTerm tuple) throws Exception {
         Main.init(strContext);
-        final StrategoExecutor.ExecutionResult result = Backend.runLocallyUniqueStringStrategy(logger, true,
+        final StrategoExecutor.ExecutionResult result = StrategoExecutor.runLocallyUniqueStringStrategy(logger, true,
             newResourceTracker(new File(System.getProperty("user.dir")), false), insert_casts_top_level_0_0.instance, tuple,
             strContext);
 

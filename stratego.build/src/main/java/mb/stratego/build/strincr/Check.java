@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -22,7 +22,8 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
         public final ModuleIdentifier mainModuleIdentifier;
         public final IModuleImportService moduleImportService;
 
-        public Input(ModuleIdentifier mainModuleIdentifier, IModuleImportService moduleImportService) {
+        public Input(ModuleIdentifier mainModuleIdentifier,
+            IModuleImportService moduleImportService) {
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.moduleImportService = moduleImportService;
         }
@@ -78,17 +79,24 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
     }
 
     public final Resolve resolve;
+    public final Front front;
+    public final Lib lib;
 
-    @Inject public Check(Resolve resolve) {
+    @Inject public Check(Resolve resolve, Front front, Lib lib) {
         this.resolve = resolve;
+        this.front = front;
+        this.lib = lib;
     }
 
-    @Override
-    public Output exec(ExecContext context, Input input) throws ExecException {
+    @Override public Output exec(ExecContext context, Input input) throws ExecException {
         // TODO: depend on all Front tasks and the Resolve task for messages.
         // TODO: depend on the Resolve task for GlobalData for types and module asts to process
         // TODO: run actual type checking job in separate tasks per module
-        final GlobalData gd = PieUtils.requirePartial(context, resolve, input, Function.identity());
+        final Set<ModuleIdentifier> moduleDataTasks =
+            PieUtils.requirePartial(context, resolve, input, GlobalData.AllModulesIdentifiers.Instance);
+
+        for(ModuleIdentifier moduleIdentifier : moduleDataTasks) {
+        }
         // Checks:
         //     - Cyclic overlays.
         //     - Gradual type check.
@@ -100,8 +108,7 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
         return new Output(Collections.emptyMap(), Collections.emptyList());
     }
 
-    @Override
-    public String getId() {
+    @Override public String getId() {
         return id;
     }
 }

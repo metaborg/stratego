@@ -19,8 +19,8 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.termvisitors.UsedNamesFront;
+import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.TermWithLastModified;
 
 /**
  * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
@@ -64,13 +64,13 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
     }
 
     @Override public ModuleData exec(ExecContext context, Input input) throws Exception {
-        final TermWithLastModified ast =
+        final LastModified<IStrategoTerm> ast =
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
-        final List<TermWithLastModified> imports = new ArrayList<>();
+        final List<IStrategoTerm> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
         final Map<ConstructorSignature, List<ConstructorData>> overlayData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
-        final Map<TermWithLastModified, List<TermWithLastModified>> injections = new HashMap<>();
+        final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
         final List<Message<?>> messages = new ArrayList<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
@@ -78,24 +78,22 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new WrongASTException(input.moduleIdentifier, def);
             }
-            final TermWithLastModified defWLM =
-                TermWithLastModified.fromParent(def.getSubterm(0), ast);
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
                     for(IStrategoTerm importTerm : def.getSubterm(0)) {
-                        imports.add(TermWithLastModified.fromParent(importTerm, ast));
+                        imports.add(importTerm);
                     }
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, defWLM);
+                    addSigData(input.moduleIdentifier, constrData, injections, def);
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData, defWLM);
+                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def);
                     break;
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, defWLM, messages);
+                    addStrategyData(input.moduleIdentifier, strategyData, def, messages);
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
@@ -105,16 +103,17 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Set<ConstructorSignature> usedConstructors = new HashSet<>();
         final Set<StrategySignature> usedStrategies = new HashSet<>();
         final Set<String> usedAmbiguousStrategies = new HashSet<>();
-        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies).visit(ast.term);
+        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
+            .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, ast, imports, constrData, injections,
+        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
             strategyData, overlayData, usedConstructors, usedStrategies, usedAmbiguousStrategies,
-            messages);
+            messages, ast.lastModified);
     }
 
     private static IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
-        TermWithLastModified timestampedAst) throws WrongASTException {
-        final IStrategoTerm ast = timestampedAst.term;
+        LastModified<IStrategoTerm> timestampedAst) throws WrongASTException {
+        final IStrategoTerm ast = timestampedAst.wrapped;
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {

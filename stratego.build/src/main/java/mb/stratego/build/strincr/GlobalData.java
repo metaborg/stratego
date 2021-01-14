@@ -2,9 +2,11 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import mb.pie.api.STask;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
@@ -21,7 +23,8 @@ public class GlobalData implements Serializable {
     public GlobalData(Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks,
         Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
         Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
-        Map<String, Set<ModuleIdentifier>> ambStrategyIndex, Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex, List<Message<?>> messages) {
+        Map<String, Set<ModuleIdentifier>> ambStrategyIndex,
+        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex, List<Message<?>> messages) {
         this.moduleDataTasks = moduleDataTasks;
         this.constructorIndex = constructorIndex;
         this.strategyIndex = strategyIndex;
@@ -34,9 +37,43 @@ public class GlobalData implements Serializable {
         return new GlobalIndex(constructorIndex.keySet(), strategyIndex.keySet());
     }
 
-    public <T extends Set<ModuleIdentifier> & Serializable> T modulesDefiningStrategy(
-        StrategySignature strategySignature) {
-        //noinspection unchecked
-        return (T) strategyIndex.getOrDefault(strategySignature, Collections.emptySet());
+    public static class ToGlobalIndex implements Function<GlobalData, GlobalIndex>, Serializable {
+        public static final ToGlobalIndex Instance = new ToGlobalIndex();
+
+        private ToGlobalIndex() {
+        }
+
+        @Override public GlobalIndex apply(GlobalData globalData) {
+            return new GlobalIndex(new HashSet<>(globalData.constructorIndex.keySet()),
+                new HashSet<>(globalData.strategyIndex.keySet()));
+        }
+    }
+
+    public static class AllModulesIdentifiers<T extends Set<ModuleIdentifier> & Serializable>
+        implements Function<GlobalData, T>, Serializable {
+        public static final AllModulesIdentifiers<?> Instance = new AllModulesIdentifiers<>();
+
+        private AllModulesIdentifiers() {
+        }
+
+        @Override public T apply(GlobalData globalData) {
+            //noinspection unchecked
+            return (T) globalData.moduleDataTasks.keySet();
+        }
+    }
+
+    public static class ModulesDefiningStrategy<T extends Set<ModuleIdentifier> & Serializable>
+        implements Function<GlobalData, T>, Serializable {
+        public final StrategySignature strategySignature;
+
+        public ModulesDefiningStrategy(StrategySignature strategySignature) {
+            this.strategySignature = strategySignature;
+        }
+
+        @Override public T apply(GlobalData globalData) {
+            //noinspection unchecked
+            return (T) globalData.strategyIndex
+                .getOrDefault(strategySignature, Collections.emptySet());
+        }
     }
 }

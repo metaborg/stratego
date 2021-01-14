@@ -105,8 +105,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         final boolean isBoilerplate = input instanceof BoilerplateInput;
         final IStrategoTerm ctree;
         if(isBoilerplate) {
-            final GlobalIndex globalIndex =
-                PieUtils.requirePartial(context, input.resolveTask, GlobalData::toGlobalIndex);
+            final GlobalIndex globalIndex = PieUtils
+                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
             ctree = Packer.packBoilerplate(termFactory, globalIndex.constructors,
                 StrategyStubs.declStubs(globalIndex.strategies));
         } else {
@@ -115,12 +115,12 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final StrategySignature strategySignature = ((NormalInput) input).strategySignature;
             final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, input.resolveTask,
-                    gd -> gd.modulesDefiningStrategy(strategySignature));
+                    new GlobalData.ModulesDefiningStrategy<>(strategySignature));
 
             // TODO: get all strategy definitions based on the signature, from the tasks that did the analysis/cast insertion for the modulesDefiningStrategy
             // TODO: move overlay stuff back to Check, remove from pack and the Stratego backend code
-            ctree = Packer
-                .packStrategy(termFactory, Collections.emptyList(), strategyContributions);
+            ctree =
+                Packer.packStrategy(termFactory, Collections.emptyList(), strategyContributions);
         }
 
         // Call Stratego compiler

@@ -4,27 +4,32 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.util.TermWithLastModified;
+import mb.stratego.build.util.WithLastModified;
 
 /**
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
-public class ModuleIndex implements Serializable {
-    public final List<TermWithLastModified> imports;
+public class ModuleIndex implements Serializable, WithLastModified {
+    public final List<IStrategoTerm> imports;
     public final Set<ConstructorSignature> constructors;
     public final Set<StrategySignature> strategies;
     public final Set<ConstructorSignature> overlays;
     public final List<Message<?>> messages;
+    public final long lastModified;
 
-    public ModuleIndex(List<TermWithLastModified> imports, Set<ConstructorSignature> constructors,
+    public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
         Set<StrategySignature> strategies, Set<ConstructorSignature> overlays,
-        List<Message<?>> messages) {
+        List<Message<?>> messages, long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.strategies = strategies;
         this.overlays = overlays;
         this.messages = messages;
+        this.lastModified = lastModified;
     }
 
     @Override public boolean equals(Object o) {
@@ -50,5 +55,9 @@ public class ModuleIndex implements Serializable {
         result = 31 * result + strategies.hashCode();
         result = 31 * result + overlays.hashCode();
         return result;
+    }
+
+    @Override public long lastModified() {
+        return lastModified;
     }
 }

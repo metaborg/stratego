@@ -7,7 +7,7 @@ import java.util.Collection;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.ExecContext;
-import mb.stratego.build.util.TermWithLastModified;
+import mb.stratego.build.util.LastModified;
 
 public interface IModuleImportService extends Serializable {
     /**
@@ -76,7 +76,7 @@ public interface IModuleImportService extends Serializable {
      * @return The AST of the Stratego module
      * @throws IOException on IO exceptions during access to the file in which the module resides
      */
-    TermWithLastModified getModuleAst(ExecContext context, ModuleIdentifier moduleIdentifier)
+    LastModified<IStrategoTerm> getModuleAst(ExecContext context, ModuleIdentifier moduleIdentifier)
         throws IOException;
 
 

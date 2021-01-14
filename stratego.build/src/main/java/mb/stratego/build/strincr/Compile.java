@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -16,7 +15,6 @@ import mb.pie.api.TaskDef;
 import mb.resource.Resource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.util.PieUtils;
 
 public class Compile implements TaskDef<Compile.Input, Compile.Output> {
     public static final String id = Compile.class.getCanonicalName();
@@ -62,9 +60,8 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
 
     @Override public Output exec(ExecContext context, Input input) {
         final List<Resource> resultFiles = new ArrayList<>();
-        final GlobalData gd = PieUtils.requirePartial(context, resolve,
-            new Check.Input(input.mainModuleIdentifier, input.moduleImportService),
-            Function.identity());
+        final GlobalData gd = context.require(resolve,
+            new Check.Input(input.mainModuleIdentifier, input.moduleImportService));
         return new Output(resultFiles);
     }
 
