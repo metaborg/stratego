@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-// TODO: create class hierarchy of Normal, External, Internal, DynRuleGenerated, TypeDefinition(StrategyType).
 public class StrategyFrontData {
     public final StrategySignature signature;
     protected @Nullable StrategyType type;
@@ -15,10 +14,6 @@ public class StrategyFrontData {
         this.signature = signature;
         this.type = type;
         this.kind = kind;
-    }
-
-    public @Nullable StrategyType type() {
-        return type;
     }
 
     @Override public boolean equals(Object o) {

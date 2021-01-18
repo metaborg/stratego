@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +18,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
@@ -68,10 +69,11 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
         final List<IStrategoTerm> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
-        final Map<ConstructorSignature, List<ConstructorData>> overlayData = new HashMap<>();
+        final Map<ConstructorSignature, List<OverlayData>> overlayData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
-        final List<Message<?>> messages = new ArrayList<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
@@ -85,15 +87,18 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                     }
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def);
+                    addSigData(input.moduleIdentifier, constrData, injections, def,
+                        ast.lastModified);
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def);
+                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def,
+                        ast.lastModified);
                     break;
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, def, messages);
+                    addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
+                        externalStrategyData, def);
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
@@ -107,8 +112,8 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             .visit(ast.wrapped);
 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, overlayData, usedConstructors, usedStrategies, usedAmbiguousStrategies,
-            messages, ast.lastModified);
+            strategyData, internalStrategyData, externalStrategyData, overlayData, usedConstructors,
+            usedStrategies, usedAmbiguousStrategies, ast.lastModified);
     }
 
     private static IStrategoList getDefs(ModuleIdentifier moduleIdentifier,

@@ -15,7 +15,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
 
@@ -28,17 +28,19 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
 
     @Override public ModuleData exec(ExecContext context, Front.Input input) throws Exception {
         final List<IStrategoTerm> imports = Collections.emptyList();
-        final Map<ConstructorSignature, List<ConstructorData>> overlayData = Collections.emptyMap();
-        final List<Message<?>> messages = Collections.emptyList();
+        final Map<ConstructorSignature, List<OverlayData>> overlayData = Collections.emptyMap();
         final Set<ConstructorSignature> usedConstructors = Collections.emptySet();
         final Set<StrategySignature> usedStrategies = Collections.emptySet();
         final Set<String> usedAmbiguousStrategies = Collections.emptySet();
+        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = Collections.emptyMap();
+        final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData =
+            Collections.emptyMap();
 
         final LastModified<IStrategoTerm> ast =
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
@@ -47,19 +49,21 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
             }
             switch(TermUtils.toAppl(def).getName()) {
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections,
-                        def);
+                    addSigData(input.moduleIdentifier, constrData, injections, def,
+                        ast.lastModified);
                     break;
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, def, messages);
+                    addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
+                        strategyData, def);
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
             }
-        };
+        }
+        ;
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, overlayData, usedConstructors, usedStrategies, usedAmbiguousStrategies,
-            messages, ast.lastModified);
+            strategyData, internalStrategyData, externalStrategyData, overlayData, usedConstructors,
+            usedStrategies, usedAmbiguousStrategies, ast.lastModified);
     }
 
     private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,

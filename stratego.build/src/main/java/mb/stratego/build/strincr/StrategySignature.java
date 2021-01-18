@@ -48,15 +48,12 @@ public class StrategySignature extends StrategoTuple {
         return cify(name) + "_" + noStrategyArgs + "_" + noTermArgs;
     }
 
-    public StrategyType standardType(ITermFactory tf) {
+    public StrategyType.Standard standardType(ITermFactory tf) {
         return standardType(tf, noStrategyArgs, noTermArgs);
     }
 
-    public static StrategyType standardType(ITermFactory tf, int noStrategyArgs, int noTermArgs) {
-        final IStrategoAppl sdyn = tf.makeAppl("SDyn");
-        final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-        return new StrategyType(dyn, dyn, Collections.nCopies(noStrategyArgs, sdyn),
-            Collections.nCopies(noTermArgs, dyn));
+    public static StrategyType.Standard standardType(ITermFactory tf, int noStrategyArgs, int noTermArgs) {
+        return StrategyType.Standard.fromArity(tf, noStrategyArgs, noTermArgs);
     }
 
     public Map<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {

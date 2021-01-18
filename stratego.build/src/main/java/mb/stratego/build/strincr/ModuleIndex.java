@@ -2,11 +2,11 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.WithLastModified;
 
@@ -17,18 +17,16 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final List<IStrategoTerm> imports;
     public final Set<ConstructorSignature> constructors;
     public final Set<StrategySignature> strategies;
-    public final Set<ConstructorSignature> overlays;
-    public final List<Message<?>> messages;
+    public final Map<ConstructorSignature, List<OverlayData>> overlayData;
     public final long lastModified;
 
     public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
-        Set<StrategySignature> strategies, Set<ConstructorSignature> overlays,
-        List<Message<?>> messages, long lastModified) {
+        Set<StrategySignature> strategies, Map<ConstructorSignature, List<OverlayData>> overlayData,
+        long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.strategies = strategies;
-        this.overlays = overlays;
-        this.messages = messages;
+        this.overlayData = overlayData;
         this.lastModified = lastModified;
     }
 
@@ -46,14 +44,14 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!strategies.equals(that.strategies))
             return false;
-        return overlays.equals(that.overlays);
+        return overlayData.equals(that.overlayData);
     }
 
     @Override public int hashCode() {
         int result = imports.hashCode();
         result = 31 * result + constructors.hashCode();
         result = 31 * result + strategies.hashCode();
-        result = 31 * result + overlays.hashCode();
+        result = 31 * result + overlayData.hashCode();
         return result;
     }
 

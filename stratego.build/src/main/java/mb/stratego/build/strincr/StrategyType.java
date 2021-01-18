@@ -5,18 +5,23 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
+import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.util.TermUtils;
 
-public class StrategyType {
+public class StrategyType extends StrategoAppl {
     public final IStrategoTerm from;
     public final IStrategoTerm to;
     private final List<IStrategoTerm> strategyArguments;
     private final List<IStrategoTerm> termArguments;
 
-    public StrategyType(IStrategoTerm from, IStrategoTerm to, List<IStrategoTerm> strategyArguments,
-        List<IStrategoTerm> termArguments) {
+    public StrategyType(IStrategoTermBuilder tf, IStrategoTerm from, IStrategoTerm to,
+        List<IStrategoTerm> strategyArguments, List<IStrategoTerm> termArguments) {
+        super(tf.makeConstructor("FunTType", 3),
+            new IStrategoTerm[] { tf.makeList(strategyArguments), tf.makeList(termArguments),
+                tf.makeAppl("FunNoArgsType", from, to) }, null);
         this.from = from;
         this.to = to;
         this.strategyArguments = strategyArguments;
@@ -36,7 +41,7 @@ public class StrategyType {
             tf.makeAppl("FunNoArgsType", from, to));
     }
 
-    public static @Nullable StrategyType fromTerm(IStrategoTerm funTType) {
+    public static @Nullable StrategyType fromTerm(IStrategoTermBuilder tf, IStrategoTerm funTType) {
         if(!TermUtils.isAppl(funTType)) {
             return null;
         }
@@ -85,31 +90,21 @@ public class StrategyType {
             default:
                 return null;
         }
-        return new StrategyType(from, to, strategyArguments, termArguments);
+        return new StrategyType(tf, from, to, strategyArguments, termArguments);
     }
 
-    @Override public boolean equals(Object o) {
-        if(this == o)
-            return true;
-        if(o == null || getClass() != o.getClass())
-            return false;
+    public static class Standard extends StrategyType {
+        private Standard(IStrategoTermBuilder tf, IStrategoTerm from, IStrategoTerm to,
+            List<IStrategoTerm> strategyArguments, List<IStrategoTerm> termArguments) {
+            super(tf, from, to, strategyArguments, termArguments);
+        }
 
-        StrategyType that = (StrategyType) o;
-
-        if(!from.equals(that.from))
-            return false;
-        if(!to.equals(that.to))
-            return false;
-        if(!strategyArguments.equals(that.strategyArguments))
-            return false;
-        return termArguments.equals(that.termArguments);
-    }
-
-    @Override public int hashCode() {
-        int result = from.hashCode();
-        result = 31 * result + to.hashCode();
-        result = 31 * result + strategyArguments.hashCode();
-        result = 31 * result + termArguments.hashCode();
-        return result;
+        public static Standard fromArity(IStrategoTermBuilder tf, int noStrategyArgs,
+            int noTermArgs) {
+            final IStrategoAppl sdyn = tf.makeAppl("SDyn");
+            final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+            return new Standard(tf, dyn, dyn, Collections.nCopies(noStrategyArgs, sdyn),
+                Collections.nCopies(noTermArgs, dyn));
+        }
     }
 }

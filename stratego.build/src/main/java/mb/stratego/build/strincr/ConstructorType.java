@@ -10,25 +10,24 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.util.TermUtils;
 
 import static mb.stratego.build.termvisitors.DesugarType.tryDesugarType;
 
-public class ConstructorType {
+public class ConstructorType extends StrategoAppl {
     private final List<IStrategoTerm> from;
     public final IStrategoTerm to;
 
-    public ConstructorType(List<IStrategoTerm> from, IStrategoTerm to) {
+    public ConstructorType(IStrategoTermBuilder tf, List<IStrategoTerm> from, IStrategoTerm to) {
+        super(tf.makeConstructor("ConstrType", 2), new IStrategoTerm[] { tf.makeList(from), to },
+            null);
         this.from = from;
         this.to = to;
     }
 
     public List<IStrategoTerm> getFrom() {
         return Collections.unmodifiableList(from);
-    }
-
-    public IStrategoTerm toTerm(IStrategoTermBuilder tf) {
-        return tf.makeAppl("ConstrType", tf.makeList(from), to);
     }
 
     public IStrategoTerm toOpType(ITermFactory tf) {
@@ -46,7 +45,7 @@ public class ConstructorType {
                 if(opType.getSubtermCount() != 1) {
                     return null;
                 }
-                type = new ConstructorType(Collections.emptyList(),
+                type = new ConstructorType(tf, Collections.emptyList(),
                     tryDesugarType(tf, opType.getSubterm(0)));
                 break;
             case "FunType":
@@ -64,31 +63,12 @@ public class ConstructorType {
                         fromTypes.add(tryDesugarType(tf, tupleType.getSubterm(0)));
                     }
                 }
-                type = new ConstructorType(fromTypes,
+                type = new ConstructorType(tf, fromTypes,
                     tryDesugarType(tf, opType.getSubterm(1).getSubterm(0)));
                 break;
             default:
                 return null;
         }
         return type;
-    }
-
-    @Override public boolean equals(Object o) {
-        if(this == o)
-            return true;
-        if(o == null || getClass() != o.getClass())
-            return false;
-
-        ConstructorType that = (ConstructorType) o;
-
-        if(!from.equals(that.from))
-            return false;
-        return to.equals(that.to);
-    }
-
-    @Override public int hashCode() {
-        int result = from.hashCode();
-        result = 31 * result + to.hashCode();
-        return result;
     }
 }

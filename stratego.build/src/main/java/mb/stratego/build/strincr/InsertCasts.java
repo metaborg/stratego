@@ -3,6 +3,7 @@ package mb.stratego.build.strincr;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -19,16 +20,16 @@ import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
-import mb.stratego.build.util.TermEqWithAttachments;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
     public static final String id = InsertCasts.class.getCanonicalName();
 
-    public static final class Input implements Serializable {
+    public static class Input implements Serializable {
         final String moduleName;
         final StrategoImmutableMap strategyEnvironment;
         final StrategoImmutableRelation constructors;
@@ -36,11 +37,11 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategoImmutableRelation lubMap;
         final StrategoImmutableRelation aliasMap;
         final IStrategoTerm ast;
-        final StrategySignature sig;
 
-        Input(String moduleName, StrategoImmutableMap strategyEnvironment, StrategoImmutableRelation constructors,
-            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap,
-            StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
+        Input(String moduleName, StrategoImmutableMap strategyEnvironment,
+            StrategoImmutableRelation constructors, StrategoImmutableRelation injectionClosure,
+            StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap,
+            IStrategoTerm ast) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
             this.constructors = constructors;
@@ -48,26 +49,31 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             this.lubMap = lubMap;
             this.aliasMap = aliasMap;
             this.ast = ast;
-            this.sig = sig;
         }
 
-        @Override
-        public String toString() {
-            return "InsertCasts$Input(moduleName="+moduleName+", cifiedName="+ sig +")";
+        @Override public String toString() {
+            return "InsertCasts$Input(moduleName=" + moduleName + ")";
         }
 
         @Override public boolean equals(Object o) {
-            if(this == o) return true;
-            if(o == null || getClass() != o.getClass()) return false;
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
             final Input input = (Input) o;
-            if(!moduleName.equals(input.moduleName)) return false;
-            if(!strategyEnvironment.equals(input.strategyEnvironment)) return false;
-            if(!constructors.equals(input.constructors)) return false;
-            if(!injectionClosure.equals(input.injectionClosure)) return false;
-            if(!lubMap.equals(input.lubMap)) return false;
-            if(!aliasMap.equals(input.aliasMap)) return false;
-            if(!ast.equals(input.ast)) return false;
-            return sig.equals(input.sig);
+            if(!moduleName.equals(input.moduleName))
+                return false;
+            if(!strategyEnvironment.equals(input.strategyEnvironment))
+                return false;
+            if(!constructors.equals(input.constructors))
+                return false;
+            if(!injectionClosure.equals(input.injectionClosure))
+                return false;
+            if(!lubMap.equals(input.lubMap))
+                return false;
+            if(!aliasMap.equals(input.aliasMap))
+                return false;
+            return ast.equals(input.ast);
         }
 
         @Override public int hashCode() {
@@ -78,30 +84,30 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             result = 31 * result + lubMap.hashCode();
             result = 31 * result + aliasMap.hashCode();
             result = 31 * result + ast.hashCode();
-            result = 31 * result + sig.hashCode();
             return result;
         }
 
         public static class Builder {
-            private final String moduleName;
+            final String moduleName;
             final StrategoImmutableMap strategyEnvironment;
             final StrategoImmutableRelation constructors;
             final StrategoImmutableRelation injectionClosure;
             final StrategoImmutableRelation lubMap;
             final StrategoImmutableRelation aliasMap;
 
-            public Builder(String moduleName, java.util.Map<StrategySignature, IStrategoTerm> strategyEnv,
+            public Builder(String moduleName, Map<StrategySignature, IStrategoTerm> strategyEnv,
                 BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
                 BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections,
                 ITermFactory tf) {
                 this.moduleName = moduleName;
                 strategyEnvironment = StrategoImmutableMap.fromMap(strategyEnv);
                 constructors = new StrategoImmutableRelation(constrs);
-                injectionClosure =
-                    StrategoImmutableRelation.transitiveClosure(new StrategoImmutableRelation(injections));
-                this.lubMap = new StrategoImmutableRelation(lubMapFromInjClosure(injectionClosure, tf));
-                this.aliasMap = StrategoImmutableRelation
-                    .transitiveClosure(new StrategoImmutableRelation(extractAliases(constrs, injections)));
+                injectionClosure = StrategoImmutableRelation
+                    .transitiveClosure(new StrategoImmutableRelation(injections));
+                this.lubMap =
+                    new StrategoImmutableRelation(lubMapFromInjClosure(injectionClosure, tf));
+                this.aliasMap = StrategoImmutableRelation.transitiveClosure(
+                    new StrategoImmutableRelation(extractAliases(constrs, injections)));
             }
 
             private static BinaryRelation.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> extractAliases(
@@ -109,7 +115,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections) {
                 BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> invInjections =
                     injections.inverse();
-                BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> aliases = BinaryRelation.Transient.of();
+                BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> aliases =
+                    BinaryRelation.Transient.of();
                 outer:
                 for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> e : injections.entrySet()) {
                     final IStrategoTerm key = e.getKey();
@@ -118,7 +125,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                     if(invInjections.get(value).size() == 1) {
                         // and there are no constructors, for the target type
                         for(IStrategoTerm t : constrs.values()) {
-                            if(TermUtils.isAppl(t, "ConstrType", 2) && t.getSubterm(1).equals(value)) {
+                            if(TermUtils.isAppl(t, "ConstrType", 2) && t.getSubterm(1)
+                                .equals(value)) {
                                 continue outer;
                             }
                         }
@@ -135,7 +143,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                  *  Use an arbitrary but deterministic method to choose a representative type in a cycle
                  *  Map members x,y from the same cycle to the representative type
                  */
-                final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> lubMap = BinaryRelation.Transient.of();
+                final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> lubMap =
+                    BinaryRelation.Transient.of();
                 for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> entry : injectionClosure.backingRelation
                     .entrySet()) {
                     final IStrategoTerm from = entry.getKey();
@@ -146,10 +155,23 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 return lubMap.freeze();
             }
 
-            public Input build(IStrategoTerm ast, StrategySignature sig) {
-                return new Input(moduleName, strategyEnvironment, constructors, injectionClosure, lubMap, aliasMap,
-                    ast, sig);
+            public Input build(IStrategoTerm ast) {
+                return new Input(moduleName, strategyEnvironment, constructors, injectionClosure,
+                    lubMap, aliasMap, ast);
             }
+        }
+    }
+
+    public static final class Input2 extends Input {
+        public final ModuleIdentifier moduleIdentifier;
+        public final GTEnvironment environment;
+
+        public Input2(ModuleIdentifier moduleIdentifier, GTEnvironment environment) {
+            super(moduleIdentifier.moduleString(), environment.strategyEnvironment,
+                environment.constructors, environment.injectionClosure, environment.lubMap,
+                environment.aliasMap, environment.ast);
+            this.moduleIdentifier = moduleIdentifier;
+            this.environment = environment;
         }
     }
 
@@ -162,8 +184,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             this.messages = messages;
         }
 
-        @Override
-        public boolean equals(Object o) {
+        @Override public boolean equals(Object o) {
             if(this == o)
                 return true;
             if(getClass() != o.getClass())
@@ -172,8 +193,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             return astWithCasts.equals(output.astWithCasts) && messages.equals(output.messages);
         }
 
-        @Override
-        public int hashCode() {
+        @Override public int hashCode() {
             return Objects.hash(astWithCasts, messages);
         }
     }
@@ -188,44 +208,51 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
     }
 
 
-    @Override
-    public Output exec(ExecContext execContext, Input input) throws ExecException, InterruptedException {
+    @Override public Output exec(ExecContext execContext, Input input)
+        throws ExecException, InterruptedException {
         final ITermFactory tf = strContext.getFactory();
 
-        assert input.strategyEnvironment.backingMap.containsKey(input.sig) : "Cannot find strategy " + input.sig
-            + " to type check in given environment.";
-
-        // (strats, constrs, injection-closure, lub-map, aliases, ast)
-        final IStrategoTerm tuple =
-            tf.makeTuple(input.strategyEnvironment.withWrapper(tf), input.constructors.withWrapper(tf),
-                input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.aliasMap.withWrapper(tf), input.ast);
-
-        final StrategoExecutor.ExecutionResult output = StrategoExecutor.runLocallyUniqueStringStrategy(
-            ioAgentTrackerFactory, execContext.logger(), true, insert_casts_0_0.instance, tuple, strContext);
-        if(!output.success) {
-            throw new ExecException("Call to insert_casts failed on " + input.moduleName + ":" + input.sig.cifiedName() + ": \n" + output.exception);
+        final IStrategoTerm tuple;
+        if(input instanceof Input2) {
+            tuple = ((Input2) input).environment;
+        } else {
+            // (strats, constrs, injection-closure, lub-map, aliases, ast)
+            tuple = tf.makeTuple(input.strategyEnvironment.withWrapper(tf),
+                input.constructors.withWrapper(tf), input.injectionClosure.withWrapper(tf),
+                input.lubMap.withWrapper(tf), input.aliasMap.withWrapper(tf), input.ast);
         }
 
-        final IStrategoTerm astWithCasts = new TermEqWithAttachments(output.result.getSubterm(0));
+        final StrategoExecutor.ExecutionResult output = StrategoExecutor
+            .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, execContext.logger(), true,
+                insert_casts_0_0.instance, tuple, strContext);
+        if(!output.success) {
+            throw new ExecException(
+                "Call to insert_casts failed on " + input.moduleName + ": \n" + output.exception);
+        }
+        assert output.result != null;
+
+        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
         final IStrategoList errors = TermUtils.toListAt(output.result, 1);
         final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
         final IStrategoList notes = TermUtils.toListAt(output.result, 3);
 
         List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
-            messages.add(Message.from(execContext.logger(), input.moduleName, errorTerm, MessageSeverity.ERROR));
+            messages.add(Message
+                .from(execContext.logger(), input.moduleName, errorTerm, MessageSeverity.ERROR));
         }
         for(IStrategoTerm warningTerm : warnings) {
-            messages.add(Message.from(execContext.logger(), input.moduleName, warningTerm, MessageSeverity.WARNING));
+            messages.add(Message.from(execContext.logger(), input.moduleName, warningTerm,
+                MessageSeverity.WARNING));
         }
         for(IStrategoTerm noteTerm : notes) {
-            messages.add(Message.from(execContext.logger(), input.moduleName, noteTerm, MessageSeverity.NOTE));
+            messages.add(Message
+                .from(execContext.logger(), input.moduleName, noteTerm, MessageSeverity.NOTE));
         }
         return new Output(astWithCasts, messages);
     }
 
-    @Override
-    public String getId() {
+    @Override public String getId() {
         return id;
     }
 

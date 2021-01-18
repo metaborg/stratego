@@ -17,23 +17,28 @@ import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.StringUtils;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.stratego.build.util.WithLastModified;
+
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class ConstructorSignature extends StrategoTuple {
+public class ConstructorSignature extends StrategoTuple implements WithLastModified {
     public final String name;
     public final int noArgs;
+    public final long lastModified;
 
-    public ConstructorSignature(String name, int noArgs) {
+    public ConstructorSignature(String name, int noArgs, long lastModified) {
         super(new IStrategoTerm[] { new StrategoString(name, AbstractTermFactory.EMPTY_LIST),
             new StrategoInt(noArgs) }, AbstractTermFactory.EMPTY_LIST);
         this.name = name;
         this.noArgs = noArgs;
+        this.lastModified = lastModified;
     }
 
-    public ConstructorSignature(IStrategoString name, IStrategoInt noArgs) {
+    public ConstructorSignature(IStrategoString name, IStrategoInt noArgs, long lastModified) {
         super(new IStrategoTerm[] { name, noArgs }, AbstractTermFactory.EMPTY_LIST);
         this.name = name.stringValue();
         this.noArgs = noArgs.intValue();
+        this.lastModified = lastModified;
     }
 
     public String cifiedName() {
@@ -62,7 +67,7 @@ public class ConstructorSignature extends StrategoTuple {
         return true;
     }
 
-    public static @Nullable ConstructorSignature fromCified(String cifiedName) {
+    public static @Nullable ConstructorSignature fromCified(String cifiedName, long lastModified) {
         try {
             int lastUnderlineOffset = cifiedName.lastIndexOf('_');
             if(lastUnderlineOffset == -1) {
@@ -70,20 +75,20 @@ public class ConstructorSignature extends StrategoTuple {
             }
             int arity = Integer.parseInt(cifiedName.substring(lastUnderlineOffset + 1));
             return new ConstructorSignature(
-                SDefT.unescape(cifiedName.substring(0, lastUnderlineOffset)), arity);
+                SDefT.unescape(cifiedName.substring(0, lastUnderlineOffset)), arity, lastModified);
         } catch(NumberFormatException e) {
             return null;
         }
     }
 
-    public static @Nullable ConstructorSignature fromTuple(IStrategoTerm tuple) {
+    public static @Nullable ConstructorSignature fromTuple(IStrategoTerm tuple, long lastModified) {
         if(!TermUtils.isTuple(tuple) || tuple.getSubtermCount() != 2 || !TermUtils
             .isIntAt(tuple, 1)) {
             return null;
         }
         if(TermUtils.isStringAt(tuple, 0)) {
             return new ConstructorSignature(TermUtils.toStringAt(tuple, 0),
-                TermUtils.toIntAt(tuple, 1));
+                TermUtils.toIntAt(tuple, 1), lastModified);
         }
         if(TermUtils.isApplAt(tuple, 0) && TermUtils.tryGetName(tuple.getSubterm(0))
             .map(n -> n.equals("Q")).orElse(false)) {
@@ -92,12 +97,12 @@ public class ConstructorSignature extends StrategoTuple {
             final StrategoString escapedName =
                 new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
             AbstractTermFactory.staticCopyAttachments(tuple.getSubterm(0), escapedName);
-            return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1));
+            return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1), lastModified);
         }
         return null;
     }
 
-    public static @Nullable ConstructorSignature fromTerm(IStrategoTerm consDef) {
+    public static @Nullable ConstructorSignature fromTerm(IStrategoTerm consDef, long lastModified) {
         if(!TermUtils.isAppl(consDef)) {
             return null;
         }
@@ -138,10 +143,14 @@ public class ConstructorSignature extends StrategoTuple {
                 return null;
         }
 
-        return new ConstructorSignature(name, arity);
+        return new ConstructorSignature(name, arity, lastModified);
     }
 
     public StrategySignature toCongruenceSig() {
         return new StrategySignature(name, noArgs, 0);
+    }
+
+    @Override public long lastModified() {
+        return lastModified;
     }
 }

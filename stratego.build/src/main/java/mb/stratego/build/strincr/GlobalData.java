@@ -10,31 +10,27 @@ import java.util.function.Function;
 
 import mb.pie.api.STask;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.Message2;
 
 public class GlobalData implements Serializable {
-    public final Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks;
+    public final Set<ModuleIdentifier> allModuleIdentifiers;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
     public final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex;
     public final Map<String, Set<ModuleIdentifier>> ambStrategyIndex;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex;
-    public final List<Message<?>> messages;
+    public final List<Message2<?>> messages;
 
-    public GlobalData(Map<ModuleIdentifier, STask<ModuleData>> moduleDataTasks,
+    public GlobalData(Set<ModuleIdentifier> allModuleIdentifiers,
         Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
         Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
         Map<String, Set<ModuleIdentifier>> ambStrategyIndex,
-        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex, List<Message<?>> messages) {
-        this.moduleDataTasks = moduleDataTasks;
+        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex, List<Message2<?>> messages) {
+        this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.strategyIndex = strategyIndex;
         this.ambStrategyIndex = ambStrategyIndex;
         this.overlayIndex = overlayIndex;
         this.messages = messages;
-    }
-
-    public GlobalIndex toGlobalIndex() {
-        return new GlobalIndex(constructorIndex.keySet(), strategyIndex.keySet());
     }
 
     public static class ToGlobalIndex implements Function<GlobalData, GlobalIndex>, Serializable {
@@ -58,7 +54,7 @@ public class GlobalData implements Serializable {
 
         @Override public T apply(GlobalData globalData) {
             //noinspection unchecked
-            return (T) globalData.moduleDataTasks.keySet();
+            return (T) globalData.allModuleIdentifiers;
         }
     }
 

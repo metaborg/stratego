@@ -45,7 +45,7 @@ public class UsedConstrs extends TermVisitor {
                         B.string(name + "_" + arity);
                     tf.copyAttachments(nameAST, cifiedName);
                     usedConstrs.add(cifiedName);
-                    usedConstructors.add(new ConstructorSignature(name, arity));
+                    usedConstructors.add(new ConstructorSignature(name, arity, lastModified));
                 }
             } else {
                 final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
@@ -54,12 +54,12 @@ public class UsedConstrs extends TermVisitor {
                 final IStrategoString cifiedName = B.string(name + "_" + arity);
                 tf.copyAttachments(nameAST, cifiedName);
                 usedConstrs.add(cifiedName);
-                usedConstructors.add(new ConstructorSignature(name, arity));
+                usedConstructors.add(new ConstructorSignature(name, arity, lastModified));
             }
         } else if(TermUtils.isAppl(term, "CongQ", 2)) {
             final String name = TermUtils.toJavaStringAt(term, 0);
             final int arity = TermUtils.toListAt(term, 1).size();
-            usedConstructors.add(new ConstructorSignature(name, arity));
+            usedConstructors.add(new ConstructorSignature(name, arity, lastModified));
         }
     }
 

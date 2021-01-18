@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -368,7 +368,7 @@ public class StaticChecks {
         final InsertCasts.Input.Builder builder =
             new InsertCasts.Input.Builder(moduleName, sccStrategyEnv, sccConstructorEnv, sccInjEnv, tf);
         for(Map.Entry<StrategySignature, IStrategoTerm> e : splitResult.strategyDefs.entrySet()) {
-            final InsertCasts.Input insertCastsInput = builder.build(e.getValue(), e.getKey());
+            final InsertCasts.Input insertCastsInput = builder.build(e.getValue());
             final InsertCasts.Output result = execContext.require(strIncrInsertCasts, insertCastsInput);
             if(keepCasts) {
                 e.setValue(result.astWithCasts);

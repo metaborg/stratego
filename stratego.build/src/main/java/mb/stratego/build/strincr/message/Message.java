@@ -10,6 +10,8 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.Logger;
+import mb.stratego.build.strincr.ConstructorSignature;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.strincr.message.java.AmbiguousStrategyCall;
 import mb.stratego.build.strincr.message.java.ConstantCongruence;
@@ -96,10 +98,10 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
         return new ExternalStrategyOverlap(module, name);
     }
 
-    public static JavaMessage<IStrategoString> cyclicOverlay(String module, IStrategoString name, Set<String> overlayScc) {
+    public static JavaMessage<IStrategoTerm> cyclicOverlay(String module, IStrategoTerm name, Set<String> overlayScc) {
         IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
+        if(origin != null) {
+            name = origin;
         }
         return new CyclicOverlay(module, name, overlayScc);
     }
