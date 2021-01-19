@@ -2,7 +2,6 @@ package mb.stratego.build.strincr;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,7 +17,6 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
@@ -75,7 +73,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
 
-        final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
+        final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new WrongASTException(input.moduleIdentifier, def);
@@ -116,9 +114,8 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             usedStrategies, usedAmbiguousStrategies, ast.lastModified);
     }
 
-    private static IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
-        LastModified<IStrategoTerm> timestampedAst) throws WrongASTException {
-        final IStrategoTerm ast = timestampedAst.wrapped;
+    public static IStrategoList getDefs(ModuleIdentifier moduleIdentifier, IStrategoTerm ast)
+        throws WrongASTException {
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {

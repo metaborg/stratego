@@ -18,12 +18,14 @@ public class GTEnvironment extends StrategoTuple {
     final StrategoImmutableSet internalStrategyEnvironment;
     final StrategoImmutableSet externalStrategyEnvironment;
     final IStrategoTerm ast;
+    final long lastModified;
 
     private GTEnvironment(StrategoImmutableMap strategyEnvironment,
         StrategoImmutableRelation constructors, StrategoImmutableRelation injectionClosure,
         StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap,
         StrategoImmutableSet internalStrategyEnvironment,
-        StrategoImmutableSet externalStrategyEnvironment, IStrategoTerm ast, ITermFactory tf) {
+        StrategoImmutableSet externalStrategyEnvironment, IStrategoTerm ast, ITermFactory tf,
+        long lastModified) {
         super(
             new IStrategoTerm[] { strategyEnvironment.withWrapper(tf), constructors.withWrapper(tf),
                 injectionClosure.withWrapper(tf), lubMap.withWrapper(tf), aliasMap.withWrapper(tf),
@@ -37,20 +39,22 @@ public class GTEnvironment extends StrategoTuple {
         this.internalStrategyEnvironment = internalStrategyEnvironment;
         this.externalStrategyEnvironment = externalStrategyEnvironment;
         this.ast = ast;
+        this.lastModified = lastModified;
     }
 
     public static GTEnvironment from(StrategoImmutableMap strategyEnvironment,
         BinaryRelation.Immutable<ConstructorSignature, ConstructorType> constructors,
         BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections,
         StrategoImmutableSet internalStrategyEnvironment,
-        StrategoImmutableSet externalStrategyEnvironment, IStrategoTerm ast, ITermFactory tf) {
+        StrategoImmutableSet externalStrategyEnvironment, IStrategoTerm ast, ITermFactory tf,
+        long lastModified) {
         final StrategoImmutableRelation injectionClosure =
             StrategoImmutableRelation.transitiveClosure(new StrategoImmutableRelation(injections));
         return new GTEnvironment(strategyEnvironment, new StrategoImmutableRelation(constructors),
             injectionClosure, lubMapFromInjClosure(injectionClosure, tf), StrategoImmutableRelation
             .transitiveClosure(
                 new StrategoImmutableRelation(extractAliases(constructors, injections))),
-            externalStrategyEnvironment, internalStrategyEnvironment, ast, tf);
+            externalStrategyEnvironment, internalStrategyEnvironment, ast, tf, lastModified);
     }
 
     private static BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> extractAliases(

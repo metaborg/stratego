@@ -136,7 +136,7 @@ public abstract class SplitShared {
                             throw new WrongASTException(moduleIdentifier, sargs);
                         }
                         sArity = sargs.getSubtermCount();
-                        final IStrategoTerm targs = strategyDef.getSubterm(1);
+                        final IStrategoTerm targs = strategyDef.getSubterm(2);
                         if(!TermUtils.isList(targs)) {
                             throw new WrongASTException(moduleIdentifier, targs);
                         }

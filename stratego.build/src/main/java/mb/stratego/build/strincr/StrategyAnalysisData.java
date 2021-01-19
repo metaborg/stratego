@@ -5,12 +5,19 @@ import java.io.Serializable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.util.LastModified;
+import mb.stratego.build.util.WithLastModified;
 
-public class StrategyAnalysisData implements Serializable {
-    public final LastModified<IStrategoTerm> analyzedAst;
+public class StrategyAnalysisData implements Serializable, WithLastModified {
+    public final IStrategoTerm analyzedAst;
+    public final long lastModified;
 
 
-    public StrategyAnalysisData(LastModified<IStrategoTerm> analyzedAst) {
+    public StrategyAnalysisData(IStrategoTerm analyzedAst, long lastModified) {
         this.analyzedAst = analyzedAst;
+        this.lastModified = lastModified;
+    }
+
+    @Override public long lastModified() {
+        return lastModified;
     }
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +12,10 @@ import java.util.Set;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set.Transient;
@@ -21,6 +24,7 @@ import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.util.PieUtils;
+import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 
 public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Output> {
@@ -41,9 +45,9 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     }
 
     public static class Output implements Serializable {
-        public final Map<StrategySignature, StrategyAnalysisData> strategyDataWithCasts;
+        public final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts;
 
-        public Output(Map<StrategySignature, StrategyAnalysisData> strategyDataWithCasts) {
+        public Output(Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts) {
             this.strategyDataWithCasts = strategyDataWithCasts;
         }
     }
@@ -51,23 +55,120 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     private final Resolve resolve;
     private final Front front;
     private final Lib lib;
+    private final InsertCasts insertCasts;
     private final ITermFactory tf;
 
-    public CheckModule(Resolve resolve, Front front, Lib lib, StrIncrContext strIncrContext) {
+    public CheckModule(Resolve resolve, Front front, Lib lib, InsertCasts insertCasts,
+        StrIncrContext strIncrContext) {
         this.resolve = resolve;
         this.front = front;
         this.lib = lib;
+        this.insertCasts = insertCasts;
         this.tf = strIncrContext.getFactory();
     }
 
     @Override public Output exec(ExecContext context, Input input) throws Exception {
-        // Checks:
-        //     - Gradual type check.
-        //         - Provide relevant externals (overlapping with definitions in module), for checks
-        //             of overlap between normal and external, and override/extend and external.
-        //         - Provide overlays for desugaring
-        //         - In stratego: provide externals checks
-        return null;
+        final InsertCasts.Input2 input2 =
+            new InsertCasts.Input2(input.moduleIdentifier, prepareGTEnvironment(context, input));
+        // TODO: In stratego: provide externals checks
+        final InsertCasts.Output output = context.require(insertCasts, input2);
+        final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
+            new HashMap<>();
+        extractStrategyDefs(input.moduleIdentifier, input2.environment.lastModified,
+            output.astWithCasts, strategyDataWithCasts);
+        return new Output(strategyDataWithCasts);
+    }
+
+    private static void extractStrategyDefs(ModuleIdentifier moduleIdentifier, long lastModified,
+        IStrategoTerm ast, Map<StrategySignature, Set<StrategyAnalysisData>> strategyData)
+        throws WrongASTException {
+
+        final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
+        for(IStrategoTerm def : defs) {
+            if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
+                throw new WrongASTException(moduleIdentifier, def);
+            }
+            switch(TermUtils.toAppl(def).getName()) {
+                case "Imports":
+                case "Overlays":
+                case "Signature":
+                    break;
+                case "Rules":
+                    // fall-through
+                case "Strategies":
+                    addStrategyData(moduleIdentifier, lastModified, strategyData, def);
+                    break;
+                default:
+                    throw new WrongASTException(moduleIdentifier, def);
+            }
+        }
+    }
+
+    private static void addStrategyData(ModuleIdentifier moduleIdentifier, long lastModified,
+        Map<StrategySignature, Set<StrategyAnalysisData>> strategyData, IStrategoTerm strategyDefs)
+        throws WrongASTException {
+        for(IStrategoTerm strategyDef : strategyDefs) {
+            if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
+                if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
+                    strategyDef = strategyDef.getSubterm(1);
+                }
+                if(!TermUtils.isAppl(strategyDef)) {
+                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                }
+                if(!TermUtils.isStringAt(strategyDef, 0)) {
+                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                }
+                final String name = TermUtils.toJavaStringAt(strategyDef, 0);
+                final int sArity;
+                final int tArity;
+                switch(TermUtils.toAppl(strategyDef).getName()) {
+                    case "ExtSDef":
+                        // fall-through
+                    case "SDef":
+                        // fall-through
+                    case "RDef": {
+                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
+                        if(!TermUtils.isList(sargs)) {
+                            throw new WrongASTException(moduleIdentifier, sargs);
+                        }
+                        sArity = sargs.getSubtermCount();
+                        tArity = 0;
+                        break;
+                    }
+                    case "SDefNoArgs":
+                        // fall-through
+                    case "RDefNoArgs":
+                        sArity = 0;
+                        tArity = 0;
+                        break;
+                    case "ExtSDefInl":
+                        // fall-through
+                    case "SDefT":
+                        // fall-through
+                    case "RDefT":
+                        // fall-through
+                    case "RDefP": {
+                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
+                        if(!TermUtils.isList(sargs)) {
+                            throw new WrongASTException(moduleIdentifier, sargs);
+                        }
+                        sArity = sargs.getSubtermCount();
+                        final IStrategoTerm targs = strategyDef.getSubterm(2);
+                        if(!TermUtils.isList(targs)) {
+                            throw new WrongASTException(moduleIdentifier, targs);
+                        }
+                        tArity = targs.getSubtermCount();
+                        break;
+                    }
+                    default:
+                        throw new WrongASTException(moduleIdentifier, strategyDef);
+                }
+                final StrategySignature strategySignature =
+                    new StrategySignature(name, sArity, tArity);
+                Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
+                    .add(new StrategyAnalysisData(strategyDef, lastModified));
+            }
+        }
     }
 
     private GTEnvironment prepareGTEnvironment(ExecContext context, Input input)
@@ -160,8 +261,10 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
             new StrategoImmutableSet(externalStrategySigs.freeze());
         final StrategoImmutableMap strategyEnvironment =
             new StrategoImmutableMap(strategyTypes.freeze());
-        return GTEnvironment.from(strategyEnvironment, constructorTypes.freeze(), injections.freeze(),
-            internalStrategyEnvironment, externalStrategyEnvironment, moduleUsageData.ast, tf);
+        return GTEnvironment
+            .from(strategyEnvironment, constructorTypes.freeze(), injections.freeze(),
+                internalStrategyEnvironment, externalStrategyEnvironment, moduleUsageData.ast, tf,
+                moduleUsageData.lastModified);
     }
 
     private Task<ModuleData> moduleIdentifierToTask(ModuleIdentifier moduleIdentifier,
