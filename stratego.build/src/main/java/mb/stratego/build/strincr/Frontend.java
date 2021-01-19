@@ -491,12 +491,13 @@ public class Frontend implements TaskDef<Frontend.Input, Frontend.Output> {
     private static void collectUsedNames(IStrategoTerm strategyAST, StringSetWithPositions usedConstrs,
         StrategyEnvironment usedStrats, Map<String, Set<String>> usedAmbStrats,
         StringSetWithPositions ambStratPositions) {
-        final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats, ambStratPositions);
+        final TermVisitor visitor = new UsedNames(usedConstrs, usedStrats, usedAmbStrats, ambStratPositions,
+            0);
         visitor.visit(strategyAST);
     }
 
     private static void collectUsedNames(IStrategoTerm overlayASTList, StringSetWithPositions usedConstrs) {
-        final TermVisitor visitor = new UsedConstrs(usedConstrs);
+        final TermVisitor visitor = new UsedConstrs(usedConstrs, 0);
         visitor.visit(overlayASTList);
     }
 

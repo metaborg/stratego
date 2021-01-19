@@ -106,7 +106,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Set<ConstructorSignature> usedConstructors = new HashSet<>();
         final Set<StrategySignature> usedStrategies = new HashSet<>();
         final Set<String> usedAmbiguousStrategies = new HashSet<>();
-        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
+        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies, ast.lastModified)
             .visit(ast.wrapped);
 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,

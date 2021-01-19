@@ -75,7 +75,7 @@ public class SplitResult implements Serializable {
 
         final BinaryRelation.Transient<ConstructorSignature, IStrategoTerm> consTypes = BinaryRelation.Transient.of();
         for(IStrategoTerm consTypePair : consTypePairs) {
-            ConstructorSignature consSig = ConstructorSignature.fromTuple(consTypePair.getSubterm(0));
+            ConstructorSignature consSig = ConstructorSignature.fromTuple(consTypePair.getSubterm(0), 0);
             Objects.requireNonNull(consSig,
                 () -> "Cannot turn term " + consTypePair.getSubterm(0) + " into a constructor signature. Not a pair of a string and an int?");
             IStrategoTerm consType = new TermEqWithAttachments(consTypePair.getSubterm(1));
@@ -121,7 +121,7 @@ public class SplitResult implements Serializable {
     private static Map<ConstructorSignature, List<IStrategoTerm>> consAssocListToRel(final IStrategoList assocList) {
         final Map<ConstructorSignature, List<IStrategoTerm>> resultMap = new HashMap<>(assocList.size() * 2);
         for(IStrategoTerm pair : assocList) {
-            final ConstructorSignature sig = ConstructorSignature.fromTuple(pair.getSubterm(0));
+            final ConstructorSignature sig = ConstructorSignature.fromTuple(pair.getSubterm(0), 0);
             if(sig == null) {
                 // case where the signature name is Inj() for injections.
                 continue;

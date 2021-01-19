@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.WithLastModified;
 
 public class StrategyAnalysisData implements Serializable, WithLastModified {

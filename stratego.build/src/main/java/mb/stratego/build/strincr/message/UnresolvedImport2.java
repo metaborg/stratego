@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.MessageSeverity;
 
 public class UnresolvedImport2 extends Message2<IStrategoTerm> {

@@ -178,13 +178,13 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     final IStrategoList paramList = TermUtils.toListAt(funtype, 0);
                     final String constrName = TermUtils.toJavaStringAt(extConstrTerm, 0);
                     final ConstructorSignature sig = new ConstructorSignature(constrName, paramList.size(),
-                        lastModified);
+                        0);
                     constrs.put(sig, constrTypeFromFunType(tf, funtype));
                 } else if(TermUtils.isAppl(extConstrTerm.getSubterm(1), "ConstType", 1)) {
                     final IStrategoTerm consttype = extConstrTerm.getSubterm(1);
                     final String constrName = TermUtils.toJavaStringAt(extConstrTerm, 0);
                     final ConstructorSignature sig = new ConstructorSignature(constrName, 0,
-                        lastModified);
+                        0);
                     constrs.put(sig, constrTypeFromConstType(tf, consttype));
                 } else {
                     throw new ExecException("Malformed built-in library AST. "
@@ -204,7 +204,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                 final String constrName = TermUtils.toJavaStringAt(extConstrTerm, 0);
                 final ConstructorSignature sig =
                     new ConstructorSignature(StringEscapeUtils.escapeJava(constrName), paramList.size(),
-                        lastModified);
+                        0);
                 constrs.put(sig, constrTypeFromFunType(tf, funtype));
                 continue;
             } else if(TermUtils.isAppl(extConstrTerm, "ExtOpDeclInj", 1)) {
@@ -213,7 +213,7 @@ public class LibFrontend implements TaskDef<LibFrontend.Input, LibFrontend.Outpu
                     && TermUtils.isListAt(optype, 0)
                     && TermUtils.toListAt(optype, 0).size() > 1) {
                     final ConstructorSignature sig = new ConstructorSignature("", TermUtils.toListAt(optype, 0).size(),
-                        lastModified);
+                        0);
                     constrs.put(sig, constrTypeFromFunType(tf, optype));
                 }
                 continue;

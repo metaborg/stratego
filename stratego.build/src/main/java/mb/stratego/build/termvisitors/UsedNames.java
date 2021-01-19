@@ -31,8 +31,9 @@ public class UsedNames extends UsedConstrs {
     public int ambiguousStrategyNamesFound = 0;
 
     public UsedNames(StringSetWithPositions usedConstrs, StrategyEnvironment usedStrats,
-        Map<String, Set<String>> usedAmbStrats, StringSetWithPositions ambStratPositions) {
-        super(usedConstrs);
+        Map<String, Set<String>> usedAmbStrats, StringSetWithPositions ambStratPositions,
+        long lastModified) {
+        super(usedConstrs, lastModified);
 
         this.usedStrats = usedStrats;
         this.usedAmbStrats = usedAmbStrats;

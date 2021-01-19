@@ -15,7 +15,6 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;

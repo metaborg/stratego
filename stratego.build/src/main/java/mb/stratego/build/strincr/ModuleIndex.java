@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.WithLastModified;
 
 /**

@@ -19,13 +19,16 @@ public class UsedConstrs extends TermVisitor {
     private final ITermFactory tf = new TermFactory();
 
     private final Set<ConstructorSignature> usedConstructors;
+    private final long lastModified;
 
-    public UsedConstrs(StringSetWithPositions usedConstrs) {
+    public UsedConstrs(StringSetWithPositions usedConstrs, long lastModified) {
         this.usedConstrs = usedConstrs;
+        this.lastModified = lastModified;
         this.usedConstructors = new HashSet<>();
     }
 
-    public UsedConstrs(Set<ConstructorSignature> usedConstructors) {
+    public UsedConstrs(Set<ConstructorSignature> usedConstructors, long lastModified) {
+        this.lastModified = lastModified;
         this.usedConstrs = new StringSetWithPositions();
         this.usedConstructors = usedConstructors;
     }

@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -198,7 +196,7 @@ public abstract class SplitShared {
                 throw new WrongASTException(moduleIdentifier, overlay);
             }
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
-            new UsedConstrs(usedConstructors).visit(overlay);
+            new UsedConstrs(usedConstructors, lastModified).visit(overlay);
             final ConstructorSignature signature =
                 new ConstructorSignature(name, arity, lastModified);
             final OverlayData data = new OverlayData(signature, overlay, type, usedConstructors);

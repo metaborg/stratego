@@ -8,7 +8,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 
@@ -26,8 +25,9 @@ public class UsedNamesFront extends UsedConstrs {
     private @Nullable String currentTopLevelStrategyName = null;
 
     public UsedNamesFront(Set<ConstructorSignature> usedConstructors,
-        Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies) {
-        super(usedConstructors);
+        Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies,
+        long lastModified) {
+        super(usedConstructors, lastModified);
 
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;

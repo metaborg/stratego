@@ -5,7 +5,6 @@ import java.util.Set;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.ConstructorSignature;
-import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.MessageSeverity;
 
 public class CyclicOverlay2 extends Message2<IStrategoTerm> {

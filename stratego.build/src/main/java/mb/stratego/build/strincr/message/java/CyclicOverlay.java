@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.message.java;
 
 import java.util.Set;
 
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.MessageSeverity;

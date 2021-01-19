@@ -15,7 +15,6 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
 

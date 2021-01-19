@@ -10,8 +10,6 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.Logger;
-import mb.stratego.build.strincr.ConstructorSignature;
-import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.strincr.message.java.AmbiguousStrategyCall;
 import mb.stratego.build.strincr.message.java.ConstantCongruence;
