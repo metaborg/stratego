@@ -31,7 +31,7 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   ; aliases := <extract-aliases> (constrs, injs)
   ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
-  ; strats := <extract-strategy-types> ast1
+  ; strats := <extract-strategy-types(|<imset-new>, <imset-new>)> ast1
   ; let
       process-defs = map(
           insertCasts(|strats, constrs, injection-closure, aliases, lub-map)
@@ -80,8 +80,8 @@ lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
     forward := <imrel-map(\(l,u) -> ((l,u),u)\)> injection-closure
   ; relation := <imrel-union(|<imrel-map((Swap, id))> forward)> forward
 
-extract-strategy-types:
+extract-strategy-types(|internals, externals):
   Specification(decl*) -> stratEnv
   with
     sdeft* := <filter(?Strategies(<id>) + ?Rules(<id>));concat> decl*
-  ; stratEnv := <risky(getDefTypes|"getDefTypes failed")> sdeft*
+  ; stratEnv := <risky(getDefTypes(|internals, externals)|"getDefTypes failed")> sdeft*
