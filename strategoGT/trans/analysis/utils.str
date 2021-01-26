@@ -112,6 +112,7 @@ nameOf-StrategyDef-RuleDef: ExtSDef(name, s*, t*) -> (name{}, <length> s*, <leng
 nameOf-StrategyDef-RuleDef: RDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 nameOf-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
 nameOf-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
+nameOf-StrategyDef-RuleDef: RDefP(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 
 nameOf-DefHasType: DefHasType(name, <try(desugar-SType)>) -> (name{}, <length> s*, <length> t*)
   with ?FunTType(s*, t*, _)
@@ -241,7 +242,7 @@ strategies // Helpers
 getDefTypes(|internals, externals) =
   map(try(desugar-DefHasType))
   ; with(
-      (defHasTypes, defs) := <partition(try(extToNormal); ?DefHasType(_, _))>
+      (defHasTypes, defs) := <partition(try(?AnnoDef(_, <id>)); ?DefHasType(_, _))>
     ; defNames := <filter(try(extToNormal); nameOf-StrategyDef-RuleDef);imset-from-list> defs
     ; <list-loop(/* \ExtSDef(n, s, t) -> // external def
                      <id>\
@@ -256,6 +257,7 @@ getDefTypes(|internals, externals) =
                      <if <not(imset-contains(|(n,s,t)))> externals
                         then <report-Err> (n, ExtendDefinitionWithoutExternal())
                       end>\)
+                <+ ?ExtSDefInl(_, _, _, _)
                 <+ simpleDef;\ExtSDef(n, s, t) -> // normal def
                      <if <imset-contains(|(n,s,t))> externals
                         then <report-Err> (n, NormalDefinitionOverlapsWithExternal())
@@ -287,6 +289,7 @@ simpleDef: SDefNoArgs(n, _) -> ExtSDef(n, [], [])
 simpleDef: RDefT(n, s, t, _) -> ExtSDef(n, s, t)
 simpleDef: RDef(n, s, _) -> ExtSDef(n, s, [])
 simpleDef: RDefNoArgs(n, _) -> ExtSDef(n, [], [])
+simpleDef: RDefP(n, s, t, _) -> ExtSDef(n, s, t)
 
 desugar-DefHasType = ?AnnoDef(_, <desugar-DefHasType>)
 desugar-DefHasType:
