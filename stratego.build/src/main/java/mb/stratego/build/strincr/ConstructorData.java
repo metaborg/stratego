@@ -1,14 +1,14 @@
 package mb.stratego.build.strincr;
 
-import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 
 public class ConstructorData {
     public final ConstructorSignature signature;
-    public final IStrategoTerm astTerm;
+    public final IStrategoAppl astTerm;
     public final ConstructorType type;
 //    public final boolean isExternal; // is this useful?
 
-    public ConstructorData(ConstructorSignature signature, IStrategoTerm astTerm,
+    public ConstructorData(ConstructorSignature signature, IStrategoAppl astTerm,
         ConstructorType type) {
         this.signature = signature;
         this.astTerm = astTerm;

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import javax.annotation.Nullable;
+
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.message.Message2;
 
@@ -51,8 +53,7 @@ public class GlobalData implements Serializable {
         private AllModulesIdentifiers() {
         }
 
-        @Override public T apply(GlobalData globalData) {
-            //noinspection unchecked
+        @SuppressWarnings("unchecked") @Override public T apply(GlobalData globalData) {
             return (T) globalData.allModuleIdentifiers;
         }
     }
@@ -65,10 +66,30 @@ public class GlobalData implements Serializable {
             this.strategySignature = strategySignature;
         }
 
-        @Override public T apply(GlobalData globalData) {
-            //noinspection unchecked
+        @SuppressWarnings("unchecked") @Override public T apply(GlobalData globalData) {
             return (T) globalData.strategyIndex
                 .getOrDefault(strategySignature, Collections.emptySet());
+        }
+    }
+
+    public static class ModulesDefiningOverlays<T extends Set<ModuleIdentifier> & Serializable>
+        implements Function<GlobalData, T>, Serializable {
+        public final Set<ConstructorSignature> usedConstructors;
+
+        public ModulesDefiningOverlays(Set<ConstructorSignature> usedConstructors) {
+            this.usedConstructors = usedConstructors;
+        }
+
+        @SuppressWarnings("unchecked") @Override public T apply(GlobalData globalData) {
+            final HashSet<ModuleIdentifier> result = new HashSet<>();
+            for(ConstructorSignature usedConstructor : usedConstructors) {
+                final @Nullable Set<ModuleIdentifier> moduleIdentifiers =
+                    globalData.overlayIndex.get(usedConstructor);
+                if(moduleIdentifiers != null) {
+                    result.addAll(moduleIdentifiers);
+                }
+            }
+            return (T) result;
         }
     }
 }

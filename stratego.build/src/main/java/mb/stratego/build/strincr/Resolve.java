@@ -33,7 +33,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
     public final Front front;
 
-    @Inject public Resolve(Front front, Lib lib) {
+    @Inject public Resolve(Front front) {
         this.front = front;
     }
 
@@ -59,6 +59,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
             if(moduleIdentifier.isLibrary()) {
                 allModuleIdentifiers.add(moduleIdentifier);
+                // TODO: add dep on lib task again, add external strategy and constructor to indices?
             } else {
                 final STask<ModuleData> sTask = front
                     .createSupplier(new Front.Input(moduleIdentifier, input.moduleImportService));

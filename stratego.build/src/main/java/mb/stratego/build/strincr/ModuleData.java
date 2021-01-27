@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,6 +61,27 @@ public class ModuleData implements Serializable, WithLastModified {
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.lastModified = lastModified;
+    }
+
+    public static class ToOverlays<T extends List<OverlayData> & Serializable>
+        implements Function<ModuleData, T>, Serializable {
+        private final Set<ConstructorSignature> usedConstructors;
+
+        public ToOverlays(Set<ConstructorSignature> usedConstructors) {
+            this.usedConstructors = usedConstructors;
+        }
+
+        @SuppressWarnings("unchecked") @Override public T apply(ModuleData moduleData) {
+            final List<OverlayData> result = new ArrayList<>();
+            for(ConstructorSignature usedConstructor : usedConstructors) {
+                final @Nullable List<OverlayData> overlayData =
+                    moduleData.overlayData.get(usedConstructor);
+                if(overlayData != null) {
+                    result.addAll(overlayData);
+                }
+            }
+            return (T) result;
+        }
     }
 
     public Set<StrategySignature> allStrategies() {

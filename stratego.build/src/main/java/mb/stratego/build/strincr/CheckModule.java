@@ -3,15 +3,18 @@ package mb.stratego.build.strincr;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -49,6 +52,21 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
 
         public Output(Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts) {
             this.strategyDataWithCasts = strategyDataWithCasts;
+        }
+
+        public static class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
+            implements Function<Output, T>, Serializable {
+            public final StrategySignature strategySignature;
+
+            public GetStrategyAnalysisData(StrategySignature strategySignature) {
+                this.strategySignature = strategySignature;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override public T apply(Output output) {
+                return (T) output.strategyDataWithCasts
+                    .getOrDefault(strategySignature, Collections.emptySet());
+            }
         }
     }
 
@@ -115,19 +133,20 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                 if(!TermUtils.isAppl(strategyDef)) {
                     throw new WrongASTException(moduleIdentifier, strategyDef);
                 }
-                if(!TermUtils.isStringAt(strategyDef, 0)) {
-                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                final IStrategoAppl strategyDefAppl = TermUtils.toAppl(strategyDef);
+                if(!TermUtils.isStringAt(strategyDefAppl, 0)) {
+                    throw new WrongASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final String name = TermUtils.toJavaStringAt(strategyDef, 0);
+                final String name = TermUtils.toJavaStringAt(strategyDefAppl, 0);
                 final int sArity;
                 final int tArity;
-                switch(TermUtils.toAppl(strategyDef).getName()) {
+                switch(strategyDefAppl.getName()) {
                     case "ExtSDef":
                         // fall-through
                     case "SDef":
                         // fall-through
                     case "RDef": {
-                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
+                        final IStrategoTerm sargs = strategyDefAppl.getSubterm(1);
                         if(!TermUtils.isList(sargs)) {
                             throw new WrongASTException(moduleIdentifier, sargs);
                         }
@@ -148,12 +167,12 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                     case "RDefT":
                         // fall-through
                     case "RDefP": {
-                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
+                        final IStrategoTerm sargs = strategyDefAppl.getSubterm(1);
                         if(!TermUtils.isList(sargs)) {
                             throw new WrongASTException(moduleIdentifier, sargs);
                         }
                         sArity = sargs.getSubtermCount();
-                        final IStrategoTerm targs = strategyDef.getSubterm(2);
+                        final IStrategoTerm targs = strategyDefAppl.getSubterm(2);
                         if(!TermUtils.isList(targs)) {
                             throw new WrongASTException(moduleIdentifier, targs);
                         }
@@ -161,12 +180,12 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                         break;
                     }
                     default:
-                        throw new WrongASTException(moduleIdentifier, strategyDef);
+                        throw new WrongASTException(moduleIdentifier, strategyDefAppl);
                 }
                 final StrategySignature strategySignature =
                     new StrategySignature(name, sArity, tArity);
                 Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
-                    .add(new StrategyAnalysisData(strategyDef, lastModified));
+                    .add(new StrategyAnalysisData(strategyDefAppl, lastModified));
             }
         }
     }

@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
+import org.strategoxt.strc.compile_top_level_def_0_0;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
@@ -26,6 +28,7 @@ import mb.pie.api.TaskDef;
 import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
@@ -60,18 +63,30 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
 
     public static class NormalInput extends Input {
         public final StrategySignature strategySignature;
+        public final ModuleIdentifier mainModuleIdentifier;
+        public final IModuleImportService moduleImportService;
 
         public NormalInput(StrategySignature strategySignature, ResourcePath outputDir,
             String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs,
-            Task<GlobalData> resolveTask) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs, Task<GlobalData> resolveTask,
+            ModuleIdentifier mainModuleIdentifier, IModuleImportService moduleImportService) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
+            this.mainModuleIdentifier = mainModuleIdentifier;
+            this.moduleImportService = moduleImportService;
         }
     }
 
     public static class BoilerplateInput extends Input {
         public BoilerplateInput(Task<GlobalData> resolveTask, ResourcePath outputDir,
+            String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
+            Collection<ResourcePath> includeDirs, Arguments extraArgs) {
+            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+        }
+    }
+
+    public static class CongruenceInput extends Input {
+        public CongruenceInput(Task<GlobalData> resolveTask, ResourcePath outputDir,
             String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
@@ -90,13 +105,17 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
     private final StrIncrContext strContext;
     private final ITermFactory termFactory;
     private final ResourcePathConverter resourcePathConverter;
+    private final CheckModule checkModule;
+    private final Front front;
 
     @Inject public Back(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext,
-        ResourcePathConverter resourcePathConverter) {
+        ResourcePathConverter resourcePathConverter, CheckModule checkModule, Front front) {
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
         this.termFactory = strContext.getFactory();
         this.resourcePathConverter = resourcePathConverter;
+        this.checkModule = checkModule;
+        this.front = front;
     }
 
     @Override public Output exec(ExecContext context, Input input) throws Exception {
@@ -107,20 +126,77 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         if(isBoilerplate) {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
-            ctree = Packer.packBoilerplate(termFactory, globalIndex.constructors,
+            final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
+            // TODO: add dr-constructors here, until Stratego gets bootstrapped (then they are in the standard library)
+            ctree = Packer.packBoilerplate(termFactory, constructors,
                 StrategyStubs.declStubs(globalIndex.strategies));
-        } else {
-            final List<IStrategoAppl> strategyContributions = new ArrayList<>();
-
-            final StrategySignature strategySignature = ((NormalInput) input).strategySignature;
+        } else if(input instanceof CongruenceInput) {
+            // TODO: run congruence task per module or even per constructor
+            final GlobalIndex globalIndex = PieUtils
+                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
+            final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
+            // TODO: add dr-constructors here, until Stratego gets bootstrapped (then they are in the standard library)
+            final List<IStrategoAppl> congruences = new ArrayList<>();
+            for(ConstructorSignature constructor : constructors) {
+                if(globalIndex.strategies.contains(constructor.toCongruenceSig())) {
+                    // TODO: give warning or note that congruence is not added because a strategy of that name exists?
+                    continue;
+                }
+                congruences.add(constructor.congruenceAst(termFactory));
+            }
+            congruences.add(ConstructorSignature.annoCongAst(termFactory));
+            ctree =
+                Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
+        } else { // if(input instanceof NormalInput) {
+            final NormalInput normalInput = (NormalInput) input;
+            final StrategySignature strategySignature = normalInput.strategySignature;
             final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, input.resolveTask,
                     new GlobalData.ModulesDefiningStrategy<>(strategySignature));
 
-            // TODO: get all strategy definitions based on the signature, from the tasks that did the analysis/cast insertion for the modulesDefiningStrategy
-            // TODO: move overlay stuff back to Check, remove from pack and the Stratego backend code
-            ctree =
-                Packer.packStrategy(termFactory, Collections.emptyList(), strategyContributions);
+            final List<IStrategoAppl> strategyContributions =
+                new ArrayList<>(modulesDefiningStrategy.size());
+            final Set<ConstructorSignature> usedConstructors = new HashSet<>();
+            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    .requirePartial(context, checkModule,
+                        new CheckModule.Input(normalInput.mainModuleIdentifier, moduleIdentifier,
+                            normalInput.moduleImportService),
+                        new CheckModule.Output.GetStrategyAnalysisData<>(strategySignature));
+                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
+                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                        .visit(strategyAnalysisDatum.analyzedAst);
+                }
+            }
+
+            final Set<ModuleIdentifier> modulesDefiningOverlay = PieUtils
+                .requirePartial(context, input.resolveTask,
+                    new GlobalData.ModulesDefiningOverlays<>(usedConstructors));
+
+            final List<IStrategoAppl> overlayContributions = new ArrayList<>();
+            for(ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
+                final List<OverlayData> overlayData = PieUtils.requirePartial(context, front,
+                    new Front.Input(moduleIdentifier, normalInput.moduleImportService),
+                    new ModuleData.ToOverlays<>(usedConstructors));
+                for(OverlayData overlayDatum : overlayData) {
+                    overlayContributions.add(overlayDatum.astTerm);
+                }
+            }
+
+            IStrategoTerm desugaringInput =
+                Packer.packStrategy(termFactory, overlayContributions, strategyContributions);
+
+            final StrategoExecutor.ExecutionResult result = StrategoExecutor
+                .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, context.logger(), true,
+                    compile_top_level_def_0_0.instance, desugaringInput, strContext);
+
+            if(!result.success) {
+                throw new ExecException(
+                    "Call to compile-top-level-def failed:\n" + result.exception, null);
+            }
+
+            ctree = result.result;
         }
 
         // Call Stratego compiler
@@ -159,7 +235,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
 
         if(!result.success) {
-            throw new ExecException("Call to strj failed:\n" + result.exception, null);
+            throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
         }
 
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {

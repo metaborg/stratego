@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -224,7 +225,7 @@ public abstract class SplitShared {
                         final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
                         final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
                         Relation.getOrInitialize(constrData, constrSig, ArrayList::new)
-                            .add(new ConstructorData(constrSig, constrTerm, constrType));
+                            .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                     }
                 }
             }
@@ -342,7 +343,7 @@ public abstract class SplitShared {
                         final IStrategoTerm constrTerm =
                             tf.replaceTerm(constrType.toOpType(tf), constrDef);
                         Relation.getOrInitialize(constrData, constrSig, ArrayList::new)
-                            .add(new ConstructorData(constrSig, constrTerm, constrType));
+                            .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                         break;
                 }
                 Relation.getOrInitialize(injections, from, ArrayList::new).add(constrType.to);

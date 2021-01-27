@@ -15,6 +15,7 @@ public class DesugarType {
         return visit(context, t);
     }
 
+    @SuppressWarnings("unchecked")
     private static IStrategoTerm visit(Context context, IStrategoTerm t) {
         IStrategoTerm result = desugarType(context.getFactory(), t);
         if(result == null) {
@@ -32,7 +33,7 @@ public class DesugarType {
         return result == null ? term : result;
     }
 
-    public static @Nullable IStrategoTerm desugarType(ITermFactory tf, IStrategoTerm term) {
+    public static @Nullable IStrategoTerm  desugarType(ITermFactory tf, IStrategoTerm term) {
         @Nullable IStrategoTerm result = null;
         // desugar-Type- = otf(\SortVar("str") -> StringT()\)
         // desugar-Type- = otf(\SortVar("int") -> IntT()\)
