@@ -234,7 +234,7 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
     public static IStrategoAppl annoCongAst(IStrategoTermBuilder tf) {
         /*
          // Added by default. Although now also in the standard library, so doesn't need to be added once Stratego is bootstrapped.
-         Anno_Cong___2_0(f1 : ATerm -> ATerm, f2 : ATerm -> ATerm|) =
+         Anno__Cong_____2_0(f1 : ATerm -> ATerm, f2 : ATerm -> ATerm|) =
          { x1, x2, y1, y2:
            ?x1{^x2}
          ; !x1; f1(|); ?y1
@@ -249,7 +249,7 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
             tf.makeAppl("FunType", tf.makeList(aTermConstType), aTermConstType);
         // @formatter:off
         return tf.makeAppl("SDefT",
-            tf.makeString("Anno_Cong___2_0"),
+            tf.makeString("Anno__Cong_____2_0"),
             tf.makeList(
                 tf.makeAppl("VarDec", tf.makeString("f1"), defaultStrat),
                 tf.makeAppl("VarDec", tf.makeString("f2"), defaultStrat)),

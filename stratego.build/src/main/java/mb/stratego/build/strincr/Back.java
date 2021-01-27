@@ -127,15 +127,20 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
             final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
-            // TODO: add dr-constructors here, until Stratego gets bootstrapped (then they are in the standard library)
-            ctree = Packer.packBoilerplate(termFactory, constructors,
-                StrategyStubs.declStubs(globalIndex.strategies));
+            addDrConstructors(constructors);
+            constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
+            final Set<StrategySignature> strategies = new HashSet<>(globalIndex.strategies);
+            for(ConstructorSignature constructor : constructors) {
+                strategies.add(constructor.toCongruenceSig());
+            }
+            ctree = Packer
+                .packBoilerplate(termFactory, constructors, StrategyStubs.declStubs(strategies));
         } else if(input instanceof CongruenceInput) {
-            // TODO: run congruence task per module or even per constructor
+            // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
             final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
-            // TODO: add dr-constructors here, until Stratego gets bootstrapped (then they are in the standard library)
+            addDrConstructors(constructors);
             final List<IStrategoAppl> congruences = new ArrayList<>();
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.strategies.contains(constructor.toCongruenceSig())) {
@@ -145,8 +150,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 congruences.add(constructor.congruenceAst(termFactory));
             }
             congruences.add(ConstructorSignature.annoCongAst(termFactory));
-            ctree =
-                Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
+            ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
         } else { // if(input instanceof NormalInput) {
             final NormalInput normalInput = (NormalInput) input;
             final StrategySignature strategySignature = normalInput.strategySignature;
@@ -250,6 +254,11 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         return new Output(resultFiles);
+    }
+
+    private static void addDrConstructors(Set<ConstructorSignature> constructors) {
+        constructors.add(new ConstructorSignature("DR_DUMMY", 0, 0));
+        constructors.add(new ConstructorSignature("DR_UNDEFINE", 1, 0));
     }
 
     private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {
