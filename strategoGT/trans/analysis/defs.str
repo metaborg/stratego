@@ -66,9 +66,7 @@ prepare-strategy-def(|st1):
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
   ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, SortVar(tv))> st\)> (tvs, st1)
 
-strat-lookup-def(|x, sn, tn, st1) =
-  where(try(id))
-; strat-lookup(|x, sn, tn, ErrT()); prepare-strategy-def(|st1)
+strat-lookup-def(|x, sn, tn, st1) = strat-lookup(|x, sn, tn, ErrT()); prepare-strategy-def(|st1)
 
 strategies // StrategyDef
 
@@ -122,11 +120,9 @@ insertCasts-StrategyDef-(|e1, st1) =
     \ExtSDefInl(name, sargs, targs, body) -> SDefT(name, sargs, targs, body)\
   ; insertCasts-StrategyDef(|e1, st1)
   ; (\SDefT(name, sargs, targs, body) -> ExtSDefInl(name, sargs, targs, body)\, id)
-  // TODO: check overlap between external and any other definitions
 
 insertCasts-StrategyDef-(|e1, st1):
   d@ExtSDef(_, _, _) -> (d, st1)
-  // TODO: check overlap between external and any other definitions
 
 strategies // RuleDef
 

@@ -90,6 +90,7 @@ insert-casts:
 //    \RuleNoCond(t1,t2) -> Rule(t1, t2, [])\
 //  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
 //))
+
 // insertCasts(|
 //    Map(String * Int * Int, SType) *
 //    Rel(String * Int, ConstrType) *
