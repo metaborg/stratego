@@ -1,7 +1,5 @@
 package mb.stratego.build.strincr;
 
-import java.util.Objects;
-
 import javax.annotation.Nullable;
 
 public class StrategyFrontData {
@@ -26,7 +24,7 @@ public class StrategyFrontData {
 
         if(!signature.equals(that.signature))
             return false;
-        if(!Objects.equals(type, that.type))
+        if(!(type != null && type.equals(that.type)))
             return false;
         return kind == that.kind;
     }

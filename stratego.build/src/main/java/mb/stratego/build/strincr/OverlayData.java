@@ -2,12 +2,13 @@ package mb.stratego.build.strincr;
 
 import java.util.Set;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class OverlayData extends ConstructorData {
     public final Set<ConstructorSignature> usedConstructors;
 
-    public OverlayData(ConstructorSignature signature, IStrategoTerm astTerm, ConstructorType type,
+    public OverlayData(ConstructorSignature signature, IStrategoAppl astTerm, ConstructorType type,
         Set<ConstructorSignature> usedConstructors) {
         super(signature, astTerm, type);
         this.usedConstructors = usedConstructors;

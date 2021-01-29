@@ -43,12 +43,11 @@ public class StrIncrModule extends TaskDefsModule {
         bind(IOAgentTrackerFactory.class).to(ResourceAgentTrackerFactory.class).in(Singleton.class);
         bind(ResourcePathConverter.class).to(FileResourcePathConverter.class).in(Singleton.class);
 
-//        bindTaskDef(Compile.class, Compile.id);
-//        bindTaskDef(Back.class, Back.id);
-//        bindTaskDef(Check.class, Check.id);
-//        bindTaskDef(CheckModule.class, CheckModule.id);
-//        bindTaskDef(Resolve.class, Resolve.id);
-//        bindTaskDef(Front.class, Front.id);
-//        bind(IModuleImportService.class).to(ModuleImportService.class).in(Singleton.class);
+        bindTaskDef(Compile.class, Compile.id);
+        bindTaskDef(Back.class, Back.id);
+        bindTaskDef(Check.class, Check.id);
+        bindTaskDef(CheckModule.class, CheckModule.id);
+        bindTaskDef(Resolve.class, Resolve.id);
+        bindTaskDef(Front.class, Front.id);
     }
 }

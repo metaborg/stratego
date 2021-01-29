@@ -37,6 +37,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
 
         ModuleIndex that = (ModuleIndex) o;
 
+        if(lastModified != that.lastModified)
+            return false;
         if(!imports.equals(that.imports))
             return false;
         if(!constructors.equals(that.constructors))
@@ -51,6 +53,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         result = 31 * result + constructors.hashCode();
         result = 31 * result + strategies.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 

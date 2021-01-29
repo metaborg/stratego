@@ -34,6 +34,37 @@ public class GlobalData implements Serializable {
         this.messages = messages;
     }
 
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        GlobalData that = (GlobalData) o;
+
+        if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
+            return false;
+        if(!constructorIndex.equals(that.constructorIndex))
+            return false;
+        if(!strategyIndex.equals(that.strategyIndex))
+            return false;
+        if(!ambStrategyIndex.equals(that.ambStrategyIndex))
+            return false;
+        if(!overlayIndex.equals(that.overlayIndex))
+            return false;
+        return messages.equals(that.messages);
+    }
+
+    @Override public int hashCode() {
+        int result = allModuleIdentifiers.hashCode();
+        result = 31 * result + constructorIndex.hashCode();
+        result = 31 * result + strategyIndex.hashCode();
+        result = 31 * result + ambStrategyIndex.hashCode();
+        result = 31 * result + overlayIndex.hashCode();
+        result = 31 * result + messages.hashCode();
+        return result;
+    }
+
     public static class ToGlobalIndex implements Function<GlobalData, GlobalIndex>, Serializable {
         public static final ToGlobalIndex Instance = new ToGlobalIndex();
 

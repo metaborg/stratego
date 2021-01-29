@@ -64,6 +64,28 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
             this.strategyIndex = strategyIndex;
             this.messages = messages;
         }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            if(!moduleCheckTasks.equals(output.moduleCheckTasks))
+                return false;
+            if(!strategyIndex.equals(output.strategyIndex))
+                return false;
+            return messages.equals(output.messages);
+        }
+
+        @Override public int hashCode() {
+            int result = moduleCheckTasks.hashCode();
+            result = 31 * result + strategyIndex.hashCode();
+            result = 31 * result + messages.hashCode();
+            return result;
+        }
     }
 
     public final Resolve resolve;
@@ -82,8 +104,9 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
             .requirePartial(context, resolve, input, GlobalData.AllModulesIdentifiers.Instance);
 
         for(ModuleIdentifier moduleIdentifier : moduleDataTasks) {
-            final STask<CheckModule.Output> sTask = checkModule
-                .createSupplier(new CheckModule.Input(input.mainModuleIdentifier, moduleIdentifier, input.moduleImportService));
+            final STask<CheckModule.Output> sTask = checkModule.createSupplier(
+                new CheckModule.Input(input.mainModuleIdentifier, moduleIdentifier,
+                    input.moduleImportService));
             moduleCheckTasks.put(moduleIdentifier, sTask);
             final CheckModule.Output output = context.require(sTask);
             for(StrategySignature strategySignature : output.strategyDataWithCasts.keySet()) {

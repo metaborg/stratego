@@ -35,6 +35,15 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
         this.lastModified = lastModified;
     }
 
+    @Override protected boolean doSlowMatch(IStrategoTerm second) {
+        if(second instanceof ConstructorSignature) {
+            if(((ConstructorSignature) second).lastModified != lastModified) {
+                return false;
+            }
+        }
+        return super.doSlowMatch(second);
+    }
+
     public ConstructorSignature(IStrategoString name, IStrategoInt noArgs, long lastModified) {
         super(new IStrategoTerm[] { name, noArgs }, AbstractTermFactory.EMPTY_LIST);
         this.name = name.stringValue();

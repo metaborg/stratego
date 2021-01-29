@@ -7,6 +7,7 @@ import java.util.Collection;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.stratego.build.util.LastModified;
 
 public interface IModuleImportService extends Serializable {
@@ -37,28 +38,44 @@ public interface IModuleImportService extends Serializable {
     /**
      * A resolved import, containing the unique ids of modules that match the import.
      */
-    class ResolvedImport implements ImportResolution {
-        public final Collection<ModuleIdentifier> modules;
+    class ResolvedImport implements ImportResolution, Serializable {
+        public final Collection<? extends ModuleIdentifier> modules;
 
-        public ResolvedImport(Collection<ModuleIdentifier> modules) {
+        public ResolvedImport(Collection<? extends ModuleIdentifier> modules) {
             this.modules = modules;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            ResolvedImport that = (ResolvedImport) o;
+
+            return modules.equals(that.modules);
+        }
+
+        @Override public int hashCode() {
+            return modules.hashCode();
         }
     }
 
     /**
      * Singleton object that represents that the import did not resolve.
      */
-    class UnresolvedImport implements ImportResolution {
-        private static UnresolvedImport INSTANCE;
+    class UnresolvedImport implements ImportResolution, Serializable {
+        public static final UnresolvedImport INSTANCE = new UnresolvedImport();
 
         private UnresolvedImport() {
         }
 
-        public final UnresolvedImport instance() {
-            if(INSTANCE == null) {
-                INSTANCE = new UnresolvedImport();
-            }
-            return INSTANCE;
+        @Override public int hashCode() {
+            return 0;
+        }
+
+        @Override public boolean equals(Object obj) {
+            return this == obj;
         }
     }
 
@@ -68,7 +85,8 @@ public interface IModuleImportService extends Serializable {
      * ids of modules
      * @throws IOException on IO exceptions while search the available paths for the module
      */
-    ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport) throws IOException;
+    ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport) throws IOException,
+        ExecException;
 
     /**
      * @param moduleIdentifier The unique identifier previously created by this service during
@@ -77,7 +95,11 @@ public interface IModuleImportService extends Serializable {
      * @throws IOException on IO exceptions during access to the file in which the module resides
      */
     LastModified<IStrategoTerm> getModuleAst(ExecContext context, ModuleIdentifier moduleIdentifier)
-        throws IOException;
+        throws Exception;
 
+    boolean containsChangesNotReflectedInResource(ModuleIdentifier moduleIdentifier);
 
+    boolean equals(Object o);
+
+    int hashCode();
 }

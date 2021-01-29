@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -23,6 +25,7 @@ import org.spoofax.terms.util.TermUtils;
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set.Transient;
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
@@ -45,6 +48,25 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
         public Check.Input resolveInput() {
             return new Check.Input(mainModuleIdentifier, moduleImportService);
         }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            Input input = (Input) o;
+
+            return mainModuleIdentifier.equals(input.mainModuleIdentifier);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + mainModuleIdentifier.hashCode();
+            return result;
+        }
     }
 
     public static class Output implements Serializable {
@@ -52,6 +74,21 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
 
         public Output(Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts) {
             this.strategyDataWithCasts = strategyDataWithCasts;
+        }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            return strategyDataWithCasts.equals(output.strategyDataWithCasts);
+        }
+
+        @Override public int hashCode() {
+            return strategyDataWithCasts.hashCode();
         }
 
         public static class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
@@ -66,6 +103,21 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
             @Override public T apply(Output output) {
                 return (T) output.strategyDataWithCasts
                     .getOrDefault(strategySignature, Collections.emptySet());
+            }
+
+            @Override public boolean equals(@Nullable Object o) {
+                if(this == o)
+                    return true;
+                if(o == null || getClass() != o.getClass())
+                    return false;
+
+                GetStrategyAnalysisData<?> that = (GetStrategyAnalysisData<?>) o;
+
+                return strategySignature.equals(that.strategySignature);
+            }
+
+            @Override public int hashCode() {
+                return strategySignature.hashCode();
             }
         }
     }
@@ -88,7 +140,6 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     @Override public Output exec(ExecContext context, Input input) throws Exception {
         final InsertCasts.Input2 input2 =
             new InsertCasts.Input2(input.moduleIdentifier, prepareGTEnvironment(context, input));
-        // TODO: In stratego: provide externals checks
         final InsertCasts.Output output = context.require(insertCasts, input2);
         final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
             new HashMap<>();
@@ -191,7 +242,7 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     }
 
     private GTEnvironment prepareGTEnvironment(ExecContext context, Input input)
-        throws IOException {
+        throws IOException, ExecException {
         final ModuleUsageData moduleUsageData =
             PieUtils.requirePartial(context, front, input, ModuleData.ToModuleUsageData.INSTANCE);
 

@@ -23,7 +23,7 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Task;
+import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
@@ -41,16 +41,17 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
 
     public static abstract class Input implements Serializable {
         public final ResourcePath outputDir;
-        public final String packageName;
+        public final @Nullable String packageName;
         public final @Nullable ResourcePath cacheDir;
         public final List<String> constants;
         public final Collection<ResourcePath> includeDirs;
         public final Arguments extraArgs;
-        public final Task<GlobalData> resolveTask;
+        public final STask<GlobalData> resolveTask;
 
-        public Input(ResourcePath outputDir, String packageName, @Nullable ResourcePath cacheDir,
-            List<String> constants, Collection<ResourcePath> includeDirs, Arguments extraArgs,
-            Task<GlobalData> resolveTask) {
+        public Input(ResourcePath outputDir, @Nullable String packageName,
+            @Nullable ResourcePath cacheDir, List<String> constants,
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            STask<GlobalData> resolveTask) {
             this.outputDir = outputDir;
             this.packageName = packageName;
             this.cacheDir = cacheDir;
@@ -58,6 +59,41 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             this.includeDirs = includeDirs;
             this.extraArgs = extraArgs;
             this.resolveTask = resolveTask;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Input input = (Input) o;
+
+            if(!outputDir.equals(input.outputDir))
+                return false;
+            if(packageName != null ? !packageName.equals(input.packageName) :
+                input.packageName != null)
+                return false;
+            if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
+                return false;
+            if(!constants.equals(input.constants))
+                return false;
+            if(!includeDirs.equals(input.includeDirs))
+                return false;
+            if(!extraArgs.equals(input.extraArgs))
+                return false;
+            return resolveTask.equals(input.resolveTask);
+        }
+
+        @Override public int hashCode() {
+            int result = outputDir.hashCode();
+            result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
+            result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
+            result = 31 * result + constants.hashCode();
+            result = 31 * result + includeDirs.hashCode();
+            result = 31 * result + extraArgs.hashCode();
+            result = 31 * result + resolveTask.hashCode();
+            return result;
         }
     }
 
@@ -67,37 +103,78 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         public final IModuleImportService moduleImportService;
 
         public NormalInput(StrategySignature strategySignature, ResourcePath outputDir,
-            String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, Task<GlobalData> resolveTask,
-            ModuleIdentifier mainModuleIdentifier, IModuleImportService moduleImportService) {
+            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            IModuleImportService moduleImportService) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.moduleImportService = moduleImportService;
         }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            NormalInput that = (NormalInput) o;
+
+            if(!strategySignature.equals(that.strategySignature))
+                return false;
+            if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
+                return false;
+            return moduleImportService.equals(that.moduleImportService);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + strategySignature.hashCode();
+            result = 31 * result + mainModuleIdentifier.hashCode();
+            result = 31 * result + moduleImportService.hashCode();
+            return result;
+        }
     }
 
     public static class BoilerplateInput extends Input {
-        public BoilerplateInput(Task<GlobalData> resolveTask, ResourcePath outputDir,
-            String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
+        public BoilerplateInput(STask<GlobalData> resolveTask, ResourcePath outputDir,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
         }
     }
 
     public static class CongruenceInput extends Input {
-        public CongruenceInput(Task<GlobalData> resolveTask, ResourcePath outputDir,
-            String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
+        public CongruenceInput(STask<GlobalData> resolveTask, ResourcePath outputDir,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
         }
     }
 
     public static class Output implements Serializable {
-        public final List<ResourcePath> resultFiles;
+        public final Set<ResourcePath> resultFiles;
 
-        public Output(List<ResourcePath> resultFiles) {
+        public Output(Set<ResourcePath> resultFiles) {
             this.resultFiles = resultFiles;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Output output = (Output) o;
+
+            return resultFiles.equals(output.resultFiles);
+        }
+
+        @Override public int hashCode() {
+            return resultFiles.hashCode();
         }
     }
 
@@ -119,8 +196,6 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
     }
 
     @Override public Output exec(ExecContext context, Input input) throws Exception {
-        List<ResourcePath> resultFiles = new ArrayList<>();
-
         final boolean isBoilerplate = input instanceof BoilerplateInput;
         final IStrategoTerm ctree;
         if(isBoilerplate) {
@@ -199,6 +274,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 throw new ExecException(
                     "Call to compile-top-level-def failed:\n" + result.exception, null);
             }
+            assert result.result != null;
 
             ctree = result.result;
         }
@@ -242,6 +318,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
         }
 
+        final Set<ResourcePath> resultFiles = new HashSet<>();
+        // TODO: have the compilation return a list of files instead of printing to log
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
             if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {
                 String fileName = line.substring(

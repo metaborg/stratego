@@ -173,6 +173,28 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             this.moduleIdentifier = moduleIdentifier;
             this.environment = environment;
         }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            Input2 input2 = (Input2) o;
+
+            if(!moduleIdentifier.equals(input2.moduleIdentifier))
+                return false;
+            return environment.equals(input2.environment);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + moduleIdentifier.hashCode();
+            result = 31 * result + environment.hashCode();
+            return result;
+        }
     }
 
     public static final class Output implements Serializable {

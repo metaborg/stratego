@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
@@ -37,7 +38,8 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
         this.front = front;
     }
 
-    @Override public GlobalData exec(ExecContext context, Check.Input input) throws IOException {
+    @Override public GlobalData exec(ExecContext context, Check.Input input)
+        throws IOException, ExecException {
         final List<Message2<?>> messages = new ArrayList<>();
 
         final java.util.Set<ModuleIdentifier> seen = new HashSet<>();
@@ -106,7 +108,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, List<IStrategoTerm> imports, long lastModified,
-        @Nullable List<Message2<?>> messages) throws IOException {
+        @Nullable List<Message2<?>> messages) throws IOException, ExecException {
         final Set<ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
             final ImportResolution importResolution =

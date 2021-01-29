@@ -63,6 +63,58 @@ public class ModuleData implements Serializable, WithLastModified {
         this.lastModified = lastModified;
     }
 
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ModuleData that = (ModuleData) o;
+
+        if(lastModified != that.lastModified)
+            return false;
+        if(!moduleIdentifier.equals(that.moduleIdentifier))
+            return false;
+        if(!ast.equals(that.ast))
+            return false;
+        if(!imports.equals(that.imports))
+            return false;
+        if(!constrData.equals(that.constrData))
+            return false;
+        if(!injections.equals(that.injections))
+            return false;
+        if(!normalStrategyData.equals(that.normalStrategyData))
+            return false;
+        if(!internalStrategyData.equals(that.internalStrategyData))
+            return false;
+        if(!externalStrategyData.equals(that.externalStrategyData))
+            return false;
+        if(!overlayData.equals(that.overlayData))
+            return false;
+        if(!usedConstructors.equals(that.usedConstructors))
+            return false;
+        if(!usedStrategies.equals(that.usedStrategies))
+            return false;
+        return usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies);
+    }
+
+    @Override public int hashCode() {
+        int result = moduleIdentifier.hashCode();
+        result = 31 * result + ast.hashCode();
+        result = 31 * result + imports.hashCode();
+        result = 31 * result + constrData.hashCode();
+        result = 31 * result + injections.hashCode();
+        result = 31 * result + normalStrategyData.hashCode();
+        result = 31 * result + internalStrategyData.hashCode();
+        result = 31 * result + externalStrategyData.hashCode();
+        result = 31 * result + overlayData.hashCode();
+        result = 31 * result + usedConstructors.hashCode();
+        result = 31 * result + usedStrategies.hashCode();
+        result = 31 * result + usedAmbiguousStrategies.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
+        return result;
+    }
+
     public static class ToOverlays<T extends List<OverlayData> & Serializable>
         implements Function<ModuleData, T>, Serializable {
         private final Set<ConstructorSignature> usedConstructors;

@@ -12,4 +12,23 @@ public class ModuleAnnoDefs implements Serializable {
         this.internalStrategySigs = internalStrategySigs;
         this.externalStrategySigs = externalStrategySigs;
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ModuleAnnoDefs that = (ModuleAnnoDefs) o;
+
+        if(!internalStrategySigs.equals(that.internalStrategySigs))
+            return false;
+        return externalStrategySigs.equals(that.externalStrategySigs);
+    }
+
+    @Override public int hashCode() {
+        int result = internalStrategySigs.hashCode();
+        result = 31 * result + externalStrategySigs.hashCode();
+        return result;
+    }
 }

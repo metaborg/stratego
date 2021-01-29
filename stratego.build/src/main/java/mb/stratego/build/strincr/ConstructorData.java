@@ -1,5 +1,7 @@
 package mb.stratego.build.strincr;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 public class ConstructorData {
@@ -19,7 +21,7 @@ public class ConstructorData {
         return false;
     };
 
-    @Override public boolean equals(Object o) {
+    @Override public boolean equals(@Nullable Object o) {
         if(this == o)
             return true;
         if(o == null || getClass() != o.getClass())

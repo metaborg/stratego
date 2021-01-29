@@ -62,7 +62,6 @@ public final class Import implements Serializable {
 
         Import anImport = (Import) o;
 
-        // noinspection SimplifiableIfStatement
         if(type != anImport.type)
             return false;
         return path.equals(anImport.path);

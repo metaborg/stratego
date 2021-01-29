@@ -20,4 +20,23 @@ public class StrategyAnalysisData implements Serializable, WithLastModified {
     @Override public long lastModified() {
         return lastModified;
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        StrategyAnalysisData that = (StrategyAnalysisData) o;
+
+        if(lastModified != that.lastModified)
+            return false;
+        return analyzedAst.equals(that.analyzedAst);
+    }
+
+    @Override public int hashCode() {
+        int result = analyzedAst.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
+        return result;
+    }
 }

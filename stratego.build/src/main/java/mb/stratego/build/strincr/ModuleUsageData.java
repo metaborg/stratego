@@ -33,4 +33,38 @@ public class ModuleUsageData implements Serializable, WithLastModified {
     @Override public long lastModified() {
         return lastModified;
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ModuleUsageData that = (ModuleUsageData) o;
+
+        if(lastModified != that.lastModified)
+            return false;
+        if(!ast.equals(that.ast))
+            return false;
+        if(!imports.equals(that.imports))
+            return false;
+        if(!definedStrategies.equals(that.definedStrategies))
+            return false;
+        if(!usedConstructors.equals(that.usedConstructors))
+            return false;
+        if(!usedStrategies.equals(that.usedStrategies))
+            return false;
+        return usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies);
+    }
+
+    @Override public int hashCode() {
+        int result = ast.hashCode();
+        result = 31 * result + imports.hashCode();
+        result = 31 * result + definedStrategies.hashCode();
+        result = 31 * result + usedConstructors.hashCode();
+        result = 31 * result + usedStrategies.hashCode();
+        result = 31 * result + usedAmbiguousStrategies.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
+        return result;
+    }
 }

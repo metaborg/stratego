@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -42,8 +44,8 @@ public abstract class SplitShared {
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         Map<StrategySignature, Set<StrategyFrontData>> strategyData,
         Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData, IStrategoTerm strategyDefs)
-        throws WrongASTException {
+        Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
+        IStrategoTerm strategyDefs) throws WrongASTException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -63,7 +65,7 @@ public abstract class SplitShared {
         for(IStrategoTerm strategyDef : strategyDefs) {
             if(TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 final IStrategoTerm funTType = strategyDef.getSubterm(1);
-                final StrategyType strategyType = StrategyType.fromTerm(tf, funTType);
+                final @Nullable StrategyType strategyType = StrategyType.fromTerm(tf, funTType);
                 if(strategyType == null) {
                     throw new WrongASTException(moduleIdentifier, funTType);
                 }
@@ -153,11 +155,7 @@ public abstract class SplitShared {
 
             // collect-om(dyn-rule-sig)
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
-                for(Map.Entry<StrategySignature, StrategyType> e : dynRuleSig
-                    .dynamicRuleSignatures(tf).entrySet()) {
-                    final StrategySignature signature = e.getKey();
-                    final StrategyType type = e.getValue();
-
+                for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
                     Relation.getOrInitialize(strategyData, signature, HashSet::new)
                         .add(new StrategyFrontData(signature, null, DynRuleGenerated));
                 }
@@ -200,7 +198,8 @@ public abstract class SplitShared {
             new UsedConstrs(usedConstructors, lastModified).visit(overlay);
             final ConstructorSignature signature =
                 new ConstructorSignature(name, arity, lastModified);
-            final OverlayData data = new OverlayData(signature, overlay, type, usedConstructors);
+            final OverlayData data =
+                new OverlayData(signature, (IStrategoAppl) overlay, type, usedConstructors);
             Relation.getOrInitialize(constrData, signature, ArrayList::new).add(data);
             Relation.getOrInitialize(overlayData, signature, ArrayList::new).add(data);
         }
@@ -215,7 +214,7 @@ public abstract class SplitShared {
                 final IStrategoTerm constrs = sig.getSubterm(1);
                 if(TermUtils.isList(constrs)) {
                     for(IStrategoTerm constrDef : constrs) {
-                        final ConstructorSignature constrSig =
+                        final @Nullable ConstructorSignature constrSig =
                             ConstructorSignature.fromTerm(constrDef, lastModified);
                         if(constrSig == null) {
                             addInjectionData(moduleIdentifier, constrDef, injections, constrData,
@@ -224,8 +223,8 @@ public abstract class SplitShared {
                         }
                         final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
                         final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new)
-                            .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                     }
                 }
             }
@@ -274,7 +273,7 @@ public abstract class SplitShared {
             throw new WrongASTException(moduleIdentifier, opType);
         }
 
-        final ConstructorType type = ConstructorType.fromOpType(tf, opType);
+        final @Nullable ConstructorType type = ConstructorType.fromOpType(tf, opType);
 
         if(type == null) {
             throw new WrongASTException(moduleIdentifier, opType);
@@ -321,7 +320,7 @@ public abstract class SplitShared {
                     throw new WrongASTException(moduleIdentifier, constrDef);
                 }
                 final IStrategoTerm opType = constrDef.getSubterm(0);
-                final ConstructorType constrType = ConstructorType.fromOpType(tf, opType);
+                final @Nullable ConstructorType constrType = ConstructorType.fromOpType(tf, opType);
                 if(constrType == null) {
                     throw new WrongASTException(moduleIdentifier, opType);
                 }
@@ -342,8 +341,8 @@ public abstract class SplitShared {
                             new ConstructorSignature("", froms.size(), lastModified);
                         final IStrategoTerm constrTerm =
                             tf.replaceTerm(constrType.toOpType(tf), constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new)
-                            .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                         break;
                 }
                 Relation.getOrInitialize(injections, from, ArrayList::new).add(constrType.to);

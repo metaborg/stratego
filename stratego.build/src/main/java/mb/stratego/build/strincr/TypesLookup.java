@@ -24,4 +24,32 @@ public class TypesLookup implements Serializable {
         this.imports = imports;
         this.lastModified = lastModified;
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        TypesLookup that = (TypesLookup) o;
+
+        if(lastModified != that.lastModified)
+            return false;
+        if(!strategyTypes.equals(that.strategyTypes))
+            return false;
+        if(!constructorTypes.equals(that.constructorTypes))
+            return false;
+        if(!injections.equals(that.injections))
+            return false;
+        return imports.equals(that.imports);
+    }
+
+    @Override public int hashCode() {
+        int result = strategyTypes.hashCode();
+        result = 31 * result + constructorTypes.hashCode();
+        result = 31 * result + injections.hashCode();
+        result = 31 * result + imports.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
+        return result;
+    }
 }
