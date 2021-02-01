@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
@@ -128,7 +129,7 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     private final InsertCasts insertCasts;
     private final ITermFactory tf;
 
-    public CheckModule(Resolve resolve, Front front, Lib lib, InsertCasts insertCasts,
+    @Inject public CheckModule(Resolve resolve, Front front, Lib lib, InsertCasts insertCasts,
         StrIncrContext strIncrContext) {
         this.resolve = resolve;
         this.front = front;
