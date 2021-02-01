@@ -43,6 +43,11 @@ public abstract class Message2<T extends IStrategoTerm> implements WithLastModif
         }
     }
 
+    public String moduleFilePath() {
+        final IToken leftToken = location.getLeftToken();
+        return leftToken.getFilename();
+    }
+
     public abstract String getMessage();
 
     public long lastModified() {

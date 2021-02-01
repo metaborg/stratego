@@ -65,6 +65,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
     @Override public ModuleData exec(ExecContext context, Input input) throws Exception {
         final LastModified<IStrategoTerm> ast =
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
+        boolean stdLibImport = false;
         final List<IStrategoTerm> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
         final Map<ConstructorSignature, List<OverlayData>> overlayData = new HashMap<>();
@@ -82,6 +83,14 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                 case "Imports":
                     for(IStrategoTerm importTerm : def.getSubterm(0)) {
                         imports.add(importTerm);
+                        if(TermUtils.isStringAt(importTerm, 0)) {
+                            switch(TermUtils.toJavaStringAt(importTerm, 0)) {
+                                case "stratego-lib":
+                                case "libstrategolib":
+                                case "libstratego-lib":
+                                    stdLibImport = true;
+                            }
+                        }
                     }
                     break;
                 case "Signature":
@@ -101,6 +110,9 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
             }
+        }
+        if(!stdLibImport) {
+            imports.add(tf.makeAppl("Import", tf.makeString("libstratego-lib")));
         }
 
         final Set<ConstructorSignature> usedConstructors = new HashSet<>();
