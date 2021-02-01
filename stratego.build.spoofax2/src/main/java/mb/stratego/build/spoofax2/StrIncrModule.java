@@ -1,6 +1,7 @@
 package mb.stratego.build.spoofax2;
 
 import com.google.inject.Singleton;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import mb.pie.taskdefs.guice.TaskDefsModule;
 import mb.resource.DefaultResourceService;
@@ -14,6 +15,7 @@ import mb.stratego.build.strincr.Compile;
 import mb.stratego.build.strincr.Front;
 import mb.stratego.build.strincr.Frontend;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportServiceFactory;
 import mb.stratego.build.strincr.InsertCasts;
 import mb.stratego.build.strincr.LibFrontend;
 import mb.stratego.build.strincr.ParseStratego;
@@ -49,5 +51,8 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(CheckModule.class, CheckModule.id);
         bindTaskDef(Resolve.class, Resolve.id);
         bindTaskDef(Front.class, Front.id);
+        install(new FactoryModuleBuilder()
+            .implement(IModuleImportService.class, ModuleImportService.class)
+            .build(IModuleImportServiceFactory.class));
     }
 }

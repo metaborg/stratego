@@ -35,6 +35,9 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.spoofax.terms.util.TermUtils;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
@@ -65,13 +68,14 @@ public class ModuleImportService implements IModuleImportService {
     private final Collection<STask<?>> strFileGeneratingTasks;
     private final Collection<ResourcePath> includeDirs;
 
-    public ModuleImportService(IResourceService resourceService,
+    @AssistedInject public ModuleImportService(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, ISpoofaxUnitService unitService,
         ISpoofaxSyntaxService syntaxService, StrIncrContext strContext,
-        ResourcePathConverter resourcePathConverter, Collection<STask<?>> strFileGeneratingTasks,
-        Collection<ResourcePath> includeDirs, @Nullable String moduleName,
-        @Nullable LastModified<IStrategoTerm> ast) {
+        ResourcePathConverter resourcePathConverter,
+        @Assisted Collection<STask<?>> strFileGeneratingTasks,
+        @Assisted Collection<ResourcePath> includeDirs, @Assisted @Nullable String moduleName,
+        @Assisted @Nullable LastModified<IStrategoTerm> ast) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.languageService = languageService;
@@ -89,6 +93,18 @@ public class ModuleImportService implements IModuleImportService {
                 "moduleName and ast should be both null or both not null");
         }
         this.ast = ast;
+    }
+
+    @AssistedInject public ModuleImportService(IResourceService resourceService,
+        ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
+        ITermFactory termFactory, ISpoofaxUnitService unitService,
+        ISpoofaxSyntaxService syntaxService, StrIncrContext strContext,
+        ResourcePathConverter resourcePathConverter,
+        @Assisted Collection<STask<?>> strFileGeneratingTasks,
+        @Assisted Collection<ResourcePath> includeDirs) {
+        this(resourceService, languageIdentifierService, languageService, termFactory, unitService,
+            syntaxService, strContext, resourcePathConverter, strFileGeneratingTasks, includeDirs,
+            null, null);
     }
 
     @Override public ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport)
