@@ -60,6 +60,10 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             result = 31 * result + moduleImportService.hashCode();
             return result;
         }
+
+        @Override public String toString() {
+            return "Front.Input(" + moduleIdentifier + ")";
+        }
     }
 
     @Override public ModuleData exec(ExecContext context, Input input) throws Exception {
@@ -94,18 +98,18 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                     }
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def,
+                    addSigData(input.moduleIdentifier, constrData, injections, def.getSubterm(0),
                         ast.lastModified);
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def,
+                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def.getSubterm(0),
                         ast.lastModified);
                     break;
                 case "Rules":
                     // fall-through
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        externalStrategyData, def);
+                        externalStrategyData, def.getSubterm(0));
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);

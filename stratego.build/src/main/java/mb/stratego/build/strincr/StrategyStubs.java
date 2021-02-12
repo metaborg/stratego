@@ -7,53 +7,52 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
-import org.strategoxt.strj.strj;
 
-public final class StrategyStubs {
-    private StrategyStubs() {}
+import mb.stratego.build.util.StrIncrContext;
 
-    private static final IStrategoAppl A_TERM;
-    private static final IStrategoTerm newSVar;
-    private static final IStrategoTerm newTVar;
+public class StrategyStubs {
+    private final ITermFactory tf;
+    private final IStrategoTerm newSVar;
+    private final IStrategoTerm newTVar;
 
-    static {
-        final B b = new B(strj.init().getFactory());
-        A_TERM = b.applShared("Sort", B.string("ATerm"), B.list());
-        newSVar = b.applShared("VarDec", B.string("a"), b.applShared("FunType", A_TERM, A_TERM));
-        newTVar = b.applShared("VarDec", B.string("a"), b.applShared("ConstType", A_TERM));
+    @Inject public StrategyStubs(StrIncrContext context) {
+        this.tf = context.getFactory();
+        final IStrategoAppl aTerm = tf.makeAppl("Sort", B.string("ATerm"), B.list());
+        newSVar = tf.makeAppl("VarDec", B.string("a"), tf.makeAppl("FunType", aTerm, aTerm));
+        newTVar = tf.makeAppl("VarDec", B.string("a"), tf.makeAppl("ConstType", aTerm));
     }
 
-    static List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) {
+    List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
-        final B b = new B(strj.init().getFactory());
         for(String strategyName : strategyASTs.keySet()) {
             final @Nullable StrategySignature sig;
             sig = StrategySignature.fromCified(strategyName);
             if(sig != null) {
-                decls.add(sdefStub(b, strategyName, sig.noStrategyArgs, sig.noTermArgs));
+                decls.add(sdefStub(tf, strategyName, sig.noStrategyArgs, sig.noTermArgs));
             } else {
-                decls.add(sdefStub(b, strategyName, 0, 0));
+                decls.add(sdefStub(tf, strategyName, 0, 0));
             }
         }
         return decls;
     }
 
-    static List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
+    List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategySignatures.size());
-        final B b = new B(strj.init().getFactory());
         for(StrategySignature sig : strategySignatures) {
-            decls.add(sdefStub(b, sig.name, sig.noStrategyArgs, sig.noTermArgs));
+            decls.add(sdefStub(tf, sig.name, sig.noStrategyArgs, sig.noTermArgs));
         }
         return decls;
     }
 
-    private static IStrategoAppl sdefStub(B b, String strategyName, int svars, int tvars) {
-        final IStrategoAppl newBody = b.applShared("Id");
-        final IStrategoTerm name = b.stringShared(strategyName);
+    private IStrategoAppl sdefStub(ITermFactory tf, String strategyName, int svars, int tvars) {
+        final IStrategoAppl newBody = tf.makeAppl("Id");
+        final IStrategoTerm name = tf.makeAppl(strategyName);
 
         final IStrategoTerm[] newSVarArray = new IStrategoTerm[svars];
         Arrays.fill(newSVarArray, newSVar);
@@ -63,6 +62,6 @@ public final class StrategyStubs {
         Arrays.fill(newTVarArray, newTVar);
         final IStrategoTerm newTVars = B.list(newTVarArray);
 
-        return b.applShared("SDefT", name, newSVars, newTVars, newBody);
+        return tf.makeAppl("SDefT", name, newSVars, newTVars, newBody);
     }
 }

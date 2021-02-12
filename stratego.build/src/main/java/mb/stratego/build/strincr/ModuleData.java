@@ -36,7 +36,6 @@ public class ModuleData implements Serializable, WithLastModified {
     public final Set<StrategySignature> usedStrategies;
     public final Set<String> usedAmbiguousStrategies;
     public final long lastModified;
-    private transient @Nullable Set<StrategySignature> allStrategies = null;
     private transient @Nullable Map<String, Set<StrategyFrontData>> ambStrategyIndex = null;
 
     public ModuleData(ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
@@ -127,23 +126,13 @@ public class ModuleData implements Serializable, WithLastModified {
             final List<OverlayData> result = new ArrayList<>();
             for(ConstructorSignature usedConstructor : usedConstructors) {
                 final @Nullable List<OverlayData> overlayData =
-                    moduleData.overlayData.get(usedConstructor);
+                    moduleData.overlayData.get(new ConstructorSignatureMatcher(usedConstructor));
                 if(overlayData != null) {
                     result.addAll(overlayData);
                 }
             }
             return (T) result;
         }
-    }
-
-    public Set<StrategySignature> allStrategies() {
-        if(allStrategies == null) {
-            allStrategies = new HashSet<>();
-            allStrategies.addAll(normalStrategyData.keySet());
-            allStrategies.addAll(internalStrategyData.keySet());
-            allStrategies.addAll(externalStrategyData.keySet());
-        }
-        return allStrategies;
     }
 
     public Map<String, Set<StrategyFrontData>> ambStrategyIndex() {
@@ -176,8 +165,11 @@ public class ModuleData implements Serializable, WithLastModified {
 
         @Override public ModuleIndex apply(ModuleData moduleData) {
             return new ModuleIndex(moduleData.imports,
-                new HashSet<>(moduleData.constrData.keySet()), moduleData.allStrategies(),
-                moduleData.overlayData, moduleData.lastModified);
+                new HashSet<>(moduleData.constrData.keySet()),
+                new HashSet<>(moduleData.normalStrategyData.keySet()),
+                new HashSet<>(moduleData.internalStrategyData.keySet()),
+                new HashSet<>(moduleData.externalStrategyData.keySet()), moduleData.overlayData,
+                moduleData.lastModified);
         }
     }
 
@@ -191,33 +183,23 @@ public class ModuleData implements Serializable, WithLastModified {
 
         @Override public ModuleUsageData apply(ModuleData moduleData) {
             return new ModuleUsageData(moduleData.ast, moduleData.imports,
-                moduleData.allStrategies(), moduleData.usedConstructors, moduleData.usedStrategies,
-                moduleData.usedAmbiguousStrategies, moduleData.lastModified);
+                moduleData.normalStrategyData, moduleData.internalStrategyData,
+                moduleData.externalStrategyData, moduleData.usedConstructors,
+                moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+                moduleData.lastModified);
         }
     }
 
-    public static class ToAnnoDefs implements Function<ModuleData, ModuleAnnoDefs>, Serializable {
-        public final Set<StrategySignature> filter;
+    public static class ToNormalDefinitions
+        implements Function<ModuleData, NormalDefinitions>, Serializable {
+        public static final ModuleData.ToNormalDefinitions INSTANCE =
+            new ModuleData.ToNormalDefinitions();
 
-        public ToAnnoDefs(Set<StrategySignature> filter) {
-            this.filter = filter;
+        private ToNormalDefinitions() {
         }
 
-        @Override public ModuleAnnoDefs apply(ModuleData moduleData) {
-            // Assumption: filter.size() > internalStrategyData.size() + externalStrategyData.size()
-            final Set<StrategySignature> internalStrategyData = new HashSet<>();
-            for(StrategySignature strategySignature : moduleData.internalStrategyData.keySet()) {
-                if(filter.contains(strategySignature)) {
-                    internalStrategyData.add(strategySignature);
-                }
-            }
-            final Set<StrategySignature> externalStrategyData = new HashSet<>();
-            for(StrategySignature strategySignature : moduleData.externalStrategyData.keySet()) {
-                if(filter.contains(strategySignature)) {
-                    externalStrategyData.add(strategySignature);
-                }
-            }
-            return new ModuleAnnoDefs(internalStrategyData, externalStrategyData);
+        @Override public NormalDefinitions apply(ModuleData moduleData) {
+            return new NormalDefinitions(moduleData.normalStrategyData, moduleData.lastModified);
         }
     }
 
@@ -248,54 +230,82 @@ public class ModuleData implements Serializable, WithLastModified {
             for(StrategySignature usedStrategy : usedStrategies) {
                 for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
                     .getOrDefault(usedStrategy, Collections.emptySet())) {
-                    if(strategyFrontData.type != null) {
-                        strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
-                    } else {
-                        strategyTypes.put(strategyFrontData.signature,
-                            strategyFrontData.signature.standardType(tf));
-                    }
+                    registerStrategyType(strategyTypes, usedStrategy,
+                        strategyFrontData.getType(tf));
                 }
                 for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
                     .getOrDefault(usedStrategy, Collections.emptySet())) {
-                    if(strategyFrontData.type != null) {
-                        strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
-                    } else {
-                        strategyTypes.put(strategyFrontData.signature,
-                            strategyFrontData.signature.standardType(tf));
-                    }
+                    registerStrategyType(strategyTypes, usedStrategy,
+                        strategyFrontData.getType(tf));
                 }
                 for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
                     .getOrDefault(usedStrategy, Collections.emptySet())) {
-                    if(strategyFrontData.type != null) {
-                        strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
-                    } else {
-                        strategyTypes.put(strategyFrontData.signature,
-                            strategyFrontData.signature.standardType(tf));
-                    }
+                    registerStrategyType(strategyTypes, usedStrategy,
+                        strategyFrontData.getType(tf));
                 }
             }
             for(String usedStrategy : usedAmbiguousStrategies) {
                 for(StrategyFrontData strategyFrontData : ambStrategyIndex
                     .getOrDefault(usedStrategy, Collections.emptySet())) {
-                    if(strategyFrontData.type != null) {
-                        strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
-                    } else {
-                        strategyTypes.put(strategyFrontData.signature,
-                            strategyFrontData.signature.standardType(tf));
-                    }
+                    final StrategyType type =
+                        strategyFrontData.type != null ? strategyFrontData.type :
+                            strategyFrontData.signature.standardType(tf);
+                    strategyTypes.put(strategyFrontData.signature, type);
                 }
             }
             for(ConstructorSignature usedConstructor : usedConstructors) {
                 for(ConstructorData constructorData : moduleData.constrData
-                    .getOrDefault(usedConstructor, Collections.emptyList())) {
+                    .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
+                        Collections.emptyList())) {
                     Relation
                         .getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                         .add(constructorData.type);
+                }
+                for(OverlayData overlayData : moduleData.overlayData
+                    .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
+                        Collections.emptyList())) {
+                    Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
+                        .add(overlayData.type);
                 }
             }
 
             return new TypesLookup(strategyTypes, constructorTypes, moduleData.injections,
                 moduleData.imports, moduleData.lastModified);
+        }
+
+        public static void registerStrategyType(Map<StrategySignature, StrategyType> strategyTypes,
+            StrategySignature usedStrategy, StrategyType strategyType) {
+            final @Nullable StrategyType current = strategyTypes.get(usedStrategy);
+            if(current == null || !(strategyType instanceof StrategyType.Standard)) {
+                if(current != null && !(current instanceof StrategyType.Standard)) {
+                    //noinspection StatementWithEmptyBody
+                    if(!current.equals(strategyType)) {
+                        // TODO: Add check to type checker about multiple type definitions in
+                        //      different modules
+                    }
+                    // Leave the first one we found...
+                } else {
+                    strategyTypes.put(usedStrategy, strategyType);
+                }
+            }
+        }
+
+        public static void registerStrategyType(
+            io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes,
+            StrategySignature usedStrategy, StrategyType strategyType) {
+            final @Nullable StrategyType current = strategyTypes.get(usedStrategy);
+            if(current == null || !(strategyType instanceof StrategyType.Standard)) {
+                if(current != null && !(current instanceof StrategyType.Standard)) {
+                    //noinspection StatementWithEmptyBody
+                    if(!current.equals(strategyType)) {
+                        // TODO: Add check to type checker about multiple type definitions in
+                        //      different modules
+                    }
+                    // Leave the first one we found...
+                } else {
+                    strategyTypes.__put(usedStrategy, strategyType);
+                }
+            }
         }
     }
 }

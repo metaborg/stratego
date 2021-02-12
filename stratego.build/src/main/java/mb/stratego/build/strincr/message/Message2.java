@@ -1,5 +1,7 @@
 package mb.stratego.build.strincr.message;
 
+import java.io.Serializable;
+
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
@@ -8,7 +10,7 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.util.WithLastModified;
 
-public abstract class Message2<T extends IStrategoTerm> implements WithLastModified {
+public abstract class Message2<T extends IStrategoTerm> implements WithLastModified, Serializable {
     public final T locationTerm;
     public final ImploderAttachment location;
     public final MessageSeverity severity;
@@ -19,6 +21,15 @@ public abstract class Message2<T extends IStrategoTerm> implements WithLastModif
         this.location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(name));
         this.severity = severity;
         this.lastModified = lastModified;
+    }
+
+    public static Message2<?> from(Message<?> message) {
+        // TODO get rid of this method and use Message2 in InsertCastss
+        return new Message2<IStrategoTerm>(message.locationTerm, message.severity, 0L) {
+            @Override public String getMessage() {
+                return message.getMessage();
+            }
+        };
     }
 
     public String toString() {

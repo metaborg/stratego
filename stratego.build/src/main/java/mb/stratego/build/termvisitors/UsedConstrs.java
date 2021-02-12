@@ -18,8 +18,8 @@ public class UsedConstrs extends TermVisitor {
     private final StringSetWithPositions usedConstrs;
     private final ITermFactory tf = new TermFactory();
 
-    private final Set<ConstructorSignature> usedConstructors;
-    private final long lastModified;
+    protected final Set<ConstructorSignature> usedConstructors;
+    protected final long lastModified;
 
     public UsedConstrs(StringSetWithPositions usedConstrs, long lastModified) {
         this.usedConstrs = usedConstrs;

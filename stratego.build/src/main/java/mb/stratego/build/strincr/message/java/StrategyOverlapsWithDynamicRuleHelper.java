@@ -7,10 +7,10 @@ import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.strincr.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 
-public class ManualStrategyOverlapsWithDynamicRuleHelper extends Message<IStrategoTerm> {
+public class StrategyOverlapsWithDynamicRuleHelper extends Message<IStrategoTerm> {
     public final StrategySignature signature;
 
-    public ManualStrategyOverlapsWithDynamicRuleHelper(
+    public StrategyOverlapsWithDynamicRuleHelper(
         IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm term,
         StrategySignature signature, MessageSeverity severity) {
         super(moduleIdentifier.moduleString(), term, severity);

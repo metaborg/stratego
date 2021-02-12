@@ -17,21 +17,35 @@ public class GlobalData implements Serializable {
     public final Set<ModuleIdentifier> allModuleIdentifiers;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
     public final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex;
-    public final Map<String, Set<ModuleIdentifier>> ambStrategyIndex;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex;
+    public final Set<StrategySignature> internalStrategies;
+    public final Set<StrategySignature> externalStrategies;
     public final List<Message2<?>> messages;
+    private transient @Nullable GlobalIndex globalIndex = null;
 
     public GlobalData(Set<ModuleIdentifier> allModuleIdentifiers,
         Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
         Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
-        Map<String, Set<ModuleIdentifier>> ambStrategyIndex,
-        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex, List<Message2<?>> messages) {
+        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex,
+        Set<StrategySignature> internalStrategies, Set<StrategySignature> externalStrategies, List<Message2<?>> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.strategyIndex = strategyIndex;
-        this.ambStrategyIndex = ambStrategyIndex;
         this.overlayIndex = overlayIndex;
+        this.internalStrategies = internalStrategies;
+        this.externalStrategies = externalStrategies;
         this.messages = messages;
+    }
+
+    public GlobalIndex getGlobalIndex() {
+        if(globalIndex == null) {
+            final HashSet<StrategySignature> nonExternalStrategies = new HashSet<>(strategyIndex.keySet());
+            nonExternalStrategies.removeAll(externalStrategies);
+            nonExternalStrategies.addAll(internalStrategies);
+            globalIndex =
+                new GlobalIndex(new HashSet<>(constructorIndex.keySet()), nonExternalStrategies);
+        }
+        return globalIndex;
     }
 
     @Override public boolean equals(Object o) {
@@ -48,8 +62,6 @@ public class GlobalData implements Serializable {
             return false;
         if(!strategyIndex.equals(that.strategyIndex))
             return false;
-        if(!ambStrategyIndex.equals(that.ambStrategyIndex))
-            return false;
         if(!overlayIndex.equals(that.overlayIndex))
             return false;
         return messages.equals(that.messages);
@@ -59,21 +71,19 @@ public class GlobalData implements Serializable {
         int result = allModuleIdentifiers.hashCode();
         result = 31 * result + constructorIndex.hashCode();
         result = 31 * result + strategyIndex.hashCode();
-        result = 31 * result + ambStrategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();
         result = 31 * result + messages.hashCode();
         return result;
     }
 
     public static class ToGlobalIndex implements Function<GlobalData, GlobalIndex>, Serializable {
-        public static final ToGlobalIndex Instance = new ToGlobalIndex();
+        public static final ToGlobalIndex INSTANCE = new ToGlobalIndex();
 
         private ToGlobalIndex() {
         }
 
         @Override public GlobalIndex apply(GlobalData globalData) {
-            return new GlobalIndex(new HashSet<>(globalData.constructorIndex.keySet()),
-                new HashSet<>(globalData.strategyIndex.keySet()));
+            return globalData.getGlobalIndex();
         }
     }
 
@@ -115,12 +125,37 @@ public class GlobalData implements Serializable {
             final HashSet<ModuleIdentifier> result = new HashSet<>();
             for(ConstructorSignature usedConstructor : usedConstructors) {
                 final @Nullable Set<ModuleIdentifier> moduleIdentifiers =
-                    globalData.overlayIndex.get(usedConstructor);
+                    globalData.overlayIndex.get(new ConstructorSignatureMatcher(usedConstructor));
                 if(moduleIdentifiers != null) {
                     result.addAll(moduleIdentifiers);
                 }
             }
             return (T) result;
+        }
+    }
+
+    public static class ToAnnoDefs implements Function<GlobalData, AnnoDefs>, Serializable {
+        public final Set<StrategySignature> filter;
+
+        public ToAnnoDefs(Set<StrategySignature> filter) {
+            this.filter = filter;
+        }
+
+        @Override public AnnoDefs apply(GlobalData globalData) {
+            // Assumption: filter.size() > internalStrategyData.size() + externalStrategyData.size()
+            final Set<StrategySignature> internalStrategyData = new HashSet<>();
+            for(StrategySignature strategySignature : globalData.internalStrategies) {
+                if(filter.contains(strategySignature)) {
+                    internalStrategyData.add(strategySignature);
+                }
+            }
+            final Set<StrategySignature> externalStrategyData = new HashSet<>();
+            for(StrategySignature strategySignature : globalData.externalStrategies) {
+                if(filter.contains(strategySignature)) {
+                    externalStrategyData.add(strategySignature);
+                }
+            }
+            return new AnnoDefs(internalStrategyData, externalStrategyData);
         }
     }
 }

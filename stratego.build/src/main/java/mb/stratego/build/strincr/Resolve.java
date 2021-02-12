@@ -33,9 +33,11 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
     public static final String id = Resolve.class.getCanonicalName();
 
     public final Front front;
+    public final Lib lib;
 
-    @Inject public Resolve(Front front) {
+    @Inject public Resolve(Front front, Lib lib) {
         this.front = front;
+        this.lib = lib;
     }
 
     @Override public GlobalData exec(ExecContext context, Check.Input input)
@@ -50,21 +52,34 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
         final Set<ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
-        final Map<String, Set<ModuleIdentifier>> ambStrategyIndex = new HashMap<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex = new HashMap<>();
 
-        final Map<ConstructorSignature, Set<ConstructorSignature>> overlayUsesConstructors =
-            new HashMap<>();
+        final Set<StrategySignature> internalStrategies = new HashSet<>();
+        final Set<StrategySignature> externalStrategies = new HashSet<>();
+
+        final Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>>
+            overlayUsesConstructors = new HashMap<>();
 
         do {
             final ModuleIdentifier moduleIdentifier = workList.remove();
 
+            final Front.Input frontInput =
+                new Front.Input(moduleIdentifier, input.moduleImportService);
             if(moduleIdentifier.isLibrary()) {
                 allModuleIdentifiers.add(moduleIdentifier);
-                // TODO: add dep on lib task again, add external strategy and constructor to indices?
+                final ModuleIndex index = PieUtils
+                    .requirePartial(context, lib, frontInput, ModuleData.ToModuleIndex.INSTANCE);
+
+                for(ConstructorSignature signature : index.constructors) {
+                    Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
+                        .add(moduleIdentifier);
+                }
+                for(StrategySignature signature : index.externalStrategies) {
+                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                        .add(moduleIdentifier);
+                }
             } else {
-                final STask<ModuleData> sTask = front
-                    .createSupplier(new Front.Input(moduleIdentifier, input.moduleImportService));
+                final STask<ModuleData> sTask = front.createSupplier(frontInput);
                 allModuleIdentifiers.add(moduleIdentifier);
 
                 final ModuleIndex index =
@@ -77,17 +92,28 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 for(StrategySignature signature : index.strategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
-                    Relation.getOrInitialize(ambStrategyIndex, signature.name, HashSet::new)
+                }
+                for(StrategySignature signature : index.internalStrategies) {
+                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
+                    internalStrategies.add(signature);
+                }
+                for(StrategySignature signature : index.externalStrategies) {
+                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                        .add(moduleIdentifier);
+                    externalStrategies.add(signature);
                 }
                 for(Map.Entry<ConstructorSignature, List<OverlayData>> e : index.overlayData
                     .entrySet()) {
                     Relation.getOrInitialize(overlayIndex, e.getKey(), HashSet::new)
                         .add(moduleIdentifier);
-                    final Set<ConstructorSignature> overlayUsesCons =
-                        Relation.getOrInitialize(overlayUsesConstructors, e.getKey(), HashSet::new);
+                    final Set<ConstructorSignatureMatcher> overlayUsesCons = Relation
+                        .getOrInitialize(overlayUsesConstructors,
+                            new ConstructorSignatureMatcher(e.getKey()), HashSet::new);
                     for(OverlayData overlayData : e.getValue()) {
-                        overlayUsesCons.addAll(overlayData.usedConstructors);
+                        for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
+                            overlayUsesCons.add(new ConstructorSignatureMatcher(usedConstructor));
+                        }
                     }
                 }
 
@@ -101,9 +127,8 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
         } while(!workList.isEmpty());
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
-
-        return new GlobalData(allModuleIdentifiers, constructorIndex, strategyIndex,
-            ambStrategyIndex, overlayIndex, messages);
+        return new GlobalData(allModuleIdentifiers, constructorIndex, strategyIndex, overlayIndex,
+            internalStrategies, externalStrategies, messages);
     }
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,
@@ -126,21 +151,21 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
     }
 
     private void checkCyclicOverlays(
-        Map<ConstructorSignature, Set<ConstructorSignature>> overlayUsesConstructors,
+        Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>> overlayUsesConstructors,
         List<Message2<?>> messages) {
-        final Deque<Set<ConstructorSignature>> topoSCCs = Algorithms
+        final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
                 sig -> overlayUsesConstructors.getOrDefault(sig, Collections.emptySet()));
-        for(Set<ConstructorSignature> topoSCC : topoSCCs) {
-            final ConstructorSignature signature = topoSCC.iterator().next();
+        for(Set<ConstructorSignatureMatcher> topoSCC : topoSCCs) {
+            final ConstructorSignatureMatcher signature = topoSCC.iterator().next();
             if(topoSCC.size() > 1 || overlayUsesConstructors
                 .getOrDefault(signature, Collections.emptySet()).contains(signature)) {
                 long lastModified = 0;
                 for(ConstructorSignature sig : topoSCC) {
                     lastModified = Long.max(lastModified, sig.lastModified);
                 }
-                for(ConstructorSignature sig : topoSCC) {
-                    messages.add(new CyclicOverlay2(sig, topoSCC, lastModified));
+                for(ConstructorSignatureMatcher sig : topoSCC) {
+                    messages.add(new CyclicOverlay2(sig.wrapped, topoSCC, lastModified));
                 }
             }
         }

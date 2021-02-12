@@ -48,18 +48,18 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
             }
             switch(TermUtils.toAppl(def).getName()) {
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def,
+                    addSigData(input.moduleIdentifier, constrData, injections, def.getSubterm(0),
                         ast.lastModified);
                     break;
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        strategyData, def);
+                        externalStrategyData, def.getSubterm(0));
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
             }
         }
-        ;
+
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
             strategyData, internalStrategyData, externalStrategyData, overlayData, usedConstructors,
             usedStrategies, usedAmbiguousStrategies, ast.lastModified);

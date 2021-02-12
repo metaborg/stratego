@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -14,10 +13,10 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
-import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.util.PieUtils;
 
 public class Compile implements TaskDef<Compile.Input, Compile.Output> {
@@ -35,8 +34,8 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
         public final Collection<STask<?>> strFileGeneratingTasks;
 
         public Input(ModuleIdentifier mainModuleIdentifier,
-            IModuleImportService moduleImportService, ResourcePath outputDir, @Nullable String packageName,
-            @Nullable ResourcePath cacheDir, List<String> constants,
+            IModuleImportService moduleImportService, ResourcePath outputDir,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs,
             Collection<STask<?>> strFileGeneratingTasks) {
             this.mainModuleIdentifier = mainModuleIdentifier;
@@ -90,12 +89,20 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
             result = 31 * result + strFileGeneratingTasks.hashCode();
             return result;
         }
+
+        @Override public String toString() {
+            return "Compile.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
+        }
     }
 
-    public static class Output implements Serializable {
+    public interface Output extends Serializable {
+        String toString();
+    }
+
+    public static class Success implements Output {
         public final Set<ResourcePath> resultFiles;
 
-        public Output(Set<ResourcePath> resultFiles) {
+        public Success(Set<ResourcePath> resultFiles) {
             this.resultFiles = resultFiles;
         }
 
@@ -105,7 +112,7 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
             if(o == null || getClass() != o.getClass())
                 return false;
 
-            Output output = (Output) o;
+            Success output = (Success) o;
 
             return resultFiles.equals(output.resultFiles);
         }
@@ -113,24 +120,64 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
         @Override public int hashCode() {
             return resultFiles.hashCode();
         }
+
+        @Override public String toString() {
+            return "Compile.Success(" + resultFiles.size() + ")";
+        }
+    }
+
+    public static class Failure implements Output {
+        public final List<Message2<?>> messages;
+
+        public Failure(List<Message2<?>> messages) {
+            this.messages = messages;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Failure output = (Failure) o;
+
+            return messages.equals(output.messages);
+        }
+
+        @Override public int hashCode() {
+            return messages.hashCode();
+        }
+
+        @Override public String toString() {
+            return "Compile.Failure(" + messages.size() + ")";
+        }
     }
 
     public final Resolve resolve;
+    public final Check check;
     public final Back back;
 
-    @Inject public Compile(Resolve resolve, Back back) {
+    @Inject public Compile(Resolve resolve, Check check, Back back) {
         this.resolve = resolve;
+        this.check = check;
         this.back = back;
     }
 
     @Override public Output exec(ExecContext context, Input input) {
-        final Set<ResourcePath> resultFiles = new HashSet<>();
-        final STask<GlobalData> resolveTask = resolve
-            .createSupplier(new Check.Input(input.mainModuleIdentifier, input.moduleImportService));
-        final GlobalIndex globalIndex =
-            PieUtils.requirePartial(context, resolveTask, GlobalData.ToGlobalIndex.Instance);
+        final Check.Input checkInput =
+            new Check.Input(input.mainModuleIdentifier, input.moduleImportService);
+        final Check.Output.Messages checkOutput =
+            PieUtils.requirePartial(context, check, checkInput, Check.Output.GetMessages.INSTANCE);
+        if(checkOutput.containsErrors) {
+            return new Compile.Failure(checkOutput.messages);
+        }
 
-        for(StrategySignature strategySignature : globalIndex.strategies) {
+        final Set<ResourcePath> resultFiles = new HashSet<>();
+        final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput);
+        final GlobalIndex globalIndex =
+            PieUtils.requirePartial(context, resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
+
+        for(StrategySignature strategySignature : globalIndex.nonExternalStrategies) {
             final Back.Output output = context.require(back,
                 new Back.NormalInput(strategySignature, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
@@ -150,7 +197,7 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);
 
-        return new Output(resultFiles);
+        return new Success(resultFiles);
     }
 
     @Override public String getId() {

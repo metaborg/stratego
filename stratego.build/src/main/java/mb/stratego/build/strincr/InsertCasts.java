@@ -34,13 +34,13 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategoImmutableMap strategyEnvironment;
         final StrategoImmutableRelation constructors;
         final StrategoImmutableRelation injectionClosure;
-        final StrategoImmutableRelation lubMap;
+        final StrategoImmutableMap lubMap;
         final StrategoImmutableRelation aliasMap;
         final IStrategoTerm ast;
 
         Input(String moduleName, StrategoImmutableMap strategyEnvironment,
             StrategoImmutableRelation constructors, StrategoImmutableRelation injectionClosure,
-            StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap,
+            StrategoImmutableMap lubMap, StrategoImmutableRelation aliasMap,
             IStrategoTerm ast) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
@@ -52,7 +52,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         }
 
         @Override public String toString() {
-            return "InsertCasts$Input(moduleName=" + moduleName + ")";
+            return "InsertCasts.Input(" + moduleName + ")";
         }
 
         @Override public boolean equals(Object o) {
@@ -92,7 +92,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             final StrategoImmutableMap strategyEnvironment;
             final StrategoImmutableRelation constructors;
             final StrategoImmutableRelation injectionClosure;
-            final StrategoImmutableRelation lubMap;
+            final StrategoImmutableMap lubMap;
             final StrategoImmutableRelation aliasMap;
 
             public Builder(String moduleName, Map<StrategySignature, IStrategoTerm> strategyEnv,
@@ -105,7 +105,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 injectionClosure = StrategoImmutableRelation
                     .transitiveClosure(new StrategoImmutableRelation(injections));
                 this.lubMap =
-                    new StrategoImmutableRelation(lubMapFromInjClosure(injectionClosure, tf));
+                    new StrategoImmutableMap(lubMapFromInjClosure(injectionClosure, tf));
                 this.aliasMap = StrategoImmutableRelation.transitiveClosure(
                     new StrategoImmutableRelation(extractAliases(constrs, injections)));
             }
@@ -137,14 +137,14 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 return aliases.freeze();
             }
 
-            private static BinaryRelation.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> lubMapFromInjClosure(
+            private static io.usethesource.capsule.Map.Immutable<? extends IStrategoTerm, ? extends IStrategoTerm> lubMapFromInjClosure(
                 StrategoImmutableRelation injectionClosure, ITermFactory tf) {
                 /* TODO: find cyclic injections through entries that have the same type on both sides (x,x)
                  *  Use an arbitrary but deterministic method to choose a representative type in a cycle
                  *  Map members x,y from the same cycle to the representative type
                  */
-                final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> lubMap =
-                    BinaryRelation.Transient.of();
+                final io.usethesource.capsule.Map.Transient<IStrategoTerm, IStrategoTerm> lubMap =
+                    io.usethesource.capsule.Map.Transient.of();
                 for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> entry : injectionClosure.backingRelation
                     .entrySet()) {
                     final IStrategoTerm from = entry.getKey();
@@ -194,6 +194,10 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
             result = 31 * result + moduleIdentifier.hashCode();
             result = 31 * result + environment.hashCode();
             return result;
+        }
+
+        @Override public String toString() {
+            return "InsertCasts.Input2(" + moduleIdentifier + ")";
         }
     }
 

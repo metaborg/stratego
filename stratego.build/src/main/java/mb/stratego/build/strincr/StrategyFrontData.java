@@ -2,6 +2,8 @@ package mb.stratego.build.strincr;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.ITermFactory;
+
 public class StrategyFrontData {
     public final StrategySignature signature;
     protected @Nullable StrategyType type;
@@ -12,6 +14,10 @@ public class StrategyFrontData {
         this.signature = signature;
         this.type = type;
         this.kind = kind;
+    }
+
+    public StrategyType getType(ITermFactory tf) {
+        return type != null ? type : signature.standardType(tf);
     }
 
     @Override public boolean equals(Object o) {

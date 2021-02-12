@@ -1,5 +1,7 @@
 package mb.stratego.build.strincr;
 
+import static org.spoofax.interpreter.core.Interpreter.cify;
+
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
@@ -20,8 +22,6 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.util.WithLastModified;
 
-import static org.spoofax.interpreter.core.Interpreter.cify;
-
 public class ConstructorSignature extends StrategoTuple implements WithLastModified {
     public final String name;
     public final int noArgs;
@@ -35,20 +35,20 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
         this.lastModified = lastModified;
     }
 
-    @Override protected boolean doSlowMatch(IStrategoTerm second) {
-        if(second instanceof ConstructorSignature) {
-            if(((ConstructorSignature) second).lastModified != lastModified) {
-                return false;
-            }
-        }
-        return super.doSlowMatch(second);
-    }
-
     public ConstructorSignature(IStrategoString name, IStrategoInt noArgs, long lastModified) {
         super(new IStrategoTerm[] { name, noArgs }, AbstractTermFactory.EMPTY_LIST);
         this.name = name.stringValue();
         this.noArgs = noArgs.intValue();
         this.lastModified = lastModified;
+    }
+
+    @Override protected boolean doSlowMatch(IStrategoTerm second) {
+        if(this.getClass() == ConstructorSignature.class && second.getClass() == ConstructorSignature.class) {
+            if(((ConstructorSignature) second).lastModified != lastModified) {
+                return false;
+            }
+        }
+        return super.doSlowMatch(second);
     }
 
     public String cifiedName() {

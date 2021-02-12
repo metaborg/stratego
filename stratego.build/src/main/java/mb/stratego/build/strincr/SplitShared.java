@@ -97,58 +97,18 @@ public abstract class SplitShared {
                 if(!TermUtils.isStringAt(strategyDef, 0)) {
                     throw new WrongASTException(moduleIdentifier, strategyDef);
                 }
-                final String name = TermUtils.toJavaStringAt(strategyDef, 0);
-                final int sArity;
-                final int tArity;
-                //noinspection DuplicateBranchesInSwitch
                 switch(TermUtils.toAppl(strategyDef).getName()) {
                     case "ExtSDef":
-                        kind = External;
-                        dataMap = externalStrategyData;
-                        // fall-through
-                    case "SDef":
-                        // fall-through
-                    case "RDef": {
-                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
-                        if(!TermUtils.isList(sargs)) {
-                            throw new WrongASTException(moduleIdentifier, sargs);
-                        }
-                        sArity = sargs.getSubtermCount();
-                        tArity = 0;
-                        break;
-                    }
-                    case "SDefNoArgs":
-                        // fall-through
-                    case "RDefNoArgs":
-                        sArity = 0;
-                        tArity = 0;
-                        break;
                     case "ExtSDefInl":
                         kind = External;
                         dataMap = externalStrategyData;
-                        // fall-through
-                    case "SDefT":
-                        // fall-through
-                    case "RDefT":
-                        // fall-through
-                    case "RDefP": {
-                        final IStrategoTerm sargs = strategyDef.getSubterm(1);
-                        if(!TermUtils.isList(sargs)) {
-                            throw new WrongASTException(moduleIdentifier, sargs);
-                        }
-                        sArity = sargs.getSubtermCount();
-                        final IStrategoTerm targs = strategyDef.getSubterm(2);
-                        if(!TermUtils.isList(targs)) {
-                            throw new WrongASTException(moduleIdentifier, targs);
-                        }
-                        tArity = targs.getSubtermCount();
                         break;
-                    }
-                    default:
-                        throw new WrongASTException(moduleIdentifier, strategyDef);
                 }
-                final StrategySignature strategySignature =
-                    new StrategySignature(name, sArity, tArity);
+                final @Nullable StrategySignature strategySignature =
+                    StrategySignature.fromDefinition(strategyDef);
+                if(strategySignature == null) {
+                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                }
                 Relation.getOrInitialize(dataMap, strategySignature, HashSet::new)
                     .add(new StrategyFrontData(strategySignature, null, kind));
             }
@@ -211,21 +171,22 @@ public abstract class SplitShared {
         throws WrongASTException {
         for(IStrategoTerm sig : sigs) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
-                final IStrategoTerm constrs = sig.getSubterm(1);
-                if(TermUtils.isList(constrs)) {
-                    for(IStrategoTerm constrDef : constrs) {
-                        final @Nullable ConstructorSignature constrSig =
-                            ConstructorSignature.fromTerm(constrDef, lastModified);
-                        if(constrSig == null) {
-                            addInjectionData(moduleIdentifier, constrDef, injections, constrData,
-                                lastModified);
-                            continue;
-                        }
-                        final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
-                        final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                final IStrategoTerm constrs = sig.getSubterm(0);
+                if(!TermUtils.isList(constrs)) {
+                    throw new WrongASTException(moduleIdentifier, constrs);
+                }
+                for(IStrategoTerm constrDef : constrs) {
+                    final @Nullable ConstructorSignature constrSig =
+                        ConstructorSignature.fromTerm(constrDef, lastModified);
+                    if(constrSig == null) {
+                        addInjectionData(moduleIdentifier, constrDef, injections, constrData,
+                            lastModified);
+                        continue;
                     }
+                    final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
+                    final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
+                    Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                 }
             }
         }
@@ -329,7 +290,8 @@ public abstract class SplitShared {
                 final List<IStrategoTerm> froms = constrType.getFrom();
                 switch(froms.size()) {
                     case 0:
-                        throw new WrongASTException(moduleIdentifier, opType);
+                        // ignore this weird edge-case generated from strategoGT/syntax/sugar/string-quotations.sdf3
+                        return;
                     case 1:
                         from = froms.get(0);
                         break;

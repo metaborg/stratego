@@ -85,10 +85,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
     private final Backend strIncrBack;
     private final StrIncrAnalysis strIncrAnalysis;
+    private final StrategyStubs strategyStubs;
 
-    @Inject public StrIncr(Backend strIncrBack, StrIncrAnalysis analysis) {
+    @Inject public StrIncr(Backend strIncrBack, StrIncrAnalysis analysis, StrategyStubs strategyStubs) {
         this.strIncrBack = strIncrBack;
         this.strIncrAnalysis = analysis;
+        this.strategyStubs = strategyStubs;
     }
 
     @Override public None exec(ExecContext execContext, Input input) throws Exception {
@@ -185,7 +187,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         // boilerplate task
         {
             backendStart = System.nanoTime();
-            final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
+            final List<IStrategoAppl> decls = strategyStubs.declStubs(backendData.strategyASTs);
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
                     input.javaPackageName, input.outputPath, input.cacheDir,

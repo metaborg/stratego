@@ -45,4 +45,8 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
         result = 31 * result + resource.hashCode();
         return result;
     }
+
+    @Override public String toString() {
+        return moduleString();
+    }
 }

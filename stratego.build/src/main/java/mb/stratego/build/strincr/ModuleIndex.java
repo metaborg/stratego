@@ -16,15 +16,20 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final List<IStrategoTerm> imports;
     public final Set<ConstructorSignature> constructors;
     public final Set<StrategySignature> strategies;
+    public final Set<StrategySignature> internalStrategies;
+    public final Set<StrategySignature> externalStrategies;
     public final Map<ConstructorSignature, List<OverlayData>> overlayData;
     public final long lastModified;
 
     public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
-        Set<StrategySignature> strategies, Map<ConstructorSignature, List<OverlayData>> overlayData,
+        Set<StrategySignature> strategies, Set<StrategySignature> internalStrategies,
+        Set<StrategySignature> externalStrategies, Map<ConstructorSignature, List<OverlayData>> overlayData,
         long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.strategies = strategies;
+        this.internalStrategies = internalStrategies;
+        this.externalStrategies = externalStrategies;
         this.overlayData = overlayData;
         this.lastModified = lastModified;
     }

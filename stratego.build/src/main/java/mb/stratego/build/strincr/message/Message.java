@@ -17,6 +17,7 @@ import mb.stratego.build.strincr.message.java.ConstructorNotFound;
 import mb.stratego.build.strincr.message.java.CyclicOverlay;
 import mb.stratego.build.strincr.message.java.ExternalStrategyNotFound;
 import mb.stratego.build.strincr.message.java.ExternalStrategyOverlap;
+import mb.stratego.build.strincr.message.java.InternalStrategyOverlap;
 import mb.stratego.build.strincr.message.java.StrategyNotFound;
 import mb.stratego.build.strincr.message.java.UnresolvedImport;
 import mb.stratego.build.strincr.message.java.UnresolvedWildcardImport;
@@ -94,6 +95,14 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
             name = (IStrategoString) origin;
         }
         return new ExternalStrategyOverlap(module, name);
+    }
+
+    public static Message<?> internalStrategyOverlap(String module, IStrategoString name) {
+        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        if(origin != null && TermUtils.isString(origin)) {
+            name = (IStrategoString) origin;
+        }
+        return new InternalStrategyOverlap(module, name);
     }
 
     public static JavaMessage<IStrategoTerm> cyclicOverlay(String module, IStrategoTerm name, Set<String> overlayScc) {

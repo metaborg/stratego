@@ -334,4 +334,12 @@ public class ModuleImportService implements IModuleImportService {
         result = 31 * result + includeDirs.hashCode();
         return result;
     }
+
+    @Override public String toString() {
+        if(moduleName == null) {
+            return "ModuleImportService()";
+        } else {
+            return "ModuleImportService(" + moduleName + ")";
+        }
+    }
 }

@@ -17,12 +17,14 @@ import mb.stratego.build.strincr.Frontend;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportServiceFactory;
 import mb.stratego.build.strincr.InsertCasts;
+import mb.stratego.build.strincr.Lib;
 import mb.stratego.build.strincr.LibFrontend;
 import mb.stratego.build.strincr.ParseStratego;
 import mb.stratego.build.strincr.Resolve;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrIncr;
 import mb.stratego.build.strincr.StrIncrAnalysis;
+import mb.stratego.build.strincr.StrategyStubs;
 import mb.stratego.build.strincr.SubFrontend;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
@@ -39,6 +41,7 @@ public class StrIncrModule extends TaskDefsModule {
 
         // bind special strategoxt context object used in all Tasks
         bind(StrIncrContext.class).in(Singleton.class);
+        bind(StrategyStubs.class).in(Singleton.class);
 
         bind(ResourceService.class).toInstance(new DefaultResourceService(new FSResourceRegistry()));
         bind(ParseStratego.class).to(Spoofax2ParseStratego.class).in(Singleton.class);
@@ -51,6 +54,7 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(CheckModule.class, CheckModule.id);
         bindTaskDef(Resolve.class, Resolve.id);
         bindTaskDef(Front.class, Front.id);
+        bindTaskDef(Lib.class, Lib.id);
         install(new FactoryModuleBuilder()
             .implement(IModuleImportService.class, ModuleImportService.class)
             .build(IModuleImportServiceFactory.class));

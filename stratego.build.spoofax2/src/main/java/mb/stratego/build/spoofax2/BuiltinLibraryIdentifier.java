@@ -33,6 +33,10 @@ public enum BuiltinLibraryIdentifier implements IModuleImportService.ModuleIdent
         return libString;
     }
 
+    @Override public String toString() {
+        return moduleString();
+    }
+
     public IStrategoTerm readLibraryFile() {
         switch(this) {
             case StrategoLib:

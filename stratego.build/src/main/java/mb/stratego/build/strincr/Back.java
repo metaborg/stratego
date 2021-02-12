@@ -95,6 +95,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             result = 31 * result + resolveTask.hashCode();
             return result;
         }
+
+        @Override public abstract String toString();
     }
 
     public static class NormalInput extends Input {
@@ -137,6 +139,10 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             result = 31 * result + moduleImportService.hashCode();
             return result;
         }
+
+        @Override public String toString() {
+            return "Back.NormalInput(" + strategySignature.cifiedName() + ")";
+        }
     }
 
     public static class BoilerplateInput extends Input {
@@ -145,6 +151,10 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             Collection<ResourcePath> includeDirs, Arguments extraArgs) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
         }
+
+        @Override public String toString() {
+            return "Back.BoilerplateInput";
+        }
     }
 
     public static class CongruenceInput extends Input {
@@ -152,6 +162,10 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+        }
+
+        @Override public String toString() {
+            return "Back.CongruenceInput";
         }
     }
 
@@ -176,20 +190,27 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         @Override public int hashCode() {
             return resultFiles.hashCode();
         }
+
+        @Override public String toString() {
+            return "Back.Output(" + resultFiles + ")";
+        }
     }
 
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
+    private final StrategyStubs strategyStubs;
     private final ITermFactory termFactory;
     private final ResourcePathConverter resourcePathConverter;
     private final CheckModule checkModule;
     private final Front front;
 
     @Inject public Back(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext,
-        ResourcePathConverter resourcePathConverter, CheckModule checkModule, Front front) {
+        StrategyStubs strategyStubs, ResourcePathConverter resourcePathConverter,
+        CheckModule checkModule, Front front) {
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
         this.termFactory = strContext.getFactory();
+        this.strategyStubs = strategyStubs;
         this.resourcePathConverter = resourcePathConverter;
         this.checkModule = checkModule;
         this.front = front;
@@ -200,25 +221,25 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         final IStrategoTerm ctree;
         if(isBoilerplate) {
             final GlobalIndex globalIndex = PieUtils
-                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
+                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
             final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
             addDrConstructors(constructors);
             constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
-            final Set<StrategySignature> strategies = new HashSet<>(globalIndex.strategies);
+            final Set<StrategySignature> strategies = new HashSet<>(globalIndex.nonExternalStrategies);
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
             }
             ctree = Packer
-                .packBoilerplate(termFactory, constructors, StrategyStubs.declStubs(strategies));
+                .packBoilerplate(termFactory, constructors, strategyStubs.declStubs(strategies));
         } else if(input instanceof CongruenceInput) {
             // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex = PieUtils
-                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.Instance);
+                .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
             final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
             addDrConstructors(constructors);
             final List<IStrategoAppl> congruences = new ArrayList<>();
             for(ConstructorSignature constructor : constructors) {
-                if(globalIndex.strategies.contains(constructor.toCongruenceSig())) {
+                if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     // TODO: give warning or note that congruence is not added because a strategy of that name exists?
                     continue;
                 }
@@ -237,6 +258,9 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 new ArrayList<>(modulesDefiningStrategy.size());
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
             for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                if(moduleIdentifier.isLibrary()) {
+                    continue;
+                }
                 final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
                     .requirePartial(context, checkModule,
                         new CheckModule.Input(normalInput.mainModuleIdentifier, moduleIdentifier,

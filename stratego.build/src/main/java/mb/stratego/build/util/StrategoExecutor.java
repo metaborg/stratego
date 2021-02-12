@@ -73,9 +73,9 @@ public class StrategoExecutor {
         this.context = context;
     }
 
-    public StrategoExecutor withStrjContext() {
+    public StrategoExecutor withStrjContext(StrIncrContext c) {
         // strj requires a fresh context each time.
-        withContext(org.strategoxt.strj.strj.init());
+        withContext(org.strategoxt.strj.strj.init(c));
         return this;
     }
 
