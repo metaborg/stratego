@@ -31,9 +31,11 @@ public class ModuleData implements Serializable, WithLastModified {
     public final Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData;
     public final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData;
     public final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData;
+    public final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData;
     public final Map<ConstructorSignature, List<OverlayData>> overlayData;
     public final Set<ConstructorSignature> usedConstructors;
     public final Set<StrategySignature> usedStrategies;
+    public final Set<StrategySignature> dynamicRules;
     public final Set<String> usedAmbiguousStrategies;
     public final long lastModified;
     private transient @Nullable Map<String, Set<StrategyFrontData>> ambStrategyIndex = null;
@@ -44,9 +46,11 @@ public class ModuleData implements Serializable, WithLastModified {
         Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
         Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
         Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
+        Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData,
         Map<ConstructorSignature, List<OverlayData>> overlayData,
         Set<ConstructorSignature> usedConstructors, Set<StrategySignature> usedStrategies,
-        Set<String> usedAmbiguousStrategies, long lastModified) {
+        Set<StrategySignature> dynamicRules, Set<String> usedAmbiguousStrategies,
+        long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
         this.imports = imports;
@@ -55,9 +59,11 @@ public class ModuleData implements Serializable, WithLastModified {
         this.normalStrategyData = normalStrategyData;
         this.internalStrategyData = internalStrategyData;
         this.externalStrategyData = externalStrategyData;
+        this.dynamicRuleData = dynamicRuleData;
         this.overlayData = overlayData;
         this.usedConstructors = usedConstructors;
         this.usedStrategies = usedStrategies;
+        this.dynamicRules = dynamicRules;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.lastModified = lastModified;
     }
@@ -88,11 +94,15 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!externalStrategyData.equals(that.externalStrategyData))
             return false;
+        if(!dynamicRuleData.equals(that.dynamicRuleData))
+            return false;
         if(!overlayData.equals(that.overlayData))
             return false;
         if(!usedConstructors.equals(that.usedConstructors))
             return false;
         if(!usedStrategies.equals(that.usedStrategies))
+            return false;
+        if(!dynamicRules.equals(that.dynamicRules))
             return false;
         return usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies);
     }
@@ -106,9 +116,11 @@ public class ModuleData implements Serializable, WithLastModified {
         result = 31 * result + normalStrategyData.hashCode();
         result = 31 * result + internalStrategyData.hashCode();
         result = 31 * result + externalStrategyData.hashCode();
+        result = 31 * result + dynamicRuleData.hashCode();
         result = 31 * result + overlayData.hashCode();
         result = 31 * result + usedConstructors.hashCode();
         result = 31 * result + usedStrategies.hashCode();
+        result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + usedAmbiguousStrategies.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
@@ -153,6 +165,11 @@ public class ModuleData implements Serializable, WithLastModified {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
                     .addAll(e.getValue());
             }
+            for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : dynamicRuleData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
+                    .addAll(e.getValue());
+            }
         }
         return ambStrategyIndex;
     }
@@ -168,38 +185,8 @@ public class ModuleData implements Serializable, WithLastModified {
                 new HashSet<>(moduleData.constrData.keySet()),
                 new HashSet<>(moduleData.normalStrategyData.keySet()),
                 new HashSet<>(moduleData.internalStrategyData.keySet()),
-                new HashSet<>(moduleData.externalStrategyData.keySet()), moduleData.overlayData,
-                moduleData.lastModified);
-        }
-    }
-
-    public static class ToModuleUsageData
-        implements Function<ModuleData, ModuleUsageData>, Serializable {
-        public static final ModuleData.ToModuleUsageData INSTANCE =
-            new ModuleData.ToModuleUsageData();
-
-        private ToModuleUsageData() {
-        }
-
-        @Override public ModuleUsageData apply(ModuleData moduleData) {
-            return new ModuleUsageData(moduleData.ast, moduleData.imports,
-                moduleData.normalStrategyData, moduleData.internalStrategyData,
-                moduleData.externalStrategyData, moduleData.usedConstructors,
-                moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
-                moduleData.lastModified);
-        }
-    }
-
-    public static class ToNormalDefinitions
-        implements Function<ModuleData, NormalDefinitions>, Serializable {
-        public static final ModuleData.ToNormalDefinitions INSTANCE =
-            new ModuleData.ToNormalDefinitions();
-
-        private ToNormalDefinitions() {
-        }
-
-        @Override public NormalDefinitions apply(ModuleData moduleData) {
-            return new NormalDefinitions(moduleData.normalStrategyData, moduleData.lastModified);
+                new HashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
+                moduleData.overlayData, moduleData.lastModified);
         }
     }
 
@@ -239,6 +226,11 @@ public class ModuleData implements Serializable, WithLastModified {
                         strategyFrontData.getType(tf));
                 }
                 for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
+                    .getOrDefault(usedStrategy, Collections.emptySet())) {
+                    registerStrategyType(strategyTypes, usedStrategy,
+                        strategyFrontData.getType(tf));
+                }
+                for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
                     .getOrDefault(usedStrategy, Collections.emptySet())) {
                     registerStrategyType(strategyTypes, usedStrategy,
                         strategyFrontData.getType(tf));

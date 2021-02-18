@@ -166,8 +166,9 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
     @Override public Output exec(ExecContext context, Input input) {
         final Check.Input checkInput =
             new Check.Input(input.mainModuleIdentifier, input.moduleImportService);
-        final Check.Output.Messages checkOutput =
-            PieUtils.requirePartial(context, check, checkInput, Check.Output.GetMessages.INSTANCE);
+        final STask<Check.Output> checkTask = check.createSupplier(checkInput);
+        final Check.Messages checkOutput =
+            PieUtils.requirePartial(context, check, checkInput, Check.GetMessages.INSTANCE);
         if(checkOutput.containsErrors) {
             return new Compile.Failure(checkOutput.messages);
         }
@@ -176,8 +177,21 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
         final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput);
         final GlobalIndex globalIndex =
             PieUtils.requirePartial(context, resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
+        final Set<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
+        for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
+            final Back.Output output = context.require(back,
+                new Back.DynamicRuleInput(dynamicRule, input.outputDir, input.packageName,
+                    input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
+                    resolveTask, input.mainModuleIdentifier, input.moduleImportService, checkTask));
+            assert output != null;
+            resultFiles.addAll(output.resultFiles);
+            compiledThroughDynamicRule.addAll(output.compiledStrategies);
+        }
         for(StrategySignature strategySignature : globalIndex.nonExternalStrategies) {
+            if(compiledThroughDynamicRule.contains(strategySignature)) {
+                continue;
+            }
             final Back.Output output = context.require(back,
                 new Back.NormalInput(strategySignature, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,

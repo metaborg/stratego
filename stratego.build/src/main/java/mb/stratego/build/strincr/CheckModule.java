@@ -36,6 +36,7 @@ import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.strincr.message.java.StrategyOverlapsWithDynamicRuleHelper;
 import mb.stratego.build.strincr.message.stratego.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.stratego.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
@@ -82,11 +83,14 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
 
     public static class Output implements Serializable {
         public final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts;
+        public final Map<StrategySignature, Set<StrategySignature>> dynamicRules;
         public final List<Message2<?>> messages;
 
         public Output(Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts,
+            Map<StrategySignature, Set<StrategySignature>> dynamicRules,
             List<Message2<?>> messages) {
             this.strategyDataWithCasts = strategyDataWithCasts;
+            this.dynamicRules = dynamicRules;
             this.messages = messages;
         }
 
@@ -100,11 +104,14 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
 
             if(!strategyDataWithCasts.equals(output.strategyDataWithCasts))
                 return false;
+            if(!dynamicRules.equals(output.dynamicRules))
+                return false;
             return messages.equals(output.messages);
         }
 
         @Override public int hashCode() {
             int result = strategyDataWithCasts.hashCode();
+            result = 31 * result + dynamicRules.hashCode();
             result = 31 * result + messages.hashCode();
             return result;
         }
@@ -113,34 +120,6 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
             return "CheckModule.Output(" + messages.size() + ")";
         }
 
-        public static class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
-            implements Function<Output, T>, Serializable {
-            public final StrategySignature strategySignature;
-
-            public GetStrategyAnalysisData(StrategySignature strategySignature) {
-                this.strategySignature = strategySignature;
-            }
-
-            @SuppressWarnings("unchecked") @Override public T apply(Output output) {
-                return (T) output.strategyDataWithCasts
-                    .getOrDefault(strategySignature, Collections.emptySet());
-            }
-
-            @Override public boolean equals(@Nullable Object o) {
-                if(this == o)
-                    return true;
-                if(o == null || getClass() != o.getClass())
-                    return false;
-
-                GetStrategyAnalysisData<?> that = (GetStrategyAnalysisData<?>) o;
-
-                return strategySignature.equals(that.strategySignature);
-            }
-
-            @Override public int hashCode() {
-                return strategySignature.hashCode();
-            }
-        }
     }
 
     private final Resolve resolve;
@@ -159,36 +138,45 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     }
 
     @Override public Output exec(ExecContext context, Input input) throws Exception {
-        final ModuleData moduleData = context.require(front, input);
+        final @Nullable ModuleData moduleData = context.require(front, input);
+        assert moduleData != null;
 
         final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
         final InsertCasts.Input2 input2 =
             new InsertCasts.Input2(input.moduleIdentifier, environment);
-        final InsertCasts.Output output = context.require(insertCasts, input2);
+        final @Nullable InsertCasts.Output output = context.require(insertCasts, input2);
+        assert output != null;
 
+        final Map<StrategySignature, Set<StrategySignature>> dynamicRules = new HashMap<>();
         final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
             extractStrategyDefs(input.moduleIdentifier, input2.environment.lastModified,
-                output.astWithCasts);
+                output.astWithCasts, dynamicRules);
 
         final List<Message2<?>> messages = new ArrayList<>(output.messages.size());
         for(Message<?> message : output.messages) {
             messages.add(Message2.from(message));
         }
 
-        checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData, messages);
+        checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
+            moduleData.dynamicRuleData.keySet(), messages);
 
-        return new Output(strategyDataWithCasts, messages);
+        return new Output(strategyDataWithCasts, dynamicRules, messages);
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context, Input input,
         Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
+        Set<StrategySignature> dynamicRuleGenerated,
         List<Message2<?>> messages) {
+        final HashSet<StrategySignature> strategyFilter =
+            new HashSet<>(normalStrategyData.keySet());
+        strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs = PieUtils.requirePartial(context, resolve, input.resolveInput(),
-            new GlobalData.ToAnnoDefs(new HashSet<>(normalStrategyData.keySet())));
+            new GlobalData.ToAnnoDefs(strategyFilter));
 
         for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
-            final IStrategoString signatureNameTerm = TermUtils.toStringAt(e.getKey(), 0);
+            final StrategySignature strategySignature = e.getKey();
+            final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
             final EnumSet<StrategyFrontData.Kind> kinds =
                 EnumSet.noneOf(StrategyFrontData.Kind.class);
             final String moduleString = input.moduleIdentifier.moduleString();
@@ -202,24 +190,24 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
             }
             if(kinds.contains(StrategyFrontData.Kind.Override) || kinds
                 .contains(StrategyFrontData.Kind.Extend)) {
-                if(!annoDefs.externalStrategySigs.contains(e.getKey())) {
+                if(!annoDefs.externalStrategySigs.contains(strategySignature)) {
                     messages.add(Message2
                         .from(Message.externalStrategyNotFound(moduleString, signatureNameTerm)));
                 }
             }
             if(kinds.contains(StrategyFrontData.Kind.Normal)) {
-                if(annoDefs.externalStrategySigs.contains(e.getKey())) {
+                if(annoDefs.externalStrategySigs.contains(strategySignature)) {
                     messages.add(Message2
                         .from(Message.externalStrategyOverlap(moduleString, signatureNameTerm)));
                 }
-                if(annoDefs.internalStrategySigs.contains(e.getKey())) {
+                if(annoDefs.internalStrategySigs.contains(strategySignature)) {
                     messages.add(Message2
                         .from(Message.internalStrategyOverlap(moduleString, signatureNameTerm)));
                 }
-                if(kinds.contains(StrategyFrontData.Kind.DynRuleGenerated)) {
+                if(dynamicRuleGenerated.contains(strategySignature)) {
                     messages.add(Message2.from(
                         new StrategyOverlapsWithDynamicRuleHelper(input.moduleIdentifier,
-                            signatureNameTerm, e.getKey(), MessageSeverity.ERROR)));
+                            signatureNameTerm, strategySignature, MessageSeverity.ERROR)));
                 }
             } else {
                 if(kinds.contains(StrategyFrontData.Kind.TypeDefinition)) {
@@ -231,9 +219,9 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
         }
     }
 
-    private static Map<StrategySignature, Set<StrategyAnalysisData>> extractStrategyDefs(
-        ModuleIdentifier moduleIdentifier, long lastModified, IStrategoTerm ast)
-        throws WrongASTException {
+    public static Map<StrategySignature, Set<StrategyAnalysisData>> extractStrategyDefs(
+        ModuleIdentifier moduleIdentifier, long lastModified, IStrategoTerm ast,
+        Map<StrategySignature, Set<StrategySignature>> dynamicRules) throws WrongASTException {
         final Map<StrategySignature, Set<StrategyAnalysisData>> strategyData = new HashMap<>();
 
         final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
@@ -249,8 +237,8 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(moduleIdentifier, lastModified, strategyData,
-                        def.getSubterm(0));
+                    addStrategyData(moduleIdentifier, lastModified, strategyData, def.getSubterm(0),
+                        dynamicRules);
                     break;
                 default:
                     throw new WrongASTException(moduleIdentifier, def);
@@ -260,8 +248,8 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
     }
 
     private static void addStrategyData(ModuleIdentifier moduleIdentifier, long lastModified,
-        Map<StrategySignature, Set<StrategyAnalysisData>> strategyData, IStrategoTerm strategyDefs)
-        throws WrongASTException {
+        Map<StrategySignature, Set<StrategyAnalysisData>> strategyData, IStrategoTerm strategyDefs,
+        Map<StrategySignature, Set<StrategySignature>> dynamicRules) throws WrongASTException {
         for(IStrategoTerm strategyDef : strategyDefs) {
             if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
@@ -281,6 +269,11 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                 }
                 Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
                     .add(new StrategyAnalysisData(strategyDefAppl, lastModified));
+                final Set<StrategySignature> collect = CollectDynRuleSigs.collect(strategyDefAppl);
+                for(StrategySignature dynRuleSig : collect) {
+                    Relation.getOrInitialize(dynamicRules, dynRuleSig, HashSet::new)
+                        .add(strategySignature);
+                }
             }
         }
     }
@@ -372,6 +365,13 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                         strategyFrontDatum.getType(tf));
             }
         }
+        for(Set<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
+            for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
+                ModuleData.ToTypesLookup
+                    .registerStrategyType(strategyTypes, strategyFrontDatum.signature,
+                        strategyFrontDatum.getType(tf));
+            }
+        }
         for(Map.Entry<ConstructorSignature, List<ConstructorData>> e : moduleData.constrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
@@ -402,5 +402,71 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
 
     @Override public String getId() {
         return id;
+    }
+
+    public static class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
+        implements Function<Output, T>, Serializable {
+        public final StrategySignature strategySignature;
+
+        public GetStrategyAnalysisData(StrategySignature strategySignature) {
+            this.strategySignature = strategySignature;
+        }
+
+        @SuppressWarnings("unchecked") @Override public T apply(Output output) {
+            return (T) output.strategyDataWithCasts
+                .getOrDefault(strategySignature, Collections.emptySet());
+        }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            GetStrategyAnalysisData<?> that = (GetStrategyAnalysisData<?>) o;
+
+            return strategySignature.equals(that.strategySignature);
+        }
+
+        @Override public int hashCode() {
+            return strategySignature.hashCode();
+        }
+    }
+
+    public static class GetDynamicRuleAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
+        implements Function<Output, T>, Serializable {
+        public final StrategySignature strategySignature;
+
+        public GetDynamicRuleAnalysisData(StrategySignature strategySignature) {
+            this.strategySignature = strategySignature;
+        }
+
+        @SuppressWarnings("unchecked") @Override public T apply(Output output) {
+            final T result = (T) new HashSet<StrategyAnalysisData>();
+            for(StrategySignature signature : output.dynamicRules
+                .getOrDefault(strategySignature, Collections.emptySet())) {
+                final @Nullable Set<StrategyAnalysisData> analysisData =
+                    output.strategyDataWithCasts.get(signature);
+                if(analysisData != null) {
+                    result.addAll(analysisData);
+                }
+            }
+            return result;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            GetDynamicRuleAnalysisData<?> that = (GetDynamicRuleAnalysisData<?>) o;
+
+            return strategySignature.equals(that.strategySignature);
+        }
+
+        @Override public int hashCode() {
+            return strategySignature.hashCode();
+        }
     }
 }

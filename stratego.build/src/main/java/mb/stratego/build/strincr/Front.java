@@ -76,6 +76,8 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData = new HashMap<>();
+        final Set<StrategySignature> dynamicRules = new HashSet<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
@@ -109,7 +111,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                     // fall-through
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        externalStrategyData, def.getSubterm(0));
+                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
@@ -126,8 +128,8 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
             .visit(ast.wrapped);
 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, internalStrategyData, externalStrategyData, overlayData, usedConstructors,
-            usedStrategies, usedAmbiguousStrategies, ast.lastModified);
+            strategyData, internalStrategyData, externalStrategyData, dynamicRuleData, overlayData, usedConstructors,
+            usedStrategies, dynamicRules, usedAmbiguousStrategies, ast.lastModified);
     }
 
     public static IStrategoList getDefs(ModuleIdentifier moduleIdentifier, IStrategoTerm ast)

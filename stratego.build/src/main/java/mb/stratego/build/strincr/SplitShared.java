@@ -45,7 +45,8 @@ public abstract class SplitShared {
         Map<StrategySignature, Set<StrategyFrontData>> strategyData,
         Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
         Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
-        IStrategoTerm strategyDefs) throws WrongASTException {
+        Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData,
+        Set<StrategySignature> dynamicRules, IStrategoTerm strategyDefs) throws WrongASTException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -115,8 +116,9 @@ public abstract class SplitShared {
 
             // collect-om(dyn-rule-sig)
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
+                dynamicRules.add(dynRuleSig);
                 for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
-                    Relation.getOrInitialize(strategyData, signature, HashSet::new)
+                    Relation.getOrInitialize(dynamicRuleData, signature, HashSet::new)
                         .add(new StrategyFrontData(signature, null, DynRuleGenerated));
                 }
             }

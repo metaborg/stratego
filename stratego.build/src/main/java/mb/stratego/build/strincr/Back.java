@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -115,6 +116,30 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             this.moduleImportService = moduleImportService;
         }
 
+        public void getStrategyContributions(ExecContext context, CheckModule checkModule,
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
+            final StrategySignature strategySignature = this.strategySignature;
+            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                .requirePartial(context, this.resolveTask,
+                    new GlobalData.ModulesDefiningStrategy<>(strategySignature));
+
+            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                if(moduleIdentifier.isLibrary()) {
+                    continue;
+                }
+                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    .requirePartial(context, checkModule,
+                        new CheckModule.Input(this.mainModuleIdentifier, moduleIdentifier,
+                            this.moduleImportService),
+                        new CheckModule.GetStrategyAnalysisData<>(strategySignature));
+                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
+                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                        .visit(strategyAnalysisDatum.analyzedAst);
+                }
+            }
+        }
+
         @Override public boolean equals(@Nullable Object o) {
             if(this == o)
                 return true;
@@ -145,6 +170,67 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
     }
 
+    public static class DynamicRuleInput extends NormalInput {
+        public final STask<Check.Output> checkTask;
+
+        public DynamicRuleInput(StrategySignature strategySignature, ResourcePath outputDir,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            IModuleImportService moduleImportService, STask<Check.Output> checkTask) {
+            super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
+                extraArgs, resolveTask, mainModuleIdentifier, moduleImportService);
+            this.checkTask = checkTask;
+        }
+
+        @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
+            final StrategySignature strategySignature = this.strategySignature;
+            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                .requirePartial(context, this.checkTask,
+                    new Check.ModulesDefiningDynamicRule<>(strategySignature));
+
+            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                if(moduleIdentifier.isLibrary()) {
+                    continue;
+                }
+                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    .requirePartial(context, checkModule,
+                        new CheckModule.Input(this.mainModuleIdentifier, moduleIdentifier,
+                            this.moduleImportService),
+                        new CheckModule.GetDynamicRuleAnalysisData<>(strategySignature));
+                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
+                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                        .visit(strategyAnalysisDatum.analyzedAst);
+                }
+            }
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            DynamicRuleInput that = (DynamicRuleInput) o;
+
+            return checkTask.equals(that.checkTask);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + checkTask.hashCode();
+            return result;
+        }
+
+        @Override public String toString() {
+            return "Back.DynamicRuleInput(" + strategySignature.cifiedName() + ")";
+        }
+    }
+
     public static class BoilerplateInput extends Input {
         public BoilerplateInput(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
@@ -171,9 +257,12 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
 
     public static class Output implements Serializable {
         public final Set<ResourcePath> resultFiles;
+        public final Collection<? extends StrategySignature> compiledStrategies;
 
-        public Output(Set<ResourcePath> resultFiles) {
+        public Output(Set<ResourcePath> resultFiles,
+            Collection<? extends StrategySignature> compiledStrategies) {
             this.resultFiles = resultFiles;
+            this.compiledStrategies = compiledStrategies;
         }
 
         @Override public boolean equals(Object o) {
@@ -184,11 +273,15 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
 
             Output output = (Output) o;
 
-            return resultFiles.equals(output.resultFiles);
+            if(!resultFiles.equals(output.resultFiles))
+                return false;
+            return compiledStrategies.equals(output.compiledStrategies);
         }
 
         @Override public int hashCode() {
-            return resultFiles.hashCode();
+            int result = resultFiles.hashCode();
+            result = 31 * result + compiledStrategies.hashCode();
+            return result;
         }
 
         @Override public String toString() {
@@ -217,6 +310,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
     }
 
     @Override public Output exec(ExecContext context, Input input) throws Exception {
+        final Set<StrategySignature> compiledStrategies = new HashSet<>();
         final boolean isBoilerplate = input instanceof BoilerplateInput;
         final IStrategoTerm ctree;
         if(isBoilerplate) {
@@ -225,7 +319,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
             addDrConstructors(constructors);
             constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
-            final Set<StrategySignature> strategies = new HashSet<>(globalIndex.nonExternalStrategies);
+            final Set<StrategySignature> strategies =
+                new HashSet<>(globalIndex.nonExternalStrategies);
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
             }
@@ -240,38 +335,21 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final List<IStrategoAppl> congruences = new ArrayList<>();
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
-                    // TODO: give warning or note that congruence is not added because a strategy of that name exists?
+                    context.logger().debug("Skipping congruence overlapping with existing strategy: " + constructor);
                     continue;
                 }
+                compiledStrategies.add(constructor.toCongruenceSig());
                 congruences.add(constructor.congruenceAst(termFactory));
             }
             congruences.add(ConstructorSignature.annoCongAst(termFactory));
+            compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
             ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
-        } else { // if(input instanceof NormalInput) {
-            final NormalInput normalInput = (NormalInput) input;
-            final StrategySignature strategySignature = normalInput.strategySignature;
-            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
-                .requirePartial(context, input.resolveTask,
-                    new GlobalData.ModulesDefiningStrategy<>(strategySignature));
-
-            final List<IStrategoAppl> strategyContributions =
-                new ArrayList<>(modulesDefiningStrategy.size());
+        } else {
+            final List<IStrategoAppl> strategyContributions = new ArrayList<>();
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
-            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
-                if(moduleIdentifier.isLibrary()) {
-                    continue;
-                }
-                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                    .requirePartial(context, checkModule,
-                        new CheckModule.Input(normalInput.mainModuleIdentifier, moduleIdentifier,
-                            normalInput.moduleImportService),
-                        new CheckModule.Output.GetStrategyAnalysisData<>(strategySignature));
-                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
-                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
-                        .visit(strategyAnalysisDatum.analyzedAst);
-                }
-            }
+            final NormalInput normalInput = (NormalInput) input;
+            normalInput.getStrategyContributions(context, checkModule, strategyContributions,
+                usedConstructors);
 
             final Set<ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, input.resolveTask,
@@ -301,6 +379,10 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             assert result.result != null;
 
             ctree = result.result;
+
+            final Map<StrategySignature, Set<StrategyAnalysisData>> strategySignatureSetMap =
+                CheckModule.extractStrategyDefs(null, 0L, ctree, Collections.emptyMap());
+            compiledStrategies.addAll(strategySignatureSetMap.keySet());
         }
 
         // Call Stratego compiler
@@ -355,7 +437,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             }
         }
 
-        return new Output(resultFiles);
+        return new Output(resultFiles, compiledStrategies);
     }
 
     private static void addDrConstructors(Set<ConstructorSignature> constructors) {

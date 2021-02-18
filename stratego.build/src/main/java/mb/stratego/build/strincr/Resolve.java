@@ -56,6 +56,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
         final Set<StrategySignature> internalStrategies = new HashSet<>();
         final Set<StrategySignature> externalStrategies = new HashSet<>();
+        final Set<StrategySignature> dynamicRules = new HashSet<>();
 
         final Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>>
             overlayUsesConstructors = new HashMap<>();
@@ -103,6 +104,11 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                         .add(moduleIdentifier);
                     externalStrategies.add(signature);
                 }
+                for(StrategySignature signature : index.dynamicRules) {
+                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                        .add(moduleIdentifier);
+                    dynamicRules.add(signature);
+                }
                 for(Map.Entry<ConstructorSignature, List<OverlayData>> e : index.overlayData
                     .entrySet()) {
                     Relation.getOrInitialize(overlayIndex, e.getKey(), HashSet::new)
@@ -128,7 +134,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
         return new GlobalData(allModuleIdentifiers, constructorIndex, strategyIndex, overlayIndex,
-            internalStrategies, externalStrategies, messages);
+            internalStrategies, externalStrategies, dynamicRules, messages);
     }
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,

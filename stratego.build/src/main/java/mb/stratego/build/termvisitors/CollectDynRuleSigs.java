@@ -1,7 +1,7 @@
 package mb.stratego.build.termvisitors;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
@@ -9,9 +9,9 @@ import org.spoofax.terms.util.TermUtils;
 import mb.stratego.build.strincr.StrategySignature;
 
 public class CollectDynRuleSigs {
-    private final Collection<StrategySignature> signatures = new HashSet<>();
+    private final Set<StrategySignature> signatures = new HashSet<>();
 
-    public static Collection<StrategySignature> collect(IStrategoTerm ast) {
+    public static Set<StrategySignature> collect(IStrategoTerm ast) {
         CollectDynRuleSigs instance = new CollectDynRuleSigs();
         instance.visit(ast);
         return instance.signatures;

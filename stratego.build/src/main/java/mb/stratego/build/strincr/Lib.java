@@ -34,6 +34,8 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = Collections.emptyMap();
         final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData =
             Collections.emptyMap();
+        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData = Collections.emptyMap();
+        final Set<StrategySignature> dynamicRules = Collections.emptySet();
 
         final LastModified<IStrategoTerm> ast =
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
@@ -53,7 +55,7 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
                     break;
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        externalStrategyData, def.getSubterm(0));
+                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
                     break;
                 default:
                     throw new WrongASTException(input.moduleIdentifier, def);
@@ -61,8 +63,8 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
         }
 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, internalStrategyData, externalStrategyData, overlayData, usedConstructors,
-            usedStrategies, usedAmbiguousStrategies, ast.lastModified);
+            strategyData, internalStrategyData, externalStrategyData, dynamicRuleData, overlayData, usedConstructors,
+            usedStrategies, dynamicRules, usedAmbiguousStrategies, ast.lastModified);
     }
 
     private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
