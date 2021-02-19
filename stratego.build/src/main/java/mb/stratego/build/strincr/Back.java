@@ -29,6 +29,8 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.ResourceKeyString;
+import mb.resource.fs.FSPath;
+import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.termvisitors.UsedConstrs;
@@ -335,7 +337,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         if(isBoilerplate) {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
-            final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
+            final List<ConstructorSignature> constructors = new ArrayList<>(globalIndex.constructors.size() + 3);
+            constructors.addAll(globalIndex.constructors);
             addDrConstructors(constructors);
             constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
             final Set<StrategySignature> strategies =
@@ -343,15 +346,17 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
             }
+            // TODO: Create OpDecl and OpDeclInj list to put into boilerplate task for registering constructors and injections, for gradual types runtime
             ctree = Packer
-                .packBoilerplate(termFactory, constructors, strategyStubs.declStubs(strategies));
+                .packBoilerplate(termFactory, Collections.emptyList(), strategyStubs.declStubs(strategies));
         } else if(input instanceof CongruenceInput) {
             // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
-            final Set<ConstructorSignature> constructors = new HashSet<>(globalIndex.constructors);
+            final List<ConstructorSignature> constructors = new ArrayList<>(globalIndex.constructors.size() + 2);
+            constructors.addAll(globalIndex.constructors);
             addDrConstructors(constructors);
-            final List<IStrategoAppl> congruences = new ArrayList<>();
+            final List<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     context.logger().debug(
@@ -451,9 +456,9 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 String fileName = line.substring(
                     line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
                         + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
-                resultFiles.add(
-                    context.getResourceService().getResourcePath(ResourceKeyString.of(fileName)));
-                context.provide(new File(fileName));
+                final File file = new File(fileName);
+                context.provide(file);
+                resultFiles.add(new FSPath(file.toPath()));
             }
         }
 
@@ -494,7 +499,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             .makeAppl("SDefT", tf.makeString(dynamicCalls), tf.makeList(), tf.makeList(), body);
     }
 
-    private static void addDrConstructors(Set<ConstructorSignature> constructors) {
+    private static void addDrConstructors(Collection<ConstructorSignature> constructors) {
         constructors.add(new ConstructorSignature("DR_DUMMY", 0, 0));
         constructors.add(new ConstructorSignature("DR_UNDEFINE", 1, 0));
     }

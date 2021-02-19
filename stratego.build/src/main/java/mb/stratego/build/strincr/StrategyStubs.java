@@ -45,7 +45,7 @@ public class StrategyStubs {
     List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategySignatures.size());
         for(StrategySignature sig : strategySignatures) {
-            decls.add(sdefStub(tf, sig.name, sig.noStrategyArgs, sig.noTermArgs));
+            decls.add(sdefStub(tf, sig.cifiedName(), sig.noStrategyArgs, sig.noTermArgs));
         }
         return decls;
     }
