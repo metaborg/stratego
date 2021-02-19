@@ -113,7 +113,7 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
         this.checkModule = checkModule;
     }
 
-    @Override public Output exec(ExecContext context, Input input) throws ExecException {
+    @Override public Output exec(ExecContext context, Input input) {
         final Map<ModuleIdentifier, STask<CheckModule.Output>> moduleCheckTasks = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> dynamicRuleIndex = new HashMap<>();

@@ -95,7 +95,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
 
     @Override public Output exec(ExecContext execContext, Input input)
-        throws ExecException, InterruptedException {
+        throws ExecException {
         final String moduleName = input.moduleIdentifier.moduleString();
 
         final StrategoExecutor.ExecutionResult output = StrategoExecutor

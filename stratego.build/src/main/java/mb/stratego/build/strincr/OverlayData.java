@@ -3,7 +3,6 @@ package mb.stratego.build.strincr;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class OverlayData extends ConstructorData {
     public final Set<ConstructorSignature> usedConstructors;

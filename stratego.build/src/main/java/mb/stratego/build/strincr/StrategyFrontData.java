@@ -6,7 +6,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 public class StrategyFrontData {
     public final StrategySignature signature;
-    protected @Nullable StrategyType type;
+    public final @Nullable StrategyType type;
     public final Kind kind;
 
     protected StrategyFrontData(StrategySignature signature, @Nullable StrategyType type,

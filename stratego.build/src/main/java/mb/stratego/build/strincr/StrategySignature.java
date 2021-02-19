@@ -85,24 +85,6 @@ public class StrategySignature extends StrategoTuple {
         return result;
     }
 
-    public static boolean isCified(String name) {
-        try {
-            int lastUnderlineOffset = name.lastIndexOf('_');
-            if(lastUnderlineOffset == -1) {
-                return false;
-            }
-            Integer.parseInt(name.substring(lastUnderlineOffset + 1));
-            int penultimateUnderlineOffset = name.lastIndexOf('_', lastUnderlineOffset - 1);
-            if(penultimateUnderlineOffset == -1) {
-                return false;
-            }
-            Integer.parseInt(name.substring(penultimateUnderlineOffset + 1, lastUnderlineOffset));
-        } catch(RuntimeException e) {
-            return false;
-        }
-        return true;
-    }
-
     public static @Nullable StrategySignature fromCified(String cifiedName) {
         try {
             int lastUnderlineOffset = cifiedName.lastIndexOf('_');
@@ -122,18 +104,6 @@ public class StrategySignature extends StrategoTuple {
         } catch(NumberFormatException e) {
             return null;
         }
-    }
-
-    public static @Nullable StrategySignature fromTuple(IStrategoTerm tuple) {
-        if(!TermUtils.isTuple(tuple) && tuple.getSubtermCount() == 3) {
-            return null;
-        }
-        if(!TermUtils.isStringAt(tuple, 0) || !TermUtils.isIntAt(tuple, 1) || !TermUtils
-            .isIntAt(tuple, 2)) {
-            return null;
-        }
-        return new StrategySignature(TermUtils.toStringAt(tuple, 0), TermUtils.toIntAt(tuple, 1),
-            TermUtils.toIntAt(tuple, 2));
     }
 
     public static @Nullable StrategySignature fromCall(IStrategoTerm term) {

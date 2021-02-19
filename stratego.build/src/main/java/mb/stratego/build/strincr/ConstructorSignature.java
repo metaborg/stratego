@@ -51,68 +51,6 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
         return super.doSlowMatch(second);
     }
 
-    public String cifiedName() {
-        return cify(name) + "_" + noArgs;
-    }
-
-    public IStrategoTerm standardType(ITermFactory tf) {
-        final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-        final IStrategoList.Builder sargTypes = tf.arrayListBuilder(noArgs);
-        for(int i = 0; i < noArgs; i++) {
-            sargTypes.add(dyn);
-        }
-        return tf.makeAppl("ConstrType", tf.makeList(sargTypes), dyn);
-    }
-
-    public static boolean isCified(String name) {
-        try {
-            int lastUnderlineOffset = name.lastIndexOf('_');
-            if(lastUnderlineOffset == -1) {
-                return false;
-            }
-            Integer.parseInt(name.substring(lastUnderlineOffset + 1));
-        } catch(RuntimeException e) {
-            return false;
-        }
-        return true;
-    }
-
-    public static @Nullable ConstructorSignature fromCified(String cifiedName, long lastModified) {
-        try {
-            int lastUnderlineOffset = cifiedName.lastIndexOf('_');
-            if(lastUnderlineOffset == -1) {
-                return null;
-            }
-            int arity = Integer.parseInt(cifiedName.substring(lastUnderlineOffset + 1));
-            return new ConstructorSignature(
-                SDefT.unescape(cifiedName.substring(0, lastUnderlineOffset)), arity, lastModified);
-        } catch(NumberFormatException e) {
-            return null;
-        }
-    }
-
-    public static @Nullable ConstructorSignature fromTuple(IStrategoTerm tuple, long lastModified) {
-        if(!TermUtils.isTuple(tuple) || tuple.getSubtermCount() != 2 || !TermUtils
-            .isIntAt(tuple, 1)) {
-            return null;
-        }
-        if(TermUtils.isStringAt(tuple, 0)) {
-            return new ConstructorSignature(TermUtils.toStringAt(tuple, 0),
-                TermUtils.toIntAt(tuple, 1), lastModified);
-        }
-        if(TermUtils.isApplAt(tuple, 0) && TermUtils.tryGetName(tuple.getSubterm(0))
-            .map(n -> n.equals("Q")).orElse(false)) {
-            final String escapedNameString =
-                StringUtils.escape(TermUtils.toStringAt(tuple.getSubterm(0), 0).stringValue());
-            final StrategoString escapedName =
-                new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
-            AbstractTermFactory.staticCopyAttachments(tuple.getSubterm(0), escapedName);
-            return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1),
-                lastModified);
-        }
-        return null;
-    }
-
     public static @Nullable ConstructorSignature fromTerm(IStrategoTerm consDef,
         long lastModified) {
         if(!TermUtils.isAppl(consDef)) {

@@ -19,7 +19,7 @@ public class ConstructorData {
 
     public boolean isOverlay() {
         return false;
-    };
+    }
 
     @Override public boolean equals(@Nullable Object o) {
         if(this == o)

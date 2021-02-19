@@ -3,6 +3,8 @@ package mb.stratego.build.strincr.message;
 import java.io.Serializable;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
@@ -64,7 +66,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
     }
 
     public static JavaMessage<IStrategoString> externalStrategyNotFound(String module, IStrategoString definitionName) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(definitionName);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(definitionName);
         if(origin != null && TermUtils.isString(origin)) {
             definitionName = (IStrategoString) origin;
         }
@@ -73,7 +75,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
 
     public static JavaMessage<IStrategoString> strategyNotFound(String module, IStrategoString name,
         MessageSeverity severity) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
@@ -82,7 +84,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
 
     public static JavaMessage<IStrategoString> constructorNotFound(String module, IStrategoString name,
         MessageSeverity severity) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
@@ -90,7 +92,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
     }
 
     public static JavaMessage<IStrategoString> externalStrategyOverlap(String module, IStrategoString name) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
@@ -98,7 +100,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
     }
 
     public static Message<?> internalStrategyOverlap(String module, IStrategoString name) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
@@ -106,7 +108,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
     }
 
     public static JavaMessage<IStrategoTerm> cyclicOverlay(String module, IStrategoTerm name, Set<String> overlayScc) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null) {
             name = origin;
         }
@@ -115,7 +117,7 @@ public abstract class Message<T extends IStrategoTerm> implements Serializable {
 
     public static JavaMessage<IStrategoString> ambiguousStrategyCall(String module, IStrategoString name,
         Set<String> defs) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
+        final @Nullable IStrategoTerm origin = OriginAttachment.getOrigin(name);
         if(origin != null && TermUtils.isString(origin)) {
             name = (IStrategoString) origin;
         }
