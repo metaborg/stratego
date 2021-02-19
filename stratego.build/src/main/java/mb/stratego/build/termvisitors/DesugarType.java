@@ -15,9 +15,8 @@ public class DesugarType {
         return visit(context, t);
     }
 
-    @SuppressWarnings("unchecked")
     private static IStrategoTerm visit(Context context, IStrategoTerm t) {
-        IStrategoTerm result = desugarType(context.getFactory(), t);
+        final @Nullable IStrategoTerm result = desugarType(context.getFactory(), t);
         if(result == null) {
             return SRTS_all.instance.invoke(context, t, new Strategy() {
                 @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
@@ -110,7 +109,45 @@ public class DesugarType {
     }
 
     private static @Nullable IStrategoTerm desugarSType(ITermFactory tf, IStrategoTerm term) {
-        // TODO
-        return null;
+        @Nullable IStrategoTerm result = null;
+        if(TermUtils.isAppl(term, "TP", 0)) {
+            // desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
+            result = tf.makeAppl("FunTType", tf.makeList(), tf.makeList(), term);
+        } else if(TermUtils.isAppl(term, "FunNoArgsType", 2)) {
+            // desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], FunNoArgsType(<desugar-Type> i, <desugar-Type> o))\)
+            final IStrategoTerm i = tryDesugarType(tf, term.getSubterm(0));
+            final IStrategoTerm o = tryDesugarType(tf, term.getSubterm(1));
+            result = tf.makeAppl("FunTType", tf.makeList(), tf.makeList(), tf.makeAppl("FunNoArgsType", i, o));
+        } else if(TermUtils.isAppl(term, "FunType", 2)) {
+//            desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
+            final IStrategoList sargs = TermUtils.toListAt(term, 0);
+            final IStrategoList.Builder sargs2 = tf.arrayListBuilder(sargs.size());
+            for(IStrategoTerm sarg : sargs) {
+                sargs2.add(tryDesugarSType(tf, sarg));
+            }
+            final IStrategoTerm t = tryDesugarType(tf, term.getSubterm(1));
+            result = tf.makeAppl("FunTType", sargs2.build(), tf.makeList(), t);
+        } else if(TermUtils.isAppl(term, "FunTType", 4) && TermUtils.isApplAt(term, 2, "FunNoArgsType", 2)) {
+//            desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), FunNoArgsType(desugar-Type, desugar-Type));not(?a))
+            final IStrategoList sargs = TermUtils.toListAt(term, 0);
+            final IStrategoList.Builder sargs2 = tf.arrayListBuilder(sargs.size());
+            for(IStrategoTerm sarg : sargs) {
+                sargs2.add(tryDesugarSType(tf, sarg));
+            }
+            final IStrategoList targs = TermUtils.toListAt(term, 1);
+            final IStrategoList.Builder targs2 = tf.arrayListBuilder(targs.size());
+            for(IStrategoTerm targ : targs) {
+                targs2.add(tryDesugarType(tf, targ));
+            }
+            final IStrategoTerm i = tryDesugarType(tf, term.getSubterm(2).getSubterm(0));
+            final IStrategoTerm o = tryDesugarType(tf, term.getSubterm(2).getSubterm(1));
+            result = tf.makeAppl("FunTType", sargs2.build(), targs2.build(), tf.makeAppl("FunNoArgsType", i, o));
+            if(result.equals(term)) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+        return tf.replaceTerm(result, term);
     }
 }
