@@ -4,14 +4,17 @@ import java.io.Serializable;
 import java.util.Collection;
 
 public class GlobalIndex implements Serializable {
-    public final Collection<ConstructorSignature> constructors;
+    public final Collection<ConstructorSignature> nonExternalConstructors;
+    public final Collection<ConstructorSignature> externalConstructors;
     public final Collection<StrategySignature> nonExternalStrategies;
     public final Collection<StrategySignature> dynamicRules;
 
-    public GlobalIndex(Collection<ConstructorSignature> constructors,
+    public GlobalIndex(Collection<ConstructorSignature> nonExternalConstructors,
+        Collection<ConstructorSignature> externalConstructors,
         Collection<StrategySignature> nonExternalStrategies,
         Collection<StrategySignature> dynamicRules) {
-        this.constructors = constructors;
+        this.nonExternalConstructors = nonExternalConstructors;
+        this.externalConstructors = externalConstructors;
         this.nonExternalStrategies = nonExternalStrategies;
         this.dynamicRules = dynamicRules;
     }
@@ -24,7 +27,9 @@ public class GlobalIndex implements Serializable {
 
         GlobalIndex that = (GlobalIndex) o;
 
-        if(!constructors.equals(that.constructors))
+        if(!nonExternalConstructors.equals(that.nonExternalConstructors))
+            return false;
+        if(!externalConstructors.equals(that.externalConstructors))
             return false;
         if(!nonExternalStrategies.equals(that.nonExternalStrategies))
             return false;
@@ -32,7 +37,8 @@ public class GlobalIndex implements Serializable {
     }
 
     @Override public int hashCode() {
-        int result = constructors.hashCode();
+        int result = nonExternalConstructors.hashCode();
+        result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + nonExternalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         return result;

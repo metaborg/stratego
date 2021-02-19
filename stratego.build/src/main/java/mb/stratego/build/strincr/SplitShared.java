@@ -169,8 +169,10 @@ public abstract class SplitShared {
 
     protected void addSigData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections, IStrategoTerm sigs, long lastModified)
-        throws WrongASTException {
+        Map<ConstructorSignature, List<ConstructorData>> externalConstrData,
+        Map<IStrategoTerm, List<IStrategoTerm>> injections,
+        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections, IStrategoTerm sigs,
+        long lastModified) throws WrongASTException {
         for(IStrategoTerm sig : sigs) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
                 final IStrategoTerm constrs = sig.getSubterm(0);
@@ -181,13 +183,19 @@ public abstract class SplitShared {
                     final @Nullable ConstructorSignature constrSig =
                         ConstructorSignature.fromTerm(constrDef, lastModified);
                     if(constrSig == null) {
-                        addInjectionData(moduleIdentifier, constrDef, injections, constrData,
-                            lastModified);
+                        addInjectionData(moduleIdentifier, constrDef, injections,
+                            externalInjections, constrData, lastModified);
                         continue;
                     }
                     final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
                     final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                    Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                    final Map<ConstructorSignature, List<ConstructorData>> dataMap;
+                    if(ConstructorSignature.isExternal(constrDef)) {
+                        dataMap = externalConstrData;
+                    } else {
+                        dataMap = constrData;
+                    }
+                    Relation.getOrInitialize(dataMap, constrSig, ArrayList::new).add(
                         new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                 }
             }
@@ -247,6 +255,7 @@ public abstract class SplitShared {
 
     private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm constrDef, Map<IStrategoTerm, List<IStrategoTerm>> injections,
+        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections,
         Map<ConstructorSignature, List<ConstructorData>> constrData, long lastModified)
         throws WrongASTException {
         /*
@@ -275,8 +284,10 @@ public abstract class SplitShared {
         if(!TermUtils.isAppl(constrDef)) {
             throw new WrongASTException(moduleIdentifier, constrDef);
         }
+        Map<IStrategoTerm, List<IStrategoTerm>> dataMap = externalInjections;
         switch(TermUtils.toAppl(constrDef).getName()) {
             case "OpDeclInj":
+                dataMap = injections;
                 // fall-through
             case "ExtOpDeclInj":
                 if(constrDef.getSubtermCount() != 1) {
@@ -309,7 +320,7 @@ public abstract class SplitShared {
                             new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                         break;
                 }
-                Relation.getOrInitialize(injections, from, ArrayList::new).add(constrType.to);
+                Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }
     }
 }

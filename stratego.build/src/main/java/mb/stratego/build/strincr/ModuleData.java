@@ -27,7 +27,9 @@ public class ModuleData implements Serializable, WithLastModified {
     public final IStrategoTerm ast;
     public final List<IStrategoTerm> imports;
     public final Map<ConstructorSignature, List<ConstructorData>> constrData;
+    public final Map<ConstructorSignature, List<ConstructorData>> externalConstrData;
     public final Map<IStrategoTerm, List<IStrategoTerm>> injections;
+    public final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections;
     public final Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData;
     public final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData;
     public final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData;
@@ -42,7 +44,9 @@ public class ModuleData implements Serializable, WithLastModified {
 
     public ModuleData(ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
         List<IStrategoTerm> imports, Map<ConstructorSignature, List<ConstructorData>> constrData,
+        Map<ConstructorSignature, List<ConstructorData>> externalConstrData,
         Map<IStrategoTerm, List<IStrategoTerm>> injections,
+        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections,
         Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
         Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
         Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
@@ -55,7 +59,9 @@ public class ModuleData implements Serializable, WithLastModified {
         this.ast = ast;
         this.imports = imports;
         this.constrData = constrData;
+        this.externalConstrData = externalConstrData;
         this.injections = injections;
+        this.externalInjections = externalInjections;
         this.normalStrategyData = normalStrategyData;
         this.internalStrategyData = internalStrategyData;
         this.externalStrategyData = externalStrategyData;
@@ -86,7 +92,11 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!constrData.equals(that.constrData))
             return false;
+        if(!externalConstrData.equals(that.externalConstrData))
+            return false;
         if(!injections.equals(that.injections))
+            return false;
+        if(!externalInjections.equals(that.externalInjections))
             return false;
         if(!normalStrategyData.equals(that.normalStrategyData))
             return false;
@@ -112,7 +122,9 @@ public class ModuleData implements Serializable, WithLastModified {
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + constrData.hashCode();
+        result = 31 * result + externalConstrData.hashCode();
         result = 31 * result + injections.hashCode();
+        result = 31 * result + externalInjections.hashCode();
         result = 31 * result + normalStrategyData.hashCode();
         result = 31 * result + internalStrategyData.hashCode();
         result = 31 * result + externalStrategyData.hashCode();
@@ -183,6 +195,7 @@ public class ModuleData implements Serializable, WithLastModified {
         @Override public ModuleIndex apply(ModuleData moduleData) {
             return new ModuleIndex(moduleData.imports,
                 new HashSet<>(moduleData.constrData.keySet()),
+                new HashSet<>(moduleData.externalConstrData.keySet()),
                 new HashSet<>(moduleData.normalStrategyData.keySet()),
                 new HashSet<>(moduleData.internalStrategyData.keySet()),
                 new HashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
@@ -253,6 +266,13 @@ public class ModuleData implements Serializable, WithLastModified {
                         .getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                         .add(constructorData.type);
                 }
+                for(ConstructorData constructorData : moduleData.externalConstrData
+                    .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
+                        Collections.emptyList())) {
+                    Relation
+                        .getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
+                        .add(constructorData.type);
+                }
                 for(OverlayData overlayData : moduleData.overlayData
                     .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
                         Collections.emptyList())) {
@@ -261,8 +281,16 @@ public class ModuleData implements Serializable, WithLastModified {
                 }
             }
 
-            return new TypesLookup(strategyTypes, constructorTypes, moduleData.injections,
-                moduleData.imports, moduleData.lastModified);
+
+            final Map<IStrategoTerm, List<IStrategoTerm>> injections =
+                new HashMap<>(moduleData.injections);
+            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.externalInjections
+                .entrySet()) {
+                Relation.getOrInitialize(injections, e.getKey(), ArrayList::new)
+                    .addAll(e.getValue());
+            }
+            return new TypesLookup(strategyTypes, constructorTypes, injections, moduleData.imports,
+                moduleData.lastModified);
         }
 
         public static void registerStrategyType(Map<StrategySignature, StrategyType> strategyTypes,

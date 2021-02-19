@@ -27,6 +27,7 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
 
     @Override public ModuleData exec(ExecContext context, Front.Input input) throws Exception {
         final List<IStrategoTerm> imports = Collections.emptyList();
+        final Map<ConstructorSignature, List<ConstructorData>> constrData = Collections.emptyMap();
         final Map<ConstructorSignature, List<OverlayData>> overlayData = Collections.emptyMap();
         final Set<ConstructorSignature> usedConstructors = Collections.emptySet();
         final Set<StrategySignature> usedStrategies = Collections.emptySet();
@@ -34,13 +35,15 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = Collections.emptyMap();
         final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData =
             Collections.emptyMap();
-        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData = Collections.emptyMap();
+        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData =
+            Collections.emptyMap();
         final Set<StrategySignature> dynamicRules = Collections.emptySet();
+        final Map<IStrategoTerm, List<IStrategoTerm>> injections = Collections.emptyMap();
 
         final LastModified<IStrategoTerm> ast =
             input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
-        final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
+        final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
+        final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
@@ -50,8 +53,8 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
             }
             switch(TermUtils.toAppl(def).getName()) {
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def.getSubterm(0),
-                        ast.lastModified);
+                    addSigData(input.moduleIdentifier, constrData, externalConstrData, injections,
+                        externalInjections, def.getSubterm(0), ast.lastModified);
                     break;
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
@@ -62,9 +65,10 @@ public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData>
             }
         }
 
-        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, internalStrategyData, externalStrategyData, dynamicRuleData, overlayData, usedConstructors,
-            usedStrategies, dynamicRules, usedAmbiguousStrategies, ast.lastModified);
+        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
+            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
+            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
+            dynamicRules, usedAmbiguousStrategies, ast.lastModified);
     }
 
     private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,

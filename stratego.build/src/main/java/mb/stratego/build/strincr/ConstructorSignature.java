@@ -107,7 +107,8 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
             final StrategoString escapedName =
                 new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
             AbstractTermFactory.staticCopyAttachments(tuple.getSubterm(0), escapedName);
-            return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1), lastModified);
+            return new ConstructorSignature(escapedName, TermUtils.toIntAt(tuple, 1),
+                lastModified);
         }
         return null;
     }
@@ -155,6 +156,29 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
         }
 
         return new ConstructorSignature(name, arity, lastModified);
+    }
+
+    public @Nullable static Boolean isExternal(IStrategoTerm consDef) {
+        if(!TermUtils.isAppl(consDef)) {
+            return null;
+        }
+        boolean isExternal = true;
+        switch(TermUtils.toAppl(consDef).getName()) {
+            case "OpDecl":
+            case "OpDeclQ":
+            case "OpDeclInj":
+                isExternal = false;
+                // fall-through
+            case "ExtOpDecl":
+            case "ExtOpDeclQ":
+            case "ExtOpDeclInj":
+                // fall-through
+                break;
+            default:
+                return null;
+        }
+
+        return isExternal;
     }
 
     public StrategySignature toCongruenceSig() {

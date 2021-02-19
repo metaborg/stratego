@@ -318,7 +318,7 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                     constructorTypes.__put(e.getKey(), ty);
                 }
             }
-            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : typesLookup.injections
+            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : typesLookup.allInjections
                 .entrySet()) {
                 for(IStrategoTerm to : e.getValue()) {
                     injections.__put(e.getKey(), to);
@@ -378,6 +378,12 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                 constructorTypes.__put(e.getKey(), d.type);
             }
         }
+        for(Map.Entry<ConstructorSignature, List<ConstructorData>> e : moduleData.externalConstrData
+            .entrySet()) {
+            for(ConstructorData d : e.getValue()) {
+                constructorTypes.__put(e.getKey(), d.type);
+            }
+        }
         for(Map.Entry<ConstructorSignature, List<OverlayData>> e : moduleData.overlayData
             .entrySet()) {
             for(OverlayData d : e.getValue()) {
@@ -385,6 +391,11 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
             }
         }
         for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.injections.entrySet()) {
+            for(IStrategoTerm to : e.getValue()) {
+                injections.__put(e.getKey(), to);
+            }
+        }
+        for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.externalInjections.entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
                 injections.__put(e.getKey(), to);
             }

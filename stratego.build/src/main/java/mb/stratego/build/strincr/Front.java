@@ -72,6 +72,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         boolean stdLibImport = false;
         final List<IStrategoTerm> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
+        final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
         final Map<ConstructorSignature, List<OverlayData>> overlayData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData = new HashMap<>();
@@ -79,6 +80,7 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData = new HashMap<>();
         final Set<StrategySignature> dynamicRules = new HashSet<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
+        final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -100,12 +102,12 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
                     }
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, injections, def.getSubterm(0),
-                        ast.lastModified);
+                    addSigData(input.moduleIdentifier, constrData, externalConstrData, injections, externalInjections,
+                        def.getSubterm(0), ast.lastModified);
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData, def.getSubterm(0),
-                        ast.lastModified);
+                    addOverlayData(input.moduleIdentifier, overlayData, constrData,
+                        def.getSubterm(0), ast.lastModified);
                     break;
                 case "Rules":
                     // fall-through
@@ -124,12 +126,13 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         final Set<ConstructorSignature> usedConstructors = new HashSet<>();
         final Set<StrategySignature> usedStrategies = new HashSet<>();
         final Set<String> usedAmbiguousStrategies = new HashSet<>();
-        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies, ast.lastModified)
-            .visit(ast.wrapped);
+        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies,
+            ast.lastModified).visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData, injections,
-            strategyData, internalStrategyData, externalStrategyData, dynamicRuleData, overlayData, usedConstructors,
-            usedStrategies, dynamicRules, usedAmbiguousStrategies, ast.lastModified);
+        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
+            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
+            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
+            dynamicRules, usedAmbiguousStrategies, ast.lastModified);
     }
 
     public static IStrategoList getDefs(ModuleIdentifier moduleIdentifier, IStrategoTerm ast)

@@ -18,6 +18,7 @@ public class GlobalData implements Serializable {
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
     public final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex;
+    public final Set<ConstructorSignature> externalConstructors;
     public final Set<StrategySignature> internalStrategies;
     public final Set<StrategySignature> externalStrategies;
     public final Set<StrategySignature> dynamicRules;
@@ -28,12 +29,14 @@ public class GlobalData implements Serializable {
         Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
         Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
         Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex,
-        Set<StrategySignature> internalStrategies, Set<StrategySignature> externalStrategies,
-        Set<StrategySignature> dynamicRules, List<Message2<?>> messages) {
+        Set<ConstructorSignature> externalConstructors, Set<StrategySignature> internalStrategies,
+        Set<StrategySignature> externalStrategies, Set<StrategySignature> dynamicRules,
+        List<Message2<?>> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
+        this.externalConstructors = externalConstructors;
         this.internalStrategies = internalStrategies;
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
@@ -42,12 +45,15 @@ public class GlobalData implements Serializable {
 
     public GlobalIndex getGlobalIndex() {
         if(globalIndex == null) {
-            final HashSet<StrategySignature> nonExternalStrategies = new HashSet<>(strategyIndex.keySet());
+            final HashSet<StrategySignature> nonExternalStrategies =
+                new HashSet<>(strategyIndex.keySet());
             nonExternalStrategies.removeAll(externalStrategies);
             nonExternalStrategies.addAll(internalStrategies);
+            final HashSet<ConstructorSignature> nonExternalConstructors =
+                new HashSet<>(constructorIndex.keySet());
+            nonExternalConstructors.removeAll(externalConstructors);
             globalIndex =
-                new GlobalIndex(new HashSet<>(constructorIndex.keySet()), nonExternalStrategies,
-                    dynamicRules);
+                new GlobalIndex(nonExternalConstructors, externalConstructors, nonExternalStrategies, dynamicRules);
         }
         return globalIndex;
     }
@@ -68,6 +74,8 @@ public class GlobalData implements Serializable {
             return false;
         if(!overlayIndex.equals(that.overlayIndex))
             return false;
+        if(!externalConstructors.equals(that.externalConstructors))
+            return false;
         if(!internalStrategies.equals(that.internalStrategies))
             return false;
         if(!externalStrategies.equals(that.externalStrategies))
@@ -82,6 +90,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + constructorIndex.hashCode();
         result = 31 * result + strategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();
+        result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + internalStrategies.hashCode();
         result = 31 * result + externalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();

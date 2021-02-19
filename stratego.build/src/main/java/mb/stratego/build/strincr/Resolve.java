@@ -54,6 +54,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex = new HashMap<>();
 
+        final Set<ConstructorSignature> externalConstructors = new HashSet<>();
         final Set<StrategySignature> internalStrategies = new HashSet<>();
         final Set<StrategySignature> externalStrategies = new HashSet<>();
         final Set<StrategySignature> dynamicRules = new HashSet<>();
@@ -71,9 +72,10 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 final ModuleIndex index = PieUtils
                     .requirePartial(context, lib, frontInput, ModuleData.ToModuleIndex.INSTANCE);
 
-                for(ConstructorSignature signature : index.constructors) {
+                for(ConstructorSignature signature : index.externalConstructors) {
                     Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
+                    externalConstructors.add(signature);
                 }
                 for(StrategySignature signature : index.externalStrategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
@@ -90,6 +92,11 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 for(ConstructorSignature signature : index.constructors) {
                     Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
+                }
+                for(ConstructorSignature signature : index.externalConstructors) {
+                    Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
+                        .add(moduleIdentifier);
+                    externalConstructors.add(signature);
                 }
                 for(StrategySignature signature : index.strategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
@@ -135,7 +142,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
         return new GlobalData(allModuleIdentifiers, constructorIndex, strategyIndex, overlayIndex,
-            internalStrategies, externalStrategies, dynamicRules, messages);
+            externalConstructors, internalStrategies, externalStrategies, dynamicRules, messages);
     }
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,

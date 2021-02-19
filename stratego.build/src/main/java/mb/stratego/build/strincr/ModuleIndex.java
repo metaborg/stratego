@@ -15,6 +15,7 @@ import mb.stratego.build.util.WithLastModified;
 public class ModuleIndex implements Serializable, WithLastModified {
     public final List<IStrategoTerm> imports;
     public final Set<ConstructorSignature> constructors;
+    public final Set<ConstructorSignature> externalConstructors;
     public final Set<StrategySignature> strategies;
     public final Set<StrategySignature> internalStrategies;
     public final Set<StrategySignature> externalStrategies;
@@ -23,11 +24,13 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
-        Set<StrategySignature> strategies, Set<StrategySignature> internalStrategies,
-        Set<StrategySignature> externalStrategies, Set<StrategySignature> dynamicRules, Map<ConstructorSignature, List<OverlayData>> overlayData,
-        long lastModified) {
+        Set<ConstructorSignature> externalConstructors, Set<StrategySignature> strategies,
+        Set<StrategySignature> internalStrategies, Set<StrategySignature> externalStrategies,
+        Set<StrategySignature> dynamicRules,
+        Map<ConstructorSignature, List<OverlayData>> overlayData, long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
+        this.externalConstructors = externalConstructors;
         this.strategies = strategies;
         this.internalStrategies = internalStrategies;
         this.externalStrategies = externalStrategies;
@@ -50,6 +53,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!constructors.equals(that.constructors))
             return false;
+        if(!externalConstructors.equals(that.externalConstructors))
+            return false;
         if(!strategies.equals(that.strategies))
             return false;
         return overlayData.equals(that.overlayData);
@@ -58,6 +63,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     @Override public int hashCode() {
         int result = imports.hashCode();
         result = 31 * result + constructors.hashCode();
+        result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + strategies.hashCode();
         result = 31 * result + overlayData.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);

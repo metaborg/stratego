@@ -382,8 +382,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
             final List<ConstructorSignature> constructors =
-                new ArrayList<>(globalIndex.constructors.size() + 3);
-            constructors.addAll(globalIndex.constructors);
+                new ArrayList<>(globalIndex.nonExternalConstructors.size() + 3);
+            constructors.addAll(globalIndex.nonExternalConstructors);
             addDrConstructors(constructors);
             constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
             final Set<StrategySignature> strategies =
@@ -402,8 +402,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
             final List<ConstructorSignature> constructors =
-                new ArrayList<>(globalIndex.constructors.size() + 2);
-            constructors.addAll(globalIndex.constructors);
+                new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
+            constructors.addAll(globalIndex.nonExternalConstructors);
             addDrConstructors(constructors);
 
             final List<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
@@ -411,6 +411,11 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     context.logger().debug(
                         "Skipping congruence overlapping with existing strategy: " + constructor);
+                    continue;
+                }
+                if(globalIndex.externalConstructors.contains(constructor)) {
+                    context.logger().debug(
+                        "Skipping congruence of constructor overlapping with external constructor: " + constructor);
                     continue;
                 }
                 compiledStrategies.add(constructor.toCongruenceSig());
