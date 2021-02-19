@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.MessageSeverity;
+import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.JavaMessage;
 
 public class CyclicOverlay extends JavaMessage<IStrategoTerm> {

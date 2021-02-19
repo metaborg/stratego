@@ -110,7 +110,7 @@ public class ModuleImportService implements IModuleImportService {
     @Override public ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport)
         throws ExecException, IOException {
         /*
-         * Note that we require the sdf tasks here to force it to generated needed str files. We
+         * Note that we require the sdf task here to force it to generated needed str files. We
          *     then discover those in this method with a directory search.
          */
         for(final STask<?> t : strFileGeneratingTasks) {
@@ -205,9 +205,9 @@ public class ModuleImportService implements IModuleImportService {
     @Override public LastModified<IStrategoTerm> getModuleAst(ExecContext context,
         IModuleImportService.ModuleIdentifier moduleIdentifier) throws Exception {
         /*
-         * Every getModuleAst call depends on the sdf tasks so there is no hidden dep. To make
+         * Every getModuleAst call depends on the sdf task so there is no hidden dep. To make
          *     sure that getModuleAst only runs when their input _files_ change, we need
-         *     getModuleAst to depend on the sdf tasks with a simple stamper that allows the
+         *     getModuleAst to depend on the sdf task with a simple stamper that allows the
          *     execution of the sdf task to be ignored.
          */
         for(final STask<?> t : strFileGeneratingTasks) {

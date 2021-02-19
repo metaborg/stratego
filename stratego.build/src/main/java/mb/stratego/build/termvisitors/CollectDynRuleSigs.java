@@ -6,7 +6,7 @@ import java.util.Set;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.strincr.StrategySignature;
+import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CollectDynRuleSigs {
     private final Set<StrategySignature> signatures = new HashSet<>();

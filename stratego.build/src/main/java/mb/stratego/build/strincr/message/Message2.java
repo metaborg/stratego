@@ -7,7 +7,6 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 
-import mb.stratego.build.strincr.MessageSeverity;
 import mb.stratego.build.util.WithLastModified;
 
 public abstract class Message2<T extends IStrategoTerm> implements WithLastModified, Serializable {

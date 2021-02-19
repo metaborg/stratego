@@ -10,7 +10,7 @@ import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.strincr.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorSignature;
 
 public class UsedConstrs extends TermVisitor {
     private final ITermFactory tf = new TermFactory();

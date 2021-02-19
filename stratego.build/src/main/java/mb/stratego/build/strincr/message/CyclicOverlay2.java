@@ -4,8 +4,7 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.ConstructorSignatureMatcher;
-import mb.stratego.build.strincr.MessageSeverity;
+import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 
 public class CyclicOverlay2 extends Message2<IStrategoTerm> {
     public final Set<ConstructorSignatureMatcher> cycle;

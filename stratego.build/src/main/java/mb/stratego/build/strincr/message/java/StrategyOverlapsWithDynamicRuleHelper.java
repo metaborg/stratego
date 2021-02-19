@@ -3,8 +3,8 @@ package mb.stratego.build.strincr.message.java;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.MessageSeverity;
-import mb.stratego.build.strincr.StrategySignature;
+import mb.stratego.build.strincr.message.MessageSeverity;
+import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 
 public class StrategyOverlapsWithDynamicRuleHelper extends Message<IStrategoTerm> {

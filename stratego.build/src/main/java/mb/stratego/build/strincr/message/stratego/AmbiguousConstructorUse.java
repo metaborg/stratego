@@ -5,7 +5,7 @@ import java.util.StringJoiner;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.MessageSeverity;
+import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategoMessage;
 
 public class AmbiguousConstructorUse extends StrategoMessage {

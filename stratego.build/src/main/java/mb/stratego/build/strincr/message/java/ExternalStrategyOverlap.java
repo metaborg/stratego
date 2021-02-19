@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message.java;
 
 import org.spoofax.interpreter.terms.IStrategoString;
 
-import mb.stratego.build.strincr.MessageSeverity;
+import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.JavaMessage;
 
 public class ExternalStrategyOverlap extends JavaMessage<IStrategoString> {

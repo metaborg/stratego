@@ -12,8 +12,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.strincr.ConstructorSignature;
-import mb.stratego.build.strincr.StrategySignature;
+import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.StrategySignature;
 
 public class UsedNamesFront extends UsedConstrs {
 

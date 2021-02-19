@@ -1,0 +1,97 @@
+package mb.stratego.build.strincr.task;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
+
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
+
+import mb.pie.api.ExecContext;
+import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.data.ConstructorData;
+import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.task.output.ModuleData;
+import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.StrategyFrontData;
+import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.util.LastModified;
+import mb.stratego.build.util.StrIncrContext;
+
+public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> {
+    public static final String id = "stratego." + Lib.class.getSimpleName();
+
+    @Inject public Lib(StrIncrContext strContext) {
+        super(strContext);
+    }
+
+    @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
+        final List<IStrategoTerm> imports = Collections.emptyList();
+        final Map<ConstructorSignature, List<ConstructorData>> constrData = Collections.emptyMap();
+        final Map<ConstructorSignature, List<OverlayData>> overlayData = Collections.emptyMap();
+        final Set<ConstructorSignature> usedConstructors = Collections.emptySet();
+        final Set<StrategySignature> usedStrategies = Collections.emptySet();
+        final Set<String> usedAmbiguousStrategies = Collections.emptySet();
+        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = Collections.emptyMap();
+        final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData =
+            Collections.emptyMap();
+        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData =
+            Collections.emptyMap();
+        final Set<StrategySignature> dynamicRules = Collections.emptySet();
+        final Map<IStrategoTerm, List<IStrategoTerm>> injections = Collections.emptyMap();
+
+        final LastModified<IStrategoTerm> ast =
+            input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
+        final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
+        final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
+        final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
+
+        final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
+        for(IStrategoTerm def : defs) {
+            if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
+                throw new WrongASTException(input.moduleIdentifier, def);
+            }
+            switch(TermUtils.toAppl(def).getName()) {
+                case "Signature":
+                    addSigData(input.moduleIdentifier, constrData, externalConstrData, injections,
+                        externalInjections, def.getSubterm(0), ast.lastModified);
+                    break;
+                case "Strategies":
+                    addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
+                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
+                    break;
+                default:
+                    throw new WrongASTException(input.moduleIdentifier, def);
+            }
+        }
+
+        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
+            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
+            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
+            dynamicRules, usedAmbiguousStrategies, ast.lastModified);
+    }
+
+    private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
+        LastModified<IStrategoTerm> timestampedAst) throws WrongASTException {
+        final IStrategoTerm ast = timestampedAst.wrapped;
+        if(TermUtils.isAppl(ast, "Specification", 1)) {
+            final IStrategoTerm defs = ast.getSubterm(0);
+            if(TermUtils.isList(defs)) {
+                return TermUtils.toList(defs);
+            }
+        }
+        throw new WrongASTException(moduleIdentifier, ast);
+    }
+
+    @Override public String getId() {
+        return id;
+    }
+}
