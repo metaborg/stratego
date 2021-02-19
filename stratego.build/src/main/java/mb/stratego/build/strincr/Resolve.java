@@ -30,7 +30,7 @@ import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
 public class Resolve implements TaskDef<Check.Input, GlobalData> {
-    public static final String id = Resolve.class.getCanonicalName();
+    public static final String id = "stratego." + Resolve.class.getSimpleName();
 
     public final Front front;
     public final Lib lib;
@@ -78,6 +78,7 @@ public class Resolve implements TaskDef<Check.Input, GlobalData> {
                 for(StrategySignature signature : index.externalStrategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
+                    externalStrategies.add(signature);
                 }
             } else {
                 final STask<ModuleData> sTask = front.createSupplier(frontInput);

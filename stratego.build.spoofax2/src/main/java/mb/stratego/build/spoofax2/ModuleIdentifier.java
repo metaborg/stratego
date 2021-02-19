@@ -13,6 +13,7 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
     public ModuleIdentifier(boolean isLibrary, String moduleString, HierarchicalResource resource) {
         this.isLibrary = isLibrary;
         this.moduleString = moduleString;
+        assert !moduleString.contains(".") : "moduleStrings should be valid Stratego module names, and not contain file extensions";
         this.resource = resource;
     }
 

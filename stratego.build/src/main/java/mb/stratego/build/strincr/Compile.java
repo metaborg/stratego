@@ -20,7 +20,7 @@ import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.util.PieUtils;
 
 public class Compile implements TaskDef<Compile.Input, Compile.Output> {
-    public static final String id = Compile.class.getCanonicalName();
+    public static final String id = "stratego." + Compile.class.getSimpleName();
 
     public static class Input implements Serializable {
         public final ModuleIdentifier mainModuleIdentifier;
@@ -180,6 +180,9 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
         final Set<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
         for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
+            if(compiledThroughDynamicRule.contains(dynamicRule)) {
+                continue;
+            }
             final Back.Output output = context.require(back,
                 new Back.DynamicRuleInput(dynamicRule, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,

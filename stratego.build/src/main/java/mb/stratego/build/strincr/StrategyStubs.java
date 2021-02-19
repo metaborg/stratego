@@ -52,7 +52,7 @@ public class StrategyStubs {
 
     private IStrategoAppl sdefStub(ITermFactory tf, String strategyName, int svars, int tvars) {
         final IStrategoAppl newBody = tf.makeAppl("Id");
-        final IStrategoTerm name = tf.makeAppl(strategyName);
+        final IStrategoTerm name = tf.makeString(strategyName);
 
         final IStrategoTerm[] newSVarArray = new IStrategoTerm[svars];
         Arrays.fill(newSVarArray, newSVar);

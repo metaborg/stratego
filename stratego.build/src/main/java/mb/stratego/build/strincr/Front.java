@@ -27,7 +27,7 @@ import mb.stratego.build.util.StrIncrContext;
  * information required in other tasks.
  */
 public class Front extends SplitShared implements TaskDef<Front.Input, ModuleData> {
-    public static final String id = Front.class.getCanonicalName();
+    public static final String id = "stratego." + Front.class.getSimpleName();
 
     @Inject public Front(StrIncrContext strContext) {
         super(strContext);
@@ -136,6 +136,11 @@ public class Front extends SplitShared implements TaskDef<Front.Input, ModuleDat
         throws WrongASTException {
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
+            if(TermUtils.isList(defs)) {
+                return TermUtils.toList(defs);
+            }
+        } else if(TermUtils.isAppl(ast, "Specification", 1)) {
+            final IStrategoTerm defs = ast.getSubterm(0);
             if(TermUtils.isList(defs)) {
                 return TermUtils.toList(defs);
             }

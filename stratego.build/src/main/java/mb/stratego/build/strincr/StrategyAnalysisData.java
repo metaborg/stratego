@@ -1,19 +1,24 @@
 package mb.stratego.build.strincr;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.util.WithLastModified;
 
 public class StrategyAnalysisData implements Serializable, WithLastModified {
+    public final StrategySignature signature;
     public final IStrategoAppl analyzedAst;
+    public final Set<StrategySignature> definedDynamicRules;
     public final long lastModified;
 
 
-    public StrategyAnalysisData(IStrategoAppl analyzedAst, long lastModified) {
+    public StrategyAnalysisData(StrategySignature signature, IStrategoAppl analyzedAst,
+        Set<StrategySignature> definedDynamicRules, long lastModified) {
+        this.signature = signature;
         this.analyzedAst = analyzedAst;
+        this.definedDynamicRules = definedDynamicRules;
         this.lastModified = lastModified;
     }
 
@@ -31,11 +36,17 @@ public class StrategyAnalysisData implements Serializable, WithLastModified {
 
         if(lastModified != that.lastModified)
             return false;
-        return analyzedAst.equals(that.analyzedAst);
+        if(!signature.equals(that.signature))
+            return false;
+        if(!analyzedAst.equals(that.analyzedAst))
+            return false;
+        return definedDynamicRules.equals(that.definedDynamicRules);
     }
 
     @Override public int hashCode() {
-        int result = analyzedAst.hashCode();
+        int result = signature.hashCode();
+        result = 31 * result + analyzedAst.hashCode();
+        result = 31 * result + definedDynamicRules.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }

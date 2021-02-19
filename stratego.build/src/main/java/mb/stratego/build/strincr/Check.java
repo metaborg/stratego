@@ -21,7 +21,7 @@ import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
 public class Check implements TaskDef<Check.Input, Check.Output> {
-    public static final String id = Check.class.getCanonicalName();
+    public static final String id = "stratego." + Check.class.getSimpleName();
 
     public static class Input implements Serializable {
         public final ModuleIdentifier mainModuleIdentifier;
@@ -119,10 +119,10 @@ public class Check implements TaskDef<Check.Input, Check.Output> {
         final Map<StrategySignature, Set<ModuleIdentifier>> dynamicRuleIndex = new HashMap<>();
         final List<Message2<?>> messages = new ArrayList<>();
         boolean containsErrors = false;
-        final Set<ModuleIdentifier> modulesIdentifiers = PieUtils
+        final Set<ModuleIdentifier> allModulesIdentifiers = PieUtils
             .requirePartial(context, resolve, input, GlobalData.AllModulesIdentifiers.Instance);
 
-        for(ModuleIdentifier moduleIdentifier : modulesIdentifiers) {
+        for(ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
             if(moduleIdentifier.isLibrary()) {
                 continue;
             }

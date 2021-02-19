@@ -2,12 +2,13 @@ package mb.stratego.build.strincr;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -31,7 +32,6 @@ import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.termvisitors.UsedConstrs;
-import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
@@ -40,7 +40,7 @@ import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
 public class Back implements TaskDef<Back.Input, Back.Output> {
-    public static final String id = Back.class.getCanonicalName();
+    public static final String id = "stratego." + Back.class.getSimpleName();
 
     public static abstract class Input implements Serializable {
         public final ResourcePath outputDir;
@@ -119,7 +119,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors,
+            Set<StrategySignature> compiledStrategies) {
             final StrategySignature strategySignature = this.strategySignature;
             final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, this.resolveTask,
@@ -135,6 +136,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                             this.moduleImportService),
                         new CheckModule.GetStrategyAnalysisData<>(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                    compiledStrategies.add(strategyAnalysisDatum.signature);
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                     new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
                         .visit(strategyAnalysisDatum.analyzedAst);
@@ -186,25 +188,40 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
-            final StrategySignature strategySignature = this.strategySignature;
-            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
-                .requirePartial(context, this.checkTask,
-                    new Check.ModulesDefiningDynamicRule<>(strategySignature));
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors,
+            Set<StrategySignature> compiledStrategies) {
+            final Deque<StrategySignature> workList = new ArrayDeque<>();
+            workList.add(strategySignature);
+            final Set<StrategySignature> seen = new HashSet<>();
+            seen.add(strategySignature);
+            while(!workList.isEmpty()) {
+                StrategySignature strategySignature = workList.remove();
+                compiledStrategies.add(strategySignature);
+                final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                    .requirePartial(context, this.checkTask,
+                        new Check.ModulesDefiningDynamicRule<>(strategySignature));
 
-            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
-                if(moduleIdentifier.isLibrary()) {
-                    continue;
-                }
-                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                    .requirePartial(context, checkModule,
-                        new CheckModule.Input(this.mainModuleIdentifier, moduleIdentifier,
-                            this.moduleImportService),
-                        new CheckModule.GetDynamicRuleAnalysisData<>(strategySignature));
-                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
-                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
-                        .visit(strategyAnalysisDatum.analyzedAst);
+                for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                    if(moduleIdentifier.isLibrary()) {
+                        continue;
+                    }
+                    final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                        .requirePartial(context, checkModule,
+                            new CheckModule.Input(this.mainModuleIdentifier, moduleIdentifier,
+                                this.moduleImportService),
+                            new CheckModule.GetDynamicRuleAnalysisData<>(strategySignature));
+                    for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                        compiledStrategies.add(strategyAnalysisDatum.signature);
+                        strategyContributions.add(strategyAnalysisDatum.analyzedAst);
+                        new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                            .visit(strategyAnalysisDatum.analyzedAst);
+                        for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
+                            if(!seen.contains(definedDynamicRule)) {
+                                workList.add(definedDynamicRule);
+                                seen.add(definedDynamicRule);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -345,17 +362,18 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                 congruences.add(constructor.congruenceAst(termFactory));
             }
             congruences.add(ConstructorSignature.annoCongAst(termFactory));
+            compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
             if(!globalIndex.dynamicRules.isEmpty()) {
                 congruences.add(dynamicCallsDefinition(termFactory, globalIndex.dynamicRules));
+                compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
-            compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
             ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
         } else {
             final List<IStrategoAppl> strategyContributions = new ArrayList<>();
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
             final NormalInput normalInput = (NormalInput) input;
             normalInput.getStrategyContributions(context, checkModule, strategyContributions,
-                usedConstructors);
+                usedConstructors, compiledStrategies);
 
             final Set<ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, input.resolveTask,
@@ -385,10 +403,6 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             assert result.result != null;
 
             ctree = result.result;
-
-            final Map<StrategySignature, Set<StrategyAnalysisData>> strategySignatureSetMap =
-                CheckModule.extractStrategyDefs(null, 0L, ctree, Collections.emptyMap());
-            compiledStrategies.addAll(strategySignatureSetMap.keySet());
         }
 
         // Call Stratego compiler
@@ -451,18 +465,20 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         /* concrete syntax:
          *   DYNAMIC_CALLS = new-[dr-rule-name](|"", "")
          * abstract syntax, desugared and name mangled:
-         *   SDefT("$D$Y$N$A$M$I$C__$C$A$L$L$S_0_0", [], [], CallT("new_[dr-rule-name]_0_2", [], [NoAnnoList(Str("\"\"")), NoAnnoList(Str("\"\""))]))
+         *   SDefT("$D$Y$N$A$M$I$C__$C$A$L$L$S_0_0", [], [], CallT(
+         *     "new_[dr-rule-name]_0_2",
+         *     [],
+         *     [Anno(Str("\"\""), Op("Nil", [])), Anno(Str("\"\""), Op("Nil", []))]))
          * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
          */
         @Nullable IStrategoAppl body = null;
         final IStrategoAppl id = tf.makeAppl("Id");
         final IStrategoAppl emptyStringLit =
-            tf.makeAppl("NoAnnoList", tf.makeAppl("Str", tf.makeString("\"\"")));
+            tf.makeAppl("Anno", tf.makeAppl("Str", tf.makeString("\"\"")),
+                tf.makeAppl("Op", tf.makeString("Nil"), tf.makeList()));
 
         for(StrategySignature dynamicRule : dynamicRules) {
-            final String drRuleNameNew =
-                CommonPaths.capitalsForDollars(Interpreter.cify("new-" + dynamicRule.name))
-                    + "_0_2";
+            final String drRuleNameNew = Interpreter.cify("new-" + dynamicRule.name) + "_0_2";
             final IStrategoAppl call =
                 tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
                     tf.makeList(), tf.makeList(emptyStringLit, emptyStringLit));
@@ -473,8 +489,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             }
         }
 
-        final String dynamicCalls =
-            CommonPaths.capitalsForDollars(Interpreter.cify("DYNAMIC_CALLS")) + "_0_0";
+        final String dynamicCalls = Interpreter.cify("DYNAMIC_CALLS") + "_0_0";
         return tf
             .makeAppl("SDefT", tf.makeString(dynamicCalls), tf.makeList(), tf.makeList(), body);
     }

@@ -42,7 +42,7 @@ import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 
 public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Output> {
-    public static final String id = CheckModule.class.getCanonicalName();
+    public static final String id = "stratego." + CheckModule.class.getSimpleName();
 
     public static class Input extends Front.Input {
         public final ModuleIdentifier mainModuleIdentifier;
@@ -267,10 +267,10 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
                 if(strategySignature == null) {
                     throw new WrongASTException(moduleIdentifier, strategyDefAppl);
                 }
+                final Set<StrategySignature> definedDynamicRules = CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
-                    .add(new StrategyAnalysisData(strategyDefAppl, lastModified));
-                final Set<StrategySignature> collect = CollectDynRuleSigs.collect(strategyDefAppl);
-                for(StrategySignature dynRuleSig : collect) {
+                    .add(new StrategyAnalysisData(strategySignature, strategyDefAppl, definedDynamicRules, lastModified));
+                for(StrategySignature dynRuleSig : definedDynamicRules) {
                     Relation.getOrInitialize(dynamicRules, dynRuleSig, HashSet::new)
                         .add(strategySignature);
                 }

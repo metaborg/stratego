@@ -19,7 +19,7 @@ import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
 
 public class Lib extends SplitShared implements TaskDef<Front.Input, ModuleData> {
-    public static final String id = Lib.class.getCanonicalName();
+    public static final String id = "stratego." + Lib.class.getSimpleName();
 
     @Inject public Lib(StrIncrContext strContext) {
         super(strContext);

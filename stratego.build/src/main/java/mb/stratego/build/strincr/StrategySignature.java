@@ -161,17 +161,17 @@ public class StrategySignature extends StrategoTuple {
             default:
                 return null;
         }
-        final String name = TermUtils.toJavaStringAt(term.getSubterm(0), 0);
+        final IStrategoString name = TermUtils.toStringAt(term.getSubterm(0), 0);
         final int sArity = subtermCount < 2 ? 0 : TermUtils.toListAt(term, 1).size();
         final int tArity = subtermCount < 3 ? 0 : TermUtils.toListAt(term, 2).size();
-        return new StrategySignature(name, sArity, tArity);
+        return new StrategySignature(name, new StrategoInt(sArity), new StrategoInt(tArity));
     }
 
     public static @Nullable StrategySignature fromDefinition(IStrategoTerm term) {
         if(!TermUtils.isAppl(term)) {
             return null;
         }
-        final String name = TermUtils.toJavaStringAt(term, 0);
+        final IStrategoString name = TermUtils.toStringAt(term, 0);
         final int sArity;
         final int tArity;
         switch(TermUtils.toAppl(term).getName()) {
@@ -216,6 +216,6 @@ public class StrategySignature extends StrategoTuple {
             default:
                 return null;
         }
-        return new StrategySignature(name, sArity, tArity);
+        return new StrategySignature(name, new StrategoInt(sArity), new StrategoInt(tArity));
     }
 }

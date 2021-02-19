@@ -27,7 +27,7 @@ import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
-    public static final String id = InsertCasts.class.getCanonicalName();
+    public static final String id = "stratego." + InsertCasts.class.getSimpleName();
 
     public static class Input implements Serializable {
         final String moduleName;

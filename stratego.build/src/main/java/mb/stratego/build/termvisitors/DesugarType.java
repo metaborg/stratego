@@ -29,7 +29,7 @@ public class DesugarType {
     }
 
     public static IStrategoTerm tryDesugarType(ITermFactory tf, IStrategoTerm term) {
-        IStrategoTerm result = desugarType(tf, term);
+        final @Nullable IStrategoTerm result = desugarType(tf, term);
         return result == null ? term : result;
     }
 
@@ -105,11 +105,11 @@ public class DesugarType {
     }
 
     public static IStrategoTerm tryDesugarSType(ITermFactory tf, IStrategoTerm term) {
-        IStrategoTerm result = desugarSType(tf, term);
+        final @Nullable IStrategoTerm result = desugarSType(tf, term);
         return result == null ? term : result;
     }
 
-    private static IStrategoTerm desugarSType(ITermFactory tf, IStrategoTerm term) {
+    private static @Nullable IStrategoTerm desugarSType(ITermFactory tf, IStrategoTerm term) {
         // TODO
         return null;
     }

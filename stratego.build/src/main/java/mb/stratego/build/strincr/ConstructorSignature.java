@@ -190,7 +190,7 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
             final IStrategoString matchVar = tf.makeString("cong_arg_" + i + "x");
             locals[2 * i] = matchVar;
             final IStrategoString buildVar = tf.makeString("cong_arg_" + i + "y");
-            locals[2 * (i + 1)] = buildVar;
+            locals[2 * i + 1] = buildVar;
             matchVars[i] = tf.makeAppl("Var", matchVar);
             buildVars[i] = tf.makeAppl("Var", buildVar);
             final IStrategoString sVar = tf.makeString("con_arg_" + i);

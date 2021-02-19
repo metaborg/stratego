@@ -19,6 +19,7 @@ public abstract class Message2<T extends IStrategoTerm> implements WithLastModif
     public Message2(T name, MessageSeverity severity, long lastModified) {
         this.locationTerm = name;
         this.location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(name));
+        assert this.location != null : "The given term " + name + " did not contain a location";
         this.severity = severity;
         this.lastModified = lastModified;
     }

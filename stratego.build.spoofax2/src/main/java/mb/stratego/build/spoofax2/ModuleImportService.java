@@ -159,25 +159,35 @@ public class ModuleImportService implements IModuleImportService {
                 return new ResolvedImport(result);
             }
             case "ImportWildcard": {
-                final String moduleString = TermUtils.toJavaStringAt(appl, 0);
+                final String directory = TermUtils.toJavaStringAt(appl, 0);
                 final Set<mb.stratego.build.spoofax2.ModuleIdentifier> result = new HashSet<>();
                 boolean foundSomethingToImport = false;
                 for(ResourcePath includeDir : includeDirs) {
-                    final ResourcePath resourcePath =
-                        includeDir.appendOrReplaceWithPath(moduleString);
-                    context.require(resourcePath);
-                    final HierarchicalResource dir =
-                        context.getResourceService().getHierarchicalResource(resourcePath);
-                    if(dir.exists()) {
-                        final List<HierarchicalResource> strFiles = dir.list(
+                    final ResourcePath searchDirectory = includeDir.appendOrReplaceWithPath(directory);
+                    context.require(searchDirectory);
+                    final HierarchicalResource searchDir =
+                        context.getResourceService().getHierarchicalResource(searchDirectory);
+                    if(searchDir.exists()) {
+                        final List<HierarchicalResource> moduleFiles = searchDir.list(
                             new PathResourceMatcher(new ExtensionsPathMatcher("str", "rtree")))
                             .collect(Collectors.toList());
-                        for(HierarchicalResource strFile : strFiles) {
+                        for(HierarchicalResource moduleFile : moduleFiles) {
                             foundSomethingToImport = true;
-                            final boolean isLibrary = ExistsAndRTreeStamper.isLibraryRTree(strFile);
-                            // TODO: find out of getLeaf returns basename or basename + extension
-                            result.add(new mb.stratego.build.spoofax2.ModuleIdentifier(isLibrary,
-                                moduleString + "/" + strFile.getLeaf(), strFile));
+                            @Nullable final String filename = moduleFile.getLeaf();
+                            assert filename != null : "HierarchicalResource::list returned some resources without a path leaf?!";
+                            if(filename.endsWith(".str")) {
+                                final String moduleString = directory + "/" + filename
+                                    .substring(0, filename.length() - ".str".length());
+                                result.add(new mb.stratego.build.spoofax2.ModuleIdentifier(false,
+                                    moduleString, moduleFile));
+                            } else if(filename.endsWith(".rtree")) {
+                                final boolean isLibrary =
+                                    ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
+                                final String moduleString = directory + "/" + filename
+                                    .substring(0, filename.length() - ".rtree".length());
+                                result.add(new mb.stratego.build.spoofax2.ModuleIdentifier(isLibrary,
+                                    moduleString, moduleFile));
+                            }
                         }
                     }
                 }
