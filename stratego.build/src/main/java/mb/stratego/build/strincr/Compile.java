@@ -179,6 +179,9 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
             PieUtils.requirePartial(context, resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
         final Set<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
+        final Set<String> dynamicRuleNewGenerated = new HashSet<>();
+        final Set<String> dynamicRuleUndefineGenerated = new HashSet<>();
+
         for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
                 continue;
@@ -191,6 +194,18 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
             resultFiles.addAll(output.resultFiles);
             compiledThroughDynamicRule.addAll(output.compiledStrategies);
         }
+        for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
+            final StrategySignature dynamicRuleNew =
+                new StrategySignature("new-" + dynamicRule.name, 0, 2);
+            if(compiledThroughDynamicRule.contains(dynamicRuleNew)) {
+                dynamicRuleNewGenerated.add(dynamicRule.name);
+            }
+            final StrategySignature dynamicRuleUndefine =
+                new StrategySignature("undefine-" + dynamicRule.name, 0, 1);
+            if(compiledThroughDynamicRule.contains(dynamicRuleUndefine)) {
+                dynamicRuleUndefineGenerated.add(dynamicRule.name);
+            }
+        }
         for(StrategySignature strategySignature : globalIndex.nonExternalStrategies) {
             if(compiledThroughDynamicRule.contains(strategySignature)) {
                 continue;
@@ -202,15 +217,17 @@ public class Compile implements TaskDef<Compile.Input, Compile.Output> {
             assert output != null;
             resultFiles.addAll(output.resultFiles);
         }
+        final boolean dynamicCallsDefined = !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final Back.Output boilerplateOutput = context.require(back,
             new Back.BoilerplateInput(resolveTask, input.outputDir, input.packageName,
-                input.cacheDir, input.constants, input.includeDirs, input.extraArgs));
+                input.cacheDir, input.constants, input.includeDirs, input.extraArgs, dynamicCallsDefined));
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final Back.Output congruenceOutput = context.require(back,
             new Back.CongruenceInput(resolveTask, input.outputDir, input.packageName,
-                input.cacheDir, input.constants, input.includeDirs, input.extraArgs));
+                input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
+                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated));
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);
 

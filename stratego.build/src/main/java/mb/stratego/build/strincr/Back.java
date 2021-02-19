@@ -28,9 +28,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.ResourceKeyString;
 import mb.resource.fs.FSPath;
-import mb.resource.fs.FSResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.termvisitors.UsedConstrs;
@@ -121,8 +119,7 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors,
-            Set<StrategySignature> compiledStrategies) {
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
             final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, this.resolveTask,
@@ -138,7 +135,6 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                             this.moduleImportService),
                         new CheckModule.GetStrategyAnalysisData<>(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
-                    compiledStrategies.add(strategyAnalysisDatum.signature);
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                     new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
                         .visit(strategyAnalysisDatum.analyzedAst);
@@ -190,15 +186,13 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors,
-            Set<StrategySignature> compiledStrategies) {
+            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
             final Deque<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
             final Set<StrategySignature> seen = new HashSet<>();
             seen.add(strategySignature);
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
-                compiledStrategies.add(strategySignature);
                 final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                     .requirePartial(context, this.checkTask,
                         new Check.ModulesDefiningDynamicRule<>(strategySignature));
@@ -213,7 +207,6 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
                                 this.moduleImportService),
                             new CheckModule.GetDynamicRuleAnalysisData<>(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
-                        compiledStrategies.add(strategyAnalysisDatum.signature);
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                         new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
                             .visit(strategyAnalysisDatum.analyzedAst);
@@ -253,10 +246,33 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
     }
 
     public static class BoilerplateInput extends Input {
+        private final boolean dynamicCallsDefined;
+
         public BoilerplateInput(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            boolean dynamicCallsDefined) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+            this.dynamicCallsDefined = dynamicCallsDefined;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            BoilerplateInput that = (BoilerplateInput) o;
+
+            return dynamicCallsDefined == that.dynamicCallsDefined;
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (dynamicCallsDefined ? 1 : 0);
+            return result;
         }
 
         @Override public String toString() {
@@ -265,10 +281,38 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
     }
 
     public static class CongruenceInput extends Input {
+        private final Set<String> dynamicRuleNewGenerated;
+        private final Set<String> dynamicRuleUndefineGenerated;
+
         public CongruenceInput(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            Set<String> dynamicRuleNewGenerated, Set<String> dynamicRuleUndefineGenerated) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+            this.dynamicRuleNewGenerated = dynamicRuleNewGenerated;
+            this.dynamicRuleUndefineGenerated = dynamicRuleUndefineGenerated;
+        }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            CongruenceInput that = (CongruenceInput) o;
+
+            if(!dynamicRuleNewGenerated.equals(that.dynamicRuleNewGenerated))
+                return false;
+            return dynamicRuleUndefineGenerated.equals(that.dynamicRuleUndefineGenerated);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + dynamicRuleNewGenerated.hashCode();
+            result = 31 * result + dynamicRuleUndefineGenerated.hashCode();
+            return result;
         }
 
         @Override public String toString() {
@@ -337,7 +381,8 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         if(isBoilerplate) {
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
-            final List<ConstructorSignature> constructors = new ArrayList<>(globalIndex.constructors.size() + 3);
+            final List<ConstructorSignature> constructors =
+                new ArrayList<>(globalIndex.constructors.size() + 3);
             constructors.addAll(globalIndex.constructors);
             addDrConstructors(constructors);
             constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
@@ -346,16 +391,21 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
             }
+            if(((BoilerplateInput) input).dynamicCallsDefined) {
+                strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
+            }
             // TODO: Create OpDecl and OpDeclInj list to put into boilerplate task for registering constructors and injections, for gradual types runtime
-            ctree = Packer
-                .packBoilerplate(termFactory, Collections.emptyList(), strategyStubs.declStubs(strategies));
+            ctree = Packer.packBoilerplate(termFactory, Collections.emptyList(),
+                strategyStubs.declStubs(strategies));
         } else if(input instanceof CongruenceInput) {
             // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex = PieUtils
                 .requirePartial(context, input.resolveTask, GlobalData.ToGlobalIndex.INSTANCE);
-            final List<ConstructorSignature> constructors = new ArrayList<>(globalIndex.constructors.size() + 2);
+            final List<ConstructorSignature> constructors =
+                new ArrayList<>(globalIndex.constructors.size() + 2);
             constructors.addAll(globalIndex.constructors);
             addDrConstructors(constructors);
+
             final List<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
@@ -368,17 +418,23 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             }
             congruences.add(ConstructorSignature.annoCongAst(termFactory));
             compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
-            if(!globalIndex.dynamicRules.isEmpty()) {
-                congruences.add(dynamicCallsDefinition(termFactory, globalIndex.dynamicRules));
+
+            final CongruenceInput congruenceInput = (CongruenceInput) input;
+            final @Nullable IStrategoAppl dynamicCallsDefinition =
+                dynamicCallsDefinition(termFactory, congruenceInput.dynamicRuleNewGenerated,
+                    congruenceInput.dynamicRuleUndefineGenerated);
+            if(dynamicCallsDefinition != null) {
+                congruences.add(dynamicCallsDefinition);
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
+
             ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
         } else {
             final List<IStrategoAppl> strategyContributions = new ArrayList<>();
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
             final NormalInput normalInput = (NormalInput) input;
             normalInput.getStrategyContributions(context, checkModule, strategyContributions,
-                usedConstructors, compiledStrategies);
+                usedConstructors);
 
             final Set<ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, input.resolveTask,
@@ -408,6 +464,16 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             assert result.result != null;
 
             ctree = result.result;
+
+            //noinspection ConstantConditions
+            final Set<StrategySignature> cifiedStrategySignatures =
+                CheckModule.extractStrategyDefs(null, 0L, ctree, null).keySet();
+            for(StrategySignature cified : cifiedStrategySignatures) {
+                final @Nullable StrategySignature uncified = StrategySignature.fromCified(cified.name);
+                if(uncified != null) {
+                    compiledStrategies.add(uncified);
+                }
+            }
         }
 
         // Call Stratego compiler
@@ -465,25 +531,26 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         return new Output(resultFiles, compiledStrategies);
     }
 
-    private IStrategoAppl dynamicCallsDefinition(ITermFactory tf,
-        Collection<StrategySignature> dynamicRules) {
-        /* concrete syntax:
-         *   DYNAMIC_CALLS = new-[dr-rule-name](|"", "")
-         * abstract syntax, desugared and name mangled:
-         *   SDefT("$D$Y$N$A$M$I$C__$C$A$L$L$S_0_0", [], [], CallT(
-         *     "new_[dr-rule-name]_0_2",
-         *     [],
-         *     [Anno(Str("\"\""), Op("Nil", [])), Anno(Str("\"\""), Op("Nil", []))]))
-         * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
-         */
+    private @Nullable IStrategoAppl dynamicCallsDefinition(ITermFactory tf,
+        Collection<String> dynamicRulesNewGenerated,
+        Collection<String> dynamicRulesUndefineGenerated) {
         @Nullable IStrategoAppl body = null;
         final IStrategoAppl id = tf.makeAppl("Id");
         final IStrategoAppl emptyStringLit =
-            tf.makeAppl("Anno", tf.makeAppl("Str", tf.makeString("\"\"")),
+            tf.makeAppl("Anno", tf.makeAppl("Str", tf.makeString("")),
                 tf.makeAppl("Op", tf.makeString("Nil"), tf.makeList()));
 
-        for(StrategySignature dynamicRule : dynamicRules) {
-            final String drRuleNameNew = Interpreter.cify("new-" + dynamicRule.name) + "_0_2";
+        /* concrete syntax:
+         *   new-[dr-rule-name](|"", "")
+         * abstract syntax, desugared and name mangled:
+         *   CallT(
+         *     "new_[dr-rule-name]_0_2",
+         *     [],
+         *     [Anno(Str("\"\""), Op("Nil", [])), Anno(Str("\"\""), Op("Nil", []))])
+         * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
+         */
+        for(String dynamicRuleName : dynamicRulesNewGenerated) {
+            final String drRuleNameNew = Interpreter.cify("new-" + dynamicRuleName) + "_0_2";
             final IStrategoAppl call =
                 tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
                     tf.makeList(), tf.makeList(emptyStringLit, emptyStringLit));
@@ -492,6 +559,27 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             } else {
                 body = tf.makeAppl("GuardedLChoice", call, id, body);
             }
+        }
+
+        /* concrete syntax:
+         *   undefine-[dr-rule-name](|"")
+         * abstract syntax, desugared and name mangled:
+         *   CallT("undefine_[dr-rule-name]_0_1", [], [Anno(Str("\"\""), Op("Nil", []))])
+         * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
+         */
+        for(String dynamicRuleName : dynamicRulesUndefineGenerated) {
+            final String drRuleNameNew = Interpreter.cify("undefine-" + dynamicRuleName) + "_0_1";
+            final IStrategoAppl call =
+                tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
+                    tf.makeList(), tf.makeList(emptyStringLit));
+            if(body == null) {
+                body = call;
+            } else {
+                body = tf.makeAppl("GuardedLChoice", call, id, body);
+            }
+        }
+        if(body == null) {
+            return null;
         }
 
         final String dynamicCalls = Interpreter.cify("DYNAMIC_CALLS") + "_0_0";
