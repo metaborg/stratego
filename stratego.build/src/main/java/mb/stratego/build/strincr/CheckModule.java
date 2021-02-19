@@ -142,8 +142,8 @@ public class CheckModule implements TaskDef<CheckModule.Input, CheckModule.Outpu
         assert moduleData != null;
 
         final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
-        final InsertCasts.Input2 input2 =
-            new InsertCasts.Input2(input.moduleIdentifier, environment);
+        final InsertCasts.Input input2 =
+            new InsertCasts.Input(input.moduleIdentifier, environment);
         final @Nullable InsertCasts.Output output = context.require(insertCasts, input2);
         assert output != null;
 

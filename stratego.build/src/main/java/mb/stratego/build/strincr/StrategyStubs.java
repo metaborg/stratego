@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -28,21 +26,7 @@ public class StrategyStubs {
         newTVar = tf.makeAppl("VarDec", B.string("a"), tf.makeAppl("ConstType", aTerm));
     }
 
-    List<IStrategoAppl> declStubs(Map<String, List<IStrategoAppl>> strategyASTs) {
-        final List<IStrategoAppl> decls = new ArrayList<>(strategyASTs.size());
-        for(String strategyName : strategyASTs.keySet()) {
-            final @Nullable StrategySignature sig;
-            sig = StrategySignature.fromCified(strategyName);
-            if(sig != null) {
-                decls.add(sdefStub(tf, strategyName, sig.noStrategyArgs, sig.noTermArgs));
-            } else {
-                decls.add(sdefStub(tf, strategyName, 0, 0));
-            }
-        }
-        return decls;
-    }
-
-    List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
+    public List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategySignatures.size());
         for(StrategySignature sig : strategySignatures) {
             decls.add(sdefStub(tf, sig.cifiedName(), sig.noStrategyArgs, sig.noTermArgs));

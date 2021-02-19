@@ -10,13 +10,13 @@ import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Map;
 
 public class GTEnvironment extends StrategoTuple {
-    final StrategoImmutableMap strategyEnvironment;
-    final StrategoImmutableRelation constructors;
-    final StrategoImmutableRelation injectionClosure;
-    final StrategoImmutableMap lubMap;
-    final StrategoImmutableRelation aliasMap;
-    final IStrategoTerm ast;
-    final long lastModified;
+    public final StrategoImmutableMap strategyEnvironment;
+    public final StrategoImmutableRelation constructors;
+    public final StrategoImmutableRelation injectionClosure;
+    public final StrategoImmutableMap lubMap;
+    public final StrategoImmutableRelation aliasMap;
+    public final IStrategoTerm ast;
+    public final long lastModified;
 
     private GTEnvironment(StrategoImmutableMap strategyEnvironment,
         StrategoImmutableRelation constructors, StrategoImmutableRelation injectionClosure,

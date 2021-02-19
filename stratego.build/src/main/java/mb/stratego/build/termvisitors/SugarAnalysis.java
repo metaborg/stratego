@@ -19,6 +19,7 @@ import mb.stratego.build.strincr.message.Message;
  * Warn on local variable that overlaps with nullary constructor
  * Warn on congruence with only constant data, recommend to match, or build if that was the intention
  */
+// TODO: Add to gradual type system
 public class SugarAnalysis {
     private String module;
     private final List<Message<?>> sugarAnalysisMessages;

@@ -33,7 +33,7 @@ public class DesugarType {
     }
 
     public static @Nullable IStrategoTerm  desugarType(ITermFactory tf, IStrategoTerm term) {
-        @Nullable IStrategoTerm result = null;
+        @Nullable IStrategoTerm result;
         // desugar-Type- = otf(\SortVar("str") -> StringT()\)
         // desugar-Type- = otf(\SortVar("int") -> IntT()\)
         // desugar-Type- = otf(\SortVar("real") -> RealT()\)
@@ -109,7 +109,7 @@ public class DesugarType {
     }
 
     private static @Nullable IStrategoTerm desugarSType(ITermFactory tf, IStrategoTerm term) {
-        @Nullable IStrategoTerm result = null;
+        @Nullable IStrategoTerm result;
         if(TermUtils.isAppl(term, "TP", 0)) {
             // desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
             result = tf.makeAppl("FunTType", tf.makeList(), tf.makeList(), term);

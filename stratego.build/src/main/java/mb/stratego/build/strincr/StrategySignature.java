@@ -1,7 +1,5 @@
 package mb.stratego.build.strincr;
 
-import static org.spoofax.interpreter.core.Interpreter.cify;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +7,6 @@ import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -18,6 +15,8 @@ import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.StrategoTuple;
 import org.spoofax.terms.util.TermUtils;
+
+import static org.spoofax.interpreter.core.Interpreter.cify;
 
 public class StrategySignature extends StrategoTuple {
     public final String name;
