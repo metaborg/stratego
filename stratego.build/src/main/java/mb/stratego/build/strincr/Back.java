@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,6 +31,7 @@ import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.termvisitors.UsedConstrs;
+import mb.stratego.build.util.CommonPaths;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
@@ -335,13 +337,17 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
             final List<IStrategoAppl> congruences = new ArrayList<>();
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
-                    context.logger().debug("Skipping congruence overlapping with existing strategy: " + constructor);
+                    context.logger().debug(
+                        "Skipping congruence overlapping with existing strategy: " + constructor);
                     continue;
                 }
                 compiledStrategies.add(constructor.toCongruenceSig());
                 congruences.add(constructor.congruenceAst(termFactory));
             }
             congruences.add(ConstructorSignature.annoCongAst(termFactory));
+            if(!globalIndex.dynamicRules.isEmpty()) {
+                congruences.add(dynamicCallsDefinition(termFactory, globalIndex.dynamicRules));
+            }
             compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
             ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
         } else {
@@ -438,6 +444,39 @@ public class Back implements TaskDef<Back.Input, Back.Output> {
         }
 
         return new Output(resultFiles, compiledStrategies);
+    }
+
+    private IStrategoAppl dynamicCallsDefinition(ITermFactory tf,
+        Collection<StrategySignature> dynamicRules) {
+        /* concrete syntax:
+         *   DYNAMIC_CALLS = new-[dr-rule-name](|"", "")
+         * abstract syntax, desugared and name mangled:
+         *   SDefT("$D$Y$N$A$M$I$C__$C$A$L$L$S_0_0", [], [], CallT("new_[dr-rule-name]_0_2", [], [NoAnnoList(Str("\"\"")), NoAnnoList(Str("\"\""))]))
+         * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
+         */
+        @Nullable IStrategoAppl body = null;
+        final IStrategoAppl id = tf.makeAppl("Id");
+        final IStrategoAppl emptyStringLit =
+            tf.makeAppl("NoAnnoList", tf.makeAppl("Str", tf.makeString("\"\"")));
+
+        for(StrategySignature dynamicRule : dynamicRules) {
+            final String drRuleNameNew =
+                CommonPaths.capitalsForDollars(Interpreter.cify("new-" + dynamicRule.name))
+                    + "_0_2";
+            final IStrategoAppl call =
+                tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
+                    tf.makeList(), tf.makeList(emptyStringLit, emptyStringLit));
+            if(body == null) {
+                body = call;
+            } else {
+                body = tf.makeAppl("GuardedLChoice", call, id, body);
+            }
+        }
+
+        final String dynamicCalls =
+            CommonPaths.capitalsForDollars(Interpreter.cify("DYNAMIC_CALLS")) + "_0_0";
+        return tf
+            .makeAppl("SDefT", tf.makeString(dynamicCalls), tf.makeList(), tf.makeList(), body);
     }
 
     private static void addDrConstructors(Set<ConstructorSignature> constructors) {
