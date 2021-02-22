@@ -14,8 +14,8 @@ public class CheckModuleInput extends FrontInput {
         this.mainModuleIdentifier = mainModuleIdentifier;
     }
 
-    public CheckInput resolveInput() {
-        return new CheckInput(mainModuleIdentifier, moduleImportService);
+    public ResolveInput resolveInput() {
+        return new ResolveInput(mainModuleIdentifier, moduleImportService);
     }
 
     @Override public boolean equals(@Nullable Object o) {

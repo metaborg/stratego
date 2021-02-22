@@ -20,27 +20,27 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.task.input.CheckInput;
-import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
-import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.task.output.ModuleData;
-import mb.stratego.build.strincr.function.output.ModuleIndex;
+import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ToModuleIndex;
-import mb.stratego.build.strincr.message.CyclicOverlay2;
-import mb.stratego.build.strincr.message.Message2;
-import mb.stratego.build.strincr.message.UnresolvedImport2;
+import mb.stratego.build.strincr.function.output.ModuleIndex;
+import mb.stratego.build.strincr.message.CyclicOverlay;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.UnresolvedImport;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.input.ResolveInput;
+import mb.stratego.build.strincr.task.output.GlobalData;
+import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
-public class Resolve implements TaskDef<CheckInput, GlobalData> {
+public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     public static final String id = "stratego." + Resolve.class.getSimpleName();
 
     public final Front front;
@@ -51,9 +51,9 @@ public class Resolve implements TaskDef<CheckInput, GlobalData> {
         this.lib = lib;
     }
 
-    @Override public GlobalData exec(ExecContext context, CheckInput input)
+    @Override public GlobalData exec(ExecContext context, ResolveInput input)
         throws IOException, ExecException {
-        final List<Message2<?>> messages = new ArrayList<>();
+        final List<Message<?>> messages = new ArrayList<>();
 
         final java.util.Set<ModuleIdentifier> seen = new HashSet<>();
         final Deque<ModuleIdentifier> workList = new ArrayDeque<>();
@@ -158,14 +158,14 @@ public class Resolve implements TaskDef<CheckInput, GlobalData> {
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, List<IStrategoTerm> imports, long lastModified,
-        @Nullable List<Message2<?>> messages) throws IOException, ExecException {
+        @Nullable List<Message<?>> messages) throws IOException, ExecException {
         final Set<ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
             final ImportResolution importResolution =
                 moduleImportService.resolveImport(context, anImport);
             if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                 if(messages != null) {
-                    messages.add(new UnresolvedImport2(anImport, lastModified));
+                    messages.add(new UnresolvedImport(anImport, lastModified));
                 }
             } else if(importResolution instanceof IModuleImportService.ResolvedImport) {
                 expandedImports
@@ -177,7 +177,7 @@ public class Resolve implements TaskDef<CheckInput, GlobalData> {
 
     private void checkCyclicOverlays(
         Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>> overlayUsesConstructors,
-        List<Message2<?>> messages) {
+        List<Message<?>> messages) {
         final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
                 sig -> overlayUsesConstructors.getOrDefault(sig, Collections.emptySet()));
@@ -190,7 +190,7 @@ public class Resolve implements TaskDef<CheckInput, GlobalData> {
                     lastModified = Long.max(lastModified, sig.lastModified);
                 }
                 for(ConstructorSignatureMatcher sig : topoSCC) {
-                    messages.add(new CyclicOverlay2(sig.wrapped, topoSCC, lastModified));
+                    messages.add(new CyclicOverlay(sig.wrapped, topoSCC, lastModified));
                 }
             }
         }

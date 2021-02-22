@@ -13,10 +13,10 @@ import org.strategoxt.strc.insert_casts_0_0;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.input.InsertCastsInput;
 import mb.stratego.build.strincr.task.output.InsertCastsOutput;
-import mb.stratego.build.strincr.message.MessageSeverity;
-import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
@@ -53,18 +53,19 @@ public class InsertCasts implements TaskDef<InsertCastsInput, InsertCastsOutput>
         final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
         final IStrategoList notes = TermUtils.toListAt(output.result, 3);
 
+        final long lastModified = input.environment.lastModified;
         List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
-            messages.add(Message
-                .from(execContext.logger(), moduleName, errorTerm, MessageSeverity.ERROR));
+            messages.add(
+                Message.from(execContext.logger(), errorTerm, MessageSeverity.ERROR, lastModified));
         }
         for(IStrategoTerm warningTerm : warnings) {
-            messages.add(Message.from(execContext.logger(), moduleName, warningTerm,
-                MessageSeverity.WARNING));
+            messages.add(Message
+                .from(execContext.logger(), warningTerm, MessageSeverity.WARNING, lastModified));
         }
         for(IStrategoTerm noteTerm : notes) {
-            messages.add(Message
-                .from(execContext.logger(), moduleName, noteTerm, MessageSeverity.NOTE));
+            messages.add(
+                Message.from(execContext.logger(), noteTerm, MessageSeverity.NOTE, lastModified));
         }
         return new InsertCastsOutput(astWithCasts, messages);
     }

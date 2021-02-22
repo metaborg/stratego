@@ -7,16 +7,16 @@ import java.util.Set;
 
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 
 public class CheckModuleOutput implements Serializable {
     public final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts;
     public final Map<StrategySignature, Set<StrategySignature>> dynamicRules;
-    public final List<Message2<?>> messages;
+    public final List<Message<?>> messages;
 
     public CheckModuleOutput(
         Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts,
-        Map<StrategySignature, Set<StrategySignature>> dynamicRules, List<Message2<?>> messages) {
+        Map<StrategySignature, Set<StrategySignature>> dynamicRules, List<Message<?>> messages) {
         this.strategyDataWithCasts = strategyDataWithCasts;
         this.dynamicRules = dynamicRules;
         this.messages = messages;

@@ -8,7 +8,7 @@ import java.util.Set;
 import mb.pie.api.STask;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 
 public class CheckOutput implements Serializable {
     public final Map<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
@@ -16,14 +16,14 @@ public class CheckOutput implements Serializable {
     public final Map<StrategySignature, Set<IModuleImportService.ModuleIdentifier>> strategyIndex;
     public final Map<StrategySignature, Set<IModuleImportService.ModuleIdentifier>>
         dynamicRuleIndex;
-    public final List<Message2<?>> messages;
+    public final List<Message<?>> messages;
     public final boolean containsErrors;
 
     public CheckOutput(
         Map<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks,
         Map<StrategySignature, Set<IModuleImportService.ModuleIdentifier>> strategyIndex,
         Map<StrategySignature, Set<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
-        List<Message2<?>> messages, boolean containsErrors) {
+        List<Message<?>> messages, boolean containsErrors) {
         this.moduleCheckTasks = moduleCheckTasks;
         this.strategyIndex = strategyIndex;
         this.dynamicRuleIndex = dynamicRuleIndex;

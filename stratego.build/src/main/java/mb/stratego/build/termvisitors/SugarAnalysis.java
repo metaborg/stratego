@@ -12,7 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
+import mb.stratego.build.strincr.message.ConstantCongruence;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.VarConstrOverlap;
 
 /**
  * Static analysis which requires the non-desugared AST
@@ -21,7 +23,7 @@ import mb.stratego.build.strincr.message.Message;
  */
 // TODO: Add to gradual type system
 public class SugarAnalysis {
-    private String module;
+    private long lastModified;
     private final List<Message<?>> sugarAnalysisMessages;
     private final Set<String> definedConstructors;
 
@@ -33,8 +35,8 @@ public class SugarAnalysis {
     /**
      * Run sugar analysis on term in module.
      */
-    public void visit(String module, IStrategoTerm term) {
-        this.module = module;
+    public void visit(IStrategoTerm term, long lastModified) {
+        this.lastModified = lastModified;
         visit(term);
     }
 
@@ -62,7 +64,7 @@ public class SugarAnalysis {
             if(appl.getName().equals("Var") && TermUtils.isString(appl.getSubterm(0))) {
                 final IStrategoString varName = TermUtils.toStringAt(appl, 0);
                 if(isConstructor(varName.stringValue(), 0)) {
-                    sugarAnalysisMessages.add(Message.varConstrOverlap(module, varName));
+                    sugarAnalysisMessages.add(new VarConstrOverlap(varName, lastModified));
                 }
             }
         }
@@ -224,7 +226,7 @@ public class SugarAnalysis {
     }
 
     private void registerConstantCongruence(final IStrategoTerm child) {
-        sugarAnalysisMessages.add(Message.constantCongruence(module, child));
+        sugarAnalysisMessages.add(new ConstantCongruence(child, lastModified));
     }
 
     private boolean isConstructor(String name, int arity) {

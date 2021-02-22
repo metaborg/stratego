@@ -22,6 +22,7 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetMessages;
 import mb.stratego.build.strincr.function.ToGlobalIndex;
 import mb.stratego.build.util.PieUtils;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public static final String id = "stratego." + Compile.class.getSimpleName();
@@ -38,7 +39,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
         final CheckInput checkInput =
-            new CheckInput(input.mainModuleIdentifier, input.moduleImportService);
+            new CheckInput(input.mainModuleIdentifier, input.moduleImportService,
+                input.strategoGradualSetting == StrategoGradualSetting.NONE);
         final STask<CheckOutput> checkTask = check.createSupplier(checkInput);
         final CheckOutputMessages checkOutput =
             PieUtils.requirePartial(context, check, checkInput, GetMessages.INSTANCE);
@@ -47,7 +49,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         }
 
         final Set<ResourcePath> resultFiles = new HashSet<>();
-        final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput);
+        final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput.resolveInput());
         final GlobalIndex globalIndex =
             PieUtils.requirePartial(context, resolveTask, ToGlobalIndex.INSTANCE);
         final Set<StrategySignature> compiledThroughDynamicRule = new HashSet<>();

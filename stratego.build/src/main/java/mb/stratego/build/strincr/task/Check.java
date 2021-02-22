@@ -12,15 +12,16 @@ import javax.inject.Inject;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.function.AllModulesIdentifiers;
+import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.MessageSeverity;
+import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CheckOutput;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.message.MessageSeverity;
-import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.AllModulesIdentifiers;
-import mb.stratego.build.strincr.message.Message2;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
@@ -39,10 +40,10 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
         final Map<ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
         final Map<StrategySignature, Set<ModuleIdentifier>> dynamicRuleIndex = new HashMap<>();
-        final List<Message2<?>> messages = new ArrayList<>();
+        final List<Message<?>> messages = new ArrayList<>();
         boolean containsErrors = false;
         final Set<ModuleIdentifier> allModulesIdentifiers = PieUtils
-            .requirePartial(context, resolve, input, AllModulesIdentifiers.Instance);
+            .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.Instance);
 
         for(ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
             if(moduleIdentifier.isLibrary()) {
@@ -61,9 +62,18 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, HashSet::new)
                     .add(moduleIdentifier);
             }
-            for(Message2<?> message : output.messages) {
-                messages.add(message);
-                containsErrors |= message.severity == MessageSeverity.ERROR;
+            if(input.ignoreTypeMessages) {
+                for(Message<?> message : output.messages) {
+                    if(!(message instanceof TypeMessage)) {
+                        messages.add(message);
+                        containsErrors |= message.severity == MessageSeverity.ERROR;
+                    }
+                }
+            } else {
+                for(Message<?> message : output.messages) {
+                    messages.add(message);
+                    containsErrors |= message.severity == MessageSeverity.ERROR;
+                }
             }
         }
 

@@ -11,6 +11,7 @@ import org.metaborg.util.cmd.Arguments;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CompileInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
@@ -22,12 +23,13 @@ public class CompileInput implements Serializable {
     public final Collection<ResourcePath> includeDirs;
     public final Arguments extraArgs;
     public final Collection<STask<?>> strFileGeneratingTasks;
+    public final StrategoGradualSetting strategoGradualSetting;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         IModuleImportService moduleImportService, ResourcePath outputDir,
         @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
         Collection<ResourcePath> includeDirs, Arguments extraArgs,
-        Collection<STask<?>> strFileGeneratingTasks) {
+        Collection<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.moduleImportService = moduleImportService;
         this.outputDir = outputDir;
@@ -37,6 +39,7 @@ public class CompileInput implements Serializable {
         this.includeDirs = includeDirs;
         this.extraArgs = extraArgs;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
+        this.strategoGradualSetting = strategoGradualSetting;
     }
 
     @Override public boolean equals(Object o) {
@@ -45,25 +48,27 @@ public class CompileInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        CompileInput input = (CompileInput) o;
+        CompileInput that = (CompileInput) o;
 
-        if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
+        if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
             return false;
-        if(!moduleImportService.equals(input.moduleImportService))
+        if(!moduleImportService.equals(that.moduleImportService))
             return false;
-        if(!outputDir.equals(input.outputDir))
+        if(!outputDir.equals(that.outputDir))
             return false;
-        if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
+        if(packageName != null ? !packageName.equals(that.packageName) : that.packageName != null)
             return false;
-        if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
+        if(cacheDir != null ? !cacheDir.equals(that.cacheDir) : that.cacheDir != null)
             return false;
-        if(!constants.equals(input.constants))
+        if(!constants.equals(that.constants))
             return false;
-        if(!includeDirs.equals(input.includeDirs))
+        if(!includeDirs.equals(that.includeDirs))
             return false;
-        if(!extraArgs.equals(input.extraArgs))
+        if(!extraArgs.equals(that.extraArgs))
             return false;
-        return strFileGeneratingTasks.equals(input.strFileGeneratingTasks);
+        if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
+            return false;
+        return strategoGradualSetting == that.strategoGradualSetting;
     }
 
     @Override public int hashCode() {
@@ -76,6 +81,7 @@ public class CompileInput implements Serializable {
         result = 31 * result + includeDirs.hashCode();
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + strFileGeneratingTasks.hashCode();
+        result = 31 * result + strategoGradualSetting.hashCode();
         return result;
     }
 

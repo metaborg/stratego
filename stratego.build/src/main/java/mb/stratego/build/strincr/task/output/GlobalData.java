@@ -8,11 +8,11 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
     public final Set<ModuleIdentifier> allModuleIdentifiers;
@@ -23,7 +23,7 @@ public class GlobalData implements Serializable {
     public final Set<StrategySignature> internalStrategies;
     public final Set<StrategySignature> externalStrategies;
     public final Set<StrategySignature> dynamicRules;
-    public final List<Message2<?>> messages;
+    public final List<Message<?>> messages;
     private transient @Nullable GlobalIndex globalIndex = null;
 
     public GlobalData(Set<ModuleIdentifier> allModuleIdentifiers,
@@ -32,7 +32,7 @@ public class GlobalData implements Serializable {
         Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex,
         Set<ConstructorSignature> externalConstructors, Set<StrategySignature> internalStrategies,
         Set<StrategySignature> externalStrategies, Set<StrategySignature> dynamicRules,
-        List<Message2<?>> messages) {
+        List<Message<?>> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.strategyIndex = strategyIndex;

@@ -27,38 +27,40 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.function.output.AnnoDefs;
-import mb.stratego.build.strincr.task.input.CheckModuleInput;
-import mb.stratego.build.strincr.task.output.CheckModuleOutput;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.data.GTEnvironment;
-import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.task.input.InsertCastsInput;
-import mb.stratego.build.strincr.task.output.InsertCastsOutput;
-import mb.stratego.build.strincr.message.MessageSeverity;
-import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.ToAnnoDefs;
-import mb.stratego.build.strincr.function.output.TypesLookup;
-import mb.stratego.build.util.WrongASTException;
 import mb.stratego.build.strincr.function.ToTypesLookup;
+import mb.stratego.build.strincr.function.output.AnnoDefs;
+import mb.stratego.build.strincr.function.output.TypesLookup;
+import mb.stratego.build.strincr.message.ExternalStrategyNotFound;
+import mb.stratego.build.strincr.message.ExternalStrategyOverlap;
+import mb.stratego.build.strincr.message.InternalStrategyOverlap;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.Message2;
-import mb.stratego.build.strincr.message.java.StrategyOverlapsWithDynamicRuleHelper;
-import mb.stratego.build.strincr.message.stratego.DuplicateTypeDefinition;
-import mb.stratego.build.strincr.message.stratego.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.MessageSeverity;
+import mb.stratego.build.strincr.message.StrategyOverlapsWithDynamicRuleHelper;
+import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
+import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.input.InsertCastsInput;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
+import mb.stratego.build.strincr.task.output.InsertCastsOutput;
+import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.WrongASTException;
 
 public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput> {
     public static final String id = "stratego." + CheckModule.class.getSimpleName();
@@ -83,36 +85,33 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         assert moduleData != null;
 
         final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
-        final InsertCastsInput input2 =
+        final InsertCastsInput insertCastsInput =
             new InsertCastsInput(input.moduleIdentifier, environment);
-        final @Nullable InsertCastsOutput output = context.require(insertCasts, input2);
+        final @Nullable InsertCastsOutput output = context.require(insertCasts, insertCastsInput);
         assert output != null;
 
         final Map<StrategySignature, Set<StrategySignature>> dynamicRules = new HashMap<>();
         final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
-            extractStrategyDefs(input.moduleIdentifier, input2.environment.lastModified,
+            extractStrategyDefs(input.moduleIdentifier, moduleData.lastModified,
                 output.astWithCasts, dynamicRules);
 
-        final List<Message2<?>> messages = new ArrayList<>(output.messages.size());
-        for(Message<?> message : output.messages) {
-            messages.add(Message2.from(message));
-        }
+        final List<Message<?>> messages = new ArrayList<>(output.messages.size());
+        messages.addAll(output.messages);
 
         checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
-            moduleData.dynamicRuleData.keySet(), messages);
+            moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages);
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,
         Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
-        Set<StrategySignature> dynamicRuleGenerated,
-        List<Message2<?>> messages) {
+        Set<StrategySignature> dynamicRuleGenerated, long lastModified, List<Message<?>> messages) {
         final HashSet<StrategySignature> strategyFilter =
             new HashSet<>(normalStrategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
-        final AnnoDefs annoDefs = PieUtils.requirePartial(context, resolve, input.resolveInput(),
-            new ToAnnoDefs(strategyFilter));
+        final AnnoDefs annoDefs = PieUtils
+            .requirePartial(context, resolve, input.resolveInput(), new ToAnnoDefs(strategyFilter));
 
         for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
@@ -120,41 +119,39 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
             final EnumSet<StrategyFrontData.Kind> kinds =
                 EnumSet.noneOf(StrategyFrontData.Kind.class);
-            final String moduleString = input.moduleIdentifier.moduleString();
             for(StrategyFrontData strategyFrontData : e.getValue()) {
                 if(strategyFrontData.kind == StrategyFrontData.Kind.TypeDefinition && kinds
                     .contains(strategyFrontData.kind)) {
-                    messages.add(Message2.from(new DuplicateTypeDefinition(moduleString,
-                        strategyFrontData.signature.getSubterm(0), MessageSeverity.ERROR)));
+                    messages.add(
+                        new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
+                            MessageSeverity.ERROR, lastModified));
                 }
                 kinds.add(strategyFrontData.kind);
             }
             if(kinds.contains(StrategyFrontData.Kind.Override) || kinds
                 .contains(StrategyFrontData.Kind.Extend)) {
                 if(!annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages.add(Message2
-                        .from(Message.externalStrategyNotFound(moduleString, signatureNameTerm)));
+                    messages.add(
+                        ExternalStrategyNotFound.followOrigin(signatureNameTerm, lastModified));
                 }
             }
             if(kinds.contains(StrategyFrontData.Kind.Normal)) {
                 if(annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages.add(Message2
-                        .from(Message.externalStrategyOverlap(moduleString, signatureNameTerm)));
+                    messages
+                        .add(ExternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
                 }
                 if(annoDefs.internalStrategySigs.contains(strategySignature)) {
-                    messages.add(Message2
-                        .from(Message.internalStrategyOverlap(moduleString, signatureNameTerm)));
+                    messages
+                        .add(InternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
                 }
                 if(dynamicRuleGenerated.contains(strategySignature)) {
-                    messages.add(Message2.from(
-                        new StrategyOverlapsWithDynamicRuleHelper(input.moduleIdentifier,
-                            signatureNameTerm, strategySignature, MessageSeverity.ERROR)));
+                    messages.add(new StrategyOverlapsWithDynamicRuleHelper(signatureNameTerm,
+                        strategySignature, MessageSeverity.ERROR, lastModified));
                 }
             } else {
                 if(kinds.contains(StrategyFrontData.Kind.TypeDefinition)) {
-                    messages.add(Message2.from(
-                        new MissingDefinitionForTypeDefinition(moduleString, signatureNameTerm,
-                            MessageSeverity.ERROR)));
+                    messages.add(new MissingDefinitionForTypeDefinition(signatureNameTerm,
+                        MessageSeverity.ERROR, lastModified));
                 }
             }
         }

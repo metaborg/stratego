@@ -4,20 +4,14 @@ import java.io.Serializable;
 
 import mb.stratego.build.strincr.IModuleImportService;
 
-public class CheckInput implements Serializable {
+public class ResolveInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
     public final IModuleImportService moduleImportService;
-    public final boolean ignoreTypeMessages;
 
-    public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        IModuleImportService moduleImportService, boolean ignoreTypeMessages) {
+    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        IModuleImportService moduleImportService) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.moduleImportService = moduleImportService;
-        this.ignoreTypeMessages = ignoreTypeMessages;
-    }
-
-    public ResolveInput resolveInput() {
-        return new ResolveInput(mainModuleIdentifier, moduleImportService);
     }
 
     @Override public boolean equals(Object o) {
@@ -26,7 +20,7 @@ public class CheckInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        CheckInput input = (CheckInput) o;
+        ResolveInput input = (ResolveInput) o;
 
         if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
             return false;
@@ -40,6 +34,6 @@ public class CheckInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Check.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
+        return "Resolve.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
     }
 }

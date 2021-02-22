@@ -3,13 +3,13 @@ package mb.stratego.build.strincr.function.output;
 import java.io.Serializable;
 import java.util.List;
 
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 
 public class CheckOutputMessages implements Serializable {
-    public final List<Message2<?>> messages;
+    public final List<Message<?>> messages;
     public final boolean containsErrors;
 
-    public CheckOutputMessages(List<Message2<?>> messages, boolean containsErrors) {
+    public CheckOutputMessages(List<Message<?>> messages, boolean containsErrors) {
         this.messages = messages;
         this.containsErrors = containsErrors;
     }

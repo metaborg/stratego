@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.message.Message2;
+import mb.stratego.build.strincr.message.Message;
 
 public interface CompileOutput extends Serializable {
     boolean equals(Object o);
@@ -40,9 +40,9 @@ public interface CompileOutput extends Serializable {
     }
 
     class Failure implements CompileOutput {
-        public final List<Message2<?>> messages;
+        public final List<Message<?>> messages;
 
-        public Failure(List<Message2<?>> messages) {
+        public Failure(List<Message<?>> messages) {
             this.messages = messages;
         }
 
