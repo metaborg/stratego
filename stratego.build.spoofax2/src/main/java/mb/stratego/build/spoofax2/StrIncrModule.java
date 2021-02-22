@@ -13,7 +13,6 @@ import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.Front;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportServiceFactory;
 import mb.stratego.build.strincr.task.InsertCasts;
 import mb.stratego.build.strincr.task.Lib;
 import mb.stratego.build.strincr.task.Resolve;

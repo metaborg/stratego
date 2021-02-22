@@ -1,4 +1,4 @@
-package mb.stratego.build.strincr;
+package mb.stratego.build.spoofax2;
 
 import java.util.Collection;
 
@@ -8,6 +8,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.util.LastModified;
 
 public interface IModuleImportServiceFactory {
