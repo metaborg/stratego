@@ -15,6 +15,7 @@ public class ToModuleIndex implements Function<ModuleData, ModuleIndex>, Seriali
 
     @Override public ModuleIndex apply(ModuleData moduleData) {
         return new ModuleIndex(moduleData.imports, new HashSet<>(moduleData.constrData.keySet()),
+            moduleData.injections,
             new HashSet<>(moduleData.externalConstrData.keySet()),
             new HashSet<>(moduleData.normalStrategyData.keySet()),
             new HashSet<>(moduleData.internalStrategyData.keySet()),

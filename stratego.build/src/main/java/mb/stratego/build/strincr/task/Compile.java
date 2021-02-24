@@ -9,18 +9,18 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.function.output.CheckOutputMessages;
-import mb.stratego.build.strincr.task.input.BackInput;
-import mb.stratego.build.strincr.task.output.BackOutput;
-import mb.stratego.build.strincr.task.input.CheckInput;
-import mb.stratego.build.strincr.task.output.CheckOutput;
-import mb.stratego.build.strincr.task.input.CompileInput;
-import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.strincr.task.output.GlobalData;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetMessages;
 import mb.stratego.build.strincr.function.ToGlobalIndex;
+import mb.stratego.build.strincr.function.output.CheckOutputMessages;
+import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.task.input.BackInput;
+import mb.stratego.build.strincr.task.input.CheckInput;
+import mb.stratego.build.strincr.task.input.CompileInput;
+import mb.stratego.build.strincr.task.output.BackOutput;
+import mb.stratego.build.strincr.task.output.CheckOutput;
+import mb.stratego.build.strincr.task.output.CompileOutput;
+import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrategoGradualSetting;
 
@@ -92,10 +92,12 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             assert output != null;
             resultFiles.addAll(output.resultFiles);
         }
-        final boolean dynamicCallsDefined = !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
+        final boolean dynamicCallsDefined =
+            !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackOutput boilerplateOutput = context.require(back,
             new BackInput.Boilerplate(resolveTask, input.outputDir, input.packageName,
-                input.cacheDir, input.constants, input.includeDirs, input.extraArgs, dynamicCallsDefined));
+                input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
+                dynamicCallsDefined, input.moduleImportService));
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 

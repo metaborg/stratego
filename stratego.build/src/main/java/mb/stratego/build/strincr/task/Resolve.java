@@ -65,6 +65,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
         final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex = new HashMap<>();
 
+        final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections = new HashMap<>();
         final Set<ConstructorSignature> externalConstructors = new HashSet<>();
         final Set<StrategySignature> internalStrategies = new HashSet<>();
         final Set<StrategySignature> externalStrategies = new HashSet<>();
@@ -109,6 +110,10 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                         .add(moduleIdentifier);
                     externalConstructors.add(signature);
                 }
+                for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : index.injections.entrySet()) {
+                    Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
+                        .addAll(e.getValue());
+                }
                 for(StrategySignature signature : index.strategies) {
                     Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
                         .add(moduleIdentifier);
@@ -152,8 +157,9 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         } while(!workList.isEmpty());
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
-        return new GlobalData(allModuleIdentifiers, constructorIndex, strategyIndex, overlayIndex,
-            externalConstructors, internalStrategies, externalStrategies, dynamicRules, messages);
+        return new GlobalData(allModuleIdentifiers, constructorIndex, nonExternalInjections,
+            strategyIndex, overlayIndex, externalConstructors, internalStrategies,
+            externalStrategies, dynamicRules, messages);
     }
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,

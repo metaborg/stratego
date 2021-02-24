@@ -31,11 +31,26 @@ public class ConstructorType extends StrategoAppl {
     }
 
     public IStrategoTerm toOpType(ITermFactory tf) {
+        final IStrategoTerm to2;
+        to2 = typeToConstType(tf, to);
+        if(from.size() == 0) {
+            return to2;
+        }
         IStrategoList.Builder froms = tf.arrayListBuilder(from.size());
         for(IStrategoTerm t : from) {
-            froms.add(tf.makeAppl("ConstType", t));
+            froms.add(typeToConstType(tf, t));
         }
-        return tf.makeAppl("FunType", tf.makeList(froms), tf.makeAppl("ConstType", to));
+        return tf.makeAppl("FunType", tf.makeList(froms), to2);
+    }
+
+    public static IStrategoTerm typeToConstType(ITermFactory tf, IStrategoTerm type) {
+        final IStrategoTerm to2;
+        if(TermUtils.isAppl(type, "DynT", 1)) {
+            to2 = type;
+        } else {
+            to2 = tf.makeAppl("ConstType", type);
+        }
+        return to2;
     }
 
     public static @Nullable ConstructorType fromOpType(ITermFactory tf, IStrategoTerm opType) {
@@ -56,11 +71,11 @@ public class ConstructorType extends StrategoAppl {
                 final IStrategoList froms = TermUtils.toListAt(opType, 0);
                 final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
                 final List<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
-                for(IStrategoTerm tupleType : froms) {
-                    if(!TermUtils.isAppl(tupleType, "ConstType", 1)) {
+                for(IStrategoTerm from : froms) {
+                    if(!TermUtils.isAppl(from, "ConstType", 1)) {
                         fromTypes.add(dynT);
                     } else {
-                        fromTypes.add(tryDesugarType(tf, tupleType.getSubterm(0)));
+                        fromTypes.add(tryDesugarType(tf, from.getSubterm(0)));
                     }
                 }
                 type = new ConstructorType(tf, fromTypes,

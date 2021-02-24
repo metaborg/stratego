@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -26,24 +27,29 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.task.input.BackInput;
-import mb.stratego.build.strincr.task.output.BackOutput;
-import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.ResourcePathConverter;
+import mb.stratego.build.strincr.data.ConstructorData;
+import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorType;
+import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.util.StrategyStubs;
 import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
+import mb.stratego.build.strincr.function.ToConstrData;
+import mb.stratego.build.strincr.function.ToGlobalConsInj;
 import mb.stratego.build.strincr.function.ToGlobalIndex;
 import mb.stratego.build.strincr.function.ToOverlays;
+import mb.stratego.build.strincr.function.output.GlobalConsInj;
+import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.task.input.BackInput;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoConstants;
 import mb.stratego.build.util.StrategoExecutor;
+import mb.stratego.build.util.StrategyStubs;
 import mb.stratego.compiler.pack.Packer;
 
 public class Back implements TaskDef<BackInput, BackOutput> {
@@ -52,7 +58,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
     private final StrategyStubs strategyStubs;
-    private final ITermFactory termFactory;
+    private final ITermFactory tf;
     private final ResourcePathConverter resourcePathConverter;
     private final CheckModule checkModule;
     private final Front front;
@@ -62,7 +68,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         CheckModule checkModule, Front front) {
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
-        this.termFactory = strContext.getFactory();
+        this.tf = strContext.getFactory();
         this.strategyStubs = strategyStubs;
         this.resourcePathConverter = resourcePathConverter;
         this.checkModule = checkModule;
@@ -73,33 +79,60 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final Set<StrategySignature> compiledStrategies = new HashSet<>();
         final boolean isBoilerplate = input instanceof BackInput.Boilerplate;
         final IStrategoTerm ctree;
+        final ConstructorSignature dr_dummy = new ConstructorSignature("DR_DUMMY", 0, 0);
+        final ConstructorSignature dr_undefine = new ConstructorSignature("DR_UNDEFINE", 1, 0);
+        final ConstructorSignature anno_cong__ = new ConstructorSignature("Anno_Cong__", 2, 0);
         if(isBoilerplate) {
-            final GlobalIndex globalIndex = PieUtils
-                .requirePartial(context, input.resolveTask, ToGlobalIndex.INSTANCE);
+            final GlobalConsInj globalConsInj =
+                PieUtils.requirePartial(context, input.resolveTask, ToGlobalConsInj.INSTANCE);
             final List<ConstructorSignature> constructors =
-                new ArrayList<>(globalIndex.nonExternalConstructors.size() + 3);
-            constructors.addAll(globalIndex.nonExternalConstructors);
-            addDrConstructors(constructors);
-            constructors.add(new ConstructorSignature("Anno_Cong__", 2, 0));
+                new ArrayList<>(globalConsInj.allModuleIdentifiers.size() + 3);
+            final List<IStrategoTerm> consInjTerms = new ArrayList<>(
+                globalConsInj.allModuleIdentifiers.size()
+                    + globalConsInj.nonExternalInjections.size() + 3);
+            for(ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
+                final ArrayList<ConstructorData> constructorData = PieUtils
+                    .requirePartial(context, front, new FrontInput(moduleIdentifier, ((BackInput.Boilerplate) input).moduleImportService),
+                        ToConstrData.INSTANCE);
+                for(ConstructorData constructorDatum : constructorData) {
+                    consInjTerms.add(constructorDatum.toTerm(tf));
+                    constructors.add(constructorDatum.signature);
+                }
+            }
+            consInjTerms.add(dr_dummy.toTerm(tf));
+            consInjTerms.add(dr_undefine.toTerm(tf));
+            consInjTerms.add(anno_cong__.toTerm(tf));
+            constructors.add(dr_dummy);
+            constructors.add(dr_undefine);
+            constructors.add(anno_cong__);
+            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : globalConsInj.nonExternalInjections
+                .entrySet()) {
+                final IStrategoTerm from = e.getKey();
+                for(IStrategoTerm to : e.getValue()) {
+                    consInjTerms.add(tf.makeAppl("ConsDeclInj", tf.makeAppl("FunType",
+                        tf.makeList(ConstructorType.typeToConstType(tf, from)),
+                        ConstructorType.typeToConstType(tf, to))));
+                }
+            }
             final Set<StrategySignature> strategies =
-                new HashSet<>(globalIndex.nonExternalStrategies);
+                new HashSet<>(globalConsInj.nonExternalStrategies);
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
             }
             if(((BackInput.Boilerplate) input).dynamicCallsDefined) {
                 strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
-            // TODO: Create OpDecl and OpDeclInj list to put into boilerplate task for registering constructors and injections, for gradual types runtime
-            ctree = Packer.packBoilerplate(termFactory, Collections.emptyList(),
-                strategyStubs.declStubs(strategies));
+            ctree = Packer
+                .packBoilerplate(tf, consInjTerms, strategyStubs.declStubs(strategies));
         } else if(input instanceof BackInput.Congruence) {
             // TODO: run congruence task per module or even per constructor?
-            final GlobalIndex globalIndex = PieUtils
-                .requirePartial(context, input.resolveTask, ToGlobalIndex.INSTANCE);
+            final GlobalIndex globalIndex =
+                PieUtils.requirePartial(context, input.resolveTask, ToGlobalIndex.INSTANCE);
             final List<ConstructorSignature> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
-            addDrConstructors(constructors);
+            constructors.add(dr_dummy);
+            constructors.add(dr_undefine);
 
             final List<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
@@ -114,21 +147,21 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                     continue;
                 }
                 compiledStrategies.add(constructor.toCongruenceSig());
-                congruences.add(constructor.congruenceAst(termFactory));
+                congruences.add(constructor.congruenceAst(tf));
             }
-            congruences.add(ConstructorSignature.annoCongAst(termFactory));
+            congruences.add(ConstructorSignature.annoCongAst(tf));
             compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
 
             final BackInput.Congruence congruenceInput = (BackInput.Congruence) input;
             final @Nullable IStrategoAppl dynamicCallsDefinition =
-                dynamicCallsDefinition(termFactory, congruenceInput.dynamicRuleNewGenerated,
+                dynamicCallsDefinition(tf, congruenceInput.dynamicRuleNewGenerated,
                     congruenceInput.dynamicRuleUndefineGenerated);
             if(dynamicCallsDefinition != null) {
                 congruences.add(dynamicCallsDefinition);
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
 
-            ctree = Packer.packStrategy(termFactory, Collections.emptyList(), congruences);
+            ctree = Packer.packStrategy(tf, Collections.emptyList(), congruences);
         } else {
             final List<IStrategoAppl> strategyContributions = new ArrayList<>();
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
@@ -151,7 +184,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             }
 
             IStrategoTerm desugaringInput =
-                Packer.packStrategy(termFactory, overlayContributions, strategyContributions);
+                Packer.packStrategy(tf, overlayContributions, strategyContributions);
 
             final StrategoExecutor.ExecutionResult result = StrategoExecutor
                 .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, context.logger(), true,
@@ -285,11 +318,6 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final String dynamicCalls = Interpreter.cify("DYNAMIC_CALLS") + "_0_0";
         return tf
             .makeAppl("SDefT", tf.makeString(dynamicCalls), tf.makeList(), tf.makeList(), body);
-    }
-
-    private static void addDrConstructors(Collection<ConstructorSignature> constructors) {
-        constructors.add(new ConstructorSignature("DR_DUMMY", 0, 0));
-        constructors.add(new ConstructorSignature("DR_UNDEFINE", 1, 0));
     }
 
     private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {

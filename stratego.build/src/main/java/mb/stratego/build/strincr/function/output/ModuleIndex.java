@@ -18,6 +18,7 @@ import mb.stratego.build.util.WithLastModified;
 public class ModuleIndex implements Serializable, WithLastModified {
     public final List<IStrategoTerm> imports;
     public final Set<ConstructorSignature> constructors;
+    public final Map<IStrategoTerm, List<IStrategoTerm>> injections;
     public final Set<ConstructorSignature> externalConstructors;
     public final Set<StrategySignature> strategies;
     public final Set<StrategySignature> internalStrategies;
@@ -27,12 +28,14 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(List<IStrategoTerm> imports, Set<ConstructorSignature> constructors,
+        Map<IStrategoTerm, List<IStrategoTerm>> injections,
         Set<ConstructorSignature> externalConstructors, Set<StrategySignature> strategies,
         Set<StrategySignature> internalStrategies, Set<StrategySignature> externalStrategies,
         Set<StrategySignature> dynamicRules,
         Map<ConstructorSignature, List<OverlayData>> overlayData, long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
+        this.injections = injections;
         this.externalConstructors = externalConstructors;
         this.strategies = strategies;
         this.internalStrategies = internalStrategies;
@@ -56,9 +59,17 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!constructors.equals(that.constructors))
             return false;
+        if(!injections.equals(that.injections))
+            return false;
         if(!externalConstructors.equals(that.externalConstructors))
             return false;
         if(!strategies.equals(that.strategies))
+            return false;
+        if(!internalStrategies.equals(that.internalStrategies))
+            return false;
+        if(!externalStrategies.equals(that.externalStrategies))
+            return false;
+        if(!dynamicRules.equals(that.dynamicRules))
             return false;
         return overlayData.equals(that.overlayData);
     }
@@ -66,8 +77,12 @@ public class ModuleIndex implements Serializable, WithLastModified {
     @Override public int hashCode() {
         int result = imports.hashCode();
         result = 31 * result + constructors.hashCode();
+        result = 31 * result + injections.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + strategies.hashCode();
+        result = 31 * result + internalStrategies.hashCode();
+        result = 31 * result + externalStrategies.hashCode();
+        result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;

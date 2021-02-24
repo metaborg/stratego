@@ -16,10 +16,8 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.task.output.CheckOutput;
-import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetDynamicRuleAnalysisData;
@@ -27,6 +25,8 @@ import mb.stratego.build.strincr.function.GetStrategyAnalysisData;
 import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.output.CheckOutput;
+import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
 
@@ -272,12 +272,15 @@ public abstract class BackInput implements Serializable {
 
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
+        public final IModuleImportService moduleImportService;
 
         public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, boolean dynamicCallsDefined) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs, boolean dynamicCallsDefined,
+            IModuleImportService moduleImportService) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.dynamicCallsDefined = dynamicCallsDefined;
+            this.moduleImportService = moduleImportService;
         }
 
         @Override public boolean equals(Object o) {

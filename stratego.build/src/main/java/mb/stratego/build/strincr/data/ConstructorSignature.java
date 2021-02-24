@@ -1,5 +1,8 @@
 package mb.stratego.build.strincr.data;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -7,6 +10,7 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoString;
@@ -89,6 +93,17 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
         }
 
         return new ConstructorSignature(name, arity, lastModified);
+    }
+
+    public IStrategoTerm toTerm(ITermFactory tf) {
+        final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+        final IStrategoTerm opType;
+        if(noArgs == 0) {
+            opType = dynT;
+        } else {
+            opType = tf.makeAppl("FunType", tf.makeList(Collections.nCopies(noArgs, dynT)), dynT);
+        }
+        return tf.makeAppl("OpDecl", opType);
     }
 
     public @Nullable static Boolean isExternal(IStrategoTerm consDef) {

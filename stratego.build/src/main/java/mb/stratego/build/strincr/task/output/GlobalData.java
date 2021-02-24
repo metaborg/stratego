@@ -8,6 +8,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -17,6 +19,7 @@ import mb.stratego.build.strincr.message.Message;
 public class GlobalData implements Serializable {
     public final Set<ModuleIdentifier> allModuleIdentifiers;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
+    public final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections;
     public final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex;
     public final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex;
     public final Set<ConstructorSignature> externalConstructors;
@@ -28,13 +31,14 @@ public class GlobalData implements Serializable {
 
     public GlobalData(Set<ModuleIdentifier> allModuleIdentifiers,
         Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
-        Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
+        Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections, Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
         Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex,
         Set<ConstructorSignature> externalConstructors, Set<StrategySignature> internalStrategies,
         Set<StrategySignature> externalStrategies, Set<StrategySignature> dynamicRules,
         List<Message<?>> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
+        this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
         this.externalConstructors = externalConstructors;
@@ -54,7 +58,8 @@ public class GlobalData implements Serializable {
                 new HashSet<>(constructorIndex.keySet());
             nonExternalConstructors.removeAll(externalConstructors);
             globalIndex =
-                new GlobalIndex(nonExternalConstructors, externalConstructors, nonExternalStrategies, dynamicRules);
+                new GlobalIndex(nonExternalConstructors, externalConstructors, nonExternalStrategies, dynamicRules,
+                    nonExternalInjections);
         }
         return globalIndex;
     }
@@ -70,6 +75,8 @@ public class GlobalData implements Serializable {
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
             return false;
         if(!constructorIndex.equals(that.constructorIndex))
+            return false;
+        if(!nonExternalInjections.equals(that.nonExternalInjections))
             return false;
         if(!strategyIndex.equals(that.strategyIndex))
             return false;
@@ -89,6 +96,7 @@ public class GlobalData implements Serializable {
     @Override public int hashCode() {
         int result = allModuleIdentifiers.hashCode();
         result = 31 * result + constructorIndex.hashCode();
+        result = 31 * result + nonExternalInjections.hashCode();
         result = 31 * result + strategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();
         result = 31 * result + externalConstructors.hashCode();

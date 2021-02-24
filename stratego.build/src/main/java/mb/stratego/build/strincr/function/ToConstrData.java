@@ -1,0 +1,25 @@
+package mb.stratego.build.strincr.function;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
+import mb.stratego.build.strincr.data.ConstructorData;
+import mb.stratego.build.strincr.task.output.ModuleData;
+
+public class ToConstrData implements Function<ModuleData, ArrayList<ConstructorData>>, Serializable {
+    public static final ToConstrData INSTANCE = new ToConstrData();
+
+    @Override public ArrayList<ConstructorData> apply(ModuleData moduleData) {
+        final ArrayList<ConstructorData> constructorData = new ArrayList<>();
+        for(List<ConstructorData> value : moduleData.constrData.values()) {
+            for(ConstructorData data : value) {
+                if(!data.isOverlay()) {
+                    constructorData.add(data);
+                }
+            }
+        }
+        return constructorData;
+    }
+}

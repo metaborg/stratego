@@ -3,6 +3,8 @@ package mb.stratego.build.strincr.data;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 public class ConstructorData {
     public final ConstructorSignature signature;
@@ -19,6 +21,10 @@ public class ConstructorData {
 
     public boolean isOverlay() {
         return false;
+    }
+
+    public IStrategoTerm toTerm(ITermFactory tf) {
+        return tf.makeAppl("OpDecl", tf.makeString(signature.name), type.toOpType(tf));
     }
 
     @Override public boolean equals(@Nullable Object o) {
