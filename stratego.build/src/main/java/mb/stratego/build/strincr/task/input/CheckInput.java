@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
@@ -10,12 +10,12 @@ import mb.stratego.build.strincr.IModuleImportService;
 public class CheckInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
     public final boolean ignoreTypeMessages;
-    public final Collection<STask<?>> strFileGeneratingTasks;
-    public final Collection<? extends ResourcePath> includeDirs;
+    public final ArrayList<STask<?>> strFileGeneratingTasks;
+    public final ArrayList<? extends ResourcePath> includeDirs;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        boolean ignoreTypeMessages, Collection<STask<?>> strFileGeneratingTasks,
-        Collection<? extends ResourcePath> includeDirs) {
+        boolean ignoreTypeMessages, ArrayList<STask<?>> strFileGeneratingTasks,
+        ArrayList<? extends ResourcePath> includeDirs) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.ignoreTypeMessages = ignoreTypeMessages;
         this.strFileGeneratingTasks = strFileGeneratingTasks;

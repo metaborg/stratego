@@ -1,8 +1,6 @@
 package mb.stratego.build.strincr.data;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -16,18 +14,19 @@ import org.spoofax.terms.util.TermUtils;
 import static mb.stratego.build.termvisitors.DesugarType.tryDesugarType;
 
 public class ConstructorType extends StrategoAppl {
-    private final List<IStrategoTerm> from;
+    private final ArrayList<IStrategoTerm> from;
     public final IStrategoTerm to;
 
-    public ConstructorType(IStrategoTermBuilder tf, List<IStrategoTerm> from, IStrategoTerm to) {
+    public ConstructorType(IStrategoTermBuilder tf, ArrayList<IStrategoTerm> from,
+        IStrategoTerm to) {
         super(tf.makeConstructor("ConstrType", 2), new IStrategoTerm[] { tf.makeList(from), to },
             null);
         this.from = from;
         this.to = to;
     }
 
-    public List<IStrategoTerm> getFrom() {
-        return Collections.unmodifiableList(from);
+    public ArrayList<IStrategoTerm> getFrom() {
+        return from;
     }
 
     public IStrategoTerm toOpType(ITermFactory tf) {
@@ -60,7 +59,7 @@ public class ConstructorType extends StrategoAppl {
                 if(opType.getSubtermCount() != 1) {
                     return null;
                 }
-                type = new ConstructorType(tf, Collections.emptyList(),
+                type = new ConstructorType(tf, new ArrayList<>(0),
                     tryDesugarType(tf, opType.getSubterm(0)));
                 break;
             case "FunType":
@@ -70,7 +69,7 @@ public class ConstructorType extends StrategoAppl {
                 }
                 final IStrategoList froms = TermUtils.toListAt(opType, 0);
                 final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-                final List<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
+                final ArrayList<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
                 for(IStrategoTerm from : froms) {
                     if(!TermUtils.isAppl(from, "ConstType", 1)) {
                         fromTypes.add(dynT);

@@ -1,22 +1,23 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 
 public class CheckModuleOutput implements Serializable {
-    public final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts;
-    public final Map<StrategySignature, Set<StrategySignature>> dynamicRules;
-    public final List<Message<?>> messages;
+    public final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts;
+    public final HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules;
+    public final ArrayList<Message<?>> messages;
 
     public CheckModuleOutput(
-        Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts,
-        Map<StrategySignature, Set<StrategySignature>> dynamicRules, List<Message<?>> messages) {
+        HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts,
+        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules,
+        ArrayList<Message<?>> messages) {
         this.strategyDataWithCasts = strategyDataWithCasts;
         this.dynamicRules = dynamicRules;
         this.messages = messages;

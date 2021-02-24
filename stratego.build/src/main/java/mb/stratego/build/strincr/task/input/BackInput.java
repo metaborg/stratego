@@ -2,11 +2,9 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -34,14 +32,14 @@ public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
-    public final List<String> constants;
-    public final Collection<ResourcePath> includeDirs;
+    public final ArrayList<String> constants;
+    public final ArrayList<ResourcePath> includeDirs;
     public final Arguments extraArgs;
     public final STask<GlobalData> resolveTask;
 
     public BackInput(ResourcePath outputDir, @Nullable String packageName,
-        @Nullable ResourcePath cacheDir, List<String> constants,
-        Collection<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask) {
+        @Nullable ResourcePath cacheDir, ArrayList<String> constants,
+        ArrayList<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask) {
         this.outputDir = outputDir;
         this.packageName = packageName;
         this.cacheDir = cacheDir;
@@ -90,13 +88,13 @@ public abstract class BackInput implements Serializable {
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
         public final ModuleIdentifier mainModuleIdentifier;
-        public final Collection<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<STask<?>> strFileGeneratingTasks;
 
         public Normal(StrategySignature strategySignature, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
             STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
-            Collection<STask<?>> strFileGeneratingTasks) {
+            ArrayList<STask<?>> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
             this.mainModuleIdentifier = mainModuleIdentifier;
@@ -104,21 +102,22 @@ public abstract class BackInput implements Serializable {
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
+            ArrayList<IStrategoAppl> strategyContributions,
+            HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
-            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+            final HashSet<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, this.resolveTask,
-                    new ModulesDefiningStrategy<>(strategySignature));
+                    new ModulesDefiningStrategy(strategySignature));
 
             for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                 if(moduleIdentifier.isLibrary()) {
                     continue;
                 }
-                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
                     .requirePartial(context, checkModule,
                         new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
                             strFileGeneratingTasks, includeDirs),
-                        new GetStrategyAnalysisData<>(strategySignature));
+                        new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                     new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
@@ -136,37 +135,37 @@ public abstract class BackInput implements Serializable {
         public final STask<CheckOutput> checkTask;
 
         public DynamicRule(StrategySignature strategySignature, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
             STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
-            Collection<STask<?>> strFileGeneratingTasks,
-            STask<CheckOutput> checkTask) {
+            ArrayList<STask<?>> strFileGeneratingTasks, STask<CheckOutput> checkTask) {
             super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
                 extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks);
             this.checkTask = checkTask;
         }
 
         @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
-            List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
+            ArrayList<IStrategoAppl> strategyContributions,
+            HashSet<ConstructorSignature> usedConstructors) {
             final Deque<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
-            final Set<StrategySignature> seen = new HashSet<>();
+            final HashSet<StrategySignature> seen = new HashSet<>();
             seen.add(strategySignature);
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
-                final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                final HashSet<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                     .requirePartial(context, this.checkTask,
-                        new ModulesDefiningDynamicRule<>(strategySignature));
+                        new ModulesDefiningDynamicRule(strategySignature));
 
                 for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                     if(moduleIdentifier.isLibrary()) {
                         continue;
                     }
-                    final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
                         .requirePartial(context, checkModule,
                             new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
                                 strFileGeneratingTasks, includeDirs),
-                            new GetDynamicRuleAnalysisData<>(strategySignature));
+                            new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                         new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
@@ -207,13 +206,13 @@ public abstract class BackInput implements Serializable {
     }
 
     public static class Congruence extends BackInput {
-        public final Set<String> dynamicRuleNewGenerated;
-        public final Set<String> dynamicRuleUndefineGenerated;
+        public final HashSet<String> dynamicRuleNewGenerated;
+        public final HashSet<String> dynamicRuleUndefineGenerated;
 
         public Congruence(STask<GlobalData> resolveTask, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs,
-            Set<String> dynamicRuleNewGenerated, Set<String> dynamicRuleUndefineGenerated) {
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
+            HashSet<String> dynamicRuleNewGenerated, HashSet<String> dynamicRuleUndefineGenerated) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.dynamicRuleNewGenerated = dynamicRuleNewGenerated;
             this.dynamicRuleUndefineGenerated = dynamicRuleUndefineGenerated;
@@ -248,12 +247,12 @@ public abstract class BackInput implements Serializable {
 
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
-        public final Collection<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<STask<?>> strFileGeneratingTasks;
 
         public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, boolean dynamicCallsDefined,
-            Collection<STask<?>> strFileGeneratingTasks) {
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
+            boolean dynamicCallsDefined, ArrayList<STask<?>> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.dynamicCallsDefined = dynamicCallsDefined;
             this.strFileGeneratingTasks = strFileGeneratingTasks;

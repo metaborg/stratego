@@ -1,12 +1,10 @@
 package mb.stratego.build.util;
 
-import java.io.Serializable;
-
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 
-public class WrongASTException extends Exception implements Serializable {
+public class WrongASTException extends Exception {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
 

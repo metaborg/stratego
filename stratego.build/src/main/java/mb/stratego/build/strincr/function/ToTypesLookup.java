@@ -2,10 +2,8 @@ package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -19,12 +17,12 @@ import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.output.TypesLookup;
+import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Relation;
 
 public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Serializable {
@@ -42,30 +40,32 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
     }
 
     @Override public TypesLookup apply(ModuleData moduleData) {
-        final Map<StrategySignature, StrategyType> strategyTypes = new HashMap<>();
-        final Map<ConstructorSignature, Set<ConstructorType>> constructorTypes = new HashMap<>();
-        final Map<String, Set<StrategyFrontData>> ambStrategyIndex = moduleData.ambStrategyIndex();
+        final HashMap<StrategySignature, StrategyType> strategyTypes = new HashMap<>();
+        final HashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes =
+            new HashMap<>();
+        final HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex =
+            moduleData.ambStrategyIndex();
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
-                .getOrDefault(usedStrategy, Collections.emptySet())) {
+                .getOrDefault(usedStrategy, new HashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
-                .getOrDefault(usedStrategy, Collections.emptySet())) {
+                .getOrDefault(usedStrategy, new HashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
-                .getOrDefault(usedStrategy, Collections.emptySet())) {
+                .getOrDefault(usedStrategy, new HashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
-                .getOrDefault(usedStrategy, Collections.emptySet())) {
+                .getOrDefault(usedStrategy, new HashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
         }
         for(String usedStrategy : usedAmbiguousStrategies) {
             for(StrategyFrontData strategyFrontData : ambStrategyIndex
-                .getOrDefault(usedStrategy, Collections.emptySet())) {
+                .getOrDefault(usedStrategy, new HashSet<>(0))) {
                 final StrategyType type = strategyFrontData.type != null ? strategyFrontData.type :
                     strategyFrontData.signature.standardType(tf);
                 strategyTypes.put(strategyFrontData.signature, type);
@@ -74,28 +74,28 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
         for(ConstructorSignature usedConstructor : usedConstructors) {
             for(ConstructorData constructorData : moduleData.constrData
                 .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    Collections.emptyList())) {
+                    new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                     .add(constructorData.type);
             }
             for(ConstructorData constructorData : moduleData.externalConstrData
                 .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    Collections.emptyList())) {
+                    new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                     .add(constructorData.type);
             }
             for(OverlayData overlayData : moduleData.overlayData
                 .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    Collections.emptyList())) {
+                    new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
                     .add(overlayData.type);
             }
         }
 
 
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections =
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
             new HashMap<>(moduleData.injections);
-        for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.externalInjections
+        for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.externalInjections
             .entrySet()) {
             Relation.getOrInitialize(injections, e.getKey(), ArrayList::new).addAll(e.getValue());
         }

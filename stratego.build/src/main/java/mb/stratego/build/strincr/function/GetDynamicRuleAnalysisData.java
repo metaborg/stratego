@@ -1,29 +1,28 @@
 package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 
-public class GetDynamicRuleAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
-    implements Function<CheckModuleOutput, T>, Serializable {
+public class GetDynamicRuleAnalysisData
+    implements Function<CheckModuleOutput, HashSet<StrategyAnalysisData>>, Serializable {
     public final StrategySignature strategySignature;
 
     public GetDynamicRuleAnalysisData(StrategySignature strategySignature) {
         this.strategySignature = strategySignature;
     }
 
-    @SuppressWarnings("unchecked") @Override public T apply(CheckModuleOutput output) {
-        final T result = (T) new HashSet<StrategyAnalysisData>();
+    @Override public HashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
+        final HashSet<StrategyAnalysisData> result = new HashSet<>();
         for(StrategySignature signature : output.dynamicRules
-            .getOrDefault(strategySignature, Collections.emptySet())) {
+            .getOrDefault(strategySignature, new HashSet<>(0))) {
             final @Nullable Set<StrategyAnalysisData> analysisData =
                 output.strategyDataWithCasts.get(signature);
             if(analysisData != null) {
@@ -39,7 +38,7 @@ public class GetDynamicRuleAnalysisData<T extends Set<StrategyAnalysisData> & Se
         if(o == null || getClass() != o.getClass())
             return false;
 
-        GetDynamicRuleAnalysisData<?> that = (GetDynamicRuleAnalysisData<?>) o;
+        GetDynamicRuleAnalysisData that = (GetDynamicRuleAnalysisData) o;
 
         return strategySignature.equals(that.strategySignature);
     }

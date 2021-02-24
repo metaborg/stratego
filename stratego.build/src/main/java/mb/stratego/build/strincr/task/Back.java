@@ -3,9 +3,7 @@ package mb.stratego.build.strincr.task;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -88,7 +86,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     @Override public BackOutput exec(ExecContext context, BackInput input) throws Exception {
-        final Set<StrategySignature> compiledStrategies = new HashSet<>();
+        final HashSet<StrategySignature> compiledStrategies = new HashSet<>();
         final boolean isBoilerplate = input instanceof BackInput.Boilerplate;
         final IStrategoTerm ctree;
         final ConstructorSignature dr_dummy = new ConstructorSignature("DR_DUMMY", 0, 0);
@@ -98,15 +96,15 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final BackInput.Boilerplate boilerplateInput = (BackInput.Boilerplate) input;
             final GlobalConsInj globalConsInj =
                 PieUtils.requirePartial(context, input.resolveTask, ToGlobalConsInj.INSTANCE);
-            final List<ConstructorSignature> constructors =
+            final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalConsInj.allModuleIdentifiers.size() + 3);
-            final List<IStrategoTerm> consInjTerms = new ArrayList<>(
-                globalConsInj.allModuleIdentifiers.size()
-                    + globalConsInj.nonExternalInjections.size() + 3);
+            final ArrayList<IStrategoTerm> consInjTerms = new ArrayList<>(
+                globalConsInj.allModuleIdentifiers.size() + globalConsInj.nonExternalInjections
+                    .size() + 3);
             for(ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
-                    .requirePartial(context, front, new FrontInput.Normal(moduleIdentifier, boilerplateInput.strFileGeneratingTasks),
-                        ToConstrData.INSTANCE);
+                    .requirePartial(context, front, new FrontInput.Normal(moduleIdentifier,
+                        boilerplateInput.strFileGeneratingTasks), ToConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(tf));
                     constructors.add(constructorDatum.signature);
@@ -118,7 +116,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             constructors.add(dr_dummy);
             constructors.add(dr_undefine);
             constructors.add(anno_cong__);
-            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : globalConsInj.nonExternalInjections
+            for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : globalConsInj.nonExternalInjections
                 .entrySet()) {
                 final IStrategoTerm from = e.getKey();
                 for(IStrategoTerm to : e.getValue()) {
@@ -127,7 +125,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                         ConstructorType.typeToConstType(tf, to))));
                 }
             }
-            final Set<StrategySignature> strategies =
+            final HashSet<StrategySignature> strategies =
                 new HashSet<>(globalConsInj.nonExternalStrategies);
             for(ConstructorSignature constructor : constructors) {
                 strategies.add(constructor.toCongruenceSig());
@@ -141,13 +139,13 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex =
                 PieUtils.requirePartial(context, input.resolveTask, ToGlobalIndex.INSTANCE);
-            final List<ConstructorSignature> constructors =
+            final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
             constructors.add(dr_dummy);
             constructors.add(dr_undefine);
 
-            final List<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
+            final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     context.logger().debug(
@@ -174,23 +172,23 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
 
-            ctree = Packer.packStrategy(tf, Collections.emptyList(), congruences);
+            ctree = Packer.packStrategy(tf, new ArrayList<>(0), congruences);
         } else { // input instance BackInput.Normal (and possibly even BackInput.DynamicRule)
-            final List<IStrategoAppl> strategyContributions = new ArrayList<>();
-            final Set<ConstructorSignature> usedConstructors = new HashSet<>();
+            final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
+            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
             final BackInput.Normal normalInput = (BackInput.Normal) input;
             normalInput.getStrategyContributions(context, checkModule, strategyContributions,
                 usedConstructors);
 
-            final Set<ModuleIdentifier> modulesDefiningOverlay = PieUtils
+            final HashSet<ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, input.resolveTask,
-                    new ModulesDefiningOverlays<>(usedConstructors));
+                    new ModulesDefiningOverlays(usedConstructors));
 
-            final List<IStrategoAppl> overlayContributions = new ArrayList<>();
+            final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
             for(ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
-                final List<OverlayData> overlayData = PieUtils.requirePartial(context, front,
+                final ArrayList<OverlayData> overlayData = PieUtils.requirePartial(context, front,
                     new FrontInput.Normal(moduleIdentifier, normalInput.strFileGeneratingTasks),
-                    new ToOverlays<>(usedConstructors));
+                    new ToOverlays(usedConstructors));
                 for(OverlayData overlayDatum : overlayData) {
                     overlayContributions.add(overlayDatum.astTerm);
                 }
@@ -261,7 +259,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
         }
 
-        final Set<ResourcePath> resultFiles = new HashSet<>();
+        final HashSet<ResourcePath> resultFiles = new HashSet<>();
         // TODO: have the compilation return a list of files instead of printing to log
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
             if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {
@@ -334,7 +332,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {
-        List<String> strings = arguments.asStrings(null);
+        Collection<String> strings = arguments.asStrings(null);
         final IStrategoTerm[] args = new IStrategoTerm[strings.size() + 2];
         args[0] = B.string(name);
         args[1] = ctree;

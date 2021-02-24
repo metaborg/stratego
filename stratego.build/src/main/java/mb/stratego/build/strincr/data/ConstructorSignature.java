@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.data;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import javax.annotation.Nullable;

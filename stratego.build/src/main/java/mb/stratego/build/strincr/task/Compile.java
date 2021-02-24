@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -53,14 +52,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             return new CompileOutput.Failure(checkOutput.messages);
         }
 
-        final Set<ResourcePath> resultFiles = new HashSet<>();
+        final HashSet<ResourcePath> resultFiles = new HashSet<>();
         final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput.resolveInput());
         final GlobalIndex globalIndex =
             PieUtils.requirePartial(context, resolveTask, ToGlobalIndex.INSTANCE);
-        final Set<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
+        final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
-        final Set<String> dynamicRuleNewGenerated = new HashSet<>();
-        final Set<String> dynamicRuleUndefineGenerated = new HashSet<>();
+        final HashSet<String> dynamicRuleNewGenerated = new HashSet<>();
+        final HashSet<String> dynamicRuleUndefineGenerated = new HashSet<>();
 
         for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {

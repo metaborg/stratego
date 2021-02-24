@@ -8,9 +8,7 @@ import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -107,12 +105,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             new InsertCastsInput(input.moduleIdentifier(), environment);
         final InsertCastsOutput output = insertCasts(context, insertCastsInput);
 
-        final Map<StrategySignature, Set<StrategySignature>> dynamicRules = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
+        final HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts =
             extractStrategyDefs(input.moduleIdentifier(), moduleData.lastModified,
                 output.astWithCasts, dynamicRules);
 
-        final List<Message<?>> messages = new ArrayList<>(output.messages.size());
+        final ArrayList<Message<?>> messages = new ArrayList<>(output.messages.size());
         messages.addAll(output.messages);
 
         checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
@@ -140,7 +138,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final IStrategoList notes = TermUtils.toListAt(output.result, 3);
 
         final long lastModified = input.environment.lastModified;
-        List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
+        ArrayList<Message<?>> messages =
+            new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
             messages.add(
                 Message.from(execContext.logger(), errorTerm, MessageSeverity.ERROR, lastModified));
@@ -157,15 +156,16 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,
-        Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
-        Set<StrategySignature> dynamicRuleGenerated, long lastModified, List<Message<?>> messages) {
+        Map<StrategySignature, HashSet<StrategyFrontData>> normalStrategyData,
+        Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
+        ArrayList<Message<?>> messages) {
         final HashSet<StrategySignature> strategyFilter =
             new HashSet<>(normalStrategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs = PieUtils
             .requirePartial(context, resolve, input.resolveInput(), new ToAnnoDefs(strategyFilter));
 
-        for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : normalStrategyData
+        for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
             final StrategySignature strategySignature = e.getKey();
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
@@ -209,10 +209,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         }
     }
 
-    public static Map<StrategySignature, Set<StrategyAnalysisData>> extractStrategyDefs(
+    public static HashMap<StrategySignature, HashSet<StrategyAnalysisData>> extractStrategyDefs(
         ModuleIdentifier moduleIdentifier, long lastModified, IStrategoTerm ast,
-        Map<StrategySignature, Set<StrategySignature>> dynamicRules) throws WrongASTException {
-        final Map<StrategySignature, Set<StrategyAnalysisData>> strategyData = new HashMap<>();
+        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
+        throws WrongASTException {
+        final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData =
+            new HashMap<>();
 
         final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
@@ -238,8 +240,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private static void addStrategyData(ModuleIdentifier moduleIdentifier, long lastModified,
-        Map<StrategySignature, Set<StrategyAnalysisData>> strategyData, IStrategoTerm strategyDefs,
-        Map<StrategySignature, Set<StrategySignature>> dynamicRules) throws WrongASTException {
+        HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData,
+        IStrategoTerm strategyDefs,
+        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
+        throws WrongASTException {
         for(IStrategoTerm strategyDef : strategyDefs) {
             if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
@@ -257,7 +261,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 if(strategySignature == null) {
                     throw new WrongASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final Set<StrategySignature> definedDynamicRules = CollectDynRuleSigs.collect(strategyDefAppl);
+                final HashSet<StrategySignature> definedDynamicRules =
+                    CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
                     .add(new StrategyAnalysisData(strategySignature, strategyDefAppl, definedDynamicRules, lastModified));
                 for(StrategySignature dynRuleSig : definedDynamicRules) {
@@ -283,10 +288,11 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         // Get the relevant strategy and constructor types and all injections, that are visible
         //     through the import graph
-        final java.util.Set<ModuleIdentifier> seen = new HashSet<>();
+        final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
         final Deque<ModuleIdentifier> workList = new ArrayDeque<>(Resolve
             .expandImports(context, moduleImportService, moduleData.imports,
-                moduleData.lastModified, null, input.strFileGeneratingTasks(), input.includeDirs()));
+                moduleData.lastModified, null, input.strFileGeneratingTasks(),
+                input.includeDirs()));
         seen.add(input.moduleIdentifier());
         seen.addAll(workList);
         do {
@@ -299,25 +305,25 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     moduleData.usedAmbiguousStrategies, moduleData.usedConstructors));
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
-                ToTypesLookup
-                    .registerStrategyType(strategyTypes, e.getKey(), e.getValue());
+                ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());
             }
-            for(Map.Entry<ConstructorSignature, Set<ConstructorType>> e : typesLookup.constructorTypes
+            for(Map.Entry<ConstructorSignature, HashSet<ConstructorType>> e : typesLookup.constructorTypes
                 .entrySet()) {
                 for(ConstructorType ty : e.getValue()) {
                     constructorTypes.__put(e.getKey(), ty);
                 }
             }
-            for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : typesLookup.allInjections
+            for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : typesLookup.allInjections
                 .entrySet()) {
                 for(IStrategoTerm to : e.getValue()) {
                     injections.__put(e.getKey(), to);
                 }
             }
 
-            final Set<ModuleIdentifier> expandedImports = Resolve
+            final HashSet<ModuleIdentifier> expandedImports = Resolve
                 .expandImports(context, moduleImportService, typesLookup.imports,
-                    typesLookup.lastModified, null, input.strFileGeneratingTasks(), input.includeDirs());
+                    typesLookup.lastModified, null, input.strFileGeneratingTasks(),
+                    input.includeDirs());
             expandedImports.removeAll(seen);
             workList.addAll(expandedImports);
             seen.addAll(expandedImports);
@@ -334,58 +340,58 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes,
         BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes,
         BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
-        for(Set<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
-                ToTypesLookup
-                    .registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                        strategyFrontDatum.getType(tf));
+                ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
+                    strategyFrontDatum.getType(tf));
             }
         }
-        for(Set<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData.values()) {
+        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
+            .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
-                ToTypesLookup
-                    .registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                        strategyFrontDatum.getType(tf));
+                ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
+                    strategyFrontDatum.getType(tf));
             }
         }
-        for(Set<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData.values()) {
+        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
+            .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
-                ToTypesLookup
-                    .registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                        strategyFrontDatum.getType(tf));
+                ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
+                    strategyFrontDatum.getType(tf));
             }
         }
-        for(Set<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
+        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
-                ToTypesLookup
-                    .registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                        strategyFrontDatum.getType(tf));
+                ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
+                    strategyFrontDatum.getType(tf));
             }
         }
-        for(Map.Entry<ConstructorSignature, List<ConstructorData>> e : moduleData.constrData
+        for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.constrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
                 constructorTypes.__put(e.getKey(), d.type);
             }
         }
-        for(Map.Entry<ConstructorSignature, List<ConstructorData>> e : moduleData.externalConstrData
+        for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.externalConstrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
                 constructorTypes.__put(e.getKey(), d.type);
             }
         }
-        for(Map.Entry<ConstructorSignature, List<OverlayData>> e : moduleData.overlayData
+        for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : moduleData.overlayData
             .entrySet()) {
             for(OverlayData d : e.getValue()) {
                 constructorTypes.__put(e.getKey(), d.type);
             }
         }
-        for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.injections.entrySet()) {
+        for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.injections
+            .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
                 injections.__put(e.getKey(), to);
             }
         }
-        for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : moduleData.externalInjections.entrySet()) {
+        for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.externalInjections
+            .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
                 injections.__put(e.getKey(), to);
             }
@@ -393,7 +399,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private Task<ModuleData> moduleIdentifierToTask(ModuleIdentifier moduleIdentifier,
-        Collection<STask<?>> strFileGeneratingTasks) {
+        ArrayList<STask<?>> strFileGeneratingTasks) {
         final FrontInput input = new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks);
         if(moduleIdentifier.isLibrary()) {
             return lib.createTask(input);

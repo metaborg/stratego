@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.data;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -14,11 +14,11 @@ import org.spoofax.terms.util.TermUtils;
 public class StrategyType extends StrategoAppl {
     public final IStrategoTerm from;
     public final IStrategoTerm to;
-    private final List<IStrategoTerm> strategyArguments;
-    private final List<IStrategoTerm> termArguments;
+    private final ArrayList<IStrategoTerm> strategyArguments;
+    private final ArrayList<IStrategoTerm> termArguments;
 
     public StrategyType(IStrategoTermBuilder tf, IStrategoTerm from, IStrategoTerm to,
-        List<IStrategoTerm> strategyArguments, List<IStrategoTerm> termArguments) {
+        ArrayList<IStrategoTerm> strategyArguments, ArrayList<IStrategoTerm> termArguments) {
         super(tf.makeConstructor("FunTType", 3),
             new IStrategoTerm[] { tf.makeList(strategyArguments), tf.makeList(termArguments),
                 tf.makeAppl("FunNoArgsType", from, to) }, null);
@@ -28,12 +28,12 @@ public class StrategyType extends StrategoAppl {
         this.termArguments = termArguments;
     }
 
-    public List<IStrategoTerm> getStrategyArguments() {
-        return Collections.unmodifiableList(strategyArguments);
+    public ArrayList<IStrategoTerm> getStrategyArguments() {
+        return strategyArguments;
     }
 
-    public List<IStrategoTerm> getTermArguments() {
-        return Collections.unmodifiableList(termArguments);
+    public ArrayList<IStrategoTerm> getTermArguments() {
+        return termArguments;
     }
 
     public IStrategoTerm toTerm(IStrategoTermBuilder tf) {
@@ -45,14 +45,14 @@ public class StrategyType extends StrategoAppl {
         if(!TermUtils.isAppl(funTType)) {
             return null;
         }
-        final List<IStrategoTerm> strategyArguments;
-        final List<IStrategoTerm> termArguments;
+        final ArrayList<IStrategoTerm> strategyArguments;
+        final ArrayList<IStrategoTerm> termArguments;
         final IStrategoTerm from;
         final IStrategoTerm to;
         switch(TermUtils.toAppl(funTType).getName()) {
             case "FunNoArgsType":
-                strategyArguments = Collections.emptyList();
-                termArguments = Collections.emptyList();
+                strategyArguments = new ArrayList<>(0);
+                termArguments = new ArrayList<>(0);
                 from = funTType.getSubterm(0);
                 to = funTType.getSubterm(1);
                 break;
@@ -60,8 +60,8 @@ public class StrategyType extends StrategoAppl {
                 if(!TermUtils.isListAt(funTType, 0)) {
                     return null;
                 }
-                strategyArguments = funTType.getSubterm(0).getSubterms();
-                termArguments = Collections.emptyList();
+                strategyArguments = new ArrayList<>(funTType.getSubterm(0).getSubterms());
+                termArguments = new ArrayList<>(0);
 
                 funTType = funTType.getSubterm(1);
                 if(!TermUtils.isAppl(funTType, "FunNoArgsType", 2)) {
@@ -74,11 +74,11 @@ public class StrategyType extends StrategoAppl {
                 if(!TermUtils.isListAt(funTType, 0)) {
                     return null;
                 }
-                strategyArguments = funTType.getSubterm(0).getSubterms();
+                strategyArguments = new ArrayList<>(funTType.getSubterm(0).getSubterms());
                 if(!TermUtils.isListAt(funTType, 1)) {
                     return null;
                 }
-                termArguments = funTType.getSubterm(1).getSubterms();
+                termArguments = new ArrayList<>(funTType.getSubterm(1).getSubterms());
 
                 funTType = funTType.getSubterm(2);
                 if(!TermUtils.isAppl(funTType, "FunNoArgsType", 2)) {
@@ -95,7 +95,7 @@ public class StrategyType extends StrategoAppl {
 
     public static class Standard extends StrategyType {
         private Standard(IStrategoTermBuilder tf, IStrategoTerm from, IStrategoTerm to,
-            List<IStrategoTerm> strategyArguments, List<IStrategoTerm> termArguments) {
+            ArrayList<IStrategoTerm> strategyArguments, ArrayList<IStrategoTerm> termArguments) {
             super(tf, from, to, strategyArguments, termArguments);
         }
 
@@ -103,8 +103,9 @@ public class StrategyType extends StrategoAppl {
             int noTermArgs) {
             final IStrategoAppl sdyn = tf.makeAppl("SDyn");
             final IStrategoAppl dyn = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-            return new Standard(tf, dyn, dyn, Collections.nCopies(noStrategyArgs, sdyn),
-                Collections.nCopies(noTermArgs, dyn));
+            return new Standard(tf, dyn, dyn,
+                new ArrayList<>(Collections.nCopies(noStrategyArgs, sdyn)),
+                new ArrayList<>(Collections.nCopies(noTermArgs, dyn)));
         }
     }
 }

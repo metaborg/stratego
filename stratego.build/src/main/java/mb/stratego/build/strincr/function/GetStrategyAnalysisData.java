@@ -1,27 +1,25 @@
 package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 
-public class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Serializable>
-    implements Function<CheckModuleOutput, T>, Serializable {
+public class GetStrategyAnalysisData
+    implements Function<CheckModuleOutput, HashSet<StrategyAnalysisData>>, Serializable {
     public final StrategySignature strategySignature;
 
     public GetStrategyAnalysisData(StrategySignature strategySignature) {
         this.strategySignature = strategySignature;
     }
 
-    @SuppressWarnings("unchecked") @Override public T apply(CheckModuleOutput output) {
-        return (T) output.strategyDataWithCasts
-            .getOrDefault(strategySignature, Collections.emptySet());
+    @Override public HashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
+        return output.strategyDataWithCasts.getOrDefault(strategySignature, new HashSet<>(0));
     }
 
     @Override public boolean equals(@Nullable Object o) {
@@ -30,7 +28,7 @@ public class GetStrategyAnalysisData<T extends Set<StrategyAnalysisData> & Seria
         if(o == null || getClass() != o.getClass())
             return false;
 
-        GetStrategyAnalysisData<?> that = (GetStrategyAnalysisData<?>) o;
+        GetStrategyAnalysisData that = (GetStrategyAnalysisData) o;
 
         return strategySignature.equals(that.strategySignature);
     }

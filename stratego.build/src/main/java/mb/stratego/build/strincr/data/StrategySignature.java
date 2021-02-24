@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.data;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -53,11 +52,11 @@ public class StrategySignature extends StrategoTuple {
         return StrategyType.Standard.fromArity(tf, noStrategyArgs, noTermArgs);
     }
 
-    public Map<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {
+    public HashMap<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {
         final String n = cify(this.name);
         final int s = this.noStrategyArgs;
         final int t = this.noTermArgs;
-        final Map<StrategySignature, StrategyType> result = new HashMap<>(40);
+        final HashMap<StrategySignature, StrategyType> result = new HashMap<>(40);
         result.put(this, standardType(tf));
         result.put(new StrategySignature("new-" + n, 0, 2), standardType(tf, 0, 2));
         result.put(new StrategySignature("undefine-" + n, 0, 1), standardType(tf, 0, 1));

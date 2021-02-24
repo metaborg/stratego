@@ -3,9 +3,6 @@ package mb.stratego.build.strincr.task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -44,17 +41,22 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
         final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
         boolean stdLibImport = false;
-        final List<IStrategoTerm> imports = new ArrayList<>();
-        final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();
-        final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
-        final Map<ConstructorSignature, List<OverlayData>> overlayData = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData = new HashMap<>();
-        final Set<StrategySignature> dynamicRules = new HashSet<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections = new HashMap<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
+        final ArrayList<IStrategoTerm> imports = new ArrayList<>();
+        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
+            new HashMap<>();
+        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
+            new HashMap<>();
+        final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData =
+            new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData =
+            new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData =
+            new HashMap<>();
+        final HashSet<StrategySignature> dynamicRules = new HashSet<>();
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections = new HashMap<>();
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections = new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -97,9 +99,9 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
             imports.add(tf.makeAppl("Import", tf.makeString("libstratego-lib")));
         }
 
-        final Set<ConstructorSignature> usedConstructors = new HashSet<>();
-        final Set<StrategySignature> usedStrategies = new HashSet<>();
-        final Set<String> usedAmbiguousStrategies = new HashSet<>();
+        final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
+        final HashSet<StrategySignature> usedStrategies = new HashSet<>();
+        final HashSet<String> usedAmbiguousStrategies = new HashSet<>();
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies,
             ast.lastModified).visit(ast.wrapped);
 

@@ -1,9 +1,9 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -11,17 +11,16 @@ import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class GlobalIndex implements Serializable {
-    public final Collection<ConstructorSignature> nonExternalConstructors;
-    public final Collection<ConstructorSignature> externalConstructors;
-    public final Collection<StrategySignature> nonExternalStrategies;
-    public final Collection<StrategySignature> dynamicRules;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections;
+    public final HashSet<ConstructorSignature> nonExternalConstructors;
+    public final HashSet<ConstructorSignature> externalConstructors;
+    public final HashSet<StrategySignature> nonExternalStrategies;
+    public final HashSet<StrategySignature> dynamicRules;
+    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
 
-    public GlobalIndex(Collection<ConstructorSignature> nonExternalConstructors,
-        Collection<ConstructorSignature> externalConstructors,
-        Collection<StrategySignature> nonExternalStrategies,
-        Collection<StrategySignature> dynamicRules,
-        Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections) {
+    public GlobalIndex(HashSet<ConstructorSignature> nonExternalConstructors,
+        HashSet<ConstructorSignature> externalConstructors,
+        HashSet<StrategySignature> nonExternalStrategies, HashSet<StrategySignature> dynamicRules,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections) {
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.nonExternalStrategies = nonExternalStrategies;

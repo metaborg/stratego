@@ -1,10 +1,9 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -17,25 +16,27 @@ import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
-    public final Set<ModuleIdentifier> allModuleIdentifiers;
-    public final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections;
-    public final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex;
-    public final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex;
-    public final Set<ConstructorSignature> externalConstructors;
-    public final Set<StrategySignature> internalStrategies;
-    public final Set<StrategySignature> externalStrategies;
-    public final Set<StrategySignature> dynamicRules;
-    public final List<Message<?>> messages;
+    public final HashSet<ModuleIdentifier> allModuleIdentifiers;
+    public final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex;
+    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
+    public final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex;
+    public final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex;
+    public final HashSet<ConstructorSignature> externalConstructors;
+    public final HashSet<StrategySignature> internalStrategies;
+    public final HashSet<StrategySignature> externalStrategies;
+    public final HashSet<StrategySignature> dynamicRules;
+    public final ArrayList<Message<?>> messages;
     private transient @Nullable GlobalIndex globalIndex = null;
 
-    public GlobalData(Set<ModuleIdentifier> allModuleIdentifiers,
-        Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex,
-        Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections, Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex,
-        Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex,
-        Set<ConstructorSignature> externalConstructors, Set<StrategySignature> internalStrategies,
-        Set<StrategySignature> externalStrategies, Set<StrategySignature> dynamicRules,
-        List<Message<?>> messages) {
+    public GlobalData(HashSet<ModuleIdentifier> allModuleIdentifiers,
+        HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
+        HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex,
+        HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex,
+        HashSet<ConstructorSignature> externalConstructors,
+        HashSet<StrategySignature> internalStrategies,
+        HashSet<StrategySignature> externalStrategies, HashSet<StrategySignature> dynamicRules,
+        ArrayList<Message<?>> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.nonExternalInjections = nonExternalInjections;

@@ -1,18 +1,17 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Set;
+import java.util.HashSet;
 
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class BackOutput implements Serializable {
-    public final Set<ResourcePath> resultFiles;
-    public final Collection<? extends StrategySignature> compiledStrategies;
+    public final HashSet<ResourcePath> resultFiles;
+    public final HashSet<? extends StrategySignature> compiledStrategies;
 
-    public BackOutput(Set<ResourcePath> resultFiles,
-        Collection<? extends StrategySignature> compiledStrategies) {
+    public BackOutput(HashSet<ResourcePath> resultFiles,
+        HashSet<? extends StrategySignature> compiledStrategies) {
         this.resultFiles = resultFiles;
         this.compiledStrategies = compiledStrategies;
     }

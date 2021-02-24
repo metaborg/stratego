@@ -2,10 +2,8 @@ package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -17,23 +15,23 @@ import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategyFrontData.Kind;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.util.LastModified;
-import mb.stratego.build.util.WrongASTException;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
+import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.WrongASTException;
 
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.DynRuleGenerated;
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Extend;
@@ -56,11 +54,12 @@ public abstract class SplitShared {
     }
 
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        Map<StrategySignature, Set<StrategyFrontData>> strategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData,
-        Set<StrategySignature> dynamicRules, IStrategoTerm strategyDefs) throws WrongASTException {
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData,
+        HashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
+        throws WrongASTException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -92,7 +91,7 @@ public abstract class SplitShared {
                     .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
             } else {
                 Kind kind = Normal;
-                Map<StrategySignature, Set<StrategyFrontData>> dataMap = strategyData;
+                HashMap<StrategySignature, HashSet<StrategyFrontData>> dataMap = strategyData;
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
                     for(IStrategoTerm anno : strategyDef.getSubterm(0)) {
                         if(TermUtils.isAppl(anno, "Internal", 0)) {
@@ -140,9 +139,9 @@ public abstract class SplitShared {
     }
 
     protected void addOverlayData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        Map<ConstructorSignature, List<OverlayData>> overlayData,
-        Map<ConstructorSignature, List<ConstructorData>> constrData, IStrategoTerm overlays,
-        long lastModified) throws WrongASTException {
+        HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
+        IStrategoTerm overlays, long lastModified) throws WrongASTException {
         /*
         extract-constr:
           OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
@@ -159,18 +158,20 @@ public abstract class SplitShared {
                 name = TermUtils.toJavaStringAt(overlay, 0);
                 if(TermUtils.isAppl(overlay, "OverlayNoArgs", 2)) {
                     arity = 0;
-                    type = new ConstructorType(tf, Collections.emptyList(), dynT);
+                    type = new ConstructorType(tf, new ArrayList<>(0), dynT);
                 } else if(TermUtils.isAppl(overlay, "Overlay", 3) && TermUtils
                     .isListAt(overlay, 1)) {
                     arity = TermUtils.toListAt(overlay, 1).size();
-                    type = new ConstructorType(tf, Collections.nCopies(arity, dynT), dynT);
+                    type =
+                        new ConstructorType(tf, new ArrayList<>(Collections.nCopies(arity, dynT)),
+                            dynT);
                 } else {
                     throw new WrongASTException(moduleIdentifier, overlay);
                 }
             } else {
                 throw new WrongASTException(moduleIdentifier, overlay);
             }
-            final Set<ConstructorSignature> usedConstructors = new HashSet<>();
+            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
             new UsedConstrs(usedConstructors, lastModified).visit(overlay);
             final ConstructorSignature signature =
                 new ConstructorSignature(name, arity, lastModified);
@@ -182,10 +183,10 @@ public abstract class SplitShared {
     }
 
     protected void addSigData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<ConstructorSignature, List<ConstructorData>> externalConstrData,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections,
-        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections, IStrategoTerm sigs,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs,
         long lastModified) throws WrongASTException {
         for(IStrategoTerm sig : sigs) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
@@ -203,7 +204,7 @@ public abstract class SplitShared {
                     }
                     final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
                     final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                    final Map<ConstructorSignature, List<ConstructorData>> dataMap;
+                    final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
                     if(ConstructorSignature.isExternal(constrDef)) {
                         dataMap = externalConstrData;
                     } else {
@@ -268,9 +269,9 @@ public abstract class SplitShared {
     }
 
     private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        IStrategoTerm constrDef, Map<IStrategoTerm, List<IStrategoTerm>> injections,
-        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections,
-        Map<ConstructorSignature, List<ConstructorData>> constrData, long lastModified)
+        IStrategoTerm constrDef, HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, long lastModified)
         throws WrongASTException {
         /*
         extract-inj:
@@ -298,7 +299,7 @@ public abstract class SplitShared {
         if(!TermUtils.isAppl(constrDef)) {
             throw new WrongASTException(moduleIdentifier, constrDef);
         }
-        Map<IStrategoTerm, List<IStrategoTerm>> dataMap = externalInjections;
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> dataMap = externalInjections;
         switch(TermUtils.toAppl(constrDef).getName()) {
             case "OpDeclInj":
                 dataMap = injections;
@@ -314,7 +315,7 @@ public abstract class SplitShared {
                 }
 
                 final IStrategoTerm from;
-                final List<IStrategoTerm> froms = constrType.getFrom();
+                final ArrayList<IStrategoTerm> froms = constrType.getFrom();
                 switch(froms.size()) {
                     case 0:
                         // ignore this weird edge-case generated from strategoGT/syntax/sugar/string-quotations.sdf3

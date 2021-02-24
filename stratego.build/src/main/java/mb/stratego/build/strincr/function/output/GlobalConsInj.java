@@ -1,10 +1,9 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -12,14 +11,13 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class GlobalConsInj implements Serializable {
-    public final Set<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections;
-    public final Collection<StrategySignature> nonExternalStrategies;
+    public final HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
+    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
+    public final HashSet<StrategySignature> nonExternalStrategies;
 
-    public GlobalConsInj(
-        Set<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections,
-        Collection<StrategySignature> nonExternalStrategies) {
+    public GlobalConsInj(HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
+        HashSet<StrategySignature> nonExternalStrategies) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.nonExternalInjections = nonExternalInjections;
         this.nonExternalStrategies = nonExternalStrategies;

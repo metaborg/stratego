@@ -1,8 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
+import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
@@ -18,16 +17,16 @@ public class CompileInput implements Serializable {
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
-    public final List<String> constants;
-    public final Collection<ResourcePath> includeDirs;
+    public final ArrayList<String> constants;
+    public final ArrayList<ResourcePath> includeDirs;
     public final Arguments extraArgs;
-    public final Collection<STask<?>> strFileGeneratingTasks;
+    public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final StrategoGradualSetting strategoGradualSetting;
 
     public CompileInput(ModuleIdentifier mainModuleIdentifier, ResourcePath outputDir,
-        @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-        Collection<ResourcePath> includeDirs, Arguments extraArgs,
-        Collection<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
+        @Nullable String packageName, @Nullable ResourcePath cacheDir, ArrayList<String> constants,
+        ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
+        ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.outputDir = outputDir;
         this.packageName = packageName;

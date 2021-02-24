@@ -3,12 +3,9 @@ package mb.stratego.build.strincr.task;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,35 +59,39 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     @Override public GlobalData exec(ExecContext context, ResolveInput input)
         throws IOException, ExecException {
-        final List<Message<?>> messages = new ArrayList<>();
+        final ArrayList<Message<?>> messages = new ArrayList<>();
 
-        final java.util.Set<ModuleIdentifier> seen = new HashSet<>();
+        final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
         final Deque<ModuleIdentifier> workList = new ArrayDeque<>();
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
-        final Set<ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
-        final Map<ConstructorSignature, Set<ModuleIdentifier>> constructorIndex = new HashMap<>();
-        final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
-        final Map<ConstructorSignature, Set<ModuleIdentifier>> overlayIndex = new HashMap<>();
+        final HashSet<ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
+        final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex =
+            new HashMap<>();
+        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex = new HashMap<>();
+        final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex =
+            new HashMap<>();
 
-        final Map<IStrategoTerm, List<IStrategoTerm>> nonExternalInjections = new HashMap<>();
-        final Set<ConstructorSignature> externalConstructors = new HashSet<>();
-        final Set<StrategySignature> internalStrategies = new HashSet<>();
-        final Set<StrategySignature> externalStrategies = new HashSet<>();
-        final Set<StrategySignature> dynamicRules = new HashSet<>();
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
+            new HashMap<>();
+        final HashSet<ConstructorSignature> externalConstructors = new HashSet<>();
+        final HashSet<StrategySignature> internalStrategies = new HashSet<>();
+        final HashSet<StrategySignature> externalStrategies = new HashSet<>();
+        final HashSet<StrategySignature> dynamicRules = new HashSet<>();
 
-        final Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>>
+        final HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>>
             overlayUsesConstructors = new HashMap<>();
 
         do {
             final ModuleIdentifier moduleIdentifier = workList.remove();
 
-            final FrontInput frontInput = new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks);
+            final FrontInput frontInput =
+                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks);
             if(moduleIdentifier.isLibrary()) {
                 allModuleIdentifiers.add(moduleIdentifier);
-                final ModuleIndex index = PieUtils
-                    .requirePartial(context, lib, frontInput, ToModuleIndex.INSTANCE);
+                final ModuleIndex index =
+                    PieUtils.requirePartial(context, lib, frontInput, ToModuleIndex.INSTANCE);
 
                 for(ConstructorSignature signature : index.externalConstructors) {
                     Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
@@ -118,7 +119,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                         .add(moduleIdentifier);
                     externalConstructors.add(signature);
                 }
-                for(Map.Entry<IStrategoTerm, List<IStrategoTerm>> e : index.injections.entrySet()) {
+                for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
+                    .entrySet()) {
                     Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
                         .addAll(e.getValue());
                 }
@@ -141,11 +143,11 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                         .add(moduleIdentifier);
                     dynamicRules.add(signature);
                 }
-                for(Map.Entry<ConstructorSignature, List<OverlayData>> e : index.overlayData
+                for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
                     .entrySet()) {
                     Relation.getOrInitialize(overlayIndex, e.getKey(), HashSet::new)
                         .add(moduleIdentifier);
-                    final Set<ConstructorSignatureMatcher> overlayUsesCons = Relation
+                    final HashSet<ConstructorSignatureMatcher> overlayUsesCons = Relation
                         .getOrInitialize(overlayUsesConstructors,
                             new ConstructorSignatureMatcher(e.getKey()), HashSet::new);
                     for(OverlayData overlayData : e.getValue()) {
@@ -155,9 +157,9 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     }
                 }
 
-                final Set<ModuleIdentifier> expandedImports =
-                    expandImports(context, moduleImportService, index.imports,
-                        index.lastModified, messages, input.strFileGeneratingTasks, input.includeDirs);
+                final HashSet<ModuleIdentifier> expandedImports =
+                    expandImports(context, moduleImportService, index.imports, index.lastModified,
+                        messages, input.strFileGeneratingTasks, input.includeDirs);
                 expandedImports.removeAll(seen);
                 workList.addAll(expandedImports);
                 seen.addAll(expandedImports);
@@ -170,11 +172,12 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             externalStrategies, dynamicRules, messages);
     }
 
-    public static Set<ModuleIdentifier> expandImports(ExecContext context,
-        IModuleImportService moduleImportService, List<IStrategoTerm> imports, long lastModified,
-        @Nullable List<Message<?>> messages, Collection<STask<?>> strFileGeneratingTasks,
-        Collection<? extends ResourcePath> includeDirs) throws IOException, ExecException {
-        final Set<ModuleIdentifier> expandedImports = new HashSet<>();
+    public static HashSet<ModuleIdentifier> expandImports(ExecContext context,
+        IModuleImportService moduleImportService, ArrayList<IStrategoTerm> imports,
+        long lastModified, @Nullable ArrayList<Message<?>> messages,
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs)
+        throws IOException, ExecException {
+        final HashSet<ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
             final ImportResolution importResolution = moduleImportService
                 .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs);
@@ -191,15 +194,15 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     }
 
     private void checkCyclicOverlays(
-        Map<ConstructorSignatureMatcher, Set<ConstructorSignatureMatcher>> overlayUsesConstructors,
-        List<Message<?>> messages) {
+        HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>> overlayUsesConstructors,
+        ArrayList<Message<?>> messages) {
         final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
-                sig -> overlayUsesConstructors.getOrDefault(sig, Collections.emptySet()));
+                sig -> overlayUsesConstructors.getOrDefault(sig, new HashSet<>(0)));
         for(Set<ConstructorSignatureMatcher> topoSCC : topoSCCs) {
             final ConstructorSignatureMatcher signature = topoSCC.iterator().next();
             if(topoSCC.size() > 1 || overlayUsesConstructors
-                .getOrDefault(signature, Collections.emptySet()).contains(signature)) {
+                .getOrDefault(signature, new HashSet<>(0)).contains(signature)) {
                 long lastModified = 0;
                 for(ConstructorSignature sig : topoSCC) {
                     lastModified = Long.max(lastModified, sig.lastModified);

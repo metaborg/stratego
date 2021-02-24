@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
@@ -38,10 +38,10 @@ public abstract class FrontInput implements Serializable {
     }
 
     public static class Normal extends FrontInput {
-        public final Collection<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<STask<?>> strFileGeneratingTasks;
 
         public Normal(ModuleIdentifier moduleIdentifier,
-            Collection<STask<?>> strFileGeneratingTasks) {
+            ArrayList<STask<?>> strFileGeneratingTasks) {
             super(moduleIdentifier);
             this.strFileGeneratingTasks = strFileGeneratingTasks;
         }

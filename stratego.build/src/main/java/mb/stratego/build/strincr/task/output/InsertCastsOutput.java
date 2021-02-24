@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -10,9 +10,9 @@ import mb.stratego.build.strincr.message.Message;
 
 public final class InsertCastsOutput implements Serializable {
     public final IStrategoTerm astWithCasts;
-    public final List<Message<?>> messages;
+    public final ArrayList<Message<?>> messages;
 
-    public InsertCastsOutput(IStrategoTerm astWithCasts, List<Message<?>> messages) {
+    public InsertCastsOutput(IStrategoTerm astWithCasts, ArrayList<Message<?>> messages) {
         this.astWithCasts = astWithCasts;
         this.messages = messages;
     }

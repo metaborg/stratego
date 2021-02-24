@@ -1,8 +1,8 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.message.Message;
@@ -13,9 +13,9 @@ public interface CompileOutput extends Serializable {
     String toString();
 
     class Success implements CompileOutput {
-        public final Set<ResourcePath> resultFiles;
+        public final HashSet<ResourcePath> resultFiles;
 
-        public Success(Set<ResourcePath> resultFiles) {
+        public Success(HashSet<ResourcePath> resultFiles) {
             this.resultFiles = resultFiles;
         }
 
@@ -40,9 +40,9 @@ public interface CompileOutput extends Serializable {
     }
 
     class Failure implements CompileOutput {
-        public final List<Message<?>> messages;
+        public final ArrayList<Message<?>> messages;
 
-        public Failure(List<Message<?>> messages) {
+        public Failure(ArrayList<Message<?>> messages) {
             this.messages = messages;
         }
 

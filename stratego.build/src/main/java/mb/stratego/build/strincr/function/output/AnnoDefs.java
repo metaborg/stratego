@@ -1,16 +1,16 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
-import java.util.Set;
+import java.util.HashSet;
 
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class AnnoDefs implements Serializable {
-    public final Set<StrategySignature> internalStrategySigs;
-    public final Set<StrategySignature> externalStrategySigs;
+    public final HashSet<StrategySignature> internalStrategySigs;
+    public final HashSet<StrategySignature> externalStrategySigs;
 
-    public AnnoDefs(Set<StrategySignature> internalStrategySigs,
-        Set<StrategySignature> externalStrategySigs) {
+    public AnnoDefs(HashSet<StrategySignature> internalStrategySigs,
+        HashSet<StrategySignature> externalStrategySigs) {
         this.internalStrategySigs = internalStrategySigs;
         this.externalStrategySigs = externalStrategySigs;
     }

@@ -1,19 +1,18 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -26,35 +25,36 @@ import mb.stratego.build.util.WithLastModified;
 public class ModuleData implements Serializable, WithLastModified {
     public final ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
-    public final List<IStrategoTerm> imports;
-    public final Map<ConstructorSignature, List<ConstructorData>> constrData;
-    public final Map<ConstructorSignature, List<ConstructorData>> externalConstrData;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> injections;
-    public final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections;
-    public final Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData;
-    public final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData;
-    public final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData;
-    public final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData;
-    public final Map<ConstructorSignature, List<OverlayData>> overlayData;
-    public final Set<ConstructorSignature> usedConstructors;
-    public final Set<StrategySignature> usedStrategies;
-    public final Set<StrategySignature> dynamicRules;
-    public final Set<String> usedAmbiguousStrategies;
+    public final ArrayList<IStrategoTerm> imports;
+    public final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData;
+    public final HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData;
+    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
+    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections;
+    public final HashMap<StrategySignature, HashSet<StrategyFrontData>> normalStrategyData;
+    public final HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData;
+    public final HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData;
+    public final HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData;
+    public final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final HashSet<ConstructorSignature> usedConstructors;
+    public final HashSet<StrategySignature> usedStrategies;
+    public final HashSet<StrategySignature> dynamicRules;
+    public final HashSet<String> usedAmbiguousStrategies;
     public final long lastModified;
-    private transient @Nullable Map<String, Set<StrategyFrontData>> ambStrategyIndex = null;
+    private transient @Nullable HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex = null;
 
     public ModuleData(ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
-        List<IStrategoTerm> imports, Map<ConstructorSignature, List<ConstructorData>> constrData,
-        Map<ConstructorSignature, List<ConstructorData>> externalConstrData,
-        Map<IStrategoTerm, List<IStrategoTerm>> injections,
-        Map<IStrategoTerm, List<IStrategoTerm>> externalInjections,
-        Map<StrategySignature, Set<StrategyFrontData>> normalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData,
-        Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData,
-        Map<ConstructorSignature, List<OverlayData>> overlayData,
-        Set<ConstructorSignature> usedConstructors, Set<StrategySignature> usedStrategies,
-        Set<StrategySignature> dynamicRules, Set<String> usedAmbiguousStrategies,
+        ArrayList<IStrategoTerm> imports,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> normalStrategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData,
+        HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData,
+        HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        HashSet<ConstructorSignature> usedConstructors, HashSet<StrategySignature> usedStrategies,
+        HashSet<StrategySignature> dynamicRules, HashSet<String> usedAmbiguousStrategies,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
@@ -139,25 +139,25 @@ public class ModuleData implements Serializable, WithLastModified {
         return result;
     }
 
-    public Map<String, Set<StrategyFrontData>> ambStrategyIndex() {
+    public HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex() {
         if(ambStrategyIndex == null) {
             ambStrategyIndex = new HashMap<>();
-            for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : normalStrategyData
+            for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : normalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : internalStrategyData
+            for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : internalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : externalStrategyData
+            for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : externalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, Set<StrategyFrontData>> e : dynamicRuleData
+            for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : dynamicRuleData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, HashSet::new)
                     .addAll(e.getValue());

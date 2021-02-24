@@ -3,9 +3,6 @@ package mb.stratego.build.strincr.task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -41,12 +38,14 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     }
 
     @Override public CheckOutput exec(ExecContext context, CheckInput input) {
-        final Map<ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks = new HashMap<>();
-        final Map<StrategySignature, Set<ModuleIdentifier>> strategyIndex = new HashMap<>();
-        final Map<StrategySignature, Set<ModuleIdentifier>> dynamicRuleIndex = new HashMap<>();
-        final List<Message<?>> messages = new ArrayList<>();
+        final HashMap<ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks =
+            new HashMap<>();
+        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> dynamicRuleIndex =
+            new HashMap<>();
+        final ArrayList<Message<?>> messages = new ArrayList<>();
         boolean containsErrors = false;
-        final Set<ModuleIdentifier> allModulesIdentifiers = PieUtils
+        final HashSet<ModuleIdentifier> allModulesIdentifiers = PieUtils
             .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.Instance);
 
         for(ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {

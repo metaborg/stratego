@@ -1,10 +1,8 @@
 package mb.stratego.build.strincr.task;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashSet;
 
 import javax.inject.Inject;
 
@@ -43,23 +41,27 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
         final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
 
-        final List<IStrategoTerm> imports = Collections.emptyList();
-        final Map<ConstructorSignature, List<ConstructorData>> constrData = Collections.emptyMap();
-        final Map<ConstructorSignature, List<OverlayData>> overlayData = Collections.emptyMap();
-        final Set<ConstructorSignature> usedConstructors = Collections.emptySet();
-        final Set<StrategySignature> usedStrategies = Collections.emptySet();
-        final Set<String> usedAmbiguousStrategies = Collections.emptySet();
-        final Map<StrategySignature, Set<StrategyFrontData>> strategyData = Collections.emptyMap();
-        final Map<StrategySignature, Set<StrategyFrontData>> internalStrategyData =
-            Collections.emptyMap();
-        final Map<StrategySignature, Set<StrategyFrontData>> dynamicRuleData =
-            Collections.emptyMap();
-        final Set<StrategySignature> dynamicRules = Collections.emptySet();
-        final Map<IStrategoTerm, List<IStrategoTerm>> injections = Collections.emptyMap();
+        final ArrayList<IStrategoTerm> imports = new ArrayList<>(0);
+        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
+            new HashMap<>(0);
+        final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData = new HashMap<>(0);
+        final HashSet<ConstructorSignature> usedConstructors = new HashSet<>(0);
+        final HashSet<StrategySignature> usedStrategies = new HashSet<>(0);
+        final HashSet<String> usedAmbiguousStrategies = new HashSet<>(0);
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData =
+            new HashMap<>(0);
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData =
+            new HashMap<>(0);
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData =
+            new HashMap<>(0);
+        final HashSet<StrategySignature> dynamicRules = new HashSet<>(0);
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections = new HashMap<>(0);
 
-        final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
-        final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
-        final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();
+        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
+            new HashMap<>();
+        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData =
+            new HashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {

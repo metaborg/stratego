@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
@@ -9,11 +9,11 @@ import mb.stratego.build.strincr.IModuleImportService;
 
 public class ResolveInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-    public final Collection<STask<?>> strFileGeneratingTasks;
-    public final Collection<? extends ResourcePath> includeDirs;
+    public final ArrayList<STask<?>> strFileGeneratingTasks;
+    public final ArrayList<? extends ResourcePath> includeDirs;
 
-    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier, Collection<STask<?>> strFileGeneratingTasks,
-        Collection<? extends ResourcePath> includeDirs) {
+    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;

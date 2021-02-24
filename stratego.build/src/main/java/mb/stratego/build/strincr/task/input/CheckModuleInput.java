@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
@@ -14,18 +14,22 @@ import mb.stratego.build.util.LastModified;
 
 public interface CheckModuleInput extends Serializable {
     ResolveInput resolveInput();
+
     ModuleIdentifier moduleIdentifier();
-    Collection<STask<?>> strFileGeneratingTasks();
-    Collection<? extends ResourcePath> includeDirs();
+
+    ArrayList<STask<?>> strFileGeneratingTasks();
+
+    ArrayList<? extends ResourcePath> includeDirs();
+
     FrontInput frontInput();
 
     class Normal extends FrontInput.Normal implements CheckModuleInput {
         public final ModuleIdentifier mainModuleIdentifier;
-        public final Collection<? extends ResourcePath> includeDirs;
+        public final ArrayList<? extends ResourcePath> includeDirs;
 
         public Normal(ModuleIdentifier mainModuleIdentifier, ModuleIdentifier moduleIdentifier,
-            Collection<STask<?>> strFileGeneratingTasks,
-            Collection<? extends ResourcePath> includeDirs) {
+            ArrayList<STask<?>> strFileGeneratingTasks,
+            ArrayList<? extends ResourcePath> includeDirs) {
             super(moduleIdentifier, strFileGeneratingTasks);
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.includeDirs = includeDirs;
@@ -39,11 +43,11 @@ public interface CheckModuleInput extends Serializable {
             return moduleIdentifier;
         }
 
-        @Override public Collection<STask<?>> strFileGeneratingTasks() {
+        @Override public ArrayList<STask<?>> strFileGeneratingTasks() {
             return strFileGeneratingTasks;
         }
 
-        @Override public Collection<? extends ResourcePath> includeDirs() {
+        @Override public ArrayList<? extends ResourcePath> includeDirs() {
             return includeDirs;
         }
 
@@ -80,12 +84,12 @@ public interface CheckModuleInput extends Serializable {
 
     class FileOpenInEditor extends FrontInput.FileOpenInEditor implements CheckModuleInput {
         public final ModuleIdentifier mainModuleIdentifier;
-        public final Collection<STask<?>> strFileGeneratingTasks;
-        public final Collection<? extends ResourcePath> includeDirs;
+        public final ArrayList<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<? extends ResourcePath> includeDirs;
 
         public FileOpenInEditor(ModuleIdentifier moduleIdentifier, LastModified<IStrategoTerm> ast,
-            ModuleIdentifier mainModuleIdentifier, Collection<STask<?>> strFileGeneratingTasks,
-            Collection<? extends ResourcePath> includeDirs) {
+            ModuleIdentifier mainModuleIdentifier, ArrayList<STask<?>> strFileGeneratingTasks,
+            ArrayList<? extends ResourcePath> includeDirs) {
             super(moduleIdentifier, ast);
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.strFileGeneratingTasks = strFileGeneratingTasks;
@@ -100,11 +104,11 @@ public interface CheckModuleInput extends Serializable {
             return moduleIdentifier;
         }
 
-        @Override public Collection<STask<?>> strFileGeneratingTasks() {
+        @Override public ArrayList<STask<?>> strFileGeneratingTasks() {
             return strFileGeneratingTasks;
         }
 
-        @Override public Collection<? extends ResourcePath> includeDirs() {
+        @Override public ArrayList<? extends ResourcePath> includeDirs() {
             return includeDirs;
         }
 
