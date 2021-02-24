@@ -46,7 +46,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
         final ArrayList<Message<?>> messages = new ArrayList<>();
         boolean containsErrors = false;
         final HashSet<ModuleIdentifier> allModulesIdentifiers = PieUtils
-            .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.Instance);
+            .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.INSTANCE);
 
         for(ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
             if(moduleIdentifier.isLibrary()) {

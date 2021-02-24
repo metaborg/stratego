@@ -91,12 +91,16 @@ public interface IModuleImportService {
             return 0;
         }
 
-        @Override public boolean equals(@Nullable Object obj) {
-            return this == obj;
+        @Override public boolean equals(@Nullable Object other) {
+            return this == other || other != null && this.getClass() == other.getClass();
         }
 
         @Override public String toString() {
             return "UnresolvedImport";
+        }
+
+        private Object readResolve() {
+            return INSTANCE;
         }
     }
 

@@ -12,4 +12,16 @@ public class ToGlobalConsInj implements Function<GlobalData, GlobalConsInj>, Ser
     @Override public GlobalConsInj apply(GlobalData globalData) {
         return new GlobalConsInj(globalData.allModuleIdentifiers, globalData.nonExternalInjections, globalData.getGlobalIndex().nonExternalStrategies);
     }
+
+    @Override public boolean equals(Object other) {
+        return this == other || other != null && this.getClass() == other.getClass();
+    }
+
+    @Override public int hashCode() {
+        return 0;
+    }
+
+    private Object readResolve() {
+        return INSTANCE;
+    }
 }

@@ -15,4 +15,16 @@ public class GetMessages implements Function<CheckOutput, CheckOutputMessages>, 
     @Override public CheckOutputMessages apply(CheckOutput output) {
         return new CheckOutputMessages(output.messages, output.containsErrors);
     }
+
+    @Override public boolean equals(Object other) {
+        return this == other || other != null && this.getClass() == other.getClass();
+    }
+
+    @Override public int hashCode() {
+        return 0;
+    }
+
+    private Object readResolve() {
+        return INSTANCE;
+    }
 }

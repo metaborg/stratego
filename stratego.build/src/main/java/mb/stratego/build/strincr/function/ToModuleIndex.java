@@ -22,4 +22,16 @@ public class ToModuleIndex implements Function<ModuleData, ModuleIndex>, Seriali
             new HashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
             moduleData.overlayData, moduleData.lastModified);
     }
+
+    @Override public boolean equals(Object other) {
+        return this == other || other != null && this.getClass() == other.getClass();
+    }
+
+    @Override public int hashCode() {
+        return 0;
+    }
+
+    private Object readResolve() {
+        return INSTANCE;
+    }
 }
