@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -288,7 +288,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         // Get the relevant strategy and constructor types and all injections, that are visible
         //     through the import graph
         final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
-        final Deque<ModuleIdentifier> workList = new ArrayDeque<>(Resolve
+        final Queue<ModuleIdentifier> workList = new ArrayDeque<>(Resolve
             .expandImports(context, moduleImportService, moduleData.imports,
                 moduleData.lastModified, null, input.strFileGeneratingTasks(),
                 input.includeDirs()));

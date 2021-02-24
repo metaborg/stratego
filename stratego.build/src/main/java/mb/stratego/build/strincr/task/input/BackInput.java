@@ -3,8 +3,8 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashSet;
+import java.util.Queue;
 
 import javax.annotation.Nullable;
 
@@ -147,7 +147,7 @@ public abstract class BackInput implements Serializable {
         @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
-            final Deque<StrategySignature> workList = new ArrayDeque<>();
+            final Queue<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
             final HashSet<StrategySignature> seen = new HashSet<>();
             seen.add(strategySignature);

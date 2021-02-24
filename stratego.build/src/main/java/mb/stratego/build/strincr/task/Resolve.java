@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -62,7 +63,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final ArrayList<Message> messages = new ArrayList<>();
 
         final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
-        final Deque<ModuleIdentifier> workList = new ArrayDeque<>();
+        final Queue<ModuleIdentifier> workList = new ArrayDeque<>();
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
@@ -83,7 +84,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>>
             overlayUsesConstructors = new HashMap<>();
 
-        do {
+        while(!workList.isEmpty()) {
             final ModuleIdentifier moduleIdentifier = workList.remove();
 
             final FrontInput frontInput =
@@ -164,7 +165,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 workList.addAll(expandedImports);
                 seen.addAll(expandedImports);
             }
-        } while(!workList.isEmpty());
+        }
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
         return new GlobalData(allModuleIdentifiers, constructorIndex, nonExternalInjections,
