@@ -18,7 +18,7 @@ public class CheckOutput implements Serializable {
     public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
         dynamicRuleIndex;
     public final ArrayList<Message> messages;
-    public final boolean containsErrors;
+    public final boolean containsErrors; // derived from messages
 
     public CheckOutput(
         HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks,

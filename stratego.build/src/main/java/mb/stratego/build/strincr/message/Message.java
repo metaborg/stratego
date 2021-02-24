@@ -151,18 +151,23 @@ public abstract class Message implements WithLastModified, Serializable {
             return true;
         if(o == null || getClass() != o.getClass())
             return false;
-        final Message message = (Message) o;
+
+        Message message = (Message) o;
+
+        if(lastModified != message.lastModified)
+            return false;
         if(!locationTerm.equals(message.locationTerm))
             return false;
-        if(severity != message.severity)
+        if(!location.equals(message.location))
             return false;
-        return getMessage().equals(message.getMessage());
+        return severity == message.severity;
     }
 
     @Override public int hashCode() {
         int result = locationTerm.hashCode();
+        result = 31 * result + location.hashCode();
         result = 31 * result + severity.hashCode();
-        result = 31 * result +  getMessage().hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 }

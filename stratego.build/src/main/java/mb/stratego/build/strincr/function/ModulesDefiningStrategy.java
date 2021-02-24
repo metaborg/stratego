@@ -19,4 +19,19 @@ public class ModulesDefiningStrategy
     @Override public HashSet<IModuleImportService.ModuleIdentifier> apply(GlobalData globalData) {
         return globalData.strategyIndex.getOrDefault(strategySignature, new HashSet<>(0));
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ModulesDefiningStrategy that = (ModulesDefiningStrategy) o;
+
+        return strategySignature.equals(that.strategySignature);
+    }
+
+    @Override public int hashCode() {
+        return strategySignature.hashCode();
+    }
 }

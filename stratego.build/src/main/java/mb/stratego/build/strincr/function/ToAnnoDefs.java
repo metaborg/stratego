@@ -31,4 +31,19 @@ public class ToAnnoDefs implements Function<GlobalData, AnnoDefs>, Serializable 
         }
         return new AnnoDefs(internalStrategyData, externalStrategyData);
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ToAnnoDefs that = (ToAnnoDefs) o;
+
+        return filter.equals(that.filter);
+    }
+
+    @Override public int hashCode() {
+        return filter.hashCode();
+    }
 }

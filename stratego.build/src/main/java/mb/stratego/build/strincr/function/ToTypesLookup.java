@@ -137,4 +137,29 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
             }
         }
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ToTypesLookup that = (ToTypesLookup) o;
+
+        if(!tf.equals(that.tf))
+            return false;
+        if(!usedStrategies.equals(that.usedStrategies))
+            return false;
+        if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
+            return false;
+        return usedConstructors.equals(that.usedConstructors);
+    }
+
+    @Override public int hashCode() {
+        int result = tf.hashCode();
+        result = 31 * result + usedStrategies.hashCode();
+        result = 31 * result + usedAmbiguousStrategies.hashCode();
+        result = 31 * result + usedConstructors.hashCode();
+        return result;
+    }
 }

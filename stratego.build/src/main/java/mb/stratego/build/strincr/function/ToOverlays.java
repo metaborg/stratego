@@ -31,4 +31,19 @@ public class ToOverlays implements Function<ModuleData, ArrayList<OverlayData>>,
         }
         return result;
     }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        ToOverlays that = (ToOverlays) o;
+
+        return usedConstructors.equals(that.usedConstructors);
+    }
+
+    @Override public int hashCode() {
+        return usedConstructors.hashCode();
+    }
 }

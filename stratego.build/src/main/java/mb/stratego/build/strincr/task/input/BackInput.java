@@ -126,6 +126,31 @@ public abstract class BackInput implements Serializable {
             }
         }
 
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            Normal normal = (Normal) o;
+
+            if(!strategySignature.equals(normal.strategySignature))
+                return false;
+            if(!mainModuleIdentifier.equals(normal.mainModuleIdentifier))
+                return false;
+            return strFileGeneratingTasks.equals(normal.strFileGeneratingTasks);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + strategySignature.hashCode();
+            result = 31 * result + mainModuleIdentifier.hashCode();
+            result = 31 * result + strFileGeneratingTasks.hashCode();
+            return result;
+        }
+
         @Override public String toString() {
             return "Back.NormalInput(" + strategySignature.cifiedName() + ")";
         }
@@ -268,12 +293,15 @@ public abstract class BackInput implements Serializable {
 
             Boilerplate that = (Boilerplate) o;
 
-            return dynamicCallsDefined == that.dynamicCallsDefined;
+            if(dynamicCallsDefined != that.dynamicCallsDefined)
+                return false;
+            return strFileGeneratingTasks.equals(that.strFileGeneratingTasks);
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + (dynamicCallsDefined ? 1 : 0);
+            result = 31 * result + strFileGeneratingTasks.hashCode();
             return result;
         }
 
