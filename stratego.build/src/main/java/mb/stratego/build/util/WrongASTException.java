@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 
-public class WrongASTException extends Exception {
+public class WrongASTException extends RuntimeException {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
 

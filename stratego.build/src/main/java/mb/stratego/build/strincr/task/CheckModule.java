@@ -212,7 +212,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     public static HashMap<StrategySignature, HashSet<StrategyAnalysisData>> extractStrategyDefs(
         ModuleIdentifier moduleIdentifier, long lastModified, IStrategoTerm ast,
         HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
-        throws WrongASTException {
+         {
         final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData =
             new HashMap<>();
 
@@ -242,8 +242,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private static void addStrategyData(ModuleIdentifier moduleIdentifier, long lastModified,
         HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData,
         IStrategoTerm strategyDefs,
-        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
-        throws WrongASTException {
+        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules) {
         for(IStrategoTerm strategyDef : strategyDefs) {
             if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {

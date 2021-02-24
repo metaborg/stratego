@@ -59,7 +59,7 @@ public abstract class SplitShared {
         HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData,
         HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData,
         HashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
-        throws WrongASTException {
+         {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -141,7 +141,7 @@ public abstract class SplitShared {
     protected void addOverlayData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
-        IStrategoTerm overlays, long lastModified) throws WrongASTException {
+        IStrategoTerm overlays, long lastModified) {
         /*
         extract-constr:
           OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
@@ -187,7 +187,7 @@ public abstract class SplitShared {
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs,
-        long lastModified) throws WrongASTException {
+        long lastModified) {
         for(IStrategoTerm sig : sigs) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
                 final IStrategoTerm constrs = sig.getSubterm(0);
@@ -218,7 +218,7 @@ public abstract class SplitShared {
     }
 
     private ConstructorType constrType(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        IStrategoTerm constrDef) throws WrongASTException {
+        IStrategoTerm constrDef) {
         /*
         extract-constr =
           (  ?OpDecl(c, ConstType(t1))
@@ -271,8 +271,7 @@ public abstract class SplitShared {
     private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm constrDef, HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
-        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, long lastModified)
-        throws WrongASTException {
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, long lastModified) {
         /*
         extract-inj:
           OpDeclInj(FunType([ConstType(from)], ConstType(to))) ->

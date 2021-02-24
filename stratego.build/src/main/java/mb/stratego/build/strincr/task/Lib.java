@@ -89,7 +89,7 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
     }
 
     private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
-        LastModified<IStrategoTerm> timestampedAst) throws WrongASTException {
+        LastModified<IStrategoTerm> timestampedAst) {
         final IStrategoTerm ast = timestampedAst.wrapped;
         if(TermUtils.isAppl(ast, "Specification", 1)) {
             final IStrategoTerm defs = ast.getSubterm(0);

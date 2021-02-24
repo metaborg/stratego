@@ -112,7 +112,7 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
     }
 
     public static IStrategoList getDefs(ModuleIdentifier moduleIdentifier, IStrategoTerm ast)
-        throws WrongASTException {
+         {
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {
