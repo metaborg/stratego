@@ -1,11 +1,9 @@
-package mb.stratego.build.spoofax2;
+package mb.stratego.build.strincr;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.compat.override.strc_compat.Main;
-
-import mb.stratego.build.strincr.IModuleImportService;
 
 public enum BuiltinLibraryIdentifier implements IModuleImportService.ModuleIdentifier {
     StrategoLib("stratego-lib"),

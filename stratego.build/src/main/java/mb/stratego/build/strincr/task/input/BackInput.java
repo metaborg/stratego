@@ -16,7 +16,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -89,35 +89,35 @@ public abstract class BackInput implements Serializable {
 
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
-        public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-        public final IModuleImportService moduleImportService;
+        public final ModuleIdentifier mainModuleIdentifier;
+        public final Collection<STask<?>> strFileGeneratingTasks;
 
         public Normal(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask,
-            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            IModuleImportService moduleImportService) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            Collection<STask<?>> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
             this.mainModuleIdentifier = mainModuleIdentifier;
-            this.moduleImportService = moduleImportService;
+            this.strFileGeneratingTasks = strFileGeneratingTasks;
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
             List<IStrategoAppl> strategyContributions, Set<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
-            final Set<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
+            final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, this.resolveTask,
                     new ModulesDefiningStrategy<>(strategySignature));
 
-            for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                 if(moduleIdentifier.isLibrary()) {
                     continue;
                 }
                 final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
                     .requirePartial(context, checkModule,
-                        new CheckModuleInput(this.mainModuleIdentifier, moduleIdentifier,
-                            this.moduleImportService),
+                        new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
+                            strFileGeneratingTasks, includeDirs),
                         new GetStrategyAnalysisData<>(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -125,31 +125,6 @@ public abstract class BackInput implements Serializable {
                         .visit(strategyAnalysisDatum.analyzedAst);
                 }
             }
-        }
-
-        @Override public boolean equals(@Nullable Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-            if(!super.equals(o))
-                return false;
-
-            Normal that = (Normal) o;
-
-            if(!strategySignature.equals(that.strategySignature))
-                return false;
-            if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
-                return false;
-            return moduleImportService.equals(that.moduleImportService);
-        }
-
-        @Override public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + strategySignature.hashCode();
-            result = 31 * result + mainModuleIdentifier.hashCode();
-            result = 31 * result + moduleImportService.hashCode();
-            return result;
         }
 
         @Override public String toString() {
@@ -162,11 +137,12 @@ public abstract class BackInput implements Serializable {
 
         public DynamicRule(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
-            Collection<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask,
-            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            IModuleImportService moduleImportService, STask<CheckOutput> checkTask) {
+            Collection<ResourcePath> includeDirs, Arguments extraArgs,
+            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            Collection<STask<?>> strFileGeneratingTasks,
+            STask<CheckOutput> checkTask) {
             super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
-                extraArgs, resolveTask, mainModuleIdentifier, moduleImportService);
+                extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks);
             this.checkTask = checkTask;
         }
 
@@ -178,18 +154,18 @@ public abstract class BackInput implements Serializable {
             seen.add(strategySignature);
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
-                final Set<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                final Set<ModuleIdentifier> modulesDefiningStrategy = PieUtils
                     .requirePartial(context, this.checkTask,
                         new ModulesDefiningDynamicRule<>(strategySignature));
 
-                for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                     if(moduleIdentifier.isLibrary()) {
                         continue;
                     }
                     final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
                         .requirePartial(context, checkModule,
-                            new CheckModuleInput(this.mainModuleIdentifier, moduleIdentifier,
-                                this.moduleImportService),
+                            new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
+                                strFileGeneratingTasks, includeDirs),
                             new GetDynamicRuleAnalysisData<>(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -272,18 +248,18 @@ public abstract class BackInput implements Serializable {
 
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
-        public final IModuleImportService moduleImportService;
+        public final Collection<STask<?>> strFileGeneratingTasks;
 
         public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
             Collection<ResourcePath> includeDirs, Arguments extraArgs, boolean dynamicCallsDefined,
-            IModuleImportService moduleImportService) {
+            Collection<STask<?>> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.dynamicCallsDefined = dynamicCallsDefined;
-            this.moduleImportService = moduleImportService;
+            this.strFileGeneratingTasks = strFileGeneratingTasks;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override public boolean equals(@Nullable Object o) {
             if(this == o)
                 return true;
             if(o == null || getClass() != o.getClass())

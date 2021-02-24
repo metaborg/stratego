@@ -16,6 +16,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.pie.api.ExecContext;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -25,6 +26,8 @@ import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategyFrontData.Kind;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.WrongASTException;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
@@ -40,14 +43,16 @@ import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Normal;
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.TypeDefinition;
 
 public abstract class SplitShared {
+    public final IModuleImportService moduleImportService;
     protected final StrIncrContext strContext;
     protected final ITermFactory tf;
     protected final B b;
 
-    public SplitShared(StrIncrContext strContext) {
+    public SplitShared(StrIncrContext strContext, IModuleImportService moduleImportService) {
         this.strContext = strContext;
         this.tf = strContext.getFactory();
         this.b = new B(this.tf);
+        this.moduleImportService = moduleImportService;
     }
 
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
@@ -331,5 +336,22 @@ public abstract class SplitShared {
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }
+    }
+
+    protected LastModified<IStrategoTerm> getModuleAst(ExecContext context, FrontInput input)
+        throws Exception {
+        if(input instanceof FrontInput.Normal) {
+            return getModuleAst(context, (FrontInput.Normal) input);
+        } else if(input instanceof FrontInput.FileOpenInEditor) {
+            return ((FrontInput.FileOpenInEditor) input).ast;
+        } else {
+            throw new RuntimeException("Unknown subclass of FrontInput: " + input.getClass());
+        }
+    }
+
+    private LastModified<IStrategoTerm> getModuleAst(ExecContext context, FrontInput.Normal input)
+        throws Exception {
+        return moduleImportService
+            .getModuleAst(context, input.moduleIdentifier, input.strFileGeneratingTasks);
     }
 }

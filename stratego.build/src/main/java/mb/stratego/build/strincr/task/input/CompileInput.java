@@ -10,12 +10,11 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CompileInput implements Serializable {
-    public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-    public final IModuleImportService moduleImportService;
+    public final ModuleIdentifier mainModuleIdentifier;
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
@@ -25,13 +24,11 @@ public class CompileInput implements Serializable {
     public final Collection<STask<?>> strFileGeneratingTasks;
     public final StrategoGradualSetting strategoGradualSetting;
 
-    public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        IModuleImportService moduleImportService, ResourcePath outputDir,
+    public CompileInput(ModuleIdentifier mainModuleIdentifier, ResourcePath outputDir,
         @Nullable String packageName, @Nullable ResourcePath cacheDir, List<String> constants,
         Collection<ResourcePath> includeDirs, Arguments extraArgs,
         Collection<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
-        this.moduleImportService = moduleImportService;
         this.outputDir = outputDir;
         this.packageName = packageName;
         this.cacheDir = cacheDir;
@@ -52,8 +49,6 @@ public class CompileInput implements Serializable {
 
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
             return false;
-        if(!moduleImportService.equals(that.moduleImportService))
-            return false;
         if(!outputDir.equals(that.outputDir))
             return false;
         if(packageName != null ? !packageName.equals(that.packageName) : that.packageName != null)
@@ -73,7 +68,6 @@ public class CompileInput implements Serializable {
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
-        result = 31 * result + moduleImportService.hashCode();
         result = 31 * result + outputDir.hashCode();
         result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
@@ -86,6 +80,6 @@ public class CompileInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Compile.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
+        return "Compile.Input(" + mainModuleIdentifier + ")";
     }
 }

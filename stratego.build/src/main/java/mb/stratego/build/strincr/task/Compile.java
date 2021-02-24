@@ -43,9 +43,9 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     }
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
-        final CheckInput checkInput =
-            new CheckInput(input.mainModuleIdentifier, input.moduleImportService,
-                input.strategoGradualSetting == StrategoGradualSetting.NONE);
+        final CheckInput checkInput = new CheckInput(input.mainModuleIdentifier,
+            input.strategoGradualSetting == StrategoGradualSetting.NONE,
+            input.strFileGeneratingTasks, input.includeDirs);
         final STask<CheckOutput> checkTask = check.createSupplier(checkInput);
         final CheckOutputMessages checkOutput =
             PieUtils.requirePartial(context, check, checkInput, GetMessages.INSTANCE);
@@ -69,7 +69,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             final BackOutput output = context.require(back,
                 new BackInput.DynamicRule(dynamicRule, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                    resolveTask, input.mainModuleIdentifier, input.moduleImportService, checkTask));
+                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks,
+                    checkTask));
             assert output != null;
             resultFiles.addAll(output.resultFiles);
             compiledThroughDynamicRule.addAll(output.compiledStrategies);
@@ -93,7 +94,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             final BackOutput output = context.require(back,
                 new BackInput.Normal(strategySignature, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                    resolveTask, input.mainModuleIdentifier, input.moduleImportService));
+                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks));
             assert output != null;
             resultFiles.addAll(output.resultFiles);
         }
@@ -102,7 +103,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackOutput boilerplateOutput = context.require(back,
             new BackInput.Boilerplate(resolveTask, input.outputDir, input.packageName,
                 input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicCallsDefined, input.moduleImportService));
+                dynamicCallsDefined, input.strFileGeneratingTasks));
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 

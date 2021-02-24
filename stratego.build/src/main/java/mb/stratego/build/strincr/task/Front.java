@@ -15,18 +15,19 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.WrongASTException;
 
 /**
  * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
@@ -36,13 +37,12 @@ import mb.stratego.build.util.StrIncrContext;
 public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData> {
     public static final String id = "stratego." + Front.class.getSimpleName();
 
-    @Inject public Front(StrIncrContext strContext) {
-        super(strContext);
+    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService) {
+        super(strContext, moduleImportService);
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        final LastModified<IStrategoTerm> ast =
-            input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
+        final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
         boolean stdLibImport = false;
         final List<IStrategoTerm> imports = new ArrayList<>();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = new HashMap<>();

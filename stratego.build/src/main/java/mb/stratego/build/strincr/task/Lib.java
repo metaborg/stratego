@@ -14,17 +14,18 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
+import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
-import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.WrongASTException;
 
 /**
  * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
@@ -35,11 +36,13 @@ import mb.stratego.build.util.StrIncrContext;
 public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> {
     public static final String id = "stratego." + Lib.class.getSimpleName();
 
-    @Inject public Lib(StrIncrContext strContext) {
-        super(strContext);
+    @Inject public Lib(StrIncrContext strContext, IModuleImportService moduleImportService) {
+        super(strContext, moduleImportService);
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
+        final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
+
         final List<IStrategoTerm> imports = Collections.emptyList();
         final Map<ConstructorSignature, List<ConstructorData>> constrData = Collections.emptyMap();
         final Map<ConstructorSignature, List<OverlayData>> overlayData = Collections.emptyMap();
@@ -54,8 +57,6 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
         final Set<StrategySignature> dynamicRules = Collections.emptySet();
         final Map<IStrategoTerm, List<IStrategoTerm>> injections = Collections.emptyMap();
 
-        final LastModified<IStrategoTerm> ast =
-            input.moduleImportService.getModuleAst(context, input.moduleIdentifier);
         final Map<ConstructorSignature, List<ConstructorData>> externalConstrData = new HashMap<>();
         final Map<IStrategoTerm, List<IStrategoTerm>> externalInjections = new HashMap<>();
         final Map<StrategySignature, Set<StrategyFrontData>> externalStrategyData = new HashMap<>();

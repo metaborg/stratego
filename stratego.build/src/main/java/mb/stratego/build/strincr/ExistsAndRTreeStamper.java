@@ -1,4 +1,4 @@
-package mb.stratego.build.spoofax2;
+package mb.stratego.build.strincr;
 
 import java.io.BufferedReader;
 import java.io.IOException;

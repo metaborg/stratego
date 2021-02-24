@@ -1,17 +1,22 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.util.Collection;
 
+import mb.pie.api.STask;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class ResolveInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-    public final IModuleImportService moduleImportService;
+    public final Collection<STask<?>> strFileGeneratingTasks;
+    public final Collection<? extends ResourcePath> includeDirs;
 
-    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        IModuleImportService moduleImportService) {
+    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier, Collection<STask<?>> strFileGeneratingTasks,
+        Collection<? extends ResourcePath> includeDirs) {
         this.mainModuleIdentifier = mainModuleIdentifier;
-        this.moduleImportService = moduleImportService;
+        this.strFileGeneratingTasks = strFileGeneratingTasks;
+        this.includeDirs = includeDirs;
     }
 
     @Override public boolean equals(Object o) {
@@ -20,20 +25,23 @@ public class ResolveInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        ResolveInput input = (ResolveInput) o;
+        ResolveInput that = (ResolveInput) o;
 
-        if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
+        if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
             return false;
-        return moduleImportService.equals(input.moduleImportService);
+        if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
+            return false;
+        return includeDirs.equals(that.includeDirs);
     }
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
-        result = 31 * result + moduleImportService.hashCode();
+        result = 31 * result + strFileGeneratingTasks.hashCode();
+        result = 31 * result + includeDirs.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "Resolve.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
+        return "Resolve.Input(" + mainModuleIdentifier + ")";
     }
 }

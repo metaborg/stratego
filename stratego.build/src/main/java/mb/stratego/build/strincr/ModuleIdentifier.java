@@ -1,9 +1,8 @@
-package mb.stratego.build.spoofax2;
+package mb.stratego.build.strincr;
 
 import javax.annotation.Nullable;
 
 import mb.resource.hierarchical.HierarchicalResource;
-import mb.stratego.build.strincr.IModuleImportService;
 
 public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
     public final boolean isLibrary;

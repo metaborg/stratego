@@ -95,6 +95,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final ConstructorSignature dr_undefine = new ConstructorSignature("DR_UNDEFINE", 1, 0);
         final ConstructorSignature anno_cong__ = new ConstructorSignature("Anno_Cong__", 2, 0);
         if(isBoilerplate) {
+            final BackInput.Boilerplate boilerplateInput = (BackInput.Boilerplate) input;
             final GlobalConsInj globalConsInj =
                 PieUtils.requirePartial(context, input.resolveTask, ToGlobalConsInj.INSTANCE);
             final List<ConstructorSignature> constructors =
@@ -104,7 +105,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                     + globalConsInj.nonExternalInjections.size() + 3);
             for(ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
-                    .requirePartial(context, front, new FrontInput(moduleIdentifier, ((BackInput.Boilerplate) input).moduleImportService),
+                    .requirePartial(context, front, new FrontInput.Normal(moduleIdentifier, boilerplateInput.strFileGeneratingTasks),
                         ToConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(tf));
@@ -174,7 +175,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             }
 
             ctree = Packer.packStrategy(tf, Collections.emptyList(), congruences);
-        } else {
+        } else { // input instance BackInput.Normal (and possibly even BackInput.DynamicRule)
             final List<IStrategoAppl> strategyContributions = new ArrayList<>();
             final Set<ConstructorSignature> usedConstructors = new HashSet<>();
             final BackInput.Normal normalInput = (BackInput.Normal) input;
@@ -188,7 +189,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final List<IStrategoAppl> overlayContributions = new ArrayList<>();
             for(ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
                 final List<OverlayData> overlayData = PieUtils.requirePartial(context, front,
-                    new FrontInput(moduleIdentifier, normalInput.moduleImportService),
+                    new FrontInput.Normal(moduleIdentifier, normalInput.strFileGeneratingTasks),
                     new ToOverlays<>(usedConstructors));
                 for(OverlayData overlayDatum : overlayData) {
                     overlayContributions.add(overlayDatum.astTerm);

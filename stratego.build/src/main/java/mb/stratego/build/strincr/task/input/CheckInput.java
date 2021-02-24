@@ -1,23 +1,30 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.util.Collection;
 
+import mb.pie.api.STask;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class CheckInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-    public final IModuleImportService moduleImportService;
     public final boolean ignoreTypeMessages;
+    public final Collection<STask<?>> strFileGeneratingTasks;
+    public final Collection<? extends ResourcePath> includeDirs;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        IModuleImportService moduleImportService, boolean ignoreTypeMessages) {
+        boolean ignoreTypeMessages, Collection<STask<?>> strFileGeneratingTasks,
+        Collection<? extends ResourcePath> includeDirs) {
         this.mainModuleIdentifier = mainModuleIdentifier;
-        this.moduleImportService = moduleImportService;
         this.ignoreTypeMessages = ignoreTypeMessages;
+        this.strFileGeneratingTasks = strFileGeneratingTasks;
+        this.includeDirs = includeDirs;
     }
 
     public ResolveInput resolveInput() {
-        return new ResolveInput(mainModuleIdentifier, moduleImportService);
+        return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks,
+            includeDirs);
     }
 
     @Override public boolean equals(Object o) {
@@ -26,20 +33,26 @@ public class CheckInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        CheckInput input = (CheckInput) o;
+        CheckInput that = (CheckInput) o;
 
-        if(!mainModuleIdentifier.equals(input.mainModuleIdentifier))
+        if(ignoreTypeMessages != that.ignoreTypeMessages)
             return false;
-        return moduleImportService.equals(input.moduleImportService);
+        if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
+            return false;
+        if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
+            return false;
+        return includeDirs.equals(that.includeDirs);
     }
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
-        result = 31 * result + moduleImportService.hashCode();
+        result = 31 * result + (ignoreTypeMessages ? 1 : 0);
+        result = 31 * result + strFileGeneratingTasks.hashCode();
+        result = 31 * result + includeDirs.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "Check.Input(" + mainModuleIdentifier + ", " + moduleImportService + ")";
+        return "Check.Input(" + mainModuleIdentifier + ")";
     }
 }

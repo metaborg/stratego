@@ -3,6 +3,7 @@ package mb.stratego.build.strincr.task;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
 import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
@@ -50,10 +52,12 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     public final Front front;
     public final Lib lib;
+    public final IModuleImportService moduleImportService;
 
-    @Inject public Resolve(Front front, Lib lib) {
+    @Inject public Resolve(Front front, Lib lib, IModuleImportService moduleImportService) {
         this.front = front;
         this.lib = lib;
+        this.moduleImportService = moduleImportService;
     }
 
     @Override public GlobalData exec(ExecContext context, ResolveInput input)
@@ -82,8 +86,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         do {
             final ModuleIdentifier moduleIdentifier = workList.remove();
 
-            final FrontInput frontInput =
-                new FrontInput(moduleIdentifier, input.moduleImportService);
+            final FrontInput frontInput = new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks);
             if(moduleIdentifier.isLibrary()) {
                 allModuleIdentifiers.add(moduleIdentifier);
                 final ModuleIndex index = PieUtils
@@ -153,8 +156,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 }
 
                 final Set<ModuleIdentifier> expandedImports =
-                    expandImports(context, input.moduleImportService, index.imports,
-                        index.lastModified, messages);
+                    expandImports(context, moduleImportService, index.imports,
+                        index.lastModified, messages, input.strFileGeneratingTasks, input.includeDirs);
                 expandedImports.removeAll(seen);
                 workList.addAll(expandedImports);
                 seen.addAll(expandedImports);
@@ -169,11 +172,12 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     public static Set<ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, List<IStrategoTerm> imports, long lastModified,
-        @Nullable List<Message<?>> messages) throws IOException, ExecException {
+        @Nullable List<Message<?>> messages, Collection<STask<?>> strFileGeneratingTasks,
+        Collection<? extends ResourcePath> includeDirs) throws IOException, ExecException {
         final Set<ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
-            final ImportResolution importResolution =
-                moduleImportService.resolveImport(context, anImport);
+            final ImportResolution importResolution = moduleImportService
+                .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs);
             if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                 if(messages != null) {
                     messages.add(new UnresolvedImport(anImport, lastModified));

@@ -1,17 +1,21 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.util.Collection;
 
-import mb.stratego.build.strincr.IModuleImportService;
+import javax.annotation.Nullable;
 
-public class FrontInput implements Serializable {
-    public final IModuleImportService.ModuleIdentifier moduleIdentifier;
-    public final IModuleImportService moduleImportService;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
-    public FrontInput(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        IModuleImportService moduleImportService) {
+import mb.pie.api.STask;
+import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.util.LastModified;
+
+public abstract class FrontInput implements Serializable {
+    public final ModuleIdentifier moduleIdentifier;
+
+    public FrontInput(ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
-        this.moduleImportService = moduleImportService;
     }
 
     @Override public boolean equals(Object o) {
@@ -20,20 +24,74 @@ public class FrontInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        FrontInput input = (FrontInput) o;
+        FrontInput that = (FrontInput) o;
 
-        if(!moduleIdentifier.equals(input.moduleIdentifier))
-            return false;
-        return moduleImportService.equals(input.moduleImportService);
+        return moduleIdentifier.equals(that.moduleIdentifier);
     }
 
     @Override public int hashCode() {
-        int result = moduleIdentifier.hashCode();
-        result = 31 * result + moduleImportService.hashCode();
-        return result;
+        return moduleIdentifier.hashCode();
     }
 
     @Override public String toString() {
-        return "Front.Input(" + moduleIdentifier + ")";
+        return "FrontInput." + this.getClass().getSimpleName() + "(" + moduleIdentifier + ")";
+    }
+
+    public static class Normal extends FrontInput {
+        public final Collection<STask<?>> strFileGeneratingTasks;
+
+        public Normal(ModuleIdentifier moduleIdentifier,
+            Collection<STask<?>> strFileGeneratingTasks) {
+            super(moduleIdentifier);
+            this.strFileGeneratingTasks = strFileGeneratingTasks;
+        }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            Normal normal = (Normal) o;
+
+            return strFileGeneratingTasks.equals(normal.strFileGeneratingTasks);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + strFileGeneratingTasks.hashCode();
+            return result;
+        }
+    }
+
+    public static class FileOpenInEditor extends FrontInput {
+        public final LastModified<IStrategoTerm> ast;
+
+        public FileOpenInEditor(ModuleIdentifier moduleIdentifier,
+            LastModified<IStrategoTerm> ast) {
+            super(moduleIdentifier);
+            this.ast = ast;
+        }
+
+        @Override public boolean equals(@Nullable Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+            if(!super.equals(o))
+                return false;
+
+            FileOpenInEditor that = (FileOpenInEditor) o;
+
+            return ast.equals(that.ast);
+        }
+
+        @Override public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + ast.hashCode();
+            return result;
+        }
     }
 }
