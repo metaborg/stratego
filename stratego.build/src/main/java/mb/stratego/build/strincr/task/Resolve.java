@@ -40,6 +40,11 @@ import mb.stratego.build.util.Algorithms;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
+/**
+ * Starts at the given "main" Stratego module, calls {@link Front} on it, and resolves the imports
+ * transitively from there to discover all modules. Then builds up some {@link GlobalData} from the
+ * {@link ModuleData} results of {@link Front} which is used in different places afterwards.
+ */
 public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     public static final String id = "stratego." + Resolve.class.getSimpleName();
 

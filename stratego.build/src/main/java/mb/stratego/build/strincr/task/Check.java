@@ -25,6 +25,10 @@ import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
+/**
+ * Runs {@link Resolve}, gets the list of all modules, then runs {@link CheckModule} on each module.
+ * This task can be used to get all error messages for a project.
+ */
 public class Check implements TaskDef<CheckInput, CheckOutput> {
     public static final String id = "stratego." + Check.class.getSimpleName();
 

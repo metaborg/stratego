@@ -21,6 +21,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
+import org.strategoxt.strc.insert_casts_0_0;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
@@ -57,27 +58,39 @@ import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.InsertCastsOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
+import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.build.util.WrongASTException;
 
+/**
+ * Runs static checks on a module, based on the {@link ModuleData} and that of the modules are
+ * visible through imports. This is currently still transitive imports, but we may drop support of
+ * that to improve performance of the compiler. But that might influence other meta-languages that
+ * generate Stratego code. Static checks are mostly done in Stratego, although some overlap checks
+ * were easier to keep in Java.
+ */
 public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput> {
     public static final String id = "stratego." + CheckModule.class.getSimpleName();
 
     private final Resolve resolve;
     private final Front front;
     private final Lib lib;
-    private final InsertCasts insertCasts;
     private final ITermFactory tf;
 
-    @Inject public CheckModule(Resolve resolve, Front front, Lib lib, InsertCasts insertCasts,
-        StrIncrContext strIncrContext) {
+    private final IOAgentTrackerFactory ioAgentTrackerFactory;
+    private final StrIncrContext strContext;
+
+    @Inject public CheckModule(Resolve resolve, Front front, Lib lib, StrIncrContext strIncrContext,
+        IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.resolve = resolve;
         this.front = front;
         this.lib = lib;
-        this.insertCasts = insertCasts;
         this.tf = strIncrContext.getFactory();
+        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
+        this.strContext = strContext;
     }
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
@@ -87,8 +100,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(input.moduleIdentifier, environment);
-        final @Nullable InsertCastsOutput output = context.require(insertCasts, insertCastsInput);
-        assert output != null;
+        final InsertCastsOutput output = insertCasts(context, insertCastsInput);
 
         final Map<StrategySignature, Set<StrategySignature>> dynamicRules = new HashMap<>();
         final Map<StrategySignature, Set<StrategyAnalysisData>> strategyDataWithCasts =
@@ -102,6 +114,41 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages);
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
+    }
+
+    private InsertCastsOutput insertCasts(ExecContext execContext, InsertCastsInput input)
+        throws ExecException {
+        final String moduleName = input.moduleIdentifier.moduleString();
+
+        final StrategoExecutor.ExecutionResult output = StrategoExecutor
+            .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, execContext.logger(), true,
+                insert_casts_0_0.instance, input.environment, strContext);
+        if(!output.success) {
+            throw new ExecException(
+                "Call to insert_casts failed on " + moduleName + ": \n" + output.exception);
+        }
+        assert output.result != null;
+
+        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
+        final IStrategoList errors = TermUtils.toListAt(output.result, 1);
+        final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
+        final IStrategoList notes = TermUtils.toListAt(output.result, 3);
+
+        final long lastModified = input.environment.lastModified;
+        List<Message<?>> messages = new ArrayList<>(errors.size() + warnings.size() + notes.size());
+        for(IStrategoTerm errorTerm : errors) {
+            messages.add(
+                Message.from(execContext.logger(), errorTerm, MessageSeverity.ERROR, lastModified));
+        }
+        for(IStrategoTerm warningTerm : warnings) {
+            messages.add(Message
+                .from(execContext.logger(), warningTerm, MessageSeverity.WARNING, lastModified));
+        }
+        for(IStrategoTerm noteTerm : notes) {
+            messages.add(
+                Message.from(execContext.logger(), noteTerm, MessageSeverity.NOTE, lastModified));
+        }
+        return new InsertCastsOutput(astWithCasts, messages);
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,

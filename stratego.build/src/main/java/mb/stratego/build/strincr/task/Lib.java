@@ -26,6 +26,12 @@ import mb.stratego.build.util.WrongASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
 
+/**
+ * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
+ * into {@link ModuleData}, which contains the original AST along with several lists of
+ * information required in other task.
+ * This is a specialisation of {@link Front}.
+ */
 public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> {
     public static final String id = "stratego." + Lib.class.getSimpleName();
 

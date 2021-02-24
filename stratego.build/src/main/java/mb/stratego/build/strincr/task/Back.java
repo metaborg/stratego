@@ -52,6 +52,18 @@ import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.build.util.StrategyStubs;
 import mb.stratego.compiler.pack.Packer;
 
+/**
+ * Runs per strategy definition. This task desugars the strategy, and then generates Java code for
+ * it. Desugaring here does means that dynamic rules are only lifted out at this point, which
+ * complicates things slightly. So strategies that contribute to the same dynamic rule are bundled
+ * into one larger Back task instead of being compiled separately. Desugaring output of these
+ * dynamic rule Back tasks are analysed as well, to be able to generate the DYNAMIC_CALLS strategy
+ * correctly.
+ * Another artefact of desugaring late is that we don't care to pass constructors to the desugaring.
+ * Therefore no congruence strategies are generated. Instead we do this in a separate Back task for
+ * all constructors at once. If this turns out to be costly we can split it up to generate per
+ * module or even per constructor.
+ */
 public class Back implements TaskDef<BackInput, BackOutput> {
     public static final String id = "stratego." + Back.class.getSimpleName();
 

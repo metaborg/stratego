@@ -24,6 +24,11 @@ import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrategoGradualSetting;
 
+/**
+ * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
+ * otherwise continues to run all the Back tasks. It returns a list of the Java files that were
+ * written to, as well as non-error messages from Check.
+ */
 public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public static final String id = "stratego." + Compile.class.getSimpleName();
 
