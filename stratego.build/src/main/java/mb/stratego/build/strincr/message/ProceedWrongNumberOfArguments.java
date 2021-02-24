@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class ProceedWrongNumberOfArguments extends Message<IStrategoTerm> {
+public class ProceedWrongNumberOfArguments extends Message {
     private final int sarg;
     private final int targ;
 

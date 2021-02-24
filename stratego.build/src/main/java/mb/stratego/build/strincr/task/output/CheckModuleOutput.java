@@ -12,12 +12,12 @@ import mb.stratego.build.strincr.message.Message;
 public class CheckModuleOutput implements Serializable {
     public final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts;
     public final HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules;
-    public final ArrayList<Message<?>> messages;
+    public final ArrayList<Message> messages;
 
     public CheckModuleOutput(
         HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts,
         HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules,
-        ArrayList<Message<?>> messages) {
+        ArrayList<Message> messages) {
         this.strategyDataWithCasts = strategyDataWithCasts;
         this.dynamicRules = dynamicRules;
         this.messages = messages;

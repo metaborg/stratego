@@ -7,7 +7,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-public class InternalStrategyOverlap extends Message<IStrategoString> {
+public class InternalStrategyOverlap extends Message {
     public InternalStrategyOverlap(IStrategoString name, long lastModified) {
         super(name, MessageSeverity.ERROR, lastModified);
     }

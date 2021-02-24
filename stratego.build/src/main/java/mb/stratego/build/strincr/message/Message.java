@@ -21,13 +21,13 @@ import mb.stratego.build.strincr.message.type.TypeMismatch;
 import mb.stratego.build.strincr.message.type.VariableBoundToIncompatibleType;
 import mb.stratego.build.util.WithLastModified;
 
-public abstract class Message<T extends IStrategoTerm> implements WithLastModified, Serializable {
-    public final T locationTerm;
+public abstract class Message implements WithLastModified, Serializable {
+    public final IStrategoTerm locationTerm;
     public final ImploderAttachment location;
     public final MessageSeverity severity;
     public final long lastModified;
 
-    public Message(T name, MessageSeverity severity, long lastModified) {
+    public Message(IStrategoTerm name, MessageSeverity severity, long lastModified) {
         this.locationTerm = name;
         this.location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(name));
         assert this.location != null : "The given term " + name + " did not contain a location";
@@ -35,7 +35,7 @@ public abstract class Message<T extends IStrategoTerm> implements WithLastModifi
         this.lastModified = lastModified;
     }
 
-    public static Message<?> from(Logger logger, IStrategoTerm messageTuple,
+    public static Message from(Logger logger, IStrategoTerm messageTuple,
         MessageSeverity severity, long lastModified) {
         IStrategoTerm locationTerm = messageTuple.getSubterm(0);
         final IStrategoTerm messageTerm = messageTuple.getSubterm(1);
@@ -151,7 +151,7 @@ public abstract class Message<T extends IStrategoTerm> implements WithLastModifi
             return true;
         if(o == null || getClass() != o.getClass())
             return false;
-        final Message<?> message = (Message<?>) o;
+        final Message message = (Message) o;
         if(!locationTerm.equals(message.locationTerm))
             return false;
         if(severity != message.severity)

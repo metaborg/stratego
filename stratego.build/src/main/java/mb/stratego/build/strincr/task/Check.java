@@ -43,7 +43,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
         final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex = new HashMap<>();
         final HashMap<StrategySignature, HashSet<ModuleIdentifier>> dynamicRuleIndex =
             new HashMap<>();
-        final ArrayList<Message<?>> messages = new ArrayList<>();
+        final ArrayList<Message> messages = new ArrayList<>();
         boolean containsErrors = false;
         final HashSet<ModuleIdentifier> allModulesIdentifiers = PieUtils
             .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.INSTANCE);
@@ -66,14 +66,14 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                     .add(moduleIdentifier);
             }
             if(input.ignoreTypeMessages) {
-                for(Message<?> message : output.messages) {
+                for(Message message : output.messages) {
                     if(!(message instanceof TypeMessage)) {
                         messages.add(message);
                         containsErrors |= message.severity == MessageSeverity.ERROR;
                     }
                 }
             } else {
-                for(Message<?> message : output.messages) {
+                for(Message message : output.messages) {
                     messages.add(message);
                     containsErrors |= message.severity == MessageSeverity.ERROR;
                 }

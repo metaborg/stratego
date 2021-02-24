@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class ProceedInNonExtendStrategy extends Message<IStrategoTerm> {
+public class ProceedInNonExtendStrategy extends Message {
     public ProceedInNonExtendStrategy(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
     }

@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class BuildDefaultInMatchTerm extends Message<IStrategoTerm> {
+public class BuildDefaultInMatchTerm extends Message {
     public BuildDefaultInMatchTerm(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
     }

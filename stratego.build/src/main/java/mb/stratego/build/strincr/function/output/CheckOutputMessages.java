@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import mb.stratego.build.strincr.message.Message;
 
 public class CheckOutputMessages implements Serializable {
-    public final ArrayList<Message<?>> messages;
+    public final ArrayList<Message> messages;
     public final boolean containsErrors;
 
-    public CheckOutputMessages(ArrayList<Message<?>> messages, boolean containsErrors) {
+    public CheckOutputMessages(ArrayList<Message> messages, boolean containsErrors) {
         this.messages = messages;
         this.containsErrors = containsErrors;
     }

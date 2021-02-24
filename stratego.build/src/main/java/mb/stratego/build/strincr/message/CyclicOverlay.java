@@ -6,7 +6,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 
-public class CyclicOverlay extends Message<IStrategoTerm> {
+public class CyclicOverlay extends Message {
     public final Set<ConstructorSignatureMatcher> cycle;
 
     public CyclicOverlay(IStrategoTerm name, Set<ConstructorSignatureMatcher> cycle, long lastModified) {

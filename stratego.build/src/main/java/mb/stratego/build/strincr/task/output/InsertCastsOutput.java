@@ -10,9 +10,9 @@ import mb.stratego.build.strincr.message.Message;
 
 public final class InsertCastsOutput implements Serializable {
     public final IStrategoTerm astWithCasts;
-    public final ArrayList<Message<?>> messages;
+    public final ArrayList<Message> messages;
 
-    public InsertCastsOutput(IStrategoTerm astWithCasts, ArrayList<Message<?>> messages) {
+    public InsertCastsOutput(IStrategoTerm astWithCasts, ArrayList<Message> messages) {
         this.astWithCasts = astWithCasts;
         this.messages = messages;
     }

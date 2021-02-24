@@ -25,7 +25,7 @@ public class GlobalData implements Serializable {
     public final HashSet<StrategySignature> internalStrategies;
     public final HashSet<StrategySignature> externalStrategies;
     public final HashSet<StrategySignature> dynamicRules;
-    public final ArrayList<Message<?>> messages;
+    public final ArrayList<Message> messages;
     private transient @Nullable GlobalIndex globalIndex = null;
 
     public GlobalData(HashSet<ModuleIdentifier> allModuleIdentifiers,
@@ -36,7 +36,7 @@ public class GlobalData implements Serializable {
         HashSet<ConstructorSignature> externalConstructors,
         HashSet<StrategySignature> internalStrategies,
         HashSet<StrategySignature> externalStrategies, HashSet<StrategySignature> dynamicRules,
-        ArrayList<Message<?>> messages) {
+        ArrayList<Message> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.nonExternalInjections = nonExternalInjections;

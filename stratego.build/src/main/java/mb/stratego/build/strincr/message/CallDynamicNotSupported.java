@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class CallDynamicNotSupported extends Message<IStrategoTerm> {
+public class CallDynamicNotSupported extends Message {
     public CallDynamicNotSupported(IStrategoTerm callDynTerm, MessageSeverity severity, long lastModified) {
         super(callDynTerm, severity, lastModified);
     }

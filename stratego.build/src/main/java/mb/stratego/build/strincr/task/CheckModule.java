@@ -110,7 +110,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             extractStrategyDefs(input.moduleIdentifier(), moduleData.lastModified,
                 output.astWithCasts, dynamicRules);
 
-        final ArrayList<Message<?>> messages = new ArrayList<>(output.messages.size());
+        final ArrayList<Message> messages = new ArrayList<>(output.messages.size());
         messages.addAll(output.messages);
 
         checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
@@ -138,7 +138,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final IStrategoList notes = TermUtils.toListAt(output.result, 3);
 
         final long lastModified = input.environment.lastModified;
-        ArrayList<Message<?>> messages =
+        ArrayList<Message> messages =
             new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
             messages.add(
@@ -158,7 +158,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,
         Map<StrategySignature, HashSet<StrategyFrontData>> normalStrategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
-        ArrayList<Message<?>> messages) {
+        ArrayList<Message> messages) {
         final HashSet<StrategySignature> strategyFilter =
             new HashSet<>(normalStrategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);

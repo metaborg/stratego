@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.data.StrategySignature;
 
-public class StrategyOverlapsWithDynamicRuleHelper extends Message<IStrategoTerm> {
+public class StrategyOverlapsWithDynamicRuleHelper extends Message {
     public final StrategySignature signature;
 
     public StrategyOverlapsWithDynamicRuleHelper(IStrategoTerm term, StrategySignature signature,

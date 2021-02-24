@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class NonListInAnno extends Message<IStrategoTerm> {
+public class NonListInAnno extends Message {
     public final IStrategoTerm type;
 
     public NonListInAnno(IStrategoTerm locationTerm, IStrategoTerm type, MessageSeverity severity, long lastModified) {

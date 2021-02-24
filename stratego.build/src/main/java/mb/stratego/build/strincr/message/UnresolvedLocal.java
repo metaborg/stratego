@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class UnresolvedLocal extends Message<IStrategoTerm> {
+public class UnresolvedLocal extends Message {
     public UnresolvedLocal(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
     }

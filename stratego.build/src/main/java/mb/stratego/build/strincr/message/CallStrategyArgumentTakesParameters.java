@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class CallStrategyArgumentTakesParameters extends Message<IStrategoTerm> {
+public class CallStrategyArgumentTakesParameters extends Message {
     public final IStrategoTerm sfuntype;
 
     public CallStrategyArgumentTakesParameters(IStrategoTerm locationTerm, IStrategoTerm sfuntype,

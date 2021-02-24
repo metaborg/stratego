@@ -59,7 +59,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     @Override public GlobalData exec(ExecContext context, ResolveInput input)
         throws IOException, ExecException {
-        final ArrayList<Message<?>> messages = new ArrayList<>();
+        final ArrayList<Message> messages = new ArrayList<>();
 
         final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
         final Deque<ModuleIdentifier> workList = new ArrayDeque<>();
@@ -174,7 +174,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     public static HashSet<ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, ArrayList<IStrategoTerm> imports,
-        long lastModified, @Nullable ArrayList<Message<?>> messages,
+        long lastModified, @Nullable ArrayList<Message> messages,
         ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs)
         throws IOException, ExecException {
         final HashSet<ModuleIdentifier> expandedImports = new HashSet<>();
@@ -195,7 +195,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
     private void checkCyclicOverlays(
         HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>> overlayUsesConstructors,
-        ArrayList<Message<?>> messages) {
+        ArrayList<Message> messages) {
         final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
                 sig -> overlayUsesConstructors.getOrDefault(sig, new HashSet<>(0)));

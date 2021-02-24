@@ -17,14 +17,14 @@ public class CheckOutput implements Serializable {
         strategyIndex;
     public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
         dynamicRuleIndex;
-    public final ArrayList<Message<?>> messages;
+    public final ArrayList<Message> messages;
     public final boolean containsErrors;
 
     public CheckOutput(
         HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks,
         HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
-        ArrayList<Message<?>> messages, boolean containsErrors) {
+        ArrayList<Message> messages, boolean containsErrors) {
         this.moduleCheckTasks = moduleCheckTasks;
         this.strategyIndex = strategyIndex;
         this.dynamicRuleIndex = dynamicRuleIndex;

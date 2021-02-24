@@ -24,10 +24,10 @@ import mb.stratego.build.strincr.message.VarConstrOverlap;
 // TODO: Add to gradual type system
 public class SugarAnalysis {
     private long lastModified;
-    private final List<Message<?>> sugarAnalysisMessages;
+    private final List<Message> sugarAnalysisMessages;
     private final Set<String> definedConstructors;
 
-    public SugarAnalysis(List<Message<?>> sugarAnalysisMessages, Set<String> definedConstructors) {
+    public SugarAnalysis(List<Message> sugarAnalysisMessages, Set<String> definedConstructors) {
         this.sugarAnalysisMessages = sugarAnalysisMessages;
         this.definedConstructors = definedConstructors;
     }

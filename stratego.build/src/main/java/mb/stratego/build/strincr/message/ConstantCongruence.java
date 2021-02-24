@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class ConstantCongruence extends Message<IStrategoTerm> {
+public class ConstantCongruence extends Message {
     public ConstantCongruence(IStrategoTerm congruence, long lastModified) {
         super(congruence, MessageSeverity.WARNING, lastModified);
     }

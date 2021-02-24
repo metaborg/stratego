@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class NonStringOrListInExplodeConsPosition extends Message<IStrategoTerm> {
+public class NonStringOrListInExplodeConsPosition extends Message {
     public final IStrategoTerm type;
 
     public NonStringOrListInExplodeConsPosition(IStrategoTerm locationTerm, IStrategoTerm type,

@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class UnresolvedConstructor extends Message<IStrategoTerm> {
+public class UnresolvedConstructor extends Message {
     public final int arity;
     public final IStrategoTerm sort;
 

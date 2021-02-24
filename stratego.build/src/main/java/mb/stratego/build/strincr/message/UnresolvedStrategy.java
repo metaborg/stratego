@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class UnresolvedStrategy extends Message<IStrategoTerm> {
+public class UnresolvedStrategy extends Message {
     public final int strategyArity;
     public final int termArity;
 

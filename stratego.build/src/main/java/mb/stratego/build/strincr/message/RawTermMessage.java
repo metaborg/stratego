@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.message;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class RawTermMessage extends Message<IStrategoTerm> {
+public class RawTermMessage extends Message {
     private final IStrategoTerm messageTerm;
 
     public RawTermMessage(IStrategoTerm locationTerm, IStrategoTerm messageTerm,

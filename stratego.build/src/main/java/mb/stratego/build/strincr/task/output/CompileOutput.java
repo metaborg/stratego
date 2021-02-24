@@ -40,9 +40,9 @@ public interface CompileOutput extends Serializable {
     }
 
     class Failure implements CompileOutput {
-        public final ArrayList<Message<?>> messages;
+        public final ArrayList<Message> messages;
 
-        public Failure(ArrayList<Message<?>> messages) {
+        public Failure(ArrayList<Message> messages) {
             this.messages = messages;
         }
 
