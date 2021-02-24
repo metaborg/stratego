@@ -16,4 +16,9 @@ public class OverlayData extends ConstructorData {
     @Override public boolean isOverlay() {
         return true;
     }
+
+    @Override public String toString() {
+        return "OverlayData(" + signature + ", " + astTerm + ", " + type
+            + ", " + usedConstructors + ')';
+    }
 }

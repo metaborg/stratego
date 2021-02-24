@@ -88,6 +88,13 @@ public class ModuleIndex implements Serializable, WithLastModified {
         return result;
     }
 
+    @Override public String toString() {
+        return "ModuleIndex(" + imports + ", " + constructors + ", " + injections + ", "
+            + externalConstructors + ", " + strategies + ", " + internalStrategies + ", "
+            + externalStrategies + ", " + dynamicRules + ", " + overlayData + ", " + lastModified
+            + ')';
+    }
+
     @Override public long lastModified() {
         return lastModified;
     }

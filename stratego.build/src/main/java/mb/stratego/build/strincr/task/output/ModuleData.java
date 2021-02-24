@@ -139,6 +139,10 @@ public class ModuleData implements Serializable, WithLastModified {
         return result;
     }
 
+    @Override public String toString() {
+        return "ModuleData(" + moduleIdentifier + ')';
+    }
+
     public HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex() {
         if(ambStrategyIndex == null) {
             ambStrategyIndex = new HashMap<>();

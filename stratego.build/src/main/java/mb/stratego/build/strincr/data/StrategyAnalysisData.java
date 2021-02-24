@@ -13,7 +13,6 @@ public class StrategyAnalysisData implements Serializable, WithLastModified {
     public final HashSet<StrategySignature> definedDynamicRules;
     public final long lastModified;
 
-
     public StrategyAnalysisData(StrategySignature signature, IStrategoAppl analyzedAst,
         HashSet<StrategySignature> definedDynamicRules, long lastModified) {
         this.signature = signature;
@@ -49,5 +48,11 @@ public class StrategyAnalysisData implements Serializable, WithLastModified {
         result = 31 * result + definedDynamicRules.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
+    }
+
+    @Override public String toString() {
+        return "StrategyAnalysisData(" + signature + ", " + analyzedAst
+            + ", " + definedDynamicRules + ", " + lastModified
+            + ')';
     }
 }

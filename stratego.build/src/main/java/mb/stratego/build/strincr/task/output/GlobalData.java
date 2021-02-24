@@ -108,4 +108,7 @@ public class GlobalData implements Serializable {
         return result;
     }
 
+    @Override public String toString() {
+        return "GlobalData(" + allModuleIdentifiers + ")";
+    }
 }

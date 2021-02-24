@@ -55,4 +55,9 @@ public class GlobalIndex implements Serializable {
         result = 31 * result + dynamicRules.hashCode();
         return result;
     }
+
+    @Override public String toString() {
+        return "GlobalIndex(" + nonExternalConstructors + ", " + externalConstructors + ", "
+            + nonExternalStrategies + ", " + dynamicRules + ", " + nonExternalInjections + ')';
+    }
 }

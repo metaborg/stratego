@@ -57,4 +57,9 @@ public class TypesLookup implements Serializable {
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
+
+    @Override public String toString() {
+        return "TypesLookup(" + strategyTypes + ", " + constructorTypes + ", " + allInjections
+            + ", " + imports + ", " + lastModified + ')';
+    }
 }

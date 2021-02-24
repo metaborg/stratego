@@ -32,4 +32,8 @@ public class CheckOutputMessages implements Serializable {
         result = 31 * result + (containsErrors ? 1 : 0);
         return result;
     }
+
+    @Override public String toString() {
+        return "CheckOutputMessages(" + messages.size() + ", " + containsErrors + ')';
+    }
 }

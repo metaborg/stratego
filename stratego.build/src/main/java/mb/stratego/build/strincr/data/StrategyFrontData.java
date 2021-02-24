@@ -42,6 +42,10 @@ public class StrategyFrontData {
         return result;
     }
 
+    @Override public String toString() {
+        return "StrategyFrontData(" + signature + ", " + type + ", " + kind + ')';
+    }
+
     public enum Kind {
         Normal,
         External,

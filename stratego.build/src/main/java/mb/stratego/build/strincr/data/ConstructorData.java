@@ -48,4 +48,9 @@ public class ConstructorData {
         result = 31 * result + type.hashCode();
         return result;
     }
+
+    @Override public String toString() {
+        return "ConstructorData(" + signature + ", " + astTerm + ", "
+            + type + ')';
+    }
 }

@@ -33,4 +33,9 @@ public class AnnoDefs implements Serializable {
         result = 31 * result + externalStrategySigs.hashCode();
         return result;
     }
+
+    @Override public String toString() {
+        return "AnnoDefs(" + internalStrategySigs
+            + ", " + externalStrategySigs + ')';
+    }
 }
