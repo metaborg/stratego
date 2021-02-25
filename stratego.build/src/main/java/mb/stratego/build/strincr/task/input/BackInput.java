@@ -36,10 +36,12 @@ public abstract class BackInput implements Serializable {
     public final ArrayList<ResourcePath> includeDirs;
     public final Arguments extraArgs;
     public final STask<GlobalData> resolveTask;
+    public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
 
     public BackInput(ResourcePath outputDir, @Nullable String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
-        ArrayList<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask) {
+        ArrayList<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask,
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
         this.outputDir = outputDir;
         this.packageName = packageName;
         this.cacheDir = cacheDir;
@@ -47,6 +49,7 @@ public abstract class BackInput implements Serializable {
         this.includeDirs = includeDirs;
         this.extraArgs = extraArgs;
         this.resolveTask = resolveTask;
+        this.linkedLibraries = linkedLibraries;
     }
 
     @Override public boolean equals(Object o) {
@@ -69,7 +72,9 @@ public abstract class BackInput implements Serializable {
             return false;
         if(!extraArgs.equals(input.extraArgs))
             return false;
-        return resolveTask.equals(input.resolveTask);
+        if(!resolveTask.equals(input.resolveTask))
+            return false;
+        return linkedLibraries.equals(input.linkedLibraries);
     }
 
     @Override public int hashCode() {
@@ -80,6 +85,7 @@ public abstract class BackInput implements Serializable {
         result = 31 * result + includeDirs.hashCode();
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + resolveTask.hashCode();
+        result = 31 * result + linkedLibraries.hashCode();
         return result;
     }
 
@@ -89,7 +95,6 @@ public abstract class BackInput implements Serializable {
         public final StrategySignature strategySignature;
         public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
-        public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
 
         public Normal(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
@@ -98,11 +103,11 @@ public abstract class BackInput implements Serializable {
             IModuleImportService.ModuleIdentifier mainModuleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks,
             ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
+                linkedLibraries);
             this.strategySignature = strategySignature;
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.strFileGeneratingTasks = strFileGeneratingTasks;
-            this.linkedLibraries = linkedLibraries;
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
@@ -144,9 +149,7 @@ public abstract class BackInput implements Serializable {
                 return false;
             if(!mainModuleIdentifier.equals(normal.mainModuleIdentifier))
                 return false;
-            if(!strFileGeneratingTasks.equals(normal.strFileGeneratingTasks))
-                return false;
-            return linkedLibraries.equals(normal.linkedLibraries);
+            return strFileGeneratingTasks.equals(normal.strFileGeneratingTasks);
         }
 
         @Override public int hashCode() {
@@ -154,7 +157,6 @@ public abstract class BackInput implements Serializable {
             result = 31 * result + strategySignature.hashCode();
             result = 31 * result + mainModuleIdentifier.hashCode();
             result = 31 * result + strFileGeneratingTasks.hashCode();
-            result = 31 * result + linkedLibraries.hashCode();
             return result;
         }
 
@@ -247,8 +249,10 @@ public abstract class BackInput implements Serializable {
         public Congruence(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            HashSet<String> dynamicRuleNewGenerated, HashSet<String> dynamicRuleUndefineGenerated) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+            HashSet<String> dynamicRuleNewGenerated, HashSet<String> dynamicRuleUndefineGenerated,
+            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
+            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
+                linkedLibraries);
             this.dynamicRuleNewGenerated = dynamicRuleNewGenerated;
             this.dynamicRuleUndefineGenerated = dynamicRuleUndefineGenerated;
         }
@@ -283,17 +287,16 @@ public abstract class BackInput implements Serializable {
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
-        public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
 
         public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
             boolean dynamicCallsDefined, ArrayList<STask<?>> strFileGeneratingTasks,
             ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
+            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
+                linkedLibraries);
             this.dynamicCallsDefined = dynamicCallsDefined;
             this.strFileGeneratingTasks = strFileGeneratingTasks;
-            this.linkedLibraries = linkedLibraries;
         }
 
         @Override public boolean equals(@Nullable Object o) {

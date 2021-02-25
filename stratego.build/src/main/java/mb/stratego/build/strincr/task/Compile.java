@@ -113,7 +113,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(resolveTask, input.outputDir, input.packageName,
                 input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated);
+                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated, input.linkedLibraries);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);

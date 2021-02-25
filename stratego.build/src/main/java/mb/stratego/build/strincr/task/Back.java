@@ -26,6 +26,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -249,6 +250,15 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             //     in the example where you give pass -DCONSTANT=theconstantvalue.
             arguments.add("-D", constant);
         }
+
+        for(IModuleImportService.ModuleIdentifier linkedLibrary : input.linkedLibraries) {
+            if(linkedLibrary instanceof BuiltinLibraryIdentifier) {
+                arguments.add("-la", ((BuiltinLibraryIdentifier) linkedLibrary).cmdArgString);
+            } else {
+                // TODO: non-builtin libraries linked against need use the package name...
+            }
+        }
+
         arguments.addAll(input.extraArgs);
 
 
