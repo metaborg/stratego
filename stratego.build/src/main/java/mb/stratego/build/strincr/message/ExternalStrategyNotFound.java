@@ -13,7 +13,7 @@ public class ExternalStrategyNotFound extends Message {
     }
 
     @Override public String getMessage() {
-        return "Cannot find external strategy or rule '" + locationTerm.stringValue() + "'";
+        return "Cannot find external strategy or rule '" + locationTermString() + "'";
     }
 
     public static ExternalStrategyNotFound followOrigin(IStrategoString name, long lastModified) {

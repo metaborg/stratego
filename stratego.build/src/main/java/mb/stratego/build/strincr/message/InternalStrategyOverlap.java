@@ -13,7 +13,7 @@ public class InternalStrategyOverlap extends Message {
     }
 
     @Override public String getMessage() {
-        return "Strategy '" + locationTerm.stringValue() + "' overlaps with a strategy defined to be internal";
+        return "Strategy '" + locationTermString() + "' overlaps with a strategy defined to be internal";
     }
 
     public static InternalStrategyOverlap followOrigin(IStrategoString name, long lastModified) {

@@ -2,9 +2,11 @@ package mb.stratego.build.strincr.message;
 
 import java.io.Serializable;
 
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
@@ -132,6 +134,14 @@ public abstract class Message implements WithLastModified, Serializable {
         } else {
             return filename + ":" + leftLine + "-" + rightLine + ":" + leftColumn + "-"
                 + rightColumn;
+        }
+    }
+
+    protected String locationTermString() {
+        if(locationTerm instanceof IStrategoString) {
+            return ((IStrategoString) locationTerm).stringValue();
+        } else {
+            return locationTerm.toString();
         }
     }
 
