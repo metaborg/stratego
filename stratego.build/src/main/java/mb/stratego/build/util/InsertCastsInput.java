@@ -1,4 +1,4 @@
-package mb.stratego.build.strincr.task.input;
+package mb.stratego.build.util;
 
 import java.io.Serializable;
 

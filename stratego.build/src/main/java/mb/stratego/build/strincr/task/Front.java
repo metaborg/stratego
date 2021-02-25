@@ -24,7 +24,7 @@ import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.util.InvalidASTException;
 
 /**
  * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
@@ -61,7 +61,7 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
-                throw new WrongASTException(input.moduleIdentifier, def);
+                throw new InvalidASTException(input.moduleIdentifier, def);
             }
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
@@ -92,7 +92,7 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
                         externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
                     break;
                 default:
-                    throw new WrongASTException(input.moduleIdentifier, def);
+                    throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
         if(!stdLibImport) {
@@ -124,7 +124,7 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
                 return TermUtils.toList(defs);
             }
         }
-        throw new WrongASTException(moduleIdentifier, ast);
+        throw new InvalidASTException(moduleIdentifier, ast);
     }
 
     @Override public String getId() {

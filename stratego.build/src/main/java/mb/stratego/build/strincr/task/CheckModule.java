@@ -53,9 +53,9 @@ import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.strincr.task.input.InsertCastsInput;
+import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
-import mb.stratego.build.strincr.task.output.InsertCastsOutput;
+import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.util.IOAgentTrackerFactory;
@@ -63,7 +63,7 @@ import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
-import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.util.InvalidASTException;
 
 /**
  * Runs static checks on a module, based on the {@link ModuleData} and that of the modules are
@@ -219,7 +219,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
-                throw new WrongASTException(moduleIdentifier, def);
+                throw new InvalidASTException(moduleIdentifier, def);
             }
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
@@ -233,7 +233,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                         dynamicRules);
                     break;
                 default:
-                    throw new WrongASTException(moduleIdentifier, def);
+                    throw new InvalidASTException(moduleIdentifier, def);
             }
         }
         return strategyData;
@@ -249,16 +249,16 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     strategyDef = strategyDef.getSubterm(1);
                 }
                 if(!TermUtils.isAppl(strategyDef)) {
-                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                    throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
                 final IStrategoAppl strategyDefAppl = TermUtils.toAppl(strategyDef);
                 if(!TermUtils.isStringAt(strategyDefAppl, 0)) {
-                    throw new WrongASTException(moduleIdentifier, strategyDefAppl);
+                    throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
                 final @Nullable StrategySignature strategySignature =
                     StrategySignature.fromDefinition(strategyDefAppl);
                 if(strategySignature == null) {
-                    throw new WrongASTException(moduleIdentifier, strategyDefAppl);
+                    throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
                 final HashSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);

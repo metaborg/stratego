@@ -1,12 +1,14 @@
 package mb.stratego.build.strincr.data;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
-public class ConstructorData {
+public class ConstructorData implements Serializable {
     public final ConstructorSignature signature;
     public final IStrategoAppl astTerm;
     public final ConstructorType type;

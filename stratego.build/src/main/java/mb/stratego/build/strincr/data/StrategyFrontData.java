@@ -1,10 +1,12 @@
 package mb.stratego.build.strincr.data;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.ITermFactory;
 
-public class StrategyFrontData {
+public class StrategyFrontData implements Serializable {
     public final StrategySignature signature;
     public final @Nullable StrategyType type;
     public final Kind kind;

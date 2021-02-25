@@ -59,6 +59,7 @@ public class ModuleImportService implements IModuleImportService {
                 final @Nullable BuiltinLibraryIdentifier builtinLibraryIdentifier =
                     BuiltinLibraryIdentifier.fromString(moduleString);
                 if(builtinLibraryIdentifier != null) {
+                    // TODO: check built-in library against list of libraries in -la arguments
                     return new ResolvedImport(Collections.singleton(builtinLibraryIdentifier));
                 }
 

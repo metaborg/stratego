@@ -4,11 +4,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 
-public class WrongASTException extends RuntimeException {
+public class InvalidASTException extends RuntimeException {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
 
-    public WrongASTException(IModuleImportService.ModuleIdentifier moduleIdentifier,
+    public InvalidASTException(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm ast) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
@@ -20,7 +20,7 @@ public class WrongASTException extends RuntimeException {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        WrongASTException that = (WrongASTException) o;
+        InvalidASTException that = (InvalidASTException) o;
 
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
@@ -31,5 +31,9 @@ public class WrongASTException extends RuntimeException {
         int result = moduleIdentifier.hashCode();
         result = 31 * result + ast.hashCode();
         return result;
+    }
+
+    @Override public String getMessage() {
+        return "Internal compiler bug detected:\nInvalid AST shape while checking/compiling Stratego module '" + moduleIdentifier + "': " + ast;
     }
 }

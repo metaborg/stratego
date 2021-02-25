@@ -31,7 +31,7 @@ import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.WrongASTException;
+import mb.stratego.build.util.InvalidASTException;
 
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.DynRuleGenerated;
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Extend;
@@ -81,7 +81,7 @@ public abstract class SplitShared {
                 final IStrategoTerm funTType = strategyDef.getSubterm(1);
                 final @Nullable StrategyType strategyType = StrategyType.fromTerm(tf, funTType);
                 if(strategyType == null) {
-                    throw new WrongASTException(moduleIdentifier, funTType);
+                    throw new InvalidASTException(moduleIdentifier, funTType);
                 }
                 final StrategySignature strategySignature =
                     new StrategySignature(TermUtils.toJavaStringAt(strategyDef, 0),
@@ -106,10 +106,10 @@ public abstract class SplitShared {
                     strategyDef = strategyDef.getSubterm(1);
                 }
                 if(!TermUtils.isAppl(strategyDef)) {
-                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                    throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
                 if(!TermUtils.isStringAt(strategyDef, 0)) {
-                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                    throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
                 switch(TermUtils.toAppl(strategyDef).getName()) {
                     case "ExtSDef":
@@ -121,7 +121,7 @@ public abstract class SplitShared {
                 final @Nullable StrategySignature strategySignature =
                     StrategySignature.fromDefinition(strategyDef);
                 if(strategySignature == null) {
-                    throw new WrongASTException(moduleIdentifier, strategyDef);
+                    throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
                 Relation.getOrInitialize(dataMap, strategySignature, HashSet::new)
                     .add(new StrategyFrontData(strategySignature, null, kind));
@@ -166,10 +166,10 @@ public abstract class SplitShared {
                         new ConstructorType(tf, new ArrayList<>(Collections.nCopies(arity, dynT)),
                             dynT);
                 } else {
-                    throw new WrongASTException(moduleIdentifier, overlay);
+                    throw new InvalidASTException(moduleIdentifier, overlay);
                 }
             } else {
-                throw new WrongASTException(moduleIdentifier, overlay);
+                throw new InvalidASTException(moduleIdentifier, overlay);
             }
             final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
             new UsedConstrs(usedConstructors, lastModified).visit(overlay);
@@ -192,7 +192,7 @@ public abstract class SplitShared {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
                 final IStrategoTerm constrs = sig.getSubterm(0);
                 if(!TermUtils.isList(constrs)) {
-                    throw new WrongASTException(moduleIdentifier, constrs);
+                    throw new InvalidASTException(moduleIdentifier, constrs);
                 }
                 for(IStrategoTerm constrDef : constrs) {
                     final @Nullable ConstructorSignature constrSig =
@@ -239,7 +239,7 @@ public abstract class SplitShared {
         ; !((c, <length> t1*), ConstrType(t2*, t2))
          */
         if(!TermUtils.isAppl(constrDef)) {
-            throw new WrongASTException(moduleIdentifier, constrDef);
+            throw new InvalidASTException(moduleIdentifier, constrDef);
         }
         switch(TermUtils.toAppl(constrDef).getName()) {
             case "OpDecl":
@@ -251,18 +251,18 @@ public abstract class SplitShared {
             case "ExtOpDeclQ":
                 break;
             default:
-                throw new WrongASTException(moduleIdentifier, constrDef);
+                throw new InvalidASTException(moduleIdentifier, constrDef);
         }
 
         final IStrategoTerm opType = constrDef.getSubterm(1);
         if(!TermUtils.isAppl(opType)) {
-            throw new WrongASTException(moduleIdentifier, opType);
+            throw new InvalidASTException(moduleIdentifier, opType);
         }
 
         final @Nullable ConstructorType type = ConstructorType.fromOpType(tf, opType);
 
         if(type == null) {
-            throw new WrongASTException(moduleIdentifier, opType);
+            throw new InvalidASTException(moduleIdentifier, opType);
         }
 
         return type;
@@ -296,7 +296,7 @@ public abstract class SplitShared {
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
          */
         if(!TermUtils.isAppl(constrDef)) {
-            throw new WrongASTException(moduleIdentifier, constrDef);
+            throw new InvalidASTException(moduleIdentifier, constrDef);
         }
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> dataMap = externalInjections;
         switch(TermUtils.toAppl(constrDef).getName()) {
@@ -305,12 +305,12 @@ public abstract class SplitShared {
                 // fall-through
             case "ExtOpDeclInj":
                 if(constrDef.getSubtermCount() != 1) {
-                    throw new WrongASTException(moduleIdentifier, constrDef);
+                    throw new InvalidASTException(moduleIdentifier, constrDef);
                 }
                 final IStrategoTerm opType = constrDef.getSubterm(0);
                 final @Nullable ConstructorType constrType = ConstructorType.fromOpType(tf, opType);
                 if(constrType == null) {
-                    throw new WrongASTException(moduleIdentifier, opType);
+                    throw new InvalidASTException(moduleIdentifier, opType);
                 }
 
                 final IStrategoTerm from;
