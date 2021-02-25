@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -23,7 +23,7 @@ import mb.stratego.build.util.WithLastModified;
  * The AST of a module and some of it's data pre-extracted.
  */
 public class ModuleData implements Serializable, WithLastModified {
-    public final ModuleIdentifier moduleIdentifier;
+    public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
     public final ArrayList<IStrategoTerm> imports;
     public final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData;
@@ -42,7 +42,7 @@ public class ModuleData implements Serializable, WithLastModified {
     public final long lastModified;
     private transient @Nullable HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex = null;
 
-    public ModuleData(ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
+    public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
         ArrayList<IStrategoTerm> imports,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,

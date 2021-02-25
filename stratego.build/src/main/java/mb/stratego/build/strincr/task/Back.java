@@ -25,7 +25,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -101,7 +101,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final ArrayList<IStrategoTerm> consInjTerms = new ArrayList<>(
                 globalConsInj.allModuleIdentifiers.size() + globalConsInj.nonExternalInjections
                     .size() + 3);
-            for(ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
+            for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
                     .requirePartial(context, front, new FrontInput.Normal(moduleIdentifier,
                         boilerplateInput.strFileGeneratingTasks), ToConstrData.INSTANCE);
@@ -180,12 +180,12 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             normalInput.getStrategyContributions(context, checkModule, strategyContributions,
                 usedConstructors);
 
-            final HashSet<ModuleIdentifier> modulesDefiningOverlay = PieUtils
+            final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, input.resolveTask,
                     new ModulesDefiningOverlays(usedConstructors));
 
             final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
-            for(ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
+            for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
                 final ArrayList<OverlayData> overlayData = PieUtils.requirePartial(context, front,
                     new FrontInput.Normal(moduleIdentifier, normalInput.strFileGeneratingTasks),
                     new ToOverlays(usedConstructors));

@@ -9,18 +9,21 @@ import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
-    public final HashSet<ModuleIdentifier> allModuleIdentifiers;
-    public final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex;
+    public final HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
+    public final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+        constructorIndex;
     public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
-    public final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex;
-    public final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex;
+    public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+        strategyIndex;
+    public final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+        overlayIndex;
     public final HashSet<ConstructorSignature> externalConstructors;
     public final HashSet<StrategySignature> internalStrategies;
     public final HashSet<StrategySignature> externalStrategies;
@@ -28,11 +31,11 @@ public class GlobalData implements Serializable {
     public final ArrayList<Message> messages;
     private transient @Nullable GlobalIndex globalIndex = null;
 
-    public GlobalData(HashSet<ModuleIdentifier> allModuleIdentifiers,
-        HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex,
+    public GlobalData(HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
+        HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>> constructorIndex,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
-        HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex,
-        HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex,
+        HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
+        HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         HashSet<ConstructorSignature> externalConstructors,
         HashSet<StrategySignature> internalStrategies,
         HashSet<StrategySignature> externalStrategies, HashSet<StrategySignature> dynamicRules,

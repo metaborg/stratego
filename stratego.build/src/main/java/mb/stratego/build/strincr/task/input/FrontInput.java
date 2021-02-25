@@ -8,13 +8,13 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.STask;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.util.LastModified;
 
 public abstract class FrontInput implements Serializable {
-    public final ModuleIdentifier moduleIdentifier;
+    public final IModuleImportService.ModuleIdentifier moduleIdentifier;
 
-    public FrontInput(ModuleIdentifier moduleIdentifier) {
+    public FrontInput(IModuleImportService.ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
     }
 
@@ -40,7 +40,7 @@ public abstract class FrontInput implements Serializable {
     public static class Normal extends FrontInput {
         public final ArrayList<STask<?>> strFileGeneratingTasks;
 
-        public Normal(ModuleIdentifier moduleIdentifier,
+        public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks) {
             super(moduleIdentifier);
             this.strFileGeneratingTasks = strFileGeneratingTasks;
@@ -69,7 +69,7 @@ public abstract class FrontInput implements Serializable {
     public static class FileOpenInEditor extends FrontInput {
         public final LastModified<IStrategoTerm> ast;
 
-        public FileOpenInEditor(ModuleIdentifier moduleIdentifier,
+        public FileOpenInEditor(IModuleImportService.ModuleIdentifier moduleIdentifier,
             LastModified<IStrategoTerm> ast) {
             super(moduleIdentifier);
             this.ast = ast;

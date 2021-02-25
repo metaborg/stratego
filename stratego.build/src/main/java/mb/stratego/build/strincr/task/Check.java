@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.AllModulesIdentifiers;
 import mb.stratego.build.strincr.message.Message;
@@ -38,17 +38,18 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     }
 
     @Override public CheckOutput exec(ExecContext context, CheckInput input) {
-        final HashMap<ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks =
-            new HashMap<>();
-        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> dynamicRuleIndex =
-            new HashMap<>();
+        final HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
+            moduleCheckTasks = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+            strategyIndex = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+            dynamicRuleIndex = new HashMap<>();
         final ArrayList<Message> messages = new ArrayList<>();
         boolean containsErrors = false;
-        final HashSet<ModuleIdentifier> allModulesIdentifiers = PieUtils
+        final HashSet<IModuleImportService.ModuleIdentifier> allModulesIdentifiers = PieUtils
             .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.INSTANCE);
 
-        for(ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
+        for(IModuleImportService.ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
             if(moduleIdentifier.isLibrary()) {
                 continue;
             }

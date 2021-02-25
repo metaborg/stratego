@@ -14,7 +14,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -87,13 +87,14 @@ public abstract class BackInput implements Serializable {
 
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
-        public final ModuleIdentifier mainModuleIdentifier;
+        public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
 
         public Normal(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            STask<GlobalData> resolveTask,
+            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
@@ -105,11 +106,11 @@ public abstract class BackInput implements Serializable {
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
-            final HashSet<ModuleIdentifier> modulesDefiningStrategy = PieUtils
+            final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, this.resolveTask,
                     new ModulesDefiningStrategy(strategySignature));
 
-            for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+            for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                 if(moduleIdentifier.isLibrary()) {
                     continue;
                 }
@@ -162,7 +163,8 @@ public abstract class BackInput implements Serializable {
         public DynamicRule(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            STask<GlobalData> resolveTask, ModuleIdentifier mainModuleIdentifier,
+            STask<GlobalData> resolveTask,
+            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks, STask<CheckOutput> checkTask) {
             super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
                 extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks);
@@ -178,11 +180,11 @@ public abstract class BackInput implements Serializable {
             seen.add(strategySignature);
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
-                final HashSet<ModuleIdentifier> modulesDefiningStrategy = PieUtils
-                    .requirePartial(context, this.checkTask,
+                final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy =
+                    PieUtils.requirePartial(context, this.checkTask,
                         new ModulesDefiningDynamicRule(strategySignature));
 
-                for(ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
+                for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                     if(moduleIdentifier.isLibrary()) {
                         continue;
                     }

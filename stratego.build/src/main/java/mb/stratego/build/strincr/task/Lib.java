@@ -13,7 +13,6 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -21,12 +20,12 @@ import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.ModuleData;
+import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.InvalidASTException;
 
 /**
- * Task that takes a {@link ModuleIdentifier} and processes the corresponding AST. The AST is split
+ * Task that takes a {@link IModuleImportService.ModuleIdentifier} and processes the corresponding AST. The AST is split
  * into {@link ModuleData}, which contains the original AST along with several lists of
  * information required in other task.
  * This is a specialisation of {@link Front}.
@@ -88,7 +87,7 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
             dynamicRules, usedAmbiguousStrategies, ast.lastModified);
     }
 
-    private IStrategoList getDefs(ModuleIdentifier moduleIdentifier,
+    private IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,
         LastModified<IStrategoTerm> timestampedAst) {
         final IStrategoTerm ast = timestampedAst.wrapped;
         if(TermUtils.isAppl(ast, "Specification", 1)) {

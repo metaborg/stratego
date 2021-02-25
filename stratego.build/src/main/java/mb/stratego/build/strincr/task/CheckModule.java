@@ -29,7 +29,6 @@ import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -53,17 +52,17 @@ import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
-import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
-import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.util.IOAgentTrackerFactory;
+import mb.stratego.build.util.InsertCastsInput;
+import mb.stratego.build.util.InsertCastsOutput;
+import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 import mb.stratego.build.util.StrategoExecutor;
-import mb.stratego.build.util.InvalidASTException;
 
 /**
  * Runs static checks on a module, based on the {@link ModuleData} and that of the modules are
@@ -210,8 +209,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     public static HashMap<StrategySignature, HashSet<StrategyAnalysisData>> extractStrategyDefs(
-        ModuleIdentifier moduleIdentifier, long lastModified, IStrategoTerm ast,
-        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
+        IModuleImportService.ModuleIdentifier moduleIdentifier, long lastModified,
+        IStrategoTerm ast, HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
          {
         final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData =
             new HashMap<>();
@@ -239,8 +238,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         return strategyData;
     }
 
-    private static void addStrategyData(ModuleIdentifier moduleIdentifier, long lastModified,
-        HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData,
+    private static void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        long lastModified, HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData,
         IStrategoTerm strategyDefs,
         HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules) {
         for(IStrategoTerm strategyDef : strategyDefs) {
@@ -287,15 +286,15 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         // Get the relevant strategy and constructor types and all injections, that are visible
         //     through the import graph
-        final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
-        final Queue<ModuleIdentifier> workList = new ArrayDeque<>(Resolve
+        final java.util.HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
+        final Queue<IModuleImportService.ModuleIdentifier> workList = new ArrayDeque<>(Resolve
             .expandImports(context, moduleImportService, moduleData.imports,
                 moduleData.lastModified, null, input.strFileGeneratingTasks(),
                 input.includeDirs()));
         seen.add(input.moduleIdentifier());
         seen.addAll(workList);
         do {
-            final ModuleIdentifier moduleIdentifier = workList.remove();
+            final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
 
             final Task<ModuleData> task =
                 moduleIdentifierToTask(moduleIdentifier, input.strFileGeneratingTasks());
@@ -319,7 +318,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 }
             }
 
-            final HashSet<ModuleIdentifier> expandedImports = Resolve
+            final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = Resolve
                 .expandImports(context, moduleImportService, typesLookup.imports,
                     typesLookup.lastModified, null, input.strFileGeneratingTasks(),
                     input.includeDirs());
@@ -397,7 +396,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         }
     }
 
-    private Task<ModuleData> moduleIdentifierToTask(ModuleIdentifier moduleIdentifier,
+    private Task<ModuleData> moduleIdentifierToTask(
+        IModuleImportService.ModuleIdentifier moduleIdentifier,
         ArrayList<STask<?>> strFileGeneratingTasks) {
         final FrontInput input = new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks);
         if(moduleIdentifier.isLibrary()) {

@@ -9,13 +9,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.util.LastModified;
 
 public interface CheckModuleInput extends Serializable {
     ResolveInput resolveInput();
 
-    ModuleIdentifier moduleIdentifier();
+    IModuleImportService.ModuleIdentifier moduleIdentifier();
 
     ArrayList<STask<?>> strFileGeneratingTasks();
 
@@ -24,10 +24,11 @@ public interface CheckModuleInput extends Serializable {
     FrontInput frontInput();
 
     class Normal extends FrontInput.Normal implements CheckModuleInput {
-        public final ModuleIdentifier mainModuleIdentifier;
+        public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
         public final ArrayList<? extends ResourcePath> includeDirs;
 
-        public Normal(ModuleIdentifier mainModuleIdentifier, ModuleIdentifier moduleIdentifier,
+        public Normal(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+            IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks,
             ArrayList<? extends ResourcePath> includeDirs) {
             super(moduleIdentifier, strFileGeneratingTasks);
@@ -39,7 +40,7 @@ public interface CheckModuleInput extends Serializable {
             return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs);
         }
 
-        @Override public ModuleIdentifier moduleIdentifier() {
+        @Override public IModuleImportService.ModuleIdentifier moduleIdentifier() {
             return moduleIdentifier;
         }
 
@@ -83,12 +84,14 @@ public interface CheckModuleInput extends Serializable {
     }
 
     class FileOpenInEditor extends FrontInput.FileOpenInEditor implements CheckModuleInput {
-        public final ModuleIdentifier mainModuleIdentifier;
+        public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
         public final ArrayList<? extends ResourcePath> includeDirs;
 
-        public FileOpenInEditor(ModuleIdentifier moduleIdentifier, LastModified<IStrategoTerm> ast,
-            ModuleIdentifier mainModuleIdentifier, ArrayList<STask<?>> strFileGeneratingTasks,
+        public FileOpenInEditor(IModuleImportService.ModuleIdentifier moduleIdentifier,
+            LastModified<IStrategoTerm> ast,
+            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+            ArrayList<STask<?>> strFileGeneratingTasks,
             ArrayList<? extends ResourcePath> includeDirs) {
             super(moduleIdentifier, ast);
             this.mainModuleIdentifier = mainModuleIdentifier;
@@ -100,7 +103,7 @@ public interface CheckModuleInput extends Serializable {
             return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs);
         }
 
-        @Override public ModuleIdentifier moduleIdentifier() {
+        @Override public IModuleImportService.ModuleIdentifier moduleIdentifier() {
             return moduleIdentifier;
         }
 

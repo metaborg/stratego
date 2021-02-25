@@ -22,7 +22,6 @@ import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -62,17 +61,18 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         throws IOException, ExecException {
         final ArrayList<Message> messages = new ArrayList<>();
 
-        final java.util.HashSet<ModuleIdentifier> seen = new HashSet<>();
-        final Queue<ModuleIdentifier> workList = new ArrayDeque<>();
+        final java.util.HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
+        final Queue<IModuleImportService.ModuleIdentifier> workList = new ArrayDeque<>();
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
-        final HashSet<ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
-        final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> constructorIndex =
-            new HashMap<>();
-        final HashMap<StrategySignature, HashSet<ModuleIdentifier>> strategyIndex = new HashMap<>();
-        final HashMap<ConstructorSignature, HashSet<ModuleIdentifier>> overlayIndex =
-            new HashMap<>();
+        final HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
+        final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+            constructorIndex = new HashMap<>();
+        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+            strategyIndex = new HashMap<>();
+        final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+            overlayIndex = new HashMap<>();
 
         final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
             new HashMap<>();
@@ -85,7 +85,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             overlayUsesConstructors = new HashMap<>();
 
         while(!workList.isEmpty()) {
-            final ModuleIdentifier moduleIdentifier = workList.remove();
+            final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
 
             final FrontInput frontInput =
                 new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks);
@@ -158,7 +158,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     }
                 }
 
-                final HashSet<ModuleIdentifier> expandedImports =
+                final HashSet<IModuleImportService.ModuleIdentifier> expandedImports =
                     expandImports(context, moduleImportService, index.imports, index.lastModified,
                         messages, input.strFileGeneratingTasks, input.includeDirs);
                 expandedImports.removeAll(seen);
@@ -173,12 +173,12 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             externalStrategies, dynamicRules, messages);
     }
 
-    public static HashSet<ModuleIdentifier> expandImports(ExecContext context,
+    public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, ArrayList<IStrategoTerm> imports,
         long lastModified, @Nullable ArrayList<Message> messages,
         ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs)
         throws IOException, ExecException {
-        final HashSet<ModuleIdentifier> expandedImports = new HashSet<>();
+        final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
             final ImportResolution importResolution = moduleImportService
                 .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs);

@@ -9,11 +9,11 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.IModuleImportService.ModuleIdentifier;
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CompileInput implements Serializable {
-    public final ModuleIdentifier mainModuleIdentifier;
+    public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
@@ -23,9 +23,9 @@ public class CompileInput implements Serializable {
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final StrategoGradualSetting strategoGradualSetting;
 
-    public CompileInput(ModuleIdentifier mainModuleIdentifier, ResourcePath outputDir,
-        @Nullable String packageName, @Nullable ResourcePath cacheDir, ArrayList<String> constants,
-        ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
+    public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        ResourcePath outputDir, @Nullable String packageName, @Nullable ResourcePath cacheDir,
+        ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
         ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.outputDir = outputDir;
