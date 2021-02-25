@@ -17,6 +17,25 @@ public class OverlayData extends ConstructorData {
         return true;
     }
 
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+        if(!super.equals(o))
+            return false;
+
+        OverlayData that = (OverlayData) o;
+
+        return usedConstructors.equals(that.usedConstructors);
+    }
+
+    @Override public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + usedConstructors.hashCode();
+        return result;
+    }
+
     @Override public String toString() {
         return "OverlayData(" + signature + ", " + astTerm + ", " + type
             + ", " + usedConstructors + ')';
