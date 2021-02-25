@@ -18,7 +18,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -46,12 +45,10 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     public static final String id = "stratego." + Resolve.class.getSimpleName();
 
     public final Front front;
-    public final Lib lib;
     public final IModuleImportService moduleImportService;
 
-    @Inject public Resolve(Front front, Lib lib, IModuleImportService moduleImportService) {
+    @Inject public Resolve(Front front, IModuleImportService moduleImportService) {
         this.front = front;
-        this.lib = lib;
         this.moduleImportService = moduleImportService;
     }
 
@@ -85,85 +82,66 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         while(!workList.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
+            allModuleIdentifiers.add(moduleIdentifier);
 
             final FrontInput frontInput =
                 new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
                     input.includeDirs, input.linkedLibraries);
-            if(moduleIdentifier.isLibrary()) {
-                allModuleIdentifiers.add(moduleIdentifier);
-                final ModuleIndex index =
-                    PieUtils.requirePartial(context, lib, frontInput, ToModuleIndex.INSTANCE);
+            final ModuleIndex index =
+                PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
-                for(ConstructorSignature signature : index.externalConstructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    externalConstructors.add(signature);
-                }
-                for(StrategySignature signature : index.externalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    externalStrategies.add(signature);
-                }
-            } else {
-                final STask<ModuleData> sTask = front.createSupplier(frontInput);
-                allModuleIdentifiers.add(moduleIdentifier);
-
-                final ModuleIndex index =
-                    PieUtils.requirePartial(context, sTask, ToModuleIndex.INSTANCE);
-
-                for(ConstructorSignature signature : index.constructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                }
-                for(ConstructorSignature signature : index.externalConstructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    externalConstructors.add(signature);
-                }
-                for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
-                    .entrySet()) {
-                    Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
-                        .addAll(e.getValue());
-                }
-                for(StrategySignature signature : index.strategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                }
-                for(StrategySignature signature : index.internalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    internalStrategies.add(signature);
-                }
-                for(StrategySignature signature : index.externalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    externalStrategies.add(signature);
-                }
-                for(StrategySignature signature : index.dynamicRules) {
-                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    dynamicRules.add(signature);
-                }
-                for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
-                    .entrySet()) {
-                    Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
-                        .add(moduleIdentifier);
-                    final HashSet<ConstructorSignatureMatcher> overlayUsesCons = Relation
-                        .getOrInitialize(overlayUsesConstructors,
-                            new ConstructorSignatureMatcher(e.getKey()), LinkedHashSet::new);
-                    for(OverlayData overlayData : e.getValue()) {
-                        for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
-                            overlayUsesCons.add(new ConstructorSignatureMatcher(usedConstructor));
-                        }
+            for(ConstructorSignature signature : index.constructors) {
+                Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+            }
+            for(ConstructorSignature signature : index.externalConstructors) {
+                Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                externalConstructors.add(signature);
+            }
+            for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
+                .entrySet()) {
+                Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
+                    .addAll(e.getValue());
+            }
+            for(StrategySignature signature : index.strategies) {
+                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+            }
+            for(StrategySignature signature : index.internalStrategies) {
+                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                internalStrategies.add(signature);
+            }
+            for(StrategySignature signature : index.externalStrategies) {
+                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                externalStrategies.add(signature);
+            }
+            for(StrategySignature signature : index.dynamicRules) {
+                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                dynamicRules.add(signature);
+            }
+            for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
+                .entrySet()) {
+                Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                final HashSet<ConstructorSignatureMatcher> overlayUsesCons = Relation
+                    .getOrInitialize(overlayUsesConstructors,
+                        new ConstructorSignatureMatcher(e.getKey()), LinkedHashSet::new);
+                for(OverlayData overlayData : e.getValue()) {
+                    for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
+                        overlayUsesCons.add(new ConstructorSignatureMatcher(usedConstructor));
                     }
                 }
-
-                final HashSet<IModuleImportService.ModuleIdentifier> imports =
-                    new HashSet<>(index.imports);
-                imports.removeAll(seen);
-                workList.addAll(imports);
-                seen.addAll(imports);
             }
+
+            final HashSet<IModuleImportService.ModuleIdentifier> imports =
+                new HashSet<>(index.imports);
+            imports.removeAll(seen);
+            workList.addAll(imports);
+            seen.addAll(imports);
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages);

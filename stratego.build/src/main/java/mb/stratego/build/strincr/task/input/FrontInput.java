@@ -57,7 +57,6 @@ public abstract class FrontInput implements Serializable {
     }
 
     public static class Normal extends FrontInput {
-
         public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
             ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {

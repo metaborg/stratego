@@ -25,10 +25,8 @@ import org.strategoxt.strc.insert_casts_0_0;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -77,17 +75,15 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     private final Resolve resolve;
     private final Front front;
-    private final Lib lib;
 
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
     private final ITermFactory tf;
 
-    @Inject public CheckModule(Resolve resolve, Front front, Lib lib, StrIncrContext strIncrContext,
+    @Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
         IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.resolve = resolve;
         this.front = front;
-        this.lib = lib;
         this.tf = strIncrContext.getFactory();
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
@@ -295,9 +291,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final Queue<IModuleImportService.ModuleIdentifier> worklist = new ArrayDeque<>(moduleData.imports);
         while(!worklist.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
-            final Task<ModuleData> task =
-                moduleIdentifierToTask(moduleIdentifier, input.strFileGeneratingTasks(),
+            final FrontInput frontInput =
+                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks(),
                     input.includeDirs(), input.linkedLibraries());
+            final Task<ModuleData> task = front.createTask(frontInput);
             final TypesLookup typesLookup = PieUtils.requirePartial(context, task,
                 new ToTypesLookup(tf, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
                     moduleData.usedConstructors));
@@ -391,20 +388,6 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(IStrategoTerm to : e.getValue()) {
                 injections.__put(e.getKey(), to);
             }
-        }
-    }
-
-    private Task<ModuleData> moduleIdentifierToTask(
-        IModuleImportService.ModuleIdentifier moduleIdentifier,
-        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
-        final FrontInput input =
-            new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks, includeDirs,
-                linkedLibraries);
-        if(moduleIdentifier.isLibrary()) {
-            return lib.createTask(input);
-        } else {
-            return front.createTask(input);
         }
     }
 
