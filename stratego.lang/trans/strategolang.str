@@ -49,6 +49,18 @@ rules // Debugging
     ; frontend
     ; ?result
 
+  debug-show-core:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"core.stra")> path
+    ; <set-config> ("--library", ()) // no main strategy necessary this way
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; pp-debug
+    ; ?result
+
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
     with

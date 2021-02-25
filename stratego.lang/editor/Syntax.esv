@@ -1,6 +1,6 @@
 module Syntax
 
-imports 
+imports
 
   libspoofax/color/default
   completion/colorer/StrategoLang-cc-esv
@@ -15,9 +15,9 @@ language
   fences        : [ ] ( ) { }
 
 menus
-  
+
   menu: "Syntax" (openeditor) (source)
-    
+
     action: "Format"          = editor-format
     action: "Show parsed AST" = debug-show-aterm
 
@@ -26,6 +26,6 @@ menus
     action: "Show desugared AST (batch comp.)" = debug-show-ctree
 
 views
-  
+
   outline view: editor-outline (source)
     expand to level: 3
