@@ -2,6 +2,7 @@ package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.function.Function;
 
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -17,13 +18,13 @@ public class ToAnnoDefs implements Function<GlobalData, AnnoDefs>, Serializable 
 
     @Override public AnnoDefs apply(GlobalData globalData) {
         // Assumption: filter.size() > internalStrategyData.size() + externalStrategyData.size()
-        final HashSet<StrategySignature> internalStrategyData = new HashSet<>();
+        final LinkedHashSet<StrategySignature> internalStrategyData = new LinkedHashSet<>();
         for(StrategySignature strategySignature : globalData.internalStrategies) {
             if(filter.contains(strategySignature)) {
                 internalStrategyData.add(strategySignature);
             }
         }
-        final HashSet<StrategySignature> externalStrategyData = new HashSet<>();
+        final LinkedHashSet<StrategySignature> externalStrategyData = new LinkedHashSet<>();
         for(StrategySignature strategySignature : globalData.externalStrategies) {
             if(filter.contains(strategySignature)) {
                 externalStrategyData.add(strategySignature);

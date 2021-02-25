@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -13,15 +13,17 @@ import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
 public class ModulesDefiningOverlays
-    implements Function<GlobalData, HashSet<IModuleImportService.ModuleIdentifier>>, Serializable {
+    implements Function<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>>,
+    Serializable {
     public final Set<ConstructorSignature> usedConstructors;
 
     public ModulesDefiningOverlays(Set<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
-    @Override public HashSet<IModuleImportService.ModuleIdentifier> apply(GlobalData globalData) {
-        final HashSet<IModuleImportService.ModuleIdentifier> result = new HashSet<>();
+    @Override
+    public LinkedHashSet<IModuleImportService.ModuleIdentifier> apply(GlobalData globalData) {
+        final LinkedHashSet<IModuleImportService.ModuleIdentifier> result = new LinkedHashSet<>();
         for(ConstructorSignature usedConstructor : usedConstructors) {
             final @Nullable Set<IModuleImportService.ModuleIdentifier> moduleIdentifiers =
                 globalData.overlayIndex.get(new ConstructorSignatureMatcher(usedConstructor));

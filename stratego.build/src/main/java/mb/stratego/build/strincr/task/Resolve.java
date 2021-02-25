@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -61,28 +63,29 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         throws IOException, ExecException {
         final ArrayList<Message> messages = new ArrayList<>();
 
-        final java.util.HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
+        final LinkedHashSet<IModuleImportService.ModuleIdentifier> seen = new LinkedHashSet<>();
         final Queue<IModuleImportService.ModuleIdentifier> workList = new ArrayDeque<>();
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
-        final HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers = new HashSet<>();
-        final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
-            constructorIndex = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
-            strategyIndex = new HashMap<>();
-        final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
-            overlayIndex = new HashMap<>();
+        final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
+            new LinkedHashSet<>();
+        final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
+            constructorIndex = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
+            strategyIndex = new LinkedHashMap<>();
+        final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
+            overlayIndex = new LinkedHashMap<>();
 
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
-            new HashMap<>();
-        final HashSet<ConstructorSignature> externalConstructors = new HashSet<>();
-        final HashSet<StrategySignature> internalStrategies = new HashSet<>();
-        final HashSet<StrategySignature> externalStrategies = new HashSet<>();
-        final HashSet<StrategySignature> dynamicRules = new HashSet<>();
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
+            new LinkedHashMap<>();
+        final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
 
-        final HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>>
-            overlayUsesConstructors = new HashMap<>();
+        final LinkedHashMap<ConstructorSignatureMatcher, LinkedHashSet<ConstructorSignatureMatcher>>
+            overlayUsesConstructors = new LinkedHashMap<>();
 
         while(!workList.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
@@ -95,12 +98,12 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     PieUtils.requirePartial(context, lib, frontInput, ToModuleIndex.INSTANCE);
 
                 for(ConstructorSignature signature : index.externalConstructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     externalConstructors.add(signature);
                 }
                 for(StrategySignature signature : index.externalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     externalStrategies.add(signature);
                 }
@@ -112,11 +115,11 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     PieUtils.requirePartial(context, sTask, ToModuleIndex.INSTANCE);
 
                 for(ConstructorSignature signature : index.constructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                 }
                 for(ConstructorSignature signature : index.externalConstructors) {
-                    Relation.getOrInitialize(constructorIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     externalConstructors.add(signature);
                 }
@@ -126,31 +129,31 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                         .addAll(e.getValue());
                 }
                 for(StrategySignature signature : index.strategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                 }
                 for(StrategySignature signature : index.internalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     internalStrategies.add(signature);
                 }
                 for(StrategySignature signature : index.externalStrategies) {
-                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     externalStrategies.add(signature);
                 }
                 for(StrategySignature signature : index.dynamicRules) {
-                    Relation.getOrInitialize(strategyIndex, signature, HashSet::new)
+                    Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
                         .add(moduleIdentifier);
                     dynamicRules.add(signature);
                 }
                 for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
                     .entrySet()) {
-                    Relation.getOrInitialize(overlayIndex, e.getKey(), HashSet::new)
+                    Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
                         .add(moduleIdentifier);
                     final HashSet<ConstructorSignatureMatcher> overlayUsesCons = Relation
                         .getOrInitialize(overlayUsesConstructors,
-                            new ConstructorSignatureMatcher(e.getKey()), HashSet::new);
+                            new ConstructorSignatureMatcher(e.getKey()), LinkedHashSet::new);
                     for(OverlayData overlayData : e.getValue()) {
                         for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
                             overlayUsesCons.add(new ConstructorSignatureMatcher(usedConstructor));
@@ -195,15 +198,15 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     }
 
     private void checkCyclicOverlays(
-        HashMap<ConstructorSignatureMatcher, HashSet<ConstructorSignatureMatcher>> overlayUsesConstructors,
+        HashMap<ConstructorSignatureMatcher, LinkedHashSet<ConstructorSignatureMatcher>> overlayUsesConstructors,
         ArrayList<Message> messages) {
         final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
-                sig -> overlayUsesConstructors.getOrDefault(sig, new HashSet<>(0)));
+                sig -> overlayUsesConstructors.getOrDefault(sig, new LinkedHashSet<>(0)));
         for(Set<ConstructorSignatureMatcher> topoSCC : topoSCCs) {
             final ConstructorSignatureMatcher signature = topoSCC.iterator().next();
             if(topoSCC.size() > 1 || overlayUsesConstructors
-                .getOrDefault(signature, new HashSet<>(0)).contains(signature)) {
+                .getOrDefault(signature, new LinkedHashSet<>(0)).contains(signature)) {
                 long lastModified = 0;
                 for(ConstructorSignature sig : topoSCC) {
                     lastModified = Long.max(lastModified, sig.lastModified);

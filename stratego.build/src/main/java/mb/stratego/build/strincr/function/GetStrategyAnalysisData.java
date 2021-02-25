@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -11,15 +11,15 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 
 public class GetStrategyAnalysisData
-    implements Function<CheckModuleOutput, HashSet<StrategyAnalysisData>>, Serializable {
+    implements Function<CheckModuleOutput, LinkedHashSet<StrategyAnalysisData>>, Serializable {
     public final StrategySignature strategySignature;
 
     public GetStrategyAnalysisData(StrategySignature strategySignature) {
         this.strategySignature = strategySignature;
     }
 
-    @Override public HashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
-        return output.strategyDataWithCasts.getOrDefault(strategySignature, new HashSet<>(0));
+    @Override public LinkedHashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
+        return output.strategyDataWithCasts.getOrDefault(strategySignature, new LinkedHashSet<>(0));
     }
 
     @Override public boolean equals(@Nullable Object o) {

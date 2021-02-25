@@ -2,8 +2,8 @@ package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -17,22 +17,26 @@ import mb.stratego.build.util.WithLastModified;
  */
 public class ModuleIndex implements Serializable, WithLastModified {
     public final ArrayList<IStrategoTerm> imports;
-    public final HashSet<ConstructorSignature> constructors;
-    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
-    public final HashSet<ConstructorSignature> externalConstructors;
-    public final HashSet<StrategySignature> strategies;
-    public final HashSet<StrategySignature> internalStrategies;
-    public final HashSet<StrategySignature> externalStrategies;
-    public final HashSet<StrategySignature> dynamicRules;
-    public final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final LinkedHashSet<ConstructorSignature> constructors;
+    public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
+    public final LinkedHashSet<ConstructorSignature> externalConstructors;
+    public final LinkedHashSet<StrategySignature> strategies;
+    public final LinkedHashSet<StrategySignature> internalStrategies;
+    public final LinkedHashSet<StrategySignature> externalStrategies;
+    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final long lastModified;
 
-    public ModuleIndex(ArrayList<IStrategoTerm> imports, HashSet<ConstructorSignature> constructors,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        HashSet<ConstructorSignature> externalConstructors, HashSet<StrategySignature> strategies,
-        HashSet<StrategySignature> internalStrategies,
-        HashSet<StrategySignature> externalStrategies, HashSet<StrategySignature> dynamicRules,
-        HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData, long lastModified) {
+    public ModuleIndex(ArrayList<IStrategoTerm> imports,
+        LinkedHashSet<ConstructorSignature> constructors,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
+        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<StrategySignature> strategies,
+        LinkedHashSet<StrategySignature> internalStrategies,
+        LinkedHashSet<StrategySignature> externalStrategies,
+        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.injections = injections;

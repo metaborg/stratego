@@ -5,8 +5,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 
@@ -104,8 +105,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             new InsertCastsInput(input.moduleIdentifier(), environment);
         final InsertCastsOutput output = insertCasts(context, insertCastsInput);
 
-        final HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyDataWithCasts =
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
+            new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>>
+            strategyDataWithCasts =
             extractStrategyDefs(input.moduleIdentifier(), moduleData.lastModified,
                 output.astWithCasts, dynamicRules);
 
@@ -155,7 +158,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,
-        Map<StrategySignature, HashSet<StrategyFrontData>> normalStrategyData,
+        Map<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages) {
         final HashSet<StrategySignature> strategyFilter =
@@ -164,7 +167,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final AnnoDefs annoDefs = PieUtils
             .requirePartial(context, resolve, input.resolveInput(), new ToAnnoDefs(strategyFilter));
 
-        for(Map.Entry<StrategySignature, HashSet<StrategyFrontData>> e : normalStrategyData
+        for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
             final StrategySignature strategySignature = e.getKey();
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
@@ -173,8 +176,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(StrategyFrontData strategyFrontData : e.getValue()) {
                 if(strategyFrontData.kind == StrategyFrontData.Kind.TypeDefinition && kinds
                     .contains(strategyFrontData.kind)) {
-                    messages.add(
-                        new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
+                    messages
+                        .add(new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
                             MessageSeverity.ERROR, lastModified));
                 }
                 kinds.add(strategyFrontData.kind);
@@ -208,12 +211,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         }
     }
 
-    public static HashMap<StrategySignature, HashSet<StrategyAnalysisData>> extractStrategyDefs(
+    public static LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> extractStrategyDefs(
         IModuleImportService.ModuleIdentifier moduleIdentifier, long lastModified,
-        IStrategoTerm ast, HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules)
-         {
-        final HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData =
-            new HashMap<>();
+        IStrategoTerm ast,
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules) {
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> strategyData =
+            new LinkedHashMap<>();
 
         final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {
@@ -239,9 +242,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private static void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        long lastModified, HashMap<StrategySignature, HashSet<StrategyAnalysisData>> strategyData,
+        long lastModified,
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> strategyData,
         IStrategoTerm strategyDefs,
-        HashMap<StrategySignature, HashSet<StrategySignature>> dynamicRules) {
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules) {
         for(IStrategoTerm strategyDef : strategyDefs) {
             if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
@@ -259,12 +263,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 if(strategySignature == null) {
                     throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final HashSet<StrategySignature> definedDynamicRules =
+                final LinkedHashSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);
-                Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
+                Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
                     .add(new StrategyAnalysisData(strategySignature, strategyDefAppl, definedDynamicRules, lastModified));
                 for(StrategySignature dynRuleSig : definedDynamicRules) {
-                    Relation.getOrInitialize(dynamicRules, dynRuleSig, HashSet::new)
+                    Relation.getOrInitialize(dynamicRules, dynRuleSig, LinkedHashSet::new)
                         .add(strategySignature);
                 }
             }

@@ -65,11 +65,12 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
                 continue;
             }
-            final BackOutput output = context.require(back,
+            final BackInput.DynamicRule dynamicRuleInput =
                 new BackInput.DynamicRule(dynamicRule, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
                     resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks,
-                    checkTask));
+                    checkTask);
+            final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);
             compiledThroughDynamicRule.addAll(output.compiledStrategies);
@@ -90,26 +91,29 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             if(compiledThroughDynamicRule.contains(strategySignature)) {
                 continue;
             }
-            final BackOutput output = context.require(back,
+            final BackInput.Normal normalInput =
                 new BackInput.Normal(strategySignature, input.outputDir, input.packageName,
                     input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks));
+                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks);
+            final BackOutput output = context.require(back, normalInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);
         }
         final boolean dynamicCallsDefined =
             !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
-        final BackOutput boilerplateOutput = context.require(back,
+        final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(resolveTask, input.outputDir, input.packageName,
                 input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicCallsDefined, input.strFileGeneratingTasks));
+                dynamicCallsDefined, input.strFileGeneratingTasks);
+        final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
-        final BackOutput congruenceOutput = context.require(back,
+        final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(resolveTask, input.outputDir, input.packageName,
                 input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated));
+                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated);
+        final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);
 

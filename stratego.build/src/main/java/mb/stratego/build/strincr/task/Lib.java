@@ -1,8 +1,8 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.inject.Inject;
 
@@ -41,26 +41,29 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
         final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
 
         final ArrayList<IStrategoTerm> imports = new ArrayList<>(0);
-        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
-            new HashMap<>(0);
-        final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData = new HashMap<>(0);
-        final HashSet<ConstructorSignature> usedConstructors = new HashSet<>(0);
-        final HashSet<StrategySignature> usedStrategies = new HashSet<>(0);
-        final HashSet<String> usedAmbiguousStrategies = new HashSet<>(0);
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData =
-            new HashMap<>(0);
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData =
-            new HashMap<>(0);
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData =
-            new HashMap<>(0);
-        final HashSet<StrategySignature> dynamicRules = new HashSet<>(0);
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections = new HashMap<>(0);
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
+            new LinkedHashMap<>(0);
+        final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData =
+            new LinkedHashMap<>(0);
+        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>(0);
+        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>(0);
+        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>(0);
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> strategyData =
+            new LinkedHashMap<>(0);
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+            internalStrategyData = new LinkedHashMap<>(0);
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData =
+            new LinkedHashMap<>(0);
+        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>(0);
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
+            new LinkedHashMap<>(0);
 
-        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
-            new HashMap<>();
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData =
-            new HashMap<>();
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections =
+            new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+            externalStrategyData = new LinkedHashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast);
         for(IStrategoTerm def : defs) {

@@ -1,7 +1,7 @@
 package mb.stratego.build.strincr.function;
 
 import java.io.Serializable;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -12,17 +12,17 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 
 public class GetDynamicRuleAnalysisData
-    implements Function<CheckModuleOutput, HashSet<StrategyAnalysisData>>, Serializable {
+    implements Function<CheckModuleOutput, LinkedHashSet<StrategyAnalysisData>>, Serializable {
     public final StrategySignature strategySignature;
 
     public GetDynamicRuleAnalysisData(StrategySignature strategySignature) {
         this.strategySignature = strategySignature;
     }
 
-    @Override public HashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
-        final HashSet<StrategyAnalysisData> result = new HashSet<>();
+    @Override public LinkedHashSet<StrategyAnalysisData> apply(CheckModuleOutput output) {
+        final LinkedHashSet<StrategyAnalysisData> result = new LinkedHashSet<>();
         for(StrategySignature signature : output.dynamicRules
-            .getOrDefault(strategySignature, new HashSet<>(0))) {
+            .getOrDefault(strategySignature, new LinkedHashSet<>(0))) {
             final @Nullable Set<StrategyAnalysisData> analysisData =
                 output.strategyDataWithCasts.get(signature);
             if(analysisData != null) {

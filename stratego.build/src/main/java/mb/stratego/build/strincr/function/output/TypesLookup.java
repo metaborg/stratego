@@ -2,8 +2,8 @@ package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -13,15 +13,15 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 
 public class TypesLookup implements Serializable {
-    public final HashMap<StrategySignature, StrategyType> strategyTypes;
-    public final HashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes;
-    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections;
+    public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
+    public final LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes;
+    public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections;
     public final ArrayList<IStrategoTerm> imports;
     public final long lastModified;
 
-    public TypesLookup(HashMap<StrategySignature, StrategyType> strategyTypes,
-        HashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections,
+    public TypesLookup(LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
+        LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections,
         ArrayList<IStrategoTerm> imports, long lastModified) {
         this.strategyTypes = strategyTypes;
         this.constructorTypes = constructorTypes;

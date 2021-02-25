@@ -2,8 +2,8 @@ package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import mb.pie.api.STask;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -11,19 +11,19 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 
 public class CheckOutput implements Serializable {
-    public final HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
+    public final LinkedHashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
         moduleCheckTasks;
-    public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+    public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         strategyIndex;
-    public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+    public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         dynamicRuleIndex;
     public final ArrayList<Message> messages;
     public final boolean containsErrors; // derived from messages
 
     public CheckOutput(
-        HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks,
-        HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
+        LinkedHashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>> moduleCheckTasks,
+        LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
+        LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
         ArrayList<Message> messages, boolean containsErrors) {
         this.moduleCheckTasks = moduleCheckTasks;
         this.strategyIndex = strategyIndex;

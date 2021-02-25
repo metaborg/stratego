@@ -1,8 +1,9 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.inject.Inject;
 
@@ -38,12 +39,12 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     }
 
     @Override public CheckOutput exec(ExecContext context, CheckInput input) {
-        final HashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
-            moduleCheckTasks = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
-            strategyIndex = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
-            dynamicRuleIndex = new HashMap<>();
+        final LinkedHashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
+            moduleCheckTasks = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
+            strategyIndex = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
+            dynamicRuleIndex = new LinkedHashMap<>();
         final ArrayList<Message> messages = new ArrayList<>();
         boolean containsErrors = false;
         final HashSet<IModuleImportService.ModuleIdentifier> allModulesIdentifiers = PieUtils
@@ -59,11 +60,11 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
             moduleCheckTasks.put(moduleIdentifier, sTask);
             final CheckModuleOutput output = context.require(sTask);
             for(StrategySignature strategySignature : output.strategyDataWithCasts.keySet()) {
-                Relation.getOrInitialize(strategyIndex, strategySignature, HashSet::new)
+                Relation.getOrInitialize(strategyIndex, strategySignature, LinkedHashSet::new)
                     .add(moduleIdentifier);
             }
             for(StrategySignature strategySignature : output.dynamicRules.keySet()) {
-                Relation.getOrInitialize(dynamicRuleIndex, strategySignature, HashSet::new)
+                Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
                     .add(moduleIdentifier);
             }
             if(input.ignoreTypeMessages) {

@@ -2,8 +2,8 @@ package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.annotation.Nullable;
 
@@ -16,30 +16,30 @@ import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
-    public final HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
-    public final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+    public final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         constructorIndex;
-    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
-    public final HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>>
+    public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
+    public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         strategyIndex;
-    public final HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>>
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         overlayIndex;
-    public final HashSet<ConstructorSignature> externalConstructors;
-    public final HashSet<StrategySignature> internalStrategies;
-    public final HashSet<StrategySignature> externalStrategies;
-    public final HashSet<StrategySignature> dynamicRules;
+    public final LinkedHashSet<ConstructorSignature> externalConstructors;
+    public final LinkedHashSet<StrategySignature> internalStrategies;
+    public final LinkedHashSet<StrategySignature> externalStrategies;
+    public final LinkedHashSet<StrategySignature> dynamicRules;
     public final ArrayList<Message> messages;
     private transient @Nullable GlobalIndex globalIndex = null;
 
-    public GlobalData(HashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>> constructorIndex,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
-        HashMap<StrategySignature, HashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        HashMap<ConstructorSignature, HashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
-        HashSet<ConstructorSignature> externalConstructors,
-        HashSet<StrategySignature> internalStrategies,
-        HashSet<StrategySignature> externalStrategies, HashSet<StrategySignature> dynamicRules,
-        ArrayList<Message> messages) {
+    public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> constructorIndex,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
+        LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<StrategySignature> internalStrategies,
+        LinkedHashSet<StrategySignature> externalStrategies,
+        LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.constructorIndex = constructorIndex;
         this.nonExternalInjections = nonExternalInjections;
@@ -54,16 +54,15 @@ public class GlobalData implements Serializable {
 
     public GlobalIndex getGlobalIndex() {
         if(globalIndex == null) {
-            final HashSet<StrategySignature> nonExternalStrategies =
-                new HashSet<>(strategyIndex.keySet());
+            final LinkedHashSet<StrategySignature> nonExternalStrategies =
+                new LinkedHashSet<>(strategyIndex.keySet());
             nonExternalStrategies.removeAll(externalStrategies);
             nonExternalStrategies.addAll(internalStrategies);
-            final HashSet<ConstructorSignature> nonExternalConstructors =
-                new HashSet<>(constructorIndex.keySet());
+            final LinkedHashSet<ConstructorSignature> nonExternalConstructors =
+                new LinkedHashSet<>(constructorIndex.keySet());
             nonExternalConstructors.removeAll(externalConstructors);
-            globalIndex =
-                new GlobalIndex(nonExternalConstructors, externalConstructors, nonExternalStrategies, dynamicRules,
-                    nonExternalInjections);
+            globalIndex = new GlobalIndex(nonExternalConstructors, externalConstructors,
+                nonExternalStrategies, dynamicRules, nonExternalInjections);
         }
         return globalIndex;
     }

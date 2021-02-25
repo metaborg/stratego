@@ -2,8 +2,8 @@ package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -11,16 +11,17 @@ import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class GlobalIndex implements Serializable {
-    public final HashSet<ConstructorSignature> nonExternalConstructors;
-    public final HashSet<ConstructorSignature> externalConstructors;
-    public final HashSet<StrategySignature> nonExternalStrategies;
-    public final HashSet<StrategySignature> dynamicRules;
-    public final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
+    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
+    public final LinkedHashSet<ConstructorSignature> externalConstructors;
+    public final LinkedHashSet<StrategySignature> nonExternalStrategies;
+    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
 
-    public GlobalIndex(HashSet<ConstructorSignature> nonExternalConstructors,
-        HashSet<ConstructorSignature> externalConstructors,
-        HashSet<StrategySignature> nonExternalStrategies, HashSet<StrategySignature> dynamicRules,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections) {
+    public GlobalIndex(LinkedHashSet<ConstructorSignature> nonExternalConstructors,
+        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<StrategySignature> nonExternalStrategies,
+        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections) {
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.nonExternalStrategies = nonExternalStrategies;

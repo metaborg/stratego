@@ -1,8 +1,8 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.inject.Inject;
 
@@ -41,21 +41,25 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
         final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
         boolean stdLibImport = false;
         final ArrayList<IStrategoTerm> imports = new ArrayList<>();
-        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
-            new HashMap<>();
-        final HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
-            new HashMap<>();
-        final HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData = new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData =
-            new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData =
-            new HashMap<>();
-        final HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData =
-            new HashMap<>();
-        final HashSet<StrategySignature> dynamicRules = new HashSet<>();
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections = new HashMap<>();
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections = new HashMap<>();
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> strategyData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+            internalStrategyData = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+            externalStrategyData = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData =
+            new LinkedHashMap<>();
+        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
+            new LinkedHashMap<>();
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections =
+            new LinkedHashMap<>();
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -98,9 +102,9 @@ public class Front extends SplitShared implements TaskDef<FrontInput, ModuleData
             imports.add(tf.makeAppl("Import", tf.makeString("libstratego-lib")));
         }
 
-        final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
-        final HashSet<StrategySignature> usedStrategies = new HashSet<>();
-        final HashSet<String> usedAmbiguousStrategies = new HashSet<>();
+        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
+        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies,
             ast.lastModified).visit(ast.wrapped);
 

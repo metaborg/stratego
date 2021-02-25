@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +87,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     @Override public BackOutput exec(ExecContext context, BackInput input) throws Exception {
-        final HashSet<StrategySignature> compiledStrategies = new HashSet<>();
+        final LinkedHashSet<StrategySignature> compiledStrategies = new LinkedHashSet<>();
         final boolean isBoilerplate = input instanceof BackInput.Boilerplate;
         final IStrategoTerm ctree;
         final ConstructorSignature dr_dummy = new ConstructorSignature("DR_DUMMY", 0, 0);
@@ -259,7 +260,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
         }
 
-        final HashSet<ResourcePath> resultFiles = new HashSet<>();
+        final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
         // TODO: have the compilation return a list of files instead of printing to log
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
             if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {

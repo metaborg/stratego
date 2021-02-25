@@ -3,7 +3,8 @@ package mb.stratego.build.strincr.task;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.annotation.Nullable;
 
@@ -28,10 +29,10 @@ import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
+import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.InvalidASTException;
 
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.DynRuleGenerated;
 import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Extend;
@@ -54,11 +55,11 @@ public abstract class SplitShared {
     }
 
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        HashMap<StrategySignature, HashSet<StrategyFrontData>> strategyData,
-        HashMap<StrategySignature, HashSet<StrategyFrontData>> internalStrategyData,
-        HashMap<StrategySignature, HashSet<StrategyFrontData>> externalStrategyData,
-        HashMap<StrategySignature, HashSet<StrategyFrontData>> dynamicRuleData,
-        HashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> strategyData,
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
+        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
+        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
          {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
@@ -87,11 +88,11 @@ public abstract class SplitShared {
                     new StrategySignature(TermUtils.toJavaStringAt(strategyDef, 0),
                         strategyType.getStrategyArguments().size(),
                         strategyType.getTermArguments().size());
-                Relation.getOrInitialize(strategyData, strategySignature, HashSet::new)
+                Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
                     .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
             } else {
                 Kind kind = Normal;
-                HashMap<StrategySignature, HashSet<StrategyFrontData>> dataMap = strategyData;
+                HashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dataMap = strategyData;
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
                     for(IStrategoTerm anno : strategyDef.getSubterm(0)) {
                         if(TermUtils.isAppl(anno, "Internal", 0)) {
@@ -123,7 +124,7 @@ public abstract class SplitShared {
                 if(strategySignature == null) {
                     throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
-                Relation.getOrInitialize(dataMap, strategySignature, HashSet::new)
+                Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
                     .add(new StrategyFrontData(strategySignature, null, kind));
             }
 
@@ -131,7 +132,7 @@ public abstract class SplitShared {
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
                 dynamicRules.add(dynRuleSig);
                 for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
-                    Relation.getOrInitialize(dynamicRuleData, signature, HashSet::new)
+                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new)
                         .add(new StrategyFrontData(signature, null, DynRuleGenerated));
                 }
             }
@@ -171,7 +172,7 @@ public abstract class SplitShared {
             } else {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
-            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
+            final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
             new UsedConstrs(usedConstructors, lastModified).visit(overlay);
             final ConstructorSignature signature =
                 new ConstructorSignature(name, arity, lastModified);

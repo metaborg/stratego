@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -40,32 +42,32 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
     }
 
     @Override public TypesLookup apply(ModuleData moduleData) {
-        final HashMap<StrategySignature, StrategyType> strategyTypes = new HashMap<>();
-        final HashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes =
-            new HashMap<>();
-        final HashMap<String, HashSet<StrategyFrontData>> ambStrategyIndex =
+        final LinkedHashMap<StrategySignature, StrategyType> strategyTypes = new LinkedHashMap<>();
+        final LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes =
+            new LinkedHashMap<>();
+        final HashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex =
             moduleData.ambStrategyIndex();
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
-                .getOrDefault(usedStrategy, new HashSet<>(0))) {
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
-                .getOrDefault(usedStrategy, new HashSet<>(0))) {
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
-                .getOrDefault(usedStrategy, new HashSet<>(0))) {
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
             for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
-                .getOrDefault(usedStrategy, new HashSet<>(0))) {
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
             }
         }
         for(String usedStrategy : usedAmbiguousStrategies) {
             for(StrategyFrontData strategyFrontData : ambStrategyIndex
-                .getOrDefault(usedStrategy, new HashSet<>(0))) {
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
                 final StrategyType type = strategyFrontData.type != null ? strategyFrontData.type :
                     strategyFrontData.signature.standardType(tf);
                 strategyTypes.put(strategyFrontData.signature, type);
@@ -93,8 +95,8 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
         }
 
 
-        final HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
-            new HashMap<>(moduleData.injections);
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
+            new LinkedHashMap<>(moduleData.injections);
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.externalInjections
             .entrySet()) {
             Relation.getOrInitialize(injections, e.getKey(), ArrayList::new).addAll(e.getValue());
