@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.task;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +28,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -82,23 +82,21 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private final IOAgentTrackerFactory ioAgentTrackerFactory;
     private final StrIncrContext strContext;
     private final ITermFactory tf;
-    private final IModuleImportService moduleImportService;
 
     @Inject public CheckModule(Resolve resolve, Front front, Lib lib, StrIncrContext strIncrContext,
-        IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext,
-        IModuleImportService moduleImportService) {
+        IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
         this.resolve = resolve;
         this.front = front;
         this.lib = lib;
         this.tf = strIncrContext.getFactory();
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
-        this.moduleImportService = moduleImportService;
     }
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
         final @Nullable ModuleData moduleData = context.require(front, input.frontInput());
         assert moduleData != null;
+
 
         final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
         final InsertCastsInput insertCastsInput =
@@ -112,7 +110,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             extractStrategyDefs(input.moduleIdentifier(), moduleData.lastModified,
                 output.astWithCasts, dynamicRules);
 
-        final ArrayList<Message> messages = new ArrayList<>(output.messages.size());
+        final ArrayList<Message> messages = new ArrayList<>(moduleData.messages.size() + output.messages.size());
+        messages.addAll(moduleData.messages);
         messages.addAll(output.messages);
 
         checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
@@ -276,7 +275,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private GTEnvironment prepareGTEnvironment(ExecContext context, CheckModuleInput input,
-        ModuleData moduleData) throws IOException, ExecException {
+        ModuleData moduleData) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
@@ -289,22 +288,19 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, injections);
 
         // Get the relevant strategy and constructor types and all injections, that are visible
-        //     through the import graph
-        final java.util.HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
-        final Queue<IModuleImportService.ModuleIdentifier> workList = new ArrayDeque<>(Resolve
-            .expandImports(context, moduleImportService, moduleData.imports,
-                moduleData.lastModified, null, input.strFileGeneratingTasks(),
-                input.includeDirs()));
+        //     through the import, not following them transitively!
+        final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(input.moduleIdentifier());
-        seen.addAll(workList);
-        do {
-            final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
-
+        seen.addAll(moduleData.imports);
+        final Queue<IModuleImportService.ModuleIdentifier> worklist = new ArrayDeque<>(moduleData.imports);
+        while(!worklist.isEmpty()) {
+            final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
             final Task<ModuleData> task =
-                moduleIdentifierToTask(moduleIdentifier, input.strFileGeneratingTasks());
+                moduleIdentifierToTask(moduleIdentifier, input.strFileGeneratingTasks(),
+                    input.includeDirs(), input.linkedLibraries());
             final TypesLookup typesLookup = PieUtils.requirePartial(context, task,
-                new ToTypesLookup(tf, moduleData.usedStrategies,
-                    moduleData.usedAmbiguousStrategies, moduleData.usedConstructors));
+                new ToTypesLookup(tf, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+                    moduleData.usedConstructors));
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
                 ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());
@@ -321,15 +317,13 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__put(e.getKey(), to);
                 }
             }
-
-            final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = Resolve
-                .expandImports(context, moduleImportService, typesLookup.imports,
-                    typesLookup.lastModified, null, input.strFileGeneratingTasks(),
-                    input.includeDirs());
-            expandedImports.removeAll(seen);
-            workList.addAll(expandedImports);
-            seen.addAll(expandedImports);
-        } while(!workList.isEmpty());
+            for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
+                if(!seen.contains(anImport)) {
+                    seen.add(anImport);
+                    worklist.add(anImport);
+                }
+            }
+        }
 
         final StrategoImmutableMap strategyEnvironment =
             new StrategoImmutableMap(strategyTypes.freeze());
@@ -402,8 +396,11 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     private Task<ModuleData> moduleIdentifierToTask(
         IModuleImportService.ModuleIdentifier moduleIdentifier,
-        ArrayList<STask<?>> strFileGeneratingTasks) {
-        final FrontInput input = new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks);
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        final FrontInput input =
+            new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks, includeDirs,
+                linkedLibraries);
         if(moduleIdentifier.isLibrary()) {
             return lib.createTask(input);
         } else {

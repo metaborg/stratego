@@ -89,17 +89,20 @@ public abstract class BackInput implements Serializable {
         public final StrategySignature strategySignature;
         public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
 
         public Normal(StrategySignature strategySignature, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
             STask<GlobalData> resolveTask,
             IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks) {
+            ArrayList<STask<?>> strFileGeneratingTasks,
+            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.strategySignature = strategySignature;
             this.mainModuleIdentifier = mainModuleIdentifier;
             this.strFileGeneratingTasks = strFileGeneratingTasks;
+            this.linkedLibraries = linkedLibraries;
         }
 
         public void getStrategyContributions(ExecContext context, CheckModule checkModule,
@@ -116,8 +119,8 @@ public abstract class BackInput implements Serializable {
                 }
                 final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
                     .requirePartial(context, checkModule,
-                        new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
-                            strFileGeneratingTasks, includeDirs),
+                        new CheckModuleInput.Normal(moduleIdentifier, strFileGeneratingTasks,
+                            includeDirs, linkedLibraries, this.mainModuleIdentifier),
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -141,7 +144,9 @@ public abstract class BackInput implements Serializable {
                 return false;
             if(!mainModuleIdentifier.equals(normal.mainModuleIdentifier))
                 return false;
-            return strFileGeneratingTasks.equals(normal.strFileGeneratingTasks);
+            if(!strFileGeneratingTasks.equals(normal.strFileGeneratingTasks))
+                return false;
+            return linkedLibraries.equals(normal.linkedLibraries);
         }
 
         @Override public int hashCode() {
@@ -149,6 +154,7 @@ public abstract class BackInput implements Serializable {
             result = 31 * result + strategySignature.hashCode();
             result = 31 * result + mainModuleIdentifier.hashCode();
             result = 31 * result + strFileGeneratingTasks.hashCode();
+            result = 31 * result + linkedLibraries.hashCode();
             return result;
         }
 
@@ -165,9 +171,11 @@ public abstract class BackInput implements Serializable {
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
             STask<GlobalData> resolveTask,
             IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks, STask<CheckOutput> checkTask) {
+            ArrayList<STask<?>> strFileGeneratingTasks,
+            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, STask<CheckOutput> checkTask) {
             super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
-                extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks);
+                extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks,
+                linkedLibraries);
             this.checkTask = checkTask;
         }
 
@@ -190,8 +198,8 @@ public abstract class BackInput implements Serializable {
                     }
                     final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
                         .requirePartial(context, checkModule,
-                            new CheckModuleInput.Normal(this.mainModuleIdentifier, moduleIdentifier,
-                                strFileGeneratingTasks, includeDirs),
+                            new CheckModuleInput.Normal(moduleIdentifier, strFileGeneratingTasks,
+                                includeDirs, linkedLibraries, this.mainModuleIdentifier),
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -275,14 +283,17 @@ public abstract class BackInput implements Serializable {
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
         public final ArrayList<STask<?>> strFileGeneratingTasks;
+        public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
 
         public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            boolean dynamicCallsDefined, ArrayList<STask<?>> strFileGeneratingTasks) {
+            boolean dynamicCallsDefined, ArrayList<STask<?>> strFileGeneratingTasks,
+            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
             super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask);
             this.dynamicCallsDefined = dynamicCallsDefined;
             this.strFileGeneratingTasks = strFileGeneratingTasks;
+            this.linkedLibraries = linkedLibraries;
         }
 
         @Override public boolean equals(@Nullable Object o) {

@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -16,13 +17,13 @@ public class TypesLookup implements Serializable {
     public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
     public final LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections;
-    public final ArrayList<IStrategoTerm> imports;
+    public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final long lastModified;
 
     public TypesLookup(LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
         LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections,
-        ArrayList<IStrategoTerm> imports, long lastModified) {
+        ArrayList<IModuleImportService.ModuleIdentifier> imports, long lastModified) {
         this.strategyTypes = strategyTypes;
         this.constructorTypes = constructorTypes;
         this.allInjections = allInjections;
@@ -44,9 +45,9 @@ public class TypesLookup implements Serializable {
             return false;
         if(!constructorTypes.equals(that.constructorTypes))
             return false;
-        if(!allInjections.equals(that.allInjections))
+        if(!imports.equals(that.imports))
             return false;
-        return imports.equals(that.imports);
+        return allInjections.equals(that.allInjections);
     }
 
     @Override public int hashCode() {

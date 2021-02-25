@@ -101,8 +101,8 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
             .entrySet()) {
             Relation.getOrInitialize(injections, e.getKey(), ArrayList::new).addAll(e.getValue());
         }
-        return new TypesLookup(strategyTypes, constructorTypes, injections, moduleData.imports,
-            moduleData.lastModified);
+        return new TypesLookup(strategyTypes, constructorTypes, injections,
+            moduleData.imports, moduleData.lastModified);
     }
 
     public static void registerStrategyType(Map<StrategySignature, StrategyType> strategyTypes,

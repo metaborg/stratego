@@ -2,6 +2,7 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
@@ -11,12 +12,15 @@ public class ResolveInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
+    public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
 
     public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs) {
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
+        this.linkedLibraries = linkedLibraries;
     }
 
     @Override public boolean equals(Object o) {
@@ -31,13 +35,16 @@ public class ResolveInput implements Serializable {
             return false;
         if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
             return false;
-        return includeDirs.equals(that.includeDirs);
+        if(!includeDirs.equals(that.includeDirs))
+            return false;
+        return linkedLibraries.equals(that.linkedLibraries);
     }
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();
+        result = 31 * result + linkedLibraries.hashCode();
         return result;
     }
 

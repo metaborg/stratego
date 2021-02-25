@@ -12,19 +12,22 @@ public class CheckInput implements Serializable {
     public final boolean ignoreTypeMessages;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
+    public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         boolean ignoreTypeMessages, ArrayList<STask<?>> strFileGeneratingTasks,
-        ArrayList<? extends ResourcePath> includeDirs) {
+        ArrayList<? extends ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.ignoreTypeMessages = ignoreTypeMessages;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
+        this.linkedLibraries = linkedLibraries;
     }
 
     public ResolveInput resolveInput() {
         return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks,
-            includeDirs);
+            includeDirs, linkedLibraries);
     }
 
     @Override public boolean equals(Object o) {
@@ -41,7 +44,9 @@ public class CheckInput implements Serializable {
             return false;
         if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
             return false;
-        return includeDirs.equals(that.includeDirs);
+        if(!includeDirs.equals(that.includeDirs))
+            return false;
+        return linkedLibraries.equals(that.linkedLibraries);
     }
 
     @Override public int hashCode() {
@@ -49,6 +54,7 @@ public class CheckInput implements Serializable {
         result = 31 * result + (ignoreTypeMessages ? 1 : 0);
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();
+        result = 31 * result + linkedLibraries.hashCode();
         return result;
     }
 

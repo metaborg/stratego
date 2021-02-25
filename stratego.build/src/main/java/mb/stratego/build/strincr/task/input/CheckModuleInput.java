@@ -3,8 +3,6 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import javax.annotation.Nullable;
-
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.STask;
@@ -21,23 +19,25 @@ public interface CheckModuleInput extends Serializable {
 
     ArrayList<? extends ResourcePath> includeDirs();
 
+    ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries();
+
     FrontInput frontInput();
 
     class Normal extends FrontInput.Normal implements CheckModuleInput {
         public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-        public final ArrayList<? extends ResourcePath> includeDirs;
 
-        public Normal(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            IModuleImportService.ModuleIdentifier moduleIdentifier,
+        public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks,
-            ArrayList<? extends ResourcePath> includeDirs) {
-            super(moduleIdentifier, strFileGeneratingTasks);
+            ArrayList<? extends ResourcePath> includeDirs,
+            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+            IModuleImportService.ModuleIdentifier mainModuleIdentifier) {
+            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries);
             this.mainModuleIdentifier = mainModuleIdentifier;
-            this.includeDirs = includeDirs;
         }
 
         @Override public ResolveInput resolveInput() {
-            return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs);
+            return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs,
+                linkedLibraries);
         }
 
         @Override public IModuleImportService.ModuleIdentifier moduleIdentifier() {
@@ -52,11 +52,16 @@ public interface CheckModuleInput extends Serializable {
             return includeDirs;
         }
 
+        @Override
+        public ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries() {
+            return linkedLibraries;
+        }
+
         @Override public FrontInput frontInput() {
             return this;
         }
 
-        @Override public boolean equals(@Nullable Object o) {
+        @Override public boolean equals(Object o) {
             if(this == o)
                 return true;
             if(o == null || getClass() != o.getClass())
@@ -64,17 +69,14 @@ public interface CheckModuleInput extends Serializable {
             if(!super.equals(o))
                 return false;
 
-            CheckModuleInput.Normal that = (CheckModuleInput.Normal) o;
+            CheckModuleInput.Normal normal = (CheckModuleInput.Normal) o;
 
-            if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
-                return false;
-            return includeDirs.equals(that.includeDirs);
+            return mainModuleIdentifier.equals(normal.mainModuleIdentifier);
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + mainModuleIdentifier.hashCode();
-            result = 31 * result + includeDirs.hashCode();
             return result;
         }
 
@@ -85,22 +87,20 @@ public interface CheckModuleInput extends Serializable {
 
     class FileOpenInEditor extends FrontInput.FileOpenInEditor implements CheckModuleInput {
         public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-        public final ArrayList<STask<?>> strFileGeneratingTasks;
-        public final ArrayList<? extends ResourcePath> includeDirs;
 
         public FileOpenInEditor(IModuleImportService.ModuleIdentifier moduleIdentifier,
-            LastModified<IStrategoTerm> ast,
-            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks,
-            ArrayList<? extends ResourcePath> includeDirs) {
-            super(moduleIdentifier, ast);
+            ArrayList<? extends ResourcePath> includeDirs,
+            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+            LastModified<IStrategoTerm> ast,
+            IModuleImportService.ModuleIdentifier mainModuleIdentifier) {
+            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries, ast);
             this.mainModuleIdentifier = mainModuleIdentifier;
-            this.strFileGeneratingTasks = strFileGeneratingTasks;
-            this.includeDirs = includeDirs;
         }
 
         @Override public ResolveInput resolveInput() {
-            return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs);
+            return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs,
+                linkedLibraries);
         }
 
         @Override public IModuleImportService.ModuleIdentifier moduleIdentifier() {
@@ -113,6 +113,11 @@ public interface CheckModuleInput extends Serializable {
 
         @Override public ArrayList<? extends ResourcePath> includeDirs() {
             return includeDirs;
+        }
+
+        @Override
+        public ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries() {
+            return linkedLibraries;
         }
 
         @Override public FrontInput frontInput() {
@@ -129,18 +134,12 @@ public interface CheckModuleInput extends Serializable {
 
             CheckModuleInput.FileOpenInEditor that = (CheckModuleInput.FileOpenInEditor) o;
 
-            if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
-                return false;
-            if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
-                return false;
-            return includeDirs.equals(that.includeDirs);
+            return mainModuleIdentifier.equals(that.mainModuleIdentifier);
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + mainModuleIdentifier.hashCode();
-            result = 31 * result + strFileGeneratingTasks.hashCode();
-            result = 31 * result + includeDirs.hashCode();
             return result;
         }
 

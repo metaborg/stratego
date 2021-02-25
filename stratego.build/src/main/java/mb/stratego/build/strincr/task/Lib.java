@@ -18,6 +18,7 @@ import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.InvalidASTException;
@@ -40,7 +41,7 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
         final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
 
-        final ArrayList<IStrategoTerm> imports = new ArrayList<>(0);
+        final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>(0);
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>(0);
         final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData =
@@ -57,6 +58,7 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
         final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>(0);
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
             new LinkedHashMap<>(0);
+        final ArrayList<Message> messages = new ArrayList<>(0);
 
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
             new LinkedHashMap<>();
@@ -87,7 +89,7 @@ public class Lib extends SplitShared implements TaskDef<FrontInput, ModuleData> 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
             externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
             externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
-            dynamicRules, usedAmbiguousStrategies, ast.lastModified);
+            dynamicRules, usedAmbiguousStrategies, messages, ast.lastModified);
     }
 
     private IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,

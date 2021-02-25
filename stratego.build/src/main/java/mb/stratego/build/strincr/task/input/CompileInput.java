@@ -19,13 +19,15 @@ public class CompileInput implements Serializable {
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
     public final ArrayList<ResourcePath> includeDirs;
+    public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
     public final Arguments extraArgs;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final StrategoGradualSetting strategoGradualSetting;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath outputDir, @Nullable String packageName, @Nullable ResourcePath cacheDir,
-        ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
+        ArrayList<String> constants, ArrayList<ResourcePath> includeDirs,
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
         ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.outputDir = outputDir;
@@ -33,6 +35,7 @@ public class CompileInput implements Serializable {
         this.cacheDir = cacheDir;
         this.constants = constants;
         this.includeDirs = includeDirs;
+        this.linkedLibraries = linkedLibraries;
         this.extraArgs = extraArgs;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.strategoGradualSetting = strategoGradualSetting;
@@ -58,6 +61,8 @@ public class CompileInput implements Serializable {
             return false;
         if(!includeDirs.equals(that.includeDirs))
             return false;
+        if(!linkedLibraries.equals(that.linkedLibraries))
+            return false;
         if(!extraArgs.equals(that.extraArgs))
             return false;
         if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
@@ -72,6 +77,7 @@ public class CompileInput implements Serializable {
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
         result = 31 * result + includeDirs.hashCode();
+        result = 31 * result + linkedLibraries.hashCode();
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + strategoGradualSetting.hashCode();

@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -21,9 +20,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -32,7 +29,6 @@ import mb.stratego.build.strincr.function.ToModuleIndex;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.message.CyclicOverlay;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.UnresolvedImport;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.GlobalData;
@@ -91,7 +87,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
 
             final FrontInput frontInput =
-                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks);
+                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
+                    input.includeDirs, input.linkedLibraries);
             if(moduleIdentifier.isLibrary()) {
                 allModuleIdentifiers.add(moduleIdentifier);
                 final ModuleIndex index =
@@ -161,12 +158,11 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     }
                 }
 
-                final HashSet<IModuleImportService.ModuleIdentifier> expandedImports =
-                    expandImports(context, moduleImportService, index.imports, index.lastModified,
-                        messages, input.strFileGeneratingTasks, input.includeDirs);
-                expandedImports.removeAll(seen);
-                workList.addAll(expandedImports);
-                seen.addAll(expandedImports);
+                final HashSet<IModuleImportService.ModuleIdentifier> imports =
+                    new HashSet<>(index.imports);
+                imports.removeAll(seen);
+                workList.addAll(imports);
+                seen.addAll(imports);
             }
         }
 
@@ -174,27 +170,6 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         return new GlobalData(allModuleIdentifiers, constructorIndex, nonExternalInjections,
             strategyIndex, overlayIndex, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, messages);
-    }
-
-    public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
-        IModuleImportService moduleImportService, ArrayList<IStrategoTerm> imports,
-        long lastModified, @Nullable ArrayList<Message> messages,
-        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs)
-        throws IOException, ExecException {
-        final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = new HashSet<>();
-        for(IStrategoTerm anImport : imports) {
-            final ImportResolution importResolution = moduleImportService
-                .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs);
-            if(importResolution instanceof IModuleImportService.UnresolvedImport) {
-                if(messages != null) {
-                    messages.add(new UnresolvedImport(anImport, lastModified));
-                }
-            } else if(importResolution instanceof IModuleImportService.ResolvedImport) {
-                expandedImports
-                    .addAll(((IModuleImportService.ResolvedImport) importResolution).modules);
-            }
-        }
-        return expandedImports;
     }
 
     private void checkCyclicOverlays(

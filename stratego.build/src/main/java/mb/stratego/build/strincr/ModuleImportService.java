@@ -40,7 +40,8 @@ public class ModuleImportService implements IModuleImportService {
     }
 
     @Override public ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs)
+        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
+        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws ExecException, IOException {
         /*
          * Note that we require the sdf task here to force it to generated needed str files. We
@@ -59,7 +60,9 @@ public class ModuleImportService implements IModuleImportService {
                 final @Nullable BuiltinLibraryIdentifier builtinLibraryIdentifier =
                     BuiltinLibraryIdentifier.fromString(moduleString);
                 if(builtinLibraryIdentifier != null) {
-                    // TODO: check built-in library against list of libraries in -la arguments
+                    if(!linkedLibraries.contains(builtinLibraryIdentifier)) {
+                        return UnresolvedImport.INSTANCE;
+                    }
                     return new ResolvedImport(Collections.singleton(builtinLibraryIdentifier));
                 }
 

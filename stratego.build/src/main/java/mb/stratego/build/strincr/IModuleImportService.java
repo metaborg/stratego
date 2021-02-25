@@ -111,8 +111,9 @@ public interface IModuleImportService {
      * @throws IOException on IO exceptions while search the available paths for the module
      */
     ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs) throws IOException,
-        ExecException;
+        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
+        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
+        throws IOException, ExecException;
 
     /**
      * @param moduleIdentifier The unique identifier previously created by this service during

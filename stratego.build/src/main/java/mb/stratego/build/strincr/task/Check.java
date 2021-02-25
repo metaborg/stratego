@@ -55,8 +55,8 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                 continue;
             }
             final STask<CheckModuleOutput> sTask = checkModule.createSupplier(
-                new CheckModuleInput.Normal(input.mainModuleIdentifier, moduleIdentifier,
-                    input.strFileGeneratingTasks, input.includeDirs));
+                new CheckModuleInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
+                    input.includeDirs, input.linkedLibraries, input.mainModuleIdentifier));
             moduleCheckTasks.put(moduleIdentifier, sTask);
             final CheckModuleOutput output = context.require(sTask);
             for(StrategySignature strategySignature : output.strategyDataWithCasts.keySet()) {

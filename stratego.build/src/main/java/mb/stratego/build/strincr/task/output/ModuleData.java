@@ -16,6 +16,7 @@ import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.WithLastModified;
 
@@ -25,7 +26,7 @@ import mb.stratego.build.util.WithLastModified;
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final IStrategoTerm ast;
-    public final ArrayList<IStrategoTerm> imports;
+    public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
@@ -42,12 +43,13 @@ public class ModuleData implements Serializable, WithLastModified {
     public final LinkedHashSet<StrategySignature> usedStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
     public final LinkedHashSet<String> usedAmbiguousStrategies;
+    public final ArrayList<Message> messages;
     public final long lastModified;
     private transient @Nullable LinkedHashMap<String, LinkedHashSet<StrategyFrontData>>
         ambStrategyIndex = null;
 
     public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
-        ArrayList<IStrategoTerm> imports,
+        ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
@@ -60,7 +62,8 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
         LinkedHashSet<StrategySignature> dynamicRules,
-        LinkedHashSet<String> usedAmbiguousStrategies, long lastModified) {
+        LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
+        long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
         this.ast = ast;
         this.imports = imports;
@@ -77,6 +80,7 @@ public class ModuleData implements Serializable, WithLastModified {
         this.usedStrategies = usedStrategies;
         this.dynamicRules = dynamicRules;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
+        this.messages = messages;
         this.lastModified = lastModified;
     }
 
@@ -120,7 +124,9 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!dynamicRules.equals(that.dynamicRules))
             return false;
-        return usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies);
+        if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
+            return false;
+        return messages.equals(that.messages);
     }
 
     @Override public int hashCode() {
@@ -140,6 +146,7 @@ public class ModuleData implements Serializable, WithLastModified {
         result = 31 * result + usedStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + usedAmbiguousStrategies.hashCode();
+        result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }

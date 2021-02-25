@@ -105,7 +105,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
                     .requirePartial(context, front, new FrontInput.Normal(moduleIdentifier,
-                        boilerplateInput.strFileGeneratingTasks), ToConstrData.INSTANCE);
+                        boilerplateInput.strFileGeneratingTasks, input.includeDirs, boilerplateInput.linkedLibraries), ToConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(tf));
                     constructors.add(constructorDatum.signature);
@@ -188,7 +188,8 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
                 final ArrayList<OverlayData> overlayData = PieUtils.requirePartial(context, front,
-                    new FrontInput.Normal(moduleIdentifier, normalInput.strFileGeneratingTasks),
+                    new FrontInput.Normal(moduleIdentifier, normalInput.strFileGeneratingTasks,
+                        normalInput.includeDirs, normalInput.linkedLibraries),
                     new ToOverlays(usedConstructors));
                 for(OverlayData overlayDatum : overlayData) {
                     overlayContributions.add(overlayDatum.astTerm);

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -16,7 +17,7 @@ import mb.stratego.build.util.WithLastModified;
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
 public class ModuleIndex implements Serializable, WithLastModified {
-    public final ArrayList<IStrategoTerm> imports;
+    public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<ConstructorSignature> constructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
@@ -27,7 +28,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final long lastModified;
 
-    public ModuleIndex(ArrayList<IStrategoTerm> imports,
+    public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<ConstructorSignature> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashSet<ConstructorSignature> externalConstructors,
