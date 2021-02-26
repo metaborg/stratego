@@ -18,6 +18,7 @@ import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.PieUtils;
@@ -55,9 +56,9 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
             if(moduleIdentifier.isLibrary()) {
                 continue;
             }
-            final STask<CheckModuleOutput> sTask = checkModule.createSupplier(
-                new CheckModuleInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-                    input.includeDirs, input.linkedLibraries, input.mainModuleIdentifier));
+            final STask<CheckModuleOutput> sTask = checkModule.createSupplier(new CheckModuleInput(
+                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
+                    input.includeDirs, input.linkedLibraries), input.mainModuleIdentifier));
             moduleCheckTasks.put(moduleIdentifier, sTask);
             final CheckModuleOutput output = context.require(sTask);
             for(StrategySignature strategySignature : output.strategyDataWithCasts.keySet()) {

@@ -63,7 +63,7 @@ public abstract class BackInput implements Serializable {
         this.checkInput = checkInput;
     }
 
-    public abstract IStrategoTerm buildCTree(ExecContext context, Back back,
+    public abstract IStrategoTerm buildCTree(ExecContext context, Back backTask,
         Collection<StrategySignature> compiledStrategies) throws ExecException;
 
     @Override public boolean equals(Object o) {
@@ -109,20 +109,20 @@ public abstract class BackInput implements Serializable {
             this.strategySignature = strategySignature;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
             final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
-            getStrategyContributions(context, back, strategyContributions, usedConstructors);
+            getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
 
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
-                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     new ModulesDefiningOverlays(usedConstructors));
 
             final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
                 final ArrayList<OverlayData> overlayData = PieUtils
-                    .requirePartial(context, back.front,
+                    .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
                         new ToOverlays(usedConstructors));
@@ -132,11 +132,11 @@ public abstract class BackInput implements Serializable {
             }
 
             IStrategoTerm desugaringInput =
-                Packer.packStrategy(back.tf, overlayContributions, strategyContributions);
+                Packer.packStrategy(backTask.tf, overlayContributions, strategyContributions);
 
             final StrategoExecutor.ExecutionResult result = StrategoExecutor
-                .runLocallyUniqueStringStrategy(back.ioAgentTrackerFactory, context.logger(), true,
-                    compile_top_level_def_0_0.instance, desugaringInput, back.strContext);
+                .runLocallyUniqueStringStrategy(backTask.ioAgentTrackerFactory, context.logger(),
+                    true, compile_top_level_def_0_0.instance, desugaringInput, backTask.strContext);
 
             if(!result.success) {
                 throw new ExecException(
@@ -158,23 +158,23 @@ public abstract class BackInput implements Serializable {
             return result.result;
         }
 
-        public void getStrategyContributions(ExecContext context, Back back,
+        public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
-                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     new ModulesDefiningStrategy(strategySignature));
 
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
                 if(moduleIdentifier.isLibrary()) {
                     continue;
                 }
-                final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                    .requirePartial(context, back.checkModule,
-                        new CheckModuleInput.Normal(moduleIdentifier,
-                            checkInput.strFileGeneratingTasks, checkInput.includeDirs,
-                            checkInput.linkedLibraries, checkInput.mainModuleIdentifier),
+                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    .requirePartial(context, backTask.checkModule, new CheckModuleInput(
+                            new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
+                                checkInput.includeDirs, checkInput.linkedLibraries),
+                            checkInput.mainModuleIdentifier),
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -216,7 +216,7 @@ public abstract class BackInput implements Serializable {
                 strategySignature);
         }
 
-        @Override public void getStrategyContributions(ExecContext context, Back back,
+        @Override public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
@@ -226,7 +226,7 @@ public abstract class BackInput implements Serializable {
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
                 final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy =
-                    PieUtils.requirePartial(context, back.check, checkInput,
+                    PieUtils.requirePartial(context, backTask.check, checkInput,
                         new ModulesDefiningDynamicRule(strategySignature));
 
                 for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
@@ -234,10 +234,10 @@ public abstract class BackInput implements Serializable {
                         continue;
                     }
                     final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                        .requirePartial(context, back.checkModule,
-                            new CheckModuleInput.Normal(moduleIdentifier,
-                                checkInput.strFileGeneratingTasks, checkInput.includeDirs,
-                                checkInput.linkedLibraries, checkInput.mainModuleIdentifier),
+                        .requirePartial(context, backTask.checkModule, new CheckModuleInput(
+                                new FrontInput.Normal(moduleIdentifier,
+                                    checkInput.strFileGeneratingTasks, checkInput.includeDirs,
+                                    checkInput.linkedLibraries), checkInput.mainModuleIdentifier),
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -294,17 +294,17 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) {
             // TODO: run congruence task per module or even per constructor?
             final GlobalIndex globalIndex = PieUtils
-                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     ToGlobalIndex.INSTANCE);
             final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
-            constructors.add(back.generateStratego.dr_dummy);
-            constructors.add(back.generateStratego.dr_undefine);
+            constructors.add(backTask.generateStratego.dr_dummy);
+            constructors.add(backTask.generateStratego.dr_undefine);
 
             final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
@@ -320,19 +320,19 @@ public abstract class BackInput implements Serializable {
                     continue;
                 }
                 compiledStrategies.add(constructor.toCongruenceSig());
-                congruences.add(constructor.congruenceAst(back.tf));
+                congruences.add(constructor.congruenceAst(backTask.tf));
             }
-            congruences.add(ConstructorSignature.annoCongAst(back.tf));
+            congruences.add(ConstructorSignature.annoCongAst(backTask.tf));
             compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
 
-            final @Nullable IStrategoAppl dynamicCallsDefinition = back.generateStratego
+            final @Nullable IStrategoAppl dynamicCallsDefinition = backTask.generateStratego
                 .dynamicCallsDefinition(dynamicRuleNewGenerated, dynamicRuleUndefineGenerated);
             if(dynamicCallsDefinition != null) {
                 congruences.add(dynamicCallsDefinition);
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
 
-            return Packer.packStrategy(back.tf, new ArrayList<>(0), congruences);
+            return Packer.packStrategy(backTask.tf, new ArrayList<>(0), congruences);
         }
 
         @Override public String toString() {
@@ -369,10 +369,10 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) {
             final GlobalConsInj globalConsInj = PieUtils
-                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     ToGlobalConsInj.INSTANCE);
             final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalConsInj.allModuleIdentifiers.size() + 3);
@@ -381,28 +381,28 @@ public abstract class BackInput implements Serializable {
                     .size() + 3);
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
-                    .requirePartial(context, back.front,
+                    .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
                         ToConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
-                    consInjTerms.add(constructorDatum.toTerm(back.tf));
+                    consInjTerms.add(constructorDatum.toTerm(backTask.tf));
                     constructors.add(constructorDatum.signature);
                 }
             }
-            consInjTerms.add(back.generateStratego.dr_dummyTerm);
-            consInjTerms.add(back.generateStratego.dr_undefineTerm);
-            consInjTerms.add(back.generateStratego.anno_cong__Term);
-            constructors.add(back.generateStratego.dr_dummy);
-            constructors.add(back.generateStratego.dr_undefine);
-            constructors.add(back.generateStratego.anno_cong__);
+            consInjTerms.add(backTask.generateStratego.dr_dummyTerm);
+            consInjTerms.add(backTask.generateStratego.dr_undefineTerm);
+            consInjTerms.add(backTask.generateStratego.anno_cong__Term);
+            constructors.add(backTask.generateStratego.dr_dummy);
+            constructors.add(backTask.generateStratego.dr_undefine);
+            constructors.add(backTask.generateStratego.anno_cong__);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : globalConsInj.nonExternalInjections
                 .entrySet()) {
                 final IStrategoTerm from = e.getKey();
                 for(IStrategoTerm to : e.getValue()) {
-                    consInjTerms.add(back.tf.makeAppl("ConsDeclInj", back.tf.makeAppl("FunType",
-                        back.tf.makeList(ConstructorType.typeToConstType(back.tf, from)),
-                        ConstructorType.typeToConstType(back.tf, to))));
+                    consInjTerms.add(backTask.tf.makeAppl("ConsDeclInj", backTask.tf.makeAppl("FunType",
+                        backTask.tf.makeList(ConstructorType.typeToConstType(backTask.tf, from)),
+                        ConstructorType.typeToConstType(backTask.tf, to))));
                 }
             }
             final HashSet<StrategySignature> strategies =
@@ -413,8 +413,8 @@ public abstract class BackInput implements Serializable {
             if(dynamicCallsDefined) {
                 strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
-            return Packer.packBoilerplate(back.tf, consInjTerms,
-                back.generateStratego.declStubs(strategies));
+            return Packer.packBoilerplate(backTask.tf, consInjTerms,
+                backTask.generateStratego.declStubs(strategies));
         }
 
         @Override public String toString() {

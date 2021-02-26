@@ -25,7 +25,6 @@ import org.strategoxt.strc.insert_casts_0_0;
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -51,6 +50,7 @@ import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
+import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
@@ -90,28 +90,33 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
-        final @Nullable ModuleData moduleData = context.require(front, input.frontInput());
+        final @Nullable ModuleData moduleData = context.require(front, input.frontInput);
         assert moduleData != null;
 
+        final IModuleImportService.ModuleIdentifier moduleIdentifier =
+            input.frontInput.moduleIdentifier;
 
-        final GTEnvironment environment = prepareGTEnvironment(context, input, moduleData);
+        final GTEnvironment environment =
+            prepareGTEnvironment(context, moduleData, input.frontInput);
         final InsertCastsInput insertCastsInput =
-            new InsertCastsInput(input.moduleIdentifier(), environment);
+            new InsertCastsInput(moduleIdentifier, environment);
         final InsertCastsOutput output = insertCasts(context, insertCastsInput);
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>>
             strategyDataWithCasts =
-            extractStrategyDefs(input.moduleIdentifier(), moduleData.lastModified,
-                output.astWithCasts, dynamicRules);
+            extractStrategyDefs(moduleIdentifier, moduleData.lastModified, output.astWithCasts,
+                dynamicRules);
 
-        final ArrayList<Message> messages = new ArrayList<>(moduleData.messages.size() + output.messages.size());
+        final ArrayList<Message> messages =
+            new ArrayList<>(moduleData.messages.size() + output.messages.size());
         messages.addAll(moduleData.messages);
         messages.addAll(output.messages);
 
-        checkExternalsInternalsOverlap(context, input, moduleData.normalStrategyData,
-            moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages);
+        checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
+            moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages,
+            input.resolveInput());
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
     }
@@ -152,15 +157,15 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         return new InsertCastsOutput(astWithCasts, messages);
     }
 
-    private void checkExternalsInternalsOverlap(ExecContext context, CheckModuleInput input,
+    private void checkExternalsInternalsOverlap(ExecContext context,
         Map<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
-        ArrayList<Message> messages) {
+        ArrayList<Message> messages, ResolveInput resolveInput) {
         final HashSet<StrategySignature> strategyFilter =
             new HashSet<>(normalStrategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
-        final AnnoDefs annoDefs = PieUtils
-            .requirePartial(context, resolve, input.resolveInput(), new ToAnnoDefs(strategyFilter));
+        final AnnoDefs annoDefs =
+            PieUtils.requirePartial(context, resolve, resolveInput, new ToAnnoDefs(strategyFilter));
 
         for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
@@ -260,8 +265,9 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 }
                 final LinkedHashSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);
-                Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
-                    .add(new StrategyAnalysisData(strategySignature, strategyDefAppl, definedDynamicRules, lastModified));
+                Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new).add(
+                    new StrategyAnalysisData(strategySignature, strategyDefAppl,
+                        definedDynamicRules, lastModified));
                 for(StrategySignature dynRuleSig : definedDynamicRules) {
                     Relation.getOrInitialize(dynamicRules, dynRuleSig, LinkedHashSet::new)
                         .add(strategySignature);
@@ -270,8 +276,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         }
     }
 
-    private GTEnvironment prepareGTEnvironment(ExecContext context, CheckModuleInput input,
-        ModuleData moduleData) {
+    private GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
+        FrontInput frontInput) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
@@ -286,16 +292,15 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         // Get the relevant strategy and constructor types and all injections, that are visible
         //     through the import, not following them transitively!
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
-        seen.add(input.moduleIdentifier());
+        seen.add(frontInput.moduleIdentifier);
         seen.addAll(moduleData.imports);
         final Queue<IModuleImportService.ModuleIdentifier> worklist = new ArrayDeque<>(moduleData.imports);
         while(!worklist.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
-            final FrontInput frontInput =
-                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks(),
-                    input.includeDirs(), input.linkedLibraries());
-            final Task<ModuleData> task = front.createTask(frontInput);
-            final TypesLookup typesLookup = PieUtils.requirePartial(context, task,
+            final FrontInput moduleInput =
+                new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
+                    frontInput.includeDirs, frontInput.linkedLibraries);
+            final TypesLookup typesLookup = PieUtils.requirePartial(context, front, moduleInput,
                 new ToTypesLookup(tf, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
                     moduleData.usedConstructors));
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
