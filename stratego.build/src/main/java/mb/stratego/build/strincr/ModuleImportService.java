@@ -27,6 +27,7 @@ import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.resource.hierarchical.match.PathResourceMatcher;
 import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
+import mb.stratego.build.util.ExistsAndRTreeStamper;
 import mb.stratego.build.util.LastModified;
 
 public class ModuleImportService implements IModuleImportService {

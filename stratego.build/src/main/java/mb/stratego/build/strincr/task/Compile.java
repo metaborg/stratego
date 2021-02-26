@@ -5,7 +5,7 @@ import java.util.HashSet;
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.STask;
+import mb.pie.api.STaskDef;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -15,11 +15,13 @@ import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.input.CheckInput;
+import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.util.PieUtils;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
@@ -50,13 +52,16 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         }
 
         final HashSet<ResourcePath> resultFiles = new HashSet<>();
-        final STask<GlobalData> resolveTask = resolve.createSupplier(checkInput.resolveInput());
-        final GlobalIndex globalIndex =
-            PieUtils.requirePartial(context, resolveTask, ToGlobalIndex.INSTANCE);
+        final GlobalIndex globalIndex = PieUtils
+            .requirePartial(context, resolve, checkInput.resolveInput(), ToGlobalIndex.INSTANCE);
         final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
         final HashSet<String> dynamicRuleNewGenerated = new HashSet<>();
         final HashSet<String> dynamicRuleUndefineGenerated = new HashSet<>();
+
+        final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
+            input.strategoGradualSetting == StrategoGradualSetting.DYNAMIC ?
+                new STaskDef<>(CheckModule.id) : new STaskDef<>(FrontSplit.id);
 
         for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
@@ -64,7 +69,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             }
             final BackInput.DynamicRule dynamicRuleInput =
                 new BackInput.DynamicRule(input.outputDir, input.packageName, input.cacheDir,
-                    input.constants, input.extraArgs, checkInput, dynamicRule);
+                    input.constants, input.extraArgs, checkInput, dynamicRule,
+                    strategyAnalysisDataTask);
             final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);
@@ -88,7 +94,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             }
             final BackInput.Normal normalInput =
                 new BackInput.Normal(input.outputDir, input.packageName, input.cacheDir,
-                    input.constants, input.extraArgs, checkInput, strategySignature);
+                    input.constants, input.extraArgs, checkInput, strategySignature,
+                    strategyAnalysisDataTask);
             final BackOutput output = context.require(back, normalInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);

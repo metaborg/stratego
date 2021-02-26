@@ -15,6 +15,7 @@ import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.Front;
+import mb.stratego.build.strincr.task.FrontSplit;
 import mb.stratego.build.strincr.task.Resolve;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
@@ -38,5 +39,6 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(CheckModule.class, CheckModule.id);
         bindTaskDef(Resolve.class, Resolve.id);
         bindTaskDef(Front.class, Front.id);
+        bindTaskDef(FrontSplit.class, FrontSplit.id);
     }
 }

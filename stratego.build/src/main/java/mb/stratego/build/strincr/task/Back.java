@@ -52,12 +52,11 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     public final ResourcePathConverter resourcePathConverter;
     public final Resolve resolve;
     public final Check check;
-    public final CheckModule checkModule;
     public final Front front;
 
     @Inject public Back(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext,
         GenerateStratego generateStratego, ResourcePathConverter resourcePathConverter,
-        Resolve resolve, Check check, CheckModule checkModule, Front front) {
+        Resolve resolve, Check check, Front front) {
         this.ioAgentTrackerFactory = ioAgentTrackerFactory;
         this.strContext = strContext;
         this.tf = strContext.getFactory();
@@ -65,7 +64,6 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         this.resourcePathConverter = resourcePathConverter;
         this.resolve = resolve;
         this.check = check;
-        this.checkModule = checkModule;
         this.front = front;
     }
 

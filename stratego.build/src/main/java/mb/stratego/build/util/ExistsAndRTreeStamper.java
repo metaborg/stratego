@@ -1,4 +1,4 @@
-package mb.stratego.build.strincr;
+package mb.stratego.build.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

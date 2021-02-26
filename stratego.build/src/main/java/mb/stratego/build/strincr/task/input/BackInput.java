@@ -18,6 +18,7 @@ import org.strategoxt.strc.compile_top_level_def_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -39,6 +40,7 @@ import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrategoExecutor;
@@ -101,12 +103,15 @@ public abstract class BackInput implements Serializable {
 
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
+        public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
 
         public Normal(ResourcePath outputDir, @Nullable String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, StrategySignature strategySignature) {
+            CheckInput checkInput, StrategySignature strategySignature,
+            STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
             this.strategySignature = strategySignature;
+            this.strategyAnalysisDataTask = strategyAnalysisDataTask;
         }
 
         @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
@@ -171,7 +176,7 @@ public abstract class BackInput implements Serializable {
                     continue;
                 }
                 final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                    .requirePartial(context, backTask.checkModule, new CheckModuleInput(
+                    .requirePartial(context, strategyAnalysisDataTask, new CheckModuleInput(
                             new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                                 checkInput.includeDirs, checkInput.linkedLibraries),
                             checkInput.mainModuleIdentifier),
@@ -194,12 +199,15 @@ public abstract class BackInput implements Serializable {
 
             Normal normal = (Normal) o;
 
-            return strategySignature.equals(normal.strategySignature);
+            if(!strategySignature.equals(normal.strategySignature))
+                return false;
+            return strategyAnalysisDataTask == normal.strategyAnalysisDataTask;
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + strategySignature.hashCode();
+            result = 31 * result + strategyAnalysisDataTask.hashCode();
             return result;
         }
 
@@ -211,9 +219,10 @@ public abstract class BackInput implements Serializable {
     public static class DynamicRule extends Normal {
         public DynamicRule(ResourcePath outputDir, @Nullable String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, StrategySignature strategySignature) {
+            CheckInput checkInput, StrategySignature strategySignature,
+            STaskDef<CheckModuleInput, CheckModuleOutput> strategoGradualSetting) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
-                strategySignature);
+                strategySignature, strategoGradualSetting);
         }
 
         @Override public void getStrategyContributions(ExecContext context, Back backTask,
@@ -234,7 +243,7 @@ public abstract class BackInput implements Serializable {
                         continue;
                     }
                     final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                        .requirePartial(context, backTask.checkModule, new CheckModuleInput(
+                        .requirePartial(context, strategyAnalysisDataTask, new CheckModuleInput(
                                 new FrontInput.Normal(moduleIdentifier,
                                     checkInput.strFileGeneratingTasks, checkInput.includeDirs,
                                     checkInput.linkedLibraries), checkInput.mainModuleIdentifier),
