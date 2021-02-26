@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.task;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
@@ -153,5 +154,9 @@ public class Back implements TaskDef<BackInput, BackOutput> {
 
     @Override public String getId() {
         return id;
+    }
+
+    @Override public Serializable key(BackInput input) {
+        return input.key();
     }
 }

@@ -101,6 +101,8 @@ public abstract class BackInput implements Serializable {
 
     @Override public abstract String toString();
 
+    public abstract Serializable key();
+
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
         public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
@@ -201,7 +203,7 @@ public abstract class BackInput implements Serializable {
 
             if(!strategySignature.equals(normal.strategySignature))
                 return false;
-            return strategyAnalysisDataTask == normal.strategyAnalysisDataTask;
+            return strategyAnalysisDataTask.equals(normal.strategyAnalysisDataTask);
         }
 
         @Override public int hashCode() {
@@ -214,15 +216,19 @@ public abstract class BackInput implements Serializable {
         @Override public String toString() {
             return "Back.NormalInput(" + strategySignature.cifiedName() + ")";
         }
+
+        @Override public Serializable key() {
+            return toString();
+        }
     }
 
     public static class DynamicRule extends Normal {
         public DynamicRule(ResourcePath outputDir, @Nullable String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, StrategySignature strategySignature,
-            STaskDef<CheckModuleInput, CheckModuleOutput> strategoGradualSetting) {
+            STaskDef<CheckModuleInput, CheckModuleOutput> strFileGeneratingTasks) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
-                strategySignature, strategoGradualSetting);
+                strategySignature, strFileGeneratingTasks);
         }
 
         @Override public void getStrategyContributions(ExecContext context, Back backTask,
@@ -265,6 +271,10 @@ public abstract class BackInput implements Serializable {
 
         @Override public String toString() {
             return "Back.DynamicRuleInput(" + strategySignature.cifiedName() + ")";
+        }
+
+        @Override public Serializable key() {
+            return toString();
         }
     }
 
@@ -347,6 +357,10 @@ public abstract class BackInput implements Serializable {
         @Override public String toString() {
             return "Back.CongruenceInput";
         }
+
+        @Override public Serializable key() {
+            return toString();
+        }
     }
 
     public static class Boilerplate extends BackInput {
@@ -428,6 +442,10 @@ public abstract class BackInput implements Serializable {
 
         @Override public String toString() {
             return "Back.BoilerplateInput";
+        }
+
+        @Override public Serializable key() {
+            return toString();
         }
     }
 }
