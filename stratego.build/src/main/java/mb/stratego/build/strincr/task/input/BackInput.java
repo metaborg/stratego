@@ -101,7 +101,59 @@ public abstract class BackInput implements Serializable {
 
     @Override public abstract String toString();
 
-    public abstract Serializable key();
+    public Key key() {
+        return new Key(this);
+    }
+
+    public static class Key implements Serializable {
+        public final Class<? extends BackInput> aClass;
+        public final ResourcePath outputDir;
+        public final @Nullable Serializable anythingElse;
+
+        public Key(BackInput backInput, Serializable anythingElse) {
+            this.aClass = backInput.getClass();
+            this.outputDir = backInput.outputDir;
+            this.anythingElse = anythingElse;
+        }
+
+        public Key(BackInput backInput) {
+            this.aClass = backInput.getClass();
+            this.outputDir = backInput.outputDir;
+            this.anythingElse = null;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            Key key = (Key) o;
+
+            if(!aClass.equals(key.aClass))
+                return false;
+            if(!outputDir.equals(key.outputDir))
+                return false;
+            return anythingElse != null ? anythingElse.equals(key.anythingElse) :
+                key.anythingElse == null;
+        }
+
+        @Override public int hashCode() {
+            int result = aClass.hashCode();
+            result = 31 * result + outputDir.hashCode();
+            result = 31 * result + (anythingElse != null ? anythingElse.hashCode() : 0);
+            return result;
+        }
+
+        @Override public String toString() {
+            if(anythingElse == null) {
+                return "BackInput." + aClass.getSimpleName() + "(" + outputDir + ")";
+            } else {
+                return "BackInput." + aClass.getSimpleName() + "(" + outputDir + ", " + anythingElse
+                    + ")";
+            }
+        }
+    }
 
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
@@ -217,8 +269,8 @@ public abstract class BackInput implements Serializable {
             return "Back.NormalInput(" + strategySignature.cifiedName() + ")";
         }
 
-        @Override public Serializable key() {
-            return toString();
+        @Override public Key key() {
+            return new Key(this, strategySignature);
         }
     }
 
@@ -271,10 +323,6 @@ public abstract class BackInput implements Serializable {
 
         @Override public String toString() {
             return "Back.DynamicRuleInput(" + strategySignature.cifiedName() + ")";
-        }
-
-        @Override public Serializable key() {
-            return toString();
         }
     }
 
@@ -357,10 +405,6 @@ public abstract class BackInput implements Serializable {
         @Override public String toString() {
             return "Back.CongruenceInput";
         }
-
-        @Override public Serializable key() {
-            return toString();
-        }
     }
 
     public static class Boilerplate extends BackInput {
@@ -442,10 +486,6 @@ public abstract class BackInput implements Serializable {
 
         @Override public String toString() {
             return "Back.BoilerplateInput";
-        }
-
-        @Override public Serializable key() {
-            return toString();
         }
     }
 }
