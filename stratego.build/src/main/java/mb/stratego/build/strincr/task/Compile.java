@@ -17,11 +17,9 @@ import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
-import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.util.PieUtils;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
@@ -42,10 +40,9 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     }
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
-        final CheckInput checkInput = new CheckInput(input.mainModuleIdentifier,
-            input.strategoGradualSetting == StrategoGradualSetting.NONE,
-            input.strFileGeneratingTasks, input.includeDirs, input.linkedLibraries);
-        final STask<CheckOutput> checkTask = check.createSupplier(checkInput);
+        final CheckInput checkInput =
+            new CheckInput(input.mainModuleIdentifier, input.strategoGradualSetting,
+                input.strFileGeneratingTasks, input.includeDirs, input.linkedLibraries);
         final CheckOutputMessages checkOutput =
             PieUtils.requirePartial(context, check, checkInput, GetMessages.INSTANCE);
         if(checkOutput.containsErrors) {
@@ -66,10 +63,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 continue;
             }
             final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(dynamicRule, input.outputDir, input.packageName,
-                    input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks,
-                    input.linkedLibraries, checkTask);
+                new BackInput.DynamicRule(input.outputDir, input.packageName, input.cacheDir,
+                    input.constants, input.extraArgs, checkInput, dynamicRule);
             final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);
@@ -92,10 +87,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 continue;
             }
             final BackInput.Normal normalInput =
-                new BackInput.Normal(strategySignature, input.outputDir, input.packageName,
-                    input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                    resolveTask, input.mainModuleIdentifier, input.strFileGeneratingTasks,
-                    input.linkedLibraries);
+                new BackInput.Normal(input.outputDir, input.packageName, input.cacheDir,
+                    input.constants, input.extraArgs, checkInput, strategySignature);
             final BackOutput output = context.require(back, normalInput);
             assert output != null;
             resultFiles.addAll(output.resultFiles);
@@ -103,17 +96,16 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final boolean dynamicCallsDefined =
             !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackInput.Boilerplate boilerplateInput =
-            new BackInput.Boilerplate(resolveTask, input.outputDir, input.packageName,
-                input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicCallsDefined, input.strFileGeneratingTasks, input.linkedLibraries);
+            new BackInput.Boilerplate(input.outputDir, input.packageName, input.cacheDir,
+                input.constants, input.extraArgs, checkInput, dynamicCallsDefined);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
-            new BackInput.Congruence(resolveTask, input.outputDir, input.packageName,
-                input.cacheDir, input.constants, input.includeDirs, input.extraArgs,
-                dynamicRuleNewGenerated, dynamicRuleUndefineGenerated, input.linkedLibraries);
+            new BackInput.Congruence(input.outputDir, input.packageName, input.cacheDir,
+                input.constants, input.extraArgs, checkInput, dynamicRuleNewGenerated,
+                dynamicRuleUndefineGenerated);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);

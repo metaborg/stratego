@@ -3,54 +3,68 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.strc.compile_top_level_def_0_0;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.STask;
+import mb.pie.api.ExecException;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorType;
+import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetDynamicRuleAnalysisData;
 import mb.stratego.build.strincr.function.GetStrategyAnalysisData;
 import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
+import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
+import mb.stratego.build.strincr.function.ToConstrData;
+import mb.stratego.build.strincr.function.ToGlobalConsInj;
+import mb.stratego.build.strincr.function.ToGlobalIndex;
+import mb.stratego.build.strincr.function.ToOverlays;
+import mb.stratego.build.strincr.function.output.GlobalConsInj;
+import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.CheckModule;
-import mb.stratego.build.strincr.task.output.CheckOutput;
-import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
+import mb.stratego.build.util.StrategoExecutor;
+import mb.stratego.compiler.pack.Packer;
 
 public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
-    public final ArrayList<ResourcePath> includeDirs;
     public final Arguments extraArgs;
-    public final STask<GlobalData> resolveTask;
-    public final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
+    public final CheckInput checkInput;
 
     public BackInput(ResourcePath outputDir, @Nullable String packageName,
-        @Nullable ResourcePath cacheDir, ArrayList<String> constants,
-        ArrayList<ResourcePath> includeDirs, Arguments extraArgs, STask<GlobalData> resolveTask,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
+        CheckInput checkInput) {
         this.outputDir = outputDir;
         this.packageName = packageName;
         this.cacheDir = cacheDir;
         this.constants = constants;
-        this.includeDirs = includeDirs;
         this.extraArgs = extraArgs;
-        this.resolveTask = resolveTask;
-        this.linkedLibraries = linkedLibraries;
+        this.checkInput = checkInput;
     }
+
+    public abstract IStrategoTerm buildCTree(ExecContext context, Back back,
+        Collection<StrategySignature> compiledStrategies) throws ExecException;
 
     @Override public boolean equals(Object o) {
         if(this == o)
@@ -68,13 +82,9 @@ public abstract class BackInput implements Serializable {
             return false;
         if(!constants.equals(input.constants))
             return false;
-        if(!includeDirs.equals(input.includeDirs))
-            return false;
         if(!extraArgs.equals(input.extraArgs))
             return false;
-        if(!resolveTask.equals(input.resolveTask))
-            return false;
-        return linkedLibraries.equals(input.linkedLibraries);
+        return checkInput.equals(input.checkInput);
     }
 
     @Override public int hashCode() {
@@ -82,10 +92,8 @@ public abstract class BackInput implements Serializable {
         result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
-        result = 31 * result + includeDirs.hashCode();
         result = 31 * result + extraArgs.hashCode();
-        result = 31 * result + resolveTask.hashCode();
-        result = 31 * result + linkedLibraries.hashCode();
+        result = 31 * result + checkInput.hashCode();
         return result;
     }
 
@@ -93,29 +101,69 @@ public abstract class BackInput implements Serializable {
 
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
-        public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-        public final ArrayList<STask<?>> strFileGeneratingTasks;
 
-        public Normal(StrategySignature strategySignature, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir,
-            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            STask<GlobalData> resolveTask,
-            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks,
-            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
-                linkedLibraries);
+        public Normal(ResourcePath outputDir, @Nullable String packageName,
+            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
+            CheckInput checkInput, StrategySignature strategySignature) {
+            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
             this.strategySignature = strategySignature;
-            this.mainModuleIdentifier = mainModuleIdentifier;
-            this.strFileGeneratingTasks = strFileGeneratingTasks;
         }
 
-        public void getStrategyContributions(ExecContext context, CheckModule checkModule,
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+            Collection<StrategySignature> compiledStrategies) throws ExecException {
+            final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
+            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
+            getStrategyContributions(context, back, strategyContributions, usedConstructors);
+
+            final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
+                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                    new ModulesDefiningOverlays(usedConstructors));
+
+            final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
+            for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
+                final ArrayList<OverlayData> overlayData = PieUtils
+                    .requirePartial(context, back.front,
+                        new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
+                            checkInput.includeDirs, checkInput.linkedLibraries),
+                        new ToOverlays(usedConstructors));
+                for(OverlayData overlayDatum : overlayData) {
+                    overlayContributions.add(overlayDatum.astTerm);
+                }
+            }
+
+            IStrategoTerm desugaringInput =
+                Packer.packStrategy(back.tf, overlayContributions, strategyContributions);
+
+            final StrategoExecutor.ExecutionResult result = StrategoExecutor
+                .runLocallyUniqueStringStrategy(back.ioAgentTrackerFactory, context.logger(), true,
+                    compile_top_level_def_0_0.instance, desugaringInput, back.strContext);
+
+            if(!result.success) {
+                throw new ExecException(
+                    "Call to compile-top-level-def failed:\n" + result.exception, null);
+            }
+            assert result.result != null;
+
+            //noinspection ConstantConditions
+            final Set<StrategySignature> cifiedStrategySignatures =
+                CheckModule.extractStrategyDefs(null, 0L, result.result, null).keySet();
+            for(StrategySignature cified : cifiedStrategySignatures) {
+                final @Nullable StrategySignature uncified =
+                    StrategySignature.fromCified(cified.name);
+                if(uncified != null) {
+                    compiledStrategies.add(uncified);
+                }
+            }
+
+            return result.result;
+        }
+
+        public void getStrategyContributions(ExecContext context, Back back,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
-                .requirePartial(context, this.resolveTask,
+                .requirePartial(context, back.resolve, checkInput.resolveInput(),
                     new ModulesDefiningStrategy(strategySignature));
 
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
@@ -123,9 +171,10 @@ public abstract class BackInput implements Serializable {
                     continue;
                 }
                 final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                    .requirePartial(context, checkModule,
-                        new CheckModuleInput.Normal(moduleIdentifier, strFileGeneratingTasks,
-                            includeDirs, linkedLibraries, this.mainModuleIdentifier),
+                    .requirePartial(context, back.checkModule,
+                        new CheckModuleInput.Normal(moduleIdentifier,
+                            checkInput.strFileGeneratingTasks, checkInput.includeDirs,
+                            checkInput.linkedLibraries, checkInput.mainModuleIdentifier),
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -145,18 +194,12 @@ public abstract class BackInput implements Serializable {
 
             Normal normal = (Normal) o;
 
-            if(!strategySignature.equals(normal.strategySignature))
-                return false;
-            if(!mainModuleIdentifier.equals(normal.mainModuleIdentifier))
-                return false;
-            return strFileGeneratingTasks.equals(normal.strFileGeneratingTasks);
+            return strategySignature.equals(normal.strategySignature);
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + strategySignature.hashCode();
-            result = 31 * result + mainModuleIdentifier.hashCode();
-            result = 31 * result + strFileGeneratingTasks.hashCode();
             return result;
         }
 
@@ -166,22 +209,14 @@ public abstract class BackInput implements Serializable {
     }
 
     public static class DynamicRule extends Normal {
-        public final STask<CheckOutput> checkTask;
-
-        public DynamicRule(StrategySignature strategySignature, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir,
-            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            STask<GlobalData> resolveTask,
-            IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks,
-            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, STask<CheckOutput> checkTask) {
-            super(strategySignature, outputDir, packageName, cacheDir, constants, includeDirs,
-                extraArgs, resolveTask, mainModuleIdentifier, strFileGeneratingTasks,
-                linkedLibraries);
-            this.checkTask = checkTask;
+        public DynamicRule(ResourcePath outputDir, @Nullable String packageName,
+            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
+            CheckInput checkInput, StrategySignature strategySignature) {
+            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+                strategySignature);
         }
 
-        @Override public void getStrategyContributions(ExecContext context, CheckModule checkModule,
+        @Override public void getStrategyContributions(ExecContext context, Back back,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
@@ -191,7 +226,7 @@ public abstract class BackInput implements Serializable {
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
                 final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy =
-                    PieUtils.requirePartial(context, this.checkTask,
+                    PieUtils.requirePartial(context, back.check, checkInput,
                         new ModulesDefiningDynamicRule(strategySignature));
 
                 for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
@@ -199,9 +234,10 @@ public abstract class BackInput implements Serializable {
                         continue;
                     }
                     final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
-                        .requirePartial(context, checkModule,
-                            new CheckModuleInput.Normal(moduleIdentifier, strFileGeneratingTasks,
-                                includeDirs, linkedLibraries, this.mainModuleIdentifier),
+                        .requirePartial(context, back.checkModule,
+                            new CheckModuleInput.Normal(moduleIdentifier,
+                                checkInput.strFileGeneratingTasks, checkInput.includeDirs,
+                                checkInput.linkedLibraries, checkInput.mainModuleIdentifier),
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -218,25 +254,6 @@ public abstract class BackInput implements Serializable {
             }
         }
 
-        @Override public boolean equals(Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-            if(!super.equals(o))
-                return false;
-
-            DynamicRule that = (DynamicRule) o;
-
-            return checkTask.equals(that.checkTask);
-        }
-
-        @Override public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + checkTask.hashCode();
-            return result;
-        }
-
         @Override public String toString() {
             return "Back.DynamicRuleInput(" + strategySignature.cifiedName() + ")";
         }
@@ -246,13 +263,11 @@ public abstract class BackInput implements Serializable {
         public final HashSet<String> dynamicRuleNewGenerated;
         public final HashSet<String> dynamicRuleUndefineGenerated;
 
-        public Congruence(STask<GlobalData> resolveTask, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir,
-            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            HashSet<String> dynamicRuleNewGenerated, HashSet<String> dynamicRuleUndefineGenerated,
-            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
-                linkedLibraries);
+        public Congruence(ResourcePath outputDir, @Nullable String packageName,
+            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
+            CheckInput checkInput, HashSet<String> dynamicRuleNewGenerated,
+            HashSet<String> dynamicRuleUndefineGenerated) {
+            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
             this.dynamicRuleNewGenerated = dynamicRuleNewGenerated;
             this.dynamicRuleUndefineGenerated = dynamicRuleUndefineGenerated;
         }
@@ -279,6 +294,47 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+            Collection<StrategySignature> compiledStrategies) {
+            // TODO: run congruence task per module or even per constructor?
+            final GlobalIndex globalIndex = PieUtils
+                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                    ToGlobalIndex.INSTANCE);
+            final ArrayList<ConstructorSignature> constructors =
+                new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
+            constructors.addAll(globalIndex.nonExternalConstructors);
+            constructors.add(back.generateStratego.dr_dummy);
+            constructors.add(back.generateStratego.dr_undefine);
+
+            final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
+            for(ConstructorSignature constructor : constructors) {
+                if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
+                    context.logger().debug(
+                        "Skipping congruence overlapping with existing strategy: " + constructor);
+                    continue;
+                }
+                if(globalIndex.externalConstructors.contains(constructor)) {
+                    context.logger().debug(
+                        "Skipping congruence of constructor overlapping with external constructor: "
+                            + constructor);
+                    continue;
+                }
+                compiledStrategies.add(constructor.toCongruenceSig());
+                congruences.add(constructor.congruenceAst(back.tf));
+            }
+            congruences.add(ConstructorSignature.annoCongAst(back.tf));
+            compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
+
+            final @Nullable IStrategoAppl dynamicCallsDefinition = back.generateStratego
+                .dynamicCallsDefinition(dynamicRuleNewGenerated, dynamicRuleUndefineGenerated);
+            if(dynamicCallsDefinition != null) {
+                congruences.add(dynamicCallsDefinition);
+                compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
+            }
+
+            return Packer.packStrategy(back.tf, new ArrayList<>(0), congruences);
+        }
+
         @Override public String toString() {
             return "Back.CongruenceInput";
         }
@@ -286,17 +342,12 @@ public abstract class BackInput implements Serializable {
 
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
-        public final ArrayList<STask<?>> strFileGeneratingTasks;
 
-        public Boilerplate(STask<GlobalData> resolveTask, ResourcePath outputDir,
-            @Nullable String packageName, @Nullable ResourcePath cacheDir,
-            ArrayList<String> constants, ArrayList<ResourcePath> includeDirs, Arguments extraArgs,
-            boolean dynamicCallsDefined, ArrayList<STask<?>> strFileGeneratingTasks,
-            ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(outputDir, packageName, cacheDir, constants, includeDirs, extraArgs, resolveTask,
-                linkedLibraries);
+        public Boilerplate(ResourcePath outputDir, @Nullable String packageName,
+            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
+            CheckInput checkInput, boolean dynamicCallsDefined) {
+            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
             this.dynamicCallsDefined = dynamicCallsDefined;
-            this.strFileGeneratingTasks = strFileGeneratingTasks;
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -309,16 +360,61 @@ public abstract class BackInput implements Serializable {
 
             Boilerplate that = (Boilerplate) o;
 
-            if(dynamicCallsDefined != that.dynamicCallsDefined)
-                return false;
-            return strFileGeneratingTasks.equals(that.strFileGeneratingTasks);
+            return dynamicCallsDefined == that.dynamicCallsDefined;
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + (dynamicCallsDefined ? 1 : 0);
-            result = 31 * result + strFileGeneratingTasks.hashCode();
             return result;
+        }
+
+        @Override public IStrategoTerm buildCTree(ExecContext context, Back back,
+            Collection<StrategySignature> compiledStrategies) {
+            final GlobalConsInj globalConsInj = PieUtils
+                .requirePartial(context, back.resolve, checkInput.resolveInput(),
+                    ToGlobalConsInj.INSTANCE);
+            final ArrayList<ConstructorSignature> constructors =
+                new ArrayList<>(globalConsInj.allModuleIdentifiers.size() + 3);
+            final ArrayList<IStrategoTerm> consInjTerms = new ArrayList<>(
+                globalConsInj.allModuleIdentifiers.size() + globalConsInj.nonExternalInjections
+                    .size() + 3);
+            for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
+                final ArrayList<ConstructorData> constructorData = PieUtils
+                    .requirePartial(context, back.front,
+                        new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
+                            checkInput.includeDirs, checkInput.linkedLibraries),
+                        ToConstrData.INSTANCE);
+                for(ConstructorData constructorDatum : constructorData) {
+                    consInjTerms.add(constructorDatum.toTerm(back.tf));
+                    constructors.add(constructorDatum.signature);
+                }
+            }
+            consInjTerms.add(back.generateStratego.dr_dummyTerm);
+            consInjTerms.add(back.generateStratego.dr_undefineTerm);
+            consInjTerms.add(back.generateStratego.anno_cong__Term);
+            constructors.add(back.generateStratego.dr_dummy);
+            constructors.add(back.generateStratego.dr_undefine);
+            constructors.add(back.generateStratego.anno_cong__);
+            for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : globalConsInj.nonExternalInjections
+                .entrySet()) {
+                final IStrategoTerm from = e.getKey();
+                for(IStrategoTerm to : e.getValue()) {
+                    consInjTerms.add(back.tf.makeAppl("ConsDeclInj", back.tf.makeAppl("FunType",
+                        back.tf.makeList(ConstructorType.typeToConstType(back.tf, from)),
+                        ConstructorType.typeToConstType(back.tf, to))));
+                }
+            }
+            final HashSet<StrategySignature> strategies =
+                new HashSet<>(globalConsInj.nonExternalStrategies);
+            for(ConstructorSignature constructor : constructors) {
+                strategies.add(constructor.toCongruenceSig());
+            }
+            if(dynamicCallsDefined) {
+                strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
+            }
+            return Packer.packBoilerplate(back.tf, consInjTerms,
+                back.generateStratego.declStubs(strategies));
         }
 
         @Override public String toString() {

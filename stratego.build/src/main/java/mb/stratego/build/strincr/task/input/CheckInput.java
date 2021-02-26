@@ -6,20 +6,21 @@ import java.util.ArrayList;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CheckInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
-    public final boolean ignoreTypeMessages;
+    public final StrategoGradualSetting strategoGradualSetting;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
     public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        boolean ignoreTypeMessages, ArrayList<STask<?>> strFileGeneratingTasks,
+        StrategoGradualSetting strategoGradualSetting, ArrayList<STask<?>> strFileGeneratingTasks,
         ArrayList<? extends ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
         this.mainModuleIdentifier = mainModuleIdentifier;
-        this.ignoreTypeMessages = ignoreTypeMessages;
+        this.strategoGradualSetting = strategoGradualSetting;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
         this.linkedLibraries = linkedLibraries;
@@ -38,7 +39,7 @@ public class CheckInput implements Serializable {
 
         CheckInput that = (CheckInput) o;
 
-        if(ignoreTypeMessages != that.ignoreTypeMessages)
+        if(strategoGradualSetting != that.strategoGradualSetting)
             return false;
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
             return false;
@@ -51,7 +52,7 @@ public class CheckInput implements Serializable {
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
-        result = 31 * result + (ignoreTypeMessages ? 1 : 0);
+        result = 31 * result + strategoGradualSetting.hashCode();
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();
         result = 31 * result + linkedLibraries.hashCode();

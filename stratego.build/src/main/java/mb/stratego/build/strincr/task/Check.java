@@ -22,6 +22,7 @@ import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
+import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Runs {@link Resolve}, gets the list of all modules, then runs {@link CheckModule} on each module.
@@ -67,7 +68,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
                     .add(moduleIdentifier);
             }
-            if(input.ignoreTypeMessages) {
+            if(input.strategoGradualSetting == StrategoGradualSetting.NONE) {
                 for(Message message : output.messages) {
                     if(!(message instanceof TypeMessage)) {
                         messages.add(message);
