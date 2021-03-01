@@ -1,3 +1,9 @@
+# Spoofax generated files
+*.aterm
+*.core.str
+*.core.opt.str
+
+# Java
 /bin
 /target
 
@@ -7,4 +13,3 @@
 /.factorypath
 
 /.polyglot.metaborg.yaml
-

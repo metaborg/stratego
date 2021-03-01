@@ -20,7 +20,7 @@ imports
   libstratego-gpp
 
 rules // Debugging
-  
+
   debug-show-aterm:
     (node, _, _, path, project-path) -> (filename, result)
     with
@@ -61,6 +61,20 @@ rules // Debugging
     ; pp-debug
     ; ?result
 
+  debug-show-core-optimized:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"core.opt.stra")> path
+    ; <set-config> ("--library", ()) // no main strategy necessary this way
+    ; <set-config> ("-O", 3) // set optimisation level to 3
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; strc-optimize
+    ; pp-debug
+    ; ?result
+
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
     with
@@ -81,6 +95,27 @@ rules // Debugging
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )
+    ; s2j
+    ; ?ast*
+    ; filename* := <map(output-filename)> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
+
+  debug-show-java-optimized:
+    (node, _, _, path, project-path) -> (filename*, result*)
+    with
+      <set-config> ("--library", ()) // no main strategy necessary this way
+    ; <set-config> ("-O", 3) // set optimisation level to 3
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|"opt.java")> path) // required output file path
+      ; strj-preinit-options
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; strc-optimize
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
