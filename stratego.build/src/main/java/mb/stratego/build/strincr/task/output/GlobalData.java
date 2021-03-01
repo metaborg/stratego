@@ -12,8 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
+import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
+import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
@@ -32,6 +33,7 @@ public class GlobalData implements Serializable {
     public final ArrayList<Message> messages;
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
     private transient @Nullable CongruenceGlobalIndex congruenceGlobalIndex = null;
+    private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
         LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> constructorIndex,
@@ -56,28 +58,19 @@ public class GlobalData implements Serializable {
 
     public CompileGlobalIndex getCompileGlobalIndex() {
         if(compileGlobalIndex == null) {
-            final LinkedHashSet<StrategySignature> nonExternalStrategies;
-            if(congruenceGlobalIndex != null) {
-                nonExternalStrategies = congruenceGlobalIndex.nonExternalStrategies;
-            } else {
-                nonExternalStrategies = new LinkedHashSet<>(strategyIndex.keySet());
-                nonExternalStrategies.removeAll(externalStrategies);
-                nonExternalStrategies.addAll(internalStrategies);
-            }
+            final LinkedHashSet<StrategySignature> nonExternalStrategies =
+                new LinkedHashSet<>(strategyIndex.keySet());
+            nonExternalStrategies.removeAll(externalStrategies);
+            nonExternalStrategies.addAll(internalStrategies);
             compileGlobalIndex = new CompileGlobalIndex(nonExternalStrategies, dynamicRules);
-        } return compileGlobalIndex;
+        }
+        return compileGlobalIndex;
     }
 
     public CongruenceGlobalIndex getCongruenceGlobalIndex() {
         if(congruenceGlobalIndex == null) {
-            final LinkedHashSet<StrategySignature> nonExternalStrategies;
-            if(compileGlobalIndex != null) {
-                nonExternalStrategies = compileGlobalIndex.nonExternalStrategies;
-            } else {
-                nonExternalStrategies = new LinkedHashSet<>(strategyIndex.keySet());
-                nonExternalStrategies.removeAll(externalStrategies);
-                nonExternalStrategies.addAll(internalStrategies);
-            }
+            final LinkedHashSet<StrategySignature> nonExternalStrategies =
+                getCompileGlobalIndex().nonExternalStrategies;
             final LinkedHashSet<ConstructorSignature> nonExternalConstructors =
                 new LinkedHashSet<>(constructorIndex.keySet());
             nonExternalConstructors.removeAll(externalConstructors);
@@ -86,6 +79,14 @@ public class GlobalData implements Serializable {
                     nonExternalStrategies);
         }
         return congruenceGlobalIndex;
+    }
+
+    public GlobalConsInj getGlobalConsInj() {
+        if(globalConsInj == null) {
+            globalConsInj = new GlobalConsInj(allModuleIdentifiers, nonExternalInjections,
+                getCompileGlobalIndex().nonExternalStrategies);
+        }
+        return globalConsInj;
     }
 
     @Override public boolean equals(Object o) {

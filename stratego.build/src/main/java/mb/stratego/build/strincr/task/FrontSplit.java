@@ -12,7 +12,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.ToAst;
+import mb.stratego.build.strincr.function.GetASTWithLastModified;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.util.LastModified;
@@ -34,7 +34,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input)
         throws Exception {
         final LastModified<IStrategoTerm> astWLM =
-            PieUtils.requirePartial(context, front, input.frontInput, ToAst.INSTANCE);
+            PieUtils.requirePartial(context, front, input.frontInput, GetASTWithLastModified.INSTANCE);
 
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();

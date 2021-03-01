@@ -8,8 +8,8 @@ import java.util.function.Function;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class ToConstrData implements Function<ModuleData, ArrayList<ConstructorData>>, Serializable {
-    public static final ToConstrData INSTANCE = new ToConstrData();
+public class GetConstrData implements Function<ModuleData, ArrayList<ConstructorData>>, Serializable {
+    public static final GetConstrData INSTANCE = new GetConstrData();
 
     @Override public ArrayList<ConstructorData> apply(ModuleData moduleData) {
         final ArrayList<ConstructorData> constructorData = new ArrayList<>();

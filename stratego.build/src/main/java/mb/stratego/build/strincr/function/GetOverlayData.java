@@ -13,10 +13,10 @@ import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class ToOverlays implements Function<ModuleData, ArrayList<OverlayData>>, Serializable {
+public class GetOverlayData implements Function<ModuleData, ArrayList<OverlayData>>, Serializable {
     private final Set<ConstructorSignature> usedConstructors;
 
-    public ToOverlays(Set<ConstructorSignature> usedConstructors) {
+    public GetOverlayData(Set<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
@@ -38,7 +38,7 @@ public class ToOverlays implements Function<ModuleData, ArrayList<OverlayData>>,
         if(o == null || getClass() != o.getClass())
             return false;
 
-        ToOverlays that = (ToOverlays) o;
+        GetOverlayData that = (GetOverlayData) o;
 
         return usedConstructors.equals(that.usedConstructors);
     }

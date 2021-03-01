@@ -33,9 +33,9 @@ import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
 import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToCongruenceGlobalIndex;
-import mb.stratego.build.strincr.function.ToConstrData;
+import mb.stratego.build.strincr.function.GetConstrData;
 import mb.stratego.build.strincr.function.ToGlobalConsInj;
-import mb.stratego.build.strincr.function.ToOverlays;
+import mb.stratego.build.strincr.function.GetOverlayData;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.task.Back;
@@ -184,7 +184,7 @@ public abstract class BackInput implements Serializable {
                     .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
-                        new ToOverlays(usedConstructors));
+                        new GetOverlayData(usedConstructors));
                 for(OverlayData overlayDatum : overlayData) {
                     overlayContributions.add(overlayDatum.astTerm);
                 }
@@ -451,7 +451,7 @@ public abstract class BackInput implements Serializable {
                     .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
-                        ToConstrData.INSTANCE);
+                        GetConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(backTask.tf));
                     constructors.add(constructorDatum.signature);

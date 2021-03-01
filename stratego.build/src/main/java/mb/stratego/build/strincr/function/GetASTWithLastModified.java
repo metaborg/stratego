@@ -8,8 +8,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.LastModified;
 
-public class ToAst implements Function<ModuleData, LastModified<IStrategoTerm>>, Serializable {
-    public static final ToAst INSTANCE = new ToAst();
+public class GetASTWithLastModified
+    implements Function<ModuleData, LastModified<IStrategoTerm>>, Serializable {
+    public static final GetASTWithLastModified INSTANCE = new GetASTWithLastModified();
 
     @Override public LastModified<IStrategoTerm> apply(ModuleData moduleData) {
         return new LastModified<>(moduleData.ast, moduleData.lastModified);
