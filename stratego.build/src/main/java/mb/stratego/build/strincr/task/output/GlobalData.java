@@ -19,13 +19,12 @@ import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
     public final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
-    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
-        constructorIndex;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
     public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         strategyIndex;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         overlayIndex;
+    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
@@ -36,19 +35,19 @@ public class GlobalData implements Serializable {
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> constructorIndex,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        LinkedHashSet<ConstructorSignature> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages) {
         this.allModuleIdentifiers = allModuleIdentifiers;
-        this.constructorIndex = constructorIndex;
         this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
+        this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.internalStrategies = internalStrategies;
         this.externalStrategies = externalStrategies;
@@ -71,9 +70,6 @@ public class GlobalData implements Serializable {
         if(congruenceGlobalIndex == null) {
             final LinkedHashSet<StrategySignature> nonExternalStrategies =
                 getCompileGlobalIndex().nonExternalStrategies;
-            final LinkedHashSet<ConstructorSignature> nonExternalConstructors =
-                new LinkedHashSet<>(constructorIndex.keySet());
-            nonExternalConstructors.removeAll(externalConstructors);
             congruenceGlobalIndex =
                 new CongruenceGlobalIndex(nonExternalConstructors, externalConstructors,
                     nonExternalStrategies);
@@ -99,13 +95,13 @@ public class GlobalData implements Serializable {
 
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
             return false;
-        if(!constructorIndex.equals(that.constructorIndex))
-            return false;
         if(!nonExternalInjections.equals(that.nonExternalInjections))
             return false;
         if(!strategyIndex.equals(that.strategyIndex))
             return false;
         if(!overlayIndex.equals(that.overlayIndex))
+            return false;
+        if(!nonExternalConstructors.equals(that.nonExternalConstructors))
             return false;
         if(!externalConstructors.equals(that.externalConstructors))
             return false;
@@ -120,10 +116,10 @@ public class GlobalData implements Serializable {
 
     @Override public int hashCode() {
         int result = allModuleIdentifiers.hashCode();
-        result = 31 * result + constructorIndex.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();
         result = 31 * result + strategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();
+        result = 31 * result + nonExternalConstructors.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + internalStrategies.hashCode();
         result = 31 * result + externalStrategies.hashCode();

@@ -226,9 +226,6 @@ public abstract class BackInput implements Serializable {
                     new ModulesDefiningStrategy(strategySignature));
 
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
-                if(moduleIdentifier.isLibrary()) {
-                    continue;
-                }
                 final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
                     .requirePartial(context, strategyAnalysisDataTask, new CheckModuleInput(
                             new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,

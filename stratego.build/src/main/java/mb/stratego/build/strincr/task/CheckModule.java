@@ -90,6 +90,11 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
+        if(input.frontInput.moduleIdentifier.isLibrary()) {
+            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
+                new ArrayList<>(0));
+        }
+
         final @Nullable ModuleData moduleData = context.require(front, input.frontInput);
         assert moduleData != null;
 

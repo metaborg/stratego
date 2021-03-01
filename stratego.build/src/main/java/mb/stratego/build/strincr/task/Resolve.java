@@ -63,8 +63,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
-        final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
-            constructorIndex = new LinkedHashMap<>();
+        final LinkedHashSet<ConstructorSignature> nonExternalConstructorIndex =
+            new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
@@ -90,15 +90,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             final ModuleIndex index =
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
-            for(ConstructorSignature signature : index.constructors) {
-                Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
-                    .add(moduleIdentifier);
-            }
-            for(ConstructorSignature signature : index.externalConstructors) {
-                Relation.getOrInitialize(constructorIndex, signature, LinkedHashSet::new)
-                    .add(moduleIdentifier);
-                externalConstructors.add(signature);
-            }
+            nonExternalConstructorIndex.addAll(index.constructors);
+            externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
                 .entrySet()) {
                 Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
@@ -145,8 +138,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
-        return new GlobalData(allModuleIdentifiers, constructorIndex, nonExternalInjections,
-            strategyIndex, overlayIndex, externalConstructors, internalStrategies,
+        return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
+            strategyIndex, nonExternalConstructorIndex, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, messages);
     }
 

@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -12,9 +11,9 @@ import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.AllModulesIdentifiers;
+import mb.stratego.build.strincr.function.ToModuleIdentifiersAndMessages;
+import mb.stratego.build.strincr.function.output.ModuleIndentifiersAndMessages;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
@@ -41,30 +40,21 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     }
 
     @Override public CheckOutput exec(ExecContext context, CheckInput input) {
-        final LinkedHashMap<IModuleImportService.ModuleIdentifier, STask<CheckModuleOutput>>
-            moduleCheckTasks = new LinkedHashMap<>();
-        final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
-            strategyIndex = new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             dynamicRuleIndex = new LinkedHashMap<>();
         final ArrayList<Message> messages = new ArrayList<>();
-        boolean containsErrors = false;
-        final HashSet<IModuleImportService.ModuleIdentifier> allModulesIdentifiers = PieUtils
-            .requirePartial(context, resolve, input.resolveInput(), AllModulesIdentifiers.INSTANCE);
+        final ModuleIndentifiersAndMessages moduleIndentifiersAndMessages = PieUtils
+            .requirePartial(context, resolve, input.resolveInput(),
+                ToModuleIdentifiersAndMessages.INSTANCE);
 
-        for(IModuleImportService.ModuleIdentifier moduleIdentifier : allModulesIdentifiers) {
+        for(IModuleImportService.ModuleIdentifier moduleIdentifier : moduleIndentifiersAndMessages.allModuleIdentifiers) {
             if(moduleIdentifier.isLibrary()) {
                 continue;
             }
             final STask<CheckModuleOutput> sTask = checkModule.createSupplier(new CheckModuleInput(
                 new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
                     input.includeDirs, input.linkedLibraries), input.mainModuleIdentifier));
-            moduleCheckTasks.put(moduleIdentifier, sTask);
             final CheckModuleOutput output = context.require(sTask);
-            for(StrategySignature strategySignature : output.strategyDataWithCasts.keySet()) {
-                Relation.getOrInitialize(strategyIndex, strategySignature, LinkedHashSet::new)
-                    .add(moduleIdentifier);
-            }
             for(StrategySignature strategySignature : output.dynamicRules.keySet()) {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
                     .add(moduleIdentifier);
@@ -73,18 +63,16 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                 for(Message message : output.messages) {
                     if(!(message instanceof TypeMessage)) {
                         messages.add(message);
-                        containsErrors |= message.severity == MessageSeverity.ERROR;
                     }
                 }
             } else {
-                for(Message message : output.messages) {
-                    messages.add(message);
-                    containsErrors |= message.severity == MessageSeverity.ERROR;
-                }
+                messages.addAll(output.messages);
             }
         }
 
-        return new CheckOutput(moduleCheckTasks, strategyIndex, dynamicRuleIndex, messages, containsErrors);
+        messages.addAll(moduleIndentifiersAndMessages.messages);
+
+        return new CheckOutput(dynamicRuleIndex, messages);
     }
 
     @Override public String getId() {

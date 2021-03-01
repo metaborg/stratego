@@ -33,6 +33,11 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input)
         throws Exception {
+        if(input.frontInput.moduleIdentifier.isLibrary()) {
+            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
+                new ArrayList<>(0));
+        }
+
         final LastModified<IStrategoTerm> astWLM =
             PieUtils.requirePartial(context, front, input.frontInput, GetASTWithLastModified.INSTANCE);
 
