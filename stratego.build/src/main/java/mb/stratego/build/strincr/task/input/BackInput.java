@@ -360,7 +360,6 @@ public abstract class BackInput implements Serializable {
 
         @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) {
-            // TODO: run congruence task per module or even per constructor?
             final CongruenceGlobalIndex globalIndex = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     ToCongruenceGlobalIndex.INSTANCE);

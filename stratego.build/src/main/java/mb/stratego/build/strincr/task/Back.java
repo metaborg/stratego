@@ -12,6 +12,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
+import org.spoofax.terms.util.TermUtils;
+import org.strategoxt.lang.Term;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
@@ -105,9 +107,9 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         for(IModuleImportService.ModuleIdentifier linkedLibrary : input.checkInput.linkedLibraries) {
             if(linkedLibrary instanceof BuiltinLibraryIdentifier) {
                 arguments.add("-la", ((BuiltinLibraryIdentifier) linkedLibrary).cmdArgString);
-            } else {
-                // TODO: non-builtin libraries linked against need use the package name...
             }
+            // N.B. If non-built-in libraries are split off and modelled under linkedLibraries,
+            //      we'll need to add `-la [package-name]` for those libraries here.
         }
 
         arguments.addAll(input.extraArgs);
@@ -121,18 +123,15 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         if(!result.success) {
             throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
         }
+        assert result.result != null;
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
-        // TODO: have the compilation return a list of files instead of printing to log
-        for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
-            if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {
-                String fileName = line.substring(
-                    line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
-                        + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
-                final File file = new File(fileName);
-                context.provide(file);
-                resultFiles.add(new FSPath(file.toPath()));
-            }
+        assert TermUtils.isList(result.result);
+        for(IStrategoTerm fileNameTerm : result.result) {
+            assert TermUtils.isString(fileNameTerm);
+            final File file = new File(TermUtils.toJavaString(fileNameTerm));
+            context.provide(file);
+            resultFiles.add(new FSPath(file.toPath()));
         }
 
         return new BackOutput(resultFiles, compiledStrategies);

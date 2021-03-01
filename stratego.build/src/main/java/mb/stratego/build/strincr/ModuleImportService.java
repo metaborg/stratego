@@ -156,7 +156,6 @@ public class ModuleImportService implements IModuleImportService {
         if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
             final mb.stratego.build.strincr.ModuleIdentifier identifier =
                 (mb.stratego.build.strincr.ModuleIdentifier) moduleIdentifier;
-            // TODO: existence check required first somewhere (here or in the caller?)
             context.require(identifier.resource);
             try(final InputStream inputStream = new BufferedInputStream(
                 identifier.resource.openRead())) {
