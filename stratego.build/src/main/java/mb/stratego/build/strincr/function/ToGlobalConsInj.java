@@ -10,7 +10,7 @@ public class ToGlobalConsInj implements Function<GlobalData, GlobalConsInj>, Ser
     public static final ToGlobalConsInj INSTANCE = new ToGlobalConsInj();
 
     @Override public GlobalConsInj apply(GlobalData globalData) {
-        return new GlobalConsInj(globalData.allModuleIdentifiers, globalData.nonExternalInjections, globalData.getGlobalIndex().nonExternalStrategies);
+        return new GlobalConsInj(globalData.allModuleIdentifiers, globalData.nonExternalInjections, globalData.getCompileGlobalIndex().nonExternalStrategies);
     }
 
     @Override public boolean equals(Object other) {

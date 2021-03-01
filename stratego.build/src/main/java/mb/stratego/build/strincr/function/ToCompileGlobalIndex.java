@@ -4,16 +4,16 @@ import java.io.Serializable;
 import java.util.function.Function;
 
 import mb.stratego.build.strincr.task.output.GlobalData;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 
-public class ToGlobalIndex implements Function<GlobalData, GlobalIndex>, Serializable {
-    public static final ToGlobalIndex INSTANCE = new ToGlobalIndex();
+public class ToCompileGlobalIndex implements Function<GlobalData, CompileGlobalIndex>, Serializable {
+    public static final ToCompileGlobalIndex INSTANCE = new ToCompileGlobalIndex();
 
-    private ToGlobalIndex() {
+    private ToCompileGlobalIndex() {
     }
 
-    @Override public GlobalIndex apply(GlobalData globalData) {
-        return globalData.getGlobalIndex();
+    @Override public CompileGlobalIndex apply(GlobalData globalData) {
+        return globalData.getCompileGlobalIndex();
     }
 
     @Override public boolean equals(Object other) {

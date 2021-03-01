@@ -10,9 +10,9 @@ import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetMessages;
-import mb.stratego.build.strincr.function.ToGlobalIndex;
+import mb.stratego.build.strincr.function.ToCompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CheckOutputMessages;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
+import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
@@ -52,8 +52,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         }
 
         final HashSet<ResourcePath> resultFiles = new HashSet<>();
-        final GlobalIndex globalIndex = PieUtils
-            .requirePartial(context, resolve, checkInput.resolveInput(), ToGlobalIndex.INSTANCE);
+        final CompileGlobalIndex compileGlobalIndex = PieUtils
+            .requirePartial(context, resolve, checkInput.resolveInput(), ToCompileGlobalIndex.INSTANCE);
         final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
         final HashSet<String> dynamicRuleNewGenerated = new HashSet<>();
@@ -63,7 +63,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             input.strategoGradualSetting == StrategoGradualSetting.DYNAMIC ?
                 new STaskDef<>(CheckModule.id) : new STaskDef<>(FrontSplit.id);
 
-        for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
+        for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
                 continue;
             }
@@ -76,7 +76,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             resultFiles.addAll(output.resultFiles);
             compiledThroughDynamicRule.addAll(output.compiledStrategies);
         }
-        for(StrategySignature dynamicRule : globalIndex.dynamicRules) {
+        for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
             final StrategySignature dynamicRuleNew =
                 new StrategySignature("new-" + dynamicRule.name, 0, 2);
             if(compiledThroughDynamicRule.contains(dynamicRuleNew)) {
@@ -88,7 +88,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 dynamicRuleUndefineGenerated.add(dynamicRule.name);
             }
         }
-        for(StrategySignature strategySignature : globalIndex.nonExternalStrategies) {
+        for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
             if(compiledThroughDynamicRule.contains(strategySignature)) {
                 continue;
             }

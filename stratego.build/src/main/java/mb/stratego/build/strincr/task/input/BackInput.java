@@ -32,12 +32,12 @@ import mb.stratego.build.strincr.function.GetStrategyAnalysisData;
 import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
 import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
+import mb.stratego.build.strincr.function.ToCongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.ToConstrData;
 import mb.stratego.build.strincr.function.ToGlobalConsInj;
-import mb.stratego.build.strincr.function.ToGlobalIndex;
 import mb.stratego.build.strincr.function.ToOverlays;
+import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
-import mb.stratego.build.strincr.function.output.GlobalIndex;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
@@ -364,9 +364,9 @@ public abstract class BackInput implements Serializable {
         @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) {
             // TODO: run congruence task per module or even per constructor?
-            final GlobalIndex globalIndex = PieUtils
+            final CongruenceGlobalIndex globalIndex = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
-                    ToGlobalIndex.INSTANCE);
+                    ToCongruenceGlobalIndex.INSTANCE);
             final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
