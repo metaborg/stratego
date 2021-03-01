@@ -257,6 +257,12 @@ insertCasts-Strategy-(|e1, st1):
 insertCasts-Strategy(|e1, st1):
   s@ImportTerm(_) -> (s, <current-type(|DynT())> st1)
 
+insertCasts-Strategy(|e1, st1): // TODO Implement
+  s@MultiMatch(_, _) -> (s, <current-type(|DynT())> st1)
+
+insertCasts-Strategy(|e1, st1): // TODO Implement
+  s@MultiMatchTerm(_, _, _) -> (s, <current-type(|DynT())> st1)
+
 insertCasts-Sarg(|e1):
   (b, st1) -> <insertCasts-Sarg(|e1, st1)> b
 

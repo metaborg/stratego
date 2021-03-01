@@ -2,6 +2,7 @@
 *.aterm
 *.core.str
 *.core.opt.str
+*.java
 
 # Java
 /bin

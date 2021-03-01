@@ -979,6 +979,8 @@ strategies
     <+ translate-GuardedLChoice
     <+ translate-Scope
     <+ translate-Match
+    <+ translate-MultiMatch
+    <+ translate-MultiMatchTerm
     <+ translate-Let
     <+ translate-ImportTerm
     <+ translate-Escape
@@ -1925,3 +1927,12 @@ strategies
     <map(java-MatchArg1 <+ java-MatchArg2)> 
        [ (hd, expr|[ ((IStrategoList) e).head() ]|)
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
+
+/* ================================ MultiMatch */
+  translate-MultiMatch     = fail
+  translate-MultiMatchTerm = fail
+//  translate-MultiMatch:
+//    MultiMatch(order, cases) ->
+
+//  translate-MultiMatchTerm:
+//    MultiMatchTerm(order, term, cases) ->
