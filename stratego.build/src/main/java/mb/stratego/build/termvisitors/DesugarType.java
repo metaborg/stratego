@@ -81,21 +81,21 @@ public class DesugarType {
                 }
                 result = desugared;
             } else if(TermUtils.isAppl(term, "SortTuple", 1)) {
-                // desugar-Type- = otf(\SortTuple(xs) -> TupleT(<map(desugar-Type)> xs)\)
+                // desugar-Type- = otf(\SortTuple(xs) -> Sort("Tuple", <map(desugar-Type)> xs)\)
                 IStrategoList.Builder types =
                     tf.arrayListBuilder(term.getSubterm(0).getSubtermCount());
                 for(IStrategoTerm t : term.getSubterm(0)) {
                     types.add(tryDesugarType(tf, t));
                 }
-                result = tf.makeAppl("TupleT", tf.makeList(types));
+                result = tf.makeAppl("Sort", tf.makeString("Tuple"), tf.makeList(types));
             } else if(TermUtils.isAppl(term, "TupleT", 2)) {
-                // desugar-Type- = otf(\TupleT(t1, t2) -> TupleT([<desugar-Type> t1 | <map(desugar-Type)> t2])\)
+                // desugar-Type- = otf(\TupleT(t1, t2) -> Sort("Tuple", [<desugar-Type> t1 | <map(desugar-Type)> t2])\)
                 IStrategoList.Builder types = tf.arrayListBuilder();
                 types.add(tryDesugarType(tf, term.getSubterm(0)));
                 for(IStrategoTerm t : term.getSubterm(1)) {
                     types.add(tryDesugarType(tf, t));
                 }
-                result = tf.makeAppl("TupleT", tf.makeList(types));
+                result = tf.makeAppl("Sort", tf.makeString("Tuple"), tf.makeList(types));
             } else {
                 return null;
             }

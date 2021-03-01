@@ -419,7 +419,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
         extract-inj:
           OpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) ->
-            (TupleT(t2*), t2)
+            (Sort("Tuple", t2*), t2)
           with
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
