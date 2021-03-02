@@ -4,12 +4,24 @@ signature
   sorts
     Term
   constructors
-    Nil : List(a)
-    Cons : a * List(a) -> List(a)
+    Nil 	: 				         List(a)
+    Cons 	: a * List(a) 	-> List(a)
+    Car 	: a 			      -> List(a)
 
-    Simple : Term -> Term
+rules
+  uncar: Car(a) -> Cons(a, Nil())
+  uncar: Car(a) -> Cons(a, Nil()) // should be skipped (equal)
+  car: Cons(a, Nil()) -> Car(a)
+  uncar: Car(b) -> Cons(b, Nil()) // should be skipped (equal up to var names)
+  uncar: Nil() -> Nil()
 
-strategies
+//  uncar = id
 
+<<<<<<< HEAD:stratego.example/test.str2
   simple :: Term -> Term
   simple: a -> Simple(a)
+=======
+strategies
+  s1 = id
+  s1 = fail
+>>>>>>> 4d35a27 (Add basic transformation of rules to multimatch):stratego.example/test.stra

@@ -84,7 +84,12 @@ strategies
 	        ; not(def-use-def)
             ; not(check-constructors)
             ; expand-overlays-in-def
-            ; rules-to-sdefs-def
+          )
+          ; debug(!"i: frontend - rules to multimatch ")
+          ; rules-to-multimatch
+          ; debug(!"o: frontend - rules to multimatch ")
+          ; map(id
+            ; rules-to-sdefs-def ; debug(!"o: rules-to-sdefs ")
             ; desugar-list-matching
 	        ; desugar-DefaultVarDec
             ; strename
