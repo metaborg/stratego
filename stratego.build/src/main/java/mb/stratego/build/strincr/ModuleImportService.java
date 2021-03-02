@@ -83,12 +83,12 @@ public class ModuleImportService implements IModuleImportService {
                             ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
                         result.add(
                             new mb.stratego.build.strincr.ModuleIdentifier(isLibrary, moduleString,
-                                rtreeResource));
+                                rtreePath));
                     } else if(strResource.exists()) {
                         foundSomethingToImport = true;
                         result.add(
                             new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
-                                strResource));
+                                strPath));
                     }
                 }
                 if(!foundSomethingToImport) {
@@ -118,14 +118,14 @@ public class ModuleImportService implements IModuleImportService {
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".str".length());
                                 result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
-                                    moduleString, moduleFile));
+                                    moduleString, moduleFile.getPath()));
                             } else if(filename.endsWith(".rtree")) {
                                 final boolean isLibrary =
                                     ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".rtree".length());
                                 result.add(new mb.stratego.build.strincr.ModuleIdentifier(isLibrary,
-                                    moduleString, moduleFile));
+                                    moduleString, moduleFile.getPath()));
                             }
                         }
                     }
@@ -156,17 +156,17 @@ public class ModuleImportService implements IModuleImportService {
         if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
             final mb.stratego.build.strincr.ModuleIdentifier identifier =
                 (mb.stratego.build.strincr.ModuleIdentifier) moduleIdentifier;
-            context.require(identifier.resource);
+            HierarchicalResource resource = context.require(identifier.path);
             try(final InputStream inputStream = new BufferedInputStream(
-                identifier.resource.openRead())) {
+                resource.openRead())) {
                 final long lastModified =
-                    identifier.resource.getLastModifiedTime().getEpochSecond();
+                    resource.getLastModifiedTime().getEpochSecond();
                 if(moduleIdentifier.isLibrary()) {
                     return new LastModified<>(parseStratego.parseRtree(inputStream), lastModified);
                 } else {
                     return new LastModified<>(parseStratego
                         .parse(inputStream, StandardCharsets.UTF_8,
-                            resourcePathConverter.toString(identifier.resource.getPath())),
+                            resourcePathConverter.toString(identifier.path)),
                         lastModified);
                 }
             }

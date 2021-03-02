@@ -2,18 +2,19 @@ package mb.stratego.build.strincr;
 
 import javax.annotation.Nullable;
 
-import mb.resource.hierarchical.HierarchicalResource;
+import mb.resource.hierarchical.ResourcePath;
 
 public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
     public final boolean isLibrary;
     public final String moduleString;
-    public final HierarchicalResource resource;
+    public final ResourcePath path;
 
-    public ModuleIdentifier(boolean isLibrary, String moduleString, HierarchicalResource resource) {
+    public ModuleIdentifier(boolean isLibrary, String moduleString, ResourcePath path) {
         this.isLibrary = isLibrary;
         this.moduleString = moduleString;
-        assert !moduleString.contains(".") : "moduleStrings should be valid Stratego module names, and not contain file extensions";
-        this.resource = resource;
+        assert !moduleString.contains(
+            ".") : "moduleStrings should be valid Stratego module names, and not contain file extensions";
+        this.path = path;
     }
 
     @Override public boolean isLibrary() {
@@ -36,13 +37,13 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
             return false;
         if(!moduleString.equals(that.moduleString))
             return false;
-        return resource.equals(that.resource);
+        return path.equals(that.path);
     }
 
     @Override public int hashCode() {
         int result = isLibrary ? 1 : 0;
         result = 31 * result + moduleString.hashCode();
-        result = 31 * result + resource.hashCode();
+        result = 31 * result + path.hashCode();
         return result;
     }
 
