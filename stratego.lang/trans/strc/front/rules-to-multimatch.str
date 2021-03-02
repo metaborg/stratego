@@ -3,11 +3,11 @@ module rules-to-multimatch
 strategies
   rules-to-multimatch =
     debug(!"[i] rules-to-multimatch ")
-  ; r2mm <+ r2mm_fallback
+  ; r2mm(id, order-preserving-make-set) <+ r2mm_fallback
   ; debug(!"[o] rules-to-multimatch ")
 
-//  r2mm(cond) = r2mm(cond, id)
-//  r2mm(cond, mod) = where(cond); mod; r2mm
+  r2mm(cond) = r2mm(cond, id)
+  r2mm(cond, mod) = where(cond); mod; r2mm
 
 rules
   // Empty def list
@@ -45,7 +45,8 @@ rules
 strategies
   is-rdef-noargs = ?RDefT(_, [], [], _)
 
-  internal r2mm_fallback = debug(!"r2mm skipped: "); id
+  internal r2mm_fallback = debug(!"[r2mm] "); id
+  internal order-preserving-make-set = debug(!"[i/ms] "); reverse; make-set; reverse; debug(!"[o/ms] ")
 
 //  r2mm: rs@[RDefT(f, sargs, targs, _) | _] -> SDefT(f, sargs', targs', mm)
 //  where
