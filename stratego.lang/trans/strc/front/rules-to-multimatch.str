@@ -1,18 +1,17 @@
 module rules-to-multimatch
 
-//imports
-//  Stratego
-//  needed-defs
-
-rules
+strategies
   rules-to-multimatch =
     debug(!"[i] rules-to-multimatch ")
-  ; try(r2mm <+ r2mm_fallback)
+  ; r2mm <+ r2mm_fallback
   ; debug(!"[o] rules-to-multimatch ")
-  
-//  r2mm = r2mm(id, id)
 
-//  r2mm(cond, mod) = where(cond); mod; r2mm'
+//  r2mm(cond) = r2mm(cond, id)
+//  r2mm(cond, mod) = where(cond); mod; r2mm
+
+rules
+  // Empty def list
+  r2mm: [] -> []
 
   // Single (rule/strategy) definition: skip
   r2mm: rs@[_] -> rs
@@ -26,54 +25,28 @@ rules
    *   + Return strategies as-is.
    *   + Repeat.
    */
-  r2mm: rs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], mm)]
+  r2mm: ds@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear, cases)) | strats]
   where
-    <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rs => cases
-  ; mm := MultiMatch(Linear, cases)
-  
-  r2mm: rs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], mm)]
+    <debug(!"[i] tw "); take-while(is-rdef-noargs); debug(!"[o] tw ")> ds => rdefs // rule def(s)
+  ; <debug(!"[i] dw "); drop-while(is-rdef-noargs); debug(!"[o] dw ")> ds => defs  // empty list or (non-rule def and possibly other defs)
+  ; <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rdefs => cases
+  ; <debug(!"rest (defs) "); r2mm> defs => strats
+
+  r2mm: ds@[SDefT(_, _, _, _) | _] -> <conc> (defs, strats)
   where
-    <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rs => cases
-  ; mm := MultiMatch(Linear, cases)
+    <debug(!"[i] tu "); take-until(is-rdef-noargs); debug(!"[o] tu ")> ds => defs  // strategy def(s)
+  ; <debug(!"[i] du "); drop-until(is-rdef-noargs); debug(!"[o] du ")> ds => rdefs // empty list or (rule def and possibly other defs)
+  ; <debug(!"rest (rdefs) "); r2mm> rdefs => strats
 
   rule-to-case: RDefT(_, _, _, s) -> MatchCase(pat, Build(body))
   where
     Rule(pat, body, conds) := s // TODO Handle conditions
 
+strategies
+  is-rdef-noargs = ?RDefT(_, [], [], _)
+
   internal r2mm_fallback = debug(!"r2mm skipped: "); id
-  
-// rules-to-multimatch =
-//    debug(!"[i] rules-to-multimatch ")
-//  ; try(r2mm(id, id) <+ r2mm_fallback)
-//  ; debug(!"[o] rules-to-multimatch ")
-//  
-//  r2mm = r2mm(id, id)
-//
-//  r2mm(cond, mod) = where(cond); mod; r2mm'
-//
-//  // Single (rule/strategy) definition: skip
-//  r2mm': rs@[_] -> rs
-//
-//  /*
-//   * Multiple definitions
-//   * Cases:
-//   * - Only rule definitions: group all into MM strategy
-//   * - Mixed rule and strategy definitions:
-//   *   + Group adjacent rules into MM strategy.
-//   *   + Return strategies as-is.
-//   *   + Repeat.
-//   */
-//  r2mm: rs@[RDefT(f, [], [], _) | _] -> SDefT(f, [], [], mm)
-//  where
-//    <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rs => cases
-//  ; mm := MultiMatch(Linear, cases)
-//  
-//  r2mm(cond, mod): rs@[RDefT(f, [], [], _) | _] -> SDefT(f, [], [], mm)
-//  where
-//    <debug(!"rs ")> rs
-//  ; <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rs' => cases
-//  ; mm := MultiMatch(Linear, cases)
-  
+
 //  r2mm: rs@[RDefT(f, sargs, targs, _) | _] -> SDefT(f, sargs', targs', mm)
 //  where
 //  <debug(!"rs ")> rs;

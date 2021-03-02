@@ -85,9 +85,7 @@ strategies
             ; not(check-constructors)
             ; expand-overlays-in-def
           )
-          ; debug(!"i: frontend - rules to multimatch ")
           ; rules-to-multimatch
-          ; debug(!"o: frontend - rules to multimatch ")
           ; map(id
             ; rules-to-sdefs-def ; debug(!"o: rules-to-sdefs ")
             ; desugar-list-matching

@@ -11,11 +11,11 @@ signature
 rules
   uncar: Car(a) -> Cons(a, Nil())
   uncar: Car(a) -> Cons(a, Nil()) // should be skipped (equal)
-  car: Cons(a, Nil()) -> Car(a)
-  uncar: Car(b) -> Cons(b, Nil()) // should be skipped (equal up to var names)
+  uncar = strat
+  strat = id
   uncar: Nil() -> Nil()
-
-//  uncar = id
+  uncar: Car(b) -> Cons(b, Nil()) // should be skipped(?) (equal up to var names)
+  uncar(x): Car(a) -> Cons(a, Nil())
 
 <<<<<<< HEAD:stratego.example/test.str2
   simple :: Term -> Term
