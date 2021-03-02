@@ -2,7 +2,6 @@
 *.aterm
 *.core.stra
 *.core.opt.stra
-*.pp.stra
 *.java
 
 # Java
