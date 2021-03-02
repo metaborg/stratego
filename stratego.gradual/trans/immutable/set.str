@@ -138,7 +138,7 @@ imset-filter(s) = ImmutableSet(prim("SSL_immutable_set_filter", s|))
  * @param s: Term -> Term
  * @type ImmutableSet -> ImmutableSet
  */
-imset-map(s) = ImmutableSet(prim("SSL_immutable_set_map", s|))
+imset-map(s) = ImmutableSet(prim("SSL_immutable_set_map", s, id|))
 
 /**
  * Combining operations
