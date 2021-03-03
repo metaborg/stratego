@@ -3,19 +3,13 @@ module rules-to-multimatch
 strategies
   rules-to-multimatch =
     debug(!"[i] rules-to-multimatch ")
-  ; r2mm(id, order-preserving-make-set) <+ r2mm_fallback
+  ; split-defs(is-rdef-noargs, id, order-preserving-make-set) <+ r2mm_fallback
   ; debug(!"[o] rules-to-multimatch ")
 
-  r2mm(cond) = r2mm(cond, id)
-  r2mm(cond, mod) = where(cond); mod; r2mm
+  split-defs(s, cond) = split-defs(s, cond, id)
+  split-defs(s, cond, mod) = where(cond); mod; split-defs(s)
 
 rules
-  // Empty def list
-  r2mm: [] -> []
-
-  // Single (rule/strategy) definition: skip
-  r2mm: rs@[_] -> rs
-
   /*
    * Multiple definitions
    * Cases:
@@ -25,18 +19,23 @@ rules
    *   + Return strategies as-is.
    *   + Repeat.
    */
-  r2mm: ds@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear, cases)) | strats]
-  where
-    <debug(!"[i] tw "); take-while(is-rdef-noargs); debug(!"[o] tw ")> ds => rdefs // rule def(s)
-  ; <debug(!"[i] dw "); drop-while(is-rdef-noargs); debug(!"[o] dw ")> ds => defs  // empty list or (non-rule def and possibly other defs)
-  ; <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rdefs => cases
-  ; <debug(!"rest (defs) "); r2mm> defs => strats
+  split-defs(s) =
+    debug(!"[sd] in "); [s | id]; debug(!"[sd] out ")
+  ; where(take-while(s); debug(!"taken "); r2mm; debug(!"r2mm t "); ?t)
+  ; where(drop-while(s); debug(!"dropped "); r2mm; debug(!"r2mm d "); ?d)
+  ; !(t, d); debug(!"conc i "); conc; debug(!"conc o")
 
-  r2mm: ds@[SDefT(_, _, _, _) | _] -> <conc> (defs, strats)
+  // Empty def list
+  r2mm: [] -> []
+
+  // Single (rule/strategy) definition: skip
+  r2mm: rs@[_] -> rs
+
+  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear, cases))]
   where
-    <debug(!"[i] tu "); take-until(is-rdef-noargs); debug(!"[o] tu ")> ds => defs  // strategy def(s)
-  ; <debug(!"[i] du "); drop-until(is-rdef-noargs); debug(!"[o] du ")> ds => rdefs // empty list or (rule def and possibly other defs)
-  ; <debug(!"rest (rdefs) "); r2mm> rdefs => strats
+    <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rdefs => cases
+
+  r2mm: odefs@[SDefT(_, _, _, _) | _] -> odefs
 
   rule-to-case: RDefT(_, _, _, s) -> MatchCase(pat, Build(body))
   where
@@ -45,7 +44,7 @@ rules
 strategies
   is-rdef-noargs = ?RDefT(_, [], [], _)
 
-  internal r2mm_fallback = debug(!"[r2mm] "); id
+  internal r2mm_fallback = debug(!"[r2mm] fallback "); id
   internal order-preserving-make-set = debug(!"[i/ms] "); reverse; make-set; reverse; debug(!"[o/ms] ")
 
 //  r2mm: rs@[RDefT(f, sargs, targs, _) | _] -> SDefT(f, sargs', targs', mm)
