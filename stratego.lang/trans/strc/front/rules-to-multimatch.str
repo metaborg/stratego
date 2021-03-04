@@ -26,7 +26,8 @@ strategies
     [s | id]
   ; where(take-while(s); ?t)
   ; where(drop-while(s); ?d)
-  ; ![[t], <split-defs(not(s)); debug(!"sd o ")> d]; debug(!"list build "); concat; debug(!"concat o ")
+  ; ![[t], <split-defs(not(s))> d]
+  ; concat
 
 rules
   // Empty def list
@@ -35,10 +36,12 @@ rules
   // Single (rule/strategy) definition: skip
   r2mm: rs@[_] -> rs
 
-  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear, cases))]
+  // One or more RDefT can be grouped into a MultiMatch
+  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear(), cases))]
   where
-    <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rdefs => cases
+    <map(rule-to-case)> rdefs => cases
 
+  // SDefTs should be left alone
   r2mm: odefs@[SDefT(_, _, _, _) | _] -> odefs
 
   rule-to-case: RDefT(_, _, _, s) -> MatchCase(pat, Build(body))
