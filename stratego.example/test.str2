@@ -6,10 +6,12 @@ signature
   constructors
     Nil 	: 				         List(a)
     Cons 	: a * List(a) 	-> List(a)
-    Car 	: a 			      -> List(a)
+    Car1 	: a 			      -> List(a)
+    Car2  : a             -> List(a)
+    Car3  : a             -> List(a)
 
 rules
-  uncar: Car(a) -> Cons(a, Nil())
+  uncar: Car1(a) -> Cons(a, Nil())
   uncar: Nil() -> Nil()
   uncar = strat
   strat = id
@@ -17,12 +19,3 @@ rules
   uncar: Car(b) -> Cons(b, Nil()) // should be skipped(?) (equal up to var names)
   uncar: Car(c) -> Cons(c, Nil())
   uncar(x): Car(a) -> Cons(a, Nil())
-
-<<<<<<< HEAD:stratego.example/test.str2
-  simple :: Term -> Term
-  simple: a -> Simple(a)
-=======
-strategies
-  s1 = id
-  s1 = fail
->>>>>>> 4d35a27 (Add basic transformation of rules to multimatch):stratego.example/test.stra

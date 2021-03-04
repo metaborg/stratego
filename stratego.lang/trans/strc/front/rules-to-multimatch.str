@@ -1,15 +1,6 @@
 module rules-to-multimatch
 
 strategies
-  rules-to-multimatch =
-    debug(!"[i] rules-to-multimatch ")
-  ; split-defs(is-rdef-noargs, id, order-preserving-make-set) <+ r2mm_fallback
-  ; debug(!"[o] rules-to-multimatch ")
-
-  split-defs(s, cond) = split-defs(s, cond, id)
-  split-defs(s, cond, mod) = where(cond); mod; split-defs(s)
-
-rules
   /*
    * Multiple definitions
    * Cases:
@@ -19,12 +10,23 @@ rules
    *   + Return strategies as-is.
    *   + Repeat.
    */
-  split-defs(s) =
-    debug(!"[sd] in "); [s | id]; debug(!"[sd] out ")
-  ; where(take-while(s); debug(!"taken "); r2mm; debug(!"r2mm t "); ?t)
-  ; where(drop-while(s); debug(!"dropped "); r2mm; debug(!"r2mm d "); ?d)
-  ; !(t, d); debug(!"conc i "); conc; debug(!"conc o")
+  rules-to-multimatch =
+    (split-defs(is-rdef-noargs, id, op-make-set)
+    ; map(r2mm)
+    ; concat)
+  <+ r2mm_fallback
 
+  split-defs(s, cond) = split-defs(s, cond, id)
+  split-defs(s, cond, mod) = where(cond); mod; split-defs(s)
+
+  split-defs(s) = ?[]; ![]
+  split-defs(s) =
+    [s | id]
+  ; where(take-while(s); debug(!"taken "); ?t)
+  ; where(drop-while(s); debug(!"dropped "); ?d)
+  ; ![[t], <split-defs(not(s)); debug(!"sd o ")> d]; debug(!"list build "); concat; debug(!"concat o ")
+
+rules
   // Empty def list
   r2mm: [] -> []
 
@@ -45,7 +47,11 @@ strategies
   is-rdef-noargs = ?RDefT(_, [], [], _)
 
   internal r2mm_fallback = debug(!"[r2mm] fallback "); id
-  internal order-preserving-make-set = debug(!"[i/ms] "); reverse; make-set; reverse; debug(!"[o/ms] ")
+  /*
+   * Left-to-right order-preserving variant of `make-set`.
+   * TODO Implement using left fold.
+   */
+  internal op-make-set = reverse; make-set; reverse
 
 //  r2mm: rs@[RDefT(f, sargs, targs, _) | _] -> SDefT(f, sargs', targs', mm)
 //  where
