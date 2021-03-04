@@ -87,7 +87,7 @@ strategies
           )
           ; rules-to-multimatch
           ; map(id
-            ; rules-to-sdefs-def ; debug(!"o: rules-to-sdefs ")
+            ; rules-to-sdefs-def
             ; desugar-list-matching
 	        ; desugar-DefaultVarDec
             ; strename
