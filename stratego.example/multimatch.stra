@@ -1,0 +1,61 @@
+module multimatch
+
+signature
+  sorts List
+  constructors
+    Cons : a * List(a) -> List(a)
+    Nil  :                List(a)
+
+  sorts Color
+  constructors
+  // primary colors
+  Red    :  Color
+  Blue   :  Color
+  Yellow :  Color
+  White  :  Color
+  Black  :  Color
+  
+  // color operations
+  Blend : Color * Color -> Color
+  
+  // derived colors
+  Orange  : Color
+  Green   : Color
+  Purple  : Color
+
+strategies
+  mix = bottomup(mixer)
+
+rules
+  mixer: Blend(Red(), Yellow()) -> Orange()
+  mixer: Blend(Yellow(), Red()) -> Orange()
+
+  mixer: Blend(Blue(), Yellow()) -> Green()
+  mixer: Blend(Yellow(), Blue()) -> Green()
+
+  mixer: Blend(Blue(), Red()) -> Purple()
+  mixer: Blend(Red(), Blue()) -> Purple()
+
+rules
+  // Blend(Blue(), Red()) -. [Blend, Blue, Red]
+  mixer = match linear
+            case Blend(Red(), Yellow()): Orange()
+            case Blend(Yellow(), Red()): Orange()
+            case Blend(Blue(), Yellow()): Green()
+            case Blend(Yellow(), Blue()): Green()
+            case Blend(Blue(), Red()): Purple()
+            case Blend(Red(), Blue()): Purple()
+          end
+//  c1        
+// Blend -|- Red -|- Yellow  -> Orange
+//        |       |- Blue    -> Purple
+//        |
+//        |- Blue -|- Yellow -> Green
+//        |        |- Red    -> Purple
+//        |
+//        |- Yellow -|- Red  -> Orange
+//                   |- Blue -> Green
+
+strategies
+  bottomup(s) = 
+    all(bottomup(s)); s

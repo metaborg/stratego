@@ -1,0 +1,38 @@
+module multimatch2java
+
+signature
+  sorts DTree Decision
+  constructors
+    PartialMatch : Term * Term          -> Decision  
+
+    DLeaf : Strategy                    -> DTree
+    DNode : Term * List((Decision, DTree))  -> DTree
+
+strategies
+  matrix2dfa = fail
+  dfa2java = fail
+
+  // TODO implement specificity order
+  multimatch2matrix: MultiMatch(Linear(), cases) -> (P', A') 
+  where
+    <cases2matrix> cases => (P, A)
+  ; P' := <reverse; debug(!"P (reversed): ")> P
+  ; A' := <reverse; debug(!"P (reversed): ")> A
+  
+  /*
+   * The rule below could be written shorter as a strategy:
+   * cases2matrix = cases2matrix(|[], [])
+   */
+  cases2matrix = debug(!"cases: "); cases2matrix(|[], []); debug(!"matrix: ")
+//  cases2matrix: cs@[MatchCase(_, _) | _] -> <debug(!"cases: "); cases2matrix(|[], []); debug(!"matrix: ")> cs
+  
+  cases2matrix(|P, A): [c | cs] -> (P'', A'')
+  where
+    <case2row> c => (p1, a1)
+  ; P' := [p1 | P]
+  ; A' := [a1 | A]
+  ; <cases2matrix(|P', A')> cs => (P'', A'')
+
+  case2row: MatchCase(NoAnnoList(t#(xs)), s) -> ([t | xs], s)
+  where
+    <debug(!"(t, xs): ")> (t, xs)

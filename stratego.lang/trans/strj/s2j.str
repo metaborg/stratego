@@ -27,6 +27,8 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/strategies-sig
 
+  multimatch2java
+
 signature
   constructors 
     Next  : Term
@@ -1929,10 +1931,15 @@ strategies
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
 
 /* ================================ MultiMatch */
-  translate-MultiMatch     = fail
+
+//  translate-MultiMatch     = fail
   translate-MultiMatchTerm = fail
-//  translate-MultiMatch:
-//    MultiMatch(order, cases) ->
+  translate-MultiMatch:
+    mm@MultiMatch(order, cases) -> java
+    where
+      <multimatch2matrix> mm => matrix
+    ; <matrix2dfa> matrix => dfa
+    ; <dfa2java> dfa => java
 
 //  translate-MultiMatchTerm:
 //    MultiMatchTerm(order, term, cases) ->
