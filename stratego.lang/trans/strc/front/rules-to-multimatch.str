@@ -11,7 +11,9 @@ strategies
    *   + Repeat.
    */
   rules-to-multimatch =
-    (split-defs(is-rdef-noargs, id, op-make-set)
+    ((split-defs(match-groupable, id, op-make-set)
+   <+ split-defs(not(match-groupable), id, op-make-set)
+     )
     ; map(r2mm)
     ; concat)
   <+ r2mm_fallback
@@ -22,8 +24,8 @@ strategies
   split-defs(s) = ?[]; ![]
   split-defs(s) =
     [s | id]
-  ; where(take-while(s); debug(!"taken "); ?t)
-  ; where(drop-while(s); debug(!"dropped "); ?d)
+  ; where(take-while(s); ?t)
+  ; where(drop-while(s); ?d)
   ; ![[t], <split-defs(not(s)); debug(!"sd o ")> d]; debug(!"list build "); concat; debug(!"concat o ")
 
 rules
@@ -44,6 +46,8 @@ rules
     Rule(pat, body, conds) := s // TODO Handle conditions
 
 strategies
+  match-groupable = is-rdef-noargs
+
   is-rdef-noargs = ?RDefT(_, [], [], _)
 
   internal r2mm_fallback = debug(!"[r2mm] fallback "); id
