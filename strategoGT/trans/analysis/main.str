@@ -125,9 +125,9 @@ insertCasts(|strats, constrs, injection-closure, aliases, internals, externals, 
   ; Lstrats := <extract-strategy-types(|internals, externals)> ast
 
   ; strats' := <immap-union(keep-left|Lstrats)> strats
-  ; constrs' := <immap-union(keep-left|Lconstrs)> constrs
+  ; constrs' := <imrel-union(|Lconstrs)> constrs
   ; injection-closure' := <imrel-union(|Linjection-closure)> injection-closure
-  ; aliases' := <imrel-union(|Linjection-closure)> injection-closure
+  ; aliases' := <imrel-union(|Laliases)> aliases
   ; lub-map' := <immap-union(keep-left|Llub-map)> lub-map
 
   ; rules(CanCoerce: p -> <can-coerce(|injection-closure', aliases')> p)

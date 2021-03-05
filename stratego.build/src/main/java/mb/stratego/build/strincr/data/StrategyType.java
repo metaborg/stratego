@@ -36,11 +36,6 @@ public class StrategyType extends StrategoAppl {
         return termArguments;
     }
 
-    public IStrategoTerm toTerm(IStrategoTermBuilder tf) {
-        return tf.makeAppl("FunTType", tf.makeList(strategyArguments), tf.makeList(termArguments),
-            tf.makeAppl("FunNoArgsType", from, to));
-    }
-
     public static @Nullable StrategyType fromTerm(IStrategoTermBuilder tf, IStrategoTerm funTType) {
         if(!TermUtils.isAppl(funTType)) {
             return null;

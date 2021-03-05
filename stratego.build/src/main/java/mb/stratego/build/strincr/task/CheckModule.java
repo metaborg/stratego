@@ -252,7 +252,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         IStrategoTerm strategyDefs,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules) {
         for(IStrategoTerm strategyDef : strategyDefs) {
-            if(!TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
+            if(!TermUtils.isAppl(strategyDef, "DefHasType", 2)) {
                 if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
                     strategyDef = strategyDef.getSubterm(1);
                 }
@@ -306,7 +306,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
                     frontInput.includeDirs, frontInput.linkedLibraries);
             final TypesLookup typesLookup = PieUtils.requirePartial(context, front, moduleInput,
-                new ToTypesLookup(tf, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+                new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
                     moduleData.usedConstructors));
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
@@ -346,27 +346,27 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         for(HashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                    strategyFrontDatum.getType(tf));
+                    strategyFrontDatum.type);
             }
         }
         for(HashSet<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                    strategyFrontDatum.getType(tf));
+                    strategyFrontDatum.type);
             }
         }
         for(HashSet<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                    strategyFrontDatum.getType(tf));
+                    strategyFrontDatum.type);
             }
         }
         for(HashSet<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
-                    strategyFrontDatum.getType(tf));
+                    strategyFrontDatum.type);
             }
         }
         for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.constrData

@@ -213,7 +213,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             <+ \ AnnoDef(a*, def)         -> <m-def-signature> def\)
          */
         for(IStrategoTerm strategyDef : strategyDefs) {
-            if(TermUtils.isAppl(strategyDef, "DefHasType", 3)) {
+            if(TermUtils.isAppl(strategyDef, "DefHasType", 2)) {
                 final IStrategoTerm funTType = strategyDef.getSubterm(1);
                 final @Nullable StrategyType strategyType = StrategyType.fromTerm(tf, funTType);
                 if(strategyType == null) {
@@ -260,7 +260,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     throw new InvalidASTException(moduleIdentifier, strategyDef);
                 }
                 Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
-                    .add(new StrategyFrontData(strategySignature, null, kind));
+                    .add(new StrategyFrontData(strategySignature, strategySignature.standardType(tf), kind));
             }
 
             // collect-om(dyn-rule-sig)
@@ -268,7 +268,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 dynamicRules.add(dynRuleSig);
                 for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
                     Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new)
-                        .add(new StrategyFrontData(signature, null, DynRuleGenerated));
+                        .add(new StrategyFrontData(signature, signature.standardType(tf), DynRuleGenerated));
                 }
             }
         }

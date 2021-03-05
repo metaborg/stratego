@@ -18,6 +18,13 @@ import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.PieUtils;
 
+/**
+ * This is an in-place replacement task for {@link CheckModule}, in case the gradual type system is
+ * turned off. This task is used as a replacement in the {@link Back} task so that the asts with
+ * inserted casts are not used.
+ * This does *not* mean {@link CheckModule} is not run. The static checks in {@link CheckModule} are
+ * not all type system matters, so the checks are run and the messages about types are filtered out.
+ */
 public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> {
     public static final String id = "stratego." + FrontSplit.class.getSimpleName();
 

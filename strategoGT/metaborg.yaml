@@ -20,7 +20,7 @@ language:
       prefix: "$"
   stratego:
     build: incremental
-    gradual: none
+    gradual: dynamic
     format: jar
     args:
     - -la

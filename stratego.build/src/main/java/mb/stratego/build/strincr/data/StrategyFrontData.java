@@ -8,18 +8,14 @@ import org.spoofax.interpreter.terms.ITermFactory;
 
 public class StrategyFrontData implements Serializable {
     public final StrategySignature signature;
-    public final @Nullable StrategyType type;
+    public final StrategyType type;
     public final Kind kind;
 
-    public StrategyFrontData(StrategySignature signature, @Nullable StrategyType type,
+    public StrategyFrontData(StrategySignature signature, StrategyType type,
         Kind kind) {
         this.signature = signature;
         this.type = type;
         this.kind = kind;
-    }
-
-    public StrategyType getType(ITermFactory tf) {
-        return type != null ? type : signature.standardType(tf);
     }
 
     @Override public boolean equals(Object o) {

@@ -13,7 +13,6 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -28,14 +27,12 @@ import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Relation;
 
 public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Serializable {
-    public final ITermFactory tf;
     public final Set<StrategySignature> usedStrategies;
     public final Set<String> usedAmbiguousStrategies;
     public final Set<ConstructorSignature> usedConstructors;
 
-    public ToTypesLookup(ITermFactory tf, Set<StrategySignature> usedStrategies,
-        Set<String> usedAmbiguousStrategies, Set<ConstructorSignature> usedConstructors) {
-        this.tf = tf;
+    public ToTypesLookup(Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies,
+        Set<ConstructorSignature> usedConstructors) {
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.usedConstructors = usedConstructors;
@@ -50,27 +47,25 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
             }
             for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
             }
             for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.getType(tf));
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
             }
         }
         for(String usedStrategy : usedAmbiguousStrategies) {
             for(StrategyFrontData strategyFrontData : ambStrategyIndex
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                final StrategyType type = strategyFrontData.type != null ? strategyFrontData.type :
-                    strategyFrontData.signature.standardType(tf);
-                strategyTypes.put(strategyFrontData.signature, type);
+                strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
             }
         }
         for(ConstructorSignature usedConstructor : usedConstructors) {
@@ -148,8 +143,6 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
 
         ToTypesLookup that = (ToTypesLookup) o;
 
-        if(!tf.equals(that.tf))
-            return false;
         if(!usedStrategies.equals(that.usedStrategies))
             return false;
         if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
@@ -158,8 +151,7 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
     }
 
     @Override public int hashCode() {
-        int result = tf.hashCode();
-        result = 31 * result + usedStrategies.hashCode();
+        int result = usedStrategies.hashCode();
         result = 31 * result + usedAmbiguousStrategies.hashCode();
         result = 31 * result + usedConstructors.hashCode();
         return result;

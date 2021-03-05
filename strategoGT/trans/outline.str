@@ -5,7 +5,11 @@ module outline
  */
 
 imports
-  signatures/strategoGT-sig
+  signatures/core/modules-sig
+  signatures/core/strategies-sig
+  signatures/sugar/modules-sig
+  signatures/sugar/strategies-sig
+  signatures/sugar/rules-sig
   libspoofax/editor/outline
   libspoofax/term/origin
   analysis

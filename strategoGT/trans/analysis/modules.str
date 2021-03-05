@@ -18,6 +18,7 @@ analysis/utils
 pp
 
 libspoofax/stratego/debug
+libspoofax/term/annotation
 
 immutable/-
 
@@ -58,7 +59,7 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   |}
 
 extract-constrs-inj:
-  Specification(decl*) -> (constrMap, injMap)
+  <?Specification(decl*) + ?Module(_, decl*)> -> (constrMap, injMap)
   with
     opdecl* := <filter(?Signature(<filter(?Constructors(<id>) + ?Overlays(<id>));concat>));concat> decl*
   ; (constr*, inj*) := <partition(extract-constr, extract-inj)> opdecl*
@@ -81,7 +82,7 @@ lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
   ; relation := <imrel-union(|<imrel-map((Swap, id))> forward)> forward
 
 extract-strategy-types(|internals, externals):
-  Specification(decl*) -> stratEnv
+  <?Specification(decl*) + ?Module(_, decl*)> -> stratEnv
   with
     sdeft* := <filter(?Strategies(<id>) + ?Rules(<id>));concat> decl*
-  ; stratEnv := <risky(getDefTypes(|internals, externals)|"getDefTypes failed")> sdeft*
+  ; stratEnv := <risky(getDefTypes(collect-om(dyn-rule-sig);imset-from-list|internals, externals)|"getDefTypes failed")> sdeft*

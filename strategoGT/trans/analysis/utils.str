@@ -10,6 +10,7 @@ signatures/gradual-types/internal-sig
 signatures/gradual-types/strategies-sig
 signatures/sugar/signatures-sig
 signatures/sugar/strategies-sig
+signatures/sugar/dynamic-rules-sig
 signatures/sugar/terms-sig
 signatures/sugar/modules-sig
 signatures/sugar/rules-sig
@@ -239,11 +240,15 @@ report-Note: (subj, msg) -> <rules(Message :+= (MTNote(), (subj, msg)))>
 
 strategies // Helpers
 
-getDefTypes(|internals, externals) =
+getDefTypes = getDefTypes(imset-new|<imset-new>, <imset-new>)
+
+getDefTypes(dynRuleDefNames|internals, externals) =
   map(try(desugar-DefHasType))
   ; with(
       (defHasTypes, defs) := <partition(try(?AnnoDef(_, <id>)); ?DefHasType(_, _))>
-    ; defNames := <filter(try(extToNormal); nameOf-StrategyDef-RuleDef);imset-from-list> defs
+    ; normalDefNames := <filter(try(extToNormal); nameOf-StrategyDef-RuleDef);imset-from-list> defs
+    ; dynRuleDefNames := <collect-om(dyn-rule-sig);imset-from-list> defs
+    ; defNames := <imset-union> (normalDefNames, dynRuleDefNames)
     ; <list-loop(/* \ExtSDef(n, s, t) -> // external def
                      <id>\
                 <+ AnnoDef(getfirst(?Internal()), simpleDef;\ExtSDef(n, s, t) -> // internal def
@@ -277,6 +282,10 @@ getDefTypes(|internals, externals) =
   ; partition(toBinding-DefHasType, toBinding-ExtSDef)
   ; (immap-from-list, immap-from-list)
   ; immap-union(keep-left)
+
+dyn-rule-sig: RDecNoArgs(name) -> (name, 0, 0)
+dyn-rule-sig: RDec(name, sarg*) -> (name, <length> sarg*, 0)
+dyn-rule-sig: RDecT(name, sarg*, targ*) -> (name, <length> sarg*, <length> targ*)
 
 extToNormal = ?AnnoDef(_, <extToNormal>)
 extToNormal: ExtSDefInl(n, s, t, b) -> SDefT(n, s, t, b)
