@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.Spoofax;
@@ -56,7 +57,7 @@ public class StrategoIncrementalCompilationTest {
         spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
     }
 
-    @Test public void testCompile() throws IOException, MetaborgException {
+    @Test @Ignore public void testCompile() throws IOException, MetaborgException {
         // setup
         assert spoofax != null : "@Before should set up Spoofax instance";
 
