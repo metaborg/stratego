@@ -1,0 +1,20 @@
+module test_mixed
+
+signature
+  constructors
+    Nil 	: 				         List(a)
+    Cons 	: a * List(a) 	-> List(a)
+    Car1 	: a 			      -> List(a)
+    Car2  : a             -> List(a)
+    Car3  : a             -> List(a)
+    Car4  : a             -> List(a)    
+
+rules
+  uncar1: Car1(a) -> Cons(a, Nil())
+  uncar1: Car2(b) -> Cons(b, Nil())
+
+strategies
+  uncar2 = match linear
+             case Car3(a): Cons(!3, Nil())
+             case Car4(b): Cons(!4, Nil())
+           end
