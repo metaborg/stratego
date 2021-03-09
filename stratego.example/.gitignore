@@ -1,7 +1,8 @@
 # Spoofax generated files
 *.aterm
-*.core.str
-*.core.opt.str
+*.core.stra
+*.core.opt.stra
+*.pp.stra
 *.java
 
 # Java
