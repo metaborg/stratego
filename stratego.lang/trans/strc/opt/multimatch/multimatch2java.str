@@ -5,9 +5,11 @@ imports
   strj/multimatch/matrix2dfa
   strj/multimatch/dfa2java
 
+  signatures/Stratego-Core
+
 strategies
   multimatch2java: mm@MultiMatch(_, _) -> java
   with
-    <multimatch2matrix> mm => matrix
-  ; <matrix2dfa> matrix => dfa
-  ; <dfa2java> dfa => java
+    <debug(!"[i] m2m "); multimatch2matrix; debug(!"[o] m2m ")> mm => matrix
+  ; <debug(!"[i] m2d "); matrix2dfa; debug(!"[o] m2d ")> matrix => dfa
+  ; <debug(!"[i] d2j "); dfa2java; debug(!"[o] d2j ")> dfa => java

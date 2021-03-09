@@ -1,30 +1,18 @@
 module multimatch2matrix
 
+imports
+  strj/multimatch/matrix
+
+  signatures/core/strategies-sig
+
 strategies
   /*======== Construct clause and action matrices ========*/
-  // TODO implement specificity order
-  multimatch2matrix: MultiMatch(Linear(), cases) -> (P', A')
+  multimatch2matrix: MultiMatch(Linear(), cases) -> Matrix(rows)
   where
-    <cases2matrix> cases => (P, A)
-  ; P' := <reverse; debug(!"P (reversed): ")> P
-  ; A' := <reverse; debug(!"A (reversed): ")> A
+    <cases2rows> cases => rows
 
-  /*
-   *
-   */
-  cases2matrix = debug(!"cases: "); cases2matrix(|([], [])); debug(!"matrix: ")
+  cases2rows = map(case2row)
 
-  cases2matrix(|(P, A)): [] -> (P, A)
+  case2row: MatchCase(t, s) -> Row([t], s)
 
-  cases2matrix(|(P, A)): [c | cs] -> (P'', A'')
-  where
-    <debug(!"[i] c2r: "); case2row; debug(!"[o] c2r: ")> c => (p1, a1)
-  ; P' := [p1 | P]
-  ; A' := [a1 | A]
-  ; <debug(!"[i] c2m: "); cases2matrix(|(P', A')); debug(!"[o] c2m: ")> cs => (P'', A'')
-
-  case2row: MatchCase(Anno(Op(op, params), Wld()), s) -> ([op | params], s)
-  where
-    <debug(!"(op, params): ")> (op, params)
-
-  case2row = debug(!"case2row fallthrough "); ?t; log(|Critical(), "case2row failed ", t)
+  case2row = debug(!"case2row fail on: "); fail

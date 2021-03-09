@@ -12,6 +12,9 @@ signature
 rules
   uncar1: Car1(a) -> Cons(a, Nil())
   uncar1: Car2(b) -> Cons(b, Nil())
+  uncar1: "abc" -> "cba"
+  uncar1: 8 -> 54
+  uncar1: 5.4 -> 8
 
 strategies
   uncar2 = match linear

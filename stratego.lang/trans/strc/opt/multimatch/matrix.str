@@ -1,47 +1,85 @@
 module matrix
 
+imports
+  strj/multimatch/dfa
+
+  signatures/core/terms-sig
+
+signature
+  sorts Matrix Row
+  constructors
+    Matrix  : List(Row)             -> Matrix
+    Row     : List(Term) * Strategy -> Row
+
 strategies
-  is-wildcard = ?Wld()
+  is-wildcard = ?Wld() <+ ?Var(_)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
    */
-  row-not-all-wildcards = filter(not(is-wildcard)); ?[_ | _]
+  row-not-all-wildcards = id
+  ; ?Row(ts, _)
+  ; !ts
+  ; filter(not(is-wildcard))
+  ; ?[_ | _]
+
+  row-not-all-wildcards' = id
+  ; ?Row(<is-list>, _)
+  ; filter(not(is-wildcard))
+  ; ?[_ | _]
+
+  row-not-all-wildcards'' = id
+  ; ?Row(<filter(not(is-wildcard))>, _)
+  ; ?[_ | _]
+
+  row-not-all-wildcards''' = id
+  ; ?Row(<filter(not(is-wildcard)); ?[_ | _]>, _)
 
   /*
-   * Get head constructors (constructors from first column) from matrix.
+   * Get the `i`th column from a Matrix.
    */
-  head-constructors = id
-  ; is-list
-  ; map(Hd)
+  col(|i): Matrix(rows) ->
+    <map(?Row(<is-list>, _); index(|i))> rows
 
-    /*
+  width: Matrix(rs) -> <foldr1(max)> ls
+  with
+    <map(\ Row(ts, _) -> <length> ts \)> rs => ls
+
+  height = ?Matrix(<is-list>); length
+
+  /*
    * Find index of first element in list for which `s` succeeds.
    * Index starts at 1.
    */
+  find-first-row-index(s) = id
+  ; ?Matrix(<is-list>)
+  ; find-first-index(s)
+
   find-first-index(s) = id
-  ; where(is-list)
+  ; is-list
   ; split-fetch(s)
   ; Fst
   ; length
   ; inc
 
+  swap-cols(|m, n): Matrix(rs) -> Matrix(rs')
+  with
+    <debug(!"Swapping cols ")> (m, n, rs)
+  ; rs' := <map(swap-row-el(|m, n))> rs
+
+  swap-row-el(|m, n): Row(ts, a) -> Row(ts', a)
+  with
+    <swap(|m, n)> ts => ts'
+
   /*
    * Swap elements `m` and `n` in a list.
    * Index starts at 1.
    */
-  swap(|m, n): xs -> ys
-  where
+  swap(|m, n): xs -> xs''
+  with
     <debug(!"Swapping ")> (m, n, xs)
   ; <is-list> xs
   ; elM := <index(|m)> xs
   ; elN := <index(|n)> xs
   ; xs' := <set-index> (<dec> m, elN, xs)
   ; xs'' := <set-index> (<dec> n, elM, xs')
-  ; ys := xs''
-
-  swapcols(|m, n): xs -> ys
-  where
-    <debug(!"Swapping cols ")> (m, n, xs)
-  ; <is-list> xs
-  ; ys := <map(swap(|m, n))> xs
