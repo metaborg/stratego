@@ -1,22 +1,21 @@
 module dfa
 
 signature
-  sorts DTree
+  sorts DTree Alt
   constructors
-//    Leaf    : int                                     -> DTree
-    Leaf    : Strategy                                -> DTree
-    Fail    :                                            DTree
-//    Switch  : /*Occurrence **/ List((Constructor, DTree)) -> DTree
-    Switch  : List((Term, DTree))                     -> DTree
+    // Leaf : Action
+    Leaf    : Strategy          -> DTree
+    Fail    :                      DTree
+    // Switch : Alts * Default
+    Switch  : List(Alt) * DTree -> DTree
 
-    Swap    : int * DTree                             -> DTree
+    Swap    : int * DTree       -> DTree
 
-    Todo    :                                            DTree
+    Alt     : Pat * DTree       -> Alt
 
-  sorts Constructor
+  sorts Pat
   constructors
-    Constr  : string                                  -> Constructor
-
-//  sorts Occurrence
-//  constructors
-//    Occ     : int                                     -> Occurrence
+    Fun   : string  * int -> Pat
+    Str   : string        -> Pat
+    Int   : int           -> Pat
+    Real  : real          -> Pat

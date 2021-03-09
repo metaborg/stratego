@@ -5,6 +5,9 @@ imports
   strj/multimatch/matrix
   strj/multimatch/specialize
 
+  signatures/Stratego-Core
+  strj/s2j // Frames
+
 strategies
   /*======== Construct DFA from matrices =================*/
   matrix2dfa = CC
@@ -15,18 +18,17 @@ strategies
    * Changes w.r.t. paper:
    * (none)
    */
-  CC = id
-  <+ NoRows
-  <+ WildcardsFirstRow
-  <+ SelectColumn
+  CC = NoRows
+    <+ WildcardsFirstRow
+    <+ SelectColumn
 
   /*
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows: ms@([], _) -> Fail()
+  NoRows: m@Matrix([]) -> Fail()
   where
-    <debug(!"NoRows ")> ms
+    <debug(!"NoRows ")> m
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -35,11 +37,10 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow: ms@([r | _], A) -> Leaf(a1)
+  WildcardsFirstRow: m@Matrix([Row(ps, a) | _]) -> Leaf(a)
   where
-    <map(is-wildcard)> r
-  ; <debug(!"WildcardsFirstRow ")> ms
-  ; a1 := <Hd> A
+    <map(is-wildcard)> ps
+  ; <debug(!"WildcardsFirstRow ")> m
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -47,24 +48,49 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn: ms@(P, A) -> T
+  SelectColumn: m@Matrix(rs) -> T
   where
-    <debug(!"SelectColumn ")> ms
-  ; i := <find-first-index(row-not-all-wildcards)> P
-  ; l := <length> P
+    <debug(!"SelectColumn ")> m
+  ; i := <find-first-row-index(row-not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
     /*
      * If i > 1 then swap columns 1 and i in both o and P,
      * as above, yielding decision tree A , and define:
      */
-    then P' := <swapcols(|1, i)> P
+    then // i > 1
+         m' := <swap-cols(|1, i)> m
         // TODO swap entries in o
-       ; A' := <CC> (P', A)
+       ; A' := <CC> m'
        ; !Swap(i, A')
-    else // TODO perform a bunch of recursive calls on possible head
-         //      constructors and include them in a big Switch
-         hcs          := <head-constructors> P
-       ; specMatrices := <map(specialize(|(P, A)))> hcs
-       ; !Switch(<zip> (hcs, specMatrices))
+    else // i == 1
+         /* TODO perform a bunch of recursive calls on possible head
+                 constructors and include them in a big Switch */
+         c            := <col(|1)> m
+       ; hcs          := <head-constructors> c
+       ; specMatrices := <map(specialize(|m))> hcs
+       ; default      := <default; CC> m
+       ; !Switch(<zip(\ (cons, mat) -> Alt(cons, <CC> mat) \)> (hcs, specMatrices), default)
     end => T
+
+strategies
+  /*
+   * Get head constructors from list of (constructor) patterns.
+   */
+  head-constructors = id
+  ; is-list
+  ; map(debug(!"hc "); head-constructor)
+
+  head-constructor: Anno(Op(f, ts), Wld()) -> Fun(f, <length> ts)
+  head-constructor: Anno(Str(s), Wld()) -> Fun("string", 1)
+  head-constructor: Anno(Int(s), Wld()) -> Fun("int", 1)
+  head-constructor: Anno(Real(s), Wld()) -> Fun("real", 1)
+  head-constructor: Var(_) -> Wld()
+
+  /*
+   * Determine default case for matrix.
+   */
+  default: Matrix(rows) -> Matrix(<filter(default-row)> rows)
+
+  default-row = ?Row([Fun(_, _) | _], _); fail
+  default-row: Row([Wld() | ps], a) -> Row(ps, a)

@@ -5,7 +5,7 @@ imports
   strj/multimatch/matrix2dfa
   strj/multimatch/dfa2java
 
-  signatures/Stratego-Core
+  signatures/core/strategies-sig
 
 strategies
   multimatch2java: mm@MultiMatch(_, _) -> java

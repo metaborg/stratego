@@ -1,7 +1,34 @@
 module specialize
 
+imports
+  strj/multimatch/dfa
+  strj/multimatch/matrix
+
+  signatures/core/terms-sig
+
 strategies
   /*
-   * Specialize the matrix `P -> A` to a certain constructor.
+   * Specialize the matrix to a certain constructor.
    */
-  specialize(|(P, A)) = fail
+  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
+
+  specialize-row'(|cons) = id
+  ; ?m; !(cons, m); conc-strings; debug(!"spec-row ") // Print cons and matrix
+  ; !m; specialize-row(|cons) // Call original strategy
+
+  specialize-row(|Fun(f, a)): Row([Anno(Op(f, qs), Wld()) | ps], A) ->
+                              Row(<conc> (qs, ps), A)
+  where
+    <eq> (a, <length> qs)
+
+  specialize-row(|Str(s)):    Row([Anno(Str(s), Wld()) | ps], A) ->
+                              Row([s | ps], A)
+
+  specialize-row(|Int(i)):    Row([Anno(Int(i), Wld()) | ps], A) ->
+                              Row([i | ps], A)
+
+  specialize-row(|Real(r)):   Row([Anno(Real(r), Wld()) | ps], A) ->
+                              Row([r | ps], A)
+
+  specialize-row(|Fun(_, a)): Row([Wld() | ps], A) ->
+                              Row(<repeat(![Wld() | <id>] | a)> ps, A)
