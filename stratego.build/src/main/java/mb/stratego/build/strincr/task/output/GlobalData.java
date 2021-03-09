@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
@@ -24,8 +25,8 @@ public class GlobalData implements Serializable {
         strategyIndex;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         overlayIndex;
-    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
-    public final LinkedHashSet<ConstructorSignature> externalConstructors;
+    public final LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors;
+    public final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
@@ -38,8 +39,8 @@ public class GlobalData implements Serializable {
         LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        LinkedHashSet<ConstructorSignature> nonExternalConstructors,
-        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors,
+        LinkedHashSet<ConstructorSignatureMatcher> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages) {

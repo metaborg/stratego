@@ -9,6 +9,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.util.WithLastModified;
@@ -18,9 +19,9 @@ import mb.stratego.build.util.WithLastModified;
  */
 public class ModuleIndex implements Serializable, WithLastModified {
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
-    public final LinkedHashSet<ConstructorSignature> constructors;
+    public final LinkedHashSet<ConstructorSignatureMatcher> constructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
-    public final LinkedHashSet<ConstructorSignature> externalConstructors;
+    public final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors;
     public final LinkedHashSet<StrategySignature> strategies;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
@@ -29,15 +30,14 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
-        LinkedHashSet<ConstructorSignature> constructors,
+        LinkedHashSet<ConstructorSignatureMatcher> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<ConstructorSignatureMatcher> externalConstructors,
         LinkedHashSet<StrategySignature> strategies,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
-        long lastModified) {
+        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData, long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.injections = injections;

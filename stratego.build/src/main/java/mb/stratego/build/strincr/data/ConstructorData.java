@@ -32,7 +32,8 @@ public class ConstructorData implements Serializable {
     @Override public boolean equals(@Nullable Object o) {
         if(this == o)
             return true;
-        if(o == null || getClass() != o.getClass())
+        // N.B. using instanceof check to allow for BoilerplateConstructorData subclass
+        if(!(o instanceof ConstructorData))
             return false;
 
         ConstructorData that = (ConstructorData) o;
@@ -52,7 +53,6 @@ public class ConstructorData implements Serializable {
     }
 
     @Override public String toString() {
-        return "ConstructorData(" + signature + ", " + astTerm + ", "
-            + type + ')';
+        return "ConstructorData(" + signature + ", " + astTerm + ", " + type + ')';
     }
 }

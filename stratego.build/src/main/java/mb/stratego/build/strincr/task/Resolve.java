@@ -63,7 +63,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
-        final LinkedHashSet<ConstructorSignature> nonExternalConstructorIndex =
+        final LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors =
             new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
@@ -72,7 +72,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
             new LinkedHashMap<>();
-        final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
@@ -90,7 +90,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             final ModuleIndex index =
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
-            nonExternalConstructorIndex.addAll(index.constructors);
+            nonExternalConstructors.addAll(index.constructors);
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
                 .entrySet()) {
@@ -139,7 +139,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         checkCyclicOverlays(overlayUsesConstructors, messages);
         return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
-            strategyIndex, nonExternalConstructorIndex, externalConstructors, internalStrategies,
+            strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, messages);
     }
 

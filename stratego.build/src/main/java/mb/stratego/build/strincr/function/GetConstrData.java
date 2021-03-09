@@ -5,18 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import mb.stratego.build.strincr.data.BoilerplateConstructorData;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class GetConstrData implements Function<ModuleData, ArrayList<ConstructorData>>, Serializable {
+public class GetConstrData
+    implements Function<ModuleData, ArrayList<BoilerplateConstructorData>>, Serializable {
     public static final GetConstrData INSTANCE = new GetConstrData();
 
-    @Override public ArrayList<ConstructorData> apply(ModuleData moduleData) {
-        final ArrayList<ConstructorData> constructorData = new ArrayList<>();
+    @Override public ArrayList<BoilerplateConstructorData> apply(ModuleData moduleData) {
+        final ArrayList<BoilerplateConstructorData> constructorData = new ArrayList<>();
         for(List<ConstructorData> value : moduleData.constrData.values()) {
             for(ConstructorData data : value) {
                 if(!data.isOverlay()) {
-                    constructorData.add(data);
+                    constructorData.add(new BoilerplateConstructorData(data));
                 }
             }
         }

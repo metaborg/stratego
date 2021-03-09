@@ -21,6 +21,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.BoilerplateConstructorData;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
@@ -364,14 +365,14 @@ public abstract class BackInput implements Serializable {
             final CongruenceGlobalIndex globalIndex = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     ToCongruenceGlobalIndex.INSTANCE);
-            final ArrayList<ConstructorSignature> constructors =
+            final ArrayList<ConstructorSignatureMatcher> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
             constructors.add(backTask.generateStratego.dr_dummy);
             constructors.add(backTask.generateStratego.dr_undefine);
 
             final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
-            for(ConstructorSignature constructor : constructors) {
+            for(ConstructorSignatureMatcher constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     context.logger().debug(
                         "Skipping congruence overlapping with existing strategy: " + constructor);
@@ -444,12 +445,12 @@ public abstract class BackInput implements Serializable {
                 globalConsInj.allModuleIdentifiers.size() + globalConsInj.nonExternalInjections
                     .size() + 3);
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
-                final ArrayList<ConstructorData> constructorData = PieUtils
+                final ArrayList<BoilerplateConstructorData> constructorData = PieUtils
                     .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
                         GetConstrData.INSTANCE);
-                for(ConstructorData constructorDatum : constructorData) {
+                for(BoilerplateConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(backTask.tf));
                     constructors.add(constructorDatum.signature);
                 }
