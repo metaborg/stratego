@@ -88,8 +88,8 @@ public class StrategoIncrementalCompilationTest {
             .languageFromArchive(spoofax.resolve(strategoURL.getFile()));
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
-        pieBuilder.withStoreFactory((logger, resourceService) -> new SerializingStore<>(
-            resourceService.getWritableResource(serializingStorePath), new InMemoryStore()));
+        pieBuilder.withStoreFactory((logger, resourceService) -> new SerializingStore<InMemoryStore>(
+            resourceService.getWritableResource(serializingStorePath), InMemoryStore::new));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         Pie pie = pieBuilder.build();
 
