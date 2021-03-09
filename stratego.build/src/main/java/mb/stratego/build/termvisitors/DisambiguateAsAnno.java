@@ -63,18 +63,22 @@ public class DisambiguateAsAnno {
         // See also: https://github.com/metaborg/jsglr/pull/44#issuecomment-589648434
         if(TermUtils.isList(result)) {
             final ArrayList<IStrategoTerm> flatList = new ArrayList<>();
+            boolean nestedListFound = false;
             for(IStrategoTerm child : result) {
                 if(TermUtils.isList(child)) {
+                    nestedListFound = true;
                     Collections.addAll(flatList, child.getAllSubterms());
                 } else {
                     flatList.add(child);
                 }
             }
-            // TermFactory#replaceList apparently requires the lists to be equal length, or it will throw an exception
-            final ITermFactory factory = context.getFactory();
-            final IStrategoList newList =
-                factory.makeList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), result.getAnnotations());
-            return factory.replaceTerm(newList, result);
+            if(nestedListFound) {
+                // TermFactory#replaceList apparently requires the lists to be equal length, or it will throw an exception
+                final ITermFactory factory = context.getFactory();
+                final IStrategoList newList =
+                    factory.makeList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), result.getAnnotations());
+                return factory.replaceTerm(newList, result);
+            }
         }
         return result;
     }
