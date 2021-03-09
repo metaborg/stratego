@@ -1,0 +1,70 @@
+module matrix2dfa
+
+imports
+  strj/multimatch/dfa
+  strj/multimatch/matrix
+  strj/multimatch/specialize
+
+strategies
+  /*======== Construct DFA from matrices =================*/
+  matrix2dfa = CC
+
+  /*
+   * Compilation scheme from Maranget (2008).
+   *
+   * Changes w.r.t. paper:
+   * (none)
+   */
+  CC = id
+  <+ NoRows
+  <+ WildcardsFirstRow
+  <+ SelectColumn
+
+  /*
+   * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
+   * since there is no row to match.
+   */
+  NoRows: ms@([], _) -> Fail()
+  where
+    <debug(!"NoRows ")> ms
+
+  /*
+   * 2. If the first row of P exists and is constituted by wildcards,
+   * then matching always succeeds and yields the first action.
+   *
+   * In particular, this case applies when there is at least
+   * one row (m > 0) and no column (n = 0).
+   */
+  WildcardsFirstRow: ms@([r | _], A) -> Leaf(a1)
+  where
+    <map(is-wildcard)> r
+  ; <debug(!"WildcardsFirstRow ")> ms
+  ; a1 := <Hd> A
+
+  /*
+   * 3. In any other case, matrix P has at least one row and at least
+   * one column (m > 0, n > 0). Furthermore, there exists at least one
+   * column of which at least one pattern is not a wildcard. Select
+   * one such column i.
+   */
+  SelectColumn: ms@(P, A) -> T
+  where
+    <debug(!"SelectColumn ")> ms
+  ; i := <find-first-index(row-not-all-wildcards)> P
+  ; l := <length> P
+  ; <debug(!"  with i=")> i
+  ; if <gti> (i, 1)
+    /*
+     * If i > 1 then swap columns 1 and i in both o and P,
+     * as above, yielding decision tree A , and define:
+     */
+    then P' := <swapcols(|1, i)> P
+        // TODO swap entries in o
+       ; A' := <CC> (P', A)
+       ; !Swap(i, A')
+    else // TODO perform a bunch of recursive calls on possible head
+         //      constructors and include them in a big Switch
+         hcs          := <head-constructors> P
+       ; specMatrices := <map(specialize(|(P, A)))> hcs
+       ; !Switch(<zip> (hcs, specMatrices))
+    end => T

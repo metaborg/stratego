@@ -1,0 +1,7 @@
+module specialize
+
+strategies
+  /*
+   * Specialize the matrix `P -> A` to a certain constructor.
+   */
+  specialize(|(P, A)) = fail

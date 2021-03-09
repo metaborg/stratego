@@ -1,0 +1,13 @@
+module multimatch2java
+
+imports
+  strj/multimatch/multimatch2matrix
+  strj/multimatch/matrix2dfa
+  strj/multimatch/dfa2java
+
+strategies
+  multimatch2java: mm@MultiMatch(_, _) -> java
+  with
+    <multimatch2matrix> mm => matrix
+  ; <matrix2dfa> matrix => dfa
+  ; <dfa2java> dfa => java

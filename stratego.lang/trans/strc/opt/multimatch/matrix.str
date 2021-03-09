@@ -1,0 +1,47 @@
+module matrix
+
+strategies
+  is-wildcard = ?Wld()
+
+  /*
+   * Succeeds on a list if at least one element is not a wildcard.
+   */
+  row-not-all-wildcards = filter(not(is-wildcard)); ?[_ | _]
+
+  /*
+   * Get head constructors (constructors from first column) from matrix.
+   */
+  head-constructors = id
+  ; is-list
+  ; map(Hd)
+
+    /*
+   * Find index of first element in list for which `s` succeeds.
+   * Index starts at 1.
+   */
+  find-first-index(s) = id
+  ; where(is-list)
+  ; split-fetch(s)
+  ; Fst
+  ; length
+  ; inc
+
+  /*
+   * Swap elements `m` and `n` in a list.
+   * Index starts at 1.
+   */
+  swap(|m, n): xs -> ys
+  where
+    <debug(!"Swapping ")> (m, n, xs)
+  ; <is-list> xs
+  ; elM := <index(|m)> xs
+  ; elN := <index(|n)> xs
+  ; xs' := <set-index> (<dec> m, elN, xs)
+  ; xs'' := <set-index> (<dec> n, elM, xs')
+  ; ys := xs''
+
+  swapcols(|m, n): xs -> ys
+  where
+    <debug(!"Swapping cols ")> (m, n, xs)
+  ; <is-list> xs
+  ; ys := <map(swap(|m, n))> xs

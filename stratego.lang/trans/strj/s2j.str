@@ -27,7 +27,7 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/strategies-sig
 
-  multimatch2java
+  strj/multimatch/multimatch2java
 
 signature
   constructors 
@@ -1935,11 +1935,9 @@ strategies
 //  translate-MultiMatch     = fail
   translate-MultiMatchTerm = fail
   translate-MultiMatch:
-    mm@MultiMatch(order, cases) -> java
-    where
-      <multimatch2matrix> mm => matrix
-    ; <matrix2dfa> matrix => dfa
-    ; <dfa2java> dfa => java
+    mm@MultiMatch(_, _) -> java
+    with
+      <multimatch2java> mm => java
 
 //  translate-MultiMatchTerm:
 //    MultiMatchTerm(order, term, cases) ->

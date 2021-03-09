@@ -1,0 +1,22 @@
+module dfa
+
+signature
+  sorts DTree
+  constructors
+//    Leaf    : int                                     -> DTree
+    Leaf    : Strategy                                -> DTree
+    Fail    :                                            DTree
+//    Switch  : /*Occurrence **/ List((Constructor, DTree)) -> DTree
+    Switch  : List((Term, DTree))                     -> DTree
+
+    Swap    : int * DTree                             -> DTree
+
+    Todo    :                                            DTree
+
+  sorts Constructor
+  constructors
+    Constr  : string                                  -> Constructor
+
+//  sorts Occurrence
+//  constructors
+//    Occ     : int                                     -> Occurrence
