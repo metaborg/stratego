@@ -5,7 +5,13 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoPlaceholder;
 import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.TermFactory;
@@ -48,11 +54,40 @@ public class LocallyUniqueStringTermFactory extends AbstractWrappedTermFactory {
             if(usedStrings.contains(name)) {
                 return null;
             } else if(name.length() > MAX_POOLED_STRING_LENGTH) {
-                throw new UnsupportedOperationException("String too long to be pooled (newname not allowed): " + name);
+                throw new UnsupportedOperationException(
+                    "String too long to be pooled (newname not allowed): " + name);
             } else {
                 return makeString(name);
             }
         }
+    }
+
+    // AbstractWrappedTermFactory doesn't override the replace* methods, just the make* ones :(
+    @Override public IStrategoAppl replaceAppl(IStrategoConstructor constructor,
+        IStrategoTerm[] kids, IStrategoAppl old) {
+        return baseFactory.replaceAppl(constructor, kids, old);
+    }
+
+    @Override public IStrategoList replaceList(IStrategoTerm[] kids, IStrategoList old) {
+        return baseFactory.replaceList(kids, old);
+    }
+
+    @Override public IStrategoList replaceListCons(IStrategoTerm head, IStrategoList tail,
+        IStrategoTerm oldHead, IStrategoList oldTail) {
+        return baseFactory.replaceListCons(head, tail, oldHead, oldTail);
+    }
+
+    @Override public IStrategoTerm replaceTerm(IStrategoTerm term, IStrategoTerm old) {
+        return baseFactory.replaceTerm(term, old);
+    }
+
+    @Override public IStrategoTuple replaceTuple(IStrategoTerm[] kids, IStrategoTuple old) {
+        return baseFactory.replaceTuple(kids, old);
+    }
+
+    @Override public IStrategoPlaceholder replacePlaceholder(IStrategoTerm template,
+        IStrategoPlaceholder old) {
+        return baseFactory.replacePlaceholder(template, old);
     }
 
     public void clearUsedStrings() {
