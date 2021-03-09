@@ -14,17 +14,17 @@ import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
 public class GetOverlayData implements Function<ModuleData, ArrayList<OverlayData>>, Serializable {
-    private final Set<ConstructorSignature> usedConstructors;
+    private final Set<ConstructorSignatureMatcher> usedConstructors;
 
-    public GetOverlayData(Set<ConstructorSignature> usedConstructors) {
+    public GetOverlayData(Set<ConstructorSignatureMatcher> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
     @Override public ArrayList<OverlayData> apply(ModuleData moduleData) {
         final ArrayList<OverlayData> result = new ArrayList<>();
-        for(ConstructorSignature usedConstructor : usedConstructors) {
+        for(ConstructorSignatureMatcher usedConstructor : usedConstructors) {
             final @Nullable List<OverlayData> overlayData =
-                moduleData.overlayData.get(new ConstructorSignatureMatcher(usedConstructor));
+                moduleData.overlayData.get(usedConstructor);
             if(overlayData != null) {
                 result.addAll(overlayData);
             }

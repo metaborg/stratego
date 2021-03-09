@@ -23,6 +23,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
@@ -171,7 +172,7 @@ public abstract class BackInput implements Serializable {
         @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
-            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
+            final HashSet<ConstructorSignatureMatcher> usedConstructors = new HashSet<>();
             getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
 
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
@@ -219,7 +220,7 @@ public abstract class BackInput implements Serializable {
 
         public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
-            HashSet<ConstructorSignature> usedConstructors) {
+            HashSet<ConstructorSignatureMatcher> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
@@ -234,7 +235,7 @@ public abstract class BackInput implements Serializable {
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                    new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                    new UsedConstrs<>(usedConstructors, ConstructorSignatureMatcher::new)
                         .visit(strategyAnalysisDatum.analyzedAst);
                 }
             }
@@ -282,7 +283,7 @@ public abstract class BackInput implements Serializable {
 
         @Override public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
-            HashSet<ConstructorSignature> usedConstructors) {
+            HashSet<ConstructorSignatureMatcher> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
             final HashSet<StrategySignature> seen = new HashSet<>();
@@ -305,7 +306,7 @@ public abstract class BackInput implements Serializable {
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                        new UsedConstrs(usedConstructors, strategyAnalysisDatum.lastModified)
+                        new UsedConstrs<>(usedConstructors, ConstructorSignatureMatcher::new)
                             .visit(strategyAnalysisDatum.analyzedAst);
                         for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
                             if(!seen.contains(definedDynamicRule)) {

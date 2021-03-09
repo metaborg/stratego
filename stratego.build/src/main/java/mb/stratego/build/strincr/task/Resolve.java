@@ -158,6 +158,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     lastModified = Long.max(lastModified, sig.lastModified);
                 }
                 for(ConstructorSignatureMatcher sig : topoSCC) {
+                    assert sig.wrapped != null;
                     messages.add(new CyclicOverlay(sig.wrapped, topoSCC, lastModified));
                 }
             }

@@ -272,7 +272,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new).add(
                     new StrategyAnalysisData(strategySignature, strategyDefAppl,
-                        definedDynamicRules, lastModified));
+                        definedDynamicRules));
                 for(StrategySignature dynRuleSig : definedDynamicRules) {
                     Relation.getOrInitialize(dynamicRules, dynRuleSig, LinkedHashSet::new)
                         .add(strategySignature);

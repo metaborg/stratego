@@ -15,18 +15,18 @@ import mb.stratego.build.strincr.task.output.GlobalData;
 public class ModulesDefiningOverlays
     implements Function<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>>,
     Serializable {
-    public final Set<ConstructorSignature> usedConstructors;
+    public final Set<ConstructorSignatureMatcher> usedConstructors;
 
-    public ModulesDefiningOverlays(Set<ConstructorSignature> usedConstructors) {
+    public ModulesDefiningOverlays(Set<ConstructorSignatureMatcher> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
     @Override
     public LinkedHashSet<IModuleImportService.ModuleIdentifier> apply(GlobalData globalData) {
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> result = new LinkedHashSet<>();
-        for(ConstructorSignature usedConstructor : usedConstructors) {
+        for(ConstructorSignatureMatcher usedConstructor : usedConstructors) {
             final @Nullable Set<IModuleImportService.ModuleIdentifier> moduleIdentifiers =
-                globalData.overlayIndex.get(new ConstructorSignatureMatcher(usedConstructor));
+                globalData.overlayIndex.get(usedConstructor);
             if(moduleIdentifiers != null) {
                 result.addAll(moduleIdentifiers);
             }

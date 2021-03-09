@@ -308,7 +308,9 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
             final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-            new UsedConstrs(usedConstructors, lastModified).visit(overlay);
+            new UsedConstrs<>(usedConstructors,
+                (cName, cArity) -> new ConstructorSignature(cName, cArity, lastModified))
+                .visit(overlay);
             final ConstructorSignature signature =
                 new ConstructorSignature(name, arity, lastModified);
             final OverlayData data =

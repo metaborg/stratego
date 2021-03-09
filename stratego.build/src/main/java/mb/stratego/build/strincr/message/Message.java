@@ -2,11 +2,12 @@ package mb.stratego.build.strincr.message;
 
 import java.io.Serializable;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
@@ -25,7 +26,8 @@ import mb.stratego.build.util.WithLastModified;
 
 public abstract class Message implements WithLastModified, Serializable {
     public final IStrategoTerm locationTerm;
-    public final ImploderAttachment location;
+    // TODO: require location to be non-null once gradual type system stops losing origins
+    public final @Nullable ImploderAttachment location;
     public final MessageSeverity severity;
     public final long lastModified;
 
@@ -168,14 +170,14 @@ public abstract class Message implements WithLastModified, Serializable {
             return false;
         if(!locationTerm.equals(message.locationTerm))
             return false;
-        if(!location.equals(message.location))
+        if(location != null ? !location.equals(message.location) : message.location != null)
             return false;
         return severity == message.severity;
     }
 
     @Override public int hashCode() {
         int result = locationTerm.hashCode();
-        result = 31 * result + location.hashCode();
+        result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + severity.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;

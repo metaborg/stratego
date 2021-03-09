@@ -15,7 +15,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 
-public class UsedNamesFront extends UsedConstrs {
+public class UsedNamesFront extends UsedConstrs<ConstructorSignature> {
 
     private final Deque<Set<String>> scopes = new ArrayDeque<>();
     private final Set<String> sVars = new HashSet<>();
@@ -29,7 +29,8 @@ public class UsedNamesFront extends UsedConstrs {
     public UsedNamesFront(Set<ConstructorSignature> usedConstructors,
         Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies,
         long lastModified) {
-        super(usedConstructors, lastModified);
+        super(usedConstructors,
+            (name, arity) -> new ConstructorSignature(name, arity, lastModified));
 
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
@@ -139,9 +140,9 @@ public class UsedNamesFront extends UsedConstrs {
             if(isNonLocalStrategy(strategySignature)) {
                 usedStrategies.add(strategySignature);
                 if(strategySignature.noTermArgs == 0) {
-                    usedConstructors.add(
-                        new ConstructorSignature(TermUtils.toStringAt(strategySignature, 0),
-                            new StrategoInt(strategySignature.noStrategyArgs), lastModified));
+                    usedConstructors.add(constructor
+                        .apply(TermUtils.toStringAt(strategySignature, 0),
+                            new StrategoInt(strategySignature.noStrategyArgs)));
                 }
             }
             if(strategySignature.noStrategyArgs != 0) {
