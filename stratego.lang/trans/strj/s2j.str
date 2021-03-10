@@ -1937,7 +1937,13 @@ strategies
   translate-MultiMatch:
     mm@MultiMatch(_, _) -> java
     with
-      <multimatch2java> mm => java
+      <multimatch2dfa> mm => dfa
+    ; <translate-DFA> dfa => java
 
 //  translate-MultiMatchTerm:
 //    MultiMatchTerm(order, term, cases) ->
+
+  /*======== Generate Java code from DFA =================*/
+  translate-DFA: Switch(_, _) -> bstm* |[ System.out.println(s); ]|
+  where
+    s := "MultiMatch test"

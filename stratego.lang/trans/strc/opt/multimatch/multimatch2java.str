@@ -3,13 +3,15 @@ module multimatch2java
 imports
   strj/multimatch/multimatch2matrix
   strj/multimatch/matrix2dfa
-  strj/multimatch/dfa2java
 
   signatures/core/strategies-sig
 
+  libstratego-aterm
+
 strategies
-  multimatch2java: mm@MultiMatch(_, _) -> java
+  multimatch2dfa: mm@MultiMatch(_, _) -> dfa
   with
     <debug(!"[i] m2m "); multimatch2matrix; debug(!"[o] m2m ")> mm => matrix
   ; <debug(!"[i] m2d "); matrix2dfa; debug(!"[o] m2d ")> matrix => dfa
-  ; <debug(!"[i] d2j "); dfa2java; debug(!"[o] d2j ")> dfa => java
+  where
+    <pp-aterm> dfa
