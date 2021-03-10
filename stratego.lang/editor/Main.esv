@@ -17,3 +17,4 @@ menus
   menu: "Codegen" (openeditor) (source)
     action: "Show Java files" = debug-show-java
     action: "Show Java files (optimized)" = debug-show-java-optimized
+    action: "Show DFA" = debug-show-dfa

@@ -19,6 +19,8 @@ imports
   libjava-front
   libstratego-gpp
 
+  strj/multimatch/multimatch2java
+
 rules // Debugging
 
   debug-show-aterm:
@@ -117,6 +119,25 @@ rules // Debugging
       )
     ; strc-optimize
     ; s2j
+    ; ?ast*
+    ; filename* := <map(output-filename)> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
+
+  debug-show-dfa:
+    (node, _, _, path, project-path) -> (filename*, result*)
+    with
+      <set-config> ("--library", ()) // no main strategy necessary this way
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|"dfa.aterm")> path) // required output file path
+      ; strj-preinit-options
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; alltd(multimatch2dfa)
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
