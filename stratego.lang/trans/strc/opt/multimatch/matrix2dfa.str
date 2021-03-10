@@ -5,7 +5,7 @@ imports
   strj/multimatch/matrix
   strj/multimatch/specialize
 
-  signatures/Stratego-Core
+  signatures/core/terms-sig
   strj/s2j // Frames
 
 strategies
@@ -67,7 +67,7 @@ strategies
          /* TODO perform a bunch of recursive calls on possible head
                  constructors and include them in a big Switch */
          c            := <col(|1)> m
-       ; hcs          := <head-constructors> c
+       ; hcs          := <head-constructors; make-set> c
        ; specMatrices := <map(specialize(|m))> hcs
        ; default      := <default; CC> m
        ; !Switch(<zip(\ (cons, mat) -> Alt(cons, <CC> mat) \)> (hcs, specMatrices), default)
@@ -79,13 +79,14 @@ strategies
    */
   head-constructors = id
   ; is-list
-  ; map(debug(!"hc "); head-constructor)
+  ; map(head-constructor)
 
-  head-constructor: Anno(Op(f, ts), Wld()) -> Fun(f, <length> ts)
-  head-constructor: Anno(Str(s), Wld()) -> Fun("string", 1)
-  head-constructor: Anno(Int(s), Wld()) -> Fun("int", 1)
-  head-constructor: Anno(Real(s), Wld()) -> Fun("real", 1)
-  head-constructor: Var(_) -> Wld()
+  head-constructor: Anno(Op(f, ts), Wld())  -> Fun(f, <length> ts)
+  head-constructor: Anno(Str(s), Wld())     -> Fun("string", 1)
+  head-constructor: Anno(Int(s), Wld())     -> Fun("int", 1)
+  head-constructor: Anno(Real(s), Wld())    -> Fun("real", 1)
+  head-constructor: Var(_)                  -> Wld()
+  head-constructor: Wld()                   -> Wld()
 
   /*
    * Determine default case for matrix.

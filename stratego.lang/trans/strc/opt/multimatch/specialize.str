@@ -21,14 +21,16 @@ strategies
   where
     <eq> (a, <length> qs)
 
-  specialize-row(|Str(s)):    Row([Anno(Str(s), Wld()) | ps], A) ->
-                              Row([s | ps], A)
+  specialize-row(|Fun("string", 1)):  Row([Anno(Str(s), Wld()) | ps], A) ->
+                                      Row([s | ps], A)
 
-  specialize-row(|Int(i)):    Row([Anno(Int(i), Wld()) | ps], A) ->
-                              Row([i | ps], A)
+  specialize-row(|Fun("int", 1)):     Row([Anno(Int(i), Wld()) | ps], A) ->
+                                      Row([i | ps], A)
 
-  specialize-row(|Real(r)):   Row([Anno(Real(r), Wld()) | ps], A) ->
-                              Row([r | ps], A)
+  specialize-row(|Fun("real", 1)):    Row([Anno(Real(r), Wld()) | ps], A) ->
+                                      Row([r | ps], A)
 
-  specialize-row(|Fun(_, a)): Row([Wld() | ps], A) ->
-                              Row(<repeat(![Wld() | <id>] | a)> ps, A)
+  specialize-row(|Fun(_, a)):         Row([Wld() | ps], A) ->
+                                      Row(<repeat(![Wld() | <id>] | a)> ps, A)
+
+//  specialize-row(|c) = where(!c; debug(!"cons: ")); debug(!"row: "); fail 

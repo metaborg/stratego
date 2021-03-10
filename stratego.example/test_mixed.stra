@@ -12,12 +12,22 @@ signature
 rules
   uncar1: Car1(a) -> Cons(a, Nil())
   uncar1: Car2(b) -> Cons(b, Nil())
-  uncar1: "abc" -> "cba"
-  uncar1: 8 -> 54
-  uncar1: 5.4 -> 8
+//  uncar1: "abc" -> "cba"
+//  uncar1: 8 -> 54
+//  uncar1: 5.4 -> 8
 
 strategies
-  uncar2 = match linear
-             case Car3(a): Cons(!3, Nil())
-             case Car4(b): Cons(!4, Nil())
+//  uncar2 = match linear
+//             case Car3(a): Cons(!3, Nil())
+//             case Car4(b): Cons(!4, Nil())
+////             case "abc": !"cba"
+////             case 8: !54
+////             case 5.4: !8
+//           end
+
+  length = match linear
+             case Nil(): !0
+             case Cons(_, Nil()): !1
+             case Cons(_, Cons(_, Nil())): !2
+             case Cons(_, Cons(_, Cons(_, Nil()))): !3
            end
