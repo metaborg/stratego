@@ -105,9 +105,6 @@ public class DisambiguateAsAnno {
     }
 
     public @Nullable IStrategoTerm resolveAmbiguity(IStrategoTerm left, IStrategoTerm right) {
-        if(left == null || right == null) {
-            return null;
-        }
         if(left.getClass() != right.getClass()) {
             return null;
         }
@@ -160,6 +157,7 @@ public class DisambiguateAsAnno {
         for(int i = 0; i < left.getSubtermCount(); i++) {
             newChildren[i] = resolveAmbiguity(left.getSubterm(i), right.getSubterm(i));
             if(newChildren[i] == null) {
+                //noinspection ConstantConditions
                 return null;
             }
         }

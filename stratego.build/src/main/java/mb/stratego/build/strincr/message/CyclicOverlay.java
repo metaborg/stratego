@@ -4,12 +4,12 @@ import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
+import mb.stratego.build.strincr.data.ConstructorSignature;
 
 public class CyclicOverlay extends Message {
-    public final Set<ConstructorSignatureMatcher> cycle;
+    public final Set<ConstructorSignature> cycle;
 
-    public CyclicOverlay(IStrategoTerm name, Set<ConstructorSignatureMatcher> cycle, long lastModified) {
+    public CyclicOverlay(IStrategoTerm name, Set<ConstructorSignature> cycle, long lastModified) {
         super(name, MessageSeverity.ERROR, lastModified);
         this.cycle = cycle;
     }

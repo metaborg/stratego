@@ -4,16 +4,15 @@ import java.io.Serializable;
 import java.util.LinkedHashSet;
 
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CongruenceGlobalIndex implements Serializable {
-    public final LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors;
-    public final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors;
+    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
+    public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> nonExternalStrategies;
 
-    public CongruenceGlobalIndex(LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors,
-        LinkedHashSet<ConstructorSignatureMatcher> externalConstructors,
+    public CongruenceGlobalIndex(LinkedHashSet<ConstructorSignature> nonExternalConstructors,
+        LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> nonExternalStrategies) {
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;

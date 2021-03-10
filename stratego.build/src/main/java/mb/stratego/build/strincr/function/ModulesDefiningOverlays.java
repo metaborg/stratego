@@ -9,22 +9,21 @@ import javax.annotation.Nullable;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
 public class ModulesDefiningOverlays
     implements Function<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>>,
     Serializable {
-    public final Set<ConstructorSignatureMatcher> usedConstructors;
+    public final Set<ConstructorSignature> usedConstructors;
 
-    public ModulesDefiningOverlays(Set<ConstructorSignatureMatcher> usedConstructors) {
+    public ModulesDefiningOverlays(Set<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
     @Override
     public LinkedHashSet<IModuleImportService.ModuleIdentifier> apply(GlobalData globalData) {
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> result = new LinkedHashSet<>();
-        for(ConstructorSignatureMatcher usedConstructor : usedConstructors) {
+        for(ConstructorSignature usedConstructor : usedConstructors) {
             final @Nullable Set<IModuleImportService.ModuleIdentifier> moduleIdentifiers =
                 globalData.overlayIndex.get(usedConstructor);
             if(moduleIdentifiers != null) {

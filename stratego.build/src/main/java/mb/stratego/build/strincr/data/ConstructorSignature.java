@@ -18,39 +18,24 @@ import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.StringUtils;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.util.WithLastModified;
-
-public class ConstructorSignature extends StrategoTuple implements WithLastModified {
+public class ConstructorSignature extends StrategoTuple {
     public final String name;
     public final int noArgs;
-    public final long lastModified;
 
-    public ConstructorSignature(String name, int noArgs, long lastModified) {
+    public ConstructorSignature(String name, int noArgs) {
         super(new IStrategoTerm[] { new StrategoString(name, AbstractTermFactory.EMPTY_LIST),
             new StrategoInt(noArgs) }, AbstractTermFactory.EMPTY_LIST);
         this.name = name;
         this.noArgs = noArgs;
-        this.lastModified = lastModified;
     }
 
-    public ConstructorSignature(IStrategoString name, IStrategoInt noArgs, long lastModified) {
+    public ConstructorSignature(IStrategoString name, IStrategoInt noArgs) {
         super(new IStrategoTerm[] { name, noArgs }, AbstractTermFactory.EMPTY_LIST);
         this.name = name.stringValue();
         this.noArgs = noArgs.intValue();
-        this.lastModified = lastModified;
     }
 
-    @Override protected boolean doSlowMatch(IStrategoTerm second) {
-        if(this.getClass() == ConstructorSignature.class && second.getClass() == ConstructorSignature.class) {
-            if(((ConstructorSignature) second).lastModified != lastModified) {
-                return false;
-            }
-        }
-        return super.doSlowMatch(second);
-    }
-
-    public static @Nullable ConstructorSignature fromTerm(IStrategoTerm consDef,
-        long lastModified) {
+    public static @Nullable ConstructorSignature fromTerm(IStrategoTerm consDef) {
         if(!TermUtils.isAppl(consDef)) {
             return null;
         }
@@ -91,7 +76,7 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
                 return null;
         }
 
-        return new ConstructorSignature(name, arity, lastModified);
+        return new ConstructorSignature(name, arity);
     }
 
     public IStrategoTerm toTerm(ITermFactory tf) {
@@ -130,10 +115,6 @@ public class ConstructorSignature extends StrategoTuple implements WithLastModif
 
     public StrategySignature toCongruenceSig() {
         return new StrategySignature(name, noArgs, 0);
-    }
-
-    @Override public long lastModified() {
-        return lastModified;
     }
 
     public IStrategoAppl congruenceAst(IStrategoTermBuilder tf) {

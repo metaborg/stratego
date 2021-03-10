@@ -9,20 +9,19 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
 public class GetOverlayData implements Function<ModuleData, ArrayList<OverlayData>>, Serializable {
-    private final Set<ConstructorSignatureMatcher> usedConstructors;
+    private final Set<ConstructorSignature> usedConstructors;
 
-    public GetOverlayData(Set<ConstructorSignatureMatcher> usedConstructors) {
+    public GetOverlayData(Set<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
     @Override public ArrayList<OverlayData> apply(ModuleData moduleData) {
         final ArrayList<OverlayData> result = new ArrayList<>();
-        for(ConstructorSignatureMatcher usedConstructor : usedConstructors) {
+        for(ConstructorSignature usedConstructor : usedConstructors) {
             final @Nullable List<OverlayData> overlayData =
                 moduleData.overlayData.get(usedConstructor);
             if(overlayData != null) {

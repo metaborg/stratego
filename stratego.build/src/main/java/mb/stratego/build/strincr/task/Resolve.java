@@ -21,7 +21,6 @@ import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ToModuleIndex;
@@ -63,8 +62,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
-        final LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors =
-            new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorSignature> nonExternalConstructors = new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
@@ -72,17 +70,19 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
             new LinkedHashMap<>();
-        final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
 
-        final LinkedHashMap<ConstructorSignatureMatcher, LinkedHashSet<ConstructorSignatureMatcher>>
+        final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
             overlayUsesConstructors = new LinkedHashMap<>();
 
+        long lastModified = 0L;
         while(!workList.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = workList.remove();
             allModuleIdentifiers.add(moduleIdentifier);
+
 
             final FrontInput frontInput =
                 new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
@@ -90,6 +90,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             final ModuleIndex index =
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
+            lastModified = Long.max(lastModified, index.lastModified);
             nonExternalConstructors.addAll(index.constructors);
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
@@ -120,13 +121,11 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 .entrySet()) {
                 Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
                     .add(moduleIdentifier);
-                final HashSet<ConstructorSignatureMatcher> overlayUsesCons = Relation
-                    .getOrInitialize(overlayUsesConstructors,
-                        new ConstructorSignatureMatcher(e.getKey()), LinkedHashSet::new);
+                final HashSet<ConstructorSignature> overlayUsesCons = Relation
+                    .getOrInitialize(overlayUsesConstructors, e.getKey(),
+                        LinkedHashSet::new);
                 for(OverlayData overlayData : e.getValue()) {
-                    for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
-                        overlayUsesCons.add(new ConstructorSignatureMatcher(usedConstructor));
-                    }
+                    overlayUsesCons.addAll(overlayData.usedConstructors);
                 }
             }
 
@@ -137,29 +136,24 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             seen.addAll(imports);
         }
 
-        checkCyclicOverlays(overlayUsesConstructors, messages);
+        checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
         return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
             strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
-            externalStrategies, dynamicRules, messages);
+            externalStrategies, dynamicRules, messages, lastModified);
     }
 
     private void checkCyclicOverlays(
-        HashMap<ConstructorSignatureMatcher, LinkedHashSet<ConstructorSignatureMatcher>> overlayUsesConstructors,
-        ArrayList<Message> messages) {
-        final Deque<Set<ConstructorSignatureMatcher>> topoSCCs = Algorithms
+        HashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsesConstructors,
+        ArrayList<Message> messages, long lastModified) {
+        final Deque<Set<ConstructorSignature>> topoSCCs = Algorithms
             .topoSCCs(overlayUsesConstructors.keySet(),
                 sig -> overlayUsesConstructors.getOrDefault(sig, new LinkedHashSet<>(0)));
-        for(Set<ConstructorSignatureMatcher> topoSCC : topoSCCs) {
-            final ConstructorSignatureMatcher signature = topoSCC.iterator().next();
+        for(Set<ConstructorSignature> topoSCC : topoSCCs) {
+            final ConstructorSignature signature = topoSCC.iterator().next();
             if(topoSCC.size() > 1 || overlayUsesConstructors
                 .getOrDefault(signature, new LinkedHashSet<>(0)).contains(signature)) {
-                long lastModified = 0;
                 for(ConstructorSignature sig : topoSCC) {
-                    lastModified = Long.max(lastModified, sig.lastModified);
-                }
-                for(ConstructorSignatureMatcher sig : topoSCC) {
-                    assert sig.wrapped != null;
-                    messages.add(new CyclicOverlay(sig.wrapped, topoSCC, lastModified));
+                    messages.add(new CyclicOverlay(sig, topoSCC, lastModified));
                 }
             }
         }

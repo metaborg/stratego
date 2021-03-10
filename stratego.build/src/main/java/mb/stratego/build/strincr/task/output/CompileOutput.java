@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.annotation.Nullable;
+
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.message.Message;
 
@@ -19,7 +21,7 @@ public interface CompileOutput extends Serializable {
             this.resultFiles = resultFiles;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override public boolean equals(@Nullable Object o) {
             if(this == o)
                 return true;
             if(o == null || getClass() != o.getClass())
@@ -46,7 +48,7 @@ public interface CompileOutput extends Serializable {
             this.messages = messages;
         }
 
-        @Override public boolean equals(Object o) {
+        @Override public boolean equals(@Nullable Object o) {
             if(this == o)
                 return true;
             if(o == null || getClass() != o.getClass())

@@ -21,23 +21,21 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.data.BoilerplateConstructorData;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.function.GetConstrData;
 import mb.stratego.build.strincr.function.GetDynamicRuleAnalysisData;
+import mb.stratego.build.strincr.function.GetOverlayData;
 import mb.stratego.build.strincr.function.GetStrategyAnalysisData;
 import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
 import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToCongruenceGlobalIndex;
-import mb.stratego.build.strincr.function.GetConstrData;
 import mb.stratego.build.strincr.function.ToGlobalConsInj;
-import mb.stratego.build.strincr.function.GetOverlayData;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.task.Back;
@@ -173,7 +171,7 @@ public abstract class BackInput implements Serializable {
         @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
-            final HashSet<ConstructorSignatureMatcher> usedConstructors = new HashSet<>();
+            final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
             getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
 
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
@@ -221,7 +219,7 @@ public abstract class BackInput implements Serializable {
 
         public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
-            HashSet<ConstructorSignatureMatcher> usedConstructors) {
+            HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
@@ -236,7 +234,7 @@ public abstract class BackInput implements Serializable {
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                    new UsedConstrs<>(usedConstructors, ConstructorSignatureMatcher::new)
+                    new UsedConstrs(usedConstructors)
                         .visit(strategyAnalysisDatum.analyzedAst);
                 }
             }
@@ -284,7 +282,7 @@ public abstract class BackInput implements Serializable {
 
         @Override public void getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
-            HashSet<ConstructorSignatureMatcher> usedConstructors) {
+            HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
             final HashSet<StrategySignature> seen = new HashSet<>();
@@ -307,7 +305,7 @@ public abstract class BackInput implements Serializable {
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                        new UsedConstrs<>(usedConstructors, ConstructorSignatureMatcher::new)
+                        new UsedConstrs(usedConstructors)
                             .visit(strategyAnalysisDatum.analyzedAst);
                         for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
                             if(!seen.contains(definedDynamicRule)) {
@@ -365,14 +363,14 @@ public abstract class BackInput implements Serializable {
             final CongruenceGlobalIndex globalIndex = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     ToCongruenceGlobalIndex.INSTANCE);
-            final ArrayList<ConstructorSignatureMatcher> constructors =
+            final ArrayList<ConstructorSignature> constructors =
                 new ArrayList<>(globalIndex.nonExternalConstructors.size() + 2);
             constructors.addAll(globalIndex.nonExternalConstructors);
             constructors.add(backTask.generateStratego.dr_dummy);
             constructors.add(backTask.generateStratego.dr_undefine);
 
             final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
-            for(ConstructorSignatureMatcher constructor : constructors) {
+            for(ConstructorSignature constructor : constructors) {
                 if(globalIndex.nonExternalStrategies.contains(constructor.toCongruenceSig())) {
                     context.logger().debug(
                         "Skipping congruence overlapping with existing strategy: " + constructor);
@@ -445,12 +443,12 @@ public abstract class BackInput implements Serializable {
                 globalConsInj.allModuleIdentifiers.size() + globalConsInj.nonExternalInjections
                     .size() + 3);
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
-                final ArrayList<BoilerplateConstructorData> constructorData = PieUtils
+                final ArrayList<ConstructorData> constructorData = PieUtils
                     .requirePartial(context, backTask.front,
                         new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                             checkInput.includeDirs, checkInput.linkedLibraries),
                         GetConstrData.INSTANCE);
-                for(BoilerplateConstructorData constructorDatum : constructorData) {
+                for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(backTask.tf));
                     constructors.add(constructorDatum.signature);
                 }

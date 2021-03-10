@@ -7,7 +7,9 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.util.TermUtils;
@@ -15,7 +17,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 
-public class UsedNamesFront extends UsedConstrs<ConstructorSignature> {
+public class UsedNamesFront extends UsedConstrs {
 
     private final Deque<Set<String>> scopes = new ArrayDeque<>();
     private final Set<String> sVars = new HashSet<>();
@@ -27,10 +29,8 @@ public class UsedNamesFront extends UsedConstrs<ConstructorSignature> {
     private @Nullable String currentTopLevelStrategyName = null;
 
     public UsedNamesFront(Set<ConstructorSignature> usedConstructors,
-        Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies,
-        long lastModified) {
-        super(usedConstructors,
-            (name, arity) -> new ConstructorSignature(name, arity, lastModified));
+        Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies) {
+        super(usedConstructors);
 
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
@@ -140,9 +140,9 @@ public class UsedNamesFront extends UsedConstrs<ConstructorSignature> {
             if(isNonLocalStrategy(strategySignature)) {
                 usedStrategies.add(strategySignature);
                 if(strategySignature.noTermArgs == 0) {
-                    usedConstructors.add(constructor
-                        .apply(TermUtils.toStringAt(strategySignature, 0),
-                            new StrategoInt(strategySignature.noStrategyArgs)));
+                    IStrategoString name = TermUtils.toStringAt(strategySignature, 0);
+                    IStrategoInt noArgs = new StrategoInt(strategySignature.noStrategyArgs);
+                    usedConstructors.add(new ConstructorSignature(name, noArgs));
                 }
             }
             if(strategySignature.noStrategyArgs != 0) {

@@ -1,10 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
-import mb.pie.api.STask;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class CheckModuleInput implements Serializable {

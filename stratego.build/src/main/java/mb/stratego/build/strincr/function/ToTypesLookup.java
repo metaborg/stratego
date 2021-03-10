@@ -16,7 +16,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
@@ -70,20 +69,17 @@ public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Seriali
         }
         for(ConstructorSignature usedConstructor : usedConstructors) {
             for(ConstructorData constructorData : moduleData.constrData
-                .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    new ArrayList<>(0))) {
+                .getOrDefault(usedConstructor, new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                     .add(constructorData.type);
             }
             for(ConstructorData constructorData : moduleData.externalConstrData
-                .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    new ArrayList<>(0))) {
+                .getOrDefault(usedConstructor, new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                     .add(constructorData.type);
             }
             for(OverlayData overlayData : moduleData.overlayData
-                .getOrDefault(new ConstructorSignatureMatcher(usedConstructor),
-                    new ArrayList<>(0))) {
+                .getOrDefault(usedConstructor, new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
                     .add(overlayData.type);
             }

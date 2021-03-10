@@ -113,11 +113,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     break;
                 case "Signature":
                     addSigData(input.moduleIdentifier, constrData, externalConstrData, injections,
-                        externalInjections, def.getSubterm(0), ast.lastModified);
+                        externalInjections, def.getSubterm(0));
                     break;
                 case "Overlays":
                     addOverlayData(input.moduleIdentifier, overlayData, constrData,
-                        def.getSubterm(0), ast.lastModified);
+                        def.getSubterm(0));
                     break;
                 case "Rules":
                     // fall-through
@@ -137,8 +137,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
         final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
-        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies,
-            ast.lastModified).visit(ast.wrapped);
+        new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
+            .visit(ast.wrapped);
 
         return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
             externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
@@ -277,7 +277,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     protected void addOverlayData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
-        IStrategoTerm overlays, long lastModified) {
+        IStrategoTerm overlays) {
         /*
         extract-constr:
           OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
@@ -308,11 +308,9 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
             final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-            new UsedConstrs<>(usedConstructors,
-                (cName, cArity) -> new ConstructorSignature(cName, cArity, lastModified))
+            new UsedConstrs(usedConstructors)
                 .visit(overlay);
-            final ConstructorSignature signature =
-                new ConstructorSignature(name, arity, lastModified);
+            final ConstructorSignature signature = new ConstructorSignature(name, arity);
             final OverlayData data =
                 new OverlayData(signature, (IStrategoAppl) overlay, type, usedConstructors);
             Relation.getOrInitialize(constrData, signature, ArrayList::new).add(data);
@@ -324,8 +322,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs,
-        long lastModified) {
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs) {
         for(IStrategoTerm sig : sigs) {
             if(TermUtils.isAppl(sig, "Constructors", 1)) {
                 final IStrategoTerm constrs = sig.getSubterm(0);
@@ -334,16 +331,20 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 }
                 for(IStrategoTerm constrDef : constrs) {
                     final @Nullable ConstructorSignature constrSig =
-                        ConstructorSignature.fromTerm(constrDef, lastModified);
+                        ConstructorSignature.fromTerm(constrDef);
                     if(constrSig == null) {
                         addInjectionData(moduleIdentifier, constrDef, injections,
-                            externalInjections, constrData, lastModified);
+                            externalInjections, constrData);
                         continue;
                     }
                     final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
                     final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
                     final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
-                    if(ConstructorSignature.isExternal(constrDef)) {
+                    final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
+                    if(external == null) {
+                        throw new InvalidASTException(moduleIdentifier, constrDef);
+                    }
+                    if(external) {
                         dataMap = externalConstrData;
                     } else {
                         dataMap = constrData;
@@ -409,7 +410,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     private void addInjectionData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm constrDef, HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
-        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, long lastModified) {
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData) {
         /*
         extract-inj:
           OpDeclInj(FunType([ConstType(from)], ConstType(to))) ->
@@ -465,7 +466,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         from = b.applShared("Sort", b.stringShared("Tuple"), tupleTypes);
 
                         final ConstructorSignature constrSig =
-                            new ConstructorSignature("", froms.size(), lastModified);
+                            new ConstructorSignature("", froms.size());
                         final IStrategoTerm constrTerm =
                             tf.replaceTerm(constrType.toOpType(tf), constrDef);
                         Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(

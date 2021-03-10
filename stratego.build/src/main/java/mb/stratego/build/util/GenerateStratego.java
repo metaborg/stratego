@@ -17,7 +17,6 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class GenerateStratego {
@@ -25,12 +24,12 @@ public class GenerateStratego {
     private final IStrategoTerm newSVar;
     private final IStrategoTerm newTVar;
 
-    public final ConstructorSignatureMatcher dr_dummy =
-        new ConstructorSignatureMatcher(new StrategoString("DR_DUMMY", null), new StrategoInt(0));
-    public final ConstructorSignatureMatcher dr_undefine =
-        new ConstructorSignatureMatcher(new StrategoString("DR_UNDEFINE", null), new StrategoInt(1));
-    public final ConstructorSignatureMatcher anno_cong__ =
-        new ConstructorSignatureMatcher(new StrategoString("Anno_Cong__", null), new StrategoInt(2));
+    public final ConstructorSignature dr_dummy =
+        new ConstructorSignature(new StrategoString("DR_DUMMY", null), new StrategoInt(0));
+    public final ConstructorSignature dr_undefine =
+        new ConstructorSignature(new StrategoString("DR_UNDEFINE", null), new StrategoInt(1));
+    public final ConstructorSignature anno_cong__ =
+        new ConstructorSignature(new StrategoString("Anno_Cong__", null), new StrategoInt(2));
 
     public final IStrategoTerm dr_dummyTerm;
     public final IStrategoTerm dr_undefineTerm;

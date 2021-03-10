@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;

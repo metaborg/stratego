@@ -20,13 +20,19 @@ public final class InsertCastsOutput implements Serializable {
     @Override public boolean equals(Object o) {
         if(this == o)
             return true;
-        if(getClass() != o.getClass())
+        if(o == null || getClass() != o.getClass())
             return false;
-        InsertCastsOutput output = (InsertCastsOutput) o;
-        return astWithCasts.equals(output.astWithCasts) && messages.equals(output.messages);
+
+        InsertCastsOutput that = (InsertCastsOutput) o;
+
+        if(!astWithCasts.equals(that.astWithCasts))
+            return false;
+        return messages.equals(that.messages);
     }
 
     @Override public int hashCode() {
-        return Objects.hash(astWithCasts, messages);
+        int result = astWithCasts.hashCode();
+        result = 31 * result + messages.hashCode();
+        return result;
     }
 }

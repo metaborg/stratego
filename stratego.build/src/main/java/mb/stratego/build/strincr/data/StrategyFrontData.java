@@ -2,10 +2,6 @@ package mb.stratego.build.strincr.data;
 
 import java.io.Serializable;
 
-import javax.annotation.Nullable;
-
-import org.spoofax.interpreter.terms.ITermFactory;
-
 public class StrategyFrontData implements Serializable {
     public final StrategySignature signature;
     public final StrategyType type;
@@ -28,14 +24,14 @@ public class StrategyFrontData implements Serializable {
 
         if(!signature.equals(that.signature))
             return false;
-        if(!(type != null && type.equals(that.type)))
+        if(!type.equals(that.type))
             return false;
         return kind == that.kind;
     }
 
     @Override public int hashCode() {
         int result = signature.hashCode();
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + type.hashCode();
         result = 31 * result + kind.hashCode();
         return result;
     }

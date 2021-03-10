@@ -13,7 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
-import org.strategoxt.lang.Term;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
@@ -30,7 +29,6 @@ import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
 import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.StrategoConstants;
 import mb.stratego.build.util.StrategoExecutor;
 
 /**

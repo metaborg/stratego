@@ -14,15 +14,12 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.data.ConstructorSignature;
 
-public class UsedConstrs<T extends ConstructorSignature> extends TermVisitor {
+public class UsedConstrs extends TermVisitor {
     private final ITermFactory tf = new TermFactory();
 
-    protected final Set<T> usedConstructors;
-    protected final BiFunction<IStrategoString, IStrategoInt, T> constructor;
+    protected final Set<ConstructorSignature> usedConstructors;
 
-    public UsedConstrs(Set<T> usedConstructors,
-        BiFunction<IStrategoString, IStrategoInt, T> constructor) {
-        this.constructor = constructor;
+    public UsedConstrs(Set<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
@@ -36,19 +33,22 @@ public class UsedConstrs<T extends ConstructorSignature> extends TermVisitor {
                 final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
                 if(!nameAST.stringValue().isEmpty()) {
                     final int arity = TermUtils.toListAt(term, 1).size();
-                    usedConstructors.add(constructor.apply(nameAST, new StrategoInt(arity)));
+                    IStrategoInt noArgs = new StrategoInt(arity);
+                    usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
                 }
             } else {
                 final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
                 final IStrategoString escapedNameAST = (IStrategoString) tf
                     .replaceTerm(tf.makeString(strategoEscape(nameAST.stringValue())), nameAST);
                 final int arity = TermUtils.toListAt(term, 1).size();
-                usedConstructors.add(constructor.apply(escapedNameAST, new StrategoInt(arity)));
+                IStrategoInt noArgs = new StrategoInt(arity);
+                usedConstructors.add(new ConstructorSignature(escapedNameAST, noArgs));
             }
         } else if(TermUtils.isAppl(term, "CongQ", 2)) {
             final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
             final int arity = TermUtils.toListAt(term, 1).size();
-            usedConstructors.add(constructor.apply(nameAST, new StrategoInt(arity)));
+            IStrategoInt noArgs = new StrategoInt(arity);
+            usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
         }
     }
 

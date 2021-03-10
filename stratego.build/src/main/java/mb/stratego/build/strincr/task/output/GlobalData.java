@@ -11,7 +11,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.ConstructorSignatureMatcher;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
@@ -25,12 +24,13 @@ public class GlobalData implements Serializable {
         strategyIndex;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         overlayIndex;
-    public final LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors;
-    public final LinkedHashSet<ConstructorSignatureMatcher> externalConstructors;
+    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
+    public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
     public final ArrayList<Message> messages;
+    public final long lastModified;
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
     private transient @Nullable CongruenceGlobalIndex congruenceGlobalIndex = null;
     private transient @Nullable GlobalConsInj globalConsInj = null;
@@ -39,11 +39,12 @@ public class GlobalData implements Serializable {
         LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        LinkedHashSet<ConstructorSignatureMatcher> nonExternalConstructors,
-        LinkedHashSet<ConstructorSignatureMatcher> externalConstructors,
+        LinkedHashSet<ConstructorSignature> nonExternalConstructors,
+        LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages) {
+        LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages,
+        long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
@@ -54,6 +55,7 @@ public class GlobalData implements Serializable {
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
         this.messages = messages;
+        this.lastModified = lastModified;
     }
 
     public CompileGlobalIndex getCompileGlobalIndex() {
@@ -94,6 +96,8 @@ public class GlobalData implements Serializable {
 
         GlobalData that = (GlobalData) o;
 
+        if(lastModified != that.lastModified)
+            return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
             return false;
         if(!nonExternalInjections.equals(that.nonExternalInjections))
@@ -126,6 +130,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + externalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + messages.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 

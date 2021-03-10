@@ -5,8 +5,6 @@ import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
-import mb.stratego.build.util.WithLastModified;
-
 public class StrategyAnalysisData implements Serializable {
     public final StrategySignature signature;
     public final IStrategoAppl analyzedAst;
