@@ -14,21 +14,21 @@ exports
 
   context-free syntax
     "cast" "(" Coercion ")"                                                                   -> Strategy  {cons("Cast")}
+    "is" "(" Type ")"                                                                         -> Strategy  {cons("TypeTest")}
     "fail"                                                                                    -> Coercion  {cons("Fail")}
     "id"                                                                                      -> Coercion  {cons("Id")}
     Type                                                                                      -> Coercion  {cons("RuntimeCheck")}
+    "fail"                                                                                    -> SCoercion {cons("SFail")}
     "id"                                                                                      -> SCoercion {cons("SId")}
-    Type                                                                                      -> SCoercion {cons("SRuntimeCheck")}
+    SType                                                                                     -> SCoercion {cons("SRuntimeCheck")}
     SortT "." Id                                                                              -> TypedId   {cons("TypedId")}
     Proxy                                                                                     -> Strategy  
     "proxy" "(" Coercion "," Coercion ")(" SVar ")"                                           -> Proxy     {cons("Proxy")}
     "proxy" "(" {SCoercion ","}* "|" {Coercion ","}* ")(" Coercion "," Coercion ")(" SVar ")" -> Proxy     {cons("ProxyT")}
-
-  lexical syntax
-    "cast"  -> SVar {reject}
+    "cast"                                                                                    -> SVar      {reject}
 
   lexical restrictions
-    "cast" "fail" "id" "proxy" -/- [a-zA-Z0-9\'\-\_]
+    "cast" "is" "fail" "id" "proxy" -/- [a-zA-Z0-9\'\-\_]
 
 module Stratego-Gradual-Signatures
 imports Stratego-Core-Identifiers
@@ -37,30 +37,42 @@ exports
   sorts Type SortT Dyn ConstrType
 
   context-free syntax
-    "?"                    -> Dyn   {cons("Dyn")}
-    Dyn                    -> Type  {cons("DynT")}
-    "str"                  -> Type  {cons("StringT")}
-    "int"                  -> Type  {cons("IntT")}
-    "real"                 -> Type  {cons("RealT")}
-    Type "*" Type          -> Type  {cons("TupleT"), right}
-    SortT                  -> Type  
-    Id "(" {Type ","}* ")" -> SortT {cons("Sort")}
-    UCID                   -> SortT {cons("SortNoArgs")}
-    LCID                   -> SortT {cons("SortVar"), avoid}
+    Dyn                    -> ConstType {cons("DynT")}
+    "?"                    -> Dyn       {cons("Dyn")}
+    Type "*" {Type "*"}+   -> Type      {cons("TupleT")}
+    Dyn                    -> Type      {cons("DynT")}
+    "string"               -> Type      {cons("StringT")}
+    "int"                  -> Type      {cons("IntT")}
+    "real"                 -> Type      {cons("RealT")}
+    "(" Type ")"           -> Type      {bracket}
+    SortT                  -> Type      
+    Id "(" {Type ","}* ")" -> SortT     {cons("Sort")}
+    UCID                   -> SortT     {cons("SortNoArgs")}
+    SortVar                -> SortT     {cons("SortVar")}
+
+  context-free priorities
+    Type "*" {Type "*"}+ -> Type
+    <0> . >
+    Type "*" {Type "*"}+ -> Type
+    ,
+    Type -> {Type "*"}+
+    <0> . >
+    Type "*" {Type "*"}+ -> Type
+    ,
+    {Type "*"}+ "*" Type -> {Type "*"}+
+    <2> . >
+    Type "*" {Type "*"}+ -> Type
 
   sorts SType SFunType
 
   context-free syntax
-    "?"                                                 -> SType    {cons("SDyn")}
-    SFunType                                            -> SType    
-    Type "->" Type                                      -> SFunType {cons("FunNoArgsType")}
-    "(" {SType ","}* ")" Type "->" Type                 -> SFunType {cons("FunType")}
-    "(" {SType ","}* "|" {Type ","}* ")" Type "->" Type -> SFunType {cons("FunTType")}
-
-  context-free syntax
-    "str"  -> Sort {cons("StringT"), avoid}
-    "int"  -> Sort {cons("IntT"), avoid}
-    "real" -> Sort {cons("RealT"), avoid}
+    "?"                                                 -> SType          {cons("SDyn")}
+    SFunType                                            -> SType          
+    "TP"                                                -> SSimpleFunType {cons("TP")}
+    Type "->" Type                                      -> SSimpleFunType {cons("FunNoArgsType")}
+    SSimpleFunType                                      -> SFunType       
+    "(" {SType ","}* ")" SSimpleFunType                 -> SFunType       {cons("FunType")}
+    "(" {SType ","}* "|" {Type ","}* ")" SSimpleFunType -> SFunType       {cons("FunTType")}
 
 module Stratego-Gradual-Modules
 imports Stratego-Core-Identifiers Stratego-Gradual-Signatures
@@ -69,7 +81,9 @@ exports
   sorts Def
 
   context-free syntax
-    Id "::" SFunType -> Def {cons("DefHasType")}
+    Id "::" SSimpleFunType                                      -> Def {cons("DefHasTypeNoArgs")}
+    Id "(" {SType ","}* ")" "::" SSimpleFunType                 -> Def {cons("DefHasType")}
+    Id "(" {SType ","}* "|" {Type ","}* ")" "::" SSimpleFunType -> Def {cons("DefHasTType")}
 
 module Stratego-Gradual
 
@@ -834,6 +848,7 @@ exports
     "id"
     "if" %% not reserved kw
     "in"
+    "is"
     "imports" %% not reserved kw
     "let"
     "module"
@@ -883,6 +898,7 @@ exports
     "test" 		-> Keyword
     "where" 		-> Keyword
     "import-term"	-> Keyword
+    "is"                -> Keyword
 
 
 module Stratego-Core-Layout
