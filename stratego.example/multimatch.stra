@@ -26,18 +26,17 @@ signature
 strategies
   mix = bottomup(mixer)
 
-rules
-  mixer: Blend(Red(), Yellow()) -> Orange()
-  mixer: Blend(Yellow(), Red()) -> Orange()
+//rules
+//  mixer: Blend(Red(), Yellow()) -> Orange()
+//  mixer: Blend(Yellow(), Red()) -> Orange()
+//
+//  mixer: Blend(Blue(), Yellow()) -> Green()
+//  mixer: Blend(Yellow(), Blue()) -> Green()
+//
+//  mixer: Blend(Blue(), Red()) -> Purple()
+//  mixer: Blend(Red(), Blue()) -> Purple()
 
-  mixer: Blend(Blue(), Yellow()) -> Green()
-  mixer: Blend(Yellow(), Blue()) -> Green()
-
-  mixer: Blend(Blue(), Red()) -> Purple()
-  mixer: Blend(Red(), Blue()) -> Purple()
-
-rules
-  // Blend(Blue(), Red()) -. [Blend, Blue, Red]
+strategies
   mixer = match linear
             case Blend(Red(), Yellow()): Orange()
             case Blend(Yellow(), Red()): Orange()
@@ -46,7 +45,7 @@ rules
             case Blend(Blue(), Red()): Purple()
             case Blend(Red(), Blue()): Purple()
           end
-//  c1        
+
 // Blend -|- Red -|- Yellow  -> Orange
 //        |       |- Blue    -> Purple
 //        |

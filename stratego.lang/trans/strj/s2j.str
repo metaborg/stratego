@@ -28,6 +28,7 @@ imports
   signatures/gradual-types/strategies-sig
 
   strj/multimatch/multimatch2java
+  strj/multimatch/dfa
 
 signature
   constructors 
@@ -1944,6 +1945,11 @@ strategies
 //    MultiMatchTerm(order, term, cases) ->
 
   /*======== Generate Java code from DFA =================*/
-  translate-DFA: Switch(_, _) -> bstm* |[ System.out.println(s); ]|
-  where
-    s := "MultiMatch test"
+  translate-DFA: Switch(alts, default) -> |[ stm_def ]|
+  with
+    stm_def := <translate-DFA> default
+
+  translate-DFA: Fail() -> |[ break Fail; ]|
+  translate-DFA = ?Leaf(<id>); translate-strategy
+  // TODO Check if something should be swapped.
+  translate-DFA = ?Swap(_, <id>); translate-DFA
