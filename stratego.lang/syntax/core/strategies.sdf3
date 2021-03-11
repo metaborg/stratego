@@ -80,18 +80,17 @@ context-free syntax
 // PMC
 sorts MatchOrder MatchCase
 context-free syntax
-  Strategy.MultiMatch = <match <MatchOrder>
-    <{MatchCase "\n"}+>
-  end>
-
-  Strategy.MultiMatchTerm = <match <MatchOrder> <Term>
-    <{MatchCase "\n"}+>
-  end>
+  Strategy.MultiMatch =
+<match <MatchOrder>
+  <{MatchCase "\n"}+>
+end>
 
   MatchOrder.Linear = <linear>
   MatchOrder.Specificity = <specificity>
 
-  MatchCase.MatchCase = <case <Term>: <Strategy>>
+  MatchCase.MatchCase =
+<case <Term>:
+  <Strategy>>
 
 context-free priorities
   { Strategy.Build

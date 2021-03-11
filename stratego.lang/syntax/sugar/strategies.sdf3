@@ -92,6 +92,14 @@ end>
 <case <Strategy>:
   <Strategy>>
 
+sorts MatchCase
+context-free syntax
+  Strategy.MultiMatchTerm =
+<match <MatchOrder> <Term>
+  <{MatchCase "\n"}+>
+end>
+
+
 context-free priorities
   { Strategy.AnnoCong Strategy.ExplodeCong }
 > { Strategy.Match Strategy.Build }
