@@ -38,13 +38,15 @@ strategies
 
 strategies
   mixer = match linear
-            case Blend(Red(), Yellow()): Orange()
-            case Blend(Yellow(), Red()): Orange()
-            case Blend(Blue(), Yellow()): Green()
-            case Blend(Yellow(), Blue()): Green()
-            case Blend(Blue(), Red()): Purple()
-            case Blend(Red(), Blue()): Purple()
+            case Blend(Red(), Yellow()): !Orange()
+            case Blend(Yellow(), Red()): !Orange()
+            case Blend(Blue(), Yellow()): !Green()
+            case Blend(Yellow(), Blue()): !Green()
+            case Blend(Blue(), Red()): !Purple()
+            case Blend(Red(), Blue()): !Purple()
           end
+  
+  m = ?Blend(Yellow(), c2)
 
 // Blend -|- Red -|- Yellow  -> Orange
 //        |       |- Blue    -> Purple

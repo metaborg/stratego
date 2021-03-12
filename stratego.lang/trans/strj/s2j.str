@@ -1945,11 +1945,25 @@ strategies
 //    MultiMatchTerm(order, term, cases) ->
 
   /*======== Generate Java code from DFA =================*/
-  translate-DFA: Switch(alts, default) -> |[ stm_def ]|
+  translate-DFA: Switch(alts*, default) ->
+  bstm |[
+    Fail: {
+      bstm_alts
+      stm_def
+    } ]|
   with
     stm_def := <translate-DFA> default
+  ; bstm_alts := <map(translate-Alt)> alts*
 
   translate-DFA: Fail() -> |[ break Fail; ]|
   translate-DFA = ?Leaf(<id>); translate-strategy
   // TODO Check if something should be swapped.
   translate-DFA = ?Swap(_, <id>); translate-DFA
+
+  translate-Alt: Alt(Fun(c, a), T) ->
+  bstm* |[
+    System.out.println(e_consname);
+    ~bstm:<translate-DFA> T
+  ]|
+  with
+    e_consname := <java-ConstructorName-expr> (c, a)
