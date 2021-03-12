@@ -111,8 +111,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>>
             strategyDataWithCasts =
-            extractStrategyDefs(moduleIdentifier, moduleData.lastModified, output.astWithCasts,
-                dynamicRules);
+            extractStrategyDefs(moduleIdentifier, output.astWithCasts, dynamicRules);
 
         final ArrayList<Message> messages =
             new ArrayList<>(moduleData.messages.size() + output.messages.size());
@@ -217,8 +216,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     public static LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> extractStrategyDefs(
-        IModuleImportService.ModuleIdentifier moduleIdentifier, long lastModified,
-        IStrategoTerm ast,
+        IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules) {
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> strategyData =
             new LinkedHashMap<>();
@@ -236,7 +234,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(moduleIdentifier, lastModified, strategyData, def.getSubterm(0),
+                    addStrategyData(moduleIdentifier, strategyData, def.getSubterm(0),
                         dynamicRules);
                     break;
                 default:
@@ -247,7 +245,6 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private static void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        long lastModified,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> strategyData,
         IStrategoTerm strategyDefs,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules) {

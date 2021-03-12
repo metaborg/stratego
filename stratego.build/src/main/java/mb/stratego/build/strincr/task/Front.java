@@ -213,54 +213,49 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             <+ \ AnnoDef(a*, def)         -> <m-def-signature> def\)
          */
         for(IStrategoTerm strategyDef : strategyDefs) {
-            if(TermUtils.isAppl(strategyDef, "DefHasType", 2)) {
-                final IStrategoTerm funTType = strategyDef.getSubterm(1);
-                final @Nullable StrategyType strategyType = StrategyType.fromTerm(tf, funTType);
-                if(strategyType == null) {
-                    throw new InvalidASTException(moduleIdentifier, funTType);
-                }
-                final StrategySignature strategySignature =
-                    new StrategySignature(TermUtils.toJavaStringAt(strategyDef, 0),
-                        strategyType.getStrategyArguments().size(),
-                        strategyType.getTermArguments().size());
-                Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
-                    .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
-            } else {
-                StrategyFrontData.Kind kind = Normal;
-                HashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dataMap = strategyData;
-                if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
-                    for(IStrategoTerm anno : strategyDef.getSubterm(0)) {
-                        if(TermUtils.isAppl(anno, "Internal", 0)) {
-                            kind = Internal;
-                            dataMap = internalStrategyData;
-                        } else if(TermUtils.isAppl(anno, "Extend", 0)) {
-                            kind = Extend;
-                        } else if(TermUtils.isAppl(anno, "Override", 0)) {
-                            kind = StrategyFrontData.Kind.Override;
-                        }
+            StrategyFrontData.Kind kind = Normal;
+            HashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dataMap = strategyData;
+            switch(TermUtils.toAppl(strategyDef).getName()) {
+                case "DefHasTType":
+                case "DefHasType":
+                case "DefHasTypeNoArgs": {
+                    final @Nullable StrategyType strategyType = StrategyType.fromDefinition(tf, strategyDef);
+                    if(strategyType == null) {
+                        throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
-                    strategyDef = strategyDef.getSubterm(1);
+                    final StrategySignature strategySignature =
+                        strategyType.withName(TermUtils.toJavaStringAt(strategyDef, 0));
+                    Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
+                    break;
                 }
-                if(!TermUtils.isAppl(strategyDef)) {
-                    throw new InvalidASTException(moduleIdentifier, strategyDef);
-                }
-                if(!TermUtils.isStringAt(strategyDef, 0)) {
-                    throw new InvalidASTException(moduleIdentifier, strategyDef);
-                }
-                switch(TermUtils.toAppl(strategyDef).getName()) {
-                    case "ExtSDef":
-                    case "ExtSDefInl":
-                        kind = External;
-                        dataMap = externalStrategyData;
-                        break;
-                }
-                final @Nullable StrategySignature strategySignature =
-                    StrategySignature.fromDefinition(strategyDef);
-                if(strategySignature == null) {
-                    throw new InvalidASTException(moduleIdentifier, strategyDef);
-                }
-                Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
-                    .add(new StrategyFrontData(strategySignature, strategySignature.standardType(tf), kind));
+                case "ExtSDef":
+                case "ExtSDefInl":
+                    kind = External;
+                    dataMap = externalStrategyData;
+                    // fallthrough
+                default:
+                    if(TermUtils.isAppl(strategyDef, "AnnoDef", 2)) {
+                        for(IStrategoTerm anno : strategyDef.getSubterm(0)) {
+                            if(TermUtils.isAppl(anno, "Internal", 0)) {
+                                kind = Internal;
+                                dataMap = internalStrategyData;
+                            } else if(TermUtils.isAppl(anno, "Extend", 0)) {
+                                kind = Extend;
+                            } else if(TermUtils.isAppl(anno, "Override", 0)) {
+                                kind = StrategyFrontData.Kind.Override;
+                            }
+                        }
+                        strategyDef = strategyDef.getSubterm(1);
+                    }
+                    final @Nullable StrategySignature strategySignature =
+                        StrategySignature.fromDefinition(strategyDef);
+                    if(strategySignature == null) {
+                        throw new InvalidASTException(moduleIdentifier, strategyDef);
+                    }
+                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategySignature.standardType(tf), kind));
+                    break;
             }
 
             // collect-om(dyn-rule-sig)

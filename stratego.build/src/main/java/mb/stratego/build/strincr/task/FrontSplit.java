@@ -52,8 +52,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>>
             strategyDataWithCasts = CheckModule
-            .extractStrategyDefs(input.frontInput.moduleIdentifier, astWLM.lastModified,
-                astWLM.wrapped, dynamicRules);
+            .extractStrategyDefs(input.frontInput.moduleIdentifier, astWLM.wrapped, dynamicRules);
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, new ArrayList<>(0));
     }

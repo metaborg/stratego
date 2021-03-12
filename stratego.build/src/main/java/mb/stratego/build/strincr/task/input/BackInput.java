@@ -205,7 +205,7 @@ public abstract class BackInput implements Serializable {
 
             //noinspection ConstantConditions
             final Set<StrategySignature> cifiedStrategySignatures =
-                CheckModule.extractStrategyDefs(null, 0L, result.result, null).keySet();
+                CheckModule.extractStrategyDefs(null, result.result, null).keySet();
             for(StrategySignature cified : cifiedStrategySignatures) {
                 final @Nullable StrategySignature uncified =
                     StrategySignature.fromCified(cified.name);
