@@ -38,11 +38,10 @@ public interface Library extends Serializable {
         final @Nullable String normalizedName = Builtin.fromString(name.stringValue()).libString;
         if(normalizedName == null) {
             return name;
-        } else {
-            final IStrategoString normNameTerm = B.string(normalizedName);
-            new TermFactory().copyAttachments(name, normNameTerm);
-            return normNameTerm;
         }
+        final IStrategoString normNameTerm = B.string(normalizedName);
+        new TermFactory().copyAttachments(name, normNameTerm);
+        return normNameTerm;
     }
 
     enum Builtin implements Library {

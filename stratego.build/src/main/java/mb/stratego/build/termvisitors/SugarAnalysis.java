@@ -2,9 +2,7 @@ package mb.stratego.build.termvisitors;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -15,23 +13,28 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.util.StringSetWithPositions;
 
 /**
  * Static analysis which requires the non-desugared AST
+ * Warn on local variable that overlaps with nullary constructor
+ * Warn on congruence with only constant data, recommend to match, or build if that was the intention
  */
 public class SugarAnalysis {
-    private final String module;
+    private String module;
     private final List<Message<?>> sugarAnalysisMessages;
     private final Set<String> definedConstructors;
 
-    public SugarAnalysis(String module, List<Message<?>> sugarAnalysisMessages, Map<String, StringSetWithPositions> allDefinedConstructors) {
-        this.module = module;
+    public SugarAnalysis(List<Message<?>> sugarAnalysisMessages, Set<String> definedConstructors) {
         this.sugarAnalysisMessages = sugarAnalysisMessages;
-        this.definedConstructors = new HashSet<>();
-        for(StringSetWithPositions sswp : allDefinedConstructors.values()) {
-            this.definedConstructors.addAll(sswp.readSet());
-        }
+        this.definedConstructors = definedConstructors;
+    }
+
+    /**
+     * Run sugar analysis on term in module.
+     */
+    public void visit(String module, IStrategoTerm term) {
+        this.module = module;
+        visit(term);
     }
 
     /**
@@ -39,7 +42,7 @@ public class SugarAnalysis {
      * The recursive calls inside the visitCongruence method are tracked and will call back into this visit method for non-congruence terms
      * @param term
      */
-    public void visit(IStrategoTerm term) {
+    private void visit(IStrategoTerm term) {
         boolean isCongruence = visitCongruence(term);
         if(!isCongruence) {
             visitVar(term);
@@ -174,12 +177,11 @@ public class SugarAnalysis {
                 visit(term);
             }
             return constCongruence;
-        } else {
-            if(constCongruence) {
-                registerConstantCongruence(term);
-            }
-            return isCongruence;
         }
+        if(constCongruence) {
+            registerConstantCongruence(term);
+        }
+        return isCongruence;
     }
 
     /**

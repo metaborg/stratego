@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
 import mb.pie.api.stamp.resource.ResourceStampers;
 import mb.resource.ReadableResource;
 import mb.resource.hierarchical.HierarchicalResource;
@@ -47,7 +46,7 @@ public final class Module implements Serializable {
     }
 
     static Set<Module> resolveWildcards(String modulePath, Collection<Import> imports, Collection<ResourcePath> includeDirs,
-        List<Message<?>> outputMessages, ExecContext execContext) throws ExecException, IOException {
+        List<Message<?>> outputMessages, ExecContext execContext) throws IOException {
         final Set<Module> result = new HashSet<>(imports.size() * 2);
         for(Import anImport : imports) {
             switch(anImport.type) {

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedMap;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -116,14 +115,12 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData,
-            result.staticCheckOutput);
+        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData);
         return None.instance;
     }
 
     private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
-        StaticChecks.Data staticData, BackendData backendData, StaticChecks.Output staticCheckOutput)
-        throws mb.pie.api.ExecException, InterruptedException {
+        StaticChecks.Data staticData, BackendData backendData) {
         long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
@@ -144,11 +141,9 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                 strategyOverlayFiles.addAll(backendData.overlayASTs.getOrDefault(overlayName, Collections.emptyList()));
             }
 
-            final SortedMap<String, String> ambStrategyResolution =
-                staticCheckOutput.ambStratResolution.getOrDefault(strategyName, Collections.emptySortedMap());
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, strategyName, Collections.emptyList(), strategyContributions,
-                    strategyOverlayFiles, ambStrategyResolution, input.javaPackageName, input.outputPath,
+                    strategyOverlayFiles, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
@@ -174,7 +169,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
 
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, congrName, Collections.emptyList(), strategyContributions,
-                    strategyOverlayFiles, Collections.emptySortedMap(), input.javaPackageName, input.outputPath,
+                    strategyOverlayFiles, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));
@@ -192,7 +187,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
             final List<IStrategoAppl> decls = StrategyStubs.declStubs(backendData.strategyASTs);
             Backend.Input backEndInput =
                 new Backend.Input(projectLocation, null, backendData.consDefs, decls, Collections.emptyList(),
-                    Collections.emptySortedMap(), input.javaPackageName, input.outputPath, input.cacheDir,
+                    input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.frontendsInput.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
             execContext.require(strIncrBack.createTask(backEndInput));

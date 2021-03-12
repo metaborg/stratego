@@ -1,5 +1,7 @@
 package mb.stratego.build.strincr;
 
+import static org.spoofax.interpreter.core.Interpreter.cify;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -28,8 +31,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.stratego.build.util.Relation;
-
-import static org.spoofax.interpreter.core.Interpreter.cify;
+import mb.stratego.build.util.TermEqWithAttachments;
 
 public class SplitResult implements Serializable {
     public final String moduleName;
@@ -72,7 +74,8 @@ public class SplitResult implements Serializable {
         final IStrategoList consTypePairs = TermUtils.toListAt(splitTerm, 7);
         final IStrategoList injPairs = TermUtils.toListAt(splitTerm, 8);
 
-        final List<IStrategoTerm> imports = imps.getSubterms();
+        final List<IStrategoTerm> imports = imps.getSubterms().stream().map(TermEqWithAttachments::new).collect(
+            Collectors.toList());
 
         final Map<StrategySignature, IStrategoTerm> strategyDefs = stratAssocListToMapOfLists(strats);
         final Map<ConstructorSignature, List<IStrategoTerm>> consDefs = consAssocListToRel(cons);
@@ -89,13 +92,13 @@ public class SplitResult implements Serializable {
             ConstructorSignature consSig = ConstructorSignature.fromTuple(consTypePair.getSubterm(0));
             Objects.requireNonNull(consSig,
                 () -> "Cannot turn term " + consTypePair.getSubterm(0) + " into a constructor signature. Not a pair of a string and an int?");
-            IStrategoTerm consType = consTypePair.getSubterm(1);
+            IStrategoTerm consType = new TermEqWithAttachments(consTypePair.getSubterm(1));
             consTypes.__insert(consSig, consType);
         }
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections = BinaryRelation.Transient.of();
         for(IStrategoTerm injPair : injPairs) {
-            IStrategoTerm fromType = injPair.getSubterm(0);
-            IStrategoTerm toType = injPair.getSubterm(1);
+            IStrategoTerm fromType = new TermEqWithAttachments(injPair.getSubterm(0));
+            IStrategoTerm toType = new TermEqWithAttachments(injPair.getSubterm(1));
             injections.__insert(fromType, toType);
         }
 
@@ -109,7 +112,7 @@ public class SplitResult implements Serializable {
             final StrategySignature sig = StrategySignature.fromTuple(pair.getSubterm(0));
             Objects.requireNonNull(sig,
                 () -> "Cannot turn term " + pair.getSubterm(0) + " into a strategy signature. Not a pair of a string and two ints?");
-            final IStrategoTerm def = pair.getSubterm(1);
+            final IStrategoTerm def = new TermEqWithAttachments(pair.getSubterm(1));
             Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
         }
         return packMapValues(resultMap);
@@ -121,7 +124,7 @@ public class SplitResult implements Serializable {
             final StrategySignature sig = StrategySignature.fromTuple(pair.getSubterm(0));
             Objects.requireNonNull(sig,
                 () -> "Cannot turn term " + pair.getSubterm(0) + " into a strategy signature. Not a pair of a string and two ints?");
-            final IStrategoTerm value = pair.getSubterm(1);
+            final IStrategoTerm value = new TermEqWithAttachments(pair.getSubterm(1));
             if(!resultMap.containsKey(sig)) {
                 resultMap.put(sig, value);
             }
@@ -137,7 +140,7 @@ public class SplitResult implements Serializable {
                 // case where the signature name is Inj() for injections.
                 continue;
             }
-            final IStrategoTerm def = pair.getSubterm(1);
+            final IStrategoTerm def = new TermEqWithAttachments(pair.getSubterm(1));
             Relation.getOrInitialize(resultMap, sig, ArrayList::new).add(def);
         }
         return resultMap;
@@ -156,7 +159,7 @@ public class SplitResult implements Serializable {
         return packedValuesMap;
     }
 
-    public static class StrategySignature extends StrategoTuple implements Serializable {
+    public static class StrategySignature extends StrategoTuple {
         public final String name;
         public final int noStrategyArgs;
         public final int noTermArgs;
@@ -274,7 +277,7 @@ public class SplitResult implements Serializable {
         }
     }
 
-    public static class ConstructorSignature extends StrategoTuple implements Serializable {
+    public static class ConstructorSignature extends StrategoTuple {
         public final String name;
         public final int noArgs;
 

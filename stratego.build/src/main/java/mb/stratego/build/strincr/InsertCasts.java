@@ -22,6 +22,7 @@ import mb.stratego.build.strincr.SplitResult.ConstructorSignature;
 import mb.stratego.build.strincr.SplitResult.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.StrIncrContext;
+import mb.stratego.build.util.TermEqWithAttachments;
 
 public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Output> {
     public static final String id = InsertCasts.class.getCanonicalName();
@@ -37,7 +38,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
         final StrategySignature sig;
 
         Input(String moduleName, StrategoImmutableMap strategyEnvironment, StrategoImmutableRelation constructors,
-            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap, StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
+            StrategoImmutableRelation injectionClosure, StrategoImmutableRelation lubMap,
+            StrategoImmutableRelation aliasMap, IStrategoTerm ast, StrategySignature sig) {
             this.moduleName = moduleName;
             this.strategyEnvironment = strategyEnvironment;
             this.constructors = constructors;
@@ -89,7 +91,8 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
 
             public Builder(String moduleName, java.util.Map<StrategySignature, IStrategoTerm> strategyEnv,
                 BinaryRelation.Immutable<ConstructorSignature, IStrategoTerm> constrs,
-                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections, ITermFactory tf) {
+                BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections,
+                ITermFactory tf) {
                 this.moduleName = moduleName;
                 strategyEnvironment = StrategoImmutableMap.fromMap(strategyEnv);
                 constructors = new StrategoImmutableRelation(constrs);
@@ -197,7 +200,7 @@ public class InsertCasts implements TaskDef<InsertCasts.Input, InsertCasts.Outpu
                 input.injectionClosure.withWrapper(tf), input.lubMap.withWrapper(tf), input.aliasMap.withWrapper(tf), input.ast);
         final SubFrontend.Input frontInput = SubFrontend.Input.insertCasts(input.moduleName, input.sig.cifiedName(), tuple);
         final SubFrontend.Output output = execContext.require(strIncrSubFront.createTask(frontInput));
-        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
+        final IStrategoTerm astWithCasts = new TermEqWithAttachments(output.result.getSubterm(0));
         final IStrategoList errors = TermUtils.toListAt(output.result, 1);
         final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
         final IStrategoList notes = TermUtils.toListAt(output.result, 3);

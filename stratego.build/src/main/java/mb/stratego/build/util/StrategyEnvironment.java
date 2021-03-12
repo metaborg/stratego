@@ -54,9 +54,8 @@ public class StrategyEnvironment implements Serializable {
                         if(result == null) {
                             result = new Entry(entry);
                             break; // only the inner loop
-                        } else {
-                            result.merge(entry);
                         }
+                        result.merge(entry);
                     }
                 }
             }
