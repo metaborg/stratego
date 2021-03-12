@@ -114,7 +114,7 @@ public class ConstructorSignature extends StrategoTuple {
     }
 
     public StrategySignature toCongruenceSig() {
-        return new StrategySignature(name, noArgs, 0);
+        return new StrategySignature(TermUtils.toStringAt(this, 0), noArgs, 0);
     }
 
     public IStrategoAppl congruenceAst(IStrategoTermBuilder tf) {

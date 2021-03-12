@@ -224,7 +224,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
                     final StrategySignature strategySignature =
-                        strategyType.withName(TermUtils.toJavaStringAt(strategyDef, 0));
+                        strategyType.withName(TermUtils.toStringAt(strategyDef, 0));
                     Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
                         .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
                     break;

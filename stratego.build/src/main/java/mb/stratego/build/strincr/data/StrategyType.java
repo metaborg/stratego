@@ -6,6 +6,7 @@ import java.util.Collections;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.terms.StrategoAppl;
@@ -67,7 +68,7 @@ public class StrategyType extends StrategoAppl {
         return new StrategyType(tf, sSimpleFunType, strategyArguments, termArguments);
     }
 
-    public StrategySignature withName(String name) {
+    public StrategySignature withName(IStrategoString name) {
         return new StrategySignature(name, strategyArguments.size(), termArguments.size());
     }
 

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
-import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -31,13 +30,13 @@ public class StrategySignature extends StrategoTuple {
         this.noTermArgs = noTermArgs;
     }
 
-    public StrategySignature(IStrategoString name, IStrategoInt noStrategyArgs,
-        IStrategoInt noTermArgs) {
-        super(new IStrategoTerm[] { name, noStrategyArgs, noTermArgs },
+    public StrategySignature(IStrategoString name, int noStrategyArgs,
+        int noTermArgs) {
+        super(new IStrategoTerm[] { name, new StrategoInt(noStrategyArgs), new StrategoInt(noTermArgs) },
             AbstractTermFactory.EMPTY_LIST);
         this.name = name.stringValue();
-        this.noStrategyArgs = noStrategyArgs.intValue();
-        this.noTermArgs = noTermArgs.intValue();
+        this.noStrategyArgs = noStrategyArgs;
+        this.noTermArgs = noTermArgs;
     }
 
     public String cifiedName() {
@@ -132,7 +131,7 @@ public class StrategySignature extends StrategoTuple {
         final IStrategoString name = TermUtils.toStringAt(term.getSubterm(0), 0);
         final int sArity = subtermCount < 2 ? 0 : TermUtils.toListAt(term, 1).size();
         final int tArity = subtermCount < 3 ? 0 : TermUtils.toListAt(term, 2).size();
-        return new StrategySignature(name, new StrategoInt(sArity), new StrategoInt(tArity));
+        return new StrategySignature(name, sArity, tArity);
     }
 
     public static @Nullable StrategySignature fromDefinition(IStrategoTerm term) {
@@ -184,6 +183,6 @@ public class StrategySignature extends StrategoTuple {
             default:
                 return null;
         }
-        return new StrategySignature(name, new StrategoInt(sArity), new StrategoInt(tArity));
+        return new StrategySignature(name, sArity, tArity);
     }
 }
