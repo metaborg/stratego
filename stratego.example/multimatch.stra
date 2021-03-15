@@ -64,7 +64,7 @@ strategies
   color = match linear
             case Red():   !"red"
             case Blue():  !"blue"
-            case Green(): !"green"
+            case _: !"green"
           end
   
 //  color(|c) = match specificity c

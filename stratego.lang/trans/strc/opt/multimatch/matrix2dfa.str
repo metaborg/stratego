@@ -63,34 +63,11 @@ strategies
        ; A' := <CC> m'
        ; !Swap(i, A')
     else // i == 1
-         /* TODO perform a bunch of recursive calls on possible head
-                 constructors and include them in a big Switch */
+         /* Perform a bunch of recursive calls on possible head
+            constructors and include them in a big Switch */
          c            := <col(|i)> m
        ; hcs          := <head-constructors; make-set> c
        ; specMatrices := <map(specialize(|m))> hcs
        ; default      := <default; CC> m
        ; !Switch(<zip(\ (cons, mat) -> Alt(cons, <CC> mat) \)> (hcs, specMatrices), default)
     end => T
-
-strategies
-  /*
-   * Get head constructors from list of (constructor) patterns.
-   */
-  head-constructors = id
-  ; is-list
-  ; map(head-constructor)
-
-//  head-constructor: As(x, Anno(c, ann))             -> Fun("anno", 2) // TODO bind
-  head-constructor: Anno(c, ann) -> Anno()
-  head-constructor: Op(f, ts)   -> Fun(f, <length> ts)
-  head-constructor: Str(s)      -> Str(s)
-  head-constructor: Int(s)      -> Int(s)
-  head-constructor: Real(s)     -> Real(s)
-  head-constructor: Var(_)      -> Wld()
-  head-constructor: Wld()       -> Wld()
-
-  /*
-   * Determine default case for matrix.
-   */
-  default: Matrix(rows) -> Matrix(<filter(default-row)> rows)
-  default-row: Row([Wld() | ps], a) -> Row(ps, a)
