@@ -12,28 +12,14 @@ signature
     Row     : List(Term) * Strategy -> Row
 
 strategies
-  is-wildcard = ?Wld() <+ ?Var(_)
+  is-wildcard = ?Wld() + ?Var(_) //+ all(is-wildcard) // TODO
+
+  row-not-all-wildcards = ?Row(<not-all-wildcards>, _)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
    */
-  row-not-all-wildcards = id
-  ; ?Row(ts, _)
-  ; !ts
-  ; filter(not(is-wildcard))
-  ; ?[_ | _]
-
-  row-not-all-wildcards' = id
-  ; ?Row(<is-list>, _)
-  ; filter(not(is-wildcard))
-  ; ?[_ | _]
-
-  row-not-all-wildcards'' = id
-  ; ?Row(<filter(not(is-wildcard))>, _)
-  ; ?[_ | _]
-
-  row-not-all-wildcards''' = id
-  ; ?Row(<filter(not(is-wildcard)); ?[_ | _]>, _)
+  not-all-wildcards = filter(not(is-wildcard)); ?[_ | _]
 
   /*
    * Get the `i`th column from a Matrix.
@@ -53,6 +39,12 @@ strategies
    */
   find-first-row-index(s) = id
   ; ?Matrix(<is-list>)
+  ; find-first-index(s)
+
+  find-first-col-index(s) = id
+  ; ?Matrix(<is-list>)
+  ; map(?Row(<id>, _))
+  ; matrix-transpose
   ; find-first-index(s)
 
   find-first-index(s) = id

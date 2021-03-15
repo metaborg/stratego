@@ -51,7 +51,7 @@ strategies
   SelectColumn: m@Matrix(rs) -> T
   where
     <debug(!"SelectColumn ")> m
-  ; i := <find-first-row-index(row-not-all-wildcards)> m
+  ; i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
     /*
