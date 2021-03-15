@@ -16,30 +16,21 @@ strategies
 //  specialize-row'(|cons) = id
 //  ; where(!(cons, <id>); debug(!"[i] spec-row ")) // Print cons and matrix
 //  ; specialize-row(|cons); debug(!"[o] spec-row ") // Call original strategy
+//  specialize-row(|c): Row(ps, A) -> Row(<specialize-pats(|c)> ps, A)
+  specialize-row(|c) = Row(specialize-pats(|c), id)
 
-  specialize-row(|Anno()):    Row([Anno(c, ann) | ps*], A) ->
-                              Row([c, ann | ps*], A)
-  specialize-row(|Anno()):    Row([Wld() | ps*], A) ->
-                              Row(<prepend-wld(|2)> ps*, A)
+  // Annotations
+  specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
+  specialize-pats(|Anno()):    [Wld() | ps*] -> <prepend-wld(|2)> ps*
 
-  specialize-row(|Fun(f, a)): Row([Op(f, qs*) | ps*], A) ->
-                              Row([qs*, ps*], A) where <eq> (a, <length> qs*)
-  specialize-row(|Fun(_, a)): Row([Wld() | ps*], A) ->
-                              Row(<prepend-wld(|a)> ps*, A)
+  // Constructor applications
+  specialize-pats(|Fun(f, a)): [Op(f, qs*) | ps*] -> [qs*, ps*]
+    where <eq> (a, <length> qs*)
+  specialize-pats(|Fun(_, a)): [Wld() | ps*] -> <prepend-wld(|a)> ps*
 
-  specialize-row(|Str(s)):    Row([Str(s) | ps*], A) ->
-                              Row(ps*, A)
-  specialize-row(|Str(_)):    Row([Wld() | ps*], A) ->
-                              Row(ps*, A)
-
-  specialize-row(|Int(s)):    Row([Int(s) | ps*], A) ->
-                              Row(ps*, A)
-  specialize-row(|Int(_)):    Row([Wld() | ps*], A) ->
-                              Row(ps*, A)
-
-  specialize-row(|Real(s)):   Row([Real(s) | ps*], A) ->
-                              Row(ps*, A)
-  specialize-row(|Real(_)):   Row([Wld() | ps*], A) ->
-                              Row(ps*, A)
+  // Literals
+  specialize-pats(|Str(s)):    [<?Str(s) + ?Wld()> | ps*] -> ps*
+  specialize-pats(|Int(s)):    [<?Int(s) + ?Wld()> | ps*] -> ps*
+  specialize-pats(|Real(s)):   [<?Real(s) + ?Wld()> | ps*] -> ps*
 
   prepend-wld(|n) = repeat(![Wld() | <id>] | n)
