@@ -6,7 +6,6 @@ imports
   strj/multimatch/specialize
 
   signatures/core/terms-sig
-  strj/s2j // Frames
 
 strategies
   /*======== Construct DFA from matrices =================*/
@@ -66,7 +65,7 @@ strategies
     else // i == 1
          /* TODO perform a bunch of recursive calls on possible head
                  constructors and include them in a big Switch */
-         c            := <col(|1)> m
+         c            := <col(|i)> m
        ; hcs          := <head-constructors; make-set> c
        ; specMatrices := <map(specialize(|m))> hcs
        ; default      := <default; CC> m
@@ -94,6 +93,4 @@ strategies
    * Determine default case for matrix.
    */
   default: Matrix(rows) -> Matrix(<filter(default-row)> rows)
-
-  default-row = ?Row([Fun(_, _) | _], _); fail
   default-row: Row([Wld() | ps], a) -> Row(ps, a)

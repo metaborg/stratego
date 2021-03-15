@@ -6,7 +6,7 @@ imports
 
   signatures/core/strategies-sig
 
-  libstratego-aterm
+  libstratego-aterm // debugging only
 
 strategies
   multimatch2dfa: mm@MultiMatch(_, _) -> dfa

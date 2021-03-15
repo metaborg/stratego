@@ -56,8 +56,7 @@ strategies
 
   swap-cols(|m, n): Matrix(rs) -> Matrix(rs')
   with
-    <debug(!"Swapping cols ")> (m, n, rs)
-  ; rs' := <map(swap-row-el(|m, n))> rs
+    rs' := <map(swap-row-el(|m, n))> rs
 
   swap-row-el(|m, n): Row(ts, a) -> Row(ts', a)
   with
@@ -69,8 +68,7 @@ strategies
    */
   swap(|m, n): xs -> xs''
   with
-    <debug(!"Swapping ")> (m, n, xs)
-  ; <is-list> xs
+    <is-list> xs
   ; elM := <index(|m)> xs
   ; elN := <index(|n)> xs
   ; xs' := <set-index> (<dec> m, elN, xs)

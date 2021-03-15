@@ -10,12 +10,12 @@ strategies
   /*
    * Specialize the matrix to a certain constructor.
    */
-  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row'(|cons))> rows)
+  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
 
-  // TODO Remove this debugging strategy
-  specialize-row'(|cons) = id
-  ; where(!(cons, <id>); debug(!"[i] spec-row ")) // Print cons and matrix
-  ; specialize-row(|cons); debug(!"[o] spec-row ") // Call original strategy
+//  // For debugging purposes
+//  specialize-row'(|cons) = id
+//  ; where(!(cons, <id>); debug(!"[i] spec-row ")) // Print cons and matrix
+//  ; specialize-row(|cons); debug(!"[o] spec-row ") // Call original strategy
 
   specialize-row(|Anno()):    Row([Anno(c, ann) | ps*], A) ->
                               Row([c, ann | ps*], A)
@@ -42,9 +42,4 @@ strategies
   specialize-row(|Real(_)):   Row([Wld() | ps*], A) ->
                               Row(ps*, A)
 
-//  specialize-row(|c) = id
-//  ; where(!c; debug(!"cons: "))
-//  ; debug(!"row: ")
-//  ; fail
-
-  prepend-wld(|n) = repeat(![Wld() | <id>] | n) 
+  prepend-wld(|n) = repeat(![Wld() | <id>] | n)
