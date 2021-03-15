@@ -43,9 +43,9 @@ strategies
             case Blend(Blue(), Yellow()): !Green()
             case Blend(Yellow(), Blue()): !Green()
             case Blend(Blue(), Red()): !Purple()
-            case Blend(Red(), Blue()): !Purple()
+            case Blend(Red(), Blue()){^["a", Yellow()]}: !Purple()
           end
-  
+
   m = ?Blend(Yellow(), c2)
 
 // Blend -|- Red -|- Yellow  -> Orange
@@ -60,3 +60,15 @@ strategies
 strategies
   bottomup(s) = 
     all(bottomup(s)); s
+
+  color = match linear
+            case Red():   !"red"
+            case Blue():  !"blue"
+            case Green(): !"green"
+          end
+  
+//  color(|c) = match specificity c
+//                case Red():   !"red"
+//                case Blue():  !"blue"
+//                case Green(): !"green"
+//              end

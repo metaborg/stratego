@@ -81,12 +81,14 @@ strategies
   ; is-list
   ; map(head-constructor)
 
-  head-constructor: Anno(Op(f, ts), Wld())  -> Fun(f, <length> ts)
-  head-constructor: Anno(Str(s), Wld())     -> Fun("string", 1)
-  head-constructor: Anno(Int(s), Wld())     -> Fun("int", 1)
-  head-constructor: Anno(Real(s), Wld())    -> Fun("real", 1)
-  head-constructor: Var(_)                  -> Wld()
-  head-constructor: Wld()                   -> Wld()
+//  head-constructor: As(x, Anno(c, ann))             -> Fun("anno", 2) // TODO bind
+  head-constructor: Anno(c, ann) -> Anno()
+  head-constructor: Op(f, ts)   -> Fun(f, <length> ts)
+  head-constructor: Str(s)      -> Str(s)
+  head-constructor: Int(s)      -> Int(s)
+  head-constructor: Real(s)     -> Real(s)
+  head-constructor: Var(_)      -> Wld()
+  head-constructor: Wld()       -> Wld()
 
   /*
    * Determine default case for matrix.

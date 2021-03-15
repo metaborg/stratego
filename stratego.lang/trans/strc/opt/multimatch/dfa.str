@@ -19,3 +19,4 @@ signature
     Str   : string        -> Pat
     Int   : int           -> Pat
     Real  : real          -> Pat
+    Anno  :                  Pat

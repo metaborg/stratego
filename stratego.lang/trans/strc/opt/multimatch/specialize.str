@@ -10,27 +10,41 @@ strategies
   /*
    * Specialize the matrix to a certain constructor.
    */
-  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
+  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row'(|cons))> rows)
 
+  // TODO Remove this debugging strategy
   specialize-row'(|cons) = id
-  ; ?m; !(cons, m); conc-strings; debug(!"spec-row ") // Print cons and matrix
-  ; !m; specialize-row(|cons) // Call original strategy
+  ; where(!(cons, <id>); debug(!"[i] spec-row ")) // Print cons and matrix
+  ; specialize-row(|cons); debug(!"[o] spec-row ") // Call original strategy
 
-  specialize-row(|Fun(f, a)): Row([Anno(Op(f, qs), Wld()) | ps], A) ->
-                              Row(<conc> (qs, ps), A)
-  where
-    <eq> (a, <length> qs)
+  specialize-row(|Anno()):    Row([Anno(c, ann) | ps*], A) ->
+                              Row([c, ann | ps*], A)
+  specialize-row(|Anno()):    Row([Wld() | ps*], A) ->
+                              Row(<prepend-wld(|2)> ps*, A)
 
-  specialize-row(|Fun("string", 1)):  Row([Anno(Str(s), Wld()) | ps], A) ->
-                                      Row([s | ps], A)
+  specialize-row(|Fun(f, a)): Row([Op(f, qs*) | ps*], A) ->
+                              Row([qs*, ps*], A) where <eq> (a, <length> qs*)
+  specialize-row(|Fun(_, a)): Row([Wld() | ps*], A) ->
+                              Row(<prepend-wld(|a)> ps*, A)
 
-  specialize-row(|Fun("int", 1)):     Row([Anno(Int(i), Wld()) | ps], A) ->
-                                      Row([i | ps], A)
+  specialize-row(|Str(s)):    Row([Str(s) | ps*], A) ->
+                              Row(ps*, A)
+  specialize-row(|Str(_)):    Row([Wld() | ps*], A) ->
+                              Row(ps*, A)
 
-  specialize-row(|Fun("real", 1)):    Row([Anno(Real(r), Wld()) | ps], A) ->
-                                      Row([r | ps], A)
+  specialize-row(|Int(s)):    Row([Int(s) | ps*], A) ->
+                              Row(ps*, A)
+  specialize-row(|Int(_)):    Row([Wld() | ps*], A) ->
+                              Row(ps*, A)
 
-  specialize-row(|Fun(_, a)):         Row([Wld() | ps], A) ->
-                                      Row(<repeat(![Wld() | <id>] | a)> ps, A)
+  specialize-row(|Real(s)):   Row([Real(s) | ps*], A) ->
+                              Row(ps*, A)
+  specialize-row(|Real(_)):   Row([Wld() | ps*], A) ->
+                              Row(ps*, A)
 
-//  specialize-row(|c) = where(!c; debug(!"cons: ")); debug(!"row: "); fail 
+//  specialize-row(|c) = id
+//  ; where(!c; debug(!"cons: "))
+//  ; debug(!"row: ")
+//  ; fail
+
+  prepend-wld(|n) = repeat(![Wld() | <id>] | n) 
