@@ -1,9 +1,9 @@
 module matrix2dfa
 
 imports
+  strj/multimatch/decompose
   strj/multimatch/dfa
   strj/multimatch/matrix
-  strj/multimatch/specialize
 
   signatures/core/terms-sig
 
