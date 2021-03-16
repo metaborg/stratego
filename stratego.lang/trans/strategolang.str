@@ -124,9 +124,10 @@ rules // Debugging
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
   debug-show-dfa:
-    (node, _, _, path, project-path) -> (filename*, result*)
+    (node, _, _, path, project-path) -> (filename, result)
     with
       <set-config> ("--library", ()) // no main strategy necessary this way
+    ; filename := <guarantee-extension(|"dfa.aterm")> path
     ; !node
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
@@ -137,7 +138,5 @@ rules // Debugging
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )
-    ; alltd(multimatch2dfa)
-    ; ?ast*
-    ; filename* := <map(output-filename)> ast*
-    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
+    ; collect-all(multimatch2dfa)
+    ; ?result

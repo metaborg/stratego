@@ -13,5 +13,3 @@ strategies
   with
     <debug(!"[i] m2m "); multimatch2matrix; debug(!"[o] m2m ")> mm => matrix
   ; <debug(!"[i] m2d "); matrix2dfa; debug(!"[o] m2d ")> matrix => dfa
-  where
-    <pp-aterm; debug> dfa
