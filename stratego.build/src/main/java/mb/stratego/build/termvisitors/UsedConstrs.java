@@ -1,7 +1,6 @@
 package mb.stratego.build.termvisitors;
 
 import java.util.Set;
-import java.util.function.BiFunction;
 
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -28,27 +27,33 @@ public class UsedConstrs extends TermVisitor {
     }
 
     void registerConsUse(IStrategoTerm term) {
-        if(TermUtils.isAppl(term, "Op", 2)) {
-            if(TermUtils.isString(term.getSubterm(0))) {
-                final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
-                if(!nameAST.stringValue().isEmpty()) {
+        if(!TermUtils.isAppl(term) || term.getSubtermCount() != 2) {
+            return;
+        }
+        switch(TermUtils.toAppl(term).getName()) {
+            case "Op":
+                if(TermUtils.isString(term.getSubterm(0))) {
+                    final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
+                    if(!nameAST.stringValue().isEmpty()) {
+                        final int arity = TermUtils.toListAt(term, 1).size();
+                        IStrategoInt noArgs = new StrategoInt(arity);
+                        usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                    }
+                } else {
+                    final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
+                    final IStrategoString escapedNameAST = (IStrategoString) tf
+                        .replaceTerm(tf.makeString(strategoEscape(nameAST.stringValue())), nameAST);
                     final int arity = TermUtils.toListAt(term, 1).size();
                     IStrategoInt noArgs = new StrategoInt(arity);
-                    usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                    usedConstructors.add(new ConstructorSignature(escapedNameAST, noArgs));
                 }
-            } else {
-                final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
-                final IStrategoString escapedNameAST = (IStrategoString) tf
-                    .replaceTerm(tf.makeString(strategoEscape(nameAST.stringValue())), nameAST);
+                break;
+            case "CongQ":
+                final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
                 final int arity = TermUtils.toListAt(term, 1).size();
                 IStrategoInt noArgs = new StrategoInt(arity);
-                usedConstructors.add(new ConstructorSignature(escapedNameAST, noArgs));
-            }
-        } else if(TermUtils.isAppl(term, "CongQ", 2)) {
-            final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
-            final int arity = TermUtils.toListAt(term, 1).size();
-            IStrategoInt noArgs = new StrategoInt(arity);
-            usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                break;
         }
     }
 
