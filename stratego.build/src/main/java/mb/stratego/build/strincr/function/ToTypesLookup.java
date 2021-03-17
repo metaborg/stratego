@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,12 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -25,7 +24,7 @@ import mb.stratego.build.strincr.function.output.TypesLookup;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Relation;
 
-public class ToTypesLookup implements Function<ModuleData, TypesLookup>, Serializable {
+public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLookup> {
     public final Set<StrategySignature> usedStrategies;
     public final Set<String> usedAmbiguousStrategies;
     public final Set<ConstructorSignature> usedConstructors;

@@ -1,13 +1,11 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
-import java.util.function.Function;
-
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.ModuleIndentifiersAndMessages;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
 public class ToModuleIdentifiersAndMessages
-    implements Function<GlobalData, ModuleIndentifiersAndMessages>, Serializable {
+    implements SerializableFunction<GlobalData, ModuleIndentifiersAndMessages> {
     public static final ToModuleIdentifiersAndMessages INSTANCE =
         new ToModuleIdentifiersAndMessages();
 

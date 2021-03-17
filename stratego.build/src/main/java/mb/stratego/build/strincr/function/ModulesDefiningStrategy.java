@@ -1,16 +1,15 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
 public class ModulesDefiningStrategy
-    implements Function<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>>,
-    Serializable {
+    implements
+    SerializableFunction<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>> {
     public final StrategySignature strategySignature;
 
     public ModulesDefiningStrategy(StrategySignature strategySignature) {

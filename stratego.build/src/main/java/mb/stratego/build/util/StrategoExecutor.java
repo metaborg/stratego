@@ -20,7 +20,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 
-import mb.pie.api.Logger;
+import mb.log.api.Logger;
 
 public class StrategoExecutor {
     public static class ExecutionResult {
@@ -185,7 +185,7 @@ public class StrategoExecutor {
             final IStrategoTerm result = strategy.invoke(strContext, input);
             final long time = System.nanoTime() - start;
             if(!silent && result == null) {
-                logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
+                logger.error("Executing " + name + " failed with normal Stratego failure. ");
             } else if(result == null) {
                 logger.debug("Executing " + name + " failed with normal Stratego failure. ");
             }

@@ -1,12 +1,10 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
-import java.util.function.Function;
-
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 
-public class GetMessages implements Function<CheckOutput, CheckOutputMessages>, Serializable {
+public class GetMessages implements SerializableFunction<CheckOutput, CheckOutputMessages> {
     public static final GetMessages INSTANCE = new GetMessages();
 
     private GetMessages() {

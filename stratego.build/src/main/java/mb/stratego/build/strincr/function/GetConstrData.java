@@ -1,15 +1,14 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
 public class GetConstrData
-    implements Function<ModuleData, ArrayList<ConstructorData>>, Serializable {
+    implements SerializableFunction<ModuleData, ArrayList<ConstructorData>> {
     public static final GetConstrData INSTANCE = new GetConstrData();
 
     @Override public ArrayList<ConstructorData> apply(ModuleData moduleData) {

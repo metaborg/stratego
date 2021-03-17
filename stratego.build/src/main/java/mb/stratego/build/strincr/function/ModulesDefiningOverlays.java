@@ -1,19 +1,17 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
-public class ModulesDefiningOverlays
-    implements Function<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>>,
-    Serializable {
+public class ModulesDefiningOverlays implements
+    SerializableFunction<GlobalData, LinkedHashSet<IModuleImportService.ModuleIdentifier>> {
     public final Set<ConstructorSignature> usedConstructors;
 
     public ModulesDefiningOverlays(Set<ConstructorSignature> usedConstructors) {

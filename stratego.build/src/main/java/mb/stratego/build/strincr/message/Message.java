@@ -11,7 +11,7 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.pie.api.Logger;
+import mb.log.api.Logger;
 import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
@@ -111,7 +111,7 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new MatchNotSpecificEnoughForTP(locationTerm, messageTerm.getSubterm(0),
                     severity, lastModified);
             default:
-                logger.warn("Unrecognised message from type checker, passing raw message. ", null);
+                logger.warn("Unrecognised message from type checker, passing raw message. ");
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }
     }

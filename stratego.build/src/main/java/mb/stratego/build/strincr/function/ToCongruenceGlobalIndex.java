@@ -1,12 +1,11 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
-import java.util.function.Function;
-
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
-public class ToCongruenceGlobalIndex implements Function<GlobalData, CongruenceGlobalIndex>, Serializable {
+public class ToCongruenceGlobalIndex implements
+    SerializableFunction<GlobalData, CongruenceGlobalIndex> {
     public static final ToCongruenceGlobalIndex INSTANCE = new ToCongruenceGlobalIndex();
 
     private ToCongruenceGlobalIndex() {

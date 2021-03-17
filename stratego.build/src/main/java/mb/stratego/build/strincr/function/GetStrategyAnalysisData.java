@@ -1,17 +1,16 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 
 public class GetStrategyAnalysisData
-    implements Function<CheckModuleOutput, LinkedHashSet<StrategyAnalysisData>>, Serializable {
+    implements SerializableFunction<CheckModuleOutput, LinkedHashSet<StrategyAnalysisData>> {
     public final StrategySignature strategySignature;
 
     public GetStrategyAnalysisData(StrategySignature strategySignature) {

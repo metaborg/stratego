@@ -1,12 +1,10 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
-import java.util.function.Function;
-
-import mb.stratego.build.strincr.task.output.GlobalData;
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
+import mb.stratego.build.strincr.task.output.GlobalData;
 
-public class ToCompileGlobalIndex implements Function<GlobalData, CompileGlobalIndex>, Serializable {
+public class ToCompileGlobalIndex implements SerializableFunction<GlobalData, CompileGlobalIndex> {
     public static final ToCompileGlobalIndex INSTANCE = new ToCompileGlobalIndex();
 
     private ToCompileGlobalIndex() {

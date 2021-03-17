@@ -1,18 +1,17 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class GetOverlayData implements Function<ModuleData, ArrayList<OverlayData>>, Serializable {
+public class GetOverlayData implements SerializableFunction<ModuleData, ArrayList<OverlayData>> {
     private final Set<ConstructorSignature> usedConstructors;
 
     public GetOverlayData(Set<ConstructorSignature> usedConstructors) {

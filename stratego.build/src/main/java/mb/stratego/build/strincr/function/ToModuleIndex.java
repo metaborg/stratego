@@ -1,13 +1,12 @@
 package mb.stratego.build.strincr.function;
 
-import java.io.Serializable;
 import java.util.LinkedHashSet;
-import java.util.function.Function;
 
+import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class ToModuleIndex implements Function<ModuleData, ModuleIndex>, Serializable {
+public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleIndex> {
     public static final ToModuleIndex INSTANCE = new ToModuleIndex();
 
     private ToModuleIndex() {

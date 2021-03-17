@@ -82,14 +82,15 @@ public class StrategoIncrementalCompilationTest {
         final FSPath serializingStorePath = new FSPath(temporaryDirectoryPath.resolve("pie-store"));
 
         // load Stratego language for later discovery during compilation (parsing in particular)
-        final URL strategoURL =
-            getClass().getResource("/stratego.spoofax-language");
+        final URL strategoURL = getClass().getResource("/stratego.spoofax-language");
         spoofax.languageDiscoveryService
             .languageFromArchive(spoofax.resolve(strategoURL.getFile()));
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
-        pieBuilder.withStoreFactory((logger, resourceService) -> new SerializingStore<InMemoryStore>(
-            resourceService.getWritableResource(serializingStorePath), InMemoryStore::new));
+        pieBuilder.withStoreFactory(
+            (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde,
+                resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
+                InMemoryStore.class));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         Pie pie = pieBuilder.build();
 
