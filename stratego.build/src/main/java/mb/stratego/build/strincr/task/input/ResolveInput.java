@@ -3,6 +3,8 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import javax.annotation.Nullable;
+
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -12,14 +14,23 @@ public class ResolveInput implements Serializable {
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
     public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
+    public final @Nullable FrontInput.FileOpenInEditor fileOpenInEditor;
 
     public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        @Nullable FrontInput.FileOpenInEditor fileOpenInEditor) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
         this.linkedLibraries = linkedLibraries;
+        this.fileOpenInEditor = fileOpenInEditor;
+    }
+
+    public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        this(mainModuleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries, null);
     }
 
     @Override public boolean equals(Object o) {
@@ -36,7 +47,10 @@ public class ResolveInput implements Serializable {
             return false;
         if(!includeDirs.equals(that.includeDirs))
             return false;
-        return linkedLibraries.equals(that.linkedLibraries);
+        if(!linkedLibraries.equals(that.linkedLibraries))
+            return false;
+        return fileOpenInEditor != null ? fileOpenInEditor.equals(that.fileOpenInEditor) :
+            that.fileOpenInEditor == null;
     }
 
     @Override public int hashCode() {
@@ -44,6 +58,7 @@ public class ResolveInput implements Serializable {
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();
         result = 31 * result + linkedLibraries.hashCode();
+        result = 31 * result + (fileOpenInEditor != null ? fileOpenInEditor.hashCode() : 0);
         return result;
     }
 

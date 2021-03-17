@@ -30,7 +30,7 @@ public class CompileInput implements Serializable {
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
         ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
-        this.outputDir = outputDir;
+        this.outputDir = outputDir.getNormalized();
         this.packageName = packageName;
         this.cacheDir = cacheDir;
         this.constants = constants;

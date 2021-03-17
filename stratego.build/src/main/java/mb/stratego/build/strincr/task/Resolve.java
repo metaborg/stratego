@@ -84,9 +84,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             allModuleIdentifiers.add(moduleIdentifier);
 
 
-            final FrontInput frontInput =
-                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-                    input.includeDirs, input.linkedLibraries);
+            final FrontInput frontInput = getFrontInput(input, moduleIdentifier);
             final ModuleIndex index =
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
@@ -140,6 +138,15 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
             strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, messages, lastModified);
+    }
+
+    private static FrontInput getFrontInput(ResolveInput input,
+        IModuleImportService.ModuleIdentifier moduleIdentifier) {
+        if(input.fileOpenInEditor != null && input.fileOpenInEditor.moduleIdentifier.equals(moduleIdentifier)) {
+            return input.fileOpenInEditor;
+        }
+        return new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
+            input.includeDirs, input.linkedLibraries);
     }
 
     private void checkCyclicOverlays(

@@ -2,6 +2,8 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 
+import javax.annotation.Nullable;
+
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class CheckModuleInput implements Serializable {
@@ -15,8 +17,14 @@ public class CheckModuleInput implements Serializable {
     }
 
     public ResolveInput resolveInput() {
+        final @Nullable FrontInput.FileOpenInEditor fileOpenInEditor;
+        if(frontInput instanceof FrontInput.FileOpenInEditor) {
+            fileOpenInEditor = (FrontInput.FileOpenInEditor) frontInput;
+        } else {
+            fileOpenInEditor = null;
+        }
         return new ResolveInput(mainModuleIdentifier, frontInput.strFileGeneratingTasks,
-            frontInput.includeDirs, frontInput.linkedLibraries);
+            frontInput.includeDirs, frontInput.linkedLibraries, fileOpenInEditor);
     }
 
     @Override public boolean equals(Object o) {
