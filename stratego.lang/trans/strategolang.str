@@ -127,7 +127,7 @@ rules // Debugging
     (node, _, _, path, project-path) -> (filename, result)
     with
       <set-config> ("--library", ()) // no main strategy necessary this way
-    ; filename := <guarantee-extension(|"dfa.aterm")> path
+    ; filename := <guarantee-extension(|"dfa.stra")> path
     ; !node
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
@@ -138,5 +138,6 @@ rules // Debugging
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )
-    ; collect-all(multimatch2dfa)
+    ; alltd(multimatch2dfa)
+    ; pp-debug
     ; ?result

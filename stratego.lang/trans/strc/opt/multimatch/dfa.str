@@ -1,24 +1,33 @@
 module dfa
 
+
 signature
-  sorts DTree Alt
-  constructors
-    // Leaf : Action
-    Leaf    : Strategy          -> DTree
-    // Fail
-    Fail    :                      DTree
-    // Switch : Alts * Default
-    Switch  : List(Alt) * DTree -> DTree
-    // Swap : column ID * Continue
-    Swap    : int * DTree       -> DTree
-
-    // Alt  : Pattern * Continue
-    Alt     : Pat * DTree       -> Alt
-
-  sorts Pat
-  constructors
-    Fun   : string  * int -> Pat
-    Str   : string        -> Pat
-    Int   : int           -> Pat
-    Real  : real          -> Pat
-    Anno  :                  Pat
+//  sorts DTree Alt
+//  constructors
+//    // Leaf : Action
+//    Leaf    : Strategy          -> DTree
+//    // Fail
+//    Fail    :                      DTree
+//    // Switch : Alts * Default
+//    Switch  : List(Alt) * DTree -> DTree
+//    // Swap : column ID * Continue
+//    Swap    : int * DTree       -> DTree
+//
+//    // Alt  : Pattern * Continue
+//    Alt     : Pat * DTree       -> Alt
+//
+//  sorts Path PathEl
+//  constructors
+//    Path    : List(PathEl)  -> Path
+//
+//    Sub     : int           -> PathEl
+//    Ann     :                  PathEl
+//    Con     :                  PathEl
+//
+//  sorts Pat // BindPat
+//  constructors
+//    Fun   : string  * int -> Pat
+//    Str   : string        -> Pat
+//    Int   : int           -> Pat
+//    Real  : real          -> Pat
+//    Anno  :                  Pat

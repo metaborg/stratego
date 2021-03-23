@@ -4,6 +4,7 @@ imports
   strj/multimatch/dfa
   strj/multimatch/matrix
 
+  signatures/core/strategies-sig
   signatures/core/terms-sig
 
 strategies
@@ -34,10 +35,13 @@ strategies
   specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
 
   // Constructor applications
-  head-constructor:             Op(f, ts)         -> Fun(f, <length> ts)
-  specialize-pats(|Fun(f, a)): [Op(f, qs*) | ps*] -> [qs*, ps*]
-    where <eq> (a, <length> qs*)
-  specialize-pats(|Fun(_, a)): [Wld() | ps*]      -> <prepend-wld(|a)> ps*
+  head-constructor:             Op(f, ts)         -> Fun(f, <length; int-to-string> ts)
+  specialize-pats(|Fun(f, x)): [Op(f, qs*) | ps*] -> [qs*, ps*]
+    where
+      a := <string-to-int> x 
+    ; <eq> (a, <length> qs*)
+  specialize-pats(|Fun(_, x)): [Wld() | ps*]      -> <prepend-wld(|a)> ps*
+    where a := <string-to-int> x 
 
   // Literals
   head-constructor = ?Str(_) + ?Int(_) + ?Real(_)
