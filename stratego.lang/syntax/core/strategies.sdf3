@@ -86,7 +86,6 @@ context-free syntax
 end>
 
   MatchOrder.Linear = <linear>
-  MatchOrder.Specificity = <specificity>
 
   MatchCase.MatchCase = <case <Term>: <Strategy>>
 

@@ -92,12 +92,14 @@ end>
 <case <Strategy>:
   <Strategy>>
 
-sorts MatchCase
+//sorts MatchCase
 context-free syntax
   Strategy.MultiMatchTerm =
 <match <MatchOrder> <Term>
   <{MatchCase "\n"}+>
 end>
+
+  MatchOrder.Specificity = <specificity>
 
 
 context-free priorities
