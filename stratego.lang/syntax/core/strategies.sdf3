@@ -94,26 +94,29 @@ sorts DTree Alt
 context-free syntax
   Strategy = DTree
 
-  DTree.Leaf = <do <Strategy>>
+  DTree.Leaf = <leaf <Strategy>>
 //  DTree.Fail = <fail>
-//  DTree.Switch = <dswitch <Path>
   DTree.Switch =
-<switch
+<switch (<Path>) {
   <{Alt "\n"}*>
   default: <DTree>
-end>
-  DTree.Swap = <swap <Int>, <DTree>>
+}>
+  DTree.Swap =
+<swap (<Int>)
+  <DTree>>
 
-  Alt.Alt = <alt <Pat>:
+  Alt.Alt =
+<alt <Pat>:
   <DTree>>
 
 sorts Path PathEl
 context-free syntax
-  Path.Path = <<{PathEl ", "}*>>
+  Path.Path = <<{PathEl ", "}+>>
 
-  PathEl.Sub = Int
+  PathEl.Sub = <sub <Int>>
   PathEl.Ann = <ann>
   PathEl.Con = <con>
+  PathEl.Cur = <cur>
 
 sorts Pat
 context-free syntax

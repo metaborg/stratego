@@ -9,8 +9,8 @@ imports
   signatures/core/terms-sig
 
 strategies
-  /*======== Construct DFA from matrices =================*/
-  matrix2dfa = CC
+  /*======== Construct DFA from matrices =================*/ 
+  matrix2dfa = where(o* := [Path([Cur()])]); CC(|o*, 0)
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -18,17 +18,17 @@ strategies
    * Changes w.r.t. paper:
    * (none)
    */
-  CC = NoRows
-    <+ WildcardsFirstRow
-    <+ SelectColumn
+  CC(|o*, l) = NoRows(|o*, l)
+            <+ WildcardsFirstRow(|o*, l)
+            <+ SelectColumn(|o*, l)
 
   /*
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows: m@Matrix([]) -> Leaf(Fail())
+  NoRows(|o*, l): m@Matrix([]) -> Leaf(Fail())
   where
-    <debug(!"NoRows ")> m
+    <debug(!"NoRows ")> (l, o*, m)
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -37,10 +37,10 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow: m@Matrix([Row(ps, a) | _]) -> Leaf(a)
+  WildcardsFirstRow(|o*, l): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
   where
     <map(is-wildcard)> ps
-  ; <debug(!"WildcardsFirstRow ")> m
+  ; <debug(!"WildcardsFirstRow ")> (l, o*, m)
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -48,9 +48,9 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn: m@Matrix(rs) -> T
-  where
-    <debug(!"SelectColumn ")> m
+  SelectColumn(|o*@[o1 | os], l): m@Matrix(rs) -> T
+  with
+    <debug(!"SelectColumn ")> (l, o*, m)
   ; i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
@@ -59,16 +59,16 @@ strategies
      * as above, yielding decision tree A , and define:
      */
     then // i > 1
-         m' := <swap-cols(|1, i)> m
-        // TODO swap entries in o
-       ; A' := <CC> m'
+         <debug(!"swap indices ")> (1, i)
+       ; m' := <swap-cols(|1, i)> m
+       ; o' :=      <debug(!"[i] swap "); swap(|1, i); debug(!"[o] swap ")> o*
+       ; A' := <CC(|o', l)> m'
        ; !Swap(<int-to-string> i, A')
     else // i == 1
          /* Perform a bunch of recursive calls on possible head
             constructors and include them in a big Switch */
-         c            := <col(|i)> m
-       ; hcs          := <head-constructors; make-set> c
-       ; specMatrices := <map(specialize(|m))> hcs
-       ; default      := <default; CC> m
-       ; !Switch(<zip(\ (cons, mat) -> Alt(cons, <CC> mat) \)> (hcs, specMatrices), default)
+         t2*     := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
+       ; default := <default; CC(|os, l); debug(!"def ")> m
+       ; t4*     := <map(\ (c, a) -> (c, a, <specialize(|m)> c, <specialize-occs(|a); debug(!"occs ")> o*) \)> t2*
+       ; !Switch(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> Alt(c, <CC(|o'*, l)> m) \)> t4*, default)
     end => T

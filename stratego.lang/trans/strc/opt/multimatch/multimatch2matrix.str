@@ -4,15 +4,11 @@ imports
   strj/multimatch/matrix
 
   signatures/core/strategies-sig
+  signatures/core/terms-sig
 
 strategies
   /*======== Construct clause and action matrices ========*/
   multimatch2matrix: MultiMatch(Linear(), cases) -> Matrix(rows)
   where
-    <cases2rows> cases => rows
+    <map(\ MatchCase(p, a) -> Row([p], a) \)> cases => rows
 
-  cases2rows = map(case2row)
-
-  case2row: MatchCase(t, s) -> Row([t], s)
-
-  case2row = debug(!"case2row fail on: "); fail
