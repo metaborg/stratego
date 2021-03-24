@@ -54,13 +54,9 @@ strategies
   ; length
   ; inc
 
-  swap-cols(|m, n): Matrix(rs) -> Matrix(rs')
-  with
-    rs' := <map(swap-row-el(|m, n))> rs
+  swap-cols(|m, n) = Matrix(map(swap-row-el(|m, n)))
 
-  swap-row-el(|m, n): Row(ts, a) -> Row(ts', a)
-  with
-    <swap(|m, n)> ts => ts'
+  swap-row-el(|m, n) = Row(swap(|m, n), id)
 
   /*
    * Swap elements `m` and `n` in a list.
