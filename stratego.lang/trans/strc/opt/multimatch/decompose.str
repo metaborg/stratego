@@ -25,7 +25,7 @@ strategies
    * Maranget (2008), sec 4, step 3a.
    */
   head-constructors = filter(head-constructor-arity)
-  head-constructor-arity: c -> (<head-constructor> c, <arity> c)
+  head-constructor-arity: c -> (<head-constructor> c, <arity <+ !-1> c)
 
   /*
    * Specialize the matrix to a certain constructor.
@@ -36,24 +36,35 @@ strategies
   specialize-row(|c) = Row(specialize-pats(|c), id)
 
   specialize-occs(|a): occs@[o | os*] -> [o*, os*]
-    with
-      <debug(!"a / occs ")> (a, occs) 
-    ; o* := <debug(!"[i] specocc " ); specialize-occ(|a); debug(!"[o] specocc " )> o
+    with o* := <specialize-occ(|a)> o
 
-  specialize-occ(|a):     p@Path(_) -> ps
-    with ps := <range; map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> (1, <inc> a)
+  specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
+  specialize-occ(|a):      p@Path(_) -> ps
+    where
+      <not(?Anno())> a 
+    ; ps := <range; map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> (1, <inc> a)
 
   append-occ: (Path(os*), o) -> Path([os*, o*])
     with o* := [o]
 
   // Annotations
-  arity:                        Anno(_, _)          -> 2
+//  arity:                        Anno(_, _)          -> 2
   head-constructor:             Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
   specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
 
+  // Tuples
+  arity:                        Op("", ts)          -> <length> ts
+  head-constructor:             c@Op("", ts)        -> Tuple(<arity; int-to-string> c)
+  specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*] -> [qs*, ps*]
+    where
+      a := <string-to-int> x
+    ; <eq> (a, <arity> c)
+  specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*] -> [qs*, ps*]
+    where a := <string-to-int> x
+
   // Constructor applications
-  arity:                        Op(f, ts)         -> <length> ts
+  arity:                        Op(f, ts)           -> <length> ts
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
   specialize-pats(|Fun(f, x)): [c@Op(f, qs*) | ps*] -> [qs*, ps*]
     where

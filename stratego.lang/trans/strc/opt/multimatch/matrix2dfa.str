@@ -60,15 +60,20 @@ strategies
      */
     then // i > 1
          <debug(!"swap indices ")> (1, i)
-       ; m' := <swap-cols(|1, i)> m
-       ; o' :=      <debug(!"[i] swap "); swap(|1, i); debug(!"[o] swap ")> o*
-       ; A' := <CC(|o', l)> m'
+       ; m' := <swap-cols(|1, i)> m 
+       ; o' := <swap(|1, i)> o*
+       ; A' := <CC(|o', <inc> l)> m'
        ; !Swap(<int-to-string> i, A')
     else // i == 1
          /* Perform a bunch of recursive calls on possible head
             constructors and include them in a big Switch */
-         t2*     := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
-       ; default := <default; CC(|os, l); debug(!"def ")> m
-       ; t4*     := <map(\ (c, a) -> (c, a, <specialize(|m)> c, <specialize-occs(|a); debug(!"occs ")> o*) \)> t2*
-       ; !Switch(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> Alt(c, <CC(|o'*, l)> m) \)> t4*, default)
+         hc_arities := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
+       ; if !hc_arities; ?[(Anno(), _)]
+         then o' := <specialize-occs(|Anno())> o*
+            ; m' := <specialize(|m)> Anno()
+            ; <CC(|o', <inc> l)> m'
+         else default := <default; CC(|os, <inc> l)> m
+            ; t4*     := <map(\ (c, a) -> (c, a, <specialize(|m)> c, <specialize-occs(|a)> o*) \)> hc_arities
+            ; !Switch(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> Alt(c, <CC(|o'*, <inc> l)> m) \)> t4*, default)
+         end
     end => T

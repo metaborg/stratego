@@ -1,5 +1,11 @@
 module deep
 
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
 strategies
   length = match linear
              case Nil(): !0

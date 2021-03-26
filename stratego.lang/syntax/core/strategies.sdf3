@@ -124,6 +124,7 @@ context-free syntax
   Pat.Int = Int
   Pat.Real = Real
   Pat.Anno = <anno>
+  Pat.Tuple = <Tuple(<Int>)>
 
 context-free priorities
   { Strategy.Build
