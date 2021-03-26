@@ -63,7 +63,8 @@ strategies
        ; m' := <swap-cols(|1, i)> m 
        ; o' := <swap(|1, i)> o*
        ; A' := <CC(|o', <inc> l)> m'
-       ; !Swap(<int-to-string> i, A')
+//       ; !Swap(<int-to-string> i, A') // Swap nodes can just be skipped
+       ; !A'
     else // i == 1
          /* Perform a bunch of recursive calls on possible head
             constructors and include them in a big Switch */

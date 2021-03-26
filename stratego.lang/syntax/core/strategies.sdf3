@@ -100,9 +100,9 @@ context-free syntax
   <{Alt "\n"}*>
   default: <DTree>
 }>
-  DTree.Swap =
-<swap (<Int>)
-  <DTree>>
+//  DTree.Swap =
+//<swap (<Int>)
+//  <DTree>>
 
   Alt.Alt =
 <alt <Pat>:
@@ -137,7 +137,7 @@ context-free priorities
 DTree.Leaf <0> > { DTree.Leaf
                    // DTree.Fail
                    DTree.Switch
-                   DTree.Swap }
+                   /* DTree.Swap */ }
 
 context-free syntax
   Strategy.ImportTerm = <import-term(<ModName>)>
