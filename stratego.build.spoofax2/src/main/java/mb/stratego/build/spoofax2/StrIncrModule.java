@@ -8,7 +8,7 @@ import mb.resource.ResourceService;
 import mb.resource.fs.FSResourceRegistry;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleImportService;
-import mb.stratego.build.strincr.ParseStratego;
+import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.Check;
@@ -30,7 +30,7 @@ public class StrIncrModule extends TaskDefsModule {
         bind(ResourceService.class).toInstance(new DefaultResourceService(new FSResourceRegistry()));
         bind(IOAgentTrackerFactory.class).to(ResourceAgentTrackerFactory.class).in(Singleton.class);
         bind(ResourcePathConverter.class).to(FileResourcePathConverter.class).in(Singleton.class);
-        bind(ParseStratego.class).to(Spoofax2ParseStratego.class).in(Singleton.class);
+        bind(StrategoLanguage.class).to(Spoofax2StrategoLanguage.class).in(Singleton.class);
         bind(IModuleImportService.class).to(ModuleImportService.class).in(Singleton.class);
 
         bindTaskDef(Compile.class, Compile.id);

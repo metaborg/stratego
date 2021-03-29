@@ -4,16 +4,19 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class CheckModuleInput implements Serializable {
     public final FrontInput frontInput;
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
+    public final ResourcePath projectPath;
 
     public CheckModuleInput(FrontInput frontInput,
-        IModuleImportService.ModuleIdentifier mainModuleIdentifier) {
+        IModuleImportService.ModuleIdentifier mainModuleIdentifier, ResourcePath projectPath) {
         this.frontInput = frontInput;
         this.mainModuleIdentifier = mainModuleIdentifier;
+        this.projectPath = projectPath;
     }
 
     public ResolveInput resolveInput() {
@@ -37,12 +40,15 @@ public class CheckModuleInput implements Serializable {
 
         if(!frontInput.equals(that.frontInput))
             return false;
-        return mainModuleIdentifier.equals(that.mainModuleIdentifier);
+        if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
+            return false;
+        return projectPath.equals(that.projectPath);
     }
 
     @Override public int hashCode() {
         int result = frontInput.hashCode();
         result = 31 * result + mainModuleIdentifier.hashCode();
+        result = 31 * result + projectPath.hashCode();
         return result;
     }
 

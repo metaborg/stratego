@@ -31,7 +31,6 @@ import mb.pie.runtime.store.SerializingStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.fs.FSPath;
-import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
@@ -95,6 +94,7 @@ public class StrategoIncrementalCompilationTest {
         Pie pie = pieBuilder.build();
 
         final File projectLocation = temporaryDirectoryPath.toFile();
+        final ResourcePath projectPath = new FSPath(projectLocation);
 
         final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>(1);
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
@@ -106,11 +106,12 @@ public class StrategoIncrementalCompilationTest {
         final ModuleIdentifier mainModuleIdentifier =
             new ModuleIdentifier(false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
-        CompileInput compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath),
-            "mb.stratego.build.spoofax2.test",
-            new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
-            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-            StrategoGradualSetting.DYNAMIC);
+        CompileInput compileInput =
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
+                "mb.stratego.build.spoofax2.test",
+                new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
+                StrategoGradualSetting.DYNAMIC);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -167,7 +168,7 @@ public class StrategoIncrementalCompilationTest {
 
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoAterm);
 
-        compileInput = new CompileInput(mainModuleIdentifier, new FSPath(depPath),
+        compileInput = new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
             "mb.stratego.build.spoofax2.test",
             new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
             strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
@@ -180,8 +181,7 @@ public class StrategoIncrementalCompilationTest {
         try(final MixedSession session = pie.newSession()) {
             session.require(compileTask);
             session.deleteUnobservedTasks(t -> true,
-                (t, r) -> r instanceof HierarchicalResource && Objects
-                    .equals(((HierarchicalResource) r).getLeafExtension(), "java"));
+                (t, r) -> r != null && Objects.equals(r.getLeafExtension(), "java"));
 
             final CompileOutput compileOutput =
                 Objects.requireNonNull(session.require(compileTask));

@@ -14,6 +14,7 @@ import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CompileInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
+    public final ResourcePath projectPath;
     public final ResourcePath outputDir;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
@@ -25,11 +26,12 @@ public class CompileInput implements Serializable {
     public final StrategoGradualSetting strategoGradualSetting;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath outputDir, @Nullable String packageName, @Nullable ResourcePath cacheDir,
+        ResourcePath projectPath, ResourcePath outputDir, @Nullable String packageName, @Nullable ResourcePath cacheDir,
         ArrayList<String> constants, ArrayList<ResourcePath> includeDirs,
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
         ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
         this.mainModuleIdentifier = mainModuleIdentifier;
+        this.projectPath = projectPath;
         this.outputDir = outputDir.getNormalized();
         this.packageName = packageName;
         this.cacheDir = cacheDir;
@@ -50,6 +52,8 @@ public class CompileInput implements Serializable {
         CompileInput that = (CompileInput) o;
 
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
+            return false;
+        if(!projectPath.equals(that.projectPath))
             return false;
         if(!outputDir.equals(that.outputDir))
             return false;
@@ -72,6 +76,7 @@ public class CompileInput implements Serializable {
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
+        result = 31 * result + projectPath.hashCode();
         result = 31 * result + outputDir.hashCode();
         result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);

@@ -16,20 +16,18 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
+import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
-import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.StrategoExecutor;
 
 /**
  * Runs per strategy definition. This task desugars the strategy, and then generates Java code for
@@ -46,8 +44,7 @@ import mb.stratego.build.util.StrategoExecutor;
 public class Back implements TaskDef<BackInput, BackOutput> {
     public static final String id = "stratego." + Back.class.getSimpleName();
 
-    public final IOAgentTrackerFactory ioAgentTrackerFactory;
-    public final StrIncrContext strContext;
+    public final StrategoLanguage strategoLanguage;
     public final GenerateStratego generateStratego;
     public final ITermFactory tf;
     public final ResourcePathConverter resourcePathConverter;
@@ -55,11 +52,10 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     public final Check check;
     public final Front front;
 
-    @Inject public Back(IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext,
+    @Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
         GenerateStratego generateStratego, ResourcePathConverter resourcePathConverter,
         Resolve resolve, Check check, Front front) {
-        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
-        this.strContext = strContext;
+        this.strategoLanguage = strategoLanguage;
         this.tf = strContext.getFactory();
         this.generateStratego = generateStratego;
         this.resourcePathConverter = resourcePathConverter;
@@ -110,22 +106,16 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             //      we'll need to add `-la [package-name]` for those libraries here.
         }
 
+        arguments.add("--silent");
         arguments.addAll(input.extraArgs);
 
 
-        final StrategoExecutor.ExecutionResult result = StrategoExecutor
-            .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, context.logger(), true,
-                strj_sep_comp_0_0.instance,
-                buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), strContext);
-
-        if(!result.success) {
-            throw new ExecException("Call to strj-sep-comp failed:\n" + result.exception, null);
-        }
-        assert result.result != null;
+        final IStrategoTerm result1 = strategoLanguage
+            .toJava(buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), resourcePathConverter.toString(input.projectPath));
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
-        assert TermUtils.isList(result.result);
-        for(IStrategoTerm fileNameTerm : result.result) {
+        assert TermUtils.isList(result1);
+        for(IStrategoTerm fileNameTerm : result1) {
             assert TermUtils.isString(fileNameTerm);
             final File file = new File(TermUtils.toJavaString(fileNameTerm));
             context.provide(file);

@@ -43,8 +43,9 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
         final CheckInput checkInput =
-            new CheckInput(input.mainModuleIdentifier, input.strategoGradualSetting,
-                input.strFileGeneratingTasks, input.includeDirs, input.linkedLibraries);
+            new CheckInput(input.mainModuleIdentifier, input.projectPath,
+                input.strategoGradualSetting, input.strFileGeneratingTasks, input.includeDirs,
+                input.linkedLibraries);
         final CheckOutputMessages checkOutput =
             PieUtils.requirePartial(context, check, checkInput, GetMessages.INSTANCE);
         if(checkOutput.containsErrors) {
@@ -68,7 +69,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 continue;
             }
             final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(input.outputDir, input.packageName, input.cacheDir,
+                new BackInput.DynamicRule(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
                     input.constants, input.extraArgs, checkInput, dynamicRule,
                     strategyAnalysisDataTask);
             final BackOutput output = context.require(back, dynamicRuleInput);
@@ -93,7 +94,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 continue;
             }
             final BackInput.Normal normalInput =
-                new BackInput.Normal(input.outputDir, input.packageName, input.cacheDir,
+                new BackInput.Normal(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
                     input.constants, input.extraArgs, checkInput, strategySignature,
                     strategyAnalysisDataTask);
             final BackOutput output = context.require(back, normalInput);
@@ -103,14 +104,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final boolean dynamicCallsDefined =
             !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackInput.Boilerplate boilerplateInput =
-            new BackInput.Boilerplate(input.outputDir, input.packageName, input.cacheDir,
+            new BackInput.Boilerplate(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
                 input.constants, input.extraArgs, checkInput, dynamicCallsDefined);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
-            new BackInput.Congruence(input.outputDir, input.packageName, input.cacheDir,
+            new BackInput.Congruence(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
                 input.constants, input.extraArgs, checkInput, dynamicRuleNewGenerated,
                 dynamicRuleUndefineGenerated);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);

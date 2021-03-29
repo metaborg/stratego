@@ -20,13 +20,14 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
-import org.strategoxt.strc.insert_casts_0_0;
 
 import io.usethesource.capsule.BinaryRelation;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.ResourcePathConverter;
+import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -54,14 +55,12 @@ import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.util.IOAgentTrackerFactory;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
-import mb.stratego.build.util.StrategoExecutor;
 
 /**
  * Runs static checks on a module, based on the {@link ModuleData} and that of the modules are
@@ -76,17 +75,17 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private final Resolve resolve;
     private final Front front;
 
-    private final IOAgentTrackerFactory ioAgentTrackerFactory;
-    private final StrIncrContext strContext;
+    private final StrategoLanguage strategoLanguage;
     private final ITermFactory tf;
+    private final ResourcePathConverter resourcePathConverter;
 
     @Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
-        IOAgentTrackerFactory ioAgentTrackerFactory, StrIncrContext strContext) {
+        StrategoLanguage strategoLanguage, ResourcePathConverter resourcePathConverter) {
         this.resolve = resolve;
         this.front = front;
         this.tf = strIncrContext.getFactory();
-        this.ioAgentTrackerFactory = ioAgentTrackerFactory;
-        this.strContext = strContext;
+        this.strategoLanguage = strategoLanguage;
+        this.resourcePathConverter = resourcePathConverter;
     }
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
@@ -104,7 +103,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final GTEnvironment environment =
             prepareGTEnvironment(context, moduleData, input.frontInput);
         final InsertCastsInput insertCastsInput =
-            new InsertCastsInput(moduleIdentifier, environment);
+            new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final InsertCastsOutput output = insertCasts(context, insertCastsInput);
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
@@ -129,19 +128,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         throws ExecException {
         final String moduleName = input.moduleIdentifier.moduleString();
 
-        final StrategoExecutor.ExecutionResult output = StrategoExecutor
-            .runLocallyUniqueStringStrategy(ioAgentTrackerFactory, execContext.logger(), true,
-                insert_casts_0_0.instance, input.environment, strContext);
-        if(!output.success) {
-            throw new ExecException(
-                "Call to insert_casts failed on " + moduleName + ": \n" + output.exception);
-        }
-        assert output.result != null;
+        final IStrategoTerm result = strategoLanguage.insertCasts(moduleName, input.environment, resourcePathConverter.toString(input.projectPath));
 
-        final IStrategoTerm astWithCasts = output.result.getSubterm(0);
-        final IStrategoList errors = TermUtils.toListAt(output.result, 1);
-        final IStrategoList warnings = TermUtils.toListAt(output.result, 2);
-        final IStrategoList notes = TermUtils.toListAt(output.result, 3);
+        final IStrategoTerm astWithCasts = result.getSubterm(0);
+        final IStrategoList errors = TermUtils.toListAt(result, 1);
+        final IStrategoList warnings = TermUtils.toListAt(result, 2);
+        final IStrategoList notes = TermUtils.toListAt(result, 3);
 
         final long lastModified = input.environment.lastModified;
         ArrayList<Message> messages =
@@ -293,6 +285,9 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         // Get the relevant strategy and constructor types and all injections, that are visible
         //     through the import, not following them transitively!
+        final ToTypesLookup toTypesLookup =
+            new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+                moduleData.usedConstructors);
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(frontInput.moduleIdentifier);
         seen.addAll(moduleData.imports);
@@ -303,8 +298,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
                     frontInput.includeDirs, frontInput.linkedLibraries);
             final TypesLookup typesLookup = PieUtils.requirePartial(context, front, moduleInput,
-                new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
-                    moduleData.usedConstructors));
+                toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
                 ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());

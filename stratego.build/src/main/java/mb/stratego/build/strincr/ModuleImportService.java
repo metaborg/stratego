@@ -32,12 +32,12 @@ import mb.stratego.build.util.LastModified;
 
 public class ModuleImportService implements IModuleImportService {
     private final ResourcePathConverter resourcePathConverter;
-    private final ParseStratego parseStratego;
+    private final StrategoLanguage strategoLanguage;
 
     @Inject public ModuleImportService(ResourcePathConverter resourcePathConverter,
-        ParseStratego parseStratego) {
+        StrategoLanguage strategoLanguage) {
         this.resourcePathConverter = resourcePathConverter;
-        this.parseStratego = parseStratego;
+        this.strategoLanguage = strategoLanguage;
     }
 
     @Override public ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport,
@@ -70,9 +70,6 @@ public class ModuleImportService implements IModuleImportService {
                 final Set<mb.stratego.build.strincr.ModuleIdentifier> result = new HashSet<>();
                 boolean foundSomethingToImport = false;
                 for(ResourcePath dir : includeDirs) {
-                    final ResourcePath strPath = dir.appendOrReplaceWithPath(moduleString + ".str");
-                    final HierarchicalResource strResource =
-                        context.require(strPath, ResourceStampers.<HierarchicalResource>exists());
                     final ResourcePath rtreePath =
                         dir.appendOrReplaceWithPath(moduleString + ".rtree");
                     final HierarchicalResource rtreeResource = context
@@ -84,11 +81,26 @@ public class ModuleImportService implements IModuleImportService {
                         result.add(
                             new mb.stratego.build.strincr.ModuleIdentifier(isLibrary, moduleString,
                                 rtreePath));
-                    } else if(strResource.exists()) {
-                        foundSomethingToImport = true;
-                        result.add(
-                            new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
-                                strPath));
+                    } else {
+                        final ResourcePath str2Path = dir.appendOrReplaceWithPath(moduleString + ".str2");
+                        final HierarchicalResource str2Resource =
+                            context.require(str2Path, ResourceStampers.<HierarchicalResource>exists());
+                        if(str2Resource.exists()) {
+                            foundSomethingToImport = true;
+                            result.add(
+                                new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
+                                    str2Path));
+                        } else {
+                            final ResourcePath strPath = dir.appendOrReplaceWithPath(moduleString + ".str");
+                            final HierarchicalResource strResource =
+                                context.require(strPath, ResourceStampers.<HierarchicalResource>exists());
+                            if(strResource.exists()) {
+                                foundSomethingToImport = true;
+                                result.add(
+                                    new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
+                                        strPath));
+                            }
+                        }
                     }
                 }
                 if(!foundSomethingToImport) {
@@ -108,23 +120,28 @@ public class ModuleImportService implements IModuleImportService {
                         context.getResourceService().getHierarchicalResource(searchDirectory);
                     if(searchDir.exists()) {
                         final List<HierarchicalResource> moduleFiles = searchDir.list(
-                            new PathResourceMatcher(new ExtensionsPathMatcher("str", "rtree")))
+                            new PathResourceMatcher(new ExtensionsPathMatcher("rtree", "str2", "str")))
                             .collect(Collectors.toList());
                         for(HierarchicalResource moduleFile : moduleFiles) {
                             foundSomethingToImport = true;
                             @Nullable final String filename = moduleFile.getLeaf();
                             assert filename != null : "HierarchicalResource::list returned some resources without a path leaf?!";
-                            if(filename.endsWith(".str")) {
-                                final String moduleString = directory + "/" + filename
-                                    .substring(0, filename.length() - ".str".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
-                                    moduleString, moduleFile.getPath()));
-                            } else if(filename.endsWith(".rtree")) {
+                            if(filename.endsWith(".rtree")) {
                                 final boolean isLibrary =
                                     ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".rtree".length());
                                 result.add(new mb.stratego.build.strincr.ModuleIdentifier(isLibrary,
+                                    moduleString, moduleFile.getPath()));
+                            } else if(filename.endsWith(".str2")) {
+                                final String moduleString = directory + "/" + filename
+                                    .substring(0, filename.length() - ".str2".length());
+                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
+                                    moduleString, moduleFile.getPath()));
+                            } else if(filename.endsWith(".str")) {
+                                final String moduleString = directory + "/" + filename
+                                    .substring(0, filename.length() - ".str".length());
+                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
                                     moduleString, moduleFile.getPath()));
                             }
                         }
@@ -162,9 +179,9 @@ public class ModuleImportService implements IModuleImportService {
                 final long lastModified =
                     resource.getLastModifiedTime().getEpochSecond();
                 if(moduleIdentifier.isLibrary()) {
-                    return new LastModified<>(parseStratego.parseRtree(inputStream), lastModified);
+                    return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
                 } else {
-                    return new LastModified<>(parseStratego
+                    return new LastModified<>(strategoLanguage
                         .parse(inputStream, StandardCharsets.UTF_8,
                             resourcePathConverter.toString(identifier.path)),
                         lastModified);

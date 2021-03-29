@@ -10,16 +10,18 @@ import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CheckInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
+    public final ResourcePath projectPath;
     public final StrategoGradualSetting strategoGradualSetting;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
     public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        StrategoGradualSetting strategoGradualSetting, ArrayList<STask<?>> strFileGeneratingTasks,
+        ResourcePath projectPath, StrategoGradualSetting strategoGradualSetting, ArrayList<STask<?>> strFileGeneratingTasks,
         ArrayList<? extends ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
         this.mainModuleIdentifier = mainModuleIdentifier;
+        this.projectPath = projectPath;
         this.strategoGradualSetting = strategoGradualSetting;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
@@ -43,6 +45,8 @@ public class CheckInput implements Serializable {
             return false;
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
             return false;
+        if(!projectPath.equals(that.projectPath))
+            return false;
         if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
             return false;
         if(!includeDirs.equals(that.includeDirs))
@@ -52,6 +56,7 @@ public class CheckInput implements Serializable {
 
     @Override public int hashCode() {
         int result = mainModuleIdentifier.hashCode();
+        result = 31 * result + projectPath.hashCode();
         result = 31 * result + strategoGradualSetting.hashCode();
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();

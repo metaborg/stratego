@@ -9,8 +9,11 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.util.TermUtils;
+
+import mb.stratego.build.termvisitors.DesugarType;
 
 public class StrategyType extends StrategoAppl {
     // either TP/0 or FunNoArgsType/2
@@ -28,7 +31,7 @@ public class StrategyType extends StrategoAppl {
         this.termArguments = termArguments;
     }
 
-    public static @Nullable StrategyType fromDefinition(IStrategoTermBuilder tf,
+    public static @Nullable StrategyType fromDefinition(ITermFactory tf,
         IStrategoTerm strategyDef) {
         if(!TermUtils.isAppl(strategyDef)) {
             return null;
@@ -45,7 +48,10 @@ public class StrategyType extends StrategoAppl {
                 if(!TermUtils.isListAt(strategyDef, 1)) {
                     return null;
                 }
-                strategyArguments = new ArrayList<>(strategyDef.getSubterm(1).getSubterms());
+                strategyArguments = new ArrayList<>(strategyDef.getSubterm(1).getSubtermCount());
+                for(IStrategoTerm strategyArgument : strategyDef.getSubterm(1)) {
+                    strategyArguments.add(DesugarType.tryDesugarSType(tf, strategyArgument));
+                }
                 termArguments = new ArrayList<>(0);
 
                 sSimpleFunType = strategyDef.getSubterm(2);
@@ -54,18 +60,35 @@ public class StrategyType extends StrategoAppl {
                 if(!TermUtils.isListAt(strategyDef, 1)) {
                     return null;
                 }
-                strategyArguments = new ArrayList<>(strategyDef.getSubterm(0).getSubterms());
+                strategyArguments = new ArrayList<>(strategyDef.getSubterm(1).getSubtermCount());
+                for(IStrategoTerm strategyArgument : strategyDef.getSubterm(1)) {
+                    strategyArguments.add(DesugarType.tryDesugarSType(tf, strategyArgument));
+                }
                 if(!TermUtils.isListAt(strategyDef, 2)) {
                     return null;
                 }
-                termArguments = new ArrayList<>(strategyDef.getSubterm(1).getSubterms());
+                termArguments = new ArrayList<>(strategyDef.getSubterm(2).getSubtermCount());
+                for(IStrategoTerm termArgument : strategyDef.getSubterm(2)) {
+                    termArguments.add(DesugarType.tryDesugarType(tf, termArgument));
+                }
 
                 sSimpleFunType = strategyDef.getSubterm(3);
                 break;
             default:
                 return null;
         }
-        return new StrategyType(tf, sSimpleFunType, strategyArguments, termArguments);
+        final StrategyType result =
+            new StrategyType(tf, desugarSSimpleFunType(tf, sSimpleFunType), strategyArguments,
+                termArguments);
+        tf.replaceTerm(result, strategyDef);
+        return result;
+    }
+
+    private static IStrategoTerm desugarSSimpleFunType(ITermFactory tf,
+        IStrategoTerm sSimpleFunType) {
+        return tf.replaceTerm(
+            tf.makeAppl("FunNoArgsType", DesugarType.desugarType(tf, sSimpleFunType.getSubterm(0)),
+                DesugarType.desugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
     }
 
     public StrategySignature withName(IStrategoString name) {

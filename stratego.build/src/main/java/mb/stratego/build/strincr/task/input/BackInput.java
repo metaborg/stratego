@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.strc.compile_top_level_def_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -43,21 +42,22 @@ import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
-import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
 public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
+    public final ResourcePath projectPath;
     public final @Nullable String packageName;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
     public final CheckInput checkInput;
 
-    public BackInput(ResourcePath outputDir, @Nullable String packageName,
+    public BackInput(ResourcePath outputDir, ResourcePath projectPath, @Nullable String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
         CheckInput checkInput) {
         this.outputDir = outputDir;
+        this.projectPath = projectPath;
         this.packageName = packageName;
         this.cacheDir = cacheDir;
         this.constants = constants;
@@ -78,6 +78,8 @@ public abstract class BackInput implements Serializable {
 
         if(!outputDir.equals(input.outputDir))
             return false;
+        if(!projectPath.equals(input.projectPath))
+            return false;
         if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
             return false;
         if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
@@ -91,6 +93,7 @@ public abstract class BackInput implements Serializable {
 
     @Override public int hashCode() {
         int result = outputDir.hashCode();
+        result = 31 * result + projectPath.hashCode();
         result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
@@ -159,11 +162,12 @@ public abstract class BackInput implements Serializable {
         public final StrategySignature strategySignature;
         public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
 
-        public Normal(ResourcePath outputDir, @Nullable String packageName,
-            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, StrategySignature strategySignature,
+        public Normal(ResourcePath outputDir, ResourcePath projectPath,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
+            StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
+            super(outputDir, projectPath, packageName, cacheDir, constants, extraArgs, checkInput);
             this.strategySignature = strategySignature;
             this.strategyAnalysisDataTask = strategyAnalysisDataTask;
         }
@@ -193,28 +197,30 @@ public abstract class BackInput implements Serializable {
             IStrategoTerm desugaringInput =
                 Packer.packStrategy(backTask.tf, overlayContributions, strategyContributions);
 
-            final StrategoExecutor.ExecutionResult result = StrategoExecutor
-                .runLocallyUniqueStringStrategy(backTask.ioAgentTrackerFactory, context.logger(),
-                    true, compile_top_level_def_0_0.instance, desugaringInput, backTask.strContext);
-
-            if(!result.success) {
-                throw new ExecException(
-                    "Call to compile-top-level-def failed:\n" + result.exception, null);
-            }
-            assert result.result != null;
+            final IStrategoTerm result = backTask.strategoLanguage
+                .desugar(desugaringInput, backTask.resourcePathConverter.toString(projectPath));
 
             //noinspection ConstantConditions
             final Set<StrategySignature> cifiedStrategySignatures =
-                CheckModule.extractStrategyDefs(null, result.result, null).keySet();
+                CheckModule.extractStrategyDefs(null, result, null).keySet();
             for(StrategySignature cified : cifiedStrategySignatures) {
                 final @Nullable StrategySignature uncified =
                     StrategySignature.fromCified(cified.name);
                 if(uncified != null) {
+                    // Hack to work around lossy property of cified names where both "--" and "_"
+                    //   are translated to "__", and the reverse always translates to "_".
+                    // TODO: adapt desugar stratego code to explicitly give back compiled strategies
+                    //   names are cified.
+                    if(uncified.name.contains("_")) {
+                        compiledStrategies.add(
+                            new StrategySignature(uncified.name.replace("_", "--"),
+                                uncified.noStrategyArgs, uncified.noTermArgs));
+                    }
                     compiledStrategies.add(uncified);
                 }
             }
 
-            return result.result;
+            return result;
         }
 
         public void getStrategyContributions(ExecContext context, Back backTask,
@@ -230,7 +236,7 @@ public abstract class BackInput implements Serializable {
                     .requirePartial(context, strategyAnalysisDataTask, new CheckModuleInput(
                             new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
                                 checkInput.includeDirs, checkInput.linkedLibraries),
-                            checkInput.mainModuleIdentifier),
+                            checkInput.mainModuleIdentifier, projectPath),
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
@@ -272,11 +278,12 @@ public abstract class BackInput implements Serializable {
     }
 
     public static class DynamicRule extends Normal {
-        public DynamicRule(ResourcePath outputDir, @Nullable String packageName,
-            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, StrategySignature strategySignature,
+        public DynamicRule(ResourcePath outputDir, ResourcePath projectPath,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
+            StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strFileGeneratingTasks) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+            super(outputDir, projectPath, packageName, cacheDir, constants, extraArgs, checkInput,
                 strategySignature, strFileGeneratingTasks);
         }
 
@@ -299,10 +306,10 @@ public abstract class BackInput implements Serializable {
                     }
                     final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
                         .requirePartial(context, strategyAnalysisDataTask, new CheckModuleInput(
-                                new FrontInput.Normal(moduleIdentifier,
-                                    checkInput.strFileGeneratingTasks, checkInput.includeDirs,
-                                    checkInput.linkedLibraries), checkInput.mainModuleIdentifier),
-                            new GetDynamicRuleAnalysisData(strategySignature));
+                            new FrontInput.Normal(moduleIdentifier,
+                                checkInput.strFileGeneratingTasks, checkInput.includeDirs,
+                                checkInput.linkedLibraries), checkInput.mainModuleIdentifier,
+                            projectPath), new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                         new UsedConstrs(usedConstructors)
@@ -327,11 +334,11 @@ public abstract class BackInput implements Serializable {
         public final HashSet<String> dynamicRuleNewGenerated;
         public final HashSet<String> dynamicRuleUndefineGenerated;
 
-        public Congruence(ResourcePath outputDir, @Nullable String packageName,
-            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, HashSet<String> dynamicRuleNewGenerated,
-            HashSet<String> dynamicRuleUndefineGenerated) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
+        public Congruence(ResourcePath outputDir, ResourcePath projectPath,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
+            HashSet<String> dynamicRuleNewGenerated, HashSet<String> dynamicRuleUndefineGenerated) {
+            super(outputDir, projectPath, packageName, cacheDir, constants, extraArgs, checkInput);
             this.dynamicRuleNewGenerated = dynamicRuleNewGenerated;
             this.dynamicRuleUndefineGenerated = dynamicRuleUndefineGenerated;
         }
@@ -406,10 +413,11 @@ public abstract class BackInput implements Serializable {
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
 
-        public Boilerplate(ResourcePath outputDir, @Nullable String packageName,
-            @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
-            CheckInput checkInput, boolean dynamicCallsDefined) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput);
+        public Boilerplate(ResourcePath outputDir, ResourcePath projectPath,
+            @Nullable String packageName, @Nullable ResourcePath cacheDir,
+            ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
+            boolean dynamicCallsDefined) {
+            super(outputDir, projectPath, packageName, cacheDir, constants, extraArgs, checkInput);
             this.dynamicCallsDefined = dynamicCallsDefined;
         }
 

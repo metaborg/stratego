@@ -53,7 +53,8 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
             }
             final STask<CheckModuleOutput> sTask = checkModule.createSupplier(new CheckModuleInput(
                 new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-                    input.includeDirs, input.linkedLibraries), input.mainModuleIdentifier));
+                    input.includeDirs, input.linkedLibraries), input.mainModuleIdentifier,
+                input.projectPath));
             final CheckModuleOutput output = context.require(sTask);
             for(StrategySignature strategySignature : output.dynamicRules.keySet()) {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
