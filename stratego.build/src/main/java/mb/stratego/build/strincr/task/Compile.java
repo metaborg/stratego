@@ -21,7 +21,6 @@ import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.PieUtils;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
@@ -54,23 +53,26 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
         final HashSet<ResourcePath> resultFiles = new HashSet<>();
         final CompileGlobalIndex compileGlobalIndex = PieUtils
-            .requirePartial(context, resolve, checkInput.resolveInput(), ToCompileGlobalIndex.INSTANCE);
+            .requirePartial(context, resolve, checkInput.resolveInput(),
+                ToCompileGlobalIndex.INSTANCE);
         final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
 
         final HashSet<String> dynamicRuleNewGenerated = new HashSet<>();
         final HashSet<String> dynamicRuleUndefineGenerated = new HashSet<>();
 
+//        final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
+//            input.strategoGradualSetting == StrategoGradualSetting.DYNAMIC ?
+//                new STaskDef<>(CheckModule.id) : new STaskDef<>(FrontSplit.id);
         final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
-            input.strategoGradualSetting == StrategoGradualSetting.DYNAMIC ?
-                new STaskDef<>(CheckModule.id) : new STaskDef<>(FrontSplit.id);
+            new STaskDef<>(CheckModule.id);
 
         for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
                 continue;
             }
             final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
-                    input.constants, input.extraArgs, checkInput, dynamicRule,
+                new BackInput.DynamicRule(input.outputDir, input.projectPath, input.packageName,
+                    input.cacheDir, input.constants, input.extraArgs, checkInput, dynamicRule,
                     strategyAnalysisDataTask);
             final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
