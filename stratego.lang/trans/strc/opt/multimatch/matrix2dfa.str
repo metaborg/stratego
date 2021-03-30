@@ -88,8 +88,36 @@ strategies
 
   talt(|o*, d): (t, valt*) -> AltT(t, <debug(!"[i] vswitch "); vswitch(|t, o*, d); debug(!"[o] vswitch ")> valt*)
 
-  vswitch(|ApplT(), o*@[o1 | _], d) = id
-//  ; where(os := <Hd; ?(_, _, _, <id>)>)
-  ; !SwitchV(<append-occ> (o1, Con()), <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+  vswitch(|ApplT(), [o1 | _], d) =
+    where(o1' := <append-occ> (o1, Con()))
+  ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+
+  vswitch(|ListT(), [o1 | _], d) = <error> ["ListT not implemented"]
+
+  vswitch(|IntT(), [o1 | _], d) =
+    where(o1' := <append-occ> (o1, Int()))
+  ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+
+  vswitch(|RealT(), [o1 | _], d) =
+    where(o1' := <append-occ> (o1, Real()))
+  ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+
+  vswitch(|StringT(), [o1 | _], d) =
+    where(o1' := <append-occ> (o1, Str()))
+  ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+
+  // TODO Consider if this pattern can occur outside of an APPL.
+  vswitch(|CtorT(), [o1 | _], d) = <error> ["CtorT not implemented"]; fail
+
+  vswitch(|TupleT(), [o1 | _], d) = <error> ["TupleT not implemented"]; fail
+
+  // TODO Find out how to handle this.
+  vswitch(|RefT(), [o1 | _], d) = <error> ["RefT not implemented"]; fail
+
+  // TODO Find out how to handle this.
+  vswitch(|BlobT(), [o1 | _], d) = <error> ["BlobT not implemented"]; fail
+
+  // TODO Find out how to handle this.
+  vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
 
   valt: (c, t, m, o*) -> AltV(c, <CC(|o*)> m)

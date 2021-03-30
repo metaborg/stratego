@@ -41,7 +41,7 @@ strategies
 
   specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
   specialize-occ(|Fun(_, x)) = specialize-occ'(|<string-to-int> x)
-  specialize-occ(|Tuple(a)) = specialize-occ'(|a)
+  specialize-occ(|Tuple(x)) = specialize-occ'(|<string-to-int> x)
   specialize-occ(|c) = where(<is-literal> c); ![]
 
   specialize-occ'(|a):      p@Path(_) -> ps
