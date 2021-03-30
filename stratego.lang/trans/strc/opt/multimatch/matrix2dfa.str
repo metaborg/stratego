@@ -10,7 +10,7 @@ imports
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = where(o* := [Path([Cur()])]); CC(|o*, 0)
+  matrix2dfa = where(o* := [Path([Cur()])]); CC(|o*)
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -18,17 +18,17 @@ strategies
    * Changes w.r.t. paper:
    * (none)
    */
-  CC(|o*, l) = NoRows(|o*, l)
-            <+ WildcardsFirstRow(|o*, l)
-            <+ SelectColumn(|o*, l)
+  CC(|o*) = NoRows(|o*)
+         <+ WildcardsFirstRow(|o*)
+         <+ SelectColumn(|o*)
 
   /*
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows(|o*, l): m@Matrix([]) -> Leaf(Fail())
+  NoRows(|o*): m@Matrix([]) -> Leaf(Fail())
   where
-    <debug(!"NoRows ")> (l, o*, m)
+    <debug(!"NoRows ")> (o*, m)
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -37,10 +37,10 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow(|o*, l): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
+  WildcardsFirstRow(|o*): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
   where
     <map(is-wildcard)> ps
-  ; <debug(!"WildcardsFirstRow ")> (l, o*, m)
+  ; <debug(!"WildcardsFirstRow ")> (o*, m)
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -48,9 +48,9 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn(|o*@[o1 | os], l): m@Matrix(rs) -> T
+  SelectColumn(|o*@[o1 | os]): m@Matrix(rs) -> T
   with
-    <debug(!"SelectColumn ")> (l, o*, m)
+    <debug(!"SelectColumn ")> (o*, m)
   ; i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
@@ -62,19 +62,34 @@ strategies
          <debug(!"swap indices ")> (1, i)
        ; m' := <swap-cols(|1, i)> m 
        ; o' := <swap(|1, i)> o*
-       ; A' := <CC(|o', <inc> l)> m'
+       ; A' := <CC(|o')> m'
 //       ; !Swap(<int-to-string> i, A') // Swap nodes can just be skipped
        ; !A'
-    else // i == 1
+    else // i == 1 
          /* Perform a bunch of recursive calls on possible head
             constructors and include them in a big Switch */
-         hc_arities := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
-       ; if !hc_arities; ?[(Anno(), _)]
-         then o' := <specialize-occs(|Anno())> o*
-            ; m' := <specialize(|m)> Anno()
-            ; <CC(|o', <inc> l)> m'
-         else default := <default; CC(|os, <inc> l)> m
-            ; t4*     := <map(\ (c, a) -> (c, a, <specialize(|m)> c, <specialize-occs(|a)> o*) \)> hc_arities
-            ; !Switch(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> Alt(c, <CC(|o'*, <inc> l)> m) \)> t4*, default)
+         hc* := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
+       ; if !hc* => [(Anno(), _)]
+         then <debug> "unpacking annos..."
+            ; <specialize-occs(|Anno())> o* => o'
+            ; <specialize(|m); CC(|o')> Anno()
+         else restore(filter(?(Anno(), _)); ?[], debug(!"contains annos: "))
+            ; hts := <map(Snd); make-set> hc*
+            ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c, <specialize-occs(|c)> o*) \)> hc*
+            ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
+            ; <debug(!"valt* ")> valt*
+            ; <debug(!"tbranch* ")> tbranch*
+            ; default   := <default; CC(|os)> m
+            ; talt*     := <map(talt(|o*, default)); debug(!"talts ")> tbranch*
+            ; !SwitchT(<append-occ> (o1, Typ()), talt*, default)
+//            ; !SwitchV(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> AltV(c, <CC(|o'*, <inc> l)> m) \)> t4*, default)
          end
     end => T
+
+  talt(|o*, d): (t, valt*) -> AltT(t, <debug(!"[i] vswitch "); vswitch(|t, o*, d); debug(!"[o] vswitch ")> valt*)
+
+  vswitch(|ApplT(), o*@[o1 | _], d) = id
+//  ; where(os := <Hd; ?(_, _, _, <id>)>)
+  ; !SwitchV(<append-occ> (o1, Con()), <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+
+  valt: (c, t, m, o*) -> AltV(c, <CC(|o*)> m)

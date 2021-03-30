@@ -88,24 +88,36 @@ end>
   MatchOrder.Linear = <linear>
 
   MatchCase.MatchCase = <case <Term>: <Strategy>>
+  MatchCase.ScopedMatchCase = <case <Var*>|<Term>: <Strategy>>
 
-sorts DTree Alt
+sorts DTree
 context-free syntax
   Strategy = DTree
 
   DTree.Leaf = <leaf <Strategy>>
 //  DTree.Fail = <fail>
-  DTree.Switch =
-<switch (<Path>) {
-  <{Alt "\n"}*>
+  DTree.SwitchT =
+<tswitch [<Path>] {
+  <{AltT "\n"}*>
   default: <DTree>
 }>
 //  DTree.Swap =
 //<swap (<Int>)
 //  <DTree>>
 
-  Alt.Alt =
-<alt <Pat>:
+  SwitchV.SwitchV =
+<vswitch [<Path>] {
+  <{AltV "\n"}*>
+  default: <DTree>
+}>
+
+sorts AltT AltV
+context-free syntax
+  AltT.AltT =
+<alt <PatT>:
+  <SwitchV>>
+  AltV.AltV =
+<alt <PatV>:
   <DTree>>
 
 sorts Path PathEl
@@ -116,15 +128,29 @@ context-free syntax
   PathEl.Ann = <ann>
   PathEl.Con = <con>
   PathEl.Cur = <cur>
+  PathEl.Typ = <typ>
 
-sorts Pat
+sorts PatV
 context-free syntax
-  Pat.Fun = <Fun(<Id>, <Int>)>
-  Pat.Str = String
-  Pat.Int = Int
-  Pat.Real = Real
-  Pat.Anno = <anno>
-  Pat.Tuple = <Tuple(<Int>)>
+  PatV.Fun = <Fun(<Id>, <Int>)>
+  PatV.Str = String
+  PatV.Int = Int
+  PatV.Real = Real
+  PatV.Anno = <anno>
+  PatV.Tuple = <Tuple(<Int>)>
+
+sorts PatT
+context-free syntax
+  PatT.ApplT = <APPL>
+  PatT.ListT = <LIST>
+  PatT.IntT = <INT>
+  PatT.RealT = <REAL>
+  PatT.StringT = <STRING>
+  PatT.CtorT = <CTOR>
+  PatT.TupleT = <TUPLE>
+  PatT.RefT = <REF>
+  PatT.BlobT = <BLOB>
+  PatT.PlaceT = <PLACEHOLDER>
 
 context-free priorities
   { Strategy.Build
@@ -136,8 +162,8 @@ context-free priorities
 context-free priorities
 DTree.Leaf <0> > { DTree.Leaf
                    // DTree.Fail
-                   DTree.Switch
-                   /* DTree.Swap */ }
+                   DTree.SwitchT
+                   /*DTree.Swap*/ }
 
 context-free syntax
   Strategy.ImportTerm = <import-term(<ModName>)>

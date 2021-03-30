@@ -24,8 +24,9 @@ strategies
    *
    * Maranget (2008), sec 4, step 3a.
    */
-  head-constructors = filter(head-constructor-arity)
-  head-constructor-arity: c -> (<head-constructor> c, <arity <+ !-1> c)
+  head-constructors = debug(!"[i] hcs ")
+  ; remove-all(is-variable)
+  ; map(split(head-constructor, head-type <+ !()))
 
   /*
    * Specialize the matrix to a certain constructor.
@@ -35,54 +36,64 @@ strategies
   specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
   specialize-row(|c) = Row(specialize-pats(|c), id)
 
-  specialize-occs(|a): occs@[o | os*] -> [o*, os*]
-    with o* := <specialize-occ(|a)> o
+  specialize-occs(|c): occs@[o | os*] -> [o*, os*]
+    with o* := <specialize-occ(|c)> o
 
   specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
-  specialize-occ(|a):      p@Path(_) -> ps
+  specialize-occ(|Fun(_, x)) = specialize-occ'(|<string-to-int> x)
+  specialize-occ(|Tuple(a)) = specialize-occ'(|a)
+  specialize-occ(|c) = where(<is-literal> c); ![]
+
+  specialize-occ'(|a):      p@Path(_) -> ps
     where
-      <not(?Anno())> a 
-    ; ps := <range; map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> (1, <inc> a)
+      i* := <range> (1, <inc> a)
+    ; ps := <map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> i*
+
 
   append-occ: (Path(os*), o) -> Path([os*, o*])
     with o* := [o]
 
   // Annotations
-//  arity:                        Anno(_, _)          -> 2
   head-constructor:             Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
   specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
 
+  // Tuples + constructor applications
+  arity:                        Op(f, ts)           -> <length> ts
+
   // Tuples
-  arity:                        Op("", ts)          -> <length> ts
   head-constructor:             c@Op("", ts)        -> Tuple(<arity; int-to-string> c)
+  head-type:                    Op("", _)           -> TupleT()
   specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*] -> [qs*, ps*]
     where
       a := <string-to-int> x
     ; <eq> (a, <arity> c)
-  specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*] -> [qs*, ps*]
+  specialize-pats(|Tuple(x)):  [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x
 
   // Constructor applications
-  arity:                        Op(f, ts)           -> <length> ts
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
+  head-type:                    Op(_, _)            -> ApplT()
   specialize-pats(|Fun(f, x)): [c@Op(f, qs*) | ps*] -> [qs*, ps*]
     where
       a := <string-to-int> x
     ; <eq> (a, <arity> c)
-  specialize-pats(|Fun(_, x)): [Wld() | ps*]      -> <prepend-wld(|a)> ps*
+  specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x
 
   // Literals
-  arity:            <?Str(_) + ?Int(_) + ?Real(_)> -> 0
-  head-constructor = ?Str(_) + ?Int(_) + ?Real(_)
+  is-literal = ?Str(_) + ?Int(_) + ?Real(_)
+  head-constructor = is-literal
+  head-type:                    Str(_)              -> StringT()
+  head-type:                    Int(_)              -> IntT()
+  head-type:                    Real(_)              -> RealT()
   specialize-pats(|Str(s)):    [<?Str(s) + ?Wld()> | ps*] -> ps*
   specialize-pats(|Int(s)):    [<?Int(s) + ?Wld()> | ps*] -> ps*
   specialize-pats(|Real(s)):   [<?Real(s) + ?Wld()> | ps*] -> ps*
 
   // Variables
-  arity = (?Var(_) + ?Wld()); fail
-  head-constructor = (?Var(_) + ?Wld()); fail // by definition
+  is-variable = ?Var(_) + ?Wld()
+  head-constructor = is-variable; fail // by definition
   specialize-pats(|Wld()) = fail // by definition
 
   prepend-wld(|n) = repeat(![Wld() | <id>] | n)
