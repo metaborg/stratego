@@ -28,7 +28,6 @@ imports
   signatures/gradual-types/strategies-sig
 
   strj/multimatch/multimatch2java
-  strj/multimatch/dfa
 
 signature
   constructors
@@ -860,15 +859,9 @@ rules
     VarDec(x{}, <?ConstType(_) <+ ?DynT(_)>) -> expr |[ x ]|
 
   translate-arg :
-<<<<<<< HEAD:stratego.lang/trans/strj/s2j.str
     VarDec(x{Offset(_), Escapes()}, <?ConstType(_) <+ ?DynT(_)>) -> expr |[ x.value ]|
 
   translate-arg :
-=======
-    VarDec(x{Offset(_), Escapes()}, ConstType(_)) -> expr |[ x.value ]|
-
-  translate-arg :
->>>>>>> 717e262 (Move MultiMatchTerm from core to sugar):stratego/strj/s2j.str
     VarDec(x, FunType(_, _)) -> expr |[ x ]|
 
 strategies
@@ -1960,9 +1953,11 @@ strategies
 
   translate-DFA(|x_fail): SwitchT(o*, alt*, default) -> bstm* |[
     switch (e_occ) {
-      ~switch-group*:switches
+//      ~switch-group*:switches
+      case 0: System.out.println("8");
       default: {
-        bstm_def*
+        System.out.println("9");
+//        bstm_def*
       }
     }
   ]|
