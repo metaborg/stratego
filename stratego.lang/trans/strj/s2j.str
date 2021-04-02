@@ -1956,12 +1956,7 @@ strategies
 //      ~switch-group*:switches
       case 0: System.out.println("8");
       default: {
-//        System.out.println("9"); // works
-//        bstm_def* // doesn't work
-        bstm_def // works
-//        if (TRUE) {
-//          break Fail;
-//        }
+        ~<translate-DFA(|x_fail)> default
       }
     }
   ]|
