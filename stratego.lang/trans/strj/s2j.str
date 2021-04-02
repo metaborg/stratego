@@ -1937,38 +1937,81 @@ strategies
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
 
 /* ================================ MultiMatch */
-
-//  translate-MultiMatch     = fail
-  translate-MultiMatchTerm = fail
   translate-MultiMatch:
-    mm@MultiMatch(_, _) -> java
-    with
-      <multimatch2dfa> mm => dfa
-    ; <translate-DFA> dfa => java
+    mm@MultiMatch(_, _) -> bstm* |[
+      {}
+//      bstm_java*
+    ]|
+//    with
+//      <multimatch2dfa> mm => dfa
+//    ; <translate-DFA(|"")> dfa => bstm_java*
 
-//  translate-MultiMatchTerm:
-//    MultiMatchTerm(order, term, cases) ->
+/*======== Generate Java code from DFA =================*/
+  // TODO Find a way of distinguishing match fail from strategy fail.
+//  translate-DFA-Fail(|x_fail): Fail() -> bstm* |[ break x_fail; ]|
+//
+//  translate-DFA-strategy = translate-DFA-Fail <+ translate-strategy
 
-  /*======== Generate Java code from DFA =================*/
-  translate-DFA: Switch(alts*, default) ->
-  bstm |[
-    Fail: {
-      bstm_alts
-      stm_def
-    } ]|
-  with
-    stm_def := <translate-DFA> default
-  ; bstm_alts := <map(translate-Alt)> alts*
+//  translate-DFA(|x_fail) = ?Leaf(<translate-DFA-strategy>) // bstm*
 
-  translate-DFA: Fail() -> |[ break Fail; ]|
-  translate-DFA = ?Leaf(<id>); translate-strategy
-  // TODO Check if something should be swapped.
-//  translate-DFA = ?Swap(_, <id>); translate-DFA
 
-  translate-Alt: Alt(Fun(c, a), T) ->
-  bstm* |[
-    System.out.println(e_consname);
-    ~bstm:<translate-DFA> T
+  translate-DFA(|x_fail) = ?Leaf(<translate-strategy>) // bstm*
+
+//  translate-DFA(|x_fail): SwitchT(_, _, default) -> <translate-DFA(|x_fail)> default
+
+  translate-DFA(|x_fail): SwitchT(o*, alt*, default) -> bstm* |[
+    switch (e_occ) {
+      ~switch-group*:switches
+      default: {
+        bstm_def*
+      }
+    }
   ]|
   with
-    e_consname := <java-ConstructorName-expr> (c, a)
+    bstm_def* := <translate-DFA(|x_fail)> default
+  ; e_occ := <translate-Path> o*
+  ; switches := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
+
+  translate-AltT(|x_fail): AltT(ApplT(), switchv) -> switch-group |[
+    case APPL:
+      ~bstm:<translate-SwitchV(|x_fail)> switchv
+  ]|
+
+  translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> bstm |[
+    bstm_alt
+  ]|
+  with
+    bstm_def := bstm |[ {
+      ~bstm*:<debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
+    } ]|
+  ; bstm_alt := <debug(!"[i] foldr "); foldr(!bstm_def, debug(!"[i] AltV ")
+                                ; translate-AltV(|x_fail)
+                                ; debug(!"[o] AltV ")); debug(!"[o] foldr ")> alt*
+
+  translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), bstm_else) ->
+  bstm |[
+    if (TRUE) {
+      bstm_match*
+    } else {
+      bstm_else
+    }
+  ]|
+  with
+    bstm_match* := <translate-DFA(|x_fail)> tree_match
+  ; e_cons := <java-ConstructorName> (c, <string-to-int> x)
+
+  translate-Path = debug(!"[i] path ")
+  ; ?Path([p | ps])
+  ; where(<debug(!"p ps ")> (p, ps))
+  ; !(ps, <translate-PathEl; debug(!"pathel cur")> (p, ()))
+  ; foldl(debug(!"[i] pathel "); translate-PathEl; debug(!"[i] pathel "))
+  ; debug(!"[o] path ")
+
+  translate-PathEl: (Cur(), _) -> expr |[ term ]|
+  translate-PathEl: (Sub(x), e) -> expr |[ e.getSubterm(~e:<string-to-int> x) ]|
+  translate-PathEl: (Ann(), e) -> expr |[ e.getAnnotations() ]|
+  translate-PathEl: (Con(), e) -> expr |[ ((IStrategoAppl) e).getConstructor() ]|
+  translate-PathEl: (Typ(), e) -> expr |[ e.getType() ]|
+  translate-PathEl: (Int(), e) -> expr |[ ((IStrategoInt) e).intValue() ]|
+  translate-PathEl: (Real(), e) -> expr |[ ((IStrategoReal) e).realValue() ]|
+  translate-PathEl: (Str(), e) -> expr |[ ((IStrategoString) e).stringValue() ]|

@@ -1,0 +1,13 @@
+module complex_default
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+strategies
+  comp = match linear
+           case (Nil(), _): !1
+           case (_, Nil()): !2
+         end
