@@ -1958,14 +1958,15 @@ strategies
       default: {
 //        System.out.println("9"); // works
 //        bstm_def* // doesn't work
-        if (TRUE) {
-          break Fail;
-        }
+        bstm_def // works
+//        if (TRUE) {
+//          break Fail;
+//        }
       }
     }
   ]|
   with
-    bstm_def* := <translate-DFA(|x_fail)> default
+    bstm_def := <debug(!"[i] java def "); translate-DFA(|x_fail); debug(!"[o] java def ")> default
   ; e_occ := <translate-Path> o*
   ; switches := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
 
