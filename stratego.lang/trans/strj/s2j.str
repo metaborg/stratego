@@ -1956,8 +1956,11 @@ strategies
 //      ~switch-group*:switches
       case 0: System.out.println("8");
       default: {
-//        System.out.println("9");
-        bstm_def*
+//        System.out.println("9"); // works
+//        bstm_def* // doesn't work
+        if (TRUE) {
+          break Fail;
+        }
       }
     }
   ]|
