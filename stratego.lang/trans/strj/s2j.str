@@ -1939,12 +1939,11 @@ strategies
 /* ================================ MultiMatch */
   translate-MultiMatch:
     mm@MultiMatch(_, _) -> bstm* |[
-      {}
-//      bstm_java*
+      bstm_java*
     ]|
-//    with
-//      <multimatch2dfa> mm => dfa
-//    ; <translate-DFA(|"")> dfa => bstm_java*
+    with
+      <multimatch2dfa> mm => dfa
+    ; <translate-DFA(|"")> dfa => bstm_java*
 
 /*======== Generate Java code from DFA =================*/
   // TODO Find a way of distinguishing match fail from strategy fail.
