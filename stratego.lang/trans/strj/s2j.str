@@ -1953,21 +1953,20 @@ strategies
 
   translate-DFA(|x_fail): SwitchT(o*, alt*, default) -> bstm* |[
     switch (e_occ) {
-//      ~switch-group*:switches
-      case 0: System.out.println("8");
+      ~switch-group*:cases
       default: {
         ~<translate-DFA(|x_fail)> default
       }
     }
   ]|
   with
-    bstm_def := <debug(!"[i] java def "); translate-DFA(|x_fail); debug(!"[o] java def ")> default
-  ; e_occ := <translate-Path> o*
-  ; switches := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
+    e_occ := <translate-Path> o*
+  ; cases := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
 
   translate-AltT(|x_fail): AltT(ApplT(), switchv) -> switch-group |[
     case APPL:
-      ~bstm:<translate-SwitchV(|x_fail)> switchv
+//      ~bstm:<translate-SwitchV(|x_fail)> switchv
+      System.out.println("APPL");
   ]|
 
   translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> bstm |[
