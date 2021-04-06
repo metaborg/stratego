@@ -1952,7 +1952,7 @@ strategies
 
 //  translate-DFA(|x_fail): SwitchT(_, _, default) -> <translate-DFA(|x_fail)> default
 
-  translate-DFA(|x_fail): SwitchT(o*, alt*, default) -> bstm* |[
+  translate-DFA(|x_fail): SwitchT(o, alt*, default) -> bstm* |[
     switch (e_occ) {
       ~switch-group*:cases
       default: {
@@ -1961,7 +1961,7 @@ strategies
     }
   ]|
   with
-    e_occ := <translate-Path> o*
+    e_occ := <translate-Path> o
   ; cases := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
 
   translate-AltT(|x_fail): AltT(ApplT(), switchv) -> switch-group |[
@@ -1973,19 +1973,19 @@ strategies
   translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> stm_alt
   with
     stm_def := <debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
-  ; stm_alt := <foldr(!stm_def, translate-AltV(|x_fail))> alt*
+  ; stm_alt := <foldr(!stm_def, translate-AltV(|x_fail, o))> alt*
 
-  translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), stm_else) ->
+  translate-AltV(|x_fail, o): (AltV(Fun(c, x), tree_match), stm_else) ->
   stm |[
-    if (TRUE) {
+    if (e_occ == e_cons) { // TODO Check compiler flag if constructors are interned.
       ~<translate-DFA(|x_fail)> tree_match
     } else {
       stm_else
     }
   ]|
   with
-    e_cons := <java-ConstructorName> (c, <string-to-int> x)
-  ; <debug(!"stm_else ")> stm_else
+    e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
+  ; e_occ := <translate-Path> o
   ; (pp-java-string <+ pp-aterm); debug(!"[o] AltV ")
 
   translate-Path = debug(!"[i] path ")
