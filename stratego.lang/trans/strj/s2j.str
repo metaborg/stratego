@@ -1983,14 +1983,13 @@ strategies
   translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), bstm_else) ->
   bstm |[
     if (TRUE) {
-      bstm_match*
+      ~<translate-DFA(|x_fail)> tree_match
     } else {
       bstm_else
     }
   ]|
   with
-    bstm_match* := <translate-DFA(|x_fail)> tree_match
-  ; e_cons := <java-ConstructorName> (c, <string-to-int> x)
+    e_cons := <java-ConstructorName> (c, <string-to-int> x)
 
   translate-Path = debug(!"[i] path ")
   ; ?Path([p | ps])
