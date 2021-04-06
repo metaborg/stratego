@@ -100,7 +100,7 @@ rules // Debugging
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
-    ; result* := <map(where(pp-aterm; debug); where(pp-java-string; debug); pp-java5-to-abox; box2text-string(|80))> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
   debug-show-java-optimized:
     (node, _, _, path, project-path) -> (filename*, result*)

@@ -2000,18 +2000,16 @@ strategies
   ; e_occ := <translate-Path> o
   ; (pp-java-string <+ pp-aterm); debug(!"[o] AltV ")
 
-  translate-Path = debug(!"[i] path ")
+  translate-Path = id
   ; ?Path([p | ps])
-  ; where(<debug(!"p ps ")> (p, ps))
-  ; !(ps, <translate-PathEl; debug(!"pathel cur")> (p, ()))
-  ; foldl(debug(!"[i] pathel "); translate-PathEl; debug(!"[i] pathel "))
-  ; debug(!"[o] path ")
+  ; !(ps, <translate-PathEl> (p, ()))
+  ; foldl(translate-PathEl)
 
-  translate-PathEl: (Cur(), _) -> expr |[ term ]|
-  translate-PathEl: (Sub(x), e) -> expr |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
-  translate-PathEl: (Ann(), e) -> expr |[ e.getAnnotations() ]|
-  translate-PathEl: (Con(), e) -> expr |[ ((IStrategoAppl) e).getConstructor() ]|
-  translate-PathEl: (Typ(), e) -> expr |[ e.getType() ]|
-  translate-PathEl: (Int(), e) -> expr |[ ((IStrategoInt) e).intValue() ]|
-  translate-PathEl: (Real(), e) -> expr |[ ((IStrategoReal) e).realValue() ]|
-  translate-PathEl: (Str(), e) -> expr |[ ((IStrategoString) e).stringValue() ]|
+  translate-PathEl: (Cur(), _)  -> e |[ term ]|
+  translate-PathEl: (Sub(x), e) -> e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
+  translate-PathEl: (Ann(), e)  -> e |[ e.getAnnotations() ]|
+  translate-PathEl: (Con(), e)  -> e |[ ((IStrategoAppl) e).getConstructor() ]|
+  translate-PathEl: (Typ(), e)  -> e |[ e.getType() ]|
+  translate-PathEl: (Int(), e)  -> e |[ ((IStrategoInt) e).intValue() ]|
+  translate-PathEl: (Real(), e) -> e |[ ((IStrategoReal) e).realValue() ]|
+  translate-PathEl: (Str(), e)  -> e |[ ((IStrategoString) e).stringValue() ]|
