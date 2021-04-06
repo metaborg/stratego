@@ -15,6 +15,7 @@ imports
   libstratego-xtc
   libstratego-lib
   libjava-front
+  libstratego-aterm
 
   strj/java-postprocess
   strj/java-optimize
@@ -1964,28 +1965,23 @@ strategies
   ; cases := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
 
   translate-AltT(|x_fail): AltT(ApplT(), switchv) -> switch-group |[
-    case APPL:
-//      ~bstm:<translate-SwitchV(|x_fail)> switchv
-      System.out.println("APPL");
+    case APPL: {
+      ~stm:<translate-SwitchV(|x_fail)> switchv
+    }
   ]|
 
-  translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> bstm |[
-    bstm_alt
-  ]|
+  translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> stm_alt
   with
-    bstm_def := bstm |[ {
-      ~bstm*:<debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
-    } ]|
-  ; bstm_alt := <debug(!"[i] foldr "); foldr(!bstm_def, debug(!"[i] AltV ")
-                                ; translate-AltV(|x_fail)
-                                ; debug(!"[o] AltV ")); debug(!"[o] foldr ")> alt*
+    stm_def := <debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
+  ; stm_alt := <debug(!"[i] foldr ")
+              ; foldr(!stm_def, translate-AltV(|x_fail)); where(pp-aterm; debug(!"[o] foldr "))> alt*
 
-  translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), bstm_else) ->
-  bstm |[
+  translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), stm_else) ->
+  stm |[
     if (TRUE) {
       ~<translate-DFA(|x_fail)> tree_match
     } else {
-      bstm_else
+//      stm_else
     }
   ]|
   with
