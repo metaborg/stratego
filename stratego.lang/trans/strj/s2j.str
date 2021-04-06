@@ -1964,11 +1964,23 @@ strategies
     e_occ := <translate-Path> o
   ; cases := <map(debug(!"[i] AltT "); translate-AltT(|x_fail); debug(!"[o] AltT "))> alt*
 
-  translate-AltT(|x_fail): AltT(ApplT(), switchv) -> switch-group |[
-    case APPL: {
+  translate-AltT(|x_fail): AltT(t, switchv) -> switch-group |[
+    case e: {
       ~stm:<translate-SwitchV(|x_fail)> switchv
     }
   ]|
+  with <pat-type-to-enum> t => e
+
+  pat-type-to-enum: ApplT()   -> e |[ APPL ]|
+  pat-type-to-enum: ListT()   -> e |[ LIST ]|
+  pat-type-to-enum: IntT()    -> e |[ INT ]|
+  pat-type-to-enum: RealT()   -> e |[ REAL ]|
+  pat-type-to-enum: StringT() -> e |[ STRING ]|
+  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
+  pat-type-to-enum: TupleT()  -> e |[ TUPLE ]|
+  pat-type-to-enum: RefT()    -> e |[ REF ]|
+  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
+  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
 
   translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> stm_alt
   with
