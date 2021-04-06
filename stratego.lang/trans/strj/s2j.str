@@ -1973,19 +1973,20 @@ strategies
   translate-SwitchV(|x_fail): SwitchV(o, alt*, default) -> stm_alt
   with
     stm_def := <debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
-  ; stm_alt := <debug(!"[i] foldr ")
-              ; foldr(!stm_def, translate-AltV(|x_fail)); where(pp-aterm; debug(!"[o] foldr "))> alt*
+  ; stm_alt := <foldr(!stm_def, translate-AltV(|x_fail))> alt*
 
   translate-AltV(|x_fail): (AltV(Fun(c, x), tree_match), stm_else) ->
   stm |[
     if (TRUE) {
       ~<translate-DFA(|x_fail)> tree_match
     } else {
-//      stm_else
+      stm_else
     }
   ]|
   with
     e_cons := <java-ConstructorName> (c, <string-to-int> x)
+  ; <debug(!"stm_else ")> stm_else
+  ; (pp-java-string <+ pp-aterm); debug(!"[o] AltV ")
 
   translate-Path = debug(!"[i] path ")
   ; ?Path([p | ps])
@@ -1995,7 +1996,7 @@ strategies
   ; debug(!"[o] path ")
 
   translate-PathEl: (Cur(), _) -> expr |[ term ]|
-  translate-PathEl: (Sub(x), e) -> expr |[ e.getSubterm(~e:<string-to-int> x) ]|
+  translate-PathEl: (Sub(x), e) -> expr |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
   translate-PathEl: (Ann(), e) -> expr |[ e.getAnnotations() ]|
   translate-PathEl: (Con(), e) -> expr |[ ((IStrategoAppl) e).getConstructor() ]|
   translate-PathEl: (Typ(), e) -> expr |[ e.getType() ]|
