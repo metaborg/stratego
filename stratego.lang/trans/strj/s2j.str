@@ -1994,6 +1994,12 @@ strategies
     }
   ]| with e_match := <java-Pat-to-Condition> (p, <translate-Path> o)
 
+  java-Pat-to-Condition: (Fun("Nil", "0"), e_occ) ->
+    e |[ ((IStrategoList) e_occ).isEmpty() ]| // special list treatment
+
+  java-Pat-to-Condition: (Fun("Cons", "2"), e_occ) ->
+    e |[ !((IStrategoList) e_occ).isEmpty() ]| // special list treatment
+
   java-Pat-to-Condition: (Fun(c, x), e_occ) -> e_cond
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
@@ -2031,3 +2037,5 @@ strategies
   translate-PathEl: (Int(), e)  -> e |[ ((IStrategoInt) e).intValue() ]|
   translate-PathEl: (Real(), e) -> e |[ ((IStrategoReal) e).realValue() ]|
   translate-PathEl: (Str(), e)  -> e |[ ((IStrategoString) e).stringValue() ]|
+  translate-PathEl: (Hd(), e)   -> e |[ ((IStrategoList) e).head() ]|
+  translate-PathEl: (Tl(), e)   -> e |[ ((IStrategoList) e).tail() ]|

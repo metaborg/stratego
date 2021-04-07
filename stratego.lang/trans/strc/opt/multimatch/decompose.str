@@ -1,6 +1,9 @@
 module decompose
 
 imports
+  strc/stratego/strc/c/escaping-variables // is-ListOp
+  strj/s2j                                // is-TupleOp
+
   strj/multimatch/dfa
   strj/multimatch/matrix
 
@@ -40,6 +43,9 @@ strategies
     with o* := <specialize-occ(|c)> o
 
   specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
+  specialize-occ(|Fun("Nil", "0")): Path(_) -> []
+  specialize-occ(|Fun("Cons", "2")): p@Path(_) -> [ <append-occ> (p, Hd())
+                                                  , <append-occ> (p, Tl()) ]
   specialize-occ(|Fun(_, x)) = specialize-occ'(|<string-to-int> x)
   specialize-occ(|Tuple(x)) = specialize-occ'(|<string-to-int> x)
   specialize-occ(|c) = where(<is-literal> c); ![]
@@ -71,12 +77,19 @@ strategies
   specialize-pats(|Tuple(x)):  [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x
 
+  // Lists
+  head-type:                    Op("Nil", [])       -> ListT()
+  head-type:                    Op("Cons", [_, _])  -> ListT()
+
   // Constructor applications
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
-  head-type:                    Op(_, _)            -> ApplT()
+    where <not(is-TupleOp)> c
+  head-type:                    c@Op(_, _)          -> ApplT()
+    where <not(is-ListOp + is-TupleOp)> c
   specialize-pats(|Fun(f, x)): [c@Op(f, qs*) | ps*] -> [qs*, ps*]
     where
-      a := <string-to-int> x
+      <not(is-TupleOp)> c
+    ; a := <string-to-int> x
     ; <eq> (a, <arity> c)
   specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x

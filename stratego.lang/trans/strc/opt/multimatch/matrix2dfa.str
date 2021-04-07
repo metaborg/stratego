@@ -92,7 +92,8 @@ strategies
     where(o1' := <append-occ> (o1, Con()))
   ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
 
-  vswitch(|ListT(), [o1 | _], d) = <error> ["ListT not implemented"]
+  vswitch(|ListT(), [o1 | _], d) =
+    !SwitchV(o1, <map(valt)>, d)
 
   vswitch(|IntT(), [o1 | _], d) =
     !SwitchV(<append-occ> (o1, Int()), <map(valt)>, d)

@@ -129,6 +129,8 @@ context-free syntax
   PathEl.Int = <int>
   PathEl.Real = <real>
   PathEl.Str = <str>
+  PathEl.Hd = <head>
+  PathEl.Tl = <tail>
 
 sorts PatV
 context-free syntax
