@@ -1987,18 +1987,23 @@ strategies
     stm_def := <debug(!"[i] DFA "); translate-DFA(|x_fail); debug(!"[o] DFA ")> default
   ; stm_alt := <foldr(!stm_def, translate-AltV(|x_fail, o))> alt*
 
-  translate-AltV(|x_fail, o): (AltV(Fun(c, x), tree_match), stm_else) ->
+  translate-AltV(|x_fail, o): (AltV(p, tree_match), stm_else) ->
   stm |[
-    if (e_occ == e_cons) { // TODO Check compiler flag if constructors are interned.
+    if (e_match) {
       ~<translate-DFA(|x_fail)> tree_match
     } else {
       stm_else
     }
-  ]|
+  ]| with e_match := <java-Pat-to-Condition> (p, <translate-Path> o)
+
+  java-Pat-to-Condition: (Fun(c, x), e_occ) -> e_cond
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
-  ; e_occ := <translate-Path> o
-  ; (pp-java-string <+ pp-aterm); debug(!"[o] AltV ")
+  ; if not(<get-config> "-sc" => "off") then
+      !(e |[ e_occ == e_cons ]|)
+    else
+      !(e |[ e_occ.equals(e_cons) ]|)
+    end => e_cond
 
   translate-Path = id
   ; ?Path([p | ps])
