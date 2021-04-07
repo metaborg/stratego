@@ -92,7 +92,7 @@ strategies
     ; a := <string-to-int> x
     ; <eq> (a, <arity> c)
   specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
-    where a := <string-to-int> x
+    with a := <string-to-int> x
 
   // Literals
   is-literal = ?Str(_) + ?Int(_) + ?Real(_)

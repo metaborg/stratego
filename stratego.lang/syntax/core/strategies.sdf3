@@ -138,7 +138,7 @@ context-free syntax
   PatV.Str = String
   PatV.Int = Int
   PatV.Real = Real
-  PatV.Anno = <anno>
+  PatV.Anno = <Anno>
   PatV.Tuple = <Tuple(<Int>)>
 
 sorts PatT

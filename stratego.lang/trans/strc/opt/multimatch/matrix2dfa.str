@@ -56,41 +56,33 @@ strategies
   ; if <gti> (i, 1)
     /*
      * If i > 1 then swap columns 1 and i in both o and P,
-     * as above, yielding decision tree A , and define:
+     * as above, yielding decision tree A', and define:
      */
     then // i > 1
          <debug(!"swap indices ")> (1, i)
        ; m' := <swap-cols(|1, i)> m 
        ; o' := <swap(|1, i)> o*
        ; A' := <CC(|o')> m'
-//       ; !Swap(<int-to-string> i, A') // Swap nodes can just be skipped
-       ; !A'
-    else // i == 1 
-         /* Perform a bunch of recursive calls on possible head
-            constructors and include them in a big Switch */
-         hc* := <col(|i); head-constructors; make-set; debug(!"hcs ")> m
+       ; !A' // No need to explicitly include swap nodes.
+    else // i == 1
+         hc* := <col(|i); head-constructors; make-set> m
        ; if !hc* => [(Anno(), _)]
-         then <debug> "unpacking annos..."
-            ; <specialize-occs(|Anno())> o* => o'
+         then <specialize-occs(|Anno())> o* => o'
             ; <specialize(|m); CC(|o')> Anno()
-         else restore(filter(?(Anno(), _)); ?[], debug(!"contains annos: "))
+         else where(filter(?(Anno(), _)); ?[] <+ !["contains annos: ", <id>]; error)
             ; hts := <map(Snd); make-set> hc*
             ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c, <specialize-occs(|c)> o*) \)> hc*
             ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
-            ; <debug(!"valt* ")> valt*
-            ; <debug(!"tbranch* ")> tbranch*
             ; default   := <default; CC(|os)> m
-            ; talt*     := <map(talt(|o*, default)); debug(!"talts ")> tbranch*
+            ; talt*     := <map(talt(|o*, default))> tbranch*
             ; !SwitchT(<append-occ> (o1, Typ()), talt*, default)
-//            ; !SwitchV(<append-occ> (o1, Con()), <map(\ (c, a, m, o'*) -> AltV(c, <CC(|o'*, <inc> l)> m) \)> t4*, default)
          end
     end => T
 
-  talt(|o*, d): (t, valt*) -> AltT(t, <debug(!"[i] vswitch "); vswitch(|t, o*, d); debug(!"[o] vswitch ")> valt*)
+  talt(|o*, d): (t, valt*) -> AltT(t, <vswitch(|t, o*, d)> valt*)
 
   vswitch(|ApplT(), [o1 | _], d) =
-    where(o1' := <append-occ> (o1, Con()))
-  ; !SwitchV(o1', <map(debug(!"[i] valt "); valt; debug(!"[o] valt "))>, d)
+    !SwitchV(<append-occ> (o1, Con()), <map(valt)>, d)
 
   vswitch(|ListT(), [o1 | _], d) =
     !SwitchV(o1, <map(valt)>, d)
