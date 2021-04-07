@@ -1497,6 +1497,12 @@ strategies
   java-mk-int-const =
     !Lit(Deci(<try(int-to-string)>))
 
+  java-mk-string-const =
+    !Lit(String([Chars(<escape>)]))
+
+  java-mk-float-const =
+    !Lit(Float(<try(real-to-string)>))
+
 rules
 
   java-ConstructTerm :
@@ -2004,6 +2010,21 @@ strategies
     else
       !(e |[ e_occ.equals(e_cons) ]|)
     end => e_cond
+
+  java-Pat-to-Condition: (Str(s), e_occ) ->
+    e |[ e_occ.equals(~<java-mk-string-const> s) ]|
+
+  java-Pat-to-Condition: (Int(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-int-const> x ]|
+
+  java-Pat-to-Condition: (Real(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-float-const> x ]|
+
+  java-Pat-to-Condition: (Anno(), e_occ) ->
+    e |[ true ]|
+
+  java-Pat-to-Condition: (Tuple(x), e_occ) ->
+    e |[ ((IStrategoTuple) e_occ).size() == ~<java-mk-int-const> x ]|
 
   translate-Path = id
   ; ?Path([p | ps])
