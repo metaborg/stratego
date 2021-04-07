@@ -1953,6 +1953,7 @@ strategies
       ~switch-group*:cases
       default: {
         ~<translate-DFA> default
+        break;
       }
     }
   ]|
@@ -1963,6 +1964,7 @@ strategies
   translate-AltT: AltT(t, switchv) -> switch-group |[
     case e: {
       ~stm:<translate-SwitchV> switchv
+      break;
     }
   ]|
   with <pat-type-to-enum> t => e
