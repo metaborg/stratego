@@ -60,7 +60,7 @@ rules // Debugging
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend
-    ; pp-debug
+    ; pp-stratego-core
     ; ?result
 
   debug-show-core-optimized:
@@ -74,7 +74,7 @@ rules // Debugging
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend
     ; strc-optimize
-    ; pp-debug
+    ; pp-stratego-core
     ; ?result
 
   debug-show-java:
@@ -139,5 +139,5 @@ rules // Debugging
       ; rules(OutputDirName := <id>)
       )
     ; alltd(multimatch2dfa)
-    ; pp-debug
+    ; pp-stratego-core
     ; ?result

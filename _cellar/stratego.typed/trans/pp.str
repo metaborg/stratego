@@ -44,6 +44,8 @@ rules
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-StrategoTyped-string); debug(!"cannot pp ")))> ast
     ;  result := ""
 
+  pp-stratego-core = alltd(\Str(s) -> Str($["[s]"])\); pp-stratego-string
+
 rules
   
   construct-textual-change = construct-textual-change(pp-partial-StrategoTyped-string, parenthesize, override-reconstruction, resugar)
