@@ -2026,10 +2026,11 @@ strategies
 
   translate-Path = id
   ; ?Path([p | ps])
-  ; !(ps, <translate-PathEl> (p, ()))
+  ; where(<not(?Cur())> p; <error> ["Path invalid: does not start with current term."])
+  ; !(ps, <translate-PathEl> (p, Empty()))
   ; foldl(translate-PathEl)
 
-  translate-PathEl: (Cur(), _)  -> e |[ term ]|
+  translate-PathEl: (Cur(), Empty())  -> e |[ term ]|
   translate-PathEl: (Sub(x), e) -> e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
   translate-PathEl: (Ann(), e)  -> e |[ e.getAnnotations() ]|
   translate-PathEl: (Con(), e)  -> e |[ ((IStrategoAppl) e).getConstructor() ]|
