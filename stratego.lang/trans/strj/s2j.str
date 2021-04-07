@@ -1974,11 +1974,11 @@ strategies
   pat-type-to-enum: IntT()    -> e |[ INT ]|
   pat-type-to-enum: RealT()   -> e |[ REAL ]|
   pat-type-to-enum: StringT() -> e |[ STRING ]|
-  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
+//  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
   pat-type-to-enum: TupleT()  -> e |[ TUPLE ]|
-  pat-type-to-enum: RefT()    -> e |[ REF ]|
-  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
-  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
+//  pat-type-to-enum: RefT()    -> e |[ REF ]|
+//  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
+//  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
 
   translate-SwitchV: SwitchV(o, alt*, default) -> stm_alt
   with

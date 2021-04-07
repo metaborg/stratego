@@ -148,11 +148,11 @@ context-free syntax
   PatT.IntT = <INT>
   PatT.RealT = <REAL>
   PatT.StringT = <STRING>
-  PatT.CtorT = <CTOR>
+//  PatT.CtorT = <CTOR>
   PatT.TupleT = <TUPLE>
-  PatT.RefT = <REF>
-  PatT.BlobT = <BLOB>
-  PatT.PlaceT = <PLACEHOLDER>
+//  PatT.RefT = <REF>
+//  PatT.BlobT = <BLOB>
+//  PatT.PlaceT = <PLACEHOLDER>
 
 context-free priorities
   { Strategy.Build
