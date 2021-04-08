@@ -87,8 +87,7 @@ end>
 
   MatchOrder.Linear = <linear>
 
-  MatchCase.MatchCase = <case <Term>: <Strategy>>
-  MatchCase.ScopedMatchCase = <case <Var*>|<Term>: <Strategy>>
+  MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
 
 sorts DTree
 context-free syntax

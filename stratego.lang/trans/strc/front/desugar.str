@@ -471,6 +471,11 @@ rules
     Seq(Build(t), MultiMatch(order, cases))
 
   Desugar :
+   MatchCase(t, s) -> ScopedMatchCase(x*, t, s)
+   where
+    <tvars> s => x*
+
+  Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
     where <not(Id)> s
     with x := <tnewvar> "where"
