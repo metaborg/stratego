@@ -1,0 +1,54 @@
+module match-choices-to-multimatches
+
+imports
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+  strc/stratego/strc/lib/stratlib
+  strc/stratego/strc/opt/stratego-laws
+
+overlays
+  MultiMatch(cases) = MultiMatch(Linear(), cases)
+
+  MatchBuildPattern(p, s) = Seq(Match(p), s)
+  MatchBuildPattern(vars, p, s) = Scope(vars, Seq(Match(p), s))
+
+  ChoicePattern(s1, s2) = GuardedLChoice(s1, Id(), s2)
+
+strategies
+  sdeft-match-choices-to-multimatches =
+    SDefT(id, id, id, match-choices-to-multimatches)
+
+  match-choices-to-multimatches =
+    simplify; topdown(try(translate-match-choices))
+
+  translate-match-choices =
+    !MultiMatch(<MatchCasesChoice>)
+
+  MatchCases =
+    MatchCasesChoice
+ <+ MatchCasesMulti // Merge MultiMatch cases
+ <+ MatchCasesDefault
+
+  MatchCasesChoice:
+    ChoicePattern(s1, s2) -> [<MatchCase> s1 | <MatchCases> s2]
+
+  MatchCasesMulti =
+    ?MultiMatch(<id>)
+
+  // No fail needed in the last case; is implicit in MultiMatch.
+  MatchCasesDefault: Fail() -> []
+  MatchCasesDefault = ![<MatchCase>]
+  MatchCasesDefault =
+    ![ScopedMatchCase(<tvars>, Anno(Wld(), Wld()), <id>)]
+
+  MatchCase:
+    MatchBuildPattern(p, s) -> ScopedMatchCase(x*, p, s)
+  where
+    <tvars> p => x*
+
+  MatchCase:
+    MatchBuildPattern(x1*, p, s) -> ScopedMatchCase(x*, p, s)
+  where
+    <tvars> p => x2*
+  ; <union> (x1*, x2*) => x*

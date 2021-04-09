@@ -98,6 +98,7 @@ strategies
 
       ; m-transform-local-defs(id
           ; ![<joindefs>] 
+          ; [sdeft-match-choices-to-multimatches]
           ; [RenameSDef]
         )
 
