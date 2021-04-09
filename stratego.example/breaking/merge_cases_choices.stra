@@ -1,0 +1,14 @@
+module merge_cases_choices
+
+
+signature
+  constructors
+    Nil : List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  uncar_0_0( | ) =
+    ?Nil( ){^_}; !0{^Nil( )} < id + match linear
+                                      case a38 | Cons(a38, Nil( ){^_}){^_}: !a38
+                                      case | _{^_}: ?Cons(_, Cons(_, Nil( ){^_}){^_}){^_}; !2{^Nil( )} < id + ?Cons(_, Cons(_, Cons(_, Nil( ){^_}){^_}){^_}){^_}; !3{^Nil( )}
+                                    end

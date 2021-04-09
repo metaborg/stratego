@@ -1,0 +1,13 @@
+module lists
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+strategies
+  comp = match linear
+           case x@Nil(): !x
+           case y@Cons(z, zz@Nil()): !z
+         end
