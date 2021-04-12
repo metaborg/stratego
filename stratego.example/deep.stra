@@ -7,7 +7,7 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  length = match linear
+  length = match sequential
              case Nil(): !0
              case Cons(_, Nil()): !1
              case Cons(_, Cons(_, Nil())): !2

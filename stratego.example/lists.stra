@@ -7,7 +7,7 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  comp = match linear
+  comp = match sequential
            case [1 | _]: !1
            case [_ | [2, 3]]: !2
            case [_, 1 | _]: !3

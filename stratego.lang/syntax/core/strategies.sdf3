@@ -85,7 +85,7 @@ context-free syntax
   <{MatchCase "\n"}+>
 end>
 
-  MatchOrder.Linear = <linear>
+  MatchOrder.Sequential = <sequential>
 
   MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
 

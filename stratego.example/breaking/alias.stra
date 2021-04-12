@@ -7,7 +7,7 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  comp = match linear
+  comp = match sequential
            case x@Nil(): !x
            case y@Cons(z, zz@Nil()): !z
          end

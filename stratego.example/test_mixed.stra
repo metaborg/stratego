@@ -9,7 +9,7 @@ signature
     Car2  : a             -> List(a)
 
 strategies
-  uncar2 = match linear
+  uncar2 = match sequential
             case Car1(a): Cons(!1, Nil())
             case Car2(b): Cons(!2, Nil())
             case "abc": !"cba"

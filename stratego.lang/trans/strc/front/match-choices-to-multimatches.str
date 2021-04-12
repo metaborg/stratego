@@ -8,7 +8,7 @@ imports
   strc/stratego/strc/opt/stratego-laws
 
 overlays
-  MultiMatch(cases) = MultiMatch(Linear(), cases)
+  MultiMatch(cases) = MultiMatch(Sequential(), cases)
 
   MatchBuildPattern(p, s) = Seq(Match(p), s)
   MatchBuildPattern(vars, p, s) = Scope(vars, Seq(Match(p), s))

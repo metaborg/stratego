@@ -13,7 +13,7 @@ signature
     Green : Color
 
 strategies
-  color = match linear
+  color = match sequential
             case Red():   !"red"
             case Blue():  !"blue"
             case Green(): !"green"
