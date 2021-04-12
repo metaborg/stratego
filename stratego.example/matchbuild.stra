@@ -1,0 +1,25 @@
+module matchbuild
+
+signature
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+mb = ?Cons(_, Nil()); <conc> ([])
+  <+ ?Cons(_, Cons(_, Cons(_, Nil()))); !3
+  <+ ?_; map(id)
+
+map(s) = 
+  rec x([] + [s | x]) 
+
+conc =
+  \ (l1, l2) -> <at-end(!l2)> l1 \
+  <+ \ "" # (xs) -> <concat> xs \
+
+concat =
+  rec x([] + \ [l | ls] -> <at-end(<x> ls)> l\ )
+
+at-end(s) = 
+  rec x([id | x] + []; s)

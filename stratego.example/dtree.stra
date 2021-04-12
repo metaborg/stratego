@@ -1,7 +1,0 @@
-module dtree
-
-strategies
-  tree = switch
-           alt Fun(Cons, 8): fail
-           default: fail
-         end
