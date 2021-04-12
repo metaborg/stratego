@@ -38,6 +38,7 @@ strategies
       + CallDynamic(bld,map(raise),map(bld))
 
       + MatchCase(mch, raise)
+      + ScopedMatchCase(id, mch, raise)
     )
   )
 
