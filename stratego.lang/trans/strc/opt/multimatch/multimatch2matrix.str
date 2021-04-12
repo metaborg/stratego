@@ -17,8 +17,8 @@ strategies
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
   ; fail
 
-  MatchCase2Row: ScopedMatchCase([], p, a) -> Row([p], a)
-  MatchCase2Row: ScopedMatchCase(x*, p, a) -> Row([p], a)
-  with
-    <error> ["Cannot translate ScopedMatchCase with vars."]
-  ; fail
+  MatchCase2Row: ScopedMatchCase(_, p, a) -> Row([p], a) // just ignore scope?
+//  MatchCase2Row: ScopedMatchCase(x*, p, a) -> Row([p], a)
+//  with
+//    <error> ["Cannot translate ScopedMatchCase with vars."]
+//  ; fail
