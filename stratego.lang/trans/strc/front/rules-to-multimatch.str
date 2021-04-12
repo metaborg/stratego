@@ -37,7 +37,7 @@ rules
   r2mm: rs@[_] -> rs
 
   // One or more RDefT can be grouped into a MultiMatch
-  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Linear(), cases))]
+  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Sequential(), cases))]
   where
     <map(rule-to-case)> rdefs => cases
 
