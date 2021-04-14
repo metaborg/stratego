@@ -52,7 +52,7 @@ strategies
 last-seq(s) = otf(Seq(id, last-seq(s))) <+ s
 
 prepare-strategy-def(|st1):
-  t1@FunTType(_, _, _) -> (t2, st2) 
+  t1@FunTType(_, _, _) -> (t2, st2)
   where
     t2 := <alltd(\SortVar(x) -> Sort(x, [])\)> t1
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
@@ -73,7 +73,7 @@ insertCasts-StrategyDef(|e1, st1) = otf12(insertCasts-StrategyDef-(|e1, st1))
 
 // insertCasts-StrategyDef(|Environment, Store) :: Decl -> (Decl, Store)
 insertCasts-StrategyDef-(|e1, st1):
-  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s2), st4) 
+  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s2), st4)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -94,7 +94,7 @@ insertCasts-StrategyDef-(|e1, st1):
     end
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5) 
+  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -106,7 +106,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st4) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st4)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -127,7 +127,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <StrategyDef-after-match> (s*, s2)
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st5) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st5)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
