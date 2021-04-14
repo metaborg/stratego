@@ -1,0 +1,143 @@
+module stratego/sugar/dynamic-rules
+
+imports
+  stratego/core/identifiers
+  stratego/core/terms
+  stratego/core/signatures
+  stratego/core/strategies
+  stratego/sugar/strategies
+  stratego/sugar/rules
+ 
+  sorts ScopeLabels
+  context-free syntax
+    Strategy.DynRuleScope = 
+      <{| <ScopeLabels> 
+        : <Strategy>  
+        |}>
+    
+    ScopeLabels = <<{DynRuleScopeId ", "}*>>
+      
+    ScopeLabels.ScopeLabels = <~ <Term>>
+  
+//  context-free syntax
+//
+//    Strategy.DynRuleScope = "{|" ScopeLabels ":" Strategy "|}" 
+//
+//    ScopeLabels = {DynRuleScopeId ","}*
+//    ScopeLabels.ScopeLabels = "~" Term		    
+
+  sorts DynRuleDef DynRuleId DynRuleScopeId RuleDec
+  
+  context-free syntax
+  
+    Strategy.GenDynRules = 
+      <rules ( <DynRuleDef*> )>
+    DynRuleDef.AddScopeLabel = 
+      <<Id> + <Term>>
+    DynRuleDef.UndefineDynRule = 
+      <<DynRuleId> :- <Term>>
+    DynRuleDef.SetDynRule = 
+      <<DynRuleId> : <Rule>>
+    DynRuleDef.AddDynRule = 
+      <<DynRuleId> :+ <Rule>>
+    DynRuleDef.SetDynRuleMatch = 
+      <<DynRuleId> : <Term>>
+    DynRuleDef.DynRuleAssign = 
+      <<DynRuleId> := <Term>>
+    DynRuleDef.DynRuleAssignAdd = 
+      <<DynRuleId> :+= <Term>>
+    DynRuleDef.SetDynRuleDepends =  
+      <<DynRuleId> : <Rule> depends on <Term>>
+    DynRuleId.LabeledDynRuleId = 
+      <<RuleDec> . <Term>>
+    DynRuleId.AddLabelDynRuleId = 
+      <<RuleDec> + <Term>>
+    DynRuleId.DynRuleId = 
+      <<RuleDec>>
+    DynRuleScopeId.LabeledDynRuleScopeId = 
+      <<Id> . <Term>>
+    DynRuleScopeId.DynRuleScopeId = 
+      <<Id>>
+ 
+  context-free syntax
+  
+    RuleDec.RDecNoArgs = <<Id>>
+    RuleDec.RDec = <<Id>(<{Typedid ", "}*> )>
+    RuleDec.RDecT = <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+
+  sorts RuleNames
+  
+  context-free syntax
+  
+    RuleNames = <<{Id ", "}*>>
+    RuleNames.RuleNames = <~ <Term>>
+    Strategy.DynRuleIntersectFix = </ <RuleNames> \\* <Strategy>>  
+  
+//  context-free syntax
+//    RuleNames = {Id ","}*	
+//    RuleNames.RuleNames = "~" Term
+//    Strategy.DynRuleIntersectFix = "/" RuleNames "\\*" Strategy
+
+  syntax
+    // no space after RuleNames
+    Strategy-CF.DynRuleUnionFix =
+    "\\" LAYOUT?-CF RuleNames-CF "/*" LAYOUT?-CF Strategy-CF
+
+
+    // 1 space after RuleNames    
+    Strategy-CF.DynRuleUnionFix =
+    "\\" LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
+
+    // no space after RuleNames
+    Strategy-CF.DynRuleIntersectUnionFix =
+    "/"  LAYOUT?-CF RuleNames-CF LAYOUT?-CF "\\"
+        LAYOUT?-CF RuleNames-CF "/*" LAYOUT?-CF Strategy-CF
+
+    // 1 space after RuleNames
+    Strategy-CF.DynRuleIntersectUnionFix =
+    "/" LAYOUT?-CF RuleNames-CF LAYOUT?-CF "\\"
+        LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
+
+  context-free syntax 
+  
+    Strategy.DynRuleIntersect = 
+      <<Strategy> / <RuleNames> \\ <Strategy>> {right}
+    Strategy.DynRuleUnion = 
+      <<Strategy> \\ <RuleNames> / <Strategy>> {right}
+    Strategy.DynRuleIntersectUnion = 
+      <<Strategy> / <RuleNames> \\ <RuleNames> / <Strategy>> {right}
+
+//  priorities
+//    <StrategyAngle-CF> <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("BA")}
+//  > {
+//
+//    // no space after RuleNames
+//    "\\" <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+//      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+//
+//    // 1 space after RuleNames
+//    "\\" <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+//      -> <Strategy-CF> {cons("DynRuleUnionFix")}
+//
+//    // no space after RuleNames
+//    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+//        <LAYOUT?-CF> <RuleNames-CF> "/*" <LAYOUT?-CF> <Strategy-CF>
+//      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+//
+//    // 1 space after RuleNames
+//    "/"  <LAYOUT?-CF> <RuleNames-CF> <LAYOUT?-CF> "\\"
+//        <LAYOUT?-CF> <RuleNames-CF> " /*" <LAYOUT?-CF> <Strategy-CF>
+//      -> <Strategy-CF> {cons("DynRuleIntersectUnionFix")}
+//
+//    }
+//  > <Strategy-CF> <LAYOUT?-CF> "=>" <LAYOUT?-CF> <Term-CF> -> <Strategy-CF> {cons("AM")}
+
+   context-free priorities
+     Strategy.BA
+   > Strategy.DynRuleIntersectFix
+   > Strategy.AM
+   > Strategy.DynRuleIntersect
+   > Strategy.DynRuleUnion
+   > Strategy.DynRuleIntersectUnion
+   > Strategy.Seq
+  

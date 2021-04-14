@@ -1,0 +1,34 @@
+module stratego/core/terms
+
+imports
+  external
+    signatures/stratego/core/-
+
+control-flow rules
+
+  Cons(h, t) = entry -> h -> t -> exit
+  Nil() = entry -> exit
+
+control-flow rules
+
+  node Var(_)
+  node Wld()
+  Anno(t, a) = entry -> t -> a -> this -> exit
+  As(v, t) = entry -> v -> t -> this -> exit
+  node Int(_)
+  node Real(_)
+  node Str(_)
+  Op(_, ts) = entry -> ts -> this -> exit
+  OpQ(_, ts) = entry -> ts -> this -> exit
+  Explode(c, t) = entry -> c -> t -> this -> exit
+
+functions
+  patternVars(pattern: Term) = match pattern with
+    | Var(n0) => { n0 }
+    | Anno(t1, a0) => patternVars(t1) \/ patternVars(a0)
+    | As(v0, t2) => patternVars(v0) \/ patternVars(t2)
+    | Op(_, ts1) => patternVars(ts1)
+    | OpQ(_, ts2) => patternVars(ts2)
+    | Explode(c0, t3) => patternVars(c0) \/ patternVars(t3)
+    | Cons(h0, t4) => patternVars(h0) \/ patternVars(t4)
+    | _ => {}

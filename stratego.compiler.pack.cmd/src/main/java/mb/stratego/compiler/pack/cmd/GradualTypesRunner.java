@@ -27,8 +27,8 @@ public class GradualTypesRunner {
 
     public IStrategoTerm exec(Logger logger, IStrategoTerm tuple) throws Exception {
         Main.init(strContext);
-        final StrategoExecutor.ExecutionResult result = StrategoExecutor.runLocallyUniqueStringStrategy(logger, true,
-            newResourceTracker(new File(System.getProperty("user.dir")), false), insert_casts_top_level_0_0.instance, tuple,
+        final StrategoExecutor.ExecutionResult result = StrategoExecutor.runLocallyUniqueStringStrategy(
+            newResourceTracker(new File(System.getProperty("user.dir"))), insert_casts_top_level_0_0.instance, tuple,
             strContext);
 
         if(!result.success) {
@@ -38,7 +38,7 @@ public class GradualTypesRunner {
         return result.result;
     }
 
-    private ResourceAgentTracker newResourceTracker(File baseFile, boolean silent, String... excludePatterns) {
+    private ResourceAgentTracker newResourceTracker(File baseFile, String... excludePatterns) {
         final FileObject base = resourceService.resolve(baseFile);
         final ResourceAgentTracker tracker;
         if(silent) {

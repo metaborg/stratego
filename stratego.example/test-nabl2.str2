@@ -1,0 +1,2595 @@
+module flowspec/static-semantics/expr
+
+imports
+  signatures/nabl2/shared/-
+  signatures/nabl2/shared/common/-
+  signatures/nabl2/shared/constraints/-
+  nabl2/shared/-
+  signatures/nabl2/runtime/-
+  signatures/nabl2/runtime/analysis/-
+  signatures/nabl2/runtime/common/-
+  nabl2/runtime/-
+  nabl2/runtime/analysis/-
+  nabl2/runtime/prelude/-
+  nabl2/runtime/stdlib/-
+
+
+rules
+
+
+rules
+
+
+rules
+
+
+imports
+  signatures/flowspec/-
+  flowspec/static-semantics/signatures
+
+
+rules
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term111@Term(cons, exprs), args39) -> constraint34
+    with(id)
+    with(Params(params46@(ruleScope)) := args39
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args39
+                               , " when matching "
+                               , "Term(cons, exprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term111
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term111
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params46
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint34 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term111
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-Expr-rule)|"Map1")> (nabl2_source, exprs, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term112@PropOrAppl(name, x), args40) -> constraint35
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params47@(ruleScope)) := args40
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args40
+                               , " when matching "
+                               , "PropOrAppl(name, x)"
+                               , " with "
+                               , <pp-NaBL2-Term> term112
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term112
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params47
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint35 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term112
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , x
+                               , <nabl2--occurrence-index-of> x
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term112
+                             )
+                           , CConj(
+                               CResolve(
+                                 Occurrence(
+                                   Namespace("Variable")
+                                 , x
+                                 , <nabl2--occurrence-index-of> x
+                                 )
+                               , wld1
+                               , Message(Error(), Default(), <nabl2--get-ast-index> term112)
+                               )
+                             , CConj(
+                                 CGRef(
+                                   Occurrence(
+                                     Namespace("Property")
+                                   , name
+                                   , <nabl2--occurrence-index-of> name
+                                   )
+                                 , ruleScope
+                                 , <nabl2--get-ast-index> term112
+                                 )
+                               , CGRef(
+                                   Occurrence(
+                                     Namespace("Variable")
+                                   , name
+                                   , <nabl2--occurrence-index-of> name
+                                   )
+                                 , ruleScope
+                                 , <nabl2--get-ast-index> term112
+                                 )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term113@Prop(prop, var), args41) -> constraint36
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1"
+         ; wld2 := <nabl2--fresh-var(|nabl2_source)> "wld2"
+         ; id)
+    with(Params(params48@(ruleScope)) := args41
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args41
+                               , " when matching "
+                               , "Prop(prop, var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term113
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term113
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params48
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint36 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term113
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Property")
+                               , prop
+                               , <nabl2--occurrence-index-of> prop
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term113
+                             )
+                           , CConj(
+                               CResolve(
+                                 Occurrence(
+                                   Namespace("Property")
+                                 , prop
+                                 , <nabl2--occurrence-index-of> prop
+                                 )
+                               , wld1
+                               , Message(Error(), Default(), <nabl2--get-ast-index> term113)
+                               )
+                             , CConj(
+                                 CGRef(
+                                   Occurrence(
+                                     Namespace("Variable")
+                                   , var
+                                   , <nabl2--occurrence-index-of> var
+                                   )
+                                 , ruleScope
+                                 , <nabl2--get-ast-index> term113
+                                 )
+                               , CResolve(
+                                   Occurrence(
+                                     Namespace("Variable")
+                                   , var
+                                   , <nabl2--occurrence-index-of> var
+                                   )
+                                 , wld2
+                                 , Message(Error(), Default(), <nabl2--get-ast-index> term113)
+                                 )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term114@Tuple(expr, exprs), args42) -> constraint37
+    with(id)
+    with(Params(params49@(ruleScope)) := args42
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args42
+                               , " when matching "
+                               , "Tuple(expr, exprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term114
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term114
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params49
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint37 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term114
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-Expr-rule)|"Map1")> (nabl2_source, exprs, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term115@Start(), args43) -> constraint38
+    with(id)
+    with(Params(params50@(ruleScope)) := args43
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args43
+                               , " when matching "
+                               , "Start()"
+                               , " with "
+                               , <pp-NaBL2-Term> term115
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term115
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params50
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint38 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term115
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term115)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term116@End(), args44) -> constraint39
+    with(id)
+    with(Params(params51@(ruleScope)) := args44
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args44
+                               , " when matching "
+                               , "End()"
+                               , " with "
+                               , <pp-NaBL2-Term> term116
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term116
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params51
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint39 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term116
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term116)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term117@Type(var), args45) -> constraint40
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params52@(ruleScope)) := args45
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args45
+                               , " when matching "
+                               , "Type(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term117
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term117
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params52
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint40 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term117
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term117
+                             )
+                           , CResolve(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , wld1
+                             , Message(Error(), Default(), <nabl2--get-ast-index> term117)
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term118@Appl(ref, exprs), args46) -> constraint41
+    with(id)
+    with(Params(params53@(ruleScope)) := args46
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args46
+                               , " when matching "
+                               , "Appl(ref, exprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term118
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term118
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params53
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint41 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term118
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-FunRef-rule|"FunRef")> (nabl2_source, ref, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-Expr-rule)|"Map1")> (nabl2_source, exprs, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    ( nabl2_source
+    , term144@If(c, t, e)
+    , args47
+    ) -> constraint42
+    with(id)
+    with(Params(params54@(ruleScope)) := args47
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args47
+                               , " when matching "
+                               , "If(c, t, e)"
+                               , " with "
+                               , <pp-NaBL2-Term> term144
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term144
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params54
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint42 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term144
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, c, Params((ruleScope)))
+                           , CConj(
+                               <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, t, Params((ruleScope)))
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, e, Params((ruleScope)))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term145@Eq(l, r), args48) -> constraint43
+    with(id)
+    with(Params(params55@(ruleScope)) := args48
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args48
+                               , " when matching "
+                               , "Eq(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term145
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term145
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params55
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint43 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term145
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term146@NEq(l, r), args49) -> constraint44
+    with(id)
+    with(Params(params56@(ruleScope)) := args49
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args49
+                               , " when matching "
+                               , "NEq(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term146
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term146
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params56
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint44 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term146
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term147@And(l, r), args50) -> constraint45
+    with(id)
+    with(Params(params57@(ruleScope)) := args50
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args50
+                               , " when matching "
+                               , "And(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term147
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term147
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params57
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint45 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term147
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term148@Or(l, r), args51) -> constraint46
+    with(id)
+    with(Params(params58@(ruleScope)) := args51
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args51
+                               , " when matching "
+                               , "Or(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term148
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term148
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params58
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint46 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term148
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term149@Not(e), args52) -> constraint47
+    with(id)
+    with(Params(params59@(ruleScope)) := args52
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args52
+                               , " when matching "
+                               , "Not(e)"
+                               , " with "
+                               , <pp-NaBL2-Term> term149
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term149
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params59
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint47 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term149
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, e, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term150@Lt(l, r), args53) -> constraint48
+    with(id)
+    with(Params(params60@(ruleScope)) := args53
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args53
+                               , " when matching "
+                               , "Lt(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term150
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term150
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params60
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint48 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term150
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term151@Lte(l, r), args54) -> constraint49
+    with(id)
+    with(Params(params61@(ruleScope)) := args54
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args54
+                               , " when matching "
+                               , "Lte(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term151
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term151
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params61
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint49 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term151
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term152@Gt(l, r), args55) -> constraint50
+    with(id)
+    with(Params(params62@(ruleScope)) := args55
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args55
+                               , " when matching "
+                               , "Gt(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term152
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term152
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params62
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint50 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term152
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term153@Gte(l, r), args56) -> constraint51
+    with(id)
+    with(Params(params63@(ruleScope)) := args56
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args56
+                               , " when matching "
+                               , "Gte(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term153
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term153
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params63
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint51 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term153
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term154@Add(l, r), args57) -> constraint52
+    with(id)
+    with(Params(params64@(ruleScope)) := args57
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args57
+                               , " when matching "
+                               , "Add(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term154
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term154
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params64
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint52 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term154
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term155@Sub(l, r), args58) -> constraint53
+    with(id)
+    with(Params(params65@(ruleScope)) := args58
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args58
+                               , " when matching "
+                               , "Sub(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term155
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term155
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params65
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint53 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term155
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term156@Mul(l, r), args59) -> constraint54
+    with(id)
+    with(Params(params66@(ruleScope)) := args59
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args59
+                               , " when matching "
+                               , "Mul(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term156
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term156
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params66
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint54 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term156
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term157@Div(l, r), args60) -> constraint55
+    with(id)
+    with(Params(params67@(ruleScope)) := args60
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args60
+                               , " when matching "
+                               , "Div(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term157
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term157
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params67
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint55 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term157
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term158@Mod(l, r), args61) -> constraint56
+    with(id)
+    with(Params(params68@(ruleScope)) := args61
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args61
+                               , " when matching "
+                               , "Mod(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term158
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term158
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params68
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint56 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term158
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term159@Neg(e), args62) -> constraint57
+    with(id)
+    with(Params(params69@(ruleScope)) := args62
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args62
+                               , " when matching "
+                               , "Neg(e)"
+                               , " with "
+                               , <pp-NaBL2-Term> term159
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term159
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params69
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint57 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term159
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, e, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term160@Match(e, arms), args63) -> constraint58
+    with(id)
+    with(Params(params70@(ruleScope)) := args63
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args63
+                               , " when matching "
+                               , "Match(e, arms)"
+                               , " with "
+                               , <pp-NaBL2-Term> term160
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term160
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params70
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint58 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term160
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, e, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule|"Map1")> (nabl2_source, arms, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term161@SetLiteral(exprs), args64) -> constraint59
+    with(id)
+    with(Params(params71@(ruleScope)) := args64
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args64
+                               , " when matching "
+                               , "SetLiteral(exprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term161
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term161
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params71
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint59 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term161
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule(nabl2--generate-constraint-Expr-rule)|"Map1")> (nabl2_source, exprs, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term162@SetComp(expr, setcompexprs), args65) -> constraint60
+    with(setCompScope := <nabl2--fresh-var(|nabl2_source)> "setCompScope" ; id)
+    with(Params(params72@(ruleScope)) := args65
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args65
+                               , " when matching "
+                               , "SetComp(expr, setcompexprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term162
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term162
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params72
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint60 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term162
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CNew([setCompScope], <nabl2--get-ast-index> term162)
+                           , CConj(
+                               CGDirectEdge(
+                                 setCompScope
+                               , <nabl2--default-e-label>
+                               , ruleScope
+                               , <nabl2--get-ast-index> term162
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((setCompScope)))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule|"Map1")> (nabl2_source, setcompexprs, Params((setCompScope)))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term163@MapLiteral(bindings), args66) -> constraint61
+    with(id)
+    with(Params(params73@(ruleScope)) := args66
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args66
+                               , " when matching "
+                               , "MapLiteral(bindings)"
+                               , " with "
+                               , <pp-NaBL2-Term> term163
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term163
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params73
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint61 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term163
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule|"Map1")> (nabl2_source, bindings, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term164@MapComp(binding, mapcompexprs), args67) -> constraint62
+    with(mapCompScope := <nabl2--fresh-var(|nabl2_source)> "mapCompScope" ; id)
+    with(Params(params74@(ruleScope)) := args67
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args67
+                               , " when matching "
+                               , "MapComp(binding, mapcompexprs)"
+                               , " with "
+                               , <pp-NaBL2-Term> term164
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term164
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params74
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint62 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term164
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CNew([mapCompScope], <nabl2--get-ast-index> term164)
+                           , CConj(
+                               CGDirectEdge(
+                                 mapCompScope
+                               , <nabl2--default-e-label>
+                               , ruleScope
+                               , <nabl2--get-ast-index> term164
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-default-rule|"default")> (nabl2_source, binding, Params((mapCompScope)))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule|"Map1")> (nabl2_source, mapcompexprs, Params((mapCompScope)))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term165@MapLookup(expr1, expr2), args68) -> constraint63
+    with(id)
+    with(Params(params75@(ruleScope)) := args68
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args68
+                               , " when matching "
+                               , "MapLookup(expr1, expr2)"
+                               , " with "
+                               , <pp-NaBL2-Term> term165
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term165
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params75
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint63 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term165
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr1, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr2, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term166@EmptySetOrMapLiteral(), args69) -> constraint64
+    with(id)
+    with(Params(params76@(ruleScope)) := args69
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args69
+                               , " when matching "
+                               , "EmptySetOrMapLiteral()"
+                               , " with "
+                               , <pp-NaBL2-Term> term166
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term166
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params76
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint64 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term166
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term166)
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term167@Predicate(expr), args70) -> constraint65
+    with(id)
+    with(Params(params77@(setCompScope)) := args70
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (setCompScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args70
+                               , " when matching "
+                               , "Predicate(expr)"
+                               , " with "
+                               , <pp-NaBL2-Term> term167
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term167
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params77
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint65 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term167
+                           , Params()
+                           , (setCompScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((setCompScope)))
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term168@MatchPredicate(e, arms), args71) -> constraint66
+    with(ruleScope := <nabl2--fresh-var(|nabl2_source)> "ruleScope" ; id)
+    with(Params(params78@(setCompScope)) := args71
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (setCompScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args71
+                               , " when matching "
+                               , "MatchPredicate(e, arms)"
+                               , " with "
+                               , <pp-NaBL2-Term> term168
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term168
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params78
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint66 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term168
+                           , Params()
+                           , (setCompScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, e, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Map1-rule|"Map1")> (nabl2_source, arms, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term169@SetSource(pattern, expr), args72) -> constraint67
+    with(id)
+    with(Params(params79@(setCompScope)) := args72
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (setCompScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args72
+                               , " when matching "
+                               , "SetSource(pattern, expr)"
+                               , " with "
+                               , <pp-NaBL2-Term> term169
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term169
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params79
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint67 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term169
+                           , Params()
+                           , (setCompScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Pattern-rule|"Pattern")> (nabl2_source, pattern, Params((setCompScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((setCompScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    ( nabl2_source
+    , term170@MapSource(pattern1, pattern2, expr)
+    , args73
+    ) -> constraint68
+    with(id)
+    with(Params(params80@(setCompScope)) := args73
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (setCompScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args73
+                               , " when matching "
+                               , "MapSource(pattern1, pattern2, expr)"
+                               , " with "
+                               , <pp-NaBL2-Term> term170
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term170
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params80
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint68 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term170
+                           , Params()
+                           , (setCompScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Pattern-rule|"Pattern")> (nabl2_source, pattern1, Params((setCompScope)))
+                           , CConj(
+                               <nabl2--generate-constraint(nabl2--generate-constraint-Pattern-rule|"Pattern")> (nabl2_source, pattern2, Params((setCompScope)))
+                             , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((setCompScope)))
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term171@MapBinding(expr1, expr2), args74) -> constraint69
+    with(id)
+    with(Params(params81@(setCompScope)) := args74
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (setCompScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args74
+                               , " when matching "
+                               , "MapBinding(expr1, expr2)"
+                               , " with "
+                               , <pp-NaBL2-Term> term171
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term171
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params81
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint69 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term171
+                           , Params()
+                           , (setCompScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr1, Params((setCompScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr2, Params((setCompScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term172@TermIndex(var), args75) -> constraint70
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params82@(ruleScope)) := args75
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args75
+                               , " when matching "
+                               , "TermIndex(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term172
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term172
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params82
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint70 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term172
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term172
+                             )
+                           , CResolve(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , wld1
+                             , Message(Error(), Default(), <nabl2--get-ast-index> term172)
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    ( nabl2_source
+    , term173@NaBL2Occurrence(
+                Occurrence(namespace, Ref(var), FSNoIndex())
+              )
+    , args76
+    ) -> constraint71
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params83@(ruleScope)) := args76
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args76
+                               , " when matching "
+                               , "NaBL2Occurrence(\n  Occurrence(namespace, Ref(var), FSNoIndex())\n)"
+                               , " with "
+                               , <pp-NaBL2-Term> term173
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term173
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params83
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint71 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term173
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term173
+                             )
+                           , CResolve(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , wld1
+                             , Message(Error(), Default(), <nabl2--get-ast-index> term173)
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term174@SetUnion(l, r), args77) -> constraint72
+    with(id)
+    with(Params(params84@(ruleScope)) := args77
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args77
+                               , " when matching "
+                               , "SetUnion(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term174
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term174
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params84
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint72 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term174
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term175@SetDifference(l, r), args78) -> constraint73
+    with(id)
+    with(Params(params85@(ruleScope)) := args78
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args78
+                               , " when matching "
+                               , "SetDifference(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term175
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term175
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params85
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint73 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term175
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term176@SetContains(l, r), args79) -> constraint74
+    with(id)
+    with(Params(params86@(ruleScope)) := args79
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args79
+                               , " when matching "
+                               , "SetContains(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term176
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term176
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params86
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint74 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term176
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term177@SetIntersection(l, r), args80) -> constraint75
+    with(id)
+    with(Params(params87@(ruleScope)) := args80
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args80
+                               , " when matching "
+                               , "SetIntersection(l, r)"
+                               , " with "
+                               , <pp-NaBL2-Term> term177
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term177
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params87
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint75 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term177
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, l, Params((ruleScope)))
+                           , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, r, Params((ruleScope)))
+                           )
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term178@MatchArm(pattern, expr), args81) -> constraint76
+    with(armScope := <nabl2--fresh-var(|nabl2_source)> "armScope" ; id)
+    with(Params(params88@(ruleScope)) := args81
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args81
+                               , " when matching "
+                               , "MatchArm(pattern, expr)"
+                               , " with "
+                               , <pp-NaBL2-Term> term178
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term178
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params88
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint76 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term178
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CNew([armScope], <nabl2--get-ast-index> term178)
+                           , CConj(
+                               CGDirectEdge(
+                                 armScope
+                               , <nabl2--default-e-label>
+                               , ruleScope
+                               , <nabl2--get-ast-index> term178
+                               )
+                             , CConj(
+                                 <nabl2--generate-constraint(nabl2--generate-constraint-Pattern-rule|"Pattern")> (nabl2_source, pattern, Params((armScope)))
+                               , <nabl2--generate-constraint(nabl2--generate-constraint-Expr-rule|"Expr")> (nabl2_source, expr, Params((armScope)))
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-default-rule(|):
+    (nabl2_source, term179@MatchArm(pattern), args82) -> constraint77
+    with(id)
+    with(Params(params89@(ruleScope)) := args82
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args82
+                               , " when matching "
+                               , "MatchArm(pattern)"
+                               , " with "
+                               , <pp-NaBL2-Term> term179
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "default"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term179
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params89
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint77 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term179
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , <nabl2--generate-constraint(nabl2--generate-constraint-Pattern-rule|"Pattern")> (nabl2_source, pattern, Params((ruleScope)))
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term180@Int(wld1), args83) -> constraint78
+    with(id)
+    with(Params(params90@(ruleScope)) := args83
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args83
+                               , " when matching "
+                               , "Int(wld1)"
+                               , " with "
+                               , <pp-NaBL2-Term> term180
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term180
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params90
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint78 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term180
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term180)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term181@String(wld1), args84) -> constraint79
+    with(id)
+    with(Params(params91@(ruleScope)) := args84
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args84
+                               , " when matching "
+                               , "String(wld1)"
+                               , " with "
+                               , <pp-NaBL2-Term> term181
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term181
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params91
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint79 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term181
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term181)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term182@True(), args85) -> constraint80
+    with(id)
+    with(Params(params92@(ruleScope)) := args85
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args85
+                               , " when matching "
+                               , "True()"
+                               , " with "
+                               , <pp-NaBL2-Term> term182
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term182
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params92
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint80 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term182
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term182)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term183@False(), args86) -> constraint81
+    with(id)
+    with(Params(params93@(ruleScope)) := args86
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args86
+                               , " when matching "
+                               , "False()"
+                               , " with "
+                               , <pp-NaBL2-Term> term183
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term183
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params93
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint81 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term183
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CTrue(<nabl2--get-ast-index> term183)
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term184@QualRef(mod, var), args87) -> constraint82
+    with(qualRefScope := <nabl2--fresh-var(|nabl2_source)> "qualRefScope" ; id)
+    with(Params(params94@(ruleScope)) := args87
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args87
+                               , " when matching "
+                               , "QualRef(mod, var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term184
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term184
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params94
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint82 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term184
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CNew([qualRefScope], <nabl2--get-ast-index> term184)
+                           , CConj(
+                               CGRef(
+                                 Occurrence(
+                                   Namespace("Module")
+                                 , mod
+                                 , <nabl2--occurrence-index-of> mod
+                                 )
+                               , ruleScope
+                               , <nabl2--get-ast-index> term184
+                               )
+                             , CConj(
+                                 CGNamedEdge(
+                                   Occurrence(
+                                     Namespace("Module")
+                                   , mod
+                                   , <nabl2--occurrence-index-of> mod
+                                   )
+                                 , <nabl2--default-n-label>
+                                 , qualRefScope
+                                 , <nabl2--get-ast-index> term184
+                                 )
+                               , CGRef(
+                                   Occurrence(
+                                     Namespace("Variable")
+                                   , var
+                                   , <nabl2--occurrence-index-of> var
+                                   )
+                                 , qualRefScope
+                                 , <nabl2--get-ast-index> term184
+                                 )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term185@QualRef(mod, var), args88) -> constraint83
+    with(qualRefScope := <nabl2--fresh-var(|nabl2_source)> "qualRefScope" ; id)
+    with(Params(params95@(ruleScope)) := args88
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args88
+                               , " when matching "
+                               , "QualRef(mod, var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term185
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term185
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params95
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint83 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term185
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CNew([qualRefScope], <nabl2--get-ast-index> term185)
+                           , CConj(
+                               CGRef(
+                                 Occurrence(
+                                   Namespace("Module")
+                                 , mod
+                                 , <nabl2--occurrence-index-of> mod
+                                 )
+                               , ruleScope
+                               , <nabl2--get-ast-index> term185
+                               )
+                             , CConj(
+                                 CGNamedEdge(
+                                   Occurrence(
+                                     Namespace("Module")
+                                   , mod
+                                   , <nabl2--occurrence-index-of> mod
+                                   )
+                                 , <nabl2--default-n-label>
+                                 , qualRefScope
+                                 , <nabl2--get-ast-index> term185
+                                 )
+                               , CGRef(
+                                   Occurrence(
+                                     Namespace("Variable")
+                                   , var
+                                   , <nabl2--occurrence-index-of> var
+                                   )
+                                 , qualRefScope
+                                 , <nabl2--get-ast-index> term185
+                                 )
+                               )
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term187@Ref(var), args89) -> constraint84
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params96@(ruleScope)) := args89
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args89
+                               , " when matching "
+                               , "Ref(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term187
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term187
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params96
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint84 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term187
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term187
+                             )
+                           , CResolve(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , wld1
+                             , Message(Error(), Default(), <nabl2--get-ast-index> term187)
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term188@Ref(var), args90) -> constraint85
+    with(wld1 := <nabl2--fresh-var(|nabl2_source)> "wld1" ; id)
+    with(Params(params97@(ruleScope)) := args90
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args90
+                               , " when matching "
+                               , "Ref(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term188
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term188
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params97
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint85 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term188
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CConj(
+                             CGRef(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , ruleScope
+                             , <nabl2--get-ast-index> term188
+                             )
+                           , CResolve(
+                               Occurrence(
+                                 Namespace("Variable")
+                               , var
+                               , <nabl2--occurrence-index-of> var
+                               )
+                             , wld1
+                             , Message(Error(), Default(), <nabl2--get-ast-index> term188)
+                             )
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term189@TopOf(var), args91) -> constraint86
+    with(id)
+    with(Params(params98@(ruleScope)) := args91
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args91
+                               , " when matching "
+                               , "TopOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term189
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term189
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params98
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint86 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term189
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term189
+                           )
+                         ))
+
+  nabl2--generate-constraint-Expr-rule(|):
+    (nabl2_source, term190@BottomOf(var), args92) -> constraint87
+    with(id)
+    with(Params(params99@(ruleScope)) := args92
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args92
+                               , " when matching "
+                               , "BottomOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term190
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "Expr"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term190
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params99
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint87 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term190
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term190
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term191@LubOf(var), args93) -> constraint88
+    with(id)
+    with(Params(params100@(ruleScope)) := args93
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args93
+                               , " when matching "
+                               , "LubOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term191
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term191
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params100
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint88 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term191
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term191
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term192@GlbOf(var), args94) -> constraint89
+    with(id)
+    with(Params(params101@(ruleScope)) := args94
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args94
+                               , " when matching "
+                               , "GlbOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term192
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term192
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params101
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint89 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term192
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term192
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term193@LeqOf(var), args95) -> constraint90
+    with(id)
+    with(Params(params102@(ruleScope)) := args95
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args95
+                               , " when matching "
+                               , "LeqOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term193
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term193
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params102
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint90 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term193
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term193
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term194@GeqOf(var), args96) -> constraint91
+    with(id)
+    with(Params(params103@(ruleScope)) := args96
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args96
+                               , " when matching "
+                               , "GeqOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term194
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term194
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params103
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint91 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term194
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term194
+                           )
+                         ))
+
+  nabl2--generate-constraint-FunRef-rule(|):
+    (nabl2_source, term195@NLeqOf(var), args97) -> constraint92
+    with(id)
+    with(Params(params104@(ruleScope)) := args97
+         <+ fatal-err(
+            | <concat-strings> [ "Cannot match expected "
+                               , "^ (ruleScope)"
+                               , " with actual "
+                               , <nabl2--pp-flat-args> args97
+                               , " when matching "
+                               , "NLeqOf(var)"
+                               , " with "
+                               , <pp-NaBL2-Term> term195
+                               , "."
+                               ]
+            ))
+    with(if nabl2--is-debug-collection-enabled then
+           nabl2--collection-info-msg(
+           | <concat-strings> [ "FunRef"
+                              , " [[ "
+                              , <pp-NaBL2-Term> term195
+                              , " ^ "
+                              , <pp-NaBL2-CTerm> params104
+                              , " ]]"
+                              ]
+           )
+         end)
+    with(constraint92 := CConj(
+                           CAstProperty(
+                             <nabl2--get-ast-index> term195
+                           , Params()
+                           , (ruleScope)
+                           )
+                         , CGRef(
+                             Occurrence(
+                               Namespace("Variable")
+                             , var
+                             , <nabl2--occurrence-index-of> var
+                             )
+                           , ruleScope
+                           , <nabl2--get-ast-index> term195
+                           )
+                         ))

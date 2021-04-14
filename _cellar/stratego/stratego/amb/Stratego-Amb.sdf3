@@ -1,0 +1,7 @@
+module Stratego-Amb
+
+imports Stratego
+
+templates
+  Strat.Cong = <<Id>(<Strat*; separator=",">)>
+   

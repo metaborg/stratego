@@ -1,0 +1,109 @@
+module example15
+
+signature
+  sorts Exp constructors 
+    Var  : string -> Exp
+    Int  : string -> Exp
+    Add  : Exp * Exp -> Exp
+    Sub  : Exp * Exp -> Exp
+    Lt   : Exp * Exp -> Exp
+    Min  : Exp -> Exp         // sugar
+    Inc  : Exp -> Exp         // sugar
+    Stat : Stat * Exp -> Exp  // statement expressions
+  sorts Stat constructors
+    Exp    : Exp -> Stat
+    Assign : string * Exp -> Stat
+    Seq    : Stat * Stat -> Stat
+    While  : Exp * Stat -> Stat
+    For    : string * Exp * Exp * Stat -> Stat // sugar
+    
+rules
+  
+  desugar :: TP 
+  
+  desugar : Stat(stat, e) -> e // should succeed
+  
+  desugar : 
+    Min(e) -> Sub(Int("0"), e)
+  
+  desugar : 
+    For(x, e1, e2, stat) -> 
+    Seq(
+      Assign(x, e1),
+      While(Lt(Var(x), e2), 
+        Seq(stat, Assign(x, Add(Var(x), Int("1"))))
+      )
+    )
+    
+  desugar : 
+    Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))), Var(x))
+    
+  desugar-dyn : 
+    Inc(Var(x)) -> Assign(x, Add(Var(x), Int("1")))
+    
+  desugar : // lifting statement expressions
+    stat@<is(Stat)> -> Seq(stat1, stat2)
+    where <oncetd((Stat(stat1, e) -> e))> stat => stat2
+    
+rules // domain too large
+
+  desugar : e -> e // should fail
+  
+  desugar : e -> Add(e, e) // should fail
+    
+  desugar : // error: applies also to expressions
+    stat -> Seq(stat1, stat2)
+    where <oncetd((Stat(stat1, e) -> e))> stat => stat2
+    
+rules // not type preserving
+  
+  desugar : Add(e1, e2) -> Assign("x", e2) // should fail
+  
+  desugar : Stat(stat, e) -> stat // should fail
+    
+rules // arity mismatch
+
+  desugar : // constructor with wrong arity
+    Inc(Var(x)) -> Stat(Assign(x, Add(Var(x), Int("1"))))  
+    
+rules // non-well-formed term construction
+    
+  desugar : // error: has type errors
+    For(x, e1, e2, stat) -> 
+    Seq(
+      Assign(x, e1),
+      While(Lt(Var(x), e2), 
+        Seq(stat, 
+          Assign(
+            Var(x),           // Exp instead of string
+            Add(x,            // string instead of Exp
+                Int(1))))     //  int instead of string
+      )
+    )
+    
+strategies
+
+  is-stat(|) :: Stat -> Stat
+  is-stat(|) = 
+    ?Assign(_,_) <+ ?Seq(_,_) <+ ?While(_,_) <+ ?For(_,_,_,_) <+ ?Exp(_)
+
+  oncetd(TP|) :: TP
+  oncetd(s|) = s <+ one(oncetd(s))
+  
+  foo(|) :: TP
+  foo(|) = try(desugar)
+  
+  bar(|) :: TP
+  bar(|) = ?"" // should succeed
+  
+  bar-rule :: TP
+  bar-rule: "" -> "" // should succeed
+  
+  baz(|) :: TP
+  baz(|) = ?x; !"" // should fail
+  
+  try(TP|) :: TP
+  try(s|) = s <+ id
+  
+  topdown(TP|) :: TP
+  topdown(s|) = s; all(topdown(s))

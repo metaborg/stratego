@@ -1,0 +1,14 @@
+/bin
+/target
+/src-gen
+
+/.classpath
+/.project
+/.settings
+/.factorypath
+
+*.constraints
+*.scope-graph
+*.name-resolution
+*.unifier
+*.symbolic

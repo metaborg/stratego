@@ -1,5 +1,0 @@
-module stratego/core/core
-
-imports
-  stratego/core/strategies
-  stratego/core/terms

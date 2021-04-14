@@ -1,0 +1,7 @@
+module stratego/core/core
+ 
+imports 
+  stratego/core/modules
+  stratego/core/strategies
+  stratego/core/terms
+  stratego/core/signatures

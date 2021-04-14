@@ -1,0 +1,51 @@
+module sugar/rules
+
+  imports
+    core/identifiers
+    core/signatures
+    core/terms
+    core/strategies
+    sugar/terms
+    sugar/strategies
+
+sorts RuleDef
+
+template options
+  tokenize: ")(|"
+
+context-free syntax
+  RuleDef.RDefNoArgs =
+<<Id>:
+  <Rule>>
+
+  Def.AnnoDef =
+    <<Anno+> <RuleDef>>
+
+  RuleDef.RDef =
+<<Id>(<{Typedid ", "}*>):
+  <Rule>>
+
+  RuleDef.RDefT =
+<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>):
+  <Rule>>
+
+  // Rule definition with pattern matched term parameters
+  RuleDef.RDefP =
+<<Id>(<{Typedid ", "}*> | <{Term ", "}*>):
+  <Rule>> {avoid}
+
+sorts Rule RuleCond
+
+context-free syntax
+
+  Rule.Rule = [[Term] -> [Term]
+  [{RuleCond "\n"}*]]
+
+  RuleCond.WhereClause =
+<where
+  <Strategy>>
+  RuleCond.WithClause =
+<with
+  <Strategy>>
+
+

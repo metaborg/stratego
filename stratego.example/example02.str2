@@ -1,0 +1,25 @@
+module example
+
+imports
+
+libstratego-lib
+
+signature constructors
+
+Incr : Expr -> Expr
+Add  : Expr * Expr -> Expr
+Int  : string -> Expr
+Var  : string -> Expr
+
+strategies
+
+  typed1 :: Expr -> Expr
+  typed1: e -> Add(e, e)
+
+  typed2 :: Stat -> Stat
+  typed2 = id
+
+  untyped: Add(e1, _) -> e1
+  where
+    <typed1> e1
+  ; <typed2> e1

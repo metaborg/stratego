@@ -1,0 +1,8 @@
+module Compile
+
+menus
+  
+  menu: "Compile" (openeditor)
+    
+    action: "Clean"           = clean-module-builder
+    action: "Compile"         = compile-module-builder

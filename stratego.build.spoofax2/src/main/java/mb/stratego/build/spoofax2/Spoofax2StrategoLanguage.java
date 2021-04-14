@@ -93,7 +93,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         if(strategoLangImpl == null) {
             throw new ExecException(
                 "Cannot find/load Stratego language. Please add a compile dependency "
-                    + "'org.metaborg:stratego:${metaborgVersion}' in your metaborg.yaml file. ");
+                    + "'org.metaborg:stratego.lang:${metaborgVersion}' in your metaborg.yaml file. ");
         }
 
         @Nullable IStrategoTerm ast;
@@ -155,7 +155,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName,
         @Nullable String extra) throws ExecException {
         final @Nullable ILanguageImpl strategoLangImpl;
-        final @Nullable ILanguage strategoLang = languageService.getLanguage("stratego");
+        final @Nullable ILanguage strategoLang = languageService.getLanguage("StrategoLang");
         if(strategoLang != null) {
             strategoLangImpl = strategoLang.activeImpl();
             if(strategoLangImpl == null) {

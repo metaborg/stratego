@@ -1,0 +1,19 @@
+module stratego/sugar/rules
+
+imports stratego/core/strategies
+imports stratego/sugar/terms
+
+rules
+
+  RuleDef[[ RDefNoArgs(x, r) ^ (s_mod) ]] :=
+    Rule{x} <- s_mod,
+    Rule{x} : ty,
+    new s_r,
+    s_r -P-> s_mod,
+    Rule[[ r ^ (s_r) : ty ]].
+
+  Rule[[ Rule(t1, t2, conds) ^ (s_r) : FunType([ty1], ty2) ]] :=
+      Term [[ t1 ^ (s_r) : ty1 ]],
+      Term [[ t2 ^ (s_r) : ty2 ]]. 
+  
+  

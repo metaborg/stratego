@@ -1,0 +1,16 @@
+module stratego/sugar/sugar
+
+imports
+  stratego/core/identifiers
+  stratego/core/modules
+  
+  stratego/sugar/constants 
+  stratego/sugar/signatures
+  stratego/sugar/modules
+  stratego/sugar/terms
+  stratego/sugar/strategies
+  stratego/sugar/rules
+  stratego/sugar/dynamic-rules
+  stratego/sugar/overlays
+
+ 

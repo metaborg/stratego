@@ -1,0 +1,8 @@
+module simplify1
+imports strc/opt/stratego-laws strc/opt/opt-lib
+strategies
+
+  simplify1 =
+    try( \ Specification([x, y, z]) -> Specification([x, z]) \ )
+    ; apply-to-bodies(simplify)
+ 

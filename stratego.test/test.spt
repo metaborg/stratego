@@ -1,0 +1,11 @@
+module test
+
+language StrategoLang
+
+test parse [[
+  specification
+]] parse succeeds
+
+test parse [[
+  module a
+]] parse succeeds

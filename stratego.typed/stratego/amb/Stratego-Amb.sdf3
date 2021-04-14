@@ -1,9 +1,0 @@
-module Stratego-Amb
-
-imports StrategoTyped
-imports stratego/core/identifiers
-
-context-free syntax
-
-  Strat.Cong = <<Id>(<{Strat ","}*>)>
-   

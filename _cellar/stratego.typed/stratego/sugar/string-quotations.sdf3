@@ -1,0 +1,60 @@
+module stratego/sugar/string-quotations
+
+imports stratego/sugar/terms
+
+sorts
+
+  StringQuotation StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1 StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2 StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3 StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4 Dollar4 Padding
+
+context-free syntax
+
+  PreTerm = StringQuotation 
+
+syntax
+
+  PreTerm-CF = StringQuotation 
+  StringQuotation.StringQuotation1 = "$" "[" Padding StringQuotedPart1* "]" 
+  StringQuotedPart1.StringEscape1 = Padding "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]" 
+  StringQuotedPart1.QStr = StringQuotedChars1-LEX 
+  StringQuotedPart1.QDollar = Dollar1-LEX 
+  StringQuotedPart1.QBr = "$" QuotedBracket1-LEX "$" 
+  StringQuotedChars1-LEX = ~[\[\]\$]+ 
+  QuotedBracket1-LEX = [\[\]] 
+  Dollar1-LEX = "$" 
+  StringQuotation.StringQuotation2 = "$" "{" Padding StringQuotedPart2* "}" 
+  StringQuotedPart2.StringEscape2 = Padding "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}" 
+  StringQuotedPart2.QStr = StringQuotedChars2-LEX 
+  StringQuotedPart2.QDollar = Dollar2-LEX 
+  StringQuotedPart2.QBr = "$" QuotedBracket2-LEX "$" 
+  StringQuotedChars2-LEX = ~[\{\}\$]+ 
+  QuotedBracket2-LEX = [\{\}] 
+  Dollar2-LEX = "$" 
+  StringQuotation.StringQuotation3 = "$" "(" Padding StringQuotedPart3* ")" 
+  StringQuotedPart3.StringEscape3 = Padding "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")" 
+  StringQuotedPart3.QStr = StringQuotedChars3-LEX 
+  StringQuotedPart3.QDollar = Dollar3-LEX 
+  StringQuotedPart3.QBr = "$" QuotedBracket3-LEX "$" 
+  StringQuotedChars3-LEX = ~[\(\)\$]+ 
+  QuotedBracket3-LEX = [\(\)] 
+  Dollar3-LEX = "$" 
+  StringQuotation.StringQuotation4 = "$" "<" Padding StringQuotedPart4* ">" 
+  StringQuotedPart4.StringEscape4 = Padding "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">" 
+  StringQuotedPart4.QStr = StringQuotedChars4-LEX 
+  StringQuotedPart4.QDollar = Dollar4-LEX 
+  StringQuotedPart4.QBr = "$" QuotedBracket4-LEX "$" 
+  StringQuotedChars4-LEX = ~[\<\>\$]+ 
+  QuotedBracket4-LEX = [\<\>] 
+  Dollar4-LEX = "$" 
+  Padding = Padding-LEX 
+  Padding-LEX =  {indentpadding}
+
+lexical restrictions
+
+  StringQuotedChars1 -/- ~[\[\]\$]
+  StringQuotedChars2 -/- ~[\{\}\$]
+  StringQuotedChars3 -/- ~[\(\)\$]
+  StringQuotedChars4 -/- ~[\<\>\$]
+  Dollar1 -/- [\[\]].[\$]
+  Dollar2 -/- [\{\}].[\$]
+  Dollar3 -/- [\(\)].[\$]
+  Dollar4 -/- [\<\>].[\$]

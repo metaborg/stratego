@@ -1,0 +1,8 @@
+module gradual-types/terms
+imports
+  core/terms
+  gradual-types/signatures
+
+context-free syntax
+
+  Term.TypeAscription = [[Term] :: [Type]]

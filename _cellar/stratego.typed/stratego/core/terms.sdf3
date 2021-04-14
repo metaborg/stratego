@@ -1,0 +1,40 @@
+module stratego/core/terms
+
+  imports
+    stratego/core/identifiers
+    stratego/core/constants
+
+  sorts ID Var Wld
+  context-free syntax
+    Var.Var = <<Id>>
+    ID      = <<Id>>
+    
+    //Var.SeqVar = <":" <Var>>
+    
+  sorts Term // term with annotations
+  context-free syntax
+  
+    Term      = <<Var>> {prefer}
+    Term      = <<Wld>> {prefer}
+    Term.Anno = <<PreTerm>{^ <PreTerm> }>
+    Term.As   = <<Var>@<Term>> {prefer}
+
+  sorts PreTerm // term without annotations
+  context-free syntax
+     
+    PreTerm         = <<Var>>
+    PreTerm         = <<Wld>>
+    
+    PreTerm.Int     = <<Int>>
+    PreTerm.Real    = <<Real>>
+    PreTerm.Str     = <<String>>
+    PreTerm.Op      = <<Id>(<{Term ", "}*>)>
+    PreTerm.OpQ     = <<String>(<{Term ", "}*>)>
+    PreTerm.Explode = <<Term>#(<Term>)>
+    PreTerm.As      = <<Var>@<PreTerm>>
+   
+    Wld.Wld = <_>
+   
+  context-free priorities
+    PreTerm.Explode > Term.As
+

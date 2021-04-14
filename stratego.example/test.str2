@@ -1,0 +1,15 @@
+module test
+
+signature
+  sorts
+    Term
+  constructors
+    Nil : List(a)
+    Cons : a * List(a) -> List(a)
+
+    Simple : Term -> Term
+
+strategies
+
+  simple :: Term -> Term
+  simple: a -> Simple(a)

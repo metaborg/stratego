@@ -1,0 +1,12 @@
+module tp-double-typedef
+
+
+strategies
+
+  topdown( TP ) :: TP
+  topdown(? -> ?) :: ? -> ?
+  topdown(s) = s; all(s)
+
+  try( TP ) :: TP
+  try(a -> b) :: a -> ?
+  try(s) = s <+ id

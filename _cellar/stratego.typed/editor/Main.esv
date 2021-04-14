@@ -1,0 +1,14 @@
+module Main
+
+imports
+
+  Syntax
+  Analysis
+  Compile
+  flowspec/Menus
+
+language
+
+  extensions : stratego
+
+  provider : target/metaborg/stratego.jar

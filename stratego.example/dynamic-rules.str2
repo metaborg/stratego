@@ -1,0 +1,29 @@
+module dynamic-rules
+
+imports
+
+libstratego-lib
+
+signature constructors
+  Int : string -> Expr
+  Bar : string * string -> Expr
+
+rules
+
+// TODO: allow type definition for dynamic rules
+Foo :: int -> int
+
+main :: string -> int
+main = ?a; {| Foo:
+    rules(Foo: Bar(a, b) -> <foo> (a, b))
+//             ^ expected int but got Expr
+  ; desugar
+  ; (<fail> a -> <foo> a)
+|}
+
+foo = fail
+
+//desugar :: Expr -> Expr
+desugar: Int(i) -> Int(<Foo> i)
+
+

@@ -1,0 +1,13 @@
+module sugar/constants
+
+imports
+  core/identifiers
+  core/constants
+  sugar/string-quotations
+
+sorts Char CharChar
+lexical syntax
+  Char     = "'" CharChar "'"
+  CharChar = ~[\']
+  CharChar = [\\] [\'ntr\ ]
+  Id       = Char {reject}

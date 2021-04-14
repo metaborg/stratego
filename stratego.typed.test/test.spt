@@ -1,7 +1,0 @@
-module test
-
-language Stratego
-
-test parse [[
-
-]] parse succeeds

@@ -1,0 +1,47 @@
+---
+id: org.metaborg:stratego.lang:${metaborgVersion}
+name: StrategoLang
+# TODO: add a baseline version once this language is in a stable release of Spoofax
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
+  source:
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
+pardonedLanguages:
+- EditorService
+- Stratego-Sugar
+- SDF
+language:
+  sdf:
+    pretty-print: StrategoLang
+    sdf2table: java
+    jsglr-version: v2
+    placeholder:
+      prefix: "$"
+  stratego:
+    format: jar
+    build: batch
+    args:
+    - -la
+    - stratego-lib
+    - -la
+    - stratego-sglr
+    - -la
+    - stratego-gpp
+    - -la
+    - stratego-xtc
+    - -la
+    - stratego-aterm
+    - -la
+    - stratego-rtg
+    - -la
+    - java-front
+    - -D
+    - VERSION_TERM="stratego-standalone"
+exports:
+- language: ATerm
+  directory: src-gen/syntax
+- language: TemplateLang
+  directory: syntax
+  includes: "**/*.sdf3"

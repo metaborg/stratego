@@ -1,9 +1,0 @@
-module Stratego-Amb
-imports Stratego
-
-exports
-  context-free syntax
-    Id "(" {Strat ","}* ")" -> Strat {cons("Cong")}
-
-  context-free syntax
-    CONTENTCOMPLETE -> Strat {cons("COMPLETION-Strat")}

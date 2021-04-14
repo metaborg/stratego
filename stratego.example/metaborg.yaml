@@ -1,0 +1,8 @@
+---
+id: org.metaborg:stratego.example:${metaborgVersion}
+name: StrategoLang
+dependencies:
+  compile:
+  - org.metaborg:stratego.lang:${metaborgVersion}
+build:
+  useBuildSystemSpec: true

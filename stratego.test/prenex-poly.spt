@@ -1,0 +1,59 @@
+module prenex-poly
+
+language strategoGT
+
+fixture [[
+  specification
+
+  rules
+  [[...]]
+]]
+
+test untyped map [[
+    map(s) = [s | map(s)] <+ ?[]
+
+    test-map :: ? -> List(string)
+    test-map = ![1,2,3]; map(!"hi!")
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test typed map [[
+    map(a -> b) :: List(a) -> List(b)
+    map(s) = [s | map(s)] <+ ?[]
+
+    test-map :: ? -> List(string)
+    test-map = ![1,2,3]; map(!"hi!")
+    // `map`'s type is ideally instantiated as `(int -> string) List(int) -> List(string)`
+    // but `(? -> string) List(?) -> List(string)` is also possible, since `!"hi!" :: ? -> string` by itself
+]] 0 errors
+   0 warnings
+//   has origin locations
+
+test untyped collect-all [[
+    mapconcat(s) = fail
+
+    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+
+    test-collect-all :: ? -> List(string)
+    test-collect-all = ![1,2,3]; collect-all(!"hi!")
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test typed collect-all [[
+    conc :: List(a) * List(a) -> List(a)
+    conc = fail
+
+    mapconcat(a -> List(b)) :: List(a) -> List(b)
+    mapconcat(s): [t@_#(c*) | t] -> <conc> (<s> t, <mapconcat(s)> c*)
+    mapconcat(s): [] -> []
+
+    collect-all(? -> b) :: ? -> List(b)
+    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+
+    test-collect-all :: ? -> List(string)
+    test-collect-all = ![1,2,3]; collect-all(!"hi!")
+]] 0 errors
+   0 warnings
+   has origin locations

@@ -1,1 +1,0 @@
-Module("test01", [Strategies([SDefNoArgs("main", Id())])])

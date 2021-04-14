@@ -1,0 +1,17 @@
+module stratego/sugar/signatures
+
+  imports
+    stratego/core/signatures
+    stratego/sugar/constants
+
+  sorts Sort
+  
+  context-free syntax
+    Sort.SortList   = <[<{Sort ", "}*> ]>
+    Sort.SortListTl = <[<{Sort ", "}*> | <Sort> ]>
+    Sort.SortTuple  = <(<{Sort ", "}*> )>
+
+  sorts Kind
+  context-free syntax  
+    Kind.Star = <*>
+    Kind.StarStar = <**>
