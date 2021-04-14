@@ -47,6 +47,7 @@ public class UsedNamesFront extends UsedConstrs {
         if(currentTopLevelStrategyName == null && TermUtils.isAppl(term)) {
             switch(TermUtils.toAppl(term).getName()) {
                 case "SDefT":
+                case "SDefP":
                 case "ExtSDefInl":
                 case "RDefT":
                 case "RDefP":

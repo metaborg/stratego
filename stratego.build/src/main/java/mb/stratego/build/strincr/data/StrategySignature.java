@@ -167,6 +167,8 @@ public class StrategySignature extends StrategoTuple {
                 // fall-through
             case "RDefT":
                 // fall-through
+            case "SDefP":
+                // fall-through
             case "RDefP": {
                 final IStrategoTerm sargs = term.getSubterm(1);
                 if(!TermUtils.isList(sargs)) {

@@ -105,6 +105,42 @@ insertCasts-StrategyDef-(|e1, st1):
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
 
+insertCasts-StrategyDef-(|e1, st1):
+  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st4) 
+  where
+    (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
+  with
+    tv := <newname> "tp"
+  ; t1 := Sort(TP(), []){tv}
+  ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
+  ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
+  ; (t2*, (st3, s*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
+  ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
+  ; t2 := <current-type> st4
+  ; if <eq> (t1, t2)
+      <+ <eq> (t2, <type-var-lookup(|tv)> st4)
+         ; <not(oncetd(?DynT()))> t2
+      <+ <?ErrT()> t2
+      then id
+      else <report-Err> (x, MatchNotSpecificEnoughForTP(t2))
+    end
+  ; s3 := <StrategyDef-after-match> (s*, s2)
+
+insertCasts-StrategyDef-(|e1, st1):
+  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s4), st5) 
+  where
+    (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
+  with
+    s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
+  ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
+  ; (t2*, (st3, s*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
+  ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
+  ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
+  ; s4 := <StrategyDef-after-match> (s*, s3)
+
+StrategyDef-after-match: ([], s) -> s
+StrategyDef-after-match: (s*, s) -> <otf(!Where(<seqs> s*));otf(!Seq(<id>, s))> s
+
 insertCasts-StrategyDef(|e1, st1) =
   otf(\SDef(x, s1*, s1) -> SDefT(x, s1*, [], s1)\)
 ; insertCasts-StrategyDef(|e1, st1)
@@ -180,10 +216,10 @@ insertCasts-RuleDef-(|e1, st1):
   with
     s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
-  ; (t2*, st3) := <thread-map(\((t, tt), st) -> <insertCasts-BuildTerm(|e2, st, tt)> t\)> (<zip> (t1*, tt*), st2)
+  ; (t2*, (st3, s1*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
   ; tv := <newname> "tp"
   ; t1 := SortVar(tv){TP()}
-  ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
+  ; (trm3, (st4, s2*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; if <type-var-lookup(|tv);not(?SortVar(_) + oncetd(?DynT()))> st4
       then id
       else <report-Err> (trm1, MatchNotSpecificEnoughForTP(<current-type> st3))
@@ -191,7 +227,7 @@ insertCasts-RuleDef-(|e1, st1):
   ; t3 := <current-type> st4
   ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t3)> trm2
   ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
-  ; cs3 := <RuleDef-after-match> (s*, cs2)
+  ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
 
 insertCasts-RuleDef-(|e1, st1):
   RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, Rule(trm3, trm4, cs3)), st6)
@@ -200,12 +236,12 @@ insertCasts-RuleDef-(|e1, st1):
   with
     s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
-  ; (t2*, st3) := <thread-map(\((t, tt), st) -> <insertCasts-BuildTerm(|e2, st, tt)> t\)> (<zip> (t1*, tt*), st2)
-  ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
+  ; (t2*, (st3, s1*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
+  ; (trm3, (st4, s2*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; t3 := <current-type> st4
   ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t2)> trm2
   ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
-  ; cs3 := <RuleDef-after-match> (s*, cs2)
+  ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
 
 RuleDef-after-match: ([], cs) -> cs
 RuleDef-after-match: (s*, cs) -> [<otf(!WhereClause(s))> s | cs] where s := <seqs> s*

@@ -27,6 +27,12 @@ gradual-types/main
 
 strategies // Terms in match position (core)
 
+insertCasts-MatchTerm(|e1):
+  ((trm1, t), (st1, s1*)) -> (trm2, (st3, [s1*, s2*]))
+  where
+    (trm2, st2) := <insertCasts-StMatchTerm(|e1, <stMatchTerm-from-st;current-type(|t)> st1)> trm1
+  ; (st3, s2*) := <st-from-stMatchTerm> st2
+
 insertCasts-MatchTerm(|e1, st1) =
     insertCasts-StMatchTerm(|e1, <stMatchTerm-from-st> st1)
   ; (id, st-from-stMatchTerm)
