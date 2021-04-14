@@ -1,0 +1,113 @@
+module matrix2dfa
+
+imports
+  strj/multimatch/decompose
+  strj/multimatch/dfa
+  strj/multimatch/matrix
+
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+strategies
+  /*======== Construct DFA from matrices =================*/ 
+  matrix2dfa = where(o* := [Path([Cur()])]); CC(|o*)
+
+  /*
+   * Compilation scheme from Maranget (2008).
+   *
+   * Changes w.r.t. paper:
+   * (none)
+   */
+  CC(|o*) = NoRows(|o*)
+         <+ WildcardsFirstRow(|o*)
+         <+ SelectColumn(|o*)
+
+  /*
+   * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
+   * since there is no row to match.
+   */
+  NoRows(|o*): m@Matrix([]) -> Leaf(Fail())
+  where
+    <debug(!"NoRows ")> (o*, m)
+
+  /*
+   * 2. If the first row of P exists and is constituted by wildcards,
+   * then matching always succeeds and yields the first action.
+   *
+   * In particular, this case applies when there is at least
+   * one row (m > 0) and no column (n = 0).
+   */
+  WildcardsFirstRow(|o*): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
+  where
+    <map(is-wildcard)> ps
+  ; <debug(!"WildcardsFirstRow ")> (o*, m)
+
+  /*
+   * 3. In any other case, matrix P has at least one row and at least
+   * one column (m > 0, n > 0). Furthermore, there exists at least one
+   * column of which at least one pattern is not a wildcard. Select
+   * one such column i.
+   */
+  SelectColumn(|o*@[o1 | os]): m@Matrix(rs) -> T
+  with
+    <debug(!"SelectColumn ")> (o*, m)
+  ; i := <find-first-col-index(not-all-wildcards)> m
+  ; <debug(!"  with i=")> i
+  ; if <gti> (i, 1)
+    /*
+     * If i > 1 then swap columns 1 and i in both o and P,
+     * as above, yielding decision tree A', and define:
+     */
+    then // i > 1
+         <debug(!"swap indices ")> (1, i)
+       ; m' := <swap-cols(|1, i)> m 
+       ; o' := <swap(|1, i)> o*
+       ; A' := <CC(|o')> m'
+       ; !A' // No need to explicitly include swap nodes.
+    else // i == 1
+         hc* := <col(|i); head-constructors; make-set> m
+       ; if !hc* => [(Anno(), _)]
+         then <specialize-occs(|Anno())> o* => o'
+            ; <specialize(|m); CC(|o')> Anno()
+         else where(filter(?(Anno(), _)); ?[] <+ !["contains annos: ", <id>]; error)
+            ; hts := <map(Snd); make-set> hc*
+            ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c, <specialize-occs(|c)> o*) \)> hc*
+            ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
+            ; default   := <default; CC(|os)> m
+            ; talt*     := <map(talt(|o*, default))> tbranch*
+            ; !SwitchT(<append-occ> (o1, Typ()), talt*, default)
+         end
+    end => T
+
+  talt(|o*, d): (t, valt*) -> AltT(t, <vswitch(|t, o*, d)> valt*)
+
+  vswitch(|ApplT(), [o1 | _], d) =
+    !SwitchV(<append-occ> (o1, Con()), <map(valt)>, d)
+
+  vswitch(|ListT(), [o1 | _], d) =
+    !SwitchV(o1, <map(valt)>, d)
+
+  vswitch(|IntT(), [o1 | _], d) =
+    !SwitchV(<append-occ> (o1, Int()), <map(valt)>, d)
+
+  vswitch(|RealT(), [o1 | _], d) =
+    !SwitchV(<append-occ> (o1, Real()), <map(valt)>, d)
+
+  vswitch(|StringT(), [o1 | _], d) =
+    !SwitchV(<append-occ> (o1, Str()), <map(valt)>, d)
+
+//  // Consider if this pattern can occur outside of an APPL.
+//  vswitch(|CtorT(), [o1 | _], d) = <error> ["CtorT not implemented"]; fail
+
+  vswitch(|TupleT(), [o1 | _], d) = !SwitchV(o1, <map(valt)>, d)
+
+//  // TODO Find out if this is not yet deprecated.
+//  vswitch(|RefT(), [o1 | _], d) = <error> ["RefT not implemented"]; fail
+//
+//  // TODO Find out if this is not yet deprecated.
+//  vswitch(|BlobT(), [o1 | _], d) = <error> ["BlobT not implemented"]; fail
+//
+//  // TODO Find out if this is not yet deprecated.
+//  vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
+
+  valt: (c, t, m, o*) -> AltV(c, <CC(|o*)> m)
