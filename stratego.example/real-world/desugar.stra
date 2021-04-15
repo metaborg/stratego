@@ -6,16 +6,380 @@
 
 module stratego/strc/front/desugar
 
-imports 
+imports
   Stratego-Sugar
   stratego/strc/lib/stratlib
   stratego/strc/front/DefaultStrat
   stratego/strc/front/desugar-string-quotations
-
+ 
 signature
 	constructors
 		// VladVergu. Was missing when boostrapping to Java
 		Id: Term -> Term
+
+// modules core
+signature
+  sorts
+    Module
+
+  sorts
+    Decl AnnoDecl
+
+  sorts
+    ImportModName
+
+  constructors
+    Module                  : ModName * List(AnnoDecl) -> Module
+    Specification           : List(AnnoDecl) -> Module
+    ModName-Plhdr           : ModName
+    Module-Plhdr            : Module
+    AnnoDecl-Plhdr          : AnnoDecl
+    ModName-Plhdr           : COMPLETION-INSERTION -> ModName
+    Module-Plhdr            : COMPLETION-INSERTION -> Module
+    AnnoDecl-Plhdr          : COMPLETION-INSERTION -> AnnoDecl
+    AnnoDecl-Opt-Plhdr      : AnnoDecl
+    Imports                 : List(ImportModName) -> Decl
+    Strategies              : List(Def) -> Decl
+    Signature               : List(Sdecl) -> Decl
+                            : Decl -> AnnoDecl
+    ImportModName-Plhdr     : ImportModName
+    Def-Plhdr               : Def
+    Sdecl-Plhdr             : Sdecl
+    AnnoDecl-Plhdr          : AnnoDecl
+    Decl-Plhdr              : Decl
+    ImportModName-Plhdr     : COMPLETION-INSERTION -> ImportModName
+    Def-Plhdr               : COMPLETION-INSERTION -> Def
+    Sdecl-Plhdr             : COMPLETION-INSERTION -> Sdecl
+    AnnoDecl-Plhdr          : COMPLETION-INSERTION -> AnnoDecl
+    Decl-Plhdr              : COMPLETION-INSERTION -> Decl
+    ImportModName-Opt-Plhdr : ImportModName
+    Def-Opt-Plhdr           : Def
+    Sdecl-Opt-Plhdr         : Sdecl
+    Import                  : ModName -> ImportModName
+    ImportModName-Plhdr     : ImportModName
+    ModName-Plhdr           : ModName
+    ImportModName-Plhdr     : COMPLETION-INSERTION -> ImportModName
+    ModName-Plhdr           : COMPLETION-INSERTION -> ModName
+    ImportWildcard          : ModName -> ImportModName
+    ImportModName-Plhdr     : ImportModName
+    ModName-Plhdr           : ModName
+    ImportModName-Plhdr     : COMPLETION-INSERTION -> ImportModName
+    ModName-Plhdr           : COMPLETION-INSERTION -> ModName
+
+// strategies sugar
+signature
+  sorts
+    SwitchCase
+
+  constructors
+    SDefNoArgs              : Id * Strategy -> StrategyDef
+    SDef                    : Id * List(Typedid) * Strategy -> StrategyDef
+    SDefP                   : Id * List(Typedid) * List(Term) * Strategy -> StrategyDef
+    StrategyDef-Plhdr       : StrategyDef
+    Id-Plhdr                : Id
+    Typedid-Plhdr           : Typedid
+    Term-Plhdr              : Term
+    Strategy-Plhdr          : Strategy
+    StrategyDef-Plhdr       : COMPLETION-INSERTION -> StrategyDef
+    Id-Plhdr                : COMPLETION-INSERTION -> Id
+    Typedid-Plhdr           : COMPLETION-INSERTION -> Typedid
+    Term-Plhdr              : COMPLETION-INSERTION -> Term
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+    Typedid-Opt-Plhdr       : Typedid
+    Term-Opt-Plhdr          : Term
+    DefaultVarDec           : ID -> Typedid
+    Typedid-Plhdr           : Typedid
+    ID-Plhdr                : ID
+    Typedid-Plhdr           : COMPLETION-INSERTION -> Typedid
+    ID-Plhdr                : COMPLETION-INSERTION -> ID
+    Call                    : SVar * List(Strategy) -> Strategy
+    ScopeDefault            : Strategy -> Strategy
+    BA                      : Strategy * Term -> Strategy
+    LChoice                 : Strategy * Strategy -> Strategy
+    Rec                     : Id * Strategy -> Strategy
+    Not                     : Strategy -> Strategy
+    Where                   : Strategy -> Strategy
+    With                    : Strategy -> Strategy
+    Test                    : Strategy -> Strategy
+    PrimNoArgs              : String -> Strategy
+    Prim                    : String * List(Term) -> Strategy
+    SVar-Plhdr              : SVar
+    Id-Plhdr                : Id
+    Strategy-Plhdr          : Strategy
+    String-Plhdr            : String
+    Term-Plhdr              : Term
+    SVar-Plhdr              : COMPLETION-INSERTION -> SVar
+    Id-Plhdr                : COMPLETION-INSERTION -> Id
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+    String-Plhdr            : COMPLETION-INSERTION -> String
+    Term-Plhdr              : COMPLETION-INSERTION -> Term
+    Strategy-Opt-Plhdr      : Strategy
+    Term-Opt-Plhdr          : Term
+    StrCong                 : String -> Strategy
+    IntCong                 : Int -> Strategy
+    RealCong                : Real -> Strategy
+    CharCong                : Char -> Strategy
+    CongQ                   : String * List(Strategy) -> Strategy
+    EmptyTupleCong          : Strategy
+    TupleCong               : Strategy * List(Strategy) -> Strategy
+    ListCongNoTail          : List(Strategy) -> Strategy
+    ListCong                : List(Strategy) * Strategy -> Strategy
+    ExplodeCong             : Strategy * Strategy -> Strategy
+    AM                      : Strategy * Term -> Strategy
+    Assign                  : Term * Term -> Strategy
+    AnnoCong                : Strategy * Strategy -> Strategy
+    Int-Plhdr               : Int
+    Real-Plhdr              : Real
+    Char-Plhdr              : Char
+    String-Plhdr            : String
+    Term-Plhdr              : Term
+    Strategy-Plhdr          : Strategy
+    Int-Plhdr               : COMPLETION-INSERTION -> Int
+    Real-Plhdr              : COMPLETION-INSERTION -> Real
+    Char-Plhdr              : COMPLETION-INSERTION -> Char
+    String-Plhdr            : COMPLETION-INSERTION -> String
+    Term-Plhdr              : COMPLETION-INSERTION -> Term
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+    Strategy-Opt-Plhdr      : Strategy
+    CallNoArgs              : SVar -> Strategy
+    LRule                   : Rule -> Strategy
+    SRule                   : Rule -> Strategy
+    Choice                  : Strategy * Strategy -> Strategy
+    RChoice                 : Strategy * Strategy -> Strategy
+    Proceed                 : List(Strategy) -> Strategy
+    CondChoice              : Strategy * Strategy * Strategy -> Strategy
+    IfThen                  : Strategy * Strategy -> Strategy
+    SVar-Plhdr              : SVar
+    Rule-Plhdr              : Rule
+    Strategy-Plhdr          : Strategy
+    SVar-Plhdr              : COMPLETION-INSERTION -> SVar
+    Rule-Plhdr              : COMPLETION-INSERTION -> Rule
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+    SwitchChoiceNoOtherwise : Strategy * List(SwitchCase) -> Strategy
+    SwitchChoice            : Strategy * List(SwitchCase) * Strategy -> Strategy
+    SwitchCase              : Strategy * Strategy -> SwitchCase
+    SwitchCase-Plhdr        : SwitchCase
+    Strategy-Plhdr          : Strategy
+    SwitchCase-Plhdr        : COMPLETION-INSERTION -> SwitchCase
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+    SwitchCase-Opt-Plhdr    : SwitchCase
+    MultiMatchTerm          : MatchOrder * Term * List(MatchCase) -> Strategy
+    Specificity             : MatchOrder
+    MatchCase               : Term * Strategy -> MatchCase
+    MatchOrder-Plhdr        : MatchOrder
+    MatchCase-Plhdr         : MatchCase
+    Term-Plhdr              : Term
+    Strategy-Plhdr          : Strategy
+    MatchOrder-Plhdr        : COMPLETION-INSERTION -> MatchOrder
+    MatchCase-Plhdr         : COMPLETION-INSERTION -> MatchCase
+    Term-Plhdr              : COMPLETION-INSERTION -> Term
+    Strategy-Plhdr          : COMPLETION-INSERTION -> Strategy
+
+//strategies core
+signature
+  sorts
+    Def
+
+  sorts
+    StrategyDef
+
+  sorts
+    MaybeEmptyId
+
+  sorts
+    Anno
+
+  sorts
+    Typedid
+
+  sorts
+    Strategy SVar StrategyMid
+
+  sorts
+    MatchOrder MatchCase
+
+  sorts
+    DTree
+
+  sorts
+    AltT AltV
+
+  sorts
+    Path PathEl
+
+  sorts
+    PatV
+
+  sorts
+    PatT
+
+  constructors
+                       : StrategyDef -> Def
+    SVar               : Id -> SVar
+    Let                : List(Def) * Strategy -> Strategy
+    CallT              : SVar * List(Strategy) * List(Term) -> Strategy
+    CallDynamic        : Term * List(Strategy) * List(Term) -> Strategy
+    StrategyDef-Plhdr  : StrategyDef
+    Id-Plhdr           : Id
+    Def-Plhdr          : Def
+    SVar-Plhdr         : SVar
+    Strategy-Plhdr     : Strategy
+    Term-Plhdr         : Term
+    StrategyDef-Plhdr  : COMPLETION-INSERTION -> StrategyDef
+    Id-Plhdr           : COMPLETION-INSERTION -> Id
+    Def-Plhdr          : COMPLETION-INSERTION -> Def
+    SVar-Plhdr         : COMPLETION-INSERTION -> SVar
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    Term-Plhdr         : COMPLETION-INSERTION -> Term
+    Def-Opt-Plhdr      : Def
+    Strategy-Opt-Plhdr : Strategy
+    Term-Opt-Plhdr     : Term
+    SDefT              : Id * List(Typedid) * List(Typedid) * Strategy -> StrategyDef
+    AnnoDef            : List(Anno) * StrategyDef -> Def
+    ExtSDefInl         : Id * List(Typedid) * List(Typedid) * Strategy -> StrategyDef
+    ExtSDef            : MaybeEmptyId * List(Typedid) * List(Typedid) -> StrategyDef
+    Def-Plhdr          : Def
+    Anno-Plhdr         : Anno
+    Id-Plhdr           : Id
+    Strategy-Plhdr     : Strategy
+    StrategyDef-Plhdr  : StrategyDef
+    MaybeEmptyId-Plhdr : MaybeEmptyId
+    Typedid-Plhdr      : Typedid
+    Def-Plhdr          : COMPLETION-INSERTION -> Def
+    Anno-Plhdr         : COMPLETION-INSERTION -> Anno
+    Id-Plhdr           : COMPLETION-INSERTION -> Id
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    StrategyDef-Plhdr  : COMPLETION-INSERTION -> StrategyDef
+    MaybeEmptyId-Plhdr : COMPLETION-INSERTION -> MaybeEmptyId
+    Typedid-Plhdr      : COMPLETION-INSERTION -> Typedid
+    Typedid-Opt-Plhdr  : Typedid
+                       : String -> MaybeEmptyId
+    Extend             : Anno
+    Override           : Anno
+    Internal           : Anno
+    Anno-Plhdr         : Anno
+    Anno-Plhdr         : COMPLETION-INSERTION -> Anno
+    VarDec             : ID * OldType -> Typedid
+    Typedid-Plhdr      : Typedid
+    ID-Plhdr           : ID
+    OldType-Plhdr      : OldType
+    Typedid-Plhdr      : COMPLETION-INSERTION -> Typedid
+    ID-Plhdr           : COMPLETION-INSERTION -> ID
+    OldType-Plhdr      : COMPLETION-INSERTION -> OldType
+    Fail               : Strategy
+    Id                 : Strategy
+    ProceedT           : List(Strategy) * List(Term) -> Strategy
+    ProceedNoArgs      : Strategy
+    Match              : Term -> Strategy
+    Build              : Term -> Strategy
+    Scope              : List(ID) * Strategy -> Strategy
+    Seq                : Strategy * Strategy -> Strategy
+    GuardedLChoice     : Strategy * Strategy * Strategy -> Strategy
+    PrimT              : String * List(Strategy) * List(Term) -> Strategy
+    Some               : Strategy -> Strategy
+    One                : Strategy -> Strategy
+    All                : Strategy -> Strategy
+    ID-Plhdr           : ID
+    String-Plhdr       : String
+    Term-Plhdr         : Term
+    Strategy-Plhdr     : Strategy
+    ID-Plhdr           : COMPLETION-INSERTION -> ID
+    String-Plhdr       : COMPLETION-INSERTION -> String
+    Term-Plhdr         : COMPLETION-INSERTION -> Term
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    ID-Opt-Plhdr       : ID
+    Strategy-Opt-Plhdr : Strategy
+    Term-Opt-Plhdr     : Term
+    MultiMatch         : MatchOrder * List(MatchCase) -> Strategy
+    Sequential         : MatchOrder
+    ScopedMatchCase    : List(ID) * Term * Strategy -> MatchCase
+    MatchOrder-Plhdr   : MatchOrder
+    MatchCase-Plhdr    : MatchCase
+    ID-Plhdr           : ID
+    Term-Plhdr         : Term
+    Strategy-Plhdr     : Strategy
+    MatchOrder-Plhdr   : COMPLETION-INSERTION -> MatchOrder
+    MatchCase-Plhdr    : COMPLETION-INSERTION -> MatchCase
+    ID-Plhdr           : COMPLETION-INSERTION -> ID
+    Term-Plhdr         : COMPLETION-INSERTION -> Term
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    ID-Opt-Plhdr       : ID
+                       : DTree -> Strategy
+    Leaf               : Strategy -> DTree
+    SwitchT            : Path * List(AltT) * DTree -> DTree
+    SwitchV            : Path * List(AltV) * DTree -> SwitchV
+    Strategy-Plhdr     : Strategy
+    AltT-Plhdr         : AltT
+    SwitchV-Plhdr      : SwitchV
+    Path-Plhdr         : Path
+    AltV-Plhdr         : AltV
+    DTree-Plhdr        : DTree
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    AltT-Plhdr         : COMPLETION-INSERTION -> AltT
+    SwitchV-Plhdr      : COMPLETION-INSERTION -> SwitchV
+    Path-Plhdr         : COMPLETION-INSERTION -> Path
+    AltV-Plhdr         : COMPLETION-INSERTION -> AltV
+    DTree-Plhdr        : COMPLETION-INSERTION -> DTree
+    AltT-Opt-Plhdr     : AltT
+    AltV-Opt-Plhdr     : AltV
+    AltT               : PatT * SwitchV -> AltT
+    AltV               : PatV * Strategy -> AltV
+    AltT-Plhdr         : AltT
+    PatT-Plhdr         : PatT
+    SwitchV-Plhdr      : SwitchV
+    AltV-Plhdr         : AltV
+    PatV-Plhdr         : PatV
+    Strategy-Plhdr     : Strategy
+    AltT-Plhdr         : COMPLETION-INSERTION -> AltT
+    PatT-Plhdr         : COMPLETION-INSERTION -> PatT
+    SwitchV-Plhdr      : COMPLETION-INSERTION -> SwitchV
+    AltV-Plhdr         : COMPLETION-INSERTION -> AltV
+    PatV-Plhdr         : COMPLETION-INSERTION -> PatV
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    Path               : List(PathEl) -> Path
+    Cur                : PathEl
+    Sub                : Int -> PathEl
+    Ann                : PathEl
+    Con                : PathEl
+    Typ                : PathEl
+    Int                : PathEl
+    Real               : PathEl
+    Str                : PathEl
+    Hd                 : PathEl
+    Tl                 : PathEl
+    Fun                : Id * Int -> PatV
+    Str                : String -> PatV
+    Int                : Int -> PatV
+    Real               : Real -> PatV
+    Anno               : PatV
+    Tuple              : Int -> PatV
+    Id-Plhdr           : Id
+    String-Plhdr       : String
+    Real-Plhdr         : Real
+    PatV-Plhdr         : PatV
+    Int-Plhdr          : Int
+    Id-Plhdr           : COMPLETION-INSERTION -> Id
+    String-Plhdr       : COMPLETION-INSERTION -> String
+    Real-Plhdr         : COMPLETION-INSERTION -> Real
+    PatV-Plhdr         : COMPLETION-INSERTION -> PatV
+    Int-Plhdr          : COMPLETION-INSERTION -> Int
+    ApplT              : PatT
+    ListT              : PatT
+    IntT               : PatT
+    RealT              : PatT
+    StringT            : PatT
+    TupleT             : PatT
+    PatT-Plhdr         : PatT
+    PatT-Plhdr         : COMPLETION-INSERTION -> PatT
+    ImportTerm         : ModName -> Strategy
+    Strategy-Plhdr     : Strategy
+    ModName-Plhdr      : ModName
+    Strategy-Plhdr     : COMPLETION-INSERTION -> Strategy
+    ModName-Plhdr      : COMPLETION-INSERTION -> ModName
+
+strategies
+  map(s) = 
+    rec x([] + [s | x])
 
 strategies // Desugaring Strategies
 
@@ -113,45 +477,45 @@ rules // Lift non-variable arguments to primitives.
 
 rules
 
-  LiftTopLevelBuildApp :
-    |[ !<s> t ]| -> |[ !t; s ]|
+//  LiftTopLevelBuildApp :
+//    |[ !<s> t ]| -> |[ !t; s ]|
 
-  LiftBuildApps : 
-    |[ !t ]| -> s
-    where {| AddApp
-	   : <sometd(LiftBuildApp)> t => t'
-	   ; <repeat(once-AddApp)> |[ !t' ]| => s
-	   |}
+//  LiftBuildApps : 
+//    |[ !t ]| -> s
+//    where {| AddApp
+//	   : <sometd(LiftBuildApp)> t => t'
+//	   ; <repeat(once-AddApp)> |[ !t' ]| => s
+//	   |}
 
-  LiftBuildApp :
-    Term|[ <s> t ]| -> Term|[ x ]|
-    where x := <tnewvar> "lift_app_in_build_m"
-        ; rules( AddApp :+ s' -> |[ {x : where(<s> t => x); s'} ]| )
+//  LiftBuildApp :
+//    Term|[ <s> t ]| -> Term|[ x ]|
+//    where x := <tnewvar> "lift_app_in_build_m"
+//        ; rules( AddApp :+ s' -> |[ {x : where(<s> t => x); s'} ]| )
 
-  LiftBuildApp :
-    Term|[ <s> ]| -> Term|[ x ]|
-    where x := <tnewvar> "lift_app_in_build_m"
-        ; rules( AddApp :+ s' -> |[ {x : where(s => x); s'} ]| )
+//  LiftBuildApp :
+//    Term|[ <s> ]| -> Term|[ x ]|
+//    where x := <tnewvar> "lift_app_in_build_m"
+//        ; rules( AddApp :+ s' -> |[ {x : where(s => x); s'} ]| )
 
-  LiftTopLevelMatchApp :
-    |[ ?<s> t ]| -> |[ s; ?t ]|
+//  LiftTopLevelMatchApp :
+//    |[ ?<s> t ]| -> |[ s; ?t ]|
 
-  LiftMatchApps : 
-    |[ ?t ]| -> s
-    where {| AddApp
-	   : <sometd(LiftMatchApp)> t => t'
-	   ; <repeat(once-AddApp)> |[ ?t' ]| => s
-	   |}
+//  LiftMatchApps : 
+//    |[ ?t ]| -> s
+//    where {| AddApp
+//	   : <sometd(LiftMatchApp)> t => t'
+//	   ; <repeat(once-AddApp)> |[ ?t' ]| => s
+//	   |}
 
-  LiftMatchApp :
-    Term|[ <s> t ]| -> Term|[ x ]|
-    where x := <tnewvar> "lift_app_in_match_m"
-        ; rules( AddApp :+ s' -> |[ {x : s'; !x; !t; s} ]| )
-
-  LiftMatchApp :
-    Term|[ <s> ]| -> Term|[ x ]|
-    where x := <tnewvar> "lift_app_in_match_m"
-        ; rules( AddApp :+ s' -> |[ {x : s'; !x; s} ]| )
+//  LiftMatchApp :
+//    Term|[ <s> t ]| -> Term|[ x ]|
+//    where x := <tnewvar> "lift_app_in_match_m"
+//        ; rules( AddApp :+ s' -> |[ {x : s'; !x; !t; s} ]| )
+//
+//  LiftMatchApp :
+//    Term|[ <s> ]| -> Term|[ x ]|
+//    where x := <tnewvar> "lift_app_in_match_m"
+//        ; rules( AddApp :+ s' -> |[ {x : s'; !x; s} ]| )
 
 strategies
 
@@ -171,18 +535,18 @@ strategies
 
 rules
 
-  RtoS : |[ (t1 -> t2 where s) ]| -> |[ ?t1; where(s); !t2 ]|
-         where
-           not(<is-list> s);
-           <pureterm> t1 ; <buildterm> t2
+//  RtoS : |[ (t1 -> t2 where s) ]| -> |[ ?t1; where(s); !t2 ]|
+//         where
+//           not(<is-list> s);
+//           <pureterm> t1 ; <buildterm> t2
 
   // |[ (t1 -> t2 cond*) ]| ->
-  RtoS : SRule(Rule(t1, t2, cond*)) -> |[ ?t1; s_conds; !t2 ]|
-         where
-           annos := <get-annos>
-         ; <pureterm> t1
-         ; <buildterm> t2
-         ; s_conds := <CtoS(<rule-traced-name> annos)> cond*
+//  RtoS : SRule(Rule(t1, t2, cond*)) -> |[ ?t1; s_conds; !t2 ]|
+//         where
+//           annos := <get-annos>
+//         ; <pureterm> t1
+//         ; <buildterm> t2
+//         ; s_conds := <CtoS(<rule-traced-name> annos)> cond*
 
   CtoS(name) : [] -> Id()
   
@@ -221,11 +585,11 @@ strategies // "with" strategy
         <+sname := ""
         )
 
-  with-strategy:
-    (s,sname) ->
-    Strat |[
-      with( s | [ "Internal error: 'with' clause failed unexpectedly in " {^[]} | [ ~str:sname {^[]} | [] {^[]} ] {^[]} ] {^[]} )
-    ]|
+//  with-strategy:
+//    (s,sname) ->
+//    Strat |[
+//      with( s | [ "Internal error: 'with' clause failed unexpectedly in " {^[]} | [ ~str:sname {^[]} | [] {^[]} ] {^[]} ] {^[]} )
+//    ]|
 
 strategies // "with" in dynamic rules
 
@@ -263,14 +627,14 @@ signature
 
 rules
 
-  Desugar : 
-    Strat|[ <s> t ]| -> |[ !t; s ]| 
-
-  Desugar : 
-    |[ s => t ]| -> |[ s; ?t ]|
-
-  Desugar :
-   |[ t1 := t2 ]| -> |[ !t2; ?t1 ]|
+//  Desugar : 
+//    Strat|[ <s> t ]| -> |[ !t; s ]| 
+//
+//  Desugar : 
+//    |[ s => t ]| -> |[ s; ?t ]|
+//
+//  Desugar :
+//   |[ t1 := t2 ]| -> |[ !t2; ?t1 ]|
 
   // Desugar :
   // Assign(t1, t2) -> Seq(Build(t2), Match(t1))
@@ -346,16 +710,16 @@ rules
  */
 rules
 
-  Desugar :
-    |[ rules(drd1 drd2 drd* ) ]| -> |[ rules(drd1); rules(drd2 drd* ) ]|
-
-  Desugar :
-    |[ rules( dr := t ) ]| -> |[ where({y : !t; ?y; rules( dr : _ -> y )}) ]| 
-    where y := <tnewvar> "globvar"
-
-  Desugar :
-    |[ rules( dr :+= t ) ]| -> |[ where({y : !t; ?y; rules( dr :+ _ -> y )}) ]| 
-    where y := <tnewvar> "globvar"
+//  Desugar :
+//    |[ rules(drd1 drd2 drd* ) ]| -> |[ rules(drd1); rules(drd2 drd* ) ]|
+//
+//  Desugar :
+//    |[ rules( dr := t ) ]| -> |[ where({y : !t; ?y; rules( dr : _ -> y )}) ]| 
+//    where y := <tnewvar> "globvar"
+//
+//  Desugar :
+//    |[ rules( dr :+= t ) ]| -> |[ where({y : !t; ?y; rules( dr :+ _ -> y )}) ]| 
+//    where y := <tnewvar> "globvar"
 
   Desugar :
     DynRuleIntersectFix(rulenames, s) -> 
@@ -438,31 +802,31 @@ rules
 
 // sugar for choice
 
-  Desugar :
-    |[ s1 +> s2 ]| -> |[ s2 <+ s1 ]|
-    // RChoice(s1, s2) -> LChoice(s2, s1)
+//  Desugar :
+//    |[ s1 +> s2 ]| -> |[ s2 <+ s1 ]|
+//    // RChoice(s1, s2) -> LChoice(s2, s1)
+//
+//  Desugar :
+//    |[ if s1 then s2 else s3 end ]| -> |[ where(s1) < s2 + s3 ]|
+//
+//  Desugar :
+//    |[ if s1 then s2 end ]| -> |[ where(s1) < s2 + id ]|
 
-  Desugar :
-    |[ if s1 then s2 else s3 end ]| -> |[ where(s1) < s2 + s3 ]|
+//  Desugar :
+//    SwitchChoiceNoOtherwise(s0, b*) -> SwitchChoice(s0, b*, |[ fail ]|)
+//    // |[ switch s1 sc* end ]| -> |[ switch s1 sc* otherwise fail end ]|
 
-  Desugar :
-    |[ if s1 then s2 end ]| -> |[ where(s1) < s2 + id ]|
+//  Desugar :
+//    SwitchChoice(s1, sc*, s2) -> |[ {x : where(s1 => x); s} ]|
+//    // |[ switch s1 sc* s2 end ]| -> |[ {x : where(s1 => x); s} ]|
+//    where x := <tnewvar> "switch"
+//        ; <foldr(!s2, glchoice(|x))> sc* => s
 
-  Desugar :
-    SwitchChoiceNoOtherwise(s0, b*) -> SwitchChoice(s0, b*, |[ fail ]|)
-    // |[ switch s1 sc* end ]| -> |[ switch s1 sc* otherwise fail end ]|
-
-  Desugar :
-    SwitchChoice(s1, sc*, s2) -> |[ {x : where(s1 => x); s} ]|
-    // |[ switch s1 sc* s2 end ]| -> |[ {x : where(s1 => x); s} ]|
-    where x := <tnewvar> "switch"
-        ; <foldr(!s2, glchoice(|x))> sc* => s
-
-  glchoice(|x) : 
-    ((s1, s2), s3) -> |[ if <~s1> x then ~s2 else ~s3 end ]|
-
-  glchoice(|x) :
-    (SwitchCase(s1, s2), s3) -> |[ if <~s1> x then ~s2 else ~s3 end ]|
+//  glchoice(|x) : 
+//    ((s1, s2), s3) -> |[ if <~s1> x then ~s2 else ~s3 end ]|
+//
+//  glchoice(|x) :
+//    (SwitchCase(s1, s2), s3) -> |[ if <~s1> x then ~s2 else ~s3 end ]|
 
   Desugar :
     MultiMatchTerm(order, t, cases) ->
@@ -473,13 +837,13 @@ rules
    where
     <tvars> s => x*
 
-  Desugar :
-    |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
-    where <not(Id)> s
-    with x := <tnewvar> "where"
+//  Desugar :
+//    |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
+//    where <not(Id)> s
+//    with x := <tnewvar> "where"
 
-  Desugar :
-    |[ where(id) ]| -> |[ id ]|
+//  Desugar :
+//    |[ where(id) ]| -> |[ id ]|
 
 // overlays
 
@@ -513,35 +877,35 @@ rules
   Desugar :
     TupleCong(t,ts) -> Call(SVar(""), [t|ts])
 
-  Desugar :
-    ExplodeCong(s1, s2) -> 
-    |[ {x, x', y, y': (x#(y) -> x'#(y') where <s1> x => x'; <s2> y => y')} ]|
-    where x := <tnewvar> "expl_cong_cons_m"
-        ; x' := <tnewvar> "expl_cong_args_m"
-        ; y := <tnewvar> "expl_cong_cons_b"
-        ; y' := <tnewvar> "expl_cong_args_b"
+//  Desugar :
+//    ExplodeCong(s1, s2) -> 
+//    |[ {x, x', y, y': (x#(y) -> x'#(y') where <s1> x => x'; <s2> y => y')} ]|
+//    where x := <tnewvar> "expl_cong_cons_m"
+//        ; x' := <tnewvar> "expl_cong_args_m"
+//        ; y := <tnewvar> "expl_cong_cons_b"
+//        ; y' := <tnewvar> "expl_cong_args_b"
 
-  Desugar :
-    ListCongNoTail(ts) -> <foldr(!|[ ?[] ]|, DesugarConsArgs)> ts
+//  Desugar :
+//    ListCongNoTail(ts) -> <foldr(!|[ ?[] ]|, DesugarConsArgs)> ts
 
   Desugar :
     ListCong(ss,s) -> <foldr(!s, DesugarConsArgs)> ss
   
-  DesugarConsArgs:
-    (s1, s2) -> // Call(SVar("Cons"),[t1,t2])
-    |[
-      {x, y, x', y', z:
-       ?[x | y]{^z};
-       !x; s1; ?x';
-       !y; s2; ?y';
-       ![x' | y']{^z}
-      }
-    ]|
-    where x := <tnewvar> "list_cong_head_m"
-        ; y := <tnewvar> "list_cong_tail_m"
-        ; x' := <tnewvar> "list_cong_head_b"
-        ; y' := <tnewvar> "list_cong_tail_b"
-        ; z := <tnewvar> "list_cong_annos"
+//  DesugarConsArgs:
+//    (s1, s2) -> // Call(SVar("Cons"),[t1,t2])
+//    |[
+//      {x, y, x', y', z:
+//       ?[x | y]{^z};
+//       !x; s1; ?x';
+//       !y; s2; ?y';
+//       ![x' | y']{^z}
+//      }
+//    ]|
+//    where x := <tnewvar> "list_cong_head_m"
+//        ; y := <tnewvar> "list_cong_tail_m"
+//        ; x' := <tnewvar> "list_cong_head_b"
+//        ; y' := <tnewvar> "list_cong_tail_b"
+//        ; z := <tnewvar> "list_cong_annos"
 
   Desugar :
     StrCong(x) -> Match(NoAnnoList(Str(x)))
@@ -566,14 +930,14 @@ rules
  */
 rules
 
-  Desugar :
-    NoAnnoList(Tuple([t])) -> t
-
-  Desugar :
-    AnnoList(Tuple([NoAnnoList(t)]), t*) -> AnnoList(t, t*)
-
-  Desugar :
-    AnnoList(Tuple([AnnoList(t, t1*)]), t2*) -> AnnoList(t, t1*)
+//  Desugar :
+//    NoAnnoList(Tuple([t])) -> t
+//
+//  Desugar :
+//    AnnoList(Tuple([NoAnnoList(t)]), t*) -> AnnoList(t, t*)
+//
+//  Desugar :
+//    AnnoList(Tuple([AnnoList(t, t1*)]), t2*) -> AnnoList(t, t1*)
 
   /* The following three rules handle a peculiarity in the Stratego syntax:
    *   a prefer on As of sort Term over As of sort PreTerm.
@@ -581,20 +945,20 @@ rules
    * consequences.
    * The minimal Stratego code that triggers this is `(a@b){c*})`.
    */
-  Desugar :
-    AnnoList(Tuple([As(v, NoAnnoList(t))]), t*) -> As(v,AnnoList(t, t*))
+//  Desugar :
+//    AnnoList(Tuple([As(v, NoAnnoList(t))]), t*) -> As(v,AnnoList(t, t*))
+//
+//  Desugar :
+//    AnnoList(Tuple([As(v, AnnoList(t, t1*))]), t2*) -> As(v,AnnoList(t, t1*))
+//
+//  Desugar :
+//    AnnoList(Tuple([As(v, t)]), t*) -> As(v,AnnoList(t, t*))
+//    where <not(NoAnnoList(id))> t
+//        ; <not(AnnoList(id,id))> t
 
-  Desugar :
-    AnnoList(Tuple([As(v, AnnoList(t, t1*))]), t2*) -> As(v,AnnoList(t, t1*))
-
-  Desugar :
-    AnnoList(Tuple([As(v, t)]), t*) -> As(v,AnnoList(t, t*))
-    where <not(NoAnnoList(id))> t
-        ; <not(AnnoList(id,id))> t
-
-  Desugar :
-    Tuple(ts) -> Op("", ts)
-    where <not([id])> ts
+//  Desugar :
+//    Tuple(ts) -> Op("", ts)
+//    where <not([id])> ts
 
   Desugar :
     List([]) -> Op("Nil", [])
@@ -678,12 +1042,12 @@ strategies
     where <explode-string> x => [39 | cs]
         ; <implode-string> cs => x'
 
-  DesugarOnce :
-    CallDynamic(t1,s*,t*) -> CallDynamic(Term |[ <conc-strings>(<cify>t1,t2) ]|,s*,t*)
-    where 
-      <length>s* ; int-to-string => i
-    ; <length>t* ; int-to-string => j
-    ; !NoAnnoList(Str(<concat-strings>["_",i,"_",j])) => t2
+//  DesugarOnce :
+//    CallDynamic(t1,s*,t*) -> CallDynamic(Term |[ <conc-strings>(<cify>t1,t2) ]|,s*,t*)
+//    where 
+//      <length>s* ; int-to-string => i
+//    ; <length>t* ; int-to-string => j
+//    ; !NoAnnoList(Str(<concat-strings>["_",i,"_",j])) => t2
 
 /**
  * Translating high-level constructs to low-level ones.
@@ -729,13 +1093,13 @@ strategies
   define-lrules = 
     bottomup(try(DefLRule + DefScopeDefault))
 
-  DefLRule : 
-    //|[ \ t1 -> t2 cond* \ ]| ->
-    //|[ { ~<tvars; map(try(?ListVar(<id>)))> t1 : (t1 -> t2 cond*) } ]|
-    LRule(Rule(t1, t2, cond*)) ->
-    |[ { ~<tvars; map(try(?ListVar(<id>)))> t1 : ~SRule(Rule(t1, t2, cond*)) } ]|
+//  DefLRule : 
+//    //|[ \ t1 -> t2 cond* \ ]| ->
+//    //|[ { ~<tvars; map(try(?ListVar(<id>)))> t1 : (t1 -> t2 cond*) } ]|
+//    LRule(Rule(t1, t2, cond*)) ->
+//    |[ { ~<tvars; map(try(?ListVar(<id>)))> t1 : ~SRule(Rule(t1, t2, cond*)) } ]|
 
-  DefScopeDefault :
-    |[ { s } ]| -> |[ { ~<tvars> s : s } ]|
+//  DefScopeDefault :
+//    |[ { s } ]| -> |[ { ~<tvars> s : s } ]|
 
 

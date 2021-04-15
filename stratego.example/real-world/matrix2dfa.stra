@@ -1,12 +1,58 @@
 module matrix2dfa
 
-imports
-  strj/multimatch/decompose
-  strj/multimatch/dfa
-  strj/multimatch/matrix
+signature
+  sorts DTree AltT AltV PatT PatV Path PathEl
+  constructors
+    MultiMatch         : MatchOrder * List(MatchCase) -> Strategy
+    Sequential         : MatchOrder
+    ScopedMatchCase    : List(ID) * Term * Strategy -> MatchCase
 
-  signatures/core/strategies-sig
-  signatures/core/terms-sig
+                       : DTree -> Strategy
+    Leaf               : Strategy -> DTree
+    SwitchT            : Path * List(AltT) * DTree -> DTree
+    SwitchV            : Path * List(AltV) * DTree -> SwitchV
+
+    AltT               : PatT * SwitchV -> AltT
+    AltV               : PatV * Strategy -> AltV
+
+    Path               : List(PathEl) -> Path
+    Cur                : PathEl
+    Sub                : Int -> PathEl
+    Ann                : PathEl
+    Con                : PathEl
+    Typ                : PathEl
+    Int                : PathEl
+    Real               : PathEl
+    Str                : PathEl
+    Hd                 : PathEl
+    Tl                 : PathEl
+
+    Fun                : Id * Int -> PatV
+    Str                : String -> PatV
+    Int                : Int -> PatV
+    Real               : Real -> PatV
+    Anno               : PatV
+    Tuple              : Int -> PatV
+
+    ApplT              : PatT
+    ListT              : PatT
+    IntT               : PatT
+    RealT              : PatT
+    StringT            : PatT
+    TupleT             : PatT
+
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+  
+    Op   : Id * List(Term) -> PreTerm
+    Wld  : Wld
+    Var  : ID -> Var
+         : Id -> ID
+         
+    Fail : Strategy
+    
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
@@ -26,9 +72,7 @@ strategies
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows(|o*): m@Matrix([]) -> Leaf(Fail())
-  where
-    <debug(!"NoRows ")> (o*, m)
+  NoRows(|o*): Matrix([]) -> Leaf(Fail())
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -37,10 +81,9 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow(|o*): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
+  WildcardsFirstRow(|o*): Matrix([Row(ps, a) | _]) -> Leaf(a)
   where
     <map(is-wildcard)> ps
-  ; <debug(!"WildcardsFirstRow ")> (o*, m)
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -50,8 +93,7 @@ strategies
    */
   SelectColumn(|o*@[o1 | os]): m@Matrix(rs) -> T
   with
-    <debug(!"SelectColumn ")> (o*, m)
-  ; i := <find-first-col-index(not-all-wildcards)> m
+    i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
     /*
@@ -96,18 +138,219 @@ strategies
   vswitch(|StringT(), [o1 | _], d) =
     !SwitchV(<append-occ> (o1, Str()), <map(valt)>, d)
 
-//  // Consider if this pattern can occur outside of an APPL.
-//  vswitch(|CtorT(), [o1 | _], d) = <error> ["CtorT not implemented"]; fail
-
   vswitch(|TupleT(), [o1 | _], d) = !SwitchV(o1, <map(valt)>, d)
 
-//  // TODO Find out if this is not yet deprecated.
-//  vswitch(|RefT(), [o1 | _], d) = <error> ["RefT not implemented"]; fail
-//
-//  // TODO Find out if this is not yet deprecated.
-//  vswitch(|BlobT(), [o1 | _], d) = <error> ["BlobT not implemented"]; fail
-//
-//  // TODO Find out if this is not yet deprecated.
-//  vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
-
   valt: (c, t, m, o*) -> AltV(c, <CC(|o*)> m)
+
+strategies
+  map(s) = 
+    rec x([] + [s | x])
+
+  append-occ: (Path(os*), o) -> Path([os*, o*])
+    with o* := [o]
+
+  debug(s) = id
+  filter(s) = id
+  error = fail
+  make-set = id
+  retain-all(s) = filter(s)
+  Fst: "" # ([x | xs]) -> x
+  Snd: "" # ([x, y | xs]) -> y
+  remove-all(s) = filter(not(s))
+  split(s1, s2) = id
+  string-to-int = id
+  int-to-string = id
+  range = id
+  inc = id
+  eq = ?(x, x)
+  length = id
+  is-TupleOp = ?Op("", _)
+  is-ListOp = ?Op("Nil", []) + ?Op("Cons", [_, _])
+  repeat(s|_) = id
+  gti = id
+  index(|i) = id
+  set-index = id
+  dec = id
+  is-list = ?[] + ?[_ | _]
+  matrix-transpose = id
+  foldr1(s) = id
+  max = id
+  split-fetch(s) = id
+
+  with(s | msg) = s <+ fail
+  makeConc =
+    ?(xs, ys)
+    ; if <is-list> xs; <is-list> ys then conc else !"Conc"#([xs, ys]) end
+  conc =
+    \ (l1, l2) -> <at-end(!l2)> l1 \
+    <+ \ "" # (xs) -> <concat> xs \
+  concat =
+    rec x([] + \ [l | ls] -> <at-end(<x> ls)> l\ )
+  at-end(s) = 
+    rec x([id | x] + []; s)
+
+strategies
+  /*
+   * Determine default case for matrix.
+   *
+   * Maranget (2008), fig. 1.
+   */
+  default: Matrix(rows) -> Matrix(<filter(default-row)> rows)
+
+  default-row: Row([Wld() | ps], a) -> Row(ps, a)
+  default-row = ?Row([Fun(_, _) | _], _); fail // by definition
+
+strategies
+  /*
+   * Get head constructors from list of (constructor) patterns.
+   *
+   * Maranget (2008), sec 4, step 3a.
+   */
+  head-constructors = debug(!"[i] hcs ")
+  ; remove-all(is-variable)
+  ; map(split(head-constructor, head-type <+ !()))
+
+  /*
+   * Specialize the matrix to a certain constructor.
+   *
+   * Maranget (2008), fig. 1.
+   */
+  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
+  specialize-row(|c) = Row(specialize-pats(|c), id)
+
+  specialize-occs(|c): occs@[o | os*] -> [o*, os*]
+    with o* := <specialize-occ(|c)> o
+
+  specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
+  specialize-occ(|Fun("Nil", "0")): Path(_) -> []
+  specialize-occ(|Fun("Cons", "2")): p@Path(_) -> [ <append-occ> (p, Hd())
+                                                  , <append-occ> (p, Tl()) ]
+  specialize-occ(|Fun(_, x)) = specialize-occ'(|<string-to-int> x)
+  specialize-occ(|Tuple(x)) = specialize-occ'(|<string-to-int> x)
+  specialize-occ(|c) = where(<is-literal> c); ![]
+
+  specialize-occ'(|a):      p@Path(_) -> ps
+    where
+      i* := <range> (1, <inc> a)
+    ; ps := <map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> i*
+
+
+  append-occ: (Path(os*), o) -> Path([os*, o*])
+    with o* := [o]
+
+  // Annotations
+//  head-constructor:             Anno(c, ann)        -> Anno()
+//  specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
+  specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
+
+  // Tuples + constructor applications
+  arity:                        Op(f, ts)           -> <length> ts
+
+  // Tuples
+  head-constructor:             c@Op("", ts)        -> (<arity; int-to-string> c)
+  head-type:                    Op("", _)           -> TupleT()
+  specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*] -> [qs*, ps*]
+    where
+      a := <string-to-int> x
+    ; <eq> (a, <arity> c)
+  specialize-pats(|Tuple(x)):  [Wld() | ps*]        -> <prepend-wld(|a)> ps*
+    where a := <string-to-int> x
+
+  // Lists
+  head-type:                    Op("Nil", [])       -> ListT()
+  head-type:                    Op("Cons", [_, _])  -> ListT()
+
+  // Constructor applications
+  head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
+    where <not(is-TupleOp)> c
+  head-type:                    c@Op(_, _)          -> ApplT()
+    where <not(is-ListOp + is-TupleOp)> c
+  specialize-pats(|Fun(f, x)): [c@Op(f, qs*) | ps*] -> [qs*, ps*]
+    where
+      <not(is-TupleOp)> c
+    ; a := <string-to-int> x
+    ; <eq> (a, <arity> c)
+  specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
+    with a := <string-to-int> x
+
+  // Literals
+  is-literal = ?Str(_) + ?Int(_) + ?Real(_)
+  head-constructor = is-literal
+  head-type:                    Str(_)              -> StringT()
+  head-type:                    Int(_)              -> IntT()
+  head-type:                    Real(_)              -> RealT()
+  specialize-pats(|Str(s)):    [<?Str(s) + ?Wld()> | ps*] -> ps*
+  specialize-pats(|Int(s)):    [<?Int(s) + ?Wld()> | ps*] -> ps*
+  specialize-pats(|Real(s)):   [<?Real(s) + ?Wld()> | ps*] -> ps*
+
+  // Variables
+  is-variable = ?Var(_) + ?Wld()
+  head-constructor = is-variable; fail // by definition
+  specialize-pats(|Wld()) = fail // by definition
+
+  prepend-wld(|n) = repeat(![Wld() | <id>] | n)
+
+signature
+  sorts Matrix Row
+  constructors
+    Matrix  : List(Row)             -> Matrix
+    Row     : List(Term) * Strategy -> Row
+
+strategies
+  is-wildcard = ?Wld() + ?Var(_) //+ all(is-wildcard) // TODO
+
+  row-not-all-wildcards = ?Row(<not-all-wildcards>, _)
+
+  /*
+   * Succeeds on a list if at least one element is not a wildcard.
+   */
+  not-all-wildcards = filter(not(is-wildcard)); ?[_ | _]
+
+  /*
+   * Get the `i`th column from a Matrix.
+   */
+  col(|i): Matrix(rows) ->
+    <map(?Row(<is-list>, _); index(|i))> rows
+
+  width: Matrix(rs) -> <foldr1(max)> ls
+  with
+    <map(\ Row(ts, _) -> <length> ts \)> rs => ls
+
+  height = ?Matrix(<is-list>); length
+
+  /*
+   * Find index of first element in list for which `s` succeeds.
+   * Index starts at 1.
+   */
+  find-first-row-index(s) = id
+  ; ?Matrix(<is-list>)
+  ; find-first-index(s)
+
+  find-first-col-index(s) = id
+  ; ?Matrix(<is-list>)
+  ; map(?Row(<id>, _))
+  ; matrix-transpose
+  ; find-first-index(s)
+
+  find-first-index(s) = id
+  ; is-list
+  ; split-fetch(s)
+  ; Fst
+  ; length
+  ; inc
+
+  swap-cols(|m, n) = Matrix(map(swap-row-el(|m, n)))
+
+  swap-row-el(|m, n) = Row(swap(|m, n), id)
+
+  /*
+   * Swap elements `m` and `n` in a list.
+   * Index starts at 1.
+   */
+  swap(|m, n): xs -> xs''
+  with
+    <is-list> xs
+  ; elM := <index(|m)> xs
+  ; elN := <index(|n)> xs
+  ; xs' := <set-index> (<dec> m, elN, xs)
+  ; xs'' := <set-index> (<dec> n, elM, xs')

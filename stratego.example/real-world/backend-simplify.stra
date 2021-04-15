@@ -4,7 +4,7 @@ imports
   libstratego-lib
 //  libstrc
   
-  lib/dr-scoping
+//  lib/dr-scoping
   split-large-strategies
   canonicalize2
   
@@ -13,10 +13,157 @@ signature
    Meta: List(Term) -> Term
    Filename: Str -> Term
 
+// lib/dr-scoping
 strategies
 
-  main-backend-simplify =
-    io-wrap(backend-simplify)
+  dr-scope-all-verbose(s) =
+    {| DrScopedRules :
+      dr-scope-all-start
+    ; s
+    <+
+      prim("SSL_stacktrace_get_all_frame_names")
+    ; if-verbose3(
+        report-failure(
+          log(|Error(), ["Compilation failed (", <run-time ; real-to-string(|2)>, " secs)"])
+        ; <exit> 1
+        )
+      )
+    ; dr-scope-all-end; fail
+    |}
+
+  // TODO: remove these definitions
+  internal dr-scope-all-start =
+    where(
+      table := Hashtable(<dr-rule-sets-hashtable>);
+      names := ["DrScopedRules" | <hashtable-keys> table];
+      
+      dr-begin-scopes(|names);
+      rules(DrScopedRules' := names)
+    )
+
+  internal dr-scope-all-end =
+    where(
+      table := Hashtable(<dr-rule-sets-hashtable>);
+      names := <DrScopedRules'>;
+      
+      dr-end-scopes(|names);
+  
+      // Remove other, newly defined rules
+      <diff> (<hashtable-keys> table, names);
+      list-loop(
+        { key: ?key;
+          <hashtable-remove(|key)> table
+        }
+      )
+    )
+
+// split-large-strategies
+strategies
+
+  split-large-strategies =
+    Specification([Signature([Constructors(id)]), Strategies(map(try(split-large-def)))])
+  
+  split-large-def :
+    SDefT(x, s*, t*, s) -> SDefT(x, s*, t*, s')
+    with
+      s' := <split-large-strategy(|x)> s
+  
+  split-large-strategy(|x) =
+    bottomup-at-large-terms(
+      (?Seq(_, _) + ?GuardedLChoice(_, _, _))
+    ; split-large-strategy-apply(|x)
+    )
+
+  bottomup-at-large-terms(s) =
+    bottomup-at-large-terms'(s) => (<id>, _)
+  
+  bottomup-at-large-terms'(s) :
+    t -> (t'', size')
+    with
+      t'-and-sizes := <all(bottomup-at-large-terms'(s))>
+    ; t'           := <all(Fst)> t'-and-sizes
+    ; size         := <crush(!1, add, Snd)> t'-and-sizes
+    with
+      ?SDefT(_, _, _, _) // don't count definitions
+    ; t''   := t'
+    ; size' := 0
+    <+
+      <gt> (size, LARGE_STRATEGY_SIZE())
+    ; t''   := <s> t'
+    ; size' := 0
+    <+
+      t''   := t'
+    ; size' := size
+  
+//  split-large-strategy-apply(|x) :
+//    |[ s ]| ->
+//    |[ let
+//         x_split(|) = s
+//       in
+//         { x_unused: // HACK: prevent inlining by simplify/HoistLet
+//           x_split(|)
+//         }
+//       end
+//    ]|
+//    with
+//      x_split  := <newname> <conc-strings> (x, "_fragment_")
+//    ; x_unused := <newname> "unused"
+
+// lift-definitions
+strategies
+
+  lift-definitions =
+    declare-standard-strategies
+    ; Specification([id, Strategies(map(ignore-anno-def(DeclareTopLevel)); map(lift-sdefs <+ ![<id>]); concat)])
+
+  declare-standard-strategies =
+    where(
+      <map({?f; rules(TopLevel : f -> ())})> 
+      ["_id", "_fail"]
+    )
+
+  DeclareTopLevel =
+    ?SDefT(f, xs, ys, s)
+    ; rules(TopLevel : f -> ())
+
+  DeclareTopLevel =
+    ?ExtSDefInl(f, xs, ys, s)
+    ; rules(TopLevel : f -> ())
+
+  DeclareTopLevel =
+    ?ExtSDef(f, xs, ys)
+    ; rules(TopLevel : f -> ())
+
+  lift-sdefs :
+    AnnoDef(a*, SDefT(f, xs, ys, s)) -> <conc>(defs, [AnnoDef(a*, SDefT(f, xs, ys, s'))])
+    where <collect-split(LiftFromLet)> s => (s', defs)
+  
+  lift-sdefs :
+    SDefT(f, xs, ys, s) -> <conc>(defs, [SDefT(f, xs, ys, s')])
+    where <collect-split(LiftFromLet)> s => (s', defs)
+
+  LiftFromLet :
+    Let(defs, s) -> (Let(defs2, s), defs1)
+    where <partition(SuperCombinator)> defs => (defs1, defs2)
+  ; <map(DeclareTopLevel)> defs1
+
+  SuperCombinator =
+    ?def@SDefT(f, xs, ys, s)
+    ; where(
+        <tvars> def => []
+        ; <svars; filter(not(TopLevel))> def => []
+      )
+
+// canonicalize2
+strategies
+  canonicalize2 = id
+  
+
+
+strategies
+
+//  main-backend-simplify =
+//    io-wrap(backend-simplify)
   
   backend-simplify =
     dr-scope-all-verbose(
