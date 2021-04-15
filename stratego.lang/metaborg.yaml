@@ -1,11 +1,12 @@
 ---
 id: org.metaborg:stratego.lang:${metaborgVersion}
 name: StrategoLang
-# TODO: add a baseline version once this language is in a stable release of Spoofax
+metaborgVersion: 2.6.0-SNAPSHOT
+metaborgBaselineVersion: 2.5.14
 dependencies:
   compile:
-  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
-  - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
+  - org.metaborg:org.metaborg.meta.lang.template:${metaborgBaselineVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 pardonedLanguages:
