@@ -20,27 +20,36 @@ strategies
     SDefT(id, id, id, match-choices-to-multimatches)
 
   match-choices-to-multimatches =
-    simplify; topdown(try(translate-match-choices))
+    simplify // To lower number of possible patterns
+  ; match-choices-to-multimatches1
+
+  // Used for testing
+  match-choices-to-multimatches-test-NoDesugar =
+    simplify-NoDesugar
+  ; match-choices-to-multimatches1
+  
+  match-choices-to-multimatches1 =
+    topdown(try(translate-match-choices))
+  ; simplify-clean // Remove vars from scopes if they are now scoped from a match case
 
   translate-match-choices =
     !MultiMatch(<MatchCasesChoice>)
 
   MatchCases =
     MatchCasesChoice
- <+ MatchCasesMulti // Merge MultiMatch cases
  <+ MatchCasesDefault
 
   MatchCasesChoice:
     ChoicePattern(s1, s2) -> [<MatchCase> s1 | <MatchCases> s2]
-
-  MatchCasesMulti =
-    ?MultiMatch(<id>)
 
   // No fail needed in the last case; is implicit in MultiMatch.
   MatchCasesDefault: Fail() -> []
   MatchCasesDefault = ![<MatchCase>]
   MatchCasesDefault =
     ![ScopedMatchCase(<tvars>, Anno(Wld(), Wld()), <id>)]
+
+  // Merge MultiMatch cases
+  MatchCase = ?MultiMatch(<id>)
 
   MatchCase:
     MatchBuildPattern(p, s) -> ScopedMatchCase(x*, p, s)

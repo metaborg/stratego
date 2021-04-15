@@ -1,0 +1,32 @@
+module desugar/matchchoice
+language stratego
+
+test match alts to MM [[
+module matchchoice
+
+signature
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  s = ?Cons(_, Nil()); !1
+   <+ ?Cons(_, Cons(_, Cons(_, Nil()))); !2
+   <+ ?_; !3
+]] run match-choices-to-multimatches-test-NoDesugar to [[
+module matchchoice
+
+signature
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  s = match sequential
+    case | Cons(_, Nil( )): !1
+    case | Cons(_, Cons(_, Cons(_, Nil( )))): !2
+    case | _{^_}: !3
+  end
+]]

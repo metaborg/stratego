@@ -58,6 +58,18 @@ strategies
     + RecIsSugar
     + Desugar
 
+  Optimize-NoDesugar(|assume-shared-terms) =
+    Simplify(|assume-shared-terms)
+    + HoistLet 
+    + FuseScope
+    + WidenScope
+    + WhereSavesCurrentTerm
+    + TestSavesCurrentTerm
+    + LeftChoiceIsSugar
+    + ChoiceIsSugar 
+    + NotIsSugar
+    + RecIsSugar
+
   // Provided for compatibility; for performance,
   // assume-shared-terms argument should be locally cached
   Optimize =
@@ -72,6 +84,14 @@ strategies
   ; rec rec(
       bottomup(
         repeat( AssociateR ; rec <+ Optimize(|assume-shared-terms) )
+      )
+    )
+
+    simplify-NoDesugar =
+    where(assume-shared-terms := <AssumeSharedTerms>)
+  ; rec rec(
+      bottomup(
+        repeat( AssociateR ; rec <+ Optimize-NoDesugar(|assume-shared-terms) )
       )
     )
     

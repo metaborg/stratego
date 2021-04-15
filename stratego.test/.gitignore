@@ -1,4 +1,6 @@
+/.cache
 /bin
+/src-gen
 /target
 
 /.classpath
