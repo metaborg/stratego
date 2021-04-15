@@ -96,13 +96,13 @@ context-free syntax
   DTree.Leaf = <leaf <Strategy>> // Only if we don't need DTree.Fail
 //  DTree.Fail = <fail> // Only if we can express 
   DTree.SwitchT =
-<tswitch [<Path>] {
+<switch [<Path>] {
   <{AltT "\n"}*>
   default: <DTree>
 }>
 
   SwitchV.SwitchV =
-<vswitch [<Path>] {
+<switch [<Path>] {
   <{AltV "\n"}*>
   default: <DTree>
 }>
@@ -133,12 +133,12 @@ context-free syntax
 
 sorts PatV
 context-free syntax
-  PatV.Fun = <Fun(<Id>, <Int>)>
+  PatV.Fun = <(<Id>, <Int>)>
   PatV.Str = String
   PatV.Int = Int
   PatV.Real = Real
-  PatV.Anno = <Anno>
-  PatV.Tuple = <Tuple(<Int>)>
+  PatV.Anno = <{_}>
+  PatV.Tuple = <(<Int>)>
 
 sorts PatT
 context-free syntax
