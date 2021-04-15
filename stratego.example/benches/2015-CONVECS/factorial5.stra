@@ -1,0 +1,30 @@
+module factorial5
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat
+
+constructors
+   d0 : Nat 
+   s : Nat -> Nat 
+   plus : Nat * Nat -> Nat 
+   times : Nat * Nat -> Nat 
+   fact : Nat -> Nat 
+
+rules
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: times (d0(), N) -> d0()
+   REC_E: times (s (N), M) -> plus (M, times (N, M))
+   REC_E: fact (d0()) -> s (d0())
+   REC_E: fact (s (N)) -> times (s (N), fact (N))
+
+strategies
+   eval = memo (innermost (REC_E))
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> fact (s (s (s (s (s (d0()))))))) ;
+      <exit> 0
