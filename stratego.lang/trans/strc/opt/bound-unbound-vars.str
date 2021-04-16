@@ -41,6 +41,7 @@ strategies
     <+ mark-choice(mark-buv)
     <+ mark-lchoice(mark-buv)
     <+ mark-guardedlchoice(mark-buv)
+    <+ mark-matchcase
     <+ all(mark-buv)
   //); debug(!"mark-buv out: "); dr-print-rule-set(|"MarkVar")
 
@@ -85,6 +86,9 @@ strategies
 
   mark-scope =
     Scope(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
+
+  mark-matchcase =
+    ScopedMatchCase(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|}, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
 
   mark-match =
     Match(mark-match-vars)
