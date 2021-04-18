@@ -96,13 +96,13 @@ context-free syntax
   DTree.Leaf = <leaf <Strategy>> // Only if we don't need DTree.Fail
 //  DTree.Fail = <fail> // Only if we can express 
   DTree.SwitchT =
-<switch [<Path>] {
+<switch <Path> {
   <{AltT "\n"}*>
   default: <DTree>
 }>
 
   SwitchV.SwitchV =
-<switch [<Path>] {
+<switch <Path> {
   <{AltV "\n"}*>
   default: <DTree>
 }>
@@ -118,7 +118,7 @@ context-free syntax
 
 sorts Path PathEl
 context-free syntax
-  Path.Path = <<{PathEl ", "}+>>
+  Path.Path = <[<{PathEl ", "}+>]>
 
   PathEl.Cur = <cur>
   PathEl.Sub = <sub <Int>>
