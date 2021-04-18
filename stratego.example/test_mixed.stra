@@ -9,10 +9,16 @@ signature
     Car2  : a             -> List(a)
 
 strategies
-  uncar2 = match sequential
-            case Car1(a): Cons(!1, Nil())
-            case Car2(b): Cons(!2, Nil())
-            case "abc": !"cba"
-            case 8: !54
-            case 5.4: !8
-          end
+  uncar2(|x) = match sequential
+                 case Cons(x, _): !x // equality check
+                 case Cons(y, _): !y // matches all Cons(_, _)
+                 case Cons(Nil(), z): !z // dead
+              end
+
+  s =
+
+//  uncar2(|x) = match sequential
+//                 case Cons(x, _): !x // equality check
+//                 case Cons(y, _): !y // matches all Cons(_, _)
+//                 case Cons(Nil(), z): !z // dead
+//              end
