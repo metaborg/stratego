@@ -473,7 +473,7 @@ rules
   Desugar :
    MatchCase(t, s) -> ScopedMatchCase(x*, t, s)
    where
-    <tvars> s => x*
+    <tvars> s => x* // TODO BINDS: Fix
 
   Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|

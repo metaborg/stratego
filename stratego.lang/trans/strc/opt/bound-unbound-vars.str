@@ -87,8 +87,14 @@ strategies
   mark-scope =
     Scope(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
 
-  mark-matchcase =
-    ScopedMatchCase(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|}, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
+  // TODO BINDS: Add MatchCase(_, _)?
+  mark-matchcase: ScopedMatchCase(xs, p, s) -> ScopedMatchCase(xs, p', s')
+  where
+    {| MarkVar :
+      <map(DeclareUnbound)> xs
+    ; p' := <mark-match-vars> p
+    ; s' := <mark-buv> s
+    |}
 
   mark-match =
     Match(mark-match-vars)

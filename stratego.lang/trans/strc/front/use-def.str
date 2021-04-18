@@ -101,7 +101,8 @@ strategies
     + CallDynamic(id,id,id) < or(CallDynamic(id,unbound-vars,id),
                                  CallDynamic(use-vars,id,use-vars))
     + ScopedMatchCase(id, id, id) < or(ScopedMatchCase(bind-vars, id, id),
-                                    ScopedMatchCase(id, unbound-vars, unbound-vars))
+                                    ScopedMatchCase(id, unbound-vars, unbound-vars)) // TODO BINDS: Check
+    //+ MatchCase(_, _) // TODO BINDS: Introduce?
     + some(unbound-vars)
 
   bind-vars = 
