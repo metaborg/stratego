@@ -93,6 +93,7 @@ strategies
 	   ; <ev> s1 => s2
 	   ; <map(try(Escapes))> x1* => x2*
            |}
+  // TODO BINDS: Add?
 
   declare-arg(|f) =
     ?Typedid|[ x : tp ]|

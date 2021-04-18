@@ -15,6 +15,7 @@ strategies
       alltd(
            ?SDefT(_,_,_,_); ListVarScope; all(dlm)
         <+ ?Scope(_, _); ListVarScope; all(dlm)
+        // TODO BINDS List matching in (Scoped)MatchCase
         <+ RtoS; all(dlm)
         <+ Build(dlm-in-build(dlm))
         <+ CallT(id, map(dlm), map(dlm-in-build(dlm)))
@@ -47,6 +48,11 @@ rules
 
   ListVarScope :
     Scope(xs, s) -> Scope(ys, s)
+    where <map(try(?ListVar(<id>)))> xs => ys
+
+  // TODO BINDS: Check
+  ListVarScope :
+    ScopedMatchCase(xs, t, s) -> ScopedMatchCase(ys, t, s)
     where <map(try(?ListVar(<id>)))> xs => ys
 
   ListVarScope :

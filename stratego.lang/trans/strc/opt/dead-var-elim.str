@@ -25,6 +25,7 @@ strategies
     <+ elim-guardedlchoice(dve)
     <+ EliminateFromMatch
     <+ all-rl(dve)
+    // TODO BINDS: Add (Scoped)MatchCase
   )
 
   all-rl(x) = 

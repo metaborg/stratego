@@ -134,7 +134,7 @@ strategies
   tboundin(bnd, ubnd, ignore) =
     Scope(ignore, bnd)
     + LRule(Rule(bnd, bnd, bnd))
-    + ScopedMatchCase(ignore, bnd, bnd)
+    + ScopedMatchCase(ignore, bnd, bnd) // TODO BINDS Check
     + RDecT(ignore, ignore, ignore)
     + SDefT(ignore, ignore, ignore, bnd)
     + ExtSDef(ignore, ignore, ignore)
