@@ -19,14 +19,26 @@
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>stratego-junit-bridge</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.7.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -44,7 +56,7 @@
         <dependencies>
           <dependency>
             <groupId>org.metaborg</groupId>
-            <artifactId>org.metaborg.meta.lang.stratego</artifactId>
+            <artifactId>stratego.lang</artifactId>
             <version>${metaborg-version}</version>
             <type>spoofax-language</type>
           </dependency>
@@ -60,10 +72,10 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.metaborg</groupId>
-                  <artifactId>org.metaborg.meta.lang.stratego</artifactId>
+                  <artifactId>stratego.lang</artifactId>
                   <version>${metaborg-version}</version>
                   <type>spoofax-language</type>
-                  <destFileName>stratego.spoofax-language</destFileName>
+                  <destFileName>stratego.lang.spoofax-language</destFileName>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
@@ -73,6 +85,15 @@
         <configuration>
           <overWriteReleases>true</overWriteReleases>
           <overWriteSnapshots>true</overWriteSnapshots>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <strj-sut>${settings.localRepository}/org/metaborg/strategoxt-jar/${metaborg-version}/strategoxt-jar-${metaborg-version}.jar</strj-sut>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>

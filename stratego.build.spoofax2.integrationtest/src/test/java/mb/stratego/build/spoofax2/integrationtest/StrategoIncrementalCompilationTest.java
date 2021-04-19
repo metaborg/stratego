@@ -12,10 +12,11 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
@@ -43,18 +44,16 @@ import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
-import static org.junit.Assert.assertTrue;
-
 public class StrategoIncrementalCompilationTest {
-    public @Nullable Spoofax spoofax;
+    public static @Nullable Spoofax spoofax;
 
-    @Before public void createSpoofaxInstance() throws MetaborgException {
+    @BeforeAll static void createSpoofaxInstance() throws MetaborgException {
         spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
     }
 
-    @Test @Ignore public void testCompile() throws IOException, MetaborgException {
+    @Test @Disabled("Fails to find stratego.lang") public void testCompile() throws IOException, MetaborgException {
         // setup
-        assert spoofax != null : "@Before should set up Spoofax instance";
+        assert spoofax != null : "@BeforeAll should set up Spoofax instance";
 
         final Path temporaryDirectoryPath =
             Files.createTempDirectory(StrategoIncrementalCompilationTest.class.getName())
@@ -81,7 +80,7 @@ public class StrategoIncrementalCompilationTest {
         final FSPath serializingStorePath = new FSPath(temporaryDirectoryPath.resolve("pie-store"));
 
         // load Stratego language for later discovery during compilation (parsing in particular)
-        final URL strategoURL = getClass().getResource("/stratego.spoofax-language");
+        final URL strategoURL = getClass().getResource("/stratego.lang.spoofax-language");
         spoofax.languageDiscoveryService
             .languageFromArchive(spoofax.resolve(strategoURL.getFile()));
 
@@ -124,28 +123,28 @@ public class StrategoIncrementalCompilationTest {
         }
 
         Path strategoJavaPackageOutputDir = depPath;
-        assertTrue(Files.exists(strategoJavaPackageOutputDir));
-        assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
+        Assertions.assertTrue(Files.exists(strategoJavaPackageOutputDir));
+        Assertions.assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
         final Path interopRegistererJavaFile = strategoJavaPackageOutputDir.resolve("InteropRegisterer.java");
-        assertTrue(Files.exists(interopRegistererJavaFile));
-        assertTrue(Files.isRegularFile(interopRegistererJavaFile));
-        assertTrue(new String(Files.readAllBytes(interopRegistererJavaFile), StandardCharsets.UTF_8).contains("InteropRegisterer"));
+        Assertions.assertTrue(Files.exists(interopRegistererJavaFile));
+        Assertions.assertTrue(Files.isRegularFile(interopRegistererJavaFile));
+        Assertions.assertTrue(new String(Files.readAllBytes(interopRegistererJavaFile), StandardCharsets.UTF_8).contains("InteropRegisterer"));
         final Path mainJavaFile = strategoJavaPackageOutputDir.resolve("Main.java");
-        assertTrue(Files.exists(mainJavaFile));
-        assertTrue(Files.isRegularFile(mainJavaFile));
-        assertTrue(new String(Files.readAllBytes(mainJavaFile), StandardCharsets.UTF_8).contains("Main"));
+        Assertions.assertTrue(Files.exists(mainJavaFile));
+        Assertions.assertTrue(Files.isRegularFile(mainJavaFile));
+        Assertions.assertTrue(new String(Files.readAllBytes(mainJavaFile), StandardCharsets.UTF_8).contains("Main"));
         final Path mainStrategyJavaFile = strategoJavaPackageOutputDir.resolve("hello_0_0.java");
-        assertTrue(Files.exists(mainStrategyJavaFile));
-        assertTrue(Files.isRegularFile(mainStrategyJavaFile));
-        assertTrue(new String(Files.readAllBytes(mainStrategyJavaFile), StandardCharsets.UTF_8).contains("hello_0_0"));
+        Assertions.assertTrue(Files.exists(mainStrategyJavaFile));
+        Assertions.assertTrue(Files.isRegularFile(mainStrategyJavaFile));
+        Assertions.assertTrue(new String(Files.readAllBytes(mainStrategyJavaFile), StandardCharsets.UTF_8).contains("hello_0_0"));
         final Path worldStrategyJavaFile = strategoJavaPackageOutputDir.resolve("world_0_0.java");
-        assertTrue(Files.exists(worldStrategyJavaFile));
-        assertTrue(Files.isRegularFile(worldStrategyJavaFile));
-        assertTrue(new String(Files.readAllBytes(worldStrategyJavaFile), StandardCharsets.UTF_8).contains("world_0_0"));
+        Assertions.assertTrue(Files.exists(worldStrategyJavaFile));
+        Assertions.assertTrue(Files.isRegularFile(worldStrategyJavaFile));
+        Assertions.assertTrue(new String(Files.readAllBytes(worldStrategyJavaFile), StandardCharsets.UTF_8).contains("world_0_0"));
         final Path testPackageJavaFile = strategoJavaPackageOutputDir.resolve("test.java");
-        assertTrue(Files.exists(testPackageJavaFile));
-        assertTrue(Files.isRegularFile(testPackageJavaFile));
-        assertTrue(new String(Files.readAllBytes(testPackageJavaFile), StandardCharsets.UTF_8).contains("test"));
+        Assertions.assertTrue(Files.exists(testPackageJavaFile));
+        Assertions.assertTrue(Files.isRegularFile(testPackageJavaFile));
+        Assertions.assertTrue(new String(Files.readAllBytes(testPackageJavaFile), StandardCharsets.UTF_8).contains("test"));
 
         // serialize
 
@@ -205,7 +204,7 @@ public class StrategoIncrementalCompilationTest {
         }
     }
 
-    @After public void destroySpoofaxInstance() {
+    @AfterAll public static void destroySpoofaxInstance() {
         assert
             spoofax != null : "@Before should set up Spoofax instance, test should not remove it";
         spoofax.close();
