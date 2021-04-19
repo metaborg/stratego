@@ -41,7 +41,7 @@ strategies
     <+ mark-choice(mark-buv)
     <+ mark-lchoice(mark-buv)
     <+ mark-guardedlchoice(mark-buv)
-    <+ mark-matchcase
+    <+ mark-multimatch
     <+ all(mark-buv)
   //); debug(!"mark-buv out: "); dr-print-rule-set(|"MarkVar")
 
@@ -88,6 +88,7 @@ strategies
     Scope(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
 
 //  mark-matchcase = MatchCase(id, id);  <error> ["TODO Implement mark-matchcase"]; fail
+
   mark-matchcase: ScopedMatchCase(xs, p, s) -> ScopedMatchCase(xs, p', s')
   where
     {| MarkVar :
@@ -95,6 +96,11 @@ strategies
     ; p' := <mark-match-vars> p
     ; s' := <mark-buv> s
     |}
+
+  mark-multimatch =
+    MultiMatch(id, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-matchcase)> c | acc] \))
+
+  mark-multimatch = MultiMatchTerm(id, id, id); <error> ["TODO Implement mark-multimatch"]; fail
 
   mark-match =
     Match(mark-match-vars)
