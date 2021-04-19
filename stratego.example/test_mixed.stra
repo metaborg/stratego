@@ -15,8 +15,6 @@ strategies
                  case Cons(Nil(), z): !z // dead
               end
 
-  s =
-
 //  uncar2(|x) = match sequential
 //                 case Cons(x, _): !x // equality check
 //                 case Cons(y, _): !y // matches all Cons(_, _)
