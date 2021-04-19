@@ -87,7 +87,7 @@ strategies
   mark-scope =
     Scope(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
 
-  // TODO BINDS: Add MatchCase(_, _)?
+//  mark-matchcase = MatchCase(id, id);  <error> ["TODO Implement mark-matchcase"]; fail
   mark-matchcase: ScopedMatchCase(xs, p, s) -> ScopedMatchCase(xs, p', s')
   where
     {| MarkVar :

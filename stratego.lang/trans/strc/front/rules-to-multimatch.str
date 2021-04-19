@@ -44,7 +44,7 @@ rules
   // SDefTs should be left alone
   r2mm: odefs@[SDefT(_, _, _, _) | _] -> odefs
 
-  rule-to-case: RDefT(_, _, _, s) -> MatchCase(pat, Build(body))
+  rule-to-case: RDefT(_, _, _, s) -> ScopedMatchCase([], pat, Build(body))
   where
     Rule(pat, body, conds) := s // TODO Handle conditions
 

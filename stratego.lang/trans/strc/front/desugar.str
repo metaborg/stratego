@@ -470,10 +470,10 @@ rules
     MultiMatchTerm(order, t, cases) ->
     Seq(Build(t), MultiMatch(order, cases))
 
-  Desugar :
-   MatchCase(t, s) -> ScopedMatchCase(x*, t, s)
-   where
-    <tvars> s => x* // TODO BINDS: Fix
+//  Desugar :
+//   MatchCase(t, s) -> ScopedMatchCase([], t, s)
+//   where
+//    <tvars> t => x* // TODO BINDS: Fix
 
   Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|

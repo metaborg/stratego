@@ -100,7 +100,7 @@ end>
 
   MatchOrder.Specificity = <specificity>
 
-  MatchCase.MatchCase = <case <Term>: <Strategy>>
+//  MatchCase.MatchCase = <case <Term>: <Strategy>>
 
 context-free priorities
   { Strategy.AnnoCong Strategy.ExplodeCong }
