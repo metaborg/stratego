@@ -258,15 +258,16 @@ insertCasts-Strategy(|e1, st1):
   s@ImportTerm(_) -> (s, <current-type(|DynT())> st1)
 
 insertCasts-Strategy-(|e1, st1): // TODO Check
-  MultiMatch(_, c*) -> (MultiMatch(Sequential(), c'*), st2)
+  MultiMatch(o, c*) -> (MultiMatch(o, c'*), st2)
   with
-    (c'*, _, st2) := <map-LUB(insertCasts-MatchCase-)> c*
+    (c'*, [st | st*]) := <unzip(insertCasts-MatchCase-(|e1, st1))> c*
+  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
 
 insertCasts-Strategy-(|e1, st1): // TODO Check
-  MultiMatchTerm(_, trm1, c*) -> (MultiMatchTerm(Sequential(), trm2, c'*), st3)
+  MultiMatchTerm(o, trm1, c*) -> (MultiMatchTerm(o, trm2, c'*), st3)
   with
     (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
-  ; (c'*, _, st3) := <map-LUB(insertCasts-MatchCase-)> c*
+  ; (c'*, _, st3) := <map-LUB(insertCasts-MatchCase-(|e1, st1))> (c*, st2)
 
 insertCasts-MatchCase(|e1, st1) = otf12(insertCasts-MatchCase-(|e1, st1))
 //insertCasts-MatchCase-(|e1, st1):
@@ -288,7 +289,7 @@ insertCasts-MatchCase-(|e1, st1):
     new := <map-pair-right(|DynT()); immap-from-list> x*
   ; orig := <term-env; immap-intersect(keep-left|new)> st1
   ; st2 := <term-merge-env(keep-right)> (st1, new)
-  ; (t2, st3) := <insertCasts-MatchTerm(|e1, st2)> t1
+  ; (t2, (st3, _)) := <insertCasts-MatchTerm(|e1, st2)> t1
   ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1
   ; st5 := <term-env(immap-subtract(|new); immap-union(fail|orig))> st4
 
