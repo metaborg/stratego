@@ -2026,7 +2026,6 @@ strategies
 
   translate-Path = id
   ; ?Path([p | ps])
-  ; where(<not(?Cur())> p; <error> ["Path invalid: does not start with current term."])
   ; !(ps, <translate-PathEl> (p, Empty()))
   ; foldl(translate-PathEl)
 
