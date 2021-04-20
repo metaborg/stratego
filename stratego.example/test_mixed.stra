@@ -5,15 +5,12 @@ signature
     Nil 	: 				         List(a)
     Cons 	: a * List(a) 	-> List(a)
 
-    Car1 	: a 			      -> List(a)
-    Car2  : a             -> List(a)
-
 strategies
-  uncar2(|x) = match sequential
-                 case Cons(x, _): !x // equality check
-                 case Cons(y, _): !y // matches all Cons(_, _)
-                 case Cons(Nil(), z): !z // dead
-              end
+  uncar2 = match sequential
+                 case   | Cons(_, _): !1 // equality check
+                 case y | Cons(y, _): !y // matches all Cons(_, _)
+                 case z | Cons(Nil(), z): !z // dead
+              end 
 
 //  uncar2(|x) = match sequential
 //                 case Cons(x, _): !x // equality check

@@ -1,15 +1,15 @@
 module matchbuild
 
-signature
+signature 
   sorts List
   constructors
     Nil  :                List(a)
     Cons : a * List(a) -> List(a)
 
 strategies
-mb = ?Cons(_, Nil()); <conc> ([])
-  <+ ?Cons(_, Cons(_, Cons(_, Nil()))); !3
-  <+ ?_; map(id)
+mb(|x) = ?Cons(x, Nil()); <conc> ([])
+  <+ ?Cons(x, Cons(y, Cons(_, Nil()))); !3
+  <+ ?_; map(id) // TODO dlook for renaming in Scope(dMatchCase)
 
 map(s) = 
   rec x([] + [s | x]) 
