@@ -2,7 +2,6 @@ package mb.stratego.build.spoofax2.integrationtest;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +14,6 @@ import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.Spoofax;
@@ -34,6 +32,7 @@ import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.fs.FSPath;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.spoofax2.StrIncrModule;
+import mb.stratego.build.spoofax2.integrationtest.lang.Stratego;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
@@ -51,7 +50,7 @@ public class StrategoIncrementalCompilationTest {
         spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
     }
 
-    @Test @Disabled("Fails to find stratego.lang") public void testCompile() throws IOException, MetaborgException {
+    @Test public void testCompile() throws IOException, MetaborgException {
         // setup
         assert spoofax != null : "@BeforeAll should set up Spoofax instance";
 
@@ -79,10 +78,11 @@ public class StrategoIncrementalCompilationTest {
 
         final FSPath serializingStorePath = new FSPath(temporaryDirectoryPath.resolve("pie-store"));
 
-        // load Stratego language for later discovery during compilation (parsing in particular)
-        final URL strategoURL = getClass().getResource("/stratego.lang.spoofax-language");
+        // load Stratego languages for later discovery during compilation (parsing in particular)
         spoofax.languageDiscoveryService
-            .languageFromArchive(spoofax.resolve(strategoURL.getFile()));
+            .languageFromArchive(spoofax.resolve(Stratego.getStrategoPath().toFile()));
+        spoofax.languageDiscoveryService
+            .languageFromArchive(spoofax.resolve(Stratego.getStratego2Path().toFile()));
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withStoreFactory(

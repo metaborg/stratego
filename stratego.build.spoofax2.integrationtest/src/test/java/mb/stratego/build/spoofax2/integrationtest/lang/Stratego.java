@@ -1,10 +1,11 @@
-package mb.stratego.build.spoofax2.integrationtest;
+package mb.stratego.build.spoofax2.integrationtest.lang;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -37,6 +38,18 @@ import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.StrategoGradualSetting;
 
 public class Stratego {
+    public static Path getStrategoxtJarPath() {
+        return Paths.get(System.getProperty("strategoxt-jar"));
+    }
+
+    public static Path getStrategoPath() {
+        return Paths.get(System.getProperty("omml-stratego"));
+    }
+
+    public static Path getStratego2Path() {
+        return Paths.get(System.getProperty("stratego-lang"));
+    }
+
     static boolean strj(Path input, String baseName, String packageName, Path packageDir) {
         strj.init();
         final IStrategoTerm result;
@@ -61,7 +74,7 @@ public class Stratego {
         return result != null;
     }
 
-    static boolean str2(Path input, String baseName, String packageName, Path packageDir)
+    public static boolean str2(Path input, String baseName, String packageName, Path packageDir)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -74,9 +87,10 @@ public class Stratego {
                 new FSPath(temporaryDirectoryPath.resolve("pie-store"));
 
             // load Stratego language for later discovery during compilation (parsing in particular)
-            final URL strategoURL = Stratego.class.getResource("/stratego.lang.spoofax-language");
             spoofax.languageDiscoveryService
-                .languageFromArchive(spoofax.resolve(strategoURL.getFile()));
+                .languageFromArchive(spoofax.resolve(Stratego.getStrategoPath().toFile()));
+            spoofax.languageDiscoveryService
+                .languageFromArchive(spoofax.resolve(Stratego.getStratego2Path().toFile()));
 
             final PieBuilder pieBuilder = new PieBuilderImpl();
             pieBuilder.withStoreFactory(

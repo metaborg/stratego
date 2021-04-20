@@ -1,4 +1,4 @@
-package mb.stratego.junit_bridge;
+package mb.stratego.build.spoofax2.integrationtest.lang;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -19,11 +19,6 @@
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>stratego-junit-bridge</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <scope>provided</scope>
@@ -46,53 +41,38 @@
       <artifactId>pie.runtime</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategoxt-jar</artifactId>
+      <version>${metaborg-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>stratego.lang</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.lang.stratego</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>org.metaborg</groupId>
-            <artifactId>stratego.lang</artifactId>
-            <version>${metaborg-version}</version>
-            <type>spoofax-language</type>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>copy-spoofax-meta-languages</id>
-            <phase>test-compile</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.metaborg</groupId>
-                  <artifactId>stratego.lang</artifactId>
-                  <version>${metaborg-version}</version>
-                  <type>spoofax-language</type>
-                  <destFileName>stratego.lang.spoofax-language</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <overWriteReleases>true</overWriteReleases>
-          <overWriteSnapshots>true</overWriteSnapshots>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
-            <strj-sut>${settings.localRepository}/org/metaborg/strategoxt-jar/${metaborg-version}/strategoxt-jar-${metaborg-version}.jar</strj-sut>
+            <strategoxt-jar>${settings.localRepository}/org/metaborg/strategoxt-jar/${metaborg-version}/strategoxt-jar-${metaborg-version}.jar</strategoxt-jar>
+            <stratego-lang>${settings.localRepository}/org/metaborg/stratego.lang/${metaborg-version}/stratego.lang-${metaborg-version}.spoofax-language</stratego-lang>
+            <omml-stratego>${settings.localRepository}/org/metaborg/org.metaborg.meta.lang.stratego/${metaborg-version}/org.metaborg.meta.lang.stratego-${metaborg-version}.spoofax-language</omml-stratego>
           </systemPropertyVariables>
         </configuration>
       </plugin>
