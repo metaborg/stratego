@@ -2,6 +2,9 @@
 
 module desugar
 
+strategies
+  concat = id
+
 imports
   src-gen/signatures/minifsharp-sig
   src-gen/signatures/expression-logic-sig

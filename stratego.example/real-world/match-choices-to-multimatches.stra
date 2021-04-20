@@ -1,0 +1,162 @@
+module match-choices-to-multimatches
+
+imports
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+  strc/stratego/strc/opt/bound-unbound-vars
+  strc/stratego/strc/opt/stratego-laws
+
+signature
+  constructors
+    MultiMatch : MatchOrder * List(MatchCase) -> Strategy
+    Sequential : MatchOrder
+    ScopedMatchCase : List(ID) * Term * Strategy -> MatchCase
+    Fail : Strategy
+    Id : Strategy
+    Match : Term -> Strategy
+    Seq : Strategy * Strategy -> Strategy
+    GuardedLChoice : Strategy * Strategy * Strategy -> Strategy
+    Scope : List(ID) * Strategy -> Strategy
+    Wld : Term
+    Anno : Term * Term -> Term
+    Var : ID -> Term
+    
+    SDefT : Id * List(Typedid) * List(Typedid) * Strategy -> StrategyDef
+    
+//    : ()
+    : a -> (a)
+    : a * b -> (a, b)
+    : a * b * c -> (a, b, c)
+    : a * b * c * d -> (a, b, c, d)
+  
+  sorts List(a)
+  constructors
+  
+    /**
+     * Empty list.
+     */
+    Nil  : List(a)
+    
+    /**
+     * Element of a list.
+     */
+    Cons : a * List(a) -> List(a)
+    
+    /**
+     * Concatenation of two lists.
+     */
+    Conc : List(a) * List(a) -> List(a)
+
+strategies
+  simplify = id
+  mark-bound-unbound-vars = id
+  strip-annos = 
+    bottomup(rm-annotations)
+  bottomup(s) = 
+    all(bottomup(s)); s
+  rm-annotations = ?[]{} <+ ?t; !t{}
+  simplify-NoDesugar = id
+  topdown(s) = 
+    s; all(topdown(s))
+  try(s) = 
+    s <+ id
+  simplify-clean = id
+  restore(s, rest) = 
+    s <+ (rest; fail)
+  subseteq     = subseteq(eq)
+  subseteq(eq) = subset-gen(eq, ?[] + ?[_|_])
+  subset-gen(eq, rest) = id
+  eq = 
+    ?(x, x)
+  debug(msg) = id
+  collect(s) = 
+    collect-om(s)
+  collect-om(s) =
+    collect-om(s, union)
+  collect-om(s, op) =
+    ![<s>] 
+    <+ crush(![], op, collect-om(s, op))
+  crush(nul, sum, s) : 
+    _#(xs) -> <foldr(nul,sum, s)> xs
+  foldr(s1, s2, f)  = 
+    []; s1 + 
+    \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
+  union = union(eq)
+  union(eq) : 
+    (l1, l2) -> <rec x(
+                   ([]; !l2)
+                <+ (HdMember'(eq, !l2); x)
+                <+ [id | x]
+                )> l1
+  HdMember'(eq, mklst) : 
+     [x | xs] -> xs 
+     where mklst; fetch(\y -> <eq> (x, y)\)
+  fetch(s) = 
+    rec x([s | id] <+ [id | x])
+  
+overlays
+  MultiMatch(cases) = MultiMatch(Sequential(), cases)
+
+  MatchPattern(p) = Match(p)
+
+  MatchSuccessPattern(p) = MatchPattern(p)
+  MatchSuccessPattern(p, s) = Seq(MatchPattern(p), s)
+  MatchSuccessPattern(vars, p, s) = Scope(vars, MatchSuccessPattern(p, s))
+
+  ChoicePattern(s1, s2) = GuardedLChoice(s1, Id(), s2)
+
+strategies
+  sdeft-match-choices-to-multimatches =
+    simplify
+  // TODO Is the analysis even necessary? Can just use the parent Scope.
+  ; mark-bound-unbound-vars
+  ; SDefT(id, id, id, match-choices-to-multimatches)
+  ; strip-annos
+
+  // Used for testing
+  match-choices-to-multimatches-test-NoDesugar =
+    simplify-NoDesugar
+  ; match-choices-to-multimatches
+  
+  match-choices-to-multimatches =
+    topdown(try(translate-match-choices))
+  ; simplify-clean // Remove vars from scopes if they are now scoped from a match case
+
+  translate-match-choices =
+    !MultiMatch(<MatchCasesChoice>)
+
+  MatchCases =
+    MatchCasesChoice
+ <+ MatchCasesDefault
+
+  MatchCasesChoice:
+    ChoicePattern(s1, s2) -> [<MatchCase> s1 | <MatchCases> s2]
+
+  // No fail needed in the last case; is implicit in MultiMatch.
+  MatchCasesDefault: Fail() -> []
+  MatchCasesDefault = ![<MatchCase>]
+  MatchCasesDefault =
+    ![ScopedMatchCase(<collect-unbound-vars>, Anno(Wld(), Wld()), <id>)]
+
+  // Merge MultiMatch cases
+  MatchCase = ?MultiMatch(<id>)
+
+  MatchCase:
+    MatchSuccessPattern(p) -> ScopedMatchCase(x*, p, Id())
+  where
+    <collect-unbound-vars> p => x*
+
+  MatchCase:
+    MatchSuccessPattern(p, s) -> ScopedMatchCase(x*, p, s)
+  where
+    <collect-unbound-vars> p => x*
+
+  MatchCase:
+    MatchSuccessPattern(x1*, p, s) -> ScopedMatchCase(x1*, p, s)
+  where
+    <collect-unbound-vars> p => x2*
+  with
+    <restore(subseteq, debug(!"(x2*, x1*): "))> (x2*, x1*) 
+
+  collect-unbound-vars = collect(?Var(<id>){"unbound"})
