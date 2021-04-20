@@ -59,8 +59,7 @@ strategies
      * as above, yielding decision tree A', and define:
      */
     then // i > 1
-         <debug(!"swap indices ")> (1, i)
-       ; m' := <swap-cols(|1, i)> m 
+         m' := <swap-cols(|1, i)> m
        ; o' := <swap(|1, i)> o*
        ; A' := <CC(|o')> m'
        ; !A' // No need to explicitly include swap nodes.
@@ -69,7 +68,7 @@ strategies
        ; if !hc* => [(Anno(), _)]
          then <specialize-occs(|Anno())> o* => o'
             ; <specialize(|m); CC(|o')> Anno()
-         else where(filter(?(Anno(), _)); ?[] <+ !["contains annos: ", <id>]; error)
+         else with(filter(?(Anno(), _)); ?[] | ["Head constructors contain annos: ", <id>])
             ; hts := <map(Snd); make-set> hc*
             ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c, <specialize-occs(|c)> o*) \)> hc*
             ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
