@@ -21,6 +21,22 @@ imports
 
   strj/multimatch/multimatch2java
 
+rules
+  translate-core(|path) = translate-core(|path, 2)
+
+  translate-core(|path, O) = id
+    ; local-pre-desugar-all
+    ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|"opt.java")> path) // required output file path
+      ; strj-preinit-options
+      ; <set-config> ("-O", O)
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; frontend
+    ; strc-optimize
+
 rules // Debugging
 
   debug-show-aterm:
@@ -45,37 +61,27 @@ rules // Debugging
     with
       filename := <guarantee-extension(|"ctree.aterm")> path
     ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
-    ; ?result
+    ; <translate-core(|path)> node => result
 
   debug-show-core:
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"core.stra")> path
     ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
-    ; pp-stratego-core
-    ; ?result
+    ; <translate-core(|path); pp-stratego-core> node => result
 
-  debug-show-core-optimized:
+  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
+  debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
+  debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
+  debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
+  debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
+  debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
+  debug-show-core-optimized(|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
-      filename := <guarantee-extension(|"core.opt.stra")> path
+      filename := <guarantee-extension(|$[core.opt[O].stra])> path
     ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; <set-config> ("-O", 3) // set optimisation level to 3
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
-    ; strc-optimize
-    ; pp-stratego-core
-    ; ?result
+    ; <translate-core(|path, O); pp-stratego-core> node => result
 
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
@@ -123,21 +129,18 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
-  debug-show-dfa:
+  debug-show-dfa-O0 = debug-show-dfa(|0)
+  debug-show-dfa-O1 = debug-show-dfa(|1)
+  debug-show-dfa-O2 = debug-show-dfa(|2)
+  debug-show-dfa-O3 = debug-show-dfa(|3)
+  debug-show-dfa-O4 = debug-show-dfa(|4)
+  debug-show-dfa-O5 = debug-show-dfa(|5)
+  debug-show-dfa(|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
       <set-config> ("--library", ()) // no main strategy necessary this way
     ; filename := <guarantee-extension(|"dfa.stra")> path
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
-    ; where(
-        <set-config> ("-o", <guarantee-extension(|"dfa.aterm")> path) // required output file path
-      ; strj-preinit-options
-      ; <dirname> path
-      ; rules(OutputDirName := <id>)
-      )
+    ; <translate-core(|path, O)> node
     ; alltd(multimatch2dfa)
     ; pp-stratego-core
     ; ?result
