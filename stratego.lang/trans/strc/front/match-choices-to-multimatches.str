@@ -10,8 +10,11 @@ imports
 overlays
   MultiMatch(cases) = MultiMatch(Sequential(), cases)
 
-  MatchBuildPattern(p, s) = Seq(Match(p), s)
-  MatchBuildPattern(vars, p, s) = Scope(vars, Seq(Match(p), s))
+  MatchPattern(p) = Match(p)
+
+  MatchSuccessPattern(p) = MatchPattern(p)
+  MatchSuccessPattern(p, s) = Seq(MatchPattern(p), s)
+  MatchSuccessPattern(vars, p, s) = Scope(vars, MatchSuccessPattern(p, s))
 
   ChoicePattern(s1, s2) = GuardedLChoice(s1, Id(), s2)
 
@@ -52,12 +55,12 @@ strategies
   MatchCase = ?MultiMatch(<id>)
 
   MatchCase:
-    MatchBuildPattern(p, s) -> ScopedMatchCase(x*, p, s)
+    MatchSuccessPattern(p) -> ScopedMatchCase(x*, p, Id())
   where
     <tvars> p => x*
 
   MatchCase:
-    MatchBuildPattern(x1*, p, s) -> ScopedMatchCase(x*, p, s)
+    MatchSuccessPattern(p, s) -> ScopedMatchCase(x*, p, s)
   where
     <tvars> p => x2*
   ; <union> (x1*, x2*) => x*
