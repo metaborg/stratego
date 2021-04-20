@@ -4,7 +4,7 @@ imports
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
-  strc/stratego/strc/lib/stratlib
+  strc/stratego/strc/opt/bound-unbound-vars
   strc/stratego/strc/opt/stratego-laws
 
 overlays
@@ -20,18 +20,18 @@ overlays
 
 strategies
   sdeft-match-choices-to-multimatches =
-    SDefT(id, id, id, match-choices-to-multimatches)
-
-  match-choices-to-multimatches =
-    simplify // To lower number of possible patterns
-  ; match-choices-to-multimatches1
+    simplify
+  // TODO Is the analysis even necessary? Can just use the parent Scope.
+  ; mark-bound-unbound-vars
+  ; SDefT(id, id, id, match-choices-to-multimatches)
+  ; strip-annos
 
   // Used for testing
   match-choices-to-multimatches-test-NoDesugar =
     simplify-NoDesugar
-  ; match-choices-to-multimatches1
+  ; match-choices-to-multimatches
   
-  match-choices-to-multimatches1 =
+  match-choices-to-multimatches =
     topdown(try(translate-match-choices))
   ; simplify-clean // Remove vars from scopes if they are now scoped from a match case
 
@@ -49,7 +49,7 @@ strategies
   MatchCasesDefault: Fail() -> []
   MatchCasesDefault = ![<MatchCase>]
   MatchCasesDefault =
-    ![ScopedMatchCase(<tvars>, Anno(Wld(), Wld()), <id>)]
+    ![ScopedMatchCase(<collect-unbound-vars>, Anno(Wld(), Wld()), <id>)]
 
   // Merge MultiMatch cases
   MatchCase = ?MultiMatch(<id>)
@@ -57,10 +57,18 @@ strategies
   MatchCase:
     MatchSuccessPattern(p) -> ScopedMatchCase(x*, p, Id())
   where
-    <tvars> p => x*
+    <collect-unbound-vars> p => x*
 
   MatchCase:
     MatchSuccessPattern(p, s) -> ScopedMatchCase(x*, p, s)
   where
-    <tvars> p => x2*
-  ; <union> (x1*, x2*) => x*
+    <collect-unbound-vars> p => x*
+
+  MatchCase:
+    MatchSuccessPattern(x1*, p, s) -> ScopedMatchCase(x1*, p, s)
+  where
+    <collect-unbound-vars> p => x2*
+  with
+    <restore(subseteq, debug(!"(x2*, x1*): "))> (x2*, x1*)
+
+  collect-unbound-vars = collect(?Var(<id>){"unbound"})
