@@ -83,7 +83,7 @@ strategies
   vswitch(|ApplT(), [o1 | _], d) =
     !SwitchV(<append-occ> (o1, Con()), <map(valt)>, d)
 
-  vswitch(|ListT(), [o1 | _], d) =
+  vswitch(|LisT(), [o1 | _], d) =
     !SwitchV(o1, <map(valt)>, d)
 
   vswitch(|IntT(), [o1 | _], d) =

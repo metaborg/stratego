@@ -78,8 +78,8 @@ strategies
     where a := <string-to-int> x
 
   // Lists
-  head-type:                    Op("Nil", [])       -> ListT()
-  head-type:                    Op("Cons", [_, _])  -> ListT()
+  head-type:                    Op("Nil", [])       -> LisT()
+  head-type:                    Op("Cons", [_, _])  -> LisT()
 
   // Constructor applications
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)

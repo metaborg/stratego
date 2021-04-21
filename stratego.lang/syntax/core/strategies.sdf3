@@ -143,7 +143,7 @@ context-free syntax
 sorts PatT
 context-free syntax
   PatT.ApplT = <APPL>
-  PatT.ListT = <LIST>
+  PatT.LisT = <LIST>
   PatT.IntT = <INT>
   PatT.RealT = <REAL>
   PatT.StringT = <STRING>

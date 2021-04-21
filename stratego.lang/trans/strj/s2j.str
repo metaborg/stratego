@@ -1970,7 +1970,7 @@ strategies
   with <pat-type-to-enum> t => e
 
   pat-type-to-enum: ApplT()   -> e |[ APPL ]|
-  pat-type-to-enum: ListT()   -> e |[ LIST ]|
+  pat-type-to-enum: LisT()   -> e |[ LIST ]|
   pat-type-to-enum: IntT()    -> e |[ INT ]|
   pat-type-to-enum: RealT()   -> e |[ REAL ]|
   pat-type-to-enum: StringT() -> e |[ STRING ]|
