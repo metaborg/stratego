@@ -2,7 +2,6 @@ module matrix2dfa
 
 imports
   strj/multimatch/decompose
-  strj/multimatch/dfa
   strj/multimatch/matrix
 
   signatures/core/strategies-sig

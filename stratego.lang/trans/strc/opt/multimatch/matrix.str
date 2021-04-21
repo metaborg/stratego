@@ -1,8 +1,6 @@
 module matrix
 
 imports
-  strj/multimatch/dfa
-
   signatures/core/terms-sig
 
 signature

@@ -4,7 +4,6 @@ imports
   strc/stratego/strc/c/escaping-variables // is-ListOp
   strj/s2j                                // is-TupleOp
 
-  strj/multimatch/dfa
   strj/multimatch/matrix
 
   signatures/core/strategies-sig
