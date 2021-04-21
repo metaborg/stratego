@@ -16,13 +16,13 @@ strategies
 
 test resolve pattern var (bound) [[
 s(|[[t]]) = match sequential
-          case Cons([[t]], _): !1
+          case | Cons([[t]], _): !1
         end
 ]] resolve #2 to #1
 
 test resolve pattern var (implicitly scoped) [[
 s = match sequential
-      case Cons([[t]], _): !1
+      case | Cons([[t]], _): !1
     end
 ]] resolve #1
 
@@ -34,13 +34,13 @@ s = match sequential
 
 test resolve build var (bound) [[
 s(|[[t]]) = match sequential
-          case Cons(_, _): ![[t]]
+          case | Cons(_, _): ![[t]]
         end
 ]] resolve #2 to #1
 
 test resolve build var (implicitly scoped) [[
 s = match sequential
-      case Cons([[t]], _): ![[t]]
+      case | Cons([[t]], _): ![[t]]
     end
 ]] resolve #2 to #1
 

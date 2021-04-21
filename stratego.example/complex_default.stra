@@ -8,6 +8,6 @@ signature
 
 strategies
   comp = match sequential
-           case (Nil(), _): !1
-           case (_, Nil()): !2
+           case | (Nil(), _): !1
+           case | (_, Nil()): !2
          end

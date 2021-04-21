@@ -21,7 +21,7 @@ match sequential
   case Nil(): !2
   case x: !x
 end
-]] parse succeeds
+]] parse fails
 
 test scoped multimatch [[
 match sequential
@@ -36,16 +36,16 @@ match sequential
   case _: !2
   case y | Nil(): !3
 end
-]] parse succeeds
+]] parse fails
 
 test no strategy lhs 1 [[
 match sequential
-  case ?x: !1
+  case | ?x: !1
 end
 ]] parse fails
 
 test no strategy lhs 2 [[
 match sequential
-  case !x: !1
+  case | !x: !1
 end
 ]] parse fails

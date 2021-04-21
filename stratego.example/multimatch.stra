@@ -14,13 +14,13 @@ signature
 
 strategies
   color = match sequential
-            case Red():   !"red"
-            case Blue():  !"blue"
-            case Green(): !"green"
+            case | Red():   !"red"
+            case | Blue():  !"blue"
+            case | Green(): !"green"
           end
 
   color(|c) = match specificity c
-                case Red():   !"red"
-                case Blue():  !"blue"
-                case Green(): !"green"
+                case | Red():   !"red"
+                case | Blue():  !"blue"
+                case | Green(): !"green"
               end

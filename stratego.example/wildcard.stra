@@ -9,15 +9,15 @@ signature
 
 strategies
   m = match sequential
-        case Nil():       !"nil"
-        case _:           !"wld"
-        case Cons(_, _):  !"cons"
-        case Cons2(_, _): !"cons2"
+        case | Nil():       !"nil"
+        case | _:           !"wld"
+        case | Cons(_, _):  !"cons"
+        case | Cons2(_, _): !"cons2"
       end
 
   m' = match sequential
-         case (_, _): match sequential
-                        case ("x", "y"): !"xy"
-                        case _:          !"not xy"
-                      end
-       end
+         case | (_, _): match sequential
+                          case | ("x", "y"): !"xy"
+                          case | _:          !"not xy"
+                        end
+         end
