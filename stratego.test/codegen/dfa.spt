@@ -128,13 +128,13 @@ Car2 : a -> List(a)
 strategies
 
 uncar2_0_0( | ) =
-  {a10, b5: match sequential
-              case | Car1(a10){^_}: Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
-              case | Car2(b5){^_}: Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
-              case | "abc"{^_}: !"cba"{^Nil( )}
-              case | 8{^_}: !54{^Nil( )}
-              case | 5.4{^_}: !8{^Nil( )}
-            end }
+  match sequential
+    case | Car1(_){^_}: Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+    case | Car2(_){^_}: Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+    case | "abc"{^_}: !"cba"{^Nil( )}
+    case | 8{^_}: !54{^Nil( )}
+    case | 5.4{^_}: !8{^Nil( )}
+  end
 ]] transform "Codegen (AST) -> Translate MultiMatches" to [[
 specification
 
@@ -149,33 +149,33 @@ Car2 : a -> List(a)
 strategies
 
 uncar2_0_0( | ) =
-  {a10, b5: switch [cur, typ] {
-              alt APPL:
-                switch [cur, con] {
-                  alt (Car1, 1):
-                    leaf Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
-                  alt (Car2, 1):
-                    leaf Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
-                  default: leaf fail
-                }
-              alt STRING:
-                switch [cur, str] {
-                  alt "abc":
-                    leaf !"cba"{^Nil( )}
-                  default: leaf fail
-                }
-              alt INT:
-                switch [cur, int] {
-                  alt 8:
-                    leaf !54{^Nil( )}
-                  default: leaf fail
-                }
-              alt REAL:
-                switch [cur, real] {
-                  alt 5.4:
-                    leaf !8{^Nil( )}
-                  default: leaf fail
-                }
-              default: leaf fail
-            } }
+  switch [cur, typ] {
+    alt APPL:
+      switch [cur, con] {
+        alt (Car1, 1):
+          leaf Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+        alt (Car2, 1):
+          leaf Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+        default: leaf fail
+      }
+    alt STRING:
+      switch [cur, str] {
+        alt "abc":
+          leaf !"cba"{^Nil( )}
+        default: leaf fail
+      }
+    alt INT:
+      switch [cur, int] {
+        alt 8:
+          leaf !54{^Nil( )}
+        default: leaf fail
+      }
+    alt REAL:
+      switch [cur, real] {
+        alt 5.4:
+          leaf !8{^Nil( )}
+        default: leaf fail
+      }
+    default: leaf fail
+  }
 ]]

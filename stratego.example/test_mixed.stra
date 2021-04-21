@@ -9,8 +9,8 @@ signature
 
 strategies
   uncar2 = match sequential
-             case | Car1(a): Cons(!1, Nil())
-             case | Car2(b): Cons(!2, Nil())
+             case | Car1(_): Cons(!1, Nil())
+             case | Car2(_): Cons(!2, Nil())
              case | "abc": !"cba"
              case | 8: !54
              case | 5.4: !8
