@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import mb.resource.ResourceKeyString;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -176,7 +177,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
                 String fileName = line.substring(line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
                     + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
-                execContext.provide(new File(fileName));
+                execContext.provide(execContext.getResourceService().getHierarchicalResource(ResourceKeyString.parse(fileName)));
             }
         }
         BuildStats.backTaskTime += System.nanoTime() - startTime;
