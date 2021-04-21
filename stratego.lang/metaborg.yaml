@@ -48,3 +48,5 @@ exports:
   includes: "**/*.sdf3"
 - language: Stratego-Sugar
   directory: src-gen
+- language: EditorService
+  directory: src-gen
