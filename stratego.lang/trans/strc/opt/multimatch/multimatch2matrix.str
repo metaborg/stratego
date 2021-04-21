@@ -8,17 +8,13 @@ imports
 
 strategies
   /*======== Construct clause and action matrices ========*/
-  multimatch2matrix: MultiMatch(Sequential(), cases) -> Matrix(rows)
+  multimatch2matrix: MultiMatch(Sequential(), cases) -> Matrix(p*, rows)
   with
     <map(MatchCase2Row)> cases => rows
+  ; p* := [Path([Cur()])]
 
-  multimatch2matrix = ?MultiMatch(o, _)
-  ; <not(?Sequential())> o
+  multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
   ; fail
 
   MatchCase2Row: ScopedMatchCase(_, p, a) -> Row([p], a) // just ignore scope?
-//  MatchCase2Row: ScopedMatchCase(x*, p, a) -> Row([p], a)
-//  with
-//    <error> ["Cannot translate ScopedMatchCase with vars."]
-//  ; fail

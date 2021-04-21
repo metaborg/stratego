@@ -3,44 +3,41 @@ module matrix
 imports
   signatures/core/terms-sig
 
+  strj/multimatch/decompose
+
 signature
   sorts Matrix Row
   constructors
-    Matrix  : List(Row)             -> Matrix
-    Row     : List(Term) * Strategy -> Row
+    Matrix  : List(Path) * List(Row) -> Matrix
+    Row     : List(Term) * Strategy  -> Row
 
 strategies
-  is-wildcard = ?Wld() + ?Var(_) //+ all(is-wildcard) // TODO
-
   row-not-all-wildcards = ?Row(<not-all-wildcards>, _)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
    */
-  not-all-wildcards = filter(not(is-wildcard)); ?[_ | _]
+  not-all-wildcards = retain-all(not(is-wld + is-var)); ?[_ | _]
 
   /*
    * Get the `i`th column from a Matrix.
    */
-  col(|i): Matrix(rows) ->
-    <map(?Row(<is-list>, _); index(|i))> rows
+  col(|i): Matrix(_, rows) ->
+    <map(?Row(<id>, _); index(|i))> rows
 
-  width: Matrix(rs) -> <foldr1(max)> ls
-  with
-    <map(\ Row(ts, _) -> <length> ts \)> rs => ls
-
-  height = ?Matrix(<is-list>); length
+  width = ?Matrix(_, <map(?Row(<length>, _)); foldr1(max)>)
+  height = ?Matrix(_, <id>); length
 
   /*
    * Find index of first element in list for which `s` succeeds.
    * Index starts at 1.
    */
   find-first-row-index(s) = id
-  ; ?Matrix(<is-list>)
+  ; ?Matrix(_, <id>)
   ; find-first-index(s)
 
   find-first-col-index(s) = id
-  ; ?Matrix(<is-list>)
+  ; ?Matrix(_, <id>)
   ; map(?Row(<id>, _))
   ; matrix-transpose
   ; find-first-index(s)
@@ -52,7 +49,7 @@ strategies
   ; length
   ; inc
 
-  swap-cols(|m, n) = Matrix(map(swap-row-el(|m, n)))
+  swap-cols(|m, n) = Matrix(swap(|m, n), map(swap-row-el(|m, n)))
 
   swap-row-el(|m, n) = Row(swap(|m, n), id)
 

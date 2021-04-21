@@ -15,10 +15,15 @@ strategies
    *
    * Maranget (2008), fig. 1.
    */
-  default: Matrix(rows) -> Matrix(<filter(default-row)> rows)
+  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"no default for "))))
 
   default-row: Row([Wld() | ps], a) -> Row(ps, a)
-  default-row = ?Row([Fun(_, _) | _], _); fail // by definition
+
+  non-default-row = ?Row([<non-default-head> | _], _) // by definition
+  non-default-head =
+    ?Op(_, _)
+  + ?Var(_) // Could be a default row, but needs an assignment first.
+  + is-literal
 
 strategies
   /*
@@ -27,7 +32,7 @@ strategies
    * Maranget (2008), sec 4, step 3a.
    */
   head-constructors = debug(!"[i] hcs ")
-  ; remove-all(is-variable)
+  ; remove-all(is-var + is-wld)
   ; map(split(head-constructor, head-type <+ !()))
 
   /*
@@ -35,25 +40,17 @@ strategies
    *
    * Maranget (2008), fig. 1.
    */
-  specialize(|Matrix(rows)): cons -> Matrix(<filter(specialize-row(|cons))> rows)
+  specialize(|Matrix(p*, r*)): cons -> Matrix(<specialize-occs(|cons)> p*, <filter(specialize-row(|cons))> r*)
+
   specialize-row(|c) = Row(specialize-pats(|c), id)
 
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
 
-  specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
-  specialize-occ(|Fun("Nil", "0")): Path(_) -> []
-  specialize-occ(|Fun("Cons", "2")): p@Path(_) -> [ <append-occ> (p, Hd())
-                                                  , <append-occ> (p, Tl()) ]
-  specialize-occ(|Fun(_, x)) = specialize-occ'(|<string-to-int> x)
-  specialize-occ(|Tuple(x)) = specialize-occ'(|<string-to-int> x)
-  specialize-occ(|c) = where(<is-literal> c); ![]
-
-  specialize-occ'(|a):      p@Path(_) -> ps
+  specialize-occ-by-arity(|a):      p@Path(_) -> ps
     where
       i* := <range> (1, <inc> a)
     ; ps := <map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> i*
-
 
   append-occ: (Path(os*), o) -> Path([os*, o*])
     with o* := [o]
@@ -62,6 +59,7 @@ strategies
   head-constructor:             Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
   specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
+  specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
 
   // Tuples + constructor applications
   arity:                        Op(f, ts)           -> <length> ts
@@ -75,10 +73,14 @@ strategies
     ; <eq> (a, <arity> c)
   specialize-pats(|Tuple(x)):  [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x
+  specialize-occ(|Tuple(x)) = specialize-occ-by-arity(|<string-to-int> x)
 
   // Lists
   head-type:                    Op("Nil", [])       -> LisT()
   head-type:                    Op("Cons", [_, _])  -> LisT()
+  specialize-occ(|Fun("Nil", "0")): Path(_) -> []
+  specialize-occ(|Fun("Cons", "2")): p@Path(_) -> [ <append-occ> (p, Hd())
+                                                  , <append-occ> (p, Tl()) ]
 
   // Constructor applications
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
@@ -92,6 +94,7 @@ strategies
     ; <eq> (a, <arity> c)
   specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
     with a := <string-to-int> x
+  specialize-occ(|Fun(_, x)) = specialize-occ-by-arity(|<string-to-int> x)
 
   // Literals
   is-literal = ?Str(_) + ?Int(_) + ?Real(_)
@@ -99,13 +102,14 @@ strategies
   head-type:                    Str(_)              -> StringT()
   head-type:                    Int(_)              -> IntT()
   head-type:                    Real(_)              -> RealT()
-  specialize-pats(|Str(s)):    [<?Str(s) + ?Wld()> | ps*] -> ps*
-  specialize-pats(|Int(s)):    [<?Int(s) + ?Wld()> | ps*] -> ps*
-  specialize-pats(|Real(s)):   [<?Real(s) + ?Wld()> | ps*] -> ps*
+  specialize-pats(|l):         [<?l + is-wld> | ps*] -> ps*
+    where <is-literal> l
+  specialize-occ(|<is-literal>) = ![]
 
   // Variables
-  is-variable = ?Var(_) + ?Wld()
-  head-constructor = is-variable; fail // by definition
+  is-var = ?Var(_)
+  is-wld = ?Wld()
+  head-constructor = (is-var + is-wld); fail // by definition
   specialize-pats(|Wld()) = fail // by definition
 
   prepend-wld(|n) = repeat(![Wld() | <id>] | n)

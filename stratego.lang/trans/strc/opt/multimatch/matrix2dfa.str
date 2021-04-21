@@ -9,7 +9,7 @@ imports
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = where(o* := [Path([Cur()])]); CC(|o*)
+  matrix2dfa = where(o* := [Path([Cur()])]); CC
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -17,17 +17,17 @@ strategies
    * Changes w.r.t. paper:
    * (none)
    */
-  CC(|o*) = NoRows(|o*)
-         <+ WildcardsFirstRow(|o*)
-         <+ SelectColumn(|o*)
+  CC = NoRows
+    <+ WildcardsFirstRow
+    <+ SelectColumn
 
   /*
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows(|o*): m@Matrix([]) -> Leaf(Fail())
+  NoRows: m@Matrix(_, []) -> Leaf(Fail())
   where
-    <debug(!"NoRows ")> (o*, m)
+    <debug(!"NoRows ")> m
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -36,10 +36,10 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow(|o*): m@Matrix([Row(ps, a) | _]) -> Leaf(a)
+  WildcardsFirstRow: m@Matrix(_, [Row(ps, a) | _]) -> Leaf(a)
   where
-    <map(is-wildcard)> ps
-  ; <debug(!"WildcardsFirstRow ")> (o*, m)
+    <map(is-wld)> ps
+  ; <debug(!"WildcardsFirstRow ")> m
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -47,9 +47,9 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn(|o*@[o1 | os]): m@Matrix(rs) -> T
+  SelectColumn: m@Matrix(o*@[o1 | _], [_ | _]) -> T
   with
-    <debug(!"SelectColumn ")> (o*, m)
+    <debug(!"SelectColumn ")> m
   ; i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1)
@@ -58,20 +58,16 @@ strategies
      * as above, yielding decision tree A', and define:
      */
     then // i > 1
-         m' := <swap-cols(|1, i)> m
-       ; o' := <swap(|1, i)> o*
-       ; A' := <CC(|o')> m'
-       ; !A' // No need to explicitly include swap nodes.
+         <swap-cols(|1, i); CC> m
     else // i == 1
          hc* := <col(|i); head-constructors; make-set> m
        ; if !hc* => [(Anno(), _)]
-         then <specialize-occs(|Anno())> o* => o'
-            ; <specialize(|m); CC(|o')> Anno()
+         then <specialize(|m); CC> Anno()
          else with(filter(?(Anno(), _)); ?[] | ["Head constructors contain annos: ", <id>])
             ; hts := <map(Snd); make-set> hc*
-            ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c, <specialize-occs(|c)> o*) \)> hc*
+            ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c) \)> hc*
             ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
-            ; default   := <default; CC(|os)> m
+            ; default   := <default; CC> m
             ; talt*     := <map(talt(|o*, default))> tbranch*
             ; !SwitchT(<append-occ> (o1, Typ()), talt*, default)
          end
@@ -108,4 +104,4 @@ strategies
   // TODO Find out if this is not yet deprecated.
   vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
 
-  valt: (c, t, m, o*) -> AltV(c, <CC(|o*)> m)
+  valt: (c, _, m) -> AltV(c, <CC> m)
