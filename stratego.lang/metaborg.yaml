@@ -45,8 +45,9 @@ exports:
   directory: src-gen/syntax
 - language: TemplateLang
   directory: syntax
-  includes: "**/*.sdf3"
 - language: Stratego-Sugar
   directory: src-gen
 - language: EditorService
+  directory: src-gen
+- language: ds
   directory: src-gen
