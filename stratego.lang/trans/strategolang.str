@@ -10,6 +10,7 @@ imports
   signatures/-
 
   strc
+  strc/front/desugar
   strc/front/frontend
 
   strj
@@ -22,13 +23,25 @@ imports
   strj/multimatch/multimatch2java
 
 rules
+  translate-core-mm-aterm:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"dfa.aterm")> path
+    ; result := <desugar; alltd(multimatch2dfa)> node
+
+  translate-core-mm-pp:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"dfa.stra")> path
+    ; result := <desugar; alltd(multimatch2dfa); pp-stratego-core> node
+
   translate-core(|path) = translate-core(|path, 2)
 
   translate-core(|path, O) = id
     ; local-pre-desugar-all
     ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
     ; where(
-        <set-config> ("-o", <guarantee-extension(|"opt.java")> path) // required output file path
+        <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
       ; strj-preinit-options
       ; <set-config> ("-O", O)
       ; <dirname> path
@@ -129,18 +142,27 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
-  debug-show-dfa-O0 = debug-show-dfa(|0)
-  debug-show-dfa-O1 = debug-show-dfa(|1)
-  debug-show-dfa-O2 = debug-show-dfa(|2)
-  debug-show-dfa-O3 = debug-show-dfa(|3)
-  debug-show-dfa-O4 = debug-show-dfa(|4)
-  debug-show-dfa-O5 = debug-show-dfa(|5)
-  debug-show-dfa(|O):
+  debug-show-dfa-pp-O0 = debug-show-pp-dfa(|0)
+  debug-show-dfa-pp-O1 = debug-show-pp-dfa(|1)
+  debug-show-dfa-pp-O2 = debug-show-pp-dfa(|2)
+  debug-show-dfa-pp-O3 = debug-show-pp-dfa(|3)
+  debug-show-dfa-pp-O4 = debug-show-pp-dfa(|4)
+  debug-show-dfa-pp-O5 = debug-show-pp-dfa(|5)
+
+  debug-show-dfa-ctree-O0 = debug-show-ctree-dfa(|0)
+  debug-show-dfa-ctree-O1 = debug-show-ctree-dfa(|1)
+  debug-show-dfa-ctree-O2 = debug-show-ctree-dfa(|2)
+  debug-show-dfa-ctree-O3 = debug-show-ctree-dfa(|3)
+  debug-show-dfa-ctree-O4 = debug-show-ctree-dfa(|4)
+  debug-show-dfa-ctree-O5 = debug-show-ctree-dfa(|5)
+
+  debug-show-ctree-dfa(|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
       <set-config> ("--library", ()) // no main strategy necessary this way
     ; filename := <guarantee-extension(|"dfa.stra")> path
     ; <translate-core(|path, O)> node
     ; alltd(multimatch2dfa)
-    ; pp-stratego-core
     ; ?result
+  debug-show-pp-dfa(|O) =
+    debug-show-ctree-dfa(|O); (id, pp-stratego-core)

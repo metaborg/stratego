@@ -1,0 +1,181 @@
+module codegen/dfa
+language stratego
+
+test MM to DFA 1 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_0_0( | ) =
+  match sequential
+    case | Nil( ){^_}: !0{^Nil( )}
+    case | Cons(_, Nil( ){^_}){^_}: !1{^Nil( )}
+    case | Cons(_, _){^_}: id
+  end
+]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_0_0( | ) =
+  switch [cur, typ] {
+    alt LIST:
+      switch [cur] {
+        alt (Nil, 0):
+          leaf !0{^Nil( )}
+        alt (Cons, 2):
+          switch [cur, tail, typ] {
+            alt LIST:
+              switch [cur, tail] {
+                alt (Nil, 0):
+                  leaf !1{^Nil( )}
+                default: leaf id
+              }
+            default: leaf id
+          }
+        default: leaf fail
+      }
+    default: leaf fail
+  }
+]]
+
+test MM to DFA 2 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+comp_0_0( | ) =
+  match sequential
+    case | (Nil( ){^_}, _){^_}: !1{^Nil( )}
+    case | (_, Nil( ){^_}){^_}: !2{^Nil( )}
+  end
+]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+comp_0_0( | ) =
+  switch [cur, typ] {
+    alt TUPLE:
+      switch [cur] {
+        alt (2):
+          switch [cur, sub 1, typ] {
+            alt LIST:
+              switch [cur, sub 1] {
+                alt (Nil, 0):
+                  leaf !1{^Nil( )}
+                default: switch [cur, sub 2, typ] {
+                           alt LIST:
+                             switch [cur, sub 2] {
+                               alt (Nil, 0):
+                                 leaf !2{^Nil( )}
+                               default: leaf fail
+                             }
+                           default: leaf fail
+                         }
+              }
+            default: switch [cur, sub 2, typ] {
+                       alt LIST:
+                         switch [cur, sub 2] {
+                           alt (Nil, 0):
+                             leaf !2{^Nil( )}
+                           default: leaf fail
+                         }
+                       default: leaf fail
+                     }
+          }
+        default: leaf fail
+      }
+    default: leaf fail
+  }
+]]
+
+test MM to DFA 3 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+Car1 : a -> List(a)
+Car2 : a -> List(a)
+
+strategies
+
+uncar2_0_0( | ) =
+  {a10, b5: match sequential
+              case | Car1(a10){^_}: Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+              case | Car2(b5){^_}: Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+              case | "abc"{^_}: !"cba"{^Nil( )}
+              case | 8{^_}: !54{^Nil( )}
+              case | 5.4{^_}: !8{^Nil( )}
+            end }
+]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+Car1 : a -> List(a)
+Car2 : a -> List(a)
+
+strategies
+
+uncar2_0_0( | ) =
+  {a10, b5: switch [cur, typ] {
+              alt APPL:
+                switch [cur, con] {
+                  alt (Car1, 1):
+                    leaf Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+                  alt (Car2, 1):
+                    leaf Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+                  default: leaf fail
+                }
+              alt STRING:
+                switch [cur, str] {
+                  alt "abc":
+                    leaf !"cba"{^Nil( )}
+                  default: leaf fail
+                }
+              alt INT:
+                switch [cur, int] {
+                  alt 8:
+                    leaf !54{^Nil( )}
+                  default: leaf fail
+                }
+              alt REAL:
+                switch [cur, real] {
+                  alt 5.4:
+                    leaf !8{^Nil( )}
+                  default: leaf fail
+                }
+              default: leaf fail
+            } }
+]]

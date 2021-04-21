@@ -15,12 +15,25 @@ language
 menus
 
   menu: "Codegen" (openeditor) (source)
-    action: "Show DFA (-O0)" = debug-show-dfa-O0
-    action: "Show DFA (-O1)" = debug-show-dfa-O1
-    action: "Show DFA (-O2)" = debug-show-dfa-O2
-    action: "Show DFA (-O3)" = debug-show-dfa-O3
-    action: "Show DFA (-O4)" = debug-show-dfa-O4
-    action: "Show DFA (-O5)" = debug-show-dfa-O5
+//    action: "Show DFA (-O0)" = debug-show-dfa-pp-O0
+//    action: "Show DFA (-O1)" = debug-show-dfa-pp-O1
+    action: "Show DFA (-O2)" = debug-show-dfa-pp-O2
+    action: "Show DFA (-O3)" = debug-show-dfa-pp-O3
+    action: "Show DFA (-O4)" = debug-show-dfa-pp-O4
+//    action: "Show DFA (-O5)" = debug-show-dfa-pp-O5
 
     action: "Show Java files" = debug-show-java
     action: "Show Java files (optimized)" = debug-show-java-optimized
+
+    action: "Translate MultiMatches" = translate-core-mm-pp
+
+  menu: "Codegen (AST)" (openeditor) (source)
+//    action: "Show DFA (-O0)" = debug-show-dfa-ctree-O0
+//    action: "Show DFA (-O1)" = debug-show-dfa-ctree-O1
+    action: "Show DFA (-O2)" = debug-show-dfa-ctree-O2
+    action: "Show DFA (-O3)" = debug-show-dfa-ctree-O3
+    action: "Show DFA (-O4)" = debug-show-dfa-ctree-O4
+//    action: "Show DFA (-O5)" = debug-show-dfa-ctree-O5
+
+    action: "Translate MultiMatches" = translate-core-mm-aterm
+  
