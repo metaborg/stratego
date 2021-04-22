@@ -93,8 +93,7 @@ sorts DTree
 context-free syntax
   Strategy = DTree
 
-  DTree.Leaf = <leaf <Strategy>> // Only if we don't need DTree.Fail
-//  DTree.Fail = <fail> // Only if we can express 
+  DTree.Leaf = <leaf <Strategy>>
   DTree.SwitchT =
 <switch <Path> {
   <{AltT "\n"}*>
@@ -163,7 +162,6 @@ context-free priorities
 
 context-free priorities
 DTree.Leaf <0> > { DTree.Leaf
-                   // DTree.Fail
                    DTree.SwitchT
                    /*DTree.Swap*/ }
 

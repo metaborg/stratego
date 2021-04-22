@@ -17,7 +17,7 @@ strategies
    */
   default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"no default for "))))
 
-  default-row: Row([Wld() | ps], a) -> Row(ps, a)
+  default-row: Row([<is-wld> | ps], a) -> Row(ps, a)
 
   non-default-row = ?Row([<non-default-head> | _], _) // by definition
   non-default-head =
@@ -58,7 +58,7 @@ strategies
   // Annotations
   head-constructor:             Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
-  specialize-pats(|Anno()):    [Wld() | ps*]        -> <prepend-wld(|2)> ps*
+  specialize-pats(|Anno()):    [<is-wld> | ps*]        -> <prepend-wld(|2)> ps*
   specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
 
   // Tuples + constructor applications
@@ -71,7 +71,7 @@ strategies
     where
       a := <string-to-int> x
     ; <eq> (a, <arity> c)
-  specialize-pats(|Tuple(x)):  [Wld() | ps*]        -> <prepend-wld(|a)> ps*
+  specialize-pats(|Tuple(x)):  [<is-wld> | ps*]        -> <prepend-wld(|a)> ps*
     where a := <string-to-int> x
   specialize-occ(|Tuple(x)) = specialize-occ-by-arity(|<string-to-int> x)
 
@@ -92,7 +92,7 @@ strategies
       <not(is-TupleOp)> c
     ; a := <string-to-int> x
     ; <eq> (a, <arity> c)
-  specialize-pats(|Fun(_, x)): [Wld() | ps*]        -> <prepend-wld(|a)> ps*
+  specialize-pats(|Fun(_, x)): [<is-wld> | ps*]        -> <prepend-wld(|a)> ps*
     with a := <string-to-int> x
   specialize-occ(|Fun(_, x)) = specialize-occ-by-arity(|<string-to-int> x)
 

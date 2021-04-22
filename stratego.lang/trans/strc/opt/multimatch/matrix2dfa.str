@@ -47,33 +47,40 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn: m@Matrix(o*@[o1 | _], [_ | _]) -> T
-  with
-    <debug(!"SelectColumn ")> m
+  SelectColumn = ?m@Matrix(o*@[o1 | _], [_ | _])
+  ; <debug(!"SelectColumn ")> m
   ; i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
-  ; if <gti> (i, 1)
+  ; if <gti> (i, 1) then
     /*
      * If i > 1 then swap columns 1 and i in both o and P,
-     * as above, yielding decision tree A', and define:
+     * and run the algorithm on the resulting matrix.
      */
-    then // i > 1
-         <swap-cols(|1, i); CC> m
-    else // i == 1
-         hc* := <col(|i); head-constructors; make-set> m
-       ; if !hc* => [(Anno(), _)]
-         then <specialize(|m); CC> Anno()
-         else with(filter(?(Anno(), _)); ?[] | ["Head constructors contain annos: ", <id>])
-            ; hts := <map(Snd); make-set> hc*
-            ; valt* := <map(\ (c, t) -> (c, t, <specialize(|m)> c) \)> hc*
-            ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
-            ; default   := <default; CC> m
-            ; talt*     := <map(talt(|o*, default))> tbranch*
-            ; !SwitchT(<append-occ> (o1, Typ()), talt*, default)
-         end
-    end => T
+      <swap-cols(|1, i); CC> m
+    else
+      <col(|i); head-constructors; make-set> m => hc*
+    ; <tswitch> (m, hc*)
+    end
+
+  tswitch =
+    ?(m, [(hc@Anno(), _)])
+  ; <specialize(|m); CC> hc
+
+  tswitch:
+    (m@Matrix(o*@[o1 | _], [_ | _]), hc*) -> SwitchT(o1', talt*, default)
+  where
+    <retain-all(?(Anno(), _)); ?[]> hc*
+  with
+    hts      := <map(Snd); make-set> hc*
+  ; valt*    := <map(\ (c, t) -> (c, t, <specialize(|m)> c) \)> hc*
+  ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
+  ; default  := <default; CC> m
+  ; talt*    := <map(talt(|o*, default))> tbranch*
+  ; o1'      := <append-occ> (o1, Typ())
 
   talt(|o*, d): (t, valt*) -> AltT(t, <vswitch(|t, o*, d)> valt*)
+
+  valt: (c, _, m) -> AltV(c, <CC> m)
 
   vswitch(|ApplT(), [o1 | _], d) =
     !SwitchV(<append-occ> (o1, Con()), <map(valt)>, d)
@@ -104,5 +111,3 @@ strategies
 
   // TODO Find out if this is not yet deprecated.
   vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
-
-  valt: (c, _, m) -> AltV(c, <CC> m)
