@@ -4,12 +4,5 @@ imports
   strj/multimatch/multimatch2matrix
   strj/multimatch/matrix2dfa
 
-  signatures/core/strategies-sig
-
-  libstratego-aterm // debugging only
-
 strategies
-  multimatch2dfa: mm@MultiMatch(_, _) -> dfa
-  with
-    <debug(!"[i] m2m "); multimatch2matrix; debug(!"[o] m2m ")> mm => matrix
-  ; <debug(!"[i] m2d "); matrix2dfa; debug(!"[o] m2d ")> matrix => dfa
+  multimatch2dfa = multimatch2matrix; matrix2dfa
