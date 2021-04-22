@@ -983,6 +983,7 @@ strategies
     <+ translate-Scope
     <+ translate-Match
     <+ translate-MultiMatch
+    <+ translate-DFA
     <+ translate-Let
     <+ translate-ImportTerm
     <+ translate-Escape
@@ -1943,16 +1944,14 @@ strategies
     ]|
     with
       <multimatch2dfa> mm => dfa
-    ; <translate-DFA> dfa => bstm_java*
+    ; <translate-strategy> dfa => bstm_java*
 
 /*======== Generate Java code from DFA =================*/
-  translate-DFA = ?Leaf(<translate-strategy>) // bstm*
-
   translate-DFA: SwitchT(o, alt*, default) -> bstm* |[
     switch (e_occ) {
       ~switch-group*:cases
       default: {
-        ~<translate-DFA> default
+        ~<translate-strategy> default
         break;
       }
     }
@@ -1982,13 +1981,13 @@ strategies
 
   translate-SwitchV: SwitchV(o, alt*, default) -> stm_alt
   with
-    stm_def := <translate-DFA> default
+    stm_def := <translate-strategy> default
   ; stm_alt := <foldr(!stm_def, translate-AltV(|o))> alt*
 
   translate-AltV(|o): (AltV(p, tree_match), stm_else) ->
   stm |[
     if (e_match) {
-      ~<translate-DFA> tree_match
+      ~<translate-strategy> tree_match
     } else {
       stm_else
     }

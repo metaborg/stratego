@@ -34,20 +34,20 @@ length_0_0( | ) =
     alt LIST:
       switch [cur] {
         alt (Nil, 0):
-          leaf !0{^Nil( )}
+          !0{^Nil( )}
         alt (Cons, 2):
           switch [cur, tail, typ] {
             alt LIST:
               switch [cur, tail] {
                 alt (Nil, 0):
-                  leaf !1{^Nil( )}
-                default: leaf id
+                  !1{^Nil( )}
+                default: id
               }
-            default: leaf id
+            default: id
           }
-        default: leaf fail
+        default: fail
       }
-    default: leaf fail
+    default: fail
   }
 ]]
 
@@ -87,30 +87,31 @@ comp_0_0( | ) =
             alt LIST:
               switch [cur, sub 1] {
                 alt (Nil, 0):
-                  leaf !1{^Nil( )}
+                  !1{^Nil( )}
                 default: switch [cur, sub 2, typ] {
                            alt LIST:
                              switch [cur, sub 2] {
                                alt (Nil, 0):
-                                 leaf !2{^Nil( )}
-                               default: leaf fail
+                                 !2{^Nil( )}
+                               default: fail
                              }
-                           default: leaf fail
+                           default: fail
                          }
               }
             default: switch [cur, sub 2, typ] {
                        alt LIST:
                          switch [cur, sub 2] {
                            alt (Nil, 0):
-                             leaf !2{^Nil( )}
-                           default: leaf fail
+                             !2{^Nil( )}
+                           default: fail
                          }
-                       default: leaf fail
+                       default: fail
                      }
           }
-        default: leaf fail
+
+        default: fail
       }
-    default: leaf fail
+    default: fail
   }
 ]]
 
@@ -153,29 +154,29 @@ uncar2_0_0( | ) =
     alt APPL:
       switch [cur, con] {
         alt (Car1, 1):
-          leaf Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+          Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
         alt (Car2, 1):
-          leaf Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
-        default: leaf fail
+          Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+        default: fail
       }
     alt STRING:
       switch [cur, str] {
         alt "abc":
-          leaf !"cba"{^Nil( )}
-        default: leaf fail
+          !"cba"{^Nil( )}
+        default: fail
       }
     alt INT:
       switch [cur, int] {
         alt 8:
-          leaf !54{^Nil( )}
-        default: leaf fail
+          !54{^Nil( )}
+        default: fail
       }
     alt REAL:
       switch [cur, real] {
         alt 5.4:
-          leaf !8{^Nil( )}
-        default: leaf fail
+          !8{^Nil( )}
+        default: fail
       }
-    default: leaf fail
+    default: fail
   }
 ]]

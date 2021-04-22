@@ -93,17 +93,16 @@ sorts DTree
 context-free syntax
   Strategy = DTree
 
-  DTree.Leaf = <leaf <Strategy>>
   DTree.SwitchT =
 <switch <Path> {
   <{AltT "\n"}*>
-  default: <DTree>
+  default: <Strategy>
 }>
 
   SwitchV.SwitchV =
 <switch <Path> {
   <{AltV "\n"}*>
-  default: <DTree>
+  default: <Strategy>
 }>
 
 sorts AltT AltV
@@ -159,11 +158,6 @@ context-free priorities
   }
 > Strategy.Seq
 > Strategy.GuardedLChoice
-
-context-free priorities
-DTree.Leaf <0> > { DTree.Leaf
-                   DTree.SwitchT
-                   /*DTree.Swap*/ }
 
 context-free syntax
   Strategy.ImportTerm = <import-term(<ModName>)>

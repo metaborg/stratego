@@ -25,7 +25,7 @@ strategies
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows: m@Matrix(_, []) -> Leaf(Fail())
+  NoRows: m@Matrix(_, []) -> Fail()
   where
     <debug(!"NoRows ")> m
 
@@ -36,7 +36,7 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow: m@Matrix(_, [Row(ps, a) | _]) -> Leaf(a)
+  WildcardsFirstRow: m@Matrix(_, [Row(ps, a) | _]) -> a
   where
     <map(is-wld)> ps
   ; <debug(!"WildcardsFirstRow ")> m
