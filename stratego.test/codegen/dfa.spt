@@ -81,7 +81,7 @@ strategies
 comp_0_0( | ) =
   switch [cur, typ] {
     alt TUPLE:
-      switch [cur] {
+      switch [cur, size] {
         alt (2):
           switch [cur, sub 1, typ] {
             alt LIST:

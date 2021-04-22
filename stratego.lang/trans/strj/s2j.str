@@ -2022,7 +2022,7 @@ strategies
     e |[ true ]|
 
   java-Pat-to-Condition: (Tuple(x), e_occ) ->
-    e |[ ((IStrategoTuple) e_occ).size() == ~<java-mk-int-const> x ]|
+    e |[ e_occ == ~<java-mk-int-const> x ]|
 
   translate-Path = id
   ; ?Path([p | ps])
@@ -2039,3 +2039,4 @@ strategies
   translate-PathEl: (Str(), e)  -> e |[ ((IStrategoString) e).stringValue() ]|
   translate-PathEl: (Hd(), e)   -> e |[ ((IStrategoList) e).head() ]|
   translate-PathEl: (Tl(), e)   -> e |[ ((IStrategoList) e).tail() ]|
+  translate-PathEl: (Siz(), e)   -> e |[ ((IStrategoTuple) e).size() ]|

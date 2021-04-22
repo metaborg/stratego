@@ -93,7 +93,8 @@ strategies
   // Consider if this pattern can occur outside of an APPL.
   vswitch(|CtorT(), [o1 | _], d) = <error> ["CtorT not implemented"]; fail
 
-  vswitch(|TupleT(), [o1 | _], d) = !SwitchV(o1, <map(valt)>, d)
+  vswitch(|TupleT(), [o1 | _], d) =
+    !SwitchV(<append-occ> (o1, Siz()), <map(valt)>, d)
 
   // TODO Find out if this is not yet deprecated.
   vswitch(|RefT(), [o1 | _], d) = <error> ["RefT not implemented"]; fail

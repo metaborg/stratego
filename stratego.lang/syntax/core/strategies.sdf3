@@ -116,7 +116,7 @@ context-free syntax
 <alt <PatV>:
   <Strategy>>
 
-sorts Path PathEl
+sorts Path PathEl // TODO Distinct ValuePath and TypePath sorts.
 context-free syntax
   Path.Path = <[<{PathEl ", "}+>]>
 
@@ -130,6 +130,7 @@ context-free syntax
   PathEl.Str = <str>
   PathEl.Hd = <head>
   PathEl.Tl = <tail>
+  PathEl.Siz = <size>
 
 sorts PatV
 context-free syntax
