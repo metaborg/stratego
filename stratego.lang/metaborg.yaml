@@ -2,7 +2,7 @@
 id: org.metaborg:stratego.lang:${metaborgVersion}
 name: StrategoLang
 metaborgVersion: 2.6.0-SNAPSHOT
-metaborgBaselineVersion: 2.5.14
+metaborgBaselineVersion: 2.5.15
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
@@ -18,6 +18,7 @@ language:
     pretty-print: StrategoLang
     sdf2table: java
     jsglr-version: v2
+    generate-namespaced: yes
     placeholder:
       prefix: "$"
   stratego:
@@ -43,11 +44,16 @@ language:
 exports:
 - language: ATerm
   directory: src-gen/syntax
+  includes: StrategoLang/**.aterm
 - language: TemplateLang
-  directory: syntax
+  directory: src-gen/syntax
+  includes: StrategoLang/**.sdf3
 - language: Stratego-Sugar
   directory: src-gen
+  includes: StrategoLang/**.str
 - language: EditorService
   directory: src-gen
+  includes: StrategoLang/**.esv
 - language: ds
   directory: src-gen
+  includes: StrategoLang/**.ds
