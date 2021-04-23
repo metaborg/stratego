@@ -88,6 +88,7 @@ end>
   MatchOrder.Sequential = <sequential>
 
   MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
+  MatchCase.ScopedGuardedMatchCase = <case <{ID ", "}*> | <Term> where <Strategy>: <Strategy>>
 
 sorts DTree
 context-free syntax
@@ -105,13 +106,21 @@ context-free syntax
   default: <Strategy>
 }>
 
+context-free syntax
+  Strategy.AssignPath = <<Term> ::= <Path>>
+
 sorts AltT AltV
 context-free syntax
   AltT.AltT =
 <alt <PatT>:
   <SwitchV>>
+
   AltV.AltV =
 <alt <PatV>:
+  <Strategy>>
+
+  AltV.AltVGuarded =
+<alt <PatV> where <Strategy>:
   <Strategy>>
 
 sorts Path PathEl // TODO Distinct ValuePath and TypePath sorts.
@@ -138,6 +147,8 @@ context-free syntax
   PatV.Real = Real
   PatV.Anno = <{_}>
   PatV.Tuple = <(<Int>)>
+  PatV.Var = Var
+  PatV.Wld = Wld
 
 sorts PatT
 context-free syntax
