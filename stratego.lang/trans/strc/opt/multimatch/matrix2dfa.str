@@ -64,7 +64,7 @@ strategies
 
   tswitch =
     ?(m, [(hc@Anno(), _)])
-  ; <specialize(|m); CC> hc
+  ; <specialize(|hc); CC> m
 
   tswitch:
     (m@Matrix(o*@[o1 | _], [_ | _]), hc*) -> SwitchT(o1', talt*, default)
@@ -72,7 +72,7 @@ strategies
     <retain-all(?(Anno(), _)); ?[]> hc*
   with
     hts      := <map(Snd); make-set> hc*
-  ; valt*    := <map(\ (c, t) -> (c, t, <specialize(|m)> c) \)> hc*
+  ; valt*    := <map(\ (c, t) -> (c, t, <specialize(|c)> m) \)> hc*
   ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
   ; default  := <default; CC> m
   ; talt*    := <map(talt(|o*, default))> tbranch*
