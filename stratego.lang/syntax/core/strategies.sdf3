@@ -92,24 +92,28 @@ end>
 
 sorts DTree
 context-free syntax
-  Strategy = DTree
+  Strategy = DTree // Can be factored out if only one DTree production exists.
 
   DTree.SwitchT =
 <switch <Path> {
   <{AltT "\n"}*>
-  default: <Strategy>
+  default:
+    <Strategy>
 }>
 
+sorts SwitchV
+context-free syntax
   SwitchV.SwitchV =
 <switch <Path> {
   <{AltV "\n"}*>
-  default: <Strategy>
+  default:
+    <Strategy>
 }>
 
 context-free syntax
   Strategy.AssignPath = <<Term> ::= <Path>>
 
-sorts AltT AltV
+sorts AltT AltV AltVGuard
 context-free syntax
   AltT.AltT =
 <alt <PatT>:
@@ -119,8 +123,12 @@ context-free syntax
 <alt <PatV>:
   <Strategy>>
 
-  AltV.AltVGuarded =
-<alt <PatV> where <Strategy>:
+  AltV.GuardedAltV =
+<alt <PatV>
+  <{AltVGuard "\n"}+>>
+
+  AltVGuard.AltVGuard =
+<where <Strategy>:
   <Strategy>>
 
 sorts Path PathEl // TODO Distinct ValuePath and TypePath sorts.

@@ -34,9 +34,13 @@ s(|x) = switch [cur, typ] {
           alt APPL:
             switch [cur, con] {
               alt (C1, 2) where x1 ::= [cur, sub 1]; x1 := x:
-                !1
-              alt (C1, 2) where y ::= [cur, sub 1]:
-                !y
+                            !1
+                          where y ::= [cur, sub 1]:
+                            !y
+//              alt (C1, 2) where x1 ::= [cur, sub 1]; x1 := x:
+//                !1
+//              alt (C1, 2) where y ::= [cur, sub 1]:
+//                !y
               alt (C2, 0) where z ::= [cur]:
                 !3
               default: fail
