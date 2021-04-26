@@ -95,7 +95,7 @@ context-free syntax
   Strategy = DTree // Can be factored out if only one DTree production exists.
 
   DTree.SwitchT =
-<switch <Path> {
+<switch <PathT> {
   <{AltT "\n"}*>
   default:
     <Strategy>
@@ -104,14 +104,11 @@ context-free syntax
 sorts SwitchV
 context-free syntax
   SwitchV.SwitchV =
-<switch <Path> {
+<switch <PathVF> {
   <{AltV "\n"}*>
   default:
     <Strategy>
 }>
-
-context-free syntax
-  Strategy.AssignPath = <<Term> ::= <Path>>
 
 sorts AltT AltV AltVGuard
 context-free syntax
@@ -131,21 +128,29 @@ context-free syntax
 <where <Strategy>:
   <Strategy>>
 
-sorts Path PathEl // TODO Distinct ValuePath and TypePath sorts.
+sorts Path PathV PathT PathF PathVF
 context-free syntax
-  Path.Path = <[<{PathEl ", "}+>]>
+  Path = PathV
+  Path = PathT
+  Path = PathF
+  
+  PathVF = PathV
+  PathVF = PathF
 
-  PathEl.Cur = <cur>
-  PathEl.Sub = <sub <Int>>
-  PathEl.Ann = <ann>
-  PathEl.Con = <con>
-  PathEl.Typ = <typ>
-  PathEl.Int = <int>
-  PathEl.Real = <real>
-  PathEl.Str = <str>
-  PathEl.Hd = <head>
-  PathEl.Tl = <tail>
-  PathEl.Siz = <size>
+  PathV.Cur = <current>
+  PathV.Var = Var
+  PathV.Sub = <<PathV>.<Int>>
+  PathV.Anno = <<PathV>.anno>
+  PathV.Head = <<PathV>.head>
+  PathV.Tail = <<PathV>.tail>
+
+  PathT.Type = <<PathV>.type>
+
+  PathF.Size = <<PathV>.size>
+  PathF.Con  = <<PathV>.con>
+  PathF.Int  = <<PathV>.int>
+  PathF.Real = <<PathV>.real>
+  PathF.Str  = <<PathV>.str>
 
 sorts PatV
 context-free syntax

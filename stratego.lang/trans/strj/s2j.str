@@ -2023,19 +2023,25 @@ strategies
   java-Pat-to-Condition: (Tuple(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
-  translate-Path = id
-  ; ?Path([p | ps])
-  ; !(ps, <translate-PathEl> (p, Empty()))
-  ; foldl(translate-PathEl)
-
-  translate-PathEl: (Cur(), Empty())  -> e |[ term ]|
-  translate-PathEl: (Sub(x), e) -> e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
-  translate-PathEl: (Ann(), e)  -> e |[ e.getAnnotations() ]|
-  translate-PathEl: (Con(), e)  -> e |[ ((IStrategoAppl) e).getConstructor() ]|
-  translate-PathEl: (Typ(), e)  -> e |[ e.getType() ]|
-  translate-PathEl: (Int(), e)  -> e |[ ((IStrategoInt) e).intValue() ]|
-  translate-PathEl: (Real(), e) -> e |[ ((IStrategoReal) e).realValue() ]|
-  translate-PathEl: (Str(), e)  -> e |[ ((IStrategoString) e).stringValue() ]|
-  translate-PathEl: (Hd(), e)   -> e |[ ((IStrategoList) e).head() ]|
-  translate-PathEl: (Tl(), e)   -> e |[ ((IStrategoList) e).tail() ]|
-  translate-PathEl: (Siz(), e)   -> e |[ ((IStrategoTuple) e).size() ]|
+  translate-Path: Cur() -> e |[ term ]|
+  translate-Path = ?Var(_); java-ConstructVar
+  translate-Path: Sub(p, Int(x)) -> e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
+    with e := <translate-Path> p
+  translate-Path: Anno(p) -> e |[ e.getAnnotations() ]|
+    with e := <translate-Path> p
+  translate-Path: Con(p) -> e |[ ((IStrategoAppl) e).getConstructor() ]|
+    with e := <translate-Path> p
+  translate-Path: Type(p) -> e |[ e.getType() ]|
+    with e := <translate-Path> p
+  translate-Path: Int(p) -> e |[ ((IStrategoInt) e).intValue() ]|
+    with e := <translate-Path> p
+  translate-Path: Real(p) -> e |[ ((IStrategoReal) e).realValue() ]|
+    with e := <translate-Path> p
+  translate-Path: Str(p) -> e |[ ((IStrategoString) e).stringValue() ]|
+    with e := <translate-Path> p
+  translate-Path: Head(p) -> e |[ ((IStrategoList) e).head() ]|
+    with e := <translate-Path> p
+  translate-Path: Tail(p) -> e |[ ((IStrategoList) e).tail() ]|
+    with e := <translate-Path> p
+  translate-Path: Size(p) -> e |[ ((IStrategoTuple) e).size() ]|
+    with e := <translate-Path> p

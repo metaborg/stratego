@@ -47,19 +47,16 @@ strategies
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
 
-  specialize-occ-by-arity(|a):      p@Path(_) -> ps
-    where
+  specialize-occ-by-arity(|a):      p -> ps
+    with
       i* := <range> (1, <inc> a)
-    ; ps := <map(\ i -> <append-occ> (p, Sub(<int-to-string> i)) \)> i*
-
-  append-occ: (Path(os*), o) -> Path([os*, o*])
-    with o* := [o]
+    ; ps := <map(\ i -> Sub(p, <int-to-string> i) \)> i*
 
   // Annotations
   head-constructor:             Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
   specialize-pats(|Anno()):    [<is-wld> | ps*]        -> <prepend-wld(|2)> ps*
-  specialize-occ(|Anno()): p@Path(_) -> [p, <append-occ> (p, Ann())]
+  specialize-occ(|Anno()): p -> [p, Anno(p)]
 
   // Tuples + constructor applications
   arity:                        Op(f, ts)           -> <length> ts
@@ -78,9 +75,8 @@ strategies
   // Lists
   head-type:                    Op("Nil", [])       -> LisT()
   head-type:                    Op("Cons", [_, _])  -> LisT()
-  specialize-occ(|Fun("Nil", "0")): Path(_) -> []
-  specialize-occ(|Fun("Cons", "2")): p@Path(_) -> [ <append-occ> (p, Hd())
-                                                  , <append-occ> (p, Tl()) ]
+  specialize-occ(|Fun("Nil", "0")) = ![]
+  specialize-occ(|Fun("Cons", "2")): p -> [ Head(p), Tail(p) ]
 
   // Constructor applications
   head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)

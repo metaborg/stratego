@@ -8,10 +8,9 @@ imports
 
 strategies
   /*======== Construct clause and action matrices ========*/
-  multimatch2matrix: MultiMatch(Sequential(), cases) -> Matrix(p*, rows)
+  multimatch2matrix: MultiMatch(Sequential(), cases) -> Matrix([Cur()], rows)
   with
     <map(MatchCase2Row)> cases => rows
-  ; p* := [Path([Cur()])]
 
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]

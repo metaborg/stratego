@@ -30,15 +30,15 @@ Cons : a * List(a) -> List(a)
 strategies
 
 length_0_0( | ) =
-  switch [cur, typ] {
+  switch current.type {
     alt LIST:
-      switch [cur] {
+      switch current {
         alt (Nil, 0):
           !0{^Nil( )}
         alt (Cons, 2):
-          switch [cur, tail, typ] {
+          switch current.tail.type {
             alt LIST:
-              switch [cur, tail] {
+              switch current.tail {
                 alt (Nil, 0):
                   !1{^Nil( )}
                 default: id
@@ -79,18 +79,18 @@ Cons : a * List(a) -> List(a)
 strategies
 
 comp_0_0( | ) =
-  switch [cur, typ] {
+  switch current.type {
     alt TUPLE:
-      switch [cur, size] {
+      switch current.size {
         alt (2):
-          switch [cur, sub 1, typ] {
+          switch current.1.type {
             alt LIST:
-              switch [cur, sub 1] {
+              switch current.1 {
                 alt (Nil, 0):
                   !1{^Nil( )}
-                default: switch [cur, sub 2, typ] {
+                default: switch current.2.type {
                            alt LIST:
-                             switch [cur, sub 2] {
+                             switch current.2 {
                                alt (Nil, 0):
                                  !2{^Nil( )}
                                default: fail
@@ -98,9 +98,9 @@ comp_0_0( | ) =
                            default: fail
                          }
               }
-            default: switch [cur, sub 2, typ] {
+            default: switch current.2.type {
                        alt LIST:
-                         switch [cur, sub 2] {
+                         switch current.2 {
                            alt (Nil, 0):
                              !2{^Nil( )}
                            default: fail
@@ -150,9 +150,9 @@ Car2 : a -> List(a)
 strategies
 
 uncar2_0_0( | ) =
-  switch [cur, typ] {
+  switch current.type{
     alt APPL:
-      switch [cur, con] {
+      switch current.con {
         alt (Car1, 1):
           Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
         alt (Car2, 1):
@@ -160,19 +160,19 @@ uncar2_0_0( | ) =
         default: fail
       }
     alt STRING:
-      switch [cur, str] {
+      switch current.str {
         alt "abc":
           !"cba"{^Nil( )}
         default: fail
       }
     alt INT:
-      switch [cur, int] {
+      switch current.int {
         alt 8:
           !54{^Nil( )}
         default: fail
       }
     alt REAL:
-      switch [cur, real] {
+      switch current.real {
         alt 5.4:
           !8{^Nil( )}
         default: fail

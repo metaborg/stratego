@@ -30,18 +30,18 @@ s(|x) = match sequential
 
 // compiles to: (non-linear consistency checks and (sub)term bindings)
 
-s(|x) = switch [cur, typ] {
+s(|x) = switch current.type {
           alt APPL:
-            switch [cur, con] {
-              alt (C1, 2) where x1 ::= [cur, sub 1]; x1 := x:
+            switch current.con {
+              alt (C1, 2) where x1 := current.1; x1 := x:
                             !1
-                          where y ::= [cur, sub 1]:
+                          where y := current.1:
                             !y
 //              alt (C1, 2) where x1 ::= [cur, sub 1]; x1 := x:
 //                !1
 //              alt (C1, 2) where y ::= [cur, sub 1]:
 //                !y
-              alt (C2, 0) where z ::= [cur]:
+              alt (C2, 0) where z := current:
                 !3
               default: fail
             }

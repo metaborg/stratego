@@ -9,7 +9,7 @@ imports
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = where(o* := [Path([Cur()])]); CC
+  matrix2dfa = CC
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -67,7 +67,7 @@ strategies
   ; <specialize(|hc); CC> m
 
   tswitch:
-    (m@Matrix(o*@[o1 | _], [_ | _]), hc*) -> SwitchT(o1', talt*, default)
+    (m@Matrix([p | _], [_ | _]), hc*) -> SwitchT(Type(p), talt*, default)
   where
     <retain-all(?(Anno(), _)); ?[]> hc*
   with
@@ -75,39 +75,38 @@ strategies
   ; valt*    := <map(\ (c, t) -> (c, t, <specialize(|c)> m) \)> hc*
   ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
   ; default  := <default; CC> m
-  ; talt*    := <map(talt(|o*, default))> tbranch*
-  ; o1'      := <append-occ> (o1, Typ())
+  ; talt*    := <map(talt(|p, default))> tbranch*
 
-  talt(|o*, d): (t, valt*) -> AltT(t, <vswitch(|t, o*, d)> valt*)
+  talt(|p, d): (t, valt*) -> AltT(t, <vswitch(|t, p, d)> valt*)
 
   valt: (c, _, m) -> AltV(c, <CC> m)
 
-  vswitch(|ApplT(), [o1 | _], d) =
-    !SwitchV(<append-occ> (o1, Con()), <map(valt)>, d)
+  vswitch(|ApplT(), p, d) =
+    !SwitchV(Con(p), <map(valt)>, d)
 
-  vswitch(|LisT(), [o1 | _], d) =
-    !SwitchV(o1, <map(valt)>, d)
+  vswitch(|LisT(), p, d) =
+    !SwitchV(p, <map(valt)>, d)
 
-  vswitch(|IntT(), [o1 | _], d) =
-    !SwitchV(<append-occ> (o1, Int()), <map(valt)>, d)
+  vswitch(|IntT(), p, d) =
+    !SwitchV(Int(p), <map(valt)>, d)
 
-  vswitch(|RealT(), [o1 | _], d) =
-    !SwitchV(<append-occ> (o1, Real()), <map(valt)>, d)
+  vswitch(|RealT(), p, d) =
+    !SwitchV(Real(p), <map(valt)>, d)
 
-  vswitch(|StringT(), [o1 | _], d) =
-    !SwitchV(<append-occ> (o1, Str()), <map(valt)>, d)
+  vswitch(|StringT(), p, d) =
+    !SwitchV(Str(p), <map(valt)>, d)
 
   // Consider if this pattern can occur outside of an APPL.
-  vswitch(|CtorT(), [o1 | _], d) = <error> ["CtorT not implemented"]; fail
+  vswitch(|CtorT(), p, d) = <error> ["CtorT not implemented"]; fail
 
-  vswitch(|TupleT(), [o1 | _], d) =
-    !SwitchV(<append-occ> (o1, Siz()), <map(valt)>, d)
-
-  // TODO Find out if this is not yet deprecated.
-  vswitch(|RefT(), [o1 | _], d) = <error> ["RefT not implemented"]; fail
+  vswitch(|TupleT(), p, d) =
+    !SwitchV(Size(p), <map(valt)>, d)
 
   // TODO Find out if this is not yet deprecated.
-  vswitch(|BlobT(), [o1 | _], d) = <error> ["BlobT not implemented"]; fail
+  vswitch(|RefT(), p, d) = <error> ["RefT not implemented"]; fail
 
   // TODO Find out if this is not yet deprecated.
-  vswitch(|PlaceT(), [o1 | _], d) = <error> ["PlaceT not implemented"]; fail
+  vswitch(|BlobT(), p, d) = <error> ["BlobT not implemented"]; fail
+
+  // TODO Find out if this is not yet deprecated.
+  vswitch(|PlaceT(), p, d) = <error> ["PlaceT not implemented"]; fail
