@@ -324,7 +324,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy("0", "0"))
+        <report-Err> (x, UnresolvedStrategy(0, 0))
       ; st2 := <current-type(|ErrT())> st1
       ; c2 := c1
       case ?st*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?SDyn(){LocalDef()})):
@@ -345,7 +345,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy("0", "0"))
+        <report-Err> (x, UnresolvedStrategy(0, 0))
       ; st2 := <current-type(|ErrT())> st1
       ; c2 := c1
       case ?st*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?SDyn(){LocalDef()})):
@@ -366,7 +366,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy("0", "0"))
+        <report-Err> (x, UnresolvedStrategy(0, 0))
       ; st2 := <current-type(|ErrT())> st1
       ; c2 := c1
       case ?st1*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?SDyn(){LocalDef()})):
@@ -489,7 +489,7 @@ insertCasts-Strategy-(|e1, st1):
 insertCasts-Strategy-(|e1, st1):
   Rec(x, s1) -> (Rec(x, s2), st2)
   with
-    e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [(x{}, FunTType())])
+    e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [((x{}, 0, 0), FunTType())])
   ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
 
 insertCasts-Strategy-(|e1, st1):
@@ -594,8 +594,9 @@ insertCasts-Strategy-(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
-  ; if t3@ListT(_) := <pushDyn> t1
-      then st2 := st1
+  ; if ListT(_) := <pushDyn> t1
+      then t3 := <pushDyn> t1 // workaround for strj bug: cannot use t3@ in the pattern above
+         ; st2 := st1
       else t3 := ListT()
       // Give a warning when it's guaranteed to fail based on type.
       ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
@@ -608,8 +609,9 @@ insertCasts-Strategy-(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
-  ; if t3@ListT(_) := <pushDyn> t1
-      then st2 := st1
+  ; if ListT(_) := <pushDyn> t1
+      then t3 := <pushDyn> t1 // workaround for strj bug: cannot use t3@ in the pattern above
+         ; st2 := st1
       else t3 := ListT()
       // Give a warning when it's guaranteed to fail based on type.
       ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())

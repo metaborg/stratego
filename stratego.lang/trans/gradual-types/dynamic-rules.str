@@ -219,7 +219,7 @@ insertCasts-Strategy-(|e1, st1):
 //                           : List(Id) -> RuleNames
 
 insertCasts-RuleNames(|e1, st1) =
-    is-list
+    is-list; !(<id>, st1)
 
 //  RuleNames                : Term -> RuleNames
 

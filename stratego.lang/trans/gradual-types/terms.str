@@ -374,7 +374,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   trm@Tuple(trm1*) -> (Tuple(trm2*), st4)
   with
     t1 := <current-type> st1
-  ; if TupleT(t1*) := <pushDyn> t1; n := <length> t1*
+  ; if TupleT(t1*) := <pushDyn> t1; <eq> (<length> t1*, <length> trm1*)
       then t2* := t1*
          ; st2 := st1
       else t2* := <map(!ErrT())> trm1*
