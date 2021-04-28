@@ -28,7 +28,7 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrategoGradualSetting;
 
-public class StrIncr implements TaskDef<StrIncr.Input, None> {
+public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> {
     public static final String id = StrIncr.class.getCanonicalName();
 
     public static final class Input implements Serializable {
@@ -89,7 +89,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         this.strIncrAnalysis = analysis;
     }
 
-    @Override public None exec(ExecContext execContext, Input input) throws Exception {
+    @Override public ArrayList<ResourcePath> exec(ExecContext execContext, Input input) throws Exception {
         final StrIncrAnalysis.Output result = execContext.require(strIncrAnalysis, input.frontendsInput);
 
         if(!result.messages.isEmpty()) {
@@ -114,12 +114,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
         }
 
         // BACKEND
-        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData);
-        return None.instance;
+        final ArrayList<ResourcePath> providedFiles = new ArrayList<>();
+        backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData, providedFiles);
+        return providedFiles;
     }
 
     private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
-        StaticChecks.Data staticData, BackendData backendData) {
+        StaticChecks.Data staticData, BackendData backendData, ArrayList<ResourcePath> providedFiles) {
         long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
@@ -145,7 +146,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, None> {
                     strategyOverlayFiles, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            execContext.require(strIncrBack.createTask(backEndInput));
+            providedFiles.addAll(execContext.require(strIncrBack.createTask(backEndInput)));
         }
         ArrayList<String> droppedCongruences = new ArrayList<>();
         for(Map.Entry<String, IStrategoAppl> entry : backendData.congrASTs.entrySet()) {

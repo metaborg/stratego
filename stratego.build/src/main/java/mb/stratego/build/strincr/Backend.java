@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import mb.resource.ResourceKeyString;
+import mb.resource.hierarchical.HierarchicalResource;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -30,7 +32,7 @@ import mb.stratego.build.util.StrategoConstants;
 import mb.stratego.build.util.StrategoExecutor;
 import mb.stratego.compiler.pack.Packer;
 
-public class Backend implements TaskDef<Backend.Input, None> {
+public class Backend implements TaskDef<Backend.Input, ArrayList<ResourcePath>> {
     public static final String id = Backend.class.getCanonicalName();
 
     public static final class Input implements Serializable {
@@ -124,7 +126,7 @@ public class Backend implements TaskDef<Backend.Input, None> {
         this.resourcePathConverter = resourcePathConverter;
     }
 
-    @Override public None exec(ExecContext execContext, Input input) throws Exception {
+    @Override public ArrayList<ResourcePath> exec(ExecContext execContext, Input input) throws Exception {
         BuildStats.executedBackTasks++;
 
         final long startTime = System.nanoTime();
@@ -172,17 +174,20 @@ public class Backend implements TaskDef<Backend.Input, None> {
             throw new ExecException("Call to strj failed:\n" + result.exception, null);
         }
 
+        final ArrayList<ResourcePath> providedFiles = new ArrayList<>();
         for(String line : result.errLog.split("\\r\\n|[\\r\\n]")) {
             if(line.contains(StrategoConstants.STRJ_INFO_WRITING_FILE)) {
                 String fileName = line.substring(line.indexOf(StrategoConstants.STRJ_INFO_WRITING_FILE)
                     + StrategoConstants.STRJ_INFO_WRITING_FILE.length()).trim();
                 BuildStats.generatedJavaFiles.add(fileName);
-                execContext.provide(execContext.getResourceService().getHierarchicalResource(ResourceKeyString.parse(fileName)));
+                final HierarchicalResource resource = execContext.getResourceService().getHierarchicalResource(ResourceKeyString.parse(fileName));
+                providedFiles.add(resource.getPath());
+                execContext.provide(resource);
             }
         }
         BuildStats.backTaskTime += System.nanoTime() - startTime;
 
-        return None.instance;
+        return providedFiles;
     }
 
     private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {
