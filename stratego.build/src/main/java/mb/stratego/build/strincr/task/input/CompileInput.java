@@ -24,12 +24,14 @@ public class CompileInput implements Serializable {
     public final Arguments extraArgs;
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final StrategoGradualSetting strategoGradualSetting;
+    public final boolean library;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, @Nullable String packageName, @Nullable ResourcePath cacheDir,
         ArrayList<String> constants, ArrayList<ResourcePath> includeDirs,
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
-        ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting) {
+        ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting,
+        boolean library) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.projectPath = projectPath;
         this.outputDir = outputDir.getNormalized();
@@ -41,6 +43,7 @@ public class CompileInput implements Serializable {
         this.extraArgs = extraArgs;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.strategoGradualSetting = strategoGradualSetting;
+        this.library = library;
     }
 
     @Override public boolean equals(Object o) {

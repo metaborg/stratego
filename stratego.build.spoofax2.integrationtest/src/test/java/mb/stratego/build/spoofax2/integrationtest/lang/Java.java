@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Locale;
 
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -18,10 +19,12 @@ public class Java {
         Iterable<? extends File> classPath)
         throws IOException {
         final javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        try(StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null)) {
+        try(StandardJavaFileManager fileManager = compiler
+            .getStandardFileManager(null, Locale.getDefault(), null)) {
             final Iterable<? extends JavaFileObject> compilationUnits =
                 fileManager.getJavaFileObjectsFromFiles(sourceFiles);
-            fileManager.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(dest.toFile()));
+            fileManager.setLocation(StandardLocation.CLASS_OUTPUT,
+                Collections.singletonList(dest.toFile()));
             fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
             final javax.tools.JavaCompiler.CompilationTask task =
                 compiler.getTask(null, fileManager, null, null, null, compilationUnits);

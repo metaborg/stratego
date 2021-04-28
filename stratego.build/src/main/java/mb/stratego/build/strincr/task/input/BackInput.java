@@ -412,13 +412,15 @@ public abstract class BackInput implements Serializable {
 
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
+        public final boolean library;
 
         public Boilerplate(ResourcePath outputDir, ResourcePath projectPath,
             @Nullable String packageName, @Nullable ResourcePath cacheDir,
             ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
-            boolean dynamicCallsDefined) {
+            boolean dynamicCallsDefined, boolean library) {
             super(outputDir, projectPath, packageName, cacheDir, constants, extraArgs, checkInput);
             this.dynamicCallsDefined = dynamicCallsDefined;
+            this.library = library;
         }
 
         @Override public boolean equals(@Nullable Object o) {

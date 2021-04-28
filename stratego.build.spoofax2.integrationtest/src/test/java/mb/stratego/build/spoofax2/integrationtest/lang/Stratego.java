@@ -2,7 +2,6 @@ package mb.stratego.build.spoofax2.integrationtest.lang;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -74,7 +73,9 @@ public class Stratego {
         return result != null;
     }
 
-    public static boolean str2(Path input, String baseName, String packageName, Path packageDir)
+    public static CompileOutput str2(Path input, String baseName, String packageName,
+        Path packageDir, boolean library,
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -100,30 +101,28 @@ public class Stratego {
             pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
             Pie pie = pieBuilder.build();
 
-            final File projectLocation = temporaryDirectoryPath.toFile();
-            final ResourcePath projectPath = new FSPath(projectLocation);
+            final ResourcePath projectPath = new FSPath(input.getParent());
 
-            final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries =
-                new ArrayList<>(1);
-            linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
+            if(!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
+                linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
+            }
             final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
-            strjIncludeDirs.add(new FSPath(projectLocation));
+            strjIncludeDirs.add(projectPath);
 
             final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(false, baseName, new FSPath(input));
-            Path depPath = temporaryDirectoryPath.resolve("depPath");
             CompileInput compileInput =
-                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
+                new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), StrategoGradualSetting.DYNAMIC);
+                    new ArrayList<>(0), StrategoGradualSetting.DYNAMIC, library);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
             try(final MixedSession session = pie.newSession()) {
                 CompileOutput result = Objects.requireNonNull(session.require(compileTask));
-                return result instanceof CompileOutput.Success;
+                return result;
             } catch(ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
                     e);

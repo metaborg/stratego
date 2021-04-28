@@ -45,7 +45,7 @@ public class ConstructorSignature extends StrategoTuple {
                 // fall-through
             case "ExtOpDeclQ":
                 final String escapedNameString = StringUtils
-                    .escape(TermUtils.toStringAt(consDef.getSubterm(0), 0).stringValue());
+                    .escape(TermUtils.toStringAt(consDef, 0).stringValue());
                 name = new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
                 AbstractTermFactory.staticCopyAttachments(consDef.getSubterm(0), name);
                 break;

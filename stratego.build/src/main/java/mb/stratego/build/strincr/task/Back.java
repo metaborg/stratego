@@ -72,13 +72,19 @@ public class Back implements TaskDef<BackInput, BackOutput> {
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree")
-            .add("-o", resourcePathConverter.toString(input.outputDir))
-            //            .add("--verbose", 3)
-            .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library")
-            .add("--fusion");
+        // @formatter:off
+        final Arguments arguments = new Arguments();
+        arguments.add("-i", "passedExplicitly.ctree");
+        arguments.add("-o", resourcePathConverter.toString(input.outputDir));
+//        arguments.add("--verbose", 3);
+        arguments.addLine(input.packageName != null ? "-p " + input.packageName : "");
+        arguments.add("--fusion");
+        // @formatter:on
         if(input instanceof BackInput.Boilerplate) {
             arguments.add("--boilerplate");
+            if(((BackInput.Boilerplate) input).library) {
+                arguments.add("--library");
+            }
         } else {
             arguments.add("--single-strategy");
         }

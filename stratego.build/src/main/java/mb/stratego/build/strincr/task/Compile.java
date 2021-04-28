@@ -107,7 +107,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(input.outputDir, input.projectPath, input.packageName, input.cacheDir,
-                input.constants, input.extraArgs, checkInput, dynamicCallsDefined);
+                input.constants, input.extraArgs, checkInput, dynamicCallsDefined, input.library);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         resultFiles.addAll(boilerplateOutput.resultFiles);
