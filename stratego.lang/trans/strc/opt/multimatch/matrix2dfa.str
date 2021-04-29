@@ -36,10 +36,13 @@ strategies
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
    */
-  WildcardsFirstRow: m@Matrix(_, [Row(ps, a) | _]) -> a
+  WildcardsFirstRow: m@Matrix(_, [Row(ps, s*, a) | _]) -> a
   where
     <map(is-wld)> ps
   ; <debug(!"WildcardsFirstRow ")> m
+  ; if <not(make-set; (?[] + ?[Id()]))> s* then
+      <debug(!"DISMISSING GUARDS IN LEAF: ")> s*
+    end
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -47,9 +50,11 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn = ?m@Matrix(o*@[o1 | _], [_ | _])
-  ; <debug(!"SelectColumn ")> m
-  ; i := <find-first-col-index(not-all-wildcards)> m
+  SelectColumn: m@Matrix([p | _], [_ | _]) -> T
+  where
+    <debug(!"SelectColumn ")> m
+  with
+    i := <find-first-col-index(not-all-wildcards)> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1) then
     /*
@@ -58,28 +63,40 @@ strategies
      */
       <swap-cols(|1, i); CC> m
     else
-      <col(|i); head-constructors; make-set> m => hc*
-    ; <tswitch> (m, hc*)
-    end
+      <aliases-to-guards> m => m'
+    ; <col(|i); head-constructors> m' => hc*
+    ; <debug(!"tswitch "); unwrap-annos <+ tswitch> (m', hc*)
+    end => T
 
-  tswitch =
-    ?(m, [(hc@Anno(), _)])
+  unwrap-annos =
+    ?(m, [(hc@Anno(), _, _)])
+  ; debug(!"unwrapping annos... ")
   ; <specialize(|hc); CC> m
 
   tswitch:
     (m@Matrix([p | _], [_ | _]), hc*) -> SwitchT(Type(p), talt*, default)
   where
-    <retain-all(?(Anno(), _)); ?[]> hc*
+    <remove-all(where(Fst; is-switchable)); restore(?[], debug(!"Annotations or vars present in head constructors: "))> hc*
   with
-    hts      := <map(Snd); make-set> hc*
-  ; valt*    := <map(\ (c, t) -> (c, t, <specialize(|c)> m) \)> hc*
-  ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \)> hts
+    hts      := <map(Snd); make-set; debug(!"hts ")> hc*
+  ; valt*    := <map(\ (c, t, s) -> (c, t, s, <specialize(|c)> m) \); debug(!"valt* ")> hc*
+  ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \); debug(!"tbranch* ")> hts
   ; default  := <default; CC> m
   ; talt*    := <map(talt(|p, default))> tbranch*
 
+  is-switchable = ?Fun(_, _)
+                + is-literal
+                + ?Tuple(_)
+                + is-wld
+
   talt(|p, d): (t, valt*) -> AltT(t, <vswitch(|t, p, d)> valt*)
 
-  valt: (c, _, m) -> AltV(c, <CC> m)
+  valt: (c, _, [],     m) -> AltV(c, <CC> m)
+  valt: (c, _, [Id()], m) -> AltV(c, <CC> m)
+
+  valt: (c, _, s@[_ | _], m) -> GuardedAltV(c, <map(!AltVGuard(<id>, <CC> m))> s)
+  where
+    debug(!"valt (guarded) ")
 
   vswitch(|ApplT(), p, d) =
     !SwitchV(Con(p), <map(valt)>, d)

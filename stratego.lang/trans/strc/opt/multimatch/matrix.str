@@ -6,27 +6,28 @@ imports
   strj/multimatch/decompose
 
 signature
-  sorts Matrix Row
+  sorts Matrix Row Col
   constructors
     Matrix  : List(Path) * List(Row) -> Matrix
-    Row     : List(Term) * Strategy  -> Row
+    Row     : List(Term) * List(Strategy) * Strategy -> Row // Patterns * Guards * RHS
+
+    Col     : List(Term) * List(Strategy)            -> Col
 
 strategies
-  row-not-all-wildcards = ?Row(<not-all-wildcards>, _)
+  row-not-all-wildcards = ?Row(<not-all-wildcards>, _, _)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
    */
-  not-all-wildcards = retain-all(not(is-wld + is-var)); ?[_ | _]
+  not-all-wildcards = retain-all(not(is-wld)); ?[_ | _]
 
   /*
    * Get the `i`th column from a Matrix.
    */
-  col(|i): Matrix(_, rows) ->
-    <map(?Row(<id>, _); index(|i))> rows
-
-  width = ?Matrix(_, <map(?Row(<length>, _)); foldr1(max)>)
-  height = ?Matrix(_, <id>); length
+  col(|i): Matrix(_, rows) -> Col(t*, s*)
+  where
+    t* := <map(?Row(<index(|i)>, _, _))> rows
+  ; s* := <map(?Row(_, <index(|i)>, _))> rows
 
   /*
    * Find index of first element in list for which `s` succeeds.
@@ -38,7 +39,7 @@ strategies
 
   find-first-col-index(s) = id
   ; ?Matrix(_, <id>)
-  ; map(?Row(<id>, _))
+  ; map(?Row(<id>, _,  _))
   ; matrix-transpose
   ; find-first-index(s)
 
@@ -49,14 +50,27 @@ strategies
   ; length
   ; inc
 
+  /*
+   * Map `s` over the patterns of matrix column `i`.
+   * Index starts at 1.
+   */
+  map-col(s|i) = Matrix(id, map(at-row-index(s|i)))
+
+  /*
+   * Apply `s` to the `i`-th subpattern of the row.
+   * Index starts at 1.
+   */
+  at-row-index(s|i) = Row(at-index(s|<dec> i), id, id)
+
   swap-cols(|m, n) = Matrix(swap(|m, n), map(swap-row-el(|m, n)))
 
-  swap-row-el(|m, n) = Row(swap(|m, n), id)
+  swap-row-el(|m, n) = Row(swap(|m, n), swap(|m, n), id)
 
   /*
    * Swap elements `m` and `n` in a list.
    * Index starts at 1.
    */
+  swap(|m, n) = where(<eq> (m, n)); id
   swap(|m, n): xs -> xs''
   with
     <is-list> xs
