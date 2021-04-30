@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +29,7 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrategoGradualSetting;
 
-public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> {
+public class StrIncr implements TaskDef<StrIncr.Input, LinkedHashSet<ResourcePath>> {
     public static final String id = StrIncr.class.getCanonicalName();
 
     public static final class Input implements Serializable {
@@ -89,7 +90,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> 
         this.strIncrAnalysis = analysis;
     }
 
-    @Override public ArrayList<ResourcePath> exec(ExecContext execContext, Input input) throws Exception {
+    @Override public LinkedHashSet<ResourcePath> exec(ExecContext execContext, Input input) throws Exception {
         final StrIncrAnalysis.Output result = execContext.require(strIncrAnalysis, input.frontendsInput);
 
         if(!result.messages.isEmpty()) {
@@ -114,13 +115,13 @@ public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> 
         }
 
         // BACKEND
-        final ArrayList<ResourcePath> providedFiles = new ArrayList<>();
+        final LinkedHashSet<ResourcePath> providedFiles = new LinkedHashSet<>();
         backends(execContext, input, input.frontendsInput.projectLocation, result.staticData, result.backendData, providedFiles);
         return providedFiles;
     }
 
     private void backends(ExecContext execContext, Input input, ResourcePath projectLocation,
-        StaticChecks.Data staticData, BackendData backendData, ArrayList<ResourcePath> providedFiles) {
+        StaticChecks.Data staticData, BackendData backendData, LinkedHashSet<ResourcePath> providedFiles) {
         long backendStart = System.nanoTime();
         final Arguments args = new Arguments();
         args.addAll(input.extraArgs);
@@ -172,7 +173,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> 
                     strategyOverlayFiles, input.javaPackageName, input.outputPath,
                     input.cacheDir, input.constants, input.frontendsInput.includeDirs, args, false);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            execContext.require(strIncrBack.createTask(backEndInput));
+            providedFiles.addAll(execContext.require(strIncrBack.createTask(backEndInput)));
 
             Relation.getOrInitialize(BuildStats.modulesDefiningStrategy, congrName, ArrayList::new).add(1);
         }
@@ -190,7 +191,7 @@ public class StrIncr implements TaskDef<StrIncr.Input, ArrayList<ResourcePath>> 
                     input.javaPackageName, input.outputPath, input.cacheDir,
                     input.constants, input.frontendsInput.includeDirs, args, true);
             BuildStats.shuffleBackendTime += System.nanoTime() - backendStart;
-            execContext.require(strIncrBack.createTask(backEndInput));
+            providedFiles.addAll(execContext.require(strIncrBack.createTask(backEndInput)));
         }
     }
 
