@@ -2,6 +2,7 @@ module multimatch2matrix
 
 imports
   strj/multimatch/matrix
+  strj/multimatch/preprocess
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
@@ -16,5 +17,7 @@ strategies
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
   ; fail
 
-  MatchCase2Row: ScopedMatchCase(_, t, s) -> Row([t], [Id()], s) // just ignore scope?
-  MatchCase2Row: ScopedGuardedMatchCase(_, t, s1, s2) -> Row([t], [s1], s2)
+  MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t2], [Id()], s) // just ignore scope?
+    with <preprocess> t1 => t2
+  MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], [s1], s2)
+    with <preprocess> t1 => t2

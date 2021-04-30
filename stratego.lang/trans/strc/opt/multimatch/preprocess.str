@@ -1,0 +1,16 @@
+module multimatch/preprocess
+
+imports
+  strc/stratego/strc/front/desugar
+
+  signatures/core/terms-sig
+
+strategies
+  preprocess =
+    Var-to-AsWld
+
+strategies
+  Var-to-AsWld =
+    As(id, Var-to-AsWld)
+  + (Var(x) -> As(Var(x), Wld()))
+  + all(try(Var-to-AsWld))
