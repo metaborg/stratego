@@ -69,61 +69,36 @@ strategies
     end => T
 
   unwrap-annos =
-    ?(m, [(hc@Anno(), _, _)])
+    ?(m, [(_, [(hc@Anno(), _)])])
   ; debug(!"unwrapping annos... ")
   ; <specialize(|hc); CC> m
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), hc*) -> SwitchT(Type(p), talt*, default)
-  where
-    <remove-all(where(Fst; is-switchable)); restore(?[], debug(!"Annotations or vars present in head constructors: "))> hc*
+    (m@Matrix([p | _], [_ | _]), hc*) -> SwitchT(Type(p), talt*, s_def)
   with
-    hts      := <map(Snd); make-set; debug(!"hts ")> hc*
-  ; valt*    := <map(\ (c, t, s) -> (c, t, s, <specialize(|c)> m) \); debug(!"valt* ")> hc*
-  ; tbranch* := <map(\ t -> (t, <retain-all(where(Snd; ?t))> valt*) \); debug(!"tbranch* ")> hts
-  ; default  := <default; CC> m
-  ; talt*    := <map(talt(|p, default))> tbranch*
+    s_def   := <default; CC> m
+  ; talt*   := <map(talt(|m, p, s_def))> hc*
+
+  talt(|m, p, s_def): (t, valt*) -> AltT(t, SwitchV(p', <map(valt(|m))> valt*, s_def))
+  with
+    p' := <extend-path-by-type(|t)> p
+
+  valt(|m): (c, s*) -> GuardedAltV(c, guards)
+  where <is-switchable> c
+  with guards := <map(!Guard(<id>, <specialize(|c); CC> m))> s*
 
   is-switchable = ?Fun(_, _)
                 + is-literal
                 + ?Tuple(_)
                 + is-wld
 
-  talt(|p, d): (t, valt*) -> AltT(t, <vswitch(|t, p, d)> valt*)
-
-  valt: (c, _, [],     m) -> AltV(c, <CC> m)
-  valt: (c, _, [Id()], m) -> AltV(c, <CC> m)
-
-  valt: (c, _, s@[_ | _], m) -> GuardedAltV(c, <map(!AltVGuard(<id>, <CC> m))> s)
-  where
-    debug(!"valt (guarded) ")
-
-  vswitch(|ApplT(), p, d) =
-    !SwitchV(Con(p), <map(valt)>, d)
-
-  vswitch(|LisT(), p, d) =
-    !SwitchV(p, <map(valt)>, d)
-
-  vswitch(|IntT(), p, d) =
-    !SwitchV(Int(p), <map(valt)>, d)
-
-  vswitch(|RealT(), p, d) =
-    !SwitchV(Real(p), <map(valt)>, d)
-
-  vswitch(|StringT(), p, d) =
-    !SwitchV(Str(p), <map(valt)>, d)
-
-  // Consider if this pattern can occur outside of an APPL.
-  vswitch(|CtorT(), p, d) = <error> ["CtorT not implemented"]; fail
-
-  vswitch(|TupleT(), p, d) =
-    !SwitchV(Size(p), <map(valt)>, d)
-
-  // TODO Find out if this is not yet deprecated.
-  vswitch(|RefT(), p, d) = <error> ["RefT not implemented"]; fail
-
-  // TODO Find out if this is not yet deprecated.
-  vswitch(|BlobT(), p, d) = <error> ["BlobT not implemented"]; fail
-
-  // TODO Find out if this is not yet deprecated.
-  vswitch(|PlaceT(), p, d) = <error> ["PlaceT not implemented"]; fail
+  extend-path-by-type(|ApplT()) = !Con(<id>)
+  extend-path-by-type(|LisT()) = id
+  extend-path-by-type(|IntT()) = !Int(<id>)
+  extend-path-by-type(|RealT()) = !Real(<id>)
+  extend-path-by-type(|StringT()) = !Str(<id>)
+  extend-path-by-type(|CtorT()) = <fatal-error> ["CtorT not implemented"]
+  extend-path-by-type(|TupleT()) = !Size(<id>)
+  extend-path-by-type(|RefT()) = <fatal-error> ["RefT not implemented"]
+  extend-path-by-type(|BlobT()) = <fatal-error> ["BlobT not implemented"]
+  extend-path-by-type(|PlaceT()) = <fatal-error> ["PlaceT not implemented"]

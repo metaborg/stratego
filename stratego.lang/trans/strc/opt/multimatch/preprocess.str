@@ -12,5 +12,5 @@ strategies
 strategies
   Var-to-AsWld =
     As(id, Var-to-AsWld)
-  + (Var(x) -> As(Var(x), Wld()))
+  + \ Var(x) -> As(Var(x), Wld()) \
   + all(try(Var-to-AsWld))

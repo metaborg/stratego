@@ -110,7 +110,7 @@ context-free syntax
     <Strategy>
 }>
 
-sorts AltT AltV AltVGuard
+sorts AltT AltV
 context-free syntax
   AltT.AltT =
 <alt <PatT>:
@@ -122,9 +122,11 @@ context-free syntax
 
   AltV.GuardedAltV =
 <alt <PatV>
-  <{AltVGuard "\n"}+>>
+  <{Guard "\n"}+>>
 
-  AltVGuard.AltVGuard =
+sorts Guard
+context-free syntax
+  Guard.Guard =
 <where <Strategy>:
   <Strategy>>
 

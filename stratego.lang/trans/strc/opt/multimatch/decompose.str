@@ -32,14 +32,25 @@ strategies
    *
    * Maranget (2008), sec 4, step 3a.
    */
-  head-constructors = debug(!"[i] hcs: ")
+  head-constructors =
+    debug(!"[i] hcs: ")
   ; ?Col(t*, s*)
-  ; <zip; remove-all((is-wld, ?Id()))> (t*, s*)
-  ; c1* := <map(\ (t, s) -> ((<head-constructor> t, <head-type <+ !()> t), s) \)> // ((c, t), s)*
-  ; c2* := <map (Fst); make-set> c1* // (c, t)*
-  ; <map(\ (c, t) -> (c, t, <retain-all(where(Fst; ?(c, t)); Snd); make-set> c1*) \)> c2*
+  ; c* := <zip; remove-wlds; map(split3(Fst; head-type <+ !(), Fst; head-constructor, Snd))> (t*, s*) // (t, c, s)
+  ; collect-types; debug(!"types ")
+  ; collect-cons(|c*)
   ; debug(!"[o] hcs: ")
-  // TODO: Put guard-less arms in 'otherwise' (guarded by id) arm
+  // TODO (?) Put guard-less arms in 'otherwise' (guarded by id) arm
+
+  remove-wlds = remove-all(?(<is-wld>, _))
+  // [(t, c, s)*] -> [t*]
+  collect-types = foldr(![], union, ![<Fst>])
+  // [(t, c, s)*], [t*] -> [(t, [(c, [s*])*])*]
+  collect-cons(|c*) = map(\ t -> (t, <retain-all(where(Fst; ?t); Snd); make-set; collect-guards(|c*)> c*) \)
+  // [(t, c, s)*], [c*] -> [(c*, [s*])*] 
+  collect-guards(|c*) = map(\ c -> (c, <retain-all(where(Snd; ?c); Third); make-set-lr> c*) \)
+
+  // TODO Rewrite with left fold
+  make-set-lr = reverse; make-set; reverse
 
   /*
    * Specialize the matrix to a certain constructor.
