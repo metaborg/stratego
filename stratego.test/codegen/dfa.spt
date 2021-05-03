@@ -1,7 +1,7 @@
 module codegen/dfa
 language stratego
 
-test MM to DFA 1 [[
+test Lists (Cons/Nil) [[
 specification
 
 signature
@@ -51,7 +51,7 @@ length_0_0( | ) =
   }
 ]]
 
-test MM to DFA 2 [[
+test Tuples (mutually inclusive -> complex default) [[
 specification
 
 signature
@@ -115,7 +115,7 @@ comp_0_0( | ) =
   }
 ]]
 
-test MM to DFA 3 [[
+test Mixed types [[
 specification
 
 signature
