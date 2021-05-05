@@ -1,0 +1,16 @@
+module guarded_alt
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+strategies
+  length(s) = match sequential
+             case | Nil(): !0
+             case | Nil() where all(s): !2
+             case | Nil() where id: !3
+             case | Nil() where fail: !3
+             case | Nil() where some(s): !3
+           end

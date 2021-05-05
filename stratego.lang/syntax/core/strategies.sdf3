@@ -97,8 +97,7 @@ context-free syntax
   DTree.SwitchT =
 <switch <PathT> {
   <{AltT "\n"}*>
-  default:
-    <Strategy>
+  <Default>
 }>
 
   DTree.GuardedLeaf = <<Strategy> where <Strategy>>
@@ -108,11 +107,10 @@ context-free syntax
   SwitchV.SwitchV =
 <switch <PathVF> {
   <{AltV "\n"}*>
-  default:
-    <Strategy>
+  <Default>
 }>
 
-sorts AltT AltV
+sorts AltT AltV Default
 context-free syntax
   AltT.AltT =
 <alt <PatT>:
@@ -124,6 +122,14 @@ context-free syntax
 
   AltV.GuardedAltV =
 <alt <PatV>
+  <{Guard "\n"}+>>
+
+  Default.Default =
+<default:
+  <Strategy>>
+
+  Default.GuardedDefault =
+<default
   <{Guard "\n"}+>>
 
 sorts Guard

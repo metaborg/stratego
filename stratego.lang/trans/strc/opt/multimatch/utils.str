@@ -7,3 +7,11 @@ strategies
   ZipN1 = tmap(?[]); ![]
   ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
   ZipN3 = Zip3
+
+  /*
+   * Takes elements from the start of the list, including the first element at
+   * which `s` succeeds. Drops all subsequent elements.
+   */
+  drop-after(s) =
+    split-fetch-keep(s) => (x1*, x2, _)
+  ; <at-end(!x2)> x1*

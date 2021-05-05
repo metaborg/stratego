@@ -3,6 +3,7 @@ module multimatch/postprocess
 imports
   strj/multimatch/decompose
   strj/multimatch/guard
+  strj/multimatch/utils
 
   strc/stratego/strc/opt/stratego-laws // simplify
 
@@ -16,38 +17,83 @@ strategies
   ; try(eliminate-guard)
 
   Simplify2 =
-    try(lift-guard
-     <+ merge-guards)
-  ; try(eliminate-guard)  
+    try(lift-guard)
+  ; try(merge-guards)
+  ; try(check-id-guard)
+  ; try(eliminate-guard)
 
 strategies
   simplify-guard = GuardedLeaf(id, simplify)
   simplify-guard = Guard(simplify, id)
 
-  eliminate-guard: GuardedLeaf(a, s) -> a
+  eliminate-guard = EliminateId + EliminateFail
+
+  EliminateId: GuardedLeaf(a, s) -> a
   where
     <is-id-guard> s
 
-  eliminate-guard: GuardedAltV(t, [Guard(s, a)]) -> AltV(t, a)
+  EliminateId: GuardedAltV(t, guard*) -> AltV(t, a)
   where
-    <is-id-guard> s
+    <make-set> guard* => [Guard(s, a)]
+  ; <is-id-guard> s
 
-  is-id-guard = ?Id()
-  is-fail-guard = ?Fail()
+  EliminateId: GuardedDefault(guard*) -> Default(a)
+  where
+    <make-set> guard* => [Guard(s, a)]
+  ; <is-id-guard> s
+
+  EliminateFail = fail
+//  EliminateFail: GuardedAltV(t, guard*) -> GuardedAltV(t, s*)
+//  where
+//    <make-set> guard* => s*@[Guard(s, _)]
+//  ; <is-fail-guard> s
+//
+//  EliminateFail: GuardedDefault(guard*) -> Default(Fail())
+//  where
+//    <make-set> guard* => [Guard(s, _)]
+//  ; <is-fail-guard> s
 
   /*
-   * Lift guards from guarded leafs to enclosing swicth arm.
+   * Lift guards from guarded leafs to enclosing switch arm.
    *
    * Note: before doing this, all guarded arms have the same rhs.
    * This rewrite (possibly) violates that property (?).
    */
-  lift-guard: AltV(t, GuardedLeaf(a, s)) -> GuardedAltV(t, [Guard(s, a)])
-  lift-guard: Guard(s1, GuardedLeaf(a, s2)) -> Guard(<combine-guards> (s1, s2), a) 
-  
-  merge-guards = SwitchV(id, merge-alts, id)
+  lift-guard: AltV(t, GuardedLeaf(a, s)) ->
+              GuardedAltV(t, [Guard(s, a)])
+
+  lift-guard: Default(GuardedLeaf(a, s)) ->
+              GuardedDefault([Guard(s, a)])
+
+  lift-guard: Guard(s1, GuardedLeaf(a, s2)) ->
+              Guard(<combine-guards; simplify> (s1, s2), a)
+
+  merge-guards = SwitchV(id, debug(!"merging alts... "); merge-alts; debug(!"merged alts... "), id)
 
   merge-alts = id
   merge-alts = ?alts
   ; map(?GuardedAltV(<id>, _))
   ; make-set
   ; map(\ t -> GuardedAltV(t, <filter((GuardedAltV(t, guards) -> guards)); concat> alts) \)
+
+  /*
+   * Ensure that any guarded default has an `id`-guarded arm, which can
+   * *always* be taken if any other guard does not succeed.
+   * In the process, remove any arms after the `id`-arm, as they will never
+   * be taken.
+   */
+  check-id-guard: GuardedDefault(guard*) -> GuardedDefault(guard'*)
+  where
+    guard'* := <drop-after(?Guard(<is-id-guard>, _))
+                <+ at-end(![Guard(Id(), Fail())])> guard*
+
+  /*
+   * Remove any guarded arms *after* an `id`-guarded arm.
+   */
+  check-id-guard: GuardedAltV(t, guard*) -> GuardedAltV(t, guard'*)
+  where
+    guard'* := <drop-after(?Guard(<is-id-guard>, _))> guard*
+
+strategies
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()

@@ -17,7 +17,7 @@ strategies
    *
    * Maranget (2008), fig. 1.
    */
-  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"no default for "))))
+  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"ERROR - no default: "))))
   default-row: Row([<is-wld> | ps], s_a, s_g, s_rhs) -> Row(ps, s_a, s_g, s_rhs)
 
 

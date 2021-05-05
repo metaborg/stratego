@@ -81,13 +81,13 @@ strategies
   ; debug(!"unwrapping annos... ")
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, s_def)
+    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, Default(s_def))
   with
     arm*    := <tswitch-arms> col
   ; s_def   := <default; CC> m
   ; talt*   := <map(talt(|m, p, s_def))> arm*
 
-  talt(|m, p, s_def): (t, valt*) -> AltT(t, SwitchV(p', <map(valt(|m))> valt*, s_def))
+  talt(|m, p, s_def): (t, valt*) -> AltT(t, SwitchV(p', <map(valt(|m))> valt*, Default(s_def)))
   with
     p' := <extend-path-by-type(|t)> p
 
