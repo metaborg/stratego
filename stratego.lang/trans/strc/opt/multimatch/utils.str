@@ -1,0 +1,9 @@
+module multimatch/utils
+
+strategies
+  zipn = zipn(id)
+  zipn(s) = genzip(ZipN1, ZipN2, ZipN3, s)
+  
+  ZipN1 = tmap(?[]); ![]
+  ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
+  ZipN3 = Zip3

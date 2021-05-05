@@ -1,4 +1,4 @@
-module multimatch2matrix
+module multimatch/multimatch2matrix
 
 imports
   strj/multimatch/matrix
@@ -17,7 +17,7 @@ strategies
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
   ; fail
 
-  MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t2], [Id()], s) // just ignore scope?
+  MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t2], Id(), Id(), s) // just ignore scope?
     with <preprocess> t1 => t2
-  MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], [s1], s2)
+  MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], Id(), s1, s2)
     with <preprocess> t1 => t2

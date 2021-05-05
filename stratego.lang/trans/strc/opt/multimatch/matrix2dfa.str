@@ -1,15 +1,21 @@
-module matrix2dfa
+module multimatch/matrix2dfa
 
 imports
   strj/multimatch/decompose
+  strj/multimatch/guard
   strj/multimatch/matrix
+  strj/multimatch/postprocess
+
+  strc/stratego/strc/strc/strc
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = CC
+  matrix2dfa =
+    log-timed(CC | "DFA - Compilation", 1)
+  ; log-timed(SimplifyDFA | "DFA - Simplification", 1)
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -35,14 +41,16 @@ strategies
    *
    * In particular, this case applies when there is at least
    * one row (m > 0) and no column (n = 0).
+   * ================================================================
+   * Produce an intermediate guarded leaf.
+   * In a subsequent traversal, this guard can be pushed up to the switch arm.
    */
-  WildcardsFirstRow: m@Matrix(_, [Row(ps, s*, a) | _]) -> a
+  WildcardsFirstRow: m@Matrix(_, [Row(ps, s_a, s_g, s_rhs) | _]) -> GuardedLeaf(s_rhs, s)
   where
     <map(is-wld)> ps
   ; <debug(!"WildcardsFirstRow ")> m
-  ; if <not(make-set; (?[] + ?[Id()]))> s* then
-      <debug(!"DISMISSING GUARDS IN LEAF: ")> s*
-    end
+  with
+    s := <combine-guards> (s_a, s_g)
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -64,20 +72,20 @@ strategies
       <swap-cols(|1, i); CC> m
     else
       <aliases-to-guards> m => m'
-    ; <col(|i); head-constructors> m' => hc*
-    ; <debug(!"tswitch "); unwrap-annos <+ tswitch> (m', hc*)
+    ; <unwrap-annos <+ tswitch> (m', <col(|i)> m')
     end => T
 
-  unwrap-annos =
-    ?(m, [(_, [(hc@Anno(), _)])])
+  unwrap-annos: (m, col) -> <specialize(|hc); CC> m
+  where
+    <constructors-om> col => [hc@Anno()]
   ; debug(!"unwrapping annos... ")
-  ; <specialize(|hc); CC> m
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), hc*) -> SwitchT(Type(p), talt*, s_def)
+    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, s_def)
   with
-    s_def   := <default; CC> m
-  ; talt*   := <map(talt(|m, p, s_def))> hc*
+    arm*    := <tswitch-arms> col
+  ; s_def   := <default; CC> m
+  ; talt*   := <map(talt(|m, p, s_def))> arm*
 
   talt(|m, p, s_def): (t, valt*) -> AltT(t, SwitchV(p', <map(valt(|m))> valt*, s_def))
   with
@@ -85,6 +93,7 @@ strategies
 
   valt(|m): (c, s*) -> GuardedAltV(c, guards)
   where <is-switchable> c
+    ; <debug(!"valt ")> (c, s*)
   with guards := <map(!Guard(<id>, <specialize(|c); CC> m))> s*
 
   is-switchable = ?Fun(_, _)

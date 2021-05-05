@@ -1,0 +1,53 @@
+module multimatch/postprocess
+
+imports
+  strj/multimatch/decompose
+  strj/multimatch/guard
+
+  strc/stratego/strc/opt/stratego-laws // simplify
+
+  signatures/core/strategies-sig
+
+strategies
+  SimplifyDFA = downup(Simplify1, Simplify2)
+
+  Simplify1 =
+    try(simplify-guard)
+  ; try(eliminate-guard)
+
+  Simplify2 =
+    try(lift-guard
+     <+ merge-guards)
+  ; try(eliminate-guard)  
+
+strategies
+  simplify-guard = GuardedLeaf(id, simplify)
+  simplify-guard = Guard(simplify, id)
+
+  eliminate-guard: GuardedLeaf(a, s) -> a
+  where
+    <is-id-guard> s
+
+  eliminate-guard: GuardedAltV(t, [Guard(s, a)]) -> AltV(t, a)
+  where
+    <is-id-guard> s
+
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()
+
+  /*
+   * Lift guards from guarded leafs to enclosing swicth arm.
+   *
+   * Note: before doing this, all guarded arms have the same rhs.
+   * This rewrite (possibly) violates that property (?).
+   */
+  lift-guard: AltV(t, GuardedLeaf(a, s)) -> GuardedAltV(t, [Guard(s, a)])
+  lift-guard: Guard(s1, GuardedLeaf(a, s2)) -> Guard(<combine-guards> (s1, s2), a) 
+  
+  merge-guards = SwitchV(id, merge-alts, id)
+
+  merge-alts = id
+  merge-alts = ?alts
+  ; map(?GuardedAltV(<id>, _))
+  ; make-set
+  ; map(\ t -> GuardedAltV(t, <filter((GuardedAltV(t, guards) -> guards)); concat> alts) \)

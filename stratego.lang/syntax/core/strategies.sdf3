@@ -101,6 +101,8 @@ context-free syntax
     <Strategy>
 }>
 
+  DTree.GuardedLeaf = <<Strategy> where <Strategy>>
+
 sorts SwitchV
 context-free syntax
   SwitchV.SwitchV =

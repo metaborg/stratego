@@ -1,10 +1,11 @@
-module decompose
+module multimatch/decompose
 
 imports
   strc/stratego/strc/c/escaping-variables // is-ListOp
   strj/s2j                                // is-TupleOp
 
   strj/multimatch/matrix
+  strj/multimatch/utils
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
@@ -17,10 +18,10 @@ strategies
    * Maranget (2008), fig. 1.
    */
   default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"no default for "))))
+  default-row: Row([<is-wld> | ps], s_a, s_g, s_rhs) -> Row(ps, s_a, s_g, s_rhs)
 
-  default-row: Row([<is-wld> | ps], [Id() | s*], a) -> Row(ps, s*, a)
 
-  non-default-row = ?Row([<non-default-head> | _], _, _) // by definition
+  non-default-row = ?Row([<non-default-head> | _], _, _, _) // by definition
   non-default-head =
     ?Op(_, _)
   + ?Var(_) // Could be a default row, but needs an assignment first.
@@ -32,21 +33,24 @@ strategies
    *
    * Maranget (2008), sec 4, step 3a.
    */
-  head-constructors =
-    debug(!"[i] hcs: ")
-  ; ?Col(t*, s*)
-  ; c* := <zip; remove-wlds; map(split3(Fst; head-type <+ !(), Fst; head-constructor, Snd))> (t*, s*) // (t, c, s)
-  ; collect-types; debug(!"types ")
-  ; collect-cons(|c*)
-  ; debug(!"[o] hcs: ")
-  // TODO (?) Put guard-less arms in 'otherwise' (guarded by id) arm
+  constructors-om =
+    debug(!"[i] cons-om ")
+  ; ?Col(<remove-all(where(is-wld)); foldr(![], union, ![<constructor-om>])>, _, _, _)
+  ; debug(!"[o] cons-om ")
 
-  remove-wlds = remove-all(?(<is-wld>, _))
+  tswitch-arms =
+    ?Col(t*, s_a*, _, s_rhs*)
+  ; c* := <zipn
+         ; remove-all(where(Fst; is-wld))
+         ; map(\ (t, s_a, s_rhs) -> (<cons-type <+ !()> t, <constructor-om> t, s_a, s_rhs) \)> (t*, s_a*, s_rhs*) // (t, c, s)
+  ; collect-types
+  ; collect-cons(|c*)
+
   // [(t, c, s)*] -> [t*]
   collect-types = foldr(![], union, ![<Fst>])
   // [(t, c, s)*], [t*] -> [(t, [(c, [s*])*])*]
   collect-cons(|c*) = map(\ t -> (t, <retain-all(where(Fst; ?t); Snd); make-set; collect-guards(|c*)> c*) \)
-  // [(t, c, s)*], [c*] -> [(c*, [s*])*] 
+  // [(t, c, s)*], [c*] -> [(c*, [s*])*]
   collect-guards(|c*) = map(\ c -> (c, <retain-all(where(Snd; ?c); Third); make-set-lr> c*) \)
 
   // TODO Rewrite with left fold
@@ -59,7 +63,7 @@ strategies
    */
   specialize(|c) = Matrix(specialize-occs(|c), filter(specialize-row(|c)))
 
-  specialize-row(|c) = Row(specialize-pats(|c), specialize-guards(|c), id)
+  specialize-row(|c) = Row(specialize-pats(|c), id, id, id)
 
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
@@ -70,10 +74,9 @@ strategies
     ; ps := <map(\ i -> Sub(p, <int-to-string> i) \)> i*
 
   // Annotations
-  head-constructor:             Anno(c, ann)        -> Anno()
+  constructor-om:               Anno(c, ann)        -> Anno()
   specialize-pats(|Anno()):    [Anno(c, ann) | ps*] -> [c, ann | ps*]
   specialize-pats(|Anno()):    [<is-wld> | ps*]     -> <prepend(|Wld(), 2)> ps*
-  specialize-guards(|Anno()):  [s | s*]             -> <prepend(|s, 2)> s*
   specialize-occ(|Anno()): p -> [p, Anno(p)]
 
   // Tuples + lists + constructor applications
@@ -82,12 +85,9 @@ strategies
   p-arity = ?Fun(_, <string-to-int>)
   p-arity = ?Tuple(<string-to-int>)
 
-  specialize-guards(|c): [s | s*] -> <prepend(|s, a)> s*
-    where a := <p-arity> c
-
   // Tuples
-  head-constructor:             c@Op("", ts)          -> Tuple(<arity; int-to-string> c)
-  head-type:                    Op("", _)             -> TupleT()
+  constructor-om:               c@Op("", ts)          -> Tuple(<arity; int-to-string> c)
+  cons-type:                    Op("", _)             -> TupleT()
   specialize-pats(|Tuple(x)):  [c@Op("", qs*) | ps*]  -> [qs*, ps*]
     where
       a := <string-to-int> x
@@ -97,17 +97,17 @@ strategies
   specialize-occ(|Tuple(x)) = specialize-occ-by-arity(|<string-to-int> x)
 
   // Lists
-  head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
+  constructor-om:               c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
     where <is-ListOp> c
-  head-type:                    Op("Nil", [])       -> LisT()
-  head-type:                    Op("Cons", [_, _])  -> LisT()
+  cons-type:                    Op("Nil", [])       -> LisT()
+  cons-type:                    Op("Cons", [_, _])  -> LisT()
   specialize-occ(|Fun("Nil", "0")) = ![]
   specialize-occ(|Fun("Cons", "2")): p -> [ Head(p), Tail(p) ]
 
   // Constructor applications
-  head-constructor:             c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
+  constructor-om:               c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
     where <not(is-ListOp + is-TupleOp)> c
-  head-type:                    c@Op(_, _)          -> ApplT()
+  cons-type:                    c@Op(_, _)          -> ApplT()
     where <not(is-ListOp + is-TupleOp)> c
   specialize-pats(|Fun(f, x)): [c@Op(f, qs*) | ps*] -> [qs*, ps*]
     where
@@ -120,40 +120,23 @@ strategies
 
   // Literals
   is-literal = ?Str(_) + ?Int(_) + ?Real(_)
-  head-constructor = is-literal
-  head-type:                    Str(_)              -> StringT()
-  head-type:                    Int(_)              -> IntT()
-  head-type:                    Real(_)              -> RealT()
+  constructor-om = is-literal
+  cons-type:                    Str(_)              -> StringT()
+  cons-type:                    Int(_)              -> IntT()
+  cons-type:                    Real(_)              -> RealT()
   specialize-pats(|l):         [<?l + is-wld> | ps*] -> ps*
     where <is-literal> l
-  specialize-guards(|<is-literal>) = ![]
   specialize-occ(|<is-literal>) = ![]
 
   // As-patterns
-  head-constructor = ?As(_, <head-constructor>)
-  head-type = ?As(_, <head-type>)
-
-  aliases-to-guards =
-    ?Matrix(p*@[p | _], row*)
-  ; <map(try(alias-to-guard(|p)))> row* => row'*
-  ; !Matrix(p*, row'*)
-
-  alias-to-guard(|p):
-    Row([As(t1, t2) | t*], [s1 | s*], s) ->
-    Row([t2 | t*],         [s1' | s*], s)
-  with
-    guard := Assign(t1, Path(p)) // TODO See if this is desugared later.
-  ; <combine-guards> (s1, guard) => s1'
-
-  combine-guards: (Id(), s2) -> s2
-  combine-guards: (s1, s2) -> Seq(s1, s2)
+  constructor-om = ?As(_, <constructor-om>)
+  cons-type = ?As(_, <cons-type>)
 
   // Variables
   is-var = ?Var(_)
   is-wld = ?Wld()
-  head-constructor = is-wld; fail // by definition
+  constructor-om = is-wld; fail // by definition
   specialize-pats(|<is-wld>) = fail // by definition
-  specialize-guards(|<is-wld>) = fail
 
   // Helpers
   prepend(|t, n) = repeat(![t | <id>] | n)
