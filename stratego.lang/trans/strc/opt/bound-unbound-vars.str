@@ -97,6 +97,15 @@ strategies
     ; s' := <mark-buv> s
     |}
 
+  mark-matchcase: ScopedGuardedMatchCase(xs, p, s1, s2) -> ScopedGuardedMatchCase(xs, p', s1', s2')
+  where
+    {| MarkVar :
+      <map(DeclareUnbound)> xs
+    ; p' := <mark-match-vars> p
+    ; s1' := <mark-buv> s1
+    ; s2' := <mark-buv> s2
+    |}
+
   mark-multimatch =
     MultiMatch(id, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-matchcase)> c | acc] \))
 

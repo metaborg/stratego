@@ -39,6 +39,7 @@ strategies
 
 //      + MatchCase(mch, raise)
       + ScopedMatchCase(id, mch, raise)
+      + ScopedGuardedMatchCase(id, mch, raise, raise)
     )
   )
 

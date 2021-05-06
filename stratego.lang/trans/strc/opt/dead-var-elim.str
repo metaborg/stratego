@@ -51,6 +51,13 @@ strategies
          ; EliminateFromScope
       |}
 
+  elim-scopedmatchcase(x) =
+    ?ScopedGuardedMatchCase(_, _, _, _)
+    ; {| ElimVar :
+           ScopedGuardedMatchCase(map(DeclareDead), x, x, x)
+         ; EliminateFromScope
+      |}
+
   DeclareDead =
     ?x; rules(ElimVar : Var(x) -> Wld())
 
@@ -59,6 +66,9 @@ strategies
 
   EliminateFromScope =
     ScopedMatchCase(filter(not(!Var(<id>); ElimVar)), id, id)
+  
+  EliminateFromScope =
+    ScopedGuardedMatchCase(filter(not(!Var(<id>); ElimVar)), id, id, id)
 
   DeclareAlive =
     ?x; rules(ElimVar+x : Var(x))
