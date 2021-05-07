@@ -23,7 +23,7 @@ menus
 //    action: "Show DFA (-O5)" = debug-show-dfa-pp-O5
 
     action: "Show Java files" = debug-show-java
-    action: "Show Java files (optimized)" = debug-show-java-optimized
+    action: "Show Java files (unoptimized)" = debug-show-java-unoptimized
 
     action: "Translate MultiMatches" = translate-core-mm-pp
 

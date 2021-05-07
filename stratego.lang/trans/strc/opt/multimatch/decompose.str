@@ -35,13 +35,13 @@ strategies
    */
   constructors-om =
     debug(!"[i] cons-om ")
-  ; ?Col(<remove-all(where(is-wld)); foldr(![], union, ![<constructor-om>])>, _, _, _)
-  ; debug(!"[o] cons-om ")
+  ; ?Col(<remove-all(where(is-wld + ?As(_, <is-wld>))); foldr(![], union, ![<constructor-om>])>, _, _, _)
+  ; debug(!"[o] cons-om ") // (is-wld + ?As(_, <is-wld>))
 
   tswitch-arms =
     ?Col(t*, s_a*, _, s_rhs*)
   ; c* := <zipn
-         ; remove-all(where(Fst; is-wld))
+         ; remove-all(where(Fst; (is-wld + ?As(_, <is-wld>))))
          ; map(\ (t, s_a, s_rhs) -> (<cons-type <+ !()> t, <constructor-om> t, s_a, s_rhs) \)> (t*, s_a*, s_rhs*) // (t, c, s)
   ; collect-types
   ; collect-cons(|c*)

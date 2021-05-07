@@ -8,8 +8,8 @@ signature
 
 strategies
 mb(|x) = ?Cons(x, Nil()); <conc> ([])
-  <+ ?Cons(x, Cons(y, Cons(_, Nil()))); !3
-  <+ ?_; map(id) // TODO dlook for renaming in Scope(dMatchCase)
+      <+ ?Cons(x, Cons(y, Cons(_, Nil()))); !3
+      <+ ?_; map(id) // TODO look for renaming in Scope(dMatchCase)
 
 map(s) = 
   rec x([] + [s | x]) 

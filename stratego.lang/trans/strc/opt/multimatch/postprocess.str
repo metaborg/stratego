@@ -70,11 +70,11 @@ strategies
 
   merge-guards = SwitchV(id, debug(!"merging alts... "); merge-alts; debug(!"merged alts... "), id)
 
-  merge-alts = id
-  merge-alts = ?alts
-  ; map(?GuardedAltV(<id>, _))
-  ; make-set
-  ; map(\ t -> GuardedAltV(t, <filter((GuardedAltV(t, guards) -> guards)); concat> alts) \)
+  merge-alts = fail
+//  merge-alts = ?alts
+//  ; map(?GuardedAltV(<id>, _))
+//  ; make-set
+//  ; map(\ t -> GuardedAltV(t, <filter((GuardedAltV(t, guards) -> guards)); concat> alts) \)
 
   /*
    * Ensure that any guarded default has an `id`-guarded arm, which can

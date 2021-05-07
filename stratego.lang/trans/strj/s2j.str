@@ -1608,6 +1608,9 @@ rules
               ; try(java-CastATermListSetAnnotations)
             end => e
 
+  java-ConstructTerm :
+    Path(p) -> <translate-Path> p
+
   java-check-aterm-list :
     e -> expr |[ x ]|
     with
@@ -1942,64 +1945,131 @@ strategies
     mm@MultiMatch(_, _) -> bstm* |[
       bstm_java*
     ]|
-    with
-      <multimatch2dfa> mm => dfa
-    ; <translate-strategy> dfa => bstm_java*
+  with
+    <multimatch2dfa> mm => dfa
+  ; <translate-DFA> dfa => bstm_java*
 
 /*======== Generate Java code from DFA =================*/
-  translate-DFA: SwitchT(o, alt*, default) -> bstm* |[
-    switch (e_occ) {
-      ~switch-group*:cases
-      default: {
-        ~<translate-strategy> default
-        break;
+  translate-DFA = translate-SwitchT
+
+  translate-SwitchT:
+    SwitchT(p, alt*, default) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Default> default
+          break;
+        }
       }
-    }
-  ]|
+    ]|
   with
-    e_occ := <translate-Path> o
+    e_occ := <translate-PathT> p
   ; cases := <map(translate-AltT)> alt*
 
-  translate-AltT: AltT(t, switchv) -> switch-group |[
-    case e: {
-      ~stm:<translate-SwitchV> switchv
-      break;
-    }
-  ]|
-  with <pat-type-to-enum> t => e
+  translate-Default:
+    Default(s) ->
+    <translate-strategy> s
+
+  translate-Default:
+    GuardedDefault(guards) ->
+    <translate-Guards> guards
+
+  translate-AltT:
+    AltT(t, switchv) ->
+    switch-group |[
+      case e: {
+        ~stm:<translate-SwitchV> switchv
+        break;
+      }
+    ]|
+  with
+    <pat-type-to-enum> t => e
 
   pat-type-to-enum: ApplT()   -> e |[ APPL ]|
-  pat-type-to-enum: LisT()   -> e |[ LIST ]|
+  pat-type-to-enum: LisT()    -> e |[ LIST ]|
   pat-type-to-enum: IntT()    -> e |[ INT ]|
   pat-type-to-enum: RealT()   -> e |[ REAL ]|
   pat-type-to-enum: StringT() -> e |[ STRING ]|
-//  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
+  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
   pat-type-to-enum: TupleT()  -> e |[ TUPLE ]|
-//  pat-type-to-enum: RefT()    -> e |[ REF ]|
-//  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
-//  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
+  pat-type-to-enum: RefT()    -> e |[ REF ]|
+  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
+  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
 
-  translate-SwitchV: SwitchV(o, alt*, default) -> stm_alt
+  translate-SwitchV:
+    SwitchV(p, alt*, default) ->
+    stm_alt
   with
-    stm_def := <translate-strategy> default
-  ; stm_alt := <foldr(!stm_def, translate-AltV(|o))> alt*
+    stm_def := <translate-Default> default
+  ; e_path := <translate-PathVF> p
+  ; stm_alt := <foldr(!stm_def, translate-AltV(|e_path))> alt*
 
-  translate-AltV(|o): (AltV(p, tree_match), stm_else) ->
-  stm |[
-    if (e_match) {
-      ~<translate-strategy> tree_match
-    } else {
-      stm_else
-    }
-  ]| with e_match := <java-Pat-to-Condition> (p, <translate-Path> o)
+  translate-AltV(|e_occ):
+    (AltV(t, s), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        ~<translate-strategy> s
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
 
-  java-Pat-to-Condition: (Fun("Nil", "0"), e_occ) ->
+  translate-AltV(|e_occ):
+    (GuardedAltV(t, guards), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        bstm_guards
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
+  ; bstm_guards := <translate-Guards> guards
+
+  /** @type List(Guard) -> Block */
+  translate-Guards = translate-Guards(|Fail())
+  translate-Guards(|failure) = foldr(<translate-strategy> failure, debug(!"[i] t-G "); translate-Guard; debug(!"[o] t-G "))
+
+  /** @type Guard -> Block */  
+  translate-Guard:
+    (Guard(s1, s2), stm_s3) ->
+    bstm* |[
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           OuterFail: { // (redirects failure to outer Fail block)
+             stm_s2
+             if (TRUE) // (avoid unreachable stm error)
+               break Success;
+           }
+        }
+        term = x_termcopy;
+        stm_s3
+      }
+    ]|
+   with
+     x_termcopy := <newname> "term"
+   ; stm_s1     := <debug(!"[i] tgs 1 "); translate-strategy; debug(!"[o] tgs 1 ")> s1
+   ; stm_s2     := <debug(!"[i] tgs 2 "); translate-strategy; debug(!"[o] tgs 2 ")> s2
+
+  java-Pat-to-Condition:
+    (Fun("Nil", "0"), e_occ) ->
     e |[ ((IStrategoList) e_occ).isEmpty() ]| // special list treatment
 
-  java-Pat-to-Condition: (Fun("Cons", "2"), e_occ) ->
+  java-Pat-to-Condition:
+    (Fun("Cons", "2"), e_occ) ->
     e |[ !((IStrategoList) e_occ).isEmpty() ]| // special list treatment
 
-  java-Pat-to-Condition: (Fun(c, x), e_occ) -> e_cond
+  java-Pat-to-Condition:
+    (op@Fun(c, x), e_occ) ->
+    e_cond
+  where
+    <not(is-TupleOp + is-ListOp)> op
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
   ; if not(<get-config> "-sc" => "off") then
@@ -2008,40 +2078,97 @@ strategies
       !(e |[ e_occ.equals(e_cons) ]|)
     end => e_cond
 
-  java-Pat-to-Condition: (Str(s), e_occ) ->
+  java-Pat-to-Condition:
+    (Str(s), e_occ) ->
     e |[ e_occ.equals(~<java-mk-string-const> s) ]|
 
   java-Pat-to-Condition: (Int(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
-  java-Pat-to-Condition: (Real(x), e_occ) ->
+  java-Pat-to-Condition:
+    (Real(x), e_occ) ->
     e |[ e_occ == ~<java-mk-float-const> x ]|
 
-  java-Pat-to-Condition: (Anno(), e_occ) ->
+  java-Pat-to-Condition:
+    (Anno(), e_occ) ->
     e |[ true ]|
 
-  java-Pat-to-Condition: (Tuple(x), e_occ) ->
+  java-Pat-to-Condition:
+    (Tuple(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
-  translate-Path: Cur() -> e |[ term ]|
-  translate-Path = ?Var(_); java-ConstructVar
-  translate-Path: Sub(p, Int(x)) -> e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
-    with e := <translate-Path> p
-  translate-Path: Anno(p) -> e |[ e.getAnnotations() ]|
-    with e := <translate-Path> p
-  translate-Path: Con(p) -> e |[ ((IStrategoAppl) e).getConstructor() ]|
-    with e := <translate-Path> p
-  translate-Path: Type(p) -> e |[ e.getType() ]|
-    with e := <translate-Path> p
-  translate-Path: Int(p) -> e |[ ((IStrategoInt) e).intValue() ]|
-    with e := <translate-Path> p
-  translate-Path: Real(p) -> e |[ ((IStrategoReal) e).realValue() ]|
-    with e := <translate-Path> p
-  translate-Path: Str(p) -> e |[ ((IStrategoString) e).stringValue() ]|
-    with e := <translate-Path> p
-  translate-Path: Head(p) -> e |[ ((IStrategoList) e).head() ]|
-    with e := <translate-Path> p
-  translate-Path: Tail(p) -> e |[ ((IStrategoList) e).tail() ]|
-    with e := <translate-Path> p
-  translate-Path: Size(p) -> e |[ ((IStrategoTuple) e).size() ]|
-    with e := <translate-Path> p
+  translate-Path = debug(!"translate-Path ");
+    (translate-PathV
+  + translate-PathT
+  + translate-PathF)
+
+  translate-PathVF =
+    translate-PathV
+  + translate-PathF
+
+  translate-PathV:
+    Cur() ->
+    e |[ term ]|
+
+  translate-PathV =
+    ?Var(_); java-ConstructVar
+
+  translate-PathV:
+    Sub(p, x) ->
+    e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathV:
+    Anno(p) ->
+    e |[ e.getAnnotations() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathV:
+    Head(p) ->
+    e |[ ((IStrategoList) e).head() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathV:
+    Tail(p) ->
+    e |[ ((IStrategoList) e).tail() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathT:
+    Type(p) ->
+    e |[ e.getType() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathF:
+    Size(p) ->
+    e |[ ((IStrategoTuple) e).size() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathF:
+    Con(p) ->
+    e |[ ((IStrategoAppl) e).getConstructor() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathF:
+    Int(p) ->
+    e |[ ((IStrategoInt) e).intValue() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathF:
+    Real(p) ->
+    e |[ ((IStrategoReal) e).realValue() ]|
+  with
+    e := <translate-PathV> p
+
+  translate-PathF:
+    Str(p) ->
+    e |[ ((IStrategoString) e).stringValue() ]|
+  with
+    e := <translate-PathV> p

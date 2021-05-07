@@ -6,9 +6,15 @@ imports
 
   strc/stratego/strc/opt/bound-unbound-vars
   strc/stratego/strc/opt/stratego-laws
+  strc/stratego/strc/strc/strc // log-timed
 
 overlays
   MultiMatch(cases) = MultiMatch(Sequential(), cases)
+
+  // TODO Fix semantics. Failure of a strategy in a choice tries the next strategy, while the resulting multimatch fails as a whole.
+  
+  // Suggestion: patterns of shape Match(p); ... ; Build(t) -> case | p where ...: t
+  // Edge case: building unbound vars.
 
   MatchPattern(p) = Match(p)
 
@@ -17,14 +23,17 @@ overlays
   MatchSuccessPattern(vars, p, s) = Scope(vars, MatchSuccessPattern(p, s))
 
   ChoicePattern(s1, s2) = GuardedLChoice(s1, Id(), s2)
+  ChoicePattern(match, rhs, next) = GuardedLChoice(match, rhs, next)
 
 strategies
   sdeft-match-choices-to-multimatches =
+  log-timed(
     simplify
   // TODO Is the analysis even necessary? Can just use the parent Scope.
   ; mark-bound-unbound-vars
   ; SDefT(id, id, id, match-choices-to-multimatches)
   ; strip-annos
+  | "MatchBuild - translate", 1)
 
   // Used for testing
   match-choices-to-multimatches-test-NoDesugar =
@@ -47,7 +56,7 @@ strategies
 
   // No fail needed in the last case; is implicit in MultiMatch.
   MatchCasesDefault: Fail() -> []
-  MatchCasesDefault = ![<MatchCase>]
+//  MatchCasesDefault = ![<MatchCase>]
   MatchCasesDefault =
     ![ScopedMatchCase(<collect-unbound-vars>, Anno(Wld(), Wld()), <id>)]
 
