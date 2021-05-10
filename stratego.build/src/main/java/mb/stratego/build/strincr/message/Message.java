@@ -39,8 +39,7 @@ public abstract class Message implements WithLastModified, Serializable {
         this.lastModified = lastModified;
     }
 
-    public static Message from(Logger logger, IStrategoTerm messageTuple,
-        MessageSeverity severity, long lastModified) {
+    public static Message from(IStrategoTerm messageTuple, MessageSeverity severity, long lastModified) {
         IStrategoTerm locationTerm = messageTuple.getSubterm(0);
         final IStrategoTerm messageTerm = messageTuple.getSubterm(1);
         switch(TermUtils.toAppl(messageTerm).getName()) {
@@ -107,11 +106,13 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new MultipleAppsInMatch(locationTerm, severity, lastModified);
             case "BuildUnboundTerm":
                 return new BuildUnboundTerm(locationTerm, severity, lastModified);
-            case "ErrorDesc.MatchNotSpecificEnoughForTP":
+            case "MatchNotSpecificEnoughForTP":
                 return new MatchNotSpecificEnoughForTP(locationTerm, messageTerm.getSubterm(0),
                     severity, lastModified);
+            case "UnsupportedCastRequiredInDynamicRule":
+                return new UnsupportedCastRequiredInDynamicRule(locationTerm, severity,
+                    lastModified);
             default:
-                logger.warn("Unrecognised message from type checker, passing raw message. ");
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }
     }
@@ -127,7 +128,7 @@ public abstract class Message implements WithLastModified, Serializable {
         final int leftLine = leftToken.getLine();
         final int leftColumn = leftToken.getColumn();
         final int rightLine = rightToken.getEndLine();
-        final int rightColumn = rightToken.getEndColumn();
+        final int rightColumn = rightToken.getEndColumn()+1;
         if(leftLine == rightLine) {
             if(leftColumn == rightColumn) {
                 return filename + ":" + leftLine + ":" + leftColumn;

@@ -76,4 +76,8 @@ strategies
   DeclareNotDead =
     ?CallT(SVar(f), _, _)
     ; rules( DefDead.f : SDefT(f, x, y, z) -> "0" )
+
+  DeclareNotDead =
+    ?ProxyT(_, _, _, _, SVar(f))
+    ; rules( DefDead.f : SDefT(f, x, y, z) -> "0" )
   

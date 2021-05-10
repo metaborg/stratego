@@ -44,10 +44,6 @@ public class StrategySignature extends StrategoTuple {
     }
 
     public StrategyType.Standard standardType(ITermFactory tf) {
-        return standardType(tf, noStrategyArgs, noTermArgs);
-    }
-
-    public static StrategyType.Standard standardType(ITermFactory tf, int noStrategyArgs, int noTermArgs) {
         return StrategyType.Standard.fromArity(tf, noStrategyArgs, noTermArgs);
     }
 
@@ -56,31 +52,33 @@ public class StrategySignature extends StrategoTuple {
         final int s = this.noStrategyArgs;
         final int t = this.noTermArgs;
         final HashMap<StrategySignature, StrategyType> result = new HashMap<>(40);
-        result.put(this, standardType(tf));
-        result.put(new StrategySignature("new-" + n, 0, 2), standardType(tf, 0, 2));
-        result.put(new StrategySignature("undefine-" + n, 0, 1), standardType(tf, 0, 1));
-        result.put(new StrategySignature("aux-" + n, s, t + 1), standardType(tf, s, t + 1));
-        result.put(new StrategySignature("once-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("bagof-" + n, s, t), standardType(tf, s, t));
-        result
-            .put(new StrategySignature("reverse-bagof-" + n, s + 1, t), standardType(tf, s + 1, t));
-        result.put(new StrategySignature("bigbagof-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("all-keys-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("innermost-scope-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("break-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("break-to-label-" + n, s, t + 1),
-            standardType(tf, s, t + 1));
-        result.put(new StrategySignature("break-bp-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("continue-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("continue-to-label-" + n, s, t + 1),
-            standardType(tf, s, t + 1));
-        result
-            .put(new StrategySignature("throw-" + n, s + 1, t + 1), standardType(tf, s + 1, t + 1));
-        result.put(new StrategySignature("fold-" + n, s + 1, t), standardType(tf, s + 1, t));
-        result.put(new StrategySignature("bigfold-" + n, s + 1, t), standardType(tf, s + 1, t));
-        result.put(new StrategySignature("chain-" + n, s, t), standardType(tf, s, t));
-        result.put(new StrategySignature("bigchain-" + n, s, t), standardType(tf, s, t));
+        add(result, this, tf);
+        add(result, new StrategySignature("new-" + n, 0, 2), tf);
+        add(result, new StrategySignature("undefine-" + n, 0, 1), tf);
+        // The aux- rules created depend on the free variables in the lhs of dynamic rules
+        //     Therefore they are constructed in {@see CollectDynRuleSigs}
+        add(result, new StrategySignature("once-" + n, s, t), tf);
+        add(result, new StrategySignature("bagof-" + n, s, t), tf);
+        add(result, new StrategySignature("reverse-bagof-" + n, s + 1, t), tf);
+        add(result, new StrategySignature("bigbagof-" + n, s, t), tf);
+        add(result, new StrategySignature("all-keys-" + n, s, t), tf);
+        add(result, new StrategySignature("innermost-scope-" + n, 1, 0), tf);
+        add(result, new StrategySignature("break-" + n, s, t), tf);
+        add(result, new StrategySignature("break-to-label-" + n, s, t + 1), tf);
+        add(result, new StrategySignature("break-bp-" + n, s, t), tf);
+        add(result, new StrategySignature("continue-" + n, s, t), tf);
+        add(result, new StrategySignature("continue-to-label-" + n, s, t + 1), tf);
+        add(result, new StrategySignature("throw-" + n, s + 1, t + 1), tf);
+        add(result, new StrategySignature("fold-" + n, s + 1, t), tf);
+        add(result, new StrategySignature("bigfold-" + n, s + 1, t), tf);
+        add(result, new StrategySignature("chain-" + n, s, t), tf);
+        add(result, new StrategySignature("bigchain-" + n, s, t), tf);
         return result;
+    }
+
+    public static void add(HashMap<StrategySignature, StrategyType> map, StrategySignature sig,
+        ITermFactory tf) {
+        map.put(sig, sig.standardType(tf));
     }
 
     public static @Nullable StrategySignature fromCified(String cifiedName) {

@@ -27,6 +27,17 @@ rules // Debugging
       filename := <guarantee-extension(|"aterm")> path
     ; result   := node
 
+  debug-show-desugared:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"ctree.aterm")> path
+    ; <set-config> ("--library", ()) // no main strategy necessary this way
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend-sep-comp
+    ; ?result
+
   debug-show-ctree:
     (node, _, _, path, project-path) -> (filename, result)
     with
@@ -45,9 +56,15 @@ rules // Debugging
     ; !node
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
+    ; frontend-sep-comp
+    ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
+    ; debug1
     ; where(
         <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
+      ; <set-config> ("--single-strategy", ())
+      ; <set-config> ("--fusion", "off")
+      ; <set-config> ("--cache-dir", ".")
+      ; <set-config> ("-p", "test")
       ; strj-preinit-options
       ; <dirname> path
       ; rules(OutputDirName := <id>)

@@ -58,7 +58,7 @@ strat-lookup(|name, snum, tnum, type) =
   ; imrel-get(|(name, snum))
   ; imset-to-list
   ; not(?[])
-  ; if DynT() := type <+ ErrT() := type
+  ; if DynT() := type <+ IllFormedTermT(_, _) := type <+ ErrT() := type
     then
       \[ConstrType(args, sort)] -> FunTType(<map(!FunTType(DynT(<id>), DynT(<id>)))> args, [], DynT(sort), DynT(sort))\
       <+ !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))

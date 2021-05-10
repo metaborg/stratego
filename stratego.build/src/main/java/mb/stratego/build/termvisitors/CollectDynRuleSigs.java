@@ -49,6 +49,30 @@ public class CollectDynRuleSigs {
                     break;
             }
         }
+        /*
+          DynRuleDef.AddScopeLabel =
+            <<Id> + <Term>>
+          DynRuleDef.UndefineDynRule =
+            <<DynRuleId> :- <Term>> // doesn't generate aux- rule
+          DynRuleDef.SetDynRule =
+            <<DynRuleId> : <Rule>>
+          DynRuleDef.AddDynRule =
+            <<DynRuleId> :+ <Rule>>
+          DynRuleDef.SetDynRuleMatch =
+            <<DynRuleId> : <Term>> // Wld() become Var(<newname> "wld")
+          DynRuleDef.DynRuleAssign =
+            <<DynRuleId> := <Term>> // becomes SetDynRule with rule _ -> y, no vars in lhs
+          DynRuleDef.DynRuleAssignAdd =
+            <<DynRuleId> :+= <Term>> // becomes AddDynRule with rule _ -> y, no vars in lhs
+          DynRuleDef.SetDynRuleDepends =
+            <<DynRuleId> : <Rule> depends on <Term>>
+          DynRuleId.LabeledDynRuleId =
+            <<RuleDec> . <Term>>
+          DynRuleId.AddLabelDynRuleId =
+            <<RuleDec> + <Term>>
+          DynRuleId.DynRuleId = RuleDec
+        */
+        // TODO: create aux- rule signature for every lhs, based on its free variables.
         for(IStrategoTerm child : term) {
             visit(child);
         }

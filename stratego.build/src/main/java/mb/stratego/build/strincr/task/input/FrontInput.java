@@ -17,14 +17,17 @@ public abstract class FrontInput implements Serializable {
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
     public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
+    public final boolean autoImportStd;
 
     public FrontInput(IModuleImportService.ModuleIdentifier moduleIdentifier,
         ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        boolean autoImportStd) {
         this.moduleIdentifier = moduleIdentifier;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
         this.linkedLibraries = linkedLibraries;
+        this.autoImportStd = autoImportStd;
     }
 
     @Override public boolean equals(Object o) {
@@ -59,8 +62,10 @@ public abstract class FrontInput implements Serializable {
     public static class Normal extends FrontInput {
         public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
-            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries);
+            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+            boolean autoImportStd) {
+            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries,
+                autoImportStd);
         }
     }
 
@@ -70,8 +75,10 @@ public abstract class FrontInput implements Serializable {
         public FileOpenInEditor(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
             ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
-            LastModified<IStrategoTerm> ast) {
-            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries);
+            LastModified<IStrategoTerm> ast,
+            boolean autoImportStd) {
+            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries,
+                autoImportStd);
             this.ast = ast;
         }
 

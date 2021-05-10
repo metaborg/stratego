@@ -112,9 +112,8 @@ rules
     SDefT(x, args1, args2, s) -> SDefT(y, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
-        ; x' := <cify> x
-        ; s' := <annotate-local-args(!$[[x']$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
         ; <strategy-sig-to-string>(x, n, m) => y
+        ; s' := <annotate-local-args(|<map(?VarDec(<rm-annotations>,_))> args1)> s
 
   RenameSDef2 :
     ExtSDef(x, args1, args2) -> ExtSDef(y, args1, args2)
@@ -126,9 +125,8 @@ rules
     ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(y, args1, args2, s')
     where <length> args1 => n
         ; <length> args2 => m
-        ; x' := <cify> x
-        ; s' := <annotate-local-args(!$[[x']$[<id>]]|<map(?VarDec(<id>,_))> args1, [])> s
         ; <strategy-sig-to-string>(x, n, m) => y
+        ; s' := <annotate-local-args(|<map(?VarDec(<rm-annotations>,_))> args1)> s
 
   RenameCall2 : 
     CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
@@ -145,7 +143,7 @@ rules
   RenameCall2 : 
     CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
     where id
-      ; not(<get-annotation(?LocalArg())> x)
+      ; not(<get-annotation(?LocalArg() <+ ?AmbiguousStrategyResolution(_, _))> x)
       ; <length> ss => n
       ; <length> ts => m
       ; <strategy-sig-to-string>(x, n, m) => y
@@ -165,51 +163,41 @@ rules
   RenameCall2 : 
     ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
     where id
-      ; not(<get-annotation(?LocalArg())> x)
+      ; not(<get-annotation(?LocalArg() <+ ?AmbiguousStrategyResolution(_, _))> x)
       ; <length> ss => n
       ; <length> ts => m
       ; <strategy-sig-to-string>(x, n, m) => y
 
 
-  annotate-local-args(rename-local|larg*,letdef*) =
-    alltd(preserve-annos(annotate-local-arg(rename-local|larg*,letdef*)))
+  annotate-local-args(|larg*) =
+    alltd(preserve-annos(annotate-local-arg(|larg*)))
 
-  annotate-local-arg(rename-local|larg*,letdef*):
-    Rec(name, body) -> Rec(name', body')
+  annotate-local-arg(|larg*):
+    Rec(name, body) -> Rec(name, body')
   with id
-    ; name' := <rename-local> name
-    ; letdef'* := [(name, name')|letdef*]
-    ; body' := <annotate-local-args(rename-local|larg*, letdef'*)> body
+    ; larg'* := [name{}|larg*]
+    ; body' := <annotate-local-args(|larg'*)> body
 
-  annotate-local-arg(rename-local|larg*,letdef*):
+  annotate-local-arg(|larg*):
     Let(sdeft*, body) -> Let(sdeft'*, body')
   with id
-    ; def* := <map(?SDefT(<id>, _, _, _);split(rm-annotations, rename-local))> sdeft*
-    ; letdef'* := [def*,letdef*]
-    ; body' := <annotate-local-args(rename-local|larg*, letdef'*)> body
+    ; def* := <map(?SDefT(<rm-annotations>, _, _, _))> sdeft*
+    ; larg'* := [def*,larg*]
+    ; body' := <annotate-local-args(|larg'*)> body
     ; sdeft'* := <map({args1, arg*:
-        SDefT(rename-local, ?args1, id, id)
-      ; where(arg* := <map(?VarDec(<id>,_))> args1)
-      ; SDefT(id, id, id, annotate-local-args(rename-local|[larg*, arg*], letdef'*))})> sdeft*
+        where(arg* := <?SDefT(_, <map(?VarDec(<rm-annotations>,_))>, _, _)>)
+      ; SDefT(id, id, id, annotate-local-args(|[arg*, larg'*]))})> sdeft*
 
-  annotate-local-arg(rename-local|larg*,letdef*):
-    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  annotate-local-arg(|larg*):
+    CallT(SVar(x1), ss, ts) -> CallT(SVar(x3), <map(annotate-local-args(|larg*))> ss, ts)
   where id
-    ; <getfirst(?x)> larg*
-    ; y := <add-annotation(|LocalArg())> x
+    ; x2 := x1{}
+    ; <getfirst(?x2)> larg*
+    ; x3 := <add-annotation(|LocalArg())> x1
 
-  annotate-local-arg(rename-local|larg*,letdef*):
-    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+  annotate-local-arg(|larg*):
+    ProxyT(ss, ts, i, o, SVar(x1)) -> ProxyT(ss, ts, i, o, SVar(x3))
   where id
-    ; y := <lookup;add-annotation(|LocalArg())> (x{}, letdef*)
-
-  annotate-local-arg(rename-local|larg*,letdef*):
-    ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
-  where id
-    ; <getfirst(?x)> larg*
-    ; y := <add-annotation(|LocalArg())> x
-
-  annotate-local-arg(rename-local|larg*,letdef*):
-    ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
-  where id
-    ; y := <lookup;add-annotation(|LocalArg())> (x{}, letdef*)
+    ; x2 := x1{}
+    ; <getfirst(?x2)> larg*
+    ; x3 := <add-annotation(|LocalArg())> x1

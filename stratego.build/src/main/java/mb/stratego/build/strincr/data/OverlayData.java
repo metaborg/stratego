@@ -3,6 +3,7 @@ package mb.stratego.build.strincr.data;
 import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 public class OverlayData extends ConstructorData {
     public final LinkedHashSet<ConstructorSignature> usedConstructors;

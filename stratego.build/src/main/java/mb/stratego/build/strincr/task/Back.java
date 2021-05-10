@@ -87,6 +87,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             }
         } else {
             arguments.add("--single-strategy");
+            arguments.add("--library");
         }
 
         for(ResourcePath includeDir : input.checkInput.includeDirs) {
@@ -117,15 +118,17 @@ public class Back implements TaskDef<BackInput, BackOutput> {
 
 
         final IStrategoTerm result1 = strategoLanguage
-            .toJava(buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), resourcePathConverter.toString(input.projectPath));
+            .toJava(buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()),
+                resourcePathConverter.toString(input.checkInput.projectPath));
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
         assert TermUtils.isList(result1);
         for(IStrategoTerm fileNameTerm : result1) {
-            assert TermUtils.isString(fileNameTerm);
-            final File file = new File(TermUtils.toJavaString(fileNameTerm));
-            context.provide(file);
-            resultFiles.add(new FSPath(file.toPath()));
+            if(TermUtils.isString(fileNameTerm)) {
+                final File file = new File(TermUtils.toJavaString(fileNameTerm));
+                context.provide(file);
+                resultFiles.add(new FSPath(file.toPath()));
+            }
         }
 
         return new BackOutput(resultFiles, compiledStrategies);

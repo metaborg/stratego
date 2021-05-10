@@ -20,6 +20,7 @@ gradual-types/signatures
 gradual-types/defs
 gradual-types/modules
 
+strc/incr/fix-new-grammar
 
 strategies // entry-points from Java
 
@@ -79,7 +80,7 @@ insertCasts(|strats, constrs, injection-closure, aliases, lub-map): ast -> ast'
   ; e := <new-env> (strats, constrs)
   ; st := <new-st>
   ; let
-      process-defs = map(fix-old-grammar;insertCasts-Def(|e, st); Fst)
+      process-defs = map(fix-old-grammar;fix-new-grammar;insertCasts-Def(|e, st); Fst)
       process-sections = map(
            Imports(id)
         <+ Signature(id)
@@ -227,7 +228,7 @@ lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
 constr-lookup-from(st|name, arity, t1, st1) =
     constr-env
   ; imrel-get(|(name, arity))
-  ; if not(DynT() := t1 <+ ErrT() := t1)
+  ; if not(DynT() := t1 <+ IllFormedTermT(_, _) := t1 <+ ErrT() := t1)
       then imset-filter(constr-lookup-filter(|t1, st1))
     end
   ; imset-to-list

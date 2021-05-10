@@ -12,11 +12,15 @@ import java.util.LinkedHashSet;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.util.B;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokens;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
@@ -34,6 +38,7 @@ import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.message.FailedToGetModuleAst;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.UnresolvedImport;
 import mb.stratego.build.strincr.task.input.FrontInput;
@@ -42,6 +47,7 @@ import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNamesFront;
+import mb.stratego.build.util.GenerateStratego;
 import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
@@ -64,17 +70,17 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     public final IModuleImportService moduleImportService;
     protected final StrIncrContext strContext;
     protected final ITermFactory tf;
-    protected final B b;
+    protected final GenerateStratego generateStratego;
 
-    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService) {
+    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
+        GenerateStratego generateStratego) {
         this.strContext = strContext;
         this.tf = strContext.getFactory();
-        this.b = new B(this.tf);
+        this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>();
@@ -96,6 +102,28 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections =
             new LinkedHashMap<>();
         final ArrayList<Message> messages = new ArrayList<>();
+
+        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
+        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
+
+        final LastModified<IStrategoTerm> ast;
+        try {
+            ast = getModuleAst(context, input);
+        } catch(Exception e) {
+            final IStrategoString module = tf.makeString(input.moduleIdentifier.moduleString());
+            final @Nullable String fileName = moduleImportService.fileName(input.moduleIdentifier);
+            module.putAttachment(ImploderAttachment.createCompactPositionAttachment(
+                fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
+            messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier));
+
+            return new ModuleData(input.moduleIdentifier,
+                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,
+                externalConstrData, injections, externalInjections, strategyData,
+                internalStrategyData, externalStrategyData, dynamicRuleData, overlayData,
+                usedConstructors, usedStrategies, dynamicRules, usedAmbiguousStrategies, messages,
+                0L);
+        }
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -129,14 +157,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
-        if(!input.moduleIdentifier.isLibrary() && !imports
+        if(input.autoImportStd && !input.moduleIdentifier.isLibrary() && !imports
             .contains(BuiltinLibraryIdentifier.StrategoLib)) {
             imports.add(BuiltinLibraryIdentifier.StrategoLib);
         }
 
-        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
-        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
@@ -280,7 +305,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         extract-constr:
           Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
          */
-        final IStrategoTerm dynT = b.applShared("DynT", b.applShared("Dyn"));
+        final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
         for(IStrategoTerm overlay : overlays) {
             final int arity;
             final ConstructorType type;
@@ -458,7 +483,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         break;
                     default:
                         final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = b.applShared("Sort", b.stringShared("Tuple"), tupleTypes);
+                        from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
 
                         final ConstructorSignature constrSig =
                             new ConstructorSignature("", froms.size());

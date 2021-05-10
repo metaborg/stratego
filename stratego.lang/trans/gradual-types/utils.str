@@ -60,9 +60,9 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
 strategies
 
 desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
-desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], FunNoArgsType(<desugar-Type> i, <desugar-Type> o))\)
+desugar-SType = otf(\st@FunNoArgsType(i, o) -> FunTType([], [], <desugar-SSimpleFunType> st)\)
 desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
-desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), FunNoArgsType(desugar-Type, desugar-Type));not(?a))
+desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-SSimpleFunType);not(?a))
 
 desugar-SSimpleFunType = otf(FunNoArgsType(desugar-Type, desugar-Type))
 

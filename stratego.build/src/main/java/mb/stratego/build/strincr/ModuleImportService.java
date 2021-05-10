@@ -183,14 +183,23 @@ public class ModuleImportService implements IModuleImportService {
                 } else {
                     return new LastModified<>(strategoLanguage
                         .parse(inputStream, StandardCharsets.UTF_8,
-                            resourcePathConverter.toString(identifier.path)),
-                        lastModified);
+                            resourcePathConverter.toString(identifier.path)), lastModified);
                 }
             }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
             final BuiltinLibraryIdentifier builtinLibraryIdentifier =
                 (BuiltinLibraryIdentifier) moduleIdentifier;
             return new LastModified<>(builtinLibraryIdentifier.readLibraryFile(), 0L);
+        }
+    }
+
+    @Override public @Nullable String fileName(ModuleIdentifier moduleIdentifier) {
+        if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
+            final mb.stratego.build.strincr.ModuleIdentifier identifier =
+                (mb.stratego.build.strincr.ModuleIdentifier) moduleIdentifier;
+            return resourcePathConverter.toString(identifier.path);
+        } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
+            return null;
         }
     }
 }

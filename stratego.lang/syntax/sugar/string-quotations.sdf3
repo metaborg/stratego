@@ -56,15 +56,30 @@ lexical restrictions
   Dollar4 -/- [\<\>].[\$]
 
 syntax
-  StringQuotation-CF.StringQuotation1 = "$" "[" Padding-LEX StringQuotedPart1-CF* "]"
-  StringQuotation-CF.StringQuotation2 = "$" "{" Padding-LEX StringQuotedPart2-CF* "}"
-  StringQuotation-CF.StringQuotation3 = "$" "(" Padding-LEX StringQuotedPart3-CF* ")"
-  StringQuotation-CF.StringQuotation4 = "$" "<" Padding-LEX StringQuotedPart4-CF* ">"
+  StringQuotation-CF.StringQuotation1 = "$" "[" StringQuotedPart1-CF* "]"
+  StringQuotation-CF.StringQuotation2 = "$" "{" StringQuotedPart2-CF* "}"
+  StringQuotation-CF.StringQuotation3 = "$" "(" StringQuotedPart3-CF* ")"
+  StringQuotation-CF.StringQuotation4 = "$" "<" StringQuotedPart4-CF* ">"
 
-  StringQuotedPart1-CF.StringEscape1 = Padding-LEX "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
-  StringQuotedPart2-CF.StringEscape2 = Padding-LEX "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}"
-  StringQuotedPart3-CF.StringEscape3 = Padding-LEX "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")"
-  StringQuotedPart4-CF.StringEscape4 = Padding-LEX "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">"
+  StringQuotedPart1-CF.StringEscape1 = "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
+  StringQuotedPart2-CF.StringEscape2 = "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}"
+  StringQuotedPart3-CF.StringEscape3 = "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")"
+  StringQuotedPart4-CF.StringEscape4 = "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">"
 
-//  Padding-CF = Padding-LEX // Makes the generated prettyprinter loop. Using -LEX directly instead
-  Padding-LEX =  {indentpadding}
+// The following is the AST that is expected by Stratego compiler, but the Padding literal was
+//   filled by a hack in SDF2/JSGLR1 and is now done in postprocessing.
+syntax
+
+  InternalStringQuotation-CF.StringQuotation1 = "$" "[" Padding-LEX InternalStringQuotedPart1-CF* "]"
+  InternalStringQuotation-CF.StringQuotation2 = "$" "{" Padding-LEX InternalStringQuotedPart2-CF* "}"
+  InternalStringQuotation-CF.StringQuotation3 = "$" "(" Padding-LEX InternalStringQuotedPart3-CF* ")"
+  InternalStringQuotation-CF.StringQuotation4 = "$" "<" Padding-LEX InternalStringQuotedPart4-CF* ">"
+
+  InternalStringQuotedPart1-CF.StringEscape1 = Padding-LEX "[" LAYOUT?-CF Term-CF LAYOUT?-CF "]"
+  InternalStringQuotedPart2-CF.StringEscape2 = Padding-LEX "{" LAYOUT?-CF Term-CF LAYOUT?-CF "}"
+  InternalStringQuotedPart3-CF.StringEscape3 = Padding-LEX "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")"
+  InternalStringQuotedPart4-CF.StringEscape4 = Padding-LEX "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">"
+
+lexical syntax
+
+  Padding = ' '+

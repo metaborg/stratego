@@ -10,7 +10,9 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.termvisitors.DesugarType;
@@ -87,8 +89,8 @@ public class StrategyType extends StrategoAppl {
     private static IStrategoTerm desugarSSimpleFunType(ITermFactory tf,
         IStrategoTerm sSimpleFunType) {
         return tf.replaceTerm(
-            tf.makeAppl("FunNoArgsType", DesugarType.desugarType(tf, sSimpleFunType.getSubterm(0)),
-                DesugarType.desugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
+            tf.makeAppl("FunNoArgsType", DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(0)),
+                DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
     }
 
     public StrategySignature withName(IStrategoString name) {

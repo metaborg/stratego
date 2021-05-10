@@ -124,8 +124,7 @@ public class DisambiguateAsAnno {
             final IStrategoAppl rightA = (IStrategoAppl) right;
 
             if(leftA.getConstructor().equals(rightA.getConstructor())) {
-                return resolveChildAmbiguity(leftA, rightA,
-                    (nc, l) -> context.getFactory().replaceAppl(leftA.getConstructor(), nc, l));
+                return resolveChildAmbiguity(leftA, rightA, this::replaceAppl);
             }
             switch(leftA.getName()) {
                 case "As":
@@ -149,6 +148,10 @@ public class DisambiguateAsAnno {
             }
         }
         return null;
+    }
+
+    private IStrategoAppl replaceAppl(IStrategoTerm[] nc, IStrategoAppl l) {
+        return context.getFactory().replaceAppl(l.getConstructor(), nc, l);
     }
 
     public <T extends IStrategoTerm> T resolveChildAmbiguity(T left, T right,

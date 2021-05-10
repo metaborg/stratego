@@ -27,7 +27,7 @@ public class CheckModuleInput implements Serializable {
             fileOpenInEditor = null;
         }
         return new ResolveInput(mainModuleIdentifier, frontInput.strFileGeneratingTasks,
-            frontInput.includeDirs, frontInput.linkedLibraries, fileOpenInEditor);
+            frontInput.includeDirs, frontInput.linkedLibraries, fileOpenInEditor, frontInput.autoImportStd);
     }
 
     @Override public boolean equals(Object o) {

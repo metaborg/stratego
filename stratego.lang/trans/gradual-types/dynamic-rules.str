@@ -68,9 +68,9 @@ insertCasts-DynRuleScopeId-(|e1, st1):
 //  GenDynRules              : List(DynRuleDef) -> Strategy
 
 insertCasts-Strategy-(|e1, st1):
-  GenDynRules(d1*) -> (GenDynRules(d2*), st2)
+  GenDynRules(d1*) -> (GenDynRules(d2*), <current-type-of(|st1)> st2)
   with
-    (d2*, st2) := <thread-map(insertCasts-DynRuleDef(|e1))> (d1*, st1)
+    (d2*, st2) := <thread-map(insertCasts-DynRuleDef(|e1))> (d1*, <current-type(|DynT())> st1)
 
 
 insertCasts-DynRuleDef(|e1): (d1, st1) -> <insertCasts-DynRuleDef(|e1, st1)> d1
@@ -90,7 +90,10 @@ insertCasts-DynRuleDef-(|e1, st1):
   UndefineDynRule(i1, t1) -> (UndefineDynRule(i2, t2), st3)
   with
     (i2, st2) := <insertCasts-DynRuleId(|e1, st1)> i1
-  ; (t2, st3) := <insertCasts-BuildTerm(|e1, st2)> t1
+  ; (t2, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> t1
+  ; if not([] := s*)
+      then <report-Err> (t1, UnsupportedCastRequiredInDynamicRule())
+    end
 
 //  SetDynRule               : DynRuleId * Rule -> DynRuleDef
 
@@ -114,7 +117,10 @@ insertCasts-DynRuleDef-(|e1, st1):
   SetDynRuleMatch(i1, t1) -> (SetDynRuleMatch(i2, t2), st3)
   with
     (i2, st2) := <insertCasts-DynRuleId(|e1, st1)> i1
-  ; (t2, st3) := <insertCasts-BuildTerm(|e1, st2)> t1
+  ; (t2, (st3, s*)) := <insertCasts-MatchTerm(|e1, st2)> t1
+  ; if not([] := s*)
+      then <report-Err> (t1, UnsupportedCastRequiredInDynamicRule())
+    end
 
 //  DynRuleAssign            : DynRuleId * Term -> DynRuleDef
 

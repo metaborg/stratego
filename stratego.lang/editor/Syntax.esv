@@ -22,7 +22,8 @@ menus
     action: "Show parsed AST" = debug-show-aterm
 
   menu: "Desugar" (openeditor) (source)
-    action: "Show desugared AST (CTree)" = debug-show-ctree
+    action: "Show desugared AST (incr. comp.)" = debug-show-desugared
+    action: "Show desugared AST (batch comp.)" = debug-show-ctree
 
 views
   

@@ -47,6 +47,7 @@ import mb.stratego.build.strincr.message.InternalStrategyOverlap;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategyOverlapsWithDynamicRuleHelper;
+import mb.stratego.build.strincr.message.TypeSystemInternalCompilerError;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
@@ -55,6 +56,7 @@ import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
+import mb.stratego.build.termvisitors.CountErrT;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
@@ -104,7 +106,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             prepareGTEnvironment(context, moduleData, input.frontInput);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
-        final InsertCastsOutput output = insertCasts(context, insertCastsInput);
+        final InsertCastsOutput output = insertCasts(insertCastsInput);
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -124,11 +126,11 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
     }
 
-    private InsertCastsOutput insertCasts(ExecContext execContext, InsertCastsInput input)
-        throws ExecException {
+    private InsertCastsOutput insertCasts(InsertCastsInput input) throws ExecException {
         final String moduleName = input.moduleIdentifier.moduleString();
 
-        final IStrategoTerm result = strategoLanguage.insertCasts(moduleName, input.environment, resourcePathConverter.toString(input.projectPath));
+        final IStrategoTerm result = strategoLanguage.insertCasts(moduleName, input.environment,
+            resourcePathConverter.toString(input.projectPath));
 
         final IStrategoTerm astWithCasts = result.getSubterm(0);
         final IStrategoList errors = TermUtils.toListAt(result, 1);
@@ -139,16 +141,22 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         ArrayList<Message> messages =
             new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
-            messages.add(
-                Message.from(execContext.logger(), errorTerm, MessageSeverity.ERROR, lastModified));
+            messages.add(Message.from(errorTerm, MessageSeverity.ERROR, lastModified));
         }
         for(IStrategoTerm warningTerm : warnings) {
-            messages.add(Message
-                .from(execContext.logger(), warningTerm, MessageSeverity.WARNING, lastModified));
+            messages.add(Message.from(warningTerm, MessageSeverity.WARNING, lastModified));
         }
         for(IStrategoTerm noteTerm : notes) {
-            messages.add(
-                Message.from(execContext.logger(), noteTerm, MessageSeverity.NOTE, lastModified));
+            messages.add(Message.from(noteTerm, MessageSeverity.NOTE, lastModified));
+        }
+
+        // sanity check
+        if(errors.isEmpty()) {
+            if(CountErrT.countErrT(astWithCasts) > 0) {
+                messages.add(
+                    new TypeSystemInternalCompilerError(input.environment.ast, MessageSeverity.ERROR,
+                        lastModified));
+            }
         }
         return new InsertCastsOutput(astWithCasts, messages);
     }
@@ -296,9 +304,9 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
             final FrontInput moduleInput =
                 new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
-                    frontInput.includeDirs, frontInput.linkedLibraries);
-            final TypesLookup typesLookup = PieUtils.requirePartial(context, front, moduleInput,
-                toTypesLookup);
+                    frontInput.includeDirs, frontInput.linkedLibraries, frontInput.autoImportStd);
+            final TypesLookup typesLookup =
+                PieUtils.requirePartial(context, front, moduleInput, toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
                 ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());
@@ -315,6 +323,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__put(e.getKey(), to);
                 }
             }
+            // TODO: do not resolve imports transitively when the module importing is Stratego 2
             for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
                 if(!seen.contains(anImport)) {
                     seen.add(anImport);
