@@ -347,26 +347,24 @@ public class Packer {
     }
 
 
-    public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<IStrategoTerm> constructors, Collection<IStrategoAppl> strategyContributions) {
+    public static IStrategoTerm packBoilerplate(ITermFactory f, Collection<? extends IStrategoTerm> constructors, Collection<? extends IStrategoAppl> strategyContributions) {
         return f.makeAppl("Specification",
             f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList(constructors)))),
                 f.makeAppl("Strategies", f.makeList(strategyContributions))));
     }
 
-    public static IStrategoTerm packStrategy(ITermFactory f, Collection<IStrategoAppl> overlayContributions,
-        Collection<IStrategoAppl> strategyContributions) {
+    public static IStrategoTerm packStrategy(ITermFactory f, Collection<? extends IStrategoAppl> overlayContributions,
+        Collection<? extends IStrategoAppl> strategyContributions) {
         final IStrategoAppl term;
         if(overlayContributions.isEmpty()) {
             term = f.makeAppl("Specification",
                 f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
-                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(
-                        EMPTY_TERM_ARRAY)))));
+                    f.makeAppl("Strategies", f.makeList(strategyContributions))));
         } else {
             term = f.makeAppl("Specification",
                 f.makeList(f.makeAppl("Signature", f.makeList(f.makeAppl("Constructors", f.makeList()))),
-                    f.makeAppl("Overlays", f.makeList(overlayContributions.toArray(EMPTY_TERM_ARRAY))),
-                    f.makeAppl("Strategies", f.makeList(strategyContributions.toArray(
-                        EMPTY_TERM_ARRAY)))));
+                    f.makeAppl("Overlays", f.makeList(overlayContributions)),
+                    f.makeAppl("Strategies", f.makeList(strategyContributions))));
         }
         return term;
     }

@@ -1,0 +1,90 @@
+module gradual-types/modules
+
+imports
+
+signatures/sugar/modules-sig
+signatures/core/modules-sig
+signatures/core/signatures-sig
+signatures/sugar/overlays-sig
+signatures/gradual-types/modules-sig 
+signatures/gradual-types/signatures-sig
+signatures/gradual-types/internal-sig
+
+gradual-types/main 
+gradual-types/signatures
+gradual-types/utils
+
+pp
+
+libspoofax/stratego/debug
+libspoofax/term/annotation
+
+
+strategies
+
+// This is a quick&dirty testing entry point for running this code on an AST
+// insertCasts :: Module -> (Module, List(Message))
+insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
+  with {| CanCoerce, LUB, Message:
+    (constrs, injs) := <extract-constrs-inj> ast1
+  ; aliases := <extract-aliases> (constrs, injs)
+  ; injection-closure := <imrel-transitive-closure> injs
+  ; lub-map := <lub-map> injection-closure
+  ; strats := <extract-strategy-types(|<imset-new>, <imset-new>)> ast1
+  ; let
+      process-defs = map(
+          insertCasts(|strats, constrs, injection-closure, aliases, lub-map)
+//        ; where(try(
+//            not(?DefHasType(_, _))
+//          ; ![Strategies([<id>])]
+//          ; compile-top-level-def
+//          ))
+      )
+      process = preserve-annotations-attachments(Specification(map(
+           Imports(id)
+        <+ Signature(id)
+        <+ Overlays(id)
+        <+ Strategies(process-defs)
+        <+ Rules(process-defs)
+        )))
+    in
+      ast2 := <process> ast1
+    ; msg* := <bagof-Message>
+    ; errs := <filter(?(MTError(), <id>))> msg*
+    ; warns := <filter(?(MTWarning(), <id>))> msg*
+    ; notes := <filter(?(MTNote(), <id>))> msg*
+    end
+  |}
+
+extract-constrs-inj:
+  <?Specification(decl*) + ?Module(_, decl*)> -> (constrMap, injMap)
+  with
+    opdecl* := <filter(?Signature(<filter(?Constructors(<id>) + ?Overlays(<id>));concat>));concat> decl*
+  ; (constr*, inj*) := <partition(extract-constr, extract-inj)> opdecl*
+  ; constrMap := <imrel-from-list> constr*
+  ; injMap := <imrel-from-list> inj*
+
+extract-aliases: (constrs, injs) -> aliases
+  with
+    invInjs := <imrel-invert> injs
+  ; <imrel-filter(\(k,v) -> <id> where <imrel-get(|v);imset-to-list;?[k]> invInjs\)> injs
+    // injections where target has only the one rule
+  ; imrel-filter(\(_, v) -> <Swap> where <imrel-filter(?(_, ConstrType(_, v)));equal(|<imrel-new>)> constrs\)
+    // where both have no constructors, and they're now flipped
+  ; imrel-transitive-closure
+    => aliases
+
+lub-map: injection-closure -> <imrel-to-map(\(x,x) -> x\)> relation
+  with
+    forward := <imrel-map(\(l,u) -> ((l,u),u)\)> injection-closure
+  ; relation := <imrel-union(|<imrel-map((Swap, id))> forward)> forward
+
+extract-strategy-types(|internals, externals):
+  <?Specification(decl*) + ?Module(_, decl*)> -> stratEnv
+  with
+    sdeft* := <filter(?Strategies(<id>) + ?Rules(<id>));concat> decl*
+  ; stratEnv := <risky(getDefTypes|"getDefTypes failed")> sdeft*
+
+dyn-rule-sig: RDecNoArgs(name) -> (name, 0, 0)
+dyn-rule-sig: RDec(name, sarg*) -> (name, <length> sarg*, 0)
+dyn-rule-sig: RDecT(name, sarg*, targ*) -> (name, <length> sarg*, <length> targ*)

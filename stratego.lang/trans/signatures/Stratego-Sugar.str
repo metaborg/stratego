@@ -1,0 +1,30 @@
+module signatures/Stratego-Sugar
+
+imports
+  signatures/core/constants-sig
+  signatures/core/identifiers-sig
+  signatures/core/layout-sig
+  signatures/core/signatures-sig
+  signatures/core/terms-sig
+  signatures/core/strategies-sig
+  signatures/core/modules-sig
+
+  signatures/gradual-types/modules-sig
+  signatures/gradual-types/signatures-sig
+  signatures/gradual-types/strategies-sig
+  signatures/gradual-types/terms-sig
+
+  signatures/sugar/constants-sig
+  signatures/sugar/signatures-sig
+  signatures/sugar/modules-sig
+  signatures/sugar/terms-sig
+  signatures/sugar/strategies-sig
+  signatures/sugar/rules-sig
+  signatures/sugar/dynamic-rules-sig
+  signatures/sugar/overlays-sig
+
+signature
+  constructors
+    RuleNoCond               : Term * Term -> Rule
+    StrategyCurly            : Strategy -> StrategyCurly
+    ParenStrat               : Strategy -> StrategyParen

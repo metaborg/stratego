@@ -2,13 +2,13 @@ package mb.stratego.build.spoofax2;
 
 import mb.resource.ResourceService;
 import mb.resource.hierarchical.ResourcePath;
-import mb.stratego.build.strincr.Backend;
+import mb.stratego.build.strincr.ResourcePathConverter;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
-public class FileResourcePathConverter implements Backend.ResourcePathConverter {
+public class FileResourcePathConverter implements ResourcePathConverter {
     private final ResourceService resourceService;
 
     @Inject public FileResourcePathConverter(ResourceService resourceService) {

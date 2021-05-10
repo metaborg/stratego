@@ -1,21 +1,25 @@
 package mb.stratego.build.termvisitors;
 
+import java.util.Set;
+
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
-import org.spoofax.terms.util.B;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.util.StringSetWithPositions;
+import mb.stratego.build.strincr.data.ConstructorSignature;
 
 public class UsedConstrs extends TermVisitor {
-    private final StringSetWithPositions usedConstrs;
     private final ITermFactory tf = new TermFactory();
 
-    public UsedConstrs(StringSetWithPositions usedConstrs) {
-        this.usedConstrs = usedConstrs;
+    protected final Set<ConstructorSignature> usedConstructors;
+
+    public UsedConstrs(Set<ConstructorSignature> usedConstructors) {
+        this.usedConstructors = usedConstructors;
     }
 
     @Override public void preVisit(IStrategoTerm term) {
@@ -23,22 +27,33 @@ public class UsedConstrs extends TermVisitor {
     }
 
     void registerConsUse(IStrategoTerm term) {
-        if(TermUtils.isAppl(term) && TermUtils.isAppl(term, "Op", 2)) {
-            if(TermUtils.isString(term.getSubterm(0))) {
-                final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
-                final String name = nameAST.stringValue();
-                if(!name.equals("")) {
-                    final IStrategoString cifiedName =
-                        B.string(name + "_" + TermUtils.toListAt(term, 1).size());
-                    tf.copyAttachments(nameAST, cifiedName);
-                    usedConstrs.add(cifiedName);
+        if(!TermUtils.isAppl(term) || term.getSubtermCount() != 2) {
+            return;
+        }
+        switch(TermUtils.toAppl(term).getName()) {
+            case "Op":
+                if(TermUtils.isString(term.getSubterm(0))) {
+                    final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
+                    if(!nameAST.stringValue().isEmpty()) {
+                        final int arity = TermUtils.toListAt(term, 1).size();
+                        IStrategoInt noArgs = new StrategoInt(arity);
+                        usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                    }
+                } else {
+                    final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
+                    final IStrategoString escapedNameAST = (IStrategoString) tf
+                        .replaceTerm(tf.makeString(strategoEscape(nameAST.stringValue())), nameAST);
+                    final int arity = TermUtils.toListAt(term, 1).size();
+                    IStrategoInt noArgs = new StrategoInt(arity);
+                    usedConstructors.add(new ConstructorSignature(escapedNameAST, noArgs));
                 }
-            } else {
-                final IStrategoString nameAST = TermUtils.toStringAt(term.getSubterm(0), 0);
-                final IStrategoString cifiedName = B.string(strategoEscape(nameAST.stringValue()) + TermUtils.toListAt(term, 1).size());
-                tf.copyAttachments(nameAST, cifiedName);
-                usedConstrs.add(cifiedName);
-            }
+                break;
+            case "CongQ":
+                final IStrategoString nameAST = TermUtils.toStringAt(term, 0);
+                final int arity = TermUtils.toListAt(term, 1).size();
+                IStrategoInt noArgs = new StrategoInt(arity);
+                usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
+                break;
         }
     }
 

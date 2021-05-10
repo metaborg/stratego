@@ -1,0 +1,58 @@
+module strategolang
+
+imports
+
+  completion/completion
+  pp
+  outline
+  analysis
+  signatures/core/modules-sig
+  signatures/-
+
+  strc
+  strc/front/frontend
+
+  strj
+  strj/s2j
+  strj/strj-options
+
+  libjava-front
+  libstratego-gpp
+
+rules // Debugging
+  
+  debug-show-aterm:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path
+    ; result   := node
+
+  debug-show-ctree:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"ctree.aterm")> path
+    ; <set-config> ("--library", ()) // no main strategy necessary this way
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; ?result
+
+  debug-show-java:
+    (node, _, _, path, project-path) -> (filename*, result*)
+    with
+      <set-config> ("--library", ()) // no main strategy necessary this way
+    ; !node
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; frontend
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
+      ; strj-preinit-options
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; s2j
+    ; ?ast*
+    ; filename* := <map(output-filename)> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*

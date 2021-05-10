@@ -20,8 +20,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 
-import mb.pie.api.Logger;
-
+// TODO: remove? No longer used now that the strategies are called through the org.metaborg:stratego Spoofax language
 public class StrategoExecutor {
     public static class ExecutionResult {
         public final boolean success;
@@ -73,9 +72,9 @@ public class StrategoExecutor {
         this.context = context;
     }
 
-    public StrategoExecutor withStrjContext() {
+    public StrategoExecutor withStrjContext(StrIncrContext c) {
         // strj requires a fresh context each time.
-        withContext(org.strategoxt.strj.strj.init());
+        withContext(org.strategoxt.strj.strj.init(c));
         return this;
     }
 
@@ -151,23 +150,19 @@ public class StrategoExecutor {
     }
 
     public static ExecutionResult runLocallyUniqueStringStrategy(IOAgentTrackerFactory agentTrackerFactory,
-        Logger logger, boolean silent, Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
-        return runLocallyUniqueStringStrategy(logger, silent,
-            newResourceTracker(agentTrackerFactory, new File(System.getProperty("user.dir")), silent), strategy, input, strContext);
+        Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
+        return runLocallyUniqueStringStrategy(newResourceTracker(agentTrackerFactory, new File(System.getProperty("user.dir"))), strategy, input, strContext);
     }
 
-    public static IOAgentTracker newResourceTracker(IOAgentTrackerFactory agentTrackerFactory, File baseFile, boolean silent, String... excludePatterns) {
+    public static IOAgentTracker newResourceTracker(IOAgentTrackerFactory agentTrackerFactory, File baseFile,
+        String... excludePatterns) {
         final IOAgentTracker tracker;
-        if(silent) {
-            tracker = agentTrackerFactory.create(baseFile, new NullOutputStream(), new NullOutputStream());
-        } else {
-            tracker = agentTrackerFactory.create(baseFile, excludePatterns);
-        }
+        tracker = agentTrackerFactory.create(baseFile, new NullOutputStream(), new NullOutputStream());
         return tracker;
     }
 
-    public static ExecutionResult runLocallyUniqueStringStrategy(Logger logger, boolean silent,
-        @Nullable IOAgentTracker tracker, Strategy strategy, IStrategoTerm input, StrIncrContext strContext) {
+    public static ExecutionResult runLocallyUniqueStringStrategy(@Nullable IOAgentTracker tracker, Strategy strategy, IStrategoTerm input,
+        StrIncrContext strContext) {
         strContext.resetUsedStringsInFactory();
 
         final String name = strategy.getName();
@@ -184,11 +179,6 @@ public class StrategoExecutor {
             //  than the already generous stack limit.
             final IStrategoTerm result = strategy.invoke(strContext, input);
             final long time = System.nanoTime() - start;
-            if(!silent && result == null) {
-                logger.error("Executing " + name + " failed with normal Stratego failure. ", null);
-            } else if(result == null) {
-                logger.debug("Executing " + name + " failed with normal Stratego failure. ");
-            }
             final String stdout;
             final String stderr;
             if(tracker != null) {
@@ -214,11 +204,6 @@ public class StrategoExecutor {
                 return new ExecutionResult(true, stdout, stderr, e, time, Arrays.asList(strContext.getTrace()));
             }
             strContext.popOnExit(false);
-            if(!silent) {
-                logger.error("Executing " + name + " failed: ", e);
-            } else {
-                logger.debug("Executing " + name + " failed: " + e);
-            }
             final String stdout;
             final String stderr;
             if(tracker != null) {

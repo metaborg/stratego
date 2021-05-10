@@ -1,2 +1,0 @@
-# strategogradual Language Specification
-

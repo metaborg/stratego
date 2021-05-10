@@ -5,11 +5,17 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoPlaceholder;
 import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.attachments.AbstractWrappedTermFactory;
 
 /**
  * This TermFactory is similar to {@link org.spoofax.terms.TermFactory}, but has a local usedStrings set. Therefore the
@@ -17,7 +23,7 @@ import org.spoofax.terms.TermFactory;
  * Stratego to make newname only locally unique to each file that is processed. The base factory is still called to
  * build a string so it can record its usage. But the locally built IStrategoString is returned.
  */
-public class LocallyUniqueStringTermFactory extends ImploderOriginTermFactory {
+public class LocallyUniqueStringTermFactory extends AbstractWrappedTermFactory {
     private static final int MAX_POOLED_STRING_LENGTH = 200;
     private final Set<String> usedStrings = new HashSet<>();
     private final ITermFactory baseFactory;
@@ -48,11 +54,40 @@ public class LocallyUniqueStringTermFactory extends ImploderOriginTermFactory {
             if(usedStrings.contains(name)) {
                 return null;
             } else if(name.length() > MAX_POOLED_STRING_LENGTH) {
-                throw new UnsupportedOperationException("String too long to be pooled (newname not allowed): " + name);
+                throw new UnsupportedOperationException(
+                    "String too long to be pooled (newname not allowed): " + name);
             } else {
                 return makeString(name);
             }
         }
+    }
+
+    // AbstractWrappedTermFactory doesn't override the replace* methods, just the make* ones :(
+    @Override public IStrategoAppl replaceAppl(IStrategoConstructor constructor,
+        IStrategoTerm[] kids, IStrategoAppl old) {
+        return baseFactory.replaceAppl(constructor, kids, old);
+    }
+
+    @Override public IStrategoList replaceList(IStrategoTerm[] kids, IStrategoList old) {
+        return baseFactory.replaceList(kids, old);
+    }
+
+    @Override public IStrategoList replaceListCons(IStrategoTerm head, IStrategoList tail,
+        IStrategoTerm oldHead, IStrategoList oldTail) {
+        return baseFactory.replaceListCons(head, tail, oldHead, oldTail);
+    }
+
+    @Override public IStrategoTerm replaceTerm(IStrategoTerm term, IStrategoTerm old) {
+        return baseFactory.replaceTerm(term, old);
+    }
+
+    @Override public IStrategoTuple replaceTuple(IStrategoTerm[] kids, IStrategoTuple old) {
+        return baseFactory.replaceTuple(kids, old);
+    }
+
+    @Override public IStrategoPlaceholder replacePlaceholder(IStrategoTerm template,
+        IStrategoPlaceholder old) {
+        return baseFactory.replacePlaceholder(template, old);
     }
 
     public void clearUsedStrings() {
