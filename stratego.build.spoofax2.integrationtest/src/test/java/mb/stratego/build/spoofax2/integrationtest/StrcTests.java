@@ -74,7 +74,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 final CompileOutput str2CompileOutput =
-                    Stratego.str2(p, baseName, packageName, packageDir, false, linkedLibraries);
+                    Stratego.str2(p, baseName, packageName, packageDir, false, linkedLibraries, false);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors: "
                         + ((CompileOutput.Failure) str2CompileOutput).messages);
@@ -105,7 +105,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 Assertions.assertTrue(Stratego.str2(p, baseName, packageName, packageDir, true,
-                    linkedLibraries) instanceof CompileOutput.Failure,
+                    linkedLibraries, false) instanceof CompileOutput.Failure,
                     "Compilation with stratego.lang compiler expected to fail");
             });
         });
@@ -126,7 +126,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 final CompileOutput str2CompileOutput =
-                    Stratego.str2(p, baseName, packageName, packageDir, true, linkedLibraries);
+                    Stratego.str2(p, baseName, packageName, packageDir, true, linkedLibraries, false);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors: "
                         + ((CompileOutput.Failure) str2CompileOutput).messages);
