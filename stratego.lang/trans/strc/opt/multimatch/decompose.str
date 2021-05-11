@@ -62,8 +62,10 @@ strategies
    * Maranget (2008), fig. 1.
    */
   specialize(|c) = Matrix(specialize-occs(|c), filter(specialize-row(|c)))
+  specialize(|c, s_a) = Matrix(specialize-occs(|c), filter(specialize-row(|c, s_a)))
 
   specialize-row(|c) = Row(specialize-pats(|c), id, id, id)
+  specialize-row(|c, s_a) = Row(specialize-pats(|c), !s_a, id, id)
 
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
