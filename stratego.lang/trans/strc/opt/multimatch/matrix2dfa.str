@@ -13,9 +13,10 @@ imports
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = 
-    log-timed(CC | "DFA - Compilation", 1)
-  ; log-timed(SimplifyDFA | "DFA - Simplification", 1)
+  matrix2dfa = Scope(id, CompileDFA); SimplifyDFA
+
+  CompileDFA = log-timed(CC | "DFA - Compilation", 1)
+  SimplifyDFA = log-timed(simplify-dfa | "DFA - Simplification", 1)
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -96,7 +97,9 @@ strategies
   valt(|m): (c, s*) -> GuardedAltV(c, guards)
   where <is-switchable> c
     ; <debug(!"valt ")> (c, s*)
-  with guards := <map(!Guard(<id>, <specialize(|c); CC> m))> s*
+  with
+    // Remove (i.e. replace by Id()) the alias guard
+    guards := <map(!Guard(<id>, <specialize(|c, Id()); CC> m))> s*
 
   is-switchable = ?Fun(_, _)
                 + is-literal

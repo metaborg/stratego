@@ -10,13 +10,15 @@ imports
   signatures/core/strategies-sig
 
 strategies
-  SimplifyDFA = downup(Simplify1, Simplify2)
+  simplify-dfa =
+    where(assume-shared-terms := <AssumeSharedTerms>)
+  ; downup(try(Simplify(|assume-shared-terms)); simplify1, simplify2)
 
-  Simplify1 =
+  simplify1 =  
     try(simplify-guard)
   ; try(eliminate-guard)
 
-  Simplify2 =
+  simplify2 =
     try(lift-guard)
   ; try(merge-guards)
   ; try(check-id-guard)

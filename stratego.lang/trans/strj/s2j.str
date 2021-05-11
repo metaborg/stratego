@@ -1947,7 +1947,7 @@ strategies
     ]|
   with
     <multimatch2dfa> mm => dfa
-  ; <translate-DFA> dfa => bstm_java*
+  ; <translate-strategy> dfa => bstm_java*
 
 /*======== Generate Java code from DFA =================*/
   translate-DFA = translate-SwitchT

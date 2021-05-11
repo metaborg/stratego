@@ -180,3 +180,57 @@ uncar2_0_0( | ) =
     default: fail
   }
 ]]
+
+test Aliases [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+C1 : Term( ) * Term( ) -> Term( )
+C2 : Term( )
+
+strategies
+
+s_0_1( | x4 : ATerm( )) =
+  match sequential
+    case y10 | C1(y10@_, _){^_}: !y10
+    case z7 | z7@C2( ){^_}: !3{^Nil( )}
+  end
+]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+C1 : Term( ) * Term( ) -> Term( )
+C2 : Term( )
+
+strategies
+
+s_0_1( | x4 : ATerm( )) =
+  {y10, z7: switch current.type {
+              alt APPL:
+                switch current.con {
+                  alt (C1, 2):
+                    switch current.1.type {
+                      default
+                        where !current.1; ?y10:
+                          !y10
+                        where id:
+                          fail
+                    }
+                  alt (C2, 0)
+                    where !current; ?z7:
+                      !3{^Nil( )}
+                  default:
+                    fail
+                }
+              default:
+                fail
+            } }
+]]

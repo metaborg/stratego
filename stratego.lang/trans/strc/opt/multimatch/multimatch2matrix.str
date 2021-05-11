@@ -9,9 +9,10 @@ imports
 
 strategies
   /*======== Construct clause and action matrices ========*/
-  multimatch2matrix: MultiMatch(Sequential(), cases) -> Matrix([Cur()], rows)
+  multimatch2matrix: MultiMatch(Sequential(), cases) -> Scope(vars, Matrix([Cur()], rows))
   with
     <map(MatchCase2Row)> cases => rows
+  ; <mapconcat(MatchCase2Vars)> cases => vars
 
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
@@ -21,3 +22,6 @@ strategies
     with <preprocess> t1 => t2
   MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], Id(), s1, s2)
     with <preprocess> t1 => t2
+
+  MatchCase2Vars = ?ScopedMatchCase(<id>, _, _)
+  MatchCase2Vars = ?ScopedGuardedMatchCase(<id>, _, _, _)
