@@ -106,7 +106,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st4) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st4) 
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -127,7 +127,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <StrategyDef-after-match> (s*, s2)
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s4), st5) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st5) 
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with

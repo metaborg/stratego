@@ -19,7 +19,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
             new LinkedHashSet<>(moduleData.normalStrategyData.keySet()),
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
             new LinkedHashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
-            moduleData.overlayData, moduleData.lastModified);
+            moduleData.overlayData, moduleData.messages, moduleData.lastModified);
     }
 
     @Override public boolean equals(Object other) {

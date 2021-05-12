@@ -130,6 +130,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 }
             }
 
+            messages.addAll(index.messages);
+
             final HashSet<IModuleImportService.ModuleIdentifier> imports =
                 new HashSet<>(index.imports);
             imports.removeAll(seen);
@@ -143,7 +145,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             externalStrategies, dynamicRules, overlayData, messages, lastModified);
     }
 
-    private static FrontInput getFrontInput(ResolveInput input,
+    static FrontInput getFrontInput(ResolveInput input,
         IModuleImportService.ModuleIdentifier moduleIdentifier) {
         if(input.fileOpenInEditor != null && input.fileOpenInEditor.moduleIdentifier.equals(moduleIdentifier)) {
             return input.fileOpenInEditor;

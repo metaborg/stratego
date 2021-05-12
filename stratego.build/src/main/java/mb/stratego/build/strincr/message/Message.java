@@ -11,7 +11,6 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.log.api.Logger;
 import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
@@ -112,6 +111,12 @@ public abstract class Message implements WithLastModified, Serializable {
             case "UnsupportedCastRequiredInDynamicRule":
                 return new UnsupportedCastRequiredInDynamicRule(locationTerm, severity,
                     lastModified);
+            case "DynRuleOverlapError":
+                return new DynRuleOverlapError(locationTerm,
+                    TermUtils.toJavaStringAt(messageTerm, 1),
+                    TermUtils.toJavaStringAt(messageTerm, 2),
+                    TermUtils.toJavaStringAt(messageTerm, 3),
+                    TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

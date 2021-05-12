@@ -60,3 +60,5 @@ context-free syntax
   ErrorDesc.MatchNotSpecificEnoughForTP = [Cannot infer specific type for TP rule match. Found result: [Type]. ]
 
   ErrorDesc.UnsupportedCastRequiredInDynamicRule = [Pattern induces cast, but cast is not supported in this position. ]
+
+  ErrorDesc.DynRuleOverlapError = [Overlapping left-hand-sides for dynamic rule '[Id]': [String] in [String] overlaps with [String] in [String]. ]

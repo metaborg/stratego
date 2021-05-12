@@ -116,7 +116,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         assert congruenceOutput != null;
         resultFiles.addAll(congruenceOutput.resultFiles);
 
-        return new CompileOutput.Success(resultFiles);
+        return new CompileOutput.Success(resultFiles, checkOutput.messages);
     }
 
     @Override public String getId() {

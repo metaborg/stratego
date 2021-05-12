@@ -56,12 +56,20 @@ stratego2-insert-casts:
  * Some strange "backward compatibility" rules in the grammar give these rule alternatives.
  * This strategy normalized those.
  */
-fix-old-grammar = bottomup(try(
-    \RuleNoCond(t1,t2) -> Rule(t1, t2, [])\
-  + \Rule(t1, t2, s) -> Rule(t1, t2, [WhereClause(s)]) where <not(is-list)> s\
+fix-old-grammar = bottomup(try(otf(
+    \RuleNoCond(t1,t2) -> Rule(t1, t2, <otf(![])> t2)\
+  + \Rule(t1, t2, s) -> Rule(t1, t2, <otf(![<otf(!WhereClause(s))> s])> s) where <not(is-list)> s\
   + \ParenStrat(x) -> x\
   + \StrategyCurly(s2) -> s2\
-))
+  + \StringQuotation1("", sqp) -> StringQuotation1(sqp)\
+  + \StringQuotation2("", sqp) -> StringQuotation2(sqp)\
+  + \StringQuotation3("", sqp) -> StringQuotation3(sqp)\
+  + \StringQuotation4("", sqp) -> StringQuotation4(sqp)\
+  + \StringEscape1("", sqp) -> StringEscape1(sqp)\
+  + \StringEscape2("", sqp) -> StringEscape2(sqp)\
+  + \StringEscape3("", sqp) -> StringEscape3(sqp)\
+  + \StringEscape4("", sqp) -> StringEscape4(sqp)\
+)))
 
 // insertCasts(|
 //    Map(String * Int * Int, SType) *

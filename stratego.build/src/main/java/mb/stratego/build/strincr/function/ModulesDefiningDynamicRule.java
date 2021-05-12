@@ -17,7 +17,7 @@ public class ModulesDefiningDynamicRule implements
 
     @Override
     public LinkedHashSet<IModuleImportService.ModuleIdentifier> apply(CheckOutput output) {
-        return output.dynamicRuleIndex.get(strategySignature);
+        return output.dynamicRuleIndex.getOrDefault(strategySignature, new LinkedHashSet<>(0));
     }
 
     @Override public boolean equals(Object o) {

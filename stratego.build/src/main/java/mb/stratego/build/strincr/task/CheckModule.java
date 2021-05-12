@@ -37,6 +37,8 @@ import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.function.GetDynamicRuleDefinitions;
+import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToAnnoDefs;
 import mb.stratego.build.strincr.function.ToTypesLookup;
 import mb.stratego.build.strincr.function.output.AnnoDefs;
@@ -92,8 +94,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
         if(input.frontInput.moduleIdentifier.isLibrary()) {
-            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
-                new ArrayList<>(0));
+            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0), new ArrayList<>(0));
         }
 
         final @Nullable ModuleData moduleData = context.require(front, input.frontInput);
@@ -106,7 +107,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             prepareGTEnvironment(context, moduleData, input.frontInput);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
-        final InsertCastsOutput output = insertCasts(insertCastsInput);
+        final String projectPath = resourcePathConverter.toString(input.projectPath);
+        final InsertCastsOutput output = insertCasts(insertCastsInput, projectPath);
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -114,23 +116,47 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             strategyDataWithCasts =
             extractStrategyDefs(moduleIdentifier, output.astWithCasts, dynamicRules);
 
-        final ArrayList<Message> messages =
-            new ArrayList<>(moduleData.messages.size() + output.messages.size());
-        messages.addAll(moduleData.messages);
+        final ArrayList<Message> messages = new ArrayList<>(output.messages.size());
         messages.addAll(output.messages);
 
-        checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
-            moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages,
-            input.resolveInput());
+        otherChecks(context, input.resolveInput(), moduleData, messages, projectPath);
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
     }
 
-    private InsertCastsOutput insertCasts(InsertCastsInput input) throws ExecException {
+    void otherChecks(ExecContext context, ResolveInput input, ModuleData moduleData,
+        ArrayList<Message> messages, String projectPath) throws ExecException {
+        checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
+            moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
+        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules, moduleData.lastModified,
+            messages, projectPath);
+    }
+
+    private void checkDynamicRuleOverlap(ExecContext context, ResolveInput input,
+        LinkedHashSet<StrategySignature> dynamicRules, long lastModified,
+        ArrayList<Message> messages, String projectPath) throws ExecException {
+        final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule = new HashSet<>();
+        for(StrategySignature dynamicRule : dynamicRules) {
+            modulesDefiningDynamicRule.addAll(PieUtils.requirePartial(context, resolve, input, new ModulesDefiningStrategy(dynamicRule)));
+        }
+        final ArrayList<IStrategoTerm> containsDynRuleDefs = new ArrayList<>();
+        for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningDynamicRule) {
+            containsDynRuleDefs.addAll(PieUtils
+                .requirePartial(context, front, Resolve.getFrontInput(input, moduleIdentifier),
+                    GetDynamicRuleDefinitions.INSTANCE));
+        }
+        final IStrategoTerm overlapMessages =
+            strategoLanguage.overlapCheck(tf.makeList(containsDynRuleDefs), projectPath);
+        for(IStrategoTerm messageTerm : TermUtils.toList(overlapMessages)) {
+            messages.add(Message.from(messageTerm, MessageSeverity.ERROR, lastModified));
+        }
+    }
+
+    InsertCastsOutput insertCasts(InsertCastsInput input, String projectPath) throws ExecException {
         final String moduleName = input.moduleIdentifier.moduleString();
 
-        final IStrategoTerm result = strategoLanguage.insertCasts(moduleName, input.environment,
-            resourcePathConverter.toString(input.projectPath));
+        final IStrategoTerm result =
+            strategoLanguage.insertCasts(moduleName, input.environment, projectPath);
 
         final IStrategoTerm astWithCasts = result.getSubterm(0);
         final IStrategoList errors = TermUtils.toListAt(result, 1);
@@ -278,7 +304,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         }
     }
 
-    private GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
+    GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
         FrontInput frontInput) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();

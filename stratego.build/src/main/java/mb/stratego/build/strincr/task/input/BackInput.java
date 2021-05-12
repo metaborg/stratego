@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.StrategoTerm;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -178,13 +179,24 @@ public abstract class BackInput implements Serializable {
 
             final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
-                final ArrayList<OverlayData> overlayData = PieUtils
-                    .requirePartial(context, backTask.front,
-                        new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
-                            checkInput.includeDirs, checkInput.linkedLibraries,
-                            checkInput.autoImportStd), new GetOverlayData(usedConstructors));
-                for(OverlayData overlayDatum : overlayData) {
-                    overlayContributions.add(overlayDatum.astTerm);
+                final HashSet<ConstructorSignature> newlyFoundConstructors = new HashSet<>(usedConstructors);
+                // Overlays can use other overlays, so this loop is for finding those transitive uses
+                while(!newlyFoundConstructors.isEmpty()) {
+                    final ArrayList<OverlayData> overlayData = PieUtils
+                        .requirePartial(context, backTask.front,
+                            new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
+                                checkInput.includeDirs, checkInput.linkedLibraries, checkInput.autoImportStd),
+                            new GetOverlayData(newlyFoundConstructors));
+                    usedConstructors.addAll(newlyFoundConstructors);
+                    newlyFoundConstructors.clear();
+                    for(OverlayData overlayDatum : overlayData) {
+                        overlayContributions.add(overlayDatum.astTerm);
+                        for(ConstructorSignature usedConstructor : overlayDatum.usedConstructors) {
+                            if(!usedConstructors.contains(usedConstructor)) {
+                                newlyFoundConstructors.add(usedConstructor);
+                            }
+                        }
+                    }
                 }
             }
 

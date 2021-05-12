@@ -16,9 +16,11 @@ public interface CompileOutput extends Serializable {
 
     class Success implements CompileOutput {
         public final HashSet<ResourcePath> resultFiles;
+        public final ArrayList<Message> messages;
 
-        public Success(HashSet<ResourcePath> resultFiles) {
+        public Success(HashSet<ResourcePath> resultFiles, ArrayList<Message> messages) {
             this.resultFiles = resultFiles;
+            this.messages = messages;
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -27,13 +29,17 @@ public interface CompileOutput extends Serializable {
             if(o == null || getClass() != o.getClass())
                 return false;
 
-            Success output = (Success) o;
+            Success success = (Success) o;
 
-            return resultFiles.equals(output.resultFiles);
+            if(!resultFiles.equals(success.resultFiles))
+                return false;
+            return messages.equals(success.messages);
         }
 
         @Override public int hashCode() {
-            return resultFiles.hashCode();
+            int result = resultFiles.hashCode();
+            result = 31 * result + messages.hashCode();
+            return result;
         }
 
         @Override public String toString() {

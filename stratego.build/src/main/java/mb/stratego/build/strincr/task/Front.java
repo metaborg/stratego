@@ -8,18 +8,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokens;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.TermUtils;
 
@@ -31,6 +29,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -71,13 +70,15 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     protected final StrIncrContext strContext;
     protected final ITermFactory tf;
     protected final GenerateStratego generateStratego;
+    protected final StrategoLanguage strategoLanguage;
 
     @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
-        GenerateStratego generateStratego) {
+        GenerateStratego generateStratego, StrategoLanguage strategoLanguage) {
         this.strContext = strContext;
         this.tf = strContext.getFactory();
         this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
+        this.strategoLanguage = strategoLanguage;
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
@@ -110,6 +111,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         final LastModified<IStrategoTerm> ast;
         try {
             ast = getModuleAst(context, input);
+        } catch(ExecException e) {
+            throw e;
         } catch(Exception e) {
             final IStrategoString module = tf.makeString(input.moduleIdentifier.moduleString());
             final @Nullable String fileName = moduleImportService.fileName(input.moduleIdentifier);
@@ -130,6 +133,10 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new InvalidASTException(input.moduleIdentifier, def);
             }
+            // TODO: Use real project path (does this really matter?)
+            final String projectPath =
+                Optional.ofNullable(moduleImportService.fileName(input.moduleIdentifier))
+                    .orElseGet(input.moduleIdentifier::moduleString);
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
                     // Resolving imports here saves us from having to do in the multiple other tasks
@@ -151,7 +158,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     // fall-through
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
+                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0),
+                        projectPath);
                     break;
                 default:
                     throw new InvalidASTException(input.moduleIdentifier, def);
@@ -219,8 +227,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
-        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
-         {
+        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs,
+        String projectPath) throws ExecException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -278,19 +286,35 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     if(strategySignature == null) {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
-                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
-                        .add(new StrategyFrontData(strategySignature, strategySignature.standardType(tf), kind));
+                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new).add(
+                        new StrategyFrontData(strategySignature, strategySignature.standardType(tf),
+                            kind));
                     break;
             }
 
             // collect-om(dyn-rule-sig)
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
                 dynamicRules.add(dynRuleSig);
-                for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
-                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new)
-                        .add(new StrategyFrontData(signature, signature.standardType(tf), DynRuleGenerated));
+                final HashSet<StrategySignature> strategySignatures =
+                    new HashSet<>(dynRuleSig.dynamicRuleSignatures(tf).keySet());
+                auxRuleSigs(strategyDef, strategySignatures, projectPath);
+                for(StrategySignature signature : strategySignatures) {
+                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new).add(
+                        new StrategyFrontData(signature, signature.standardType(tf),
+                            DynRuleGenerated));
                 }
             }
+        }
+    }
+
+    private void auxRuleSigs(IStrategoTerm strategyDef, HashSet<StrategySignature> dynRuleSigs,
+        String projectPath) throws ExecException {
+        final IStrategoTerm result = strategoLanguage.auxSignatures(strategyDef, projectPath);
+        for(IStrategoTerm sig : TermUtils.toList(result)) {
+            assert TermUtils.isTuple(sig, 3);
+            dynRuleSigs.add(
+                new StrategySignature(TermUtils.toStringAt(sig, 0), TermUtils.toJavaIntAt(sig, 1),
+                    TermUtils.toJavaIntAt(sig, 2)));
         }
     }
 

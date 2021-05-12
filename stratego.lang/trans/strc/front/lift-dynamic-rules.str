@@ -962,7 +962,7 @@ strategies
     oncetd(is-dummy)
 
   overlap-error =
-    ?(f, (lhs1, key1, rnkey1, (g,(gi,gj))), (lhs2, key2, rnkey2, (h,(hi,hj))))
+    ?(f, (lhs1, key1, rnkey1, (g,gi,gj)), (lhs2, key2, rnkey2, (h,hi,hj)))
     ; dbg(|"overlap-eror: ")
     ; !["** Error in dynamic rules\n",
         " Overlapping left-hand sides for dynamic rule `", f, "'\n",
@@ -1035,13 +1035,13 @@ strategies
     AnnoDef(_, def) -> <def-name> def
 
   def-name :
-    |[ rules( f(a1*|a2*) : t1 -> t2 where s ) ]| -> (f, (<length> a1*, <length> a2*))
+    |[ rules( f(a1*|a2*) : t1 -> t2 where s ) ]| -> (f, <length> a1*, <length> a2*)
 
   def-name :
-    |[ f(a1*|a2*) : t1 -> t2 where s ]| -> (f, (<length> a1*, <length> a2*))
+    |[ f(a1*|a2*) : t1 -> t2 where s ]| -> (f, <length> a1*, <length> a2*)
 
   def-name :
-    |[ f(a1*|a2*) = s ]| -> (f, (<length> a1*, <length> a2*))
+    |[ f(a1*|a2*) = s ]| -> (f, <length> a1*, <length> a2*)
 
   dr-rename-vars =
     {| DRRenameVar

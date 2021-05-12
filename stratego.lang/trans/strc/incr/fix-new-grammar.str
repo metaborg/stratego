@@ -9,34 +9,36 @@ strategies
 
   fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation)))
 
+  origin-column-from-list = origin-column <+ Hd; origin-column
+
   StringQuotation-to-InternalStringQuotation:
     StringQuotation1(sqp) -> StringQuotation1(padding, sqp)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     StringQuotation2(sqp) -> StringQuotation2(padding, sqp)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     StringQuotation3(sqp) -> StringQuotation3(padding, sqp)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     StringQuotation4(sqp) -> StringQuotation4(padding, sqp)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape1(trm) -> StringEscape1(padding, trm)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape2(trm) -> StringEscape2(padding, trm)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape3(trm) -> StringEscape3(padding, trm)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape4(trm) -> StringEscape4(padding, trm)
-  where padding := <copy-char> (<origin-column> sqp, ' ')
+  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
