@@ -44,7 +44,7 @@ strat-lookup-call(|x) =
       ; imrel-filter-keys(?(x, _))
       ; imrel-values
       ; map(\ConstrType(args, sort) -> FunTType(<map(!FunTType(DynT(<id>), DynT(<id>)))> args, [], DynT(sort), DynT(sort))\)
-      ; if map(?FunTType(<length;?snum>, _, _, _))
+      ; if not(?[]);all(?FunTType(<length;?snum>, [], _, _))
           then ![FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))]
         end
     end

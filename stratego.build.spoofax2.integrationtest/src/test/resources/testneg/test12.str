@@ -1,0 +1,11 @@
+/**
+ * Invocation of non-existing strategy should fail
+ */
+module test12
+imports list-cons tuple-cons
+strategies
+
+ main =
+   indirect(bar)
+
+ indirect(s) = s
