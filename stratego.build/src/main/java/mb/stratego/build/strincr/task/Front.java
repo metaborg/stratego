@@ -118,7 +118,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             final @Nullable String fileName = moduleImportService.fileName(input.moduleIdentifier);
             module.putAttachment(ImploderAttachment.createCompactPositionAttachment(
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
-            messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier));
+            messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
             return new ModuleData(input.moduleIdentifier,
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,

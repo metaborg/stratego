@@ -6,14 +6,16 @@ import mb.stratego.build.strincr.IModuleImportService;
 
 public class FailedToGetModuleAst extends Message {
     private final IModuleImportService.ModuleIdentifier moduleIdentifier;
+    private final Exception exception;
 
-    public FailedToGetModuleAst(IStrategoTerm module, IModuleImportService.ModuleIdentifier moduleIdentifier) {
+    public FailedToGetModuleAst(IStrategoTerm module, IModuleImportService.ModuleIdentifier moduleIdentifier, Exception exception) {
         super(module, MessageSeverity.ERROR, 0L);
         this.moduleIdentifier = moduleIdentifier;
+        this.exception = exception;
     }
 
     @Override public String getMessage() {
         return "Cannot get module AST for module " + moduleIdentifier.moduleString()
-            + ". Does it exist and contain no parse errors?";
+            + "with exception:\n" + exception.toString();
     }
 }
