@@ -72,6 +72,10 @@ strategies
     ; where(<AddSDef>SDefT(f, as1, as2, s))
 
   AddSDef =
+    ?ExtTypedDefInl(f, as1, as2, _, s)
+    ; where(<AddSDef>SDefT(f, as1, as2, s))
+
+  AddSDef =
     ?sdef@SDefT(f, _, _, _)
     ; rules(
       InlineCall : 
@@ -124,6 +128,13 @@ strategies
   inlineable = 
     //debug(!"inlineable?: ");
     ExtSDefInl(not("main_0_0"); ?f, id, id
+         , where(not(oncetd(?CallT(SVar(f),_,_)))); body-to-inline)
+    // ; where(<not(fetch(?f))> dont-inline)
+    // ; where(<debug(!"inlineable: ")> f )
+
+  inlineable = 
+    //debug(!"inlineable?: ");
+    ExtTypedDefInl(not("main_0_0"); ?f, id, id, id
          , where(not(oncetd(?CallT(SVar(f),_,_)))); body-to-inline)
     // ; where(<not(fetch(?f))> dont-inline)
     // ; where(<debug(!"inlineable: ")> f )

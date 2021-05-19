@@ -30,6 +30,8 @@ context-free syntax
   SSimpleFunType.TP                 = [TP]
   SSimpleFunType.FunNoArgsType      = [[Type] -> [Type]]
 
-  SFunType               = SSimpleFunType
-  SFunType.FunType       = [([{SType ", "}*]) [SSimpleFunType]]
-  SFunType.FunTType      = [([{SType ", "}*] | [{Type ", "}*]) [SSimpleFunType]]
+  SFunType         = SSimpleFunType
+  SFunType.FunType = [([{SType ", "}*]) [SSimpleFunType]]
+  SFunType         = FunTType
+
+  FunTType.FunTType = [([{SType ", "}*] | [{Type ", "}*]) [SSimpleFunType]]

@@ -37,12 +37,14 @@ strategies
            SDefT(DefNeeded,id,id,id) 
         <+ ExtSDefInl(DefNeeded,id,id,id)
         <+ ExtSDef(DefNeeded,id,id)
+        <+ ExtTypedDefInl(DefNeeded,id,id,id,id)
+        <+ ExtTypedDef(DefNeeded,id)
         )
       )
 
   RegisterDefinition =
     ?sdef
-    ; where( ignore-anno-def(?SDefT(f,_,_,_) <+ ?ExtSDefInl(f,_,_,_) <+ ?ExtSDef(f,_,_)) )
+    ; where( ignore-anno-def(?SDefT(f,_,_,_) <+ ?ExtSDefInl(f,_,_,_) <+ ?ExtSDef(f,_,_) <+ ?ExtTypedDefInl(f,_,_,_,_) <+ ?ExtTypedDef(f,_)) )
     ; rules( NameToDefinition : f -> sdef )
   
   mark-needed-defs = 

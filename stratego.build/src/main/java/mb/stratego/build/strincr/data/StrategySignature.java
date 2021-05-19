@@ -157,6 +157,21 @@ public class StrategySignature extends StrategoTuple {
                 sArity = 0;
                 tArity = 0;
                 break;
+            case "ExtTypedDef":{
+                final IStrategoTerm sargs = term.getSubterm(1).getSubterm(0);
+                if(!TermUtils.isList(sargs)) {
+                    return null;
+                }
+                sArity = sargs.getSubtermCount();
+                final IStrategoTerm targs = term.getSubterm(1).getSubterm(1);
+                if(!TermUtils.isList(targs)) {
+                    return null;
+                }
+                tArity = targs.getSubtermCount();
+                break;
+            }
+            case "ExtTypedDefInl":
+                // fall-through
             case "ExtSDef":
                 // fall-through
             case "ExtSDefInl":

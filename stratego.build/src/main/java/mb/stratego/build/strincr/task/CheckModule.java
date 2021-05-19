@@ -233,7 +233,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                         strategySignature, MessageSeverity.ERROR, lastModified));
                 }
             } else {
-                if(kinds.contains(StrategyFrontData.Kind.TypeDefinition)) {
+                if(kinds.contains(StrategyFrontData.Kind.TypeDefinition) && !kinds
+                    .contains(StrategyFrontData.Kind.External)) {
                     messages.add(new MissingDefinitionForTypeDefinition(signatureNameTerm,
                         MessageSeverity.ERROR, lastModified));
                 }

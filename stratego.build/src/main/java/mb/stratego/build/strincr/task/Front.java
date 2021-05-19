@@ -262,6 +262,21 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
                     break;
                 }
+                case "ExtTypedDef":
+                case "ExtTypedDefInl": {
+                    final @Nullable StrategyType strategyType = StrategyType.fromDefinition(tf, strategyDef);
+                    if(strategyType == null) {
+                        throw new InvalidASTException(moduleIdentifier, strategyDef);
+                    }
+                    final StrategySignature strategySignature =
+                        strategyType.withName(TermUtils.toStringAt(strategyDef, 0));
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategyType, External));
+                    break;
+                }
+                // TODO: cases "ExtTypedDef" "ExtTypedDefInl"
                 case "ExtSDef":
                 case "ExtSDefInl":
                     kind = External;

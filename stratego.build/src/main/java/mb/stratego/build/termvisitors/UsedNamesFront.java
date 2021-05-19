@@ -46,6 +46,11 @@ public class UsedNamesFront extends UsedConstrs {
     private void enterTopLevelStrategy(IStrategoTerm term) {
         if(currentTopLevelStrategyName == null && TermUtils.isAppl(term)) {
             switch(TermUtils.toAppl(term).getName()) {
+                case "ExtTypedDefInl":
+                    if(term.getSubtermCount() == 5) {
+                        currentTopLevelStrategyName = TermUtils.toJavaStringAt(term, 0);
+                    }
+                    break;
                 case "SDefT":
                 case "SDefP":
                 case "ExtSDefInl":
@@ -62,6 +67,7 @@ public class UsedNamesFront extends UsedConstrs {
                         currentTopLevelStrategyName = TermUtils.toJavaStringAt(term, 0);
                     }
                     break;
+                case "ExtTypedDef":
                 case "SDefNoArgs":
                 case "RDefNoArgs":
                     if(term.getSubtermCount() == 2) {
@@ -100,6 +106,9 @@ public class UsedNamesFront extends UsedConstrs {
                 case "RDefP":
                     count = term.getSubtermCount() == 4;
                     //fall-through
+                case "ExtTypedDefInl":
+                    count |= term.getSubtermCount() == 5;
+                    //fall-through
                 case "SDef":
                 case "ExtSDef":
                 case "RDef":
@@ -115,6 +124,7 @@ public class UsedNamesFront extends UsedConstrs {
                         scopes.push(defs);
                     }
                     break;
+                case "ExtTypedDef":
                 case "SDefNoArgs":
                 case "RDefNoArgs":
                     // no-op
@@ -175,6 +185,9 @@ public class UsedNamesFront extends UsedConstrs {
                 case "Let":
                     count = term.getSubtermCount() == 2;
                     // fallthrough
+                case "ExtTypedDefInl":
+                    count |= term.getSubtermCount() == 5;
+                    //fall-through
                 case "SDefT":
                 case "ExtSDefInl":
                 case "RDefT":
@@ -189,6 +202,7 @@ public class UsedNamesFront extends UsedConstrs {
                         sVars.removeAll(scopes.pop());
                     }
                     break;
+                case "ExtTypedDef":
                 case "SDefNoArgs":
                 case "RDefNoArgs":
                     // no-op
@@ -200,6 +214,12 @@ public class UsedNamesFront extends UsedConstrs {
     private void leaveTopLevelStrategy(IStrategoTerm term) {
         if(currentTopLevelStrategyName != null && TermUtils.isAppl(term)) {
             switch(TermUtils.toAppl(term).getName()) {
+                case "ExtTypedDefInl":
+                    if(term.getSubtermCount() == 5 && currentTopLevelStrategyName
+                        .equals(TermUtils.toJavaStringAt(term, 0))) {
+                        currentTopLevelStrategyName = null;
+                    }
+                    break;
                 case "SDefT":
                 case "ExtSDefInl":
                 case "RDefT":
@@ -219,6 +239,7 @@ public class UsedNamesFront extends UsedConstrs {
                     break;
                 case "SDefNoArgs":
                 case "RDefNoArgs":
+                case "ExtTypedDef":
                     if(term.getSubtermCount() == 2 && currentTopLevelStrategyName
                         .equals(TermUtils.toJavaStringAt(term, 0))) {
                         currentTopLevelStrategyName = null;

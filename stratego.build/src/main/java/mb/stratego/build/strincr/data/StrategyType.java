@@ -41,6 +41,7 @@ public class StrategyType extends StrategoAppl {
         final ArrayList<IStrategoTerm> strategyArguments;
         final ArrayList<IStrategoTerm> termArguments;
         final IStrategoTerm sSimpleFunType;
+        @Nullable IStrategoTerm funttype = null;
         switch(TermUtils.toAppl(strategyDef).getName()) {
             case "DefHasTypeNoArgs":
                 strategyArguments = termArguments = new ArrayList<>(0);
@@ -75,6 +76,32 @@ public class StrategyType extends StrategoAppl {
                 }
 
                 sSimpleFunType = strategyDef.getSubterm(3);
+                break;
+            case "ExtTypedDef":
+                funttype = strategyDef.getSubterm(1);
+                // fall-through
+            case "ExtTypedDefInl":
+                if(funttype == null) {
+                    funttype = strategyDef.getSubterm(3);
+                    funttype = strategyDef.getSubterm(3);
+                }
+
+                if(!TermUtils.isListAt(funttype, 0)) {
+                    return null;
+                }
+                strategyArguments = new ArrayList<>(funttype.getSubterm(0).getSubtermCount());
+                for(IStrategoTerm strategyArgument : funttype.getSubterm(0)) {
+                    strategyArguments.add(DesugarType.tryDesugarSType(tf, strategyArgument));
+                }
+                if(!TermUtils.isListAt(funttype, 1)) {
+                    return null;
+                }
+                termArguments = new ArrayList<>(funttype.getSubterm(1).getSubtermCount());
+                for(IStrategoTerm termArgument : funttype.getSubterm(1)) {
+                    termArguments.add(DesugarType.tryDesugarType(tf, termArgument));
+                }
+
+                sSimpleFunType = funttype.getSubterm(2);
                 break;
             default:
                 return null;

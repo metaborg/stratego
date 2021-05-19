@@ -67,6 +67,9 @@ rules
   Bind5 : ExtSDefInl(f, xs, ys, s) -> <declared-vars> xs
   Bind6 : ExtSDefInl(f, xs, ys, s) -> <declared-vars> ys
 
+  Bind5 : ExtTypedDefInl(f, xs, ys, _, s) -> xs
+  Bind6 : ExtTypedDefInl(f, xs, ys, _, s) -> ys
+
   Bind7 : RDefT(f, xs, ys, s) -> <declared-vars> xs
   Bind7 : RDecT(f, xs, ys)    -> <declared-vars> xs
 
@@ -113,6 +116,8 @@ strategies
     + SDefT(id, id, split(id, nwvars); zip(ReplaceVar), id)
     + ExtSDef(id, id, split(id, nwvars); zip(ReplaceVar))
     + ExtSDefInl(id, id, split(id, nwvars); zip(ReplaceVar), id)
+    + ExtTypedDef(id, id)
+    + ExtTypedDefInl(id, id, split(id, nwvars); zip(ReplaceVar), id, id)
     + RDefT(id, id, split(id, nwvars); zip(ReplaceVar), id)
     + dynrule-cong(id, id, split(id, nwvars); zip(ReplaceVar), id, id, id)
 
@@ -129,9 +134,9 @@ strategies
     + SDefT(ignore, ignore, ignore, bnd)
     + ExtSDef(ignore, ignore, ignore)
     + ExtSDefInl(ignore, ignore, ignore, bnd)
+    + ExtTypedDef(ignore, ignore)
+    + ExtTypedDefInl(ignore, ignore, ignore, ignore, bnd)
     + RDefT(ignore, ignore, ignore, bnd)
-    + ExtSDefInl(ignore, ignore, ignore, bnd)
-    + ExtSDef(ignore, ignore, ignore)
     + dynrule-cong(ignore, bnd)
 
     + GenDynRules(bnd)
@@ -147,6 +152,8 @@ strategies
     + SDefT(id, split(id, nwvars); zip(ReplaceVar), id, id)
     + ExtSDef(id, split(id, nwvars); zip(ReplaceVar), id)
     + ExtSDefInl(id, split(id, nwvars); zip(ReplaceVar), id, id)
+    + ExtTypedDef(id, id)
+    + ExtTypedDefInl(id, split(id, nwvars); zip(ReplaceVar), id, id, id)
     + RDefT(id, split(id, nwvars); zip(ReplaceVar), id, id)
     + RDecT(id, split(id, nwvars); zip(ReplaceVar), id)
     + dynrule-cong(id, split(id, nwvars); zip(ReplaceVar), id, id, id, id)
@@ -158,6 +165,8 @@ strategies
     + SDefT(ignore, ignore, ignore, bnd)
     + ExtSDef(ignore, ignore, ignore)
     + ExtSDefInl(ignore, ignore, ignore, bnd)
+    + ExtTypedDef(ignore, ignore)
+    + ExtTypedDefInl(ignore, ignore, ignore, ignore, bnd)
     + RDefT(ignore, ignore, ignore, bnd)
     + RDecT(ignore, ignore, ignore)
     + dynrule-cong(ignore, bnd)

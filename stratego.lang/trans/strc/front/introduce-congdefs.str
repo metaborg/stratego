@@ -43,7 +43,9 @@ strategies
              ( ?SDefT("Anno_Cong__",_,_,_)
 		     + ?RDefT("Anno_Cong__",_,_,_)
 		     + ?ExtSDef("Anno_Cong__",_,_)
-		     + ?ExtSDefInl("Anno_Cong__",_,_,_)))))> sdefs
+		     + ?ExtSDefInl("Anno_Cong__",_,_,_)
+         + ?ExtTypedDef("Anno_Cong__",_)
+         + ?ExtTypedDefInl("Anno_Cong__",_,_,_,_)))))> sdefs
 
 strategies
 
@@ -60,6 +62,16 @@ strategies
 
   RegisterCongDef =
     ?ExtSDefInl(f, xs, [], _)
+    ; where(<length> xs => n)
+    ; rules(CongDefined : (f, n) -> ())
+
+  RegisterCongDef =
+    ?ExtTypedDef(f, FunTType(xs, [], _)) 
+    ; where(<length> xs => n)
+    ; rules(CongDefined : (f, n) -> ())
+
+  RegisterCongDef =
+    ?ExtTypedDefInl(f, xs, [], _, _)
     ; where(<length> xs => n)
     ; rules(CongDefined : (f, n) -> ())
 
