@@ -158,9 +158,9 @@ context-free syntax
 
   PathF.Size = <<PathV>.size>
   PathF.Con  = <<PathV>.con>
-  PathF.Int  = <<PathV>.int>
-  PathF.Real = <<PathV>.real>
-  PathF.Str  = <<PathV>.str>
+  PathF.IntP  = <<PathV>.int>
+  PathF.RealP = <<PathV>.real>
+  PathF.StrP  = <<PathV>.str>
 
 sorts PatV
 context-free syntax

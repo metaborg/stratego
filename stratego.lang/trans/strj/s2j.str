@@ -2156,19 +2156,19 @@ strategies
     e := <translate-PathV> p
 
   translate-PathF:
-    Int(p) ->
+    IntP(p) ->
     e |[ ((IStrategoInt) e).intValue() ]|
   with
     e := <translate-PathV> p
 
   translate-PathF:
-    Real(p) ->
+    RealP(p) ->
     e |[ ((IStrategoReal) e).realValue() ]|
   with
     e := <translate-PathV> p
 
   translate-PathF:
-    Str(p) ->
+    StrP(p) ->
     e |[ ((IStrategoString) e).stringValue() ]|
   with
     e := <translate-PathV> p

@@ -119,9 +119,9 @@ strategies
 
   extend-path-by-type(|ApplT()) = !Con(<id>)
   extend-path-by-type(|LisT()) = id
-  extend-path-by-type(|IntT()) = !Int(<id>)
-  extend-path-by-type(|RealT()) = !Real(<id>)
-  extend-path-by-type(|StringT()) = !Str(<id>)
+  extend-path-by-type(|IntT()) = !IntP(<id>)
+  extend-path-by-type(|RealT()) = !RealP(<id>)
+  extend-path-by-type(|StringT()) = !StrP(<id>)
   extend-path-by-type(|CtorT()) = <fatal-error> ["CtorT not implemented"]
   extend-path-by-type(|TupleT()) = !Size(<id>)
   extend-path-by-type(|RefT()) = <fatal-error> ["RefT not implemented"]
