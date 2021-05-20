@@ -100,7 +100,7 @@ context-free syntax
   <Default>
 }>
 
-  DTree.GuardedLeaf = <<Strategy> where <Strategy>>
+  DTree.GuardedLeafs = <<{Guard "\n"}+>>
 
 sorts SwitchV
 context-free syntax

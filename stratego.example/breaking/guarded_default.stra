@@ -12,6 +12,6 @@ strategies
                case | Cons(_, Nil()): !1
                case | _ where all(s): !2
                case | _ where id: !3
-               case | _ where fail: !3
-               case | _ where some(s): !3
+               case | _ where fail: !4
+               case | _ where some(s): !5
              end

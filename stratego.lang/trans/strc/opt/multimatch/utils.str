@@ -1,6 +1,11 @@
 module multimatch/utils
 
 strategies
+
+  /*
+   * Generic zip.
+   * Works on any number of input arguments >0.
+   */
   zipn = zipn(id)
   zipn(s) = genzip(ZipN1, ZipN2, ZipN3, s)
   
@@ -13,5 +18,24 @@ strategies
    * which `s` succeeds. Drops all subsequent elements.
    */
   drop-after(s) =
-    split-fetch-keep(s) => (x1*, x2, _)
-  ; <at-end(!x2)> x1*
+    split-fetch-keep(where(s)) => (x1*, x2, _)
+  ; <at-end(![x2])> x1*
+
+  /*
+   * Swap elements `m` and `n` in a list.
+   * Index starts at 1.
+   */
+  swap(|m, n) = where(<eq> (m, n)); id
+  swap(|m, n): xs -> xs''
+  with
+    <is-list> xs
+  ; elM := <index(|m)> xs
+  ; elN := <index(|n)> xs
+  ; xs' := <set-index> (<dec> m, elN, xs)
+  ; xs'' := <set-index> (<dec> n, elM, xs')
+
+  /*
+   * Left-to-right `make-set`.
+   */
+  // TODO Rewrite with left fold
+  make-set-lr = reverse; make-set; reverse

@@ -10,92 +10,118 @@ imports
   signatures/core/strategies-sig
 
 strategies
-  simplify-dfa =
-    where(assume-shared-terms := <AssumeSharedTerms>)
-  ; downup(try(Simplify(|assume-shared-terms)); simplify1, simplify2)
+//  desugar-dfa = id
+//  simplify-dfa = id
+//  optimise-dfa = id
 
-  simplify1 =  
-    try(simplify-guard)
-  ; try(eliminate-guard)
 
-  simplify2 =
-    try(lift-guard)
-  ; try(merge-guards)
-  ; try(check-id-guard)
-  ; try(eliminate-guard)
+  simplify-dfa = id
+  ; simplify
+  ; bottomup(
+      try(simplify-guard)
+    ; repeat(simplify-switch
+          <+ eliminate-guard
+          <+ lift-guard
+      )
+//    ; try(check-id-guard)
+  )
 
 strategies
-  simplify-guard = GuardedLeaf(id, simplify)
+  /*
+   * SwitchT with just a default arm.
+   *
+   * Too aggressive? Only true if the path `p` is valid.
+   */
+  simplify-switch = ?SwitchT(p, [], Default(<id>))
+
+  simplify-switch: SwitchT(p, [], GuardedDefault(guard*)) ->
+                   GuardedLeafs(guard*)
+
   simplify-guard = Guard(simplify, id)
 
-  eliminate-guard = EliminateId + EliminateFail
+  eliminate-guard =
+    EliminateId
+  + EliminateFail
+  + EliminateLeafs
 
-  EliminateId: GuardedLeaf(a, s) -> a
+  EliminateId =
+    EliminateId1
+  + EliminateId2
+  + EliminateId3
+
+  EliminateId1: GuardedLeafs([Guard(s, a)]) -> a
   where
     <is-id-guard> s
 
-  EliminateId: GuardedAltV(t, guard*) -> AltV(t, a)
+  EliminateId2: GuardedAltV(t, guard*) -> AltV(t, a)
   where
     <make-set> guard* => [Guard(s, a)]
   ; <is-id-guard> s
 
-  EliminateId: GuardedDefault(guard*) -> Default(a)
+  EliminateId3: GuardedDefault(guard*) -> Default(a)
   where
     <make-set> guard* => [Guard(s, a)]
   ; <is-id-guard> s
 
-  EliminateFail = fail
-//  EliminateFail: GuardedAltV(t, guard*) -> GuardedAltV(t, s*)
-//  where
-//    <make-set> guard* => s*@[Guard(s, _)]
-//  ; <is-fail-guard> s
-//
-//  EliminateFail: GuardedDefault(guard*) -> Default(Fail())
-//  where
-//    <make-set> guard* => [Guard(s, _)]
-//  ; <is-fail-guard> s
+  EliminateFail =
+    EliminateFail1
+
+  EliminateFail1: GuardedDefault(guard*) -> Default(Fail())
+  where
+    <make-set> guard* => [Guard(s, _)]
+  ; <is-fail-guard> s
+
+  /*
+   * Merge guard from guarded leaf with surrounding guard.
+   *
+   * Desugar IR.
+   */
+  EliminateLeafs = fail
+  + EliminateLeafs1
+
+  EliminateLeafs1: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
+                   Guard(s3, s)
+  with
+    <combine-guards; simplify> (s1, s2) => s3
 
   /*
    * Lift guards from guarded leafs to enclosing switch arm.
    *
    * Note: before doing this, all guarded arms have the same rhs.
    * This rewrite (possibly) violates that property (?).
+   *
+   * Desugar IR.
    */
-  lift-guard: AltV(t, GuardedLeaf(a, s)) ->
-              GuardedAltV(t, [Guard(s, a)])
+  lift-guard: AltV(t, GuardedLeafs(g*)) ->
+              GuardedAltV(t, g*)
 
-  lift-guard: Default(GuardedLeaf(a, s)) ->
-              GuardedDefault([Guard(s, a)])
-
-  lift-guard: Guard(s1, GuardedLeaf(a, s2)) ->
-              Guard(<combine-guards; simplify> (s1, s2), a)
-
-  merge-guards = SwitchV(id, debug(!"merging alts... "); merge-alts; debug(!"merged alts... "), id)
-
-  merge-alts = fail
-//  merge-alts = ?alts
-//  ; map(?GuardedAltV(<id>, _))
-//  ; make-set
-//  ; map(\ t -> GuardedAltV(t, <filter((GuardedAltV(t, guards) -> guards)); concat> alts) \)
+  lift-guard: Default(GuardedLeafs(g*)) ->
+              GuardedDefault(g*)
 
   /*
    * Ensure that any guarded default has an `id`-guarded arm, which can
-   * *always* be taken if any other guard does not succeed.
+   * *always* be taken if any other match/guard does not succeed.
+   *
+   * Ensure soundness.
+   *
    * In the process, remove any arms after the `id`-arm, as they will never
    * be taken.
+   *
+   * Reduce code size.
    */
   check-id-guard: GuardedDefault(guard*) -> GuardedDefault(guard'*)
   where
-    guard'* := <drop-after(?Guard(<is-id-guard>, _))
+    guard'* := <drop-after(?Guard(<always-succeeds>, _))
                 <+ at-end(![Guard(Id(), Fail())])> guard*
 
   /*
    * Remove any guarded arms *after* an `id`-guarded arm.
+   *
+   * Reduce code size.
    */
   check-id-guard: GuardedAltV(t, guard*) -> GuardedAltV(t, guard'*)
   where
-    guard'* := <drop-after(?Guard(<is-id-guard>, _))> guard*
+    guard'* := <drop-after(?Guard(<always-succeeds>, _))> guard*
 
 strategies
-  is-id-guard = ?Id()
-  is-fail-guard = ?Fail()
+  always-succeeds = is-id-guard

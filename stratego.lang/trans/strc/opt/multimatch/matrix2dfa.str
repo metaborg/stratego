@@ -16,7 +16,10 @@ strategies
   matrix2dfa = Scope(id, CompileDFA); SimplifyDFA
 
   CompileDFA = log-timed(CC | "DFA - Compilation", 1)
-  SimplifyDFA = log-timed(simplify-dfa | "DFA - Simplification", 1)
+
+  SimplifyDFA = if not(<get-config> "--no-dfa-optimise")
+                then log-timed(simplify-dfa | "DFA - Simplification", 1)
+                end
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -32,7 +35,9 @@ strategies
    * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
    * since there is no row to match.
    */
-  NoRows: m@Matrix(_, []) -> Fail()
+  NoRows:
+    m@Matrix(_, []) ->
+    Fail()
   where
     <debug(!"NoRows ")> m
 
@@ -46,12 +51,16 @@ strategies
    * Produce an intermediate guarded leaf.
    * In a subsequent traversal, this guard can be pushed up to the switch arm.
    */
-  WildcardsFirstRow: m@Matrix(_, [Row(ps, s_a, s_g, s_rhs) | _]) -> GuardedLeaf(s_rhs, s)
+  WildcardsFirstRow:
+    m@Matrix(_, row*@[Row(<all-wildcards>, _, _, _) | _]) ->
+    GuardedLeafs(guard*)
   where
-    <map(is-wld)> ps
+    <take-while(row-all-wildcards)> row* => match_row*
   ; <debug(!"WildcardsFirstRow ")> m
   with
-    s := <combine-guards> (s_a, s_g)
+    // Split rows at first row not having only wildcard patterns
+    guard* := <map(\ Row(_, s_a, s_g, s_rhs) ->
+                     Guard(<combine-guards> (s_a, s_g), s_rhs) \)> match_row*
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -59,11 +68,13 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn: m@Matrix([p | _], [_ | _]) -> T
+  SelectColumn:
+    m@Matrix([p | _], [_ | _]) ->
+    T
   where
     <debug(!"SelectColumn ")> m
   with
-    i := <find-first-col-index(not-all-wildcards)> m
+    i := <find-first-col-index(not(all-wildcards))> m
   ; <debug(!"  with i=")> i
   ; if <gti> (i, 1) then
     /*
@@ -99,7 +110,7 @@ strategies
     ; <debug(!"valt ")> (c, s*)
   with
     // Remove (i.e. replace by Id()) the alias guard
-    guards := <map(!Guard(<id>, <specialize(|c, Id()); CC> m))> s*
+    guards := <map(!Guard(<id>, <specialize-set(set-alias-guard(|Id())|c); CC> m))> s*
 
   is-switchable = ?Fun(_, _)
                 + is-literal

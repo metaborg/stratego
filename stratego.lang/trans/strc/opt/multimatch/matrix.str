@@ -4,6 +4,7 @@ imports
   signatures/core/terms-sig
 
   strj/multimatch/decompose
+  strj/multimatch/utils
 
 signature
   sorts Matrix Row Col
@@ -14,14 +15,19 @@ signature
 
     Col     : List(Term) * List(Strategy) * List(Strategy) * List(Strategy) -> Col
 
-strategies
-  row-not-all-wildcards = ?Row(<not-all-wildcards>, _, _, _)
+strategies // predicates
+  row-all-wildcards = ?Row(<all-wildcards>, _, _, _)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
    */
-  not-all-wildcards = where(retain-all(not(is-wld)); ?[_ | _])
+  all-wildcards = where(retain-all(not(is-wld)); ?[])
 
+strategies // setters
+  set-alias-guard(|s_a) =
+    Row(id, !s_a, id, id)
+
+strategies // getters
   /*
    * Get the `i`th column from a Matrix.
    */
@@ -32,6 +38,7 @@ strategies
   ; s2* := <map(?Row(_, _ ,<id>, _))> rows
   ; s3* := <map(?Row(_, _ , _, <id>))> rows
 
+strategies // stdlib variants for Matrix/Row/Col
   /*
    * Find index of first element in list for which `s` succeeds.
    * Index starts at 1.
@@ -68,16 +75,3 @@ strategies
   swap-cols(|m, n) = Matrix(swap(|m, n), map(swap-row-el(|m, n)))
 
   swap-row-el(|m, n) = Row(swap(|m, n), id, id, id)
-
-  /*
-   * Swap elements `m` and `n` in a list.
-   * Index starts at 1.
-   */
-  swap(|m, n) = where(<eq> (m, n)); id
-  swap(|m, n): xs -> xs''
-  with
-    <is-list> xs
-  ; elM := <index(|m)> xs
-  ; elN := <index(|n)> xs
-  ; xs' := <set-index> (<dec> m, elN, xs)
-  ; xs'' := <set-index> (<dec> n, elM, xs')

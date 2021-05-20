@@ -20,7 +20,6 @@ strategies
   default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"ERROR - no default: "))))
   default-row: Row([<is-wld> | ps], s_a, s_g, s_rhs) -> Row(ps, s_a, s_g, s_rhs)
 
-
   non-default-row = ?Row([<non-default-head> | _], _, _, _) // by definition
   non-default-head =
     ?Op(_, _)
@@ -34,46 +33,46 @@ strategies
    * Maranget (2008), sec 4, step 3a.
    */
   constructors-om =
-    debug(!"[i] cons-om ")
-  ; ?Col(<remove-all(where(is-wld + ?As(_, <is-wld>))); foldr(![], union, ![<constructor-om>])>, _, _, _)
-  ; debug(!"[o] cons-om ") // (is-wld + ?As(_, <is-wld>))
+    ?Col(<id>, _, _, _)
+  ; remove-all(where(is-wld + ?As(_, <is-wld>)))
+  ; foldr(![], union, ![<constructor-om>])
 
   tswitch-arms =
-    ?Col(t*, _, s_c*, s_rhs*)
+    ?Col(t*, s_a*, _, s_rhs*)
   ; c* := <zipn
          ; remove-all(where(Fst; (is-wld + ?As(_, <is-wld>))))
-         ; map(\ (t, s_c, s_rhs) -> (<cons-type <+ !()> t, <constructor-om> t, s_c, s_rhs) \)> (t*, s_c*, s_rhs*) // (t, c, s)
+         ; map(\ (t, s_a, s_rhs) -> (<cons-type <+ !()> t, <constructor-om> t, s_a, s_rhs) \)> (t*, s_a*, s_rhs*) // (t, c, s_a, s)
   ; collect-types
   ; collect-cons(|c*)
 
-  // [(t, c, s)*] -> [t*]
+  // [(t, c, s_a, s)*] -> [t*]
   collect-types = foldr(![], union, ![<Fst>])
-  // [(t, c, s)*], [t*] -> [(t, [(c, [s*])*])*]
+  // [(t, c, s_a, s)*], [t*] -> [(t, [(c, [s*])*])*]
   collect-cons(|c*) = map(\ t -> (t, <retain-all(where(Fst; ?t); Snd); make-set; collect-guards(|c*)> c*) \)
-  // [(t, c, s)*], [c*] -> [(c*, [s*])*]
+  // [(t, c, s_a, s)*], [c*] -> [(c*, [s_a*])*]
   collect-guards(|c*) = map(\ c -> (c, <retain-all(where(Snd; ?c); Third); make-set-lr> c*) \)
-
-  // TODO Rewrite with left fold
-  make-set-lr = reverse; make-set; reverse
 
   /*
    * Specialize the matrix to a certain constructor.
    *
    * Maranget (2008), fig. 1.
    */
-  specialize(|c) = Matrix(specialize-occs(|c), filter(specialize-row(|c)))
-  specialize(|c, s_a) = Matrix(specialize-occs(|c), filter(specialize-row(|c, s_a)))
+  specialize(|c) =
+    specialize-set(id|c)
 
-  specialize-row(|c) = Row(specialize-pats(|c), id, id, id)
-  specialize-row(|c, s_a) = Row(specialize-pats(|c), !s_a, id, id)
+  specialize-set(smod|c) =
+    Matrix(specialize-occs(|c), filter(specialize-row(|c); smod))
+
+  specialize-row(|c) =
+    Row(specialize-pats(|c), id, id, id)
 
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
 
-  specialize-occ-by-arity(|a):      p -> ps
-    with
-      i* := <range> (1, <inc> a)
-    ; ps := <map(\ i -> Sub(p, <int-to-string> i) \)> i*
+  specialize-occ-by-arity(|a) =
+    where(i* := <range> (1, <inc> a))
+  ; ?p
+  ; <map(\ i -> Sub(p, <int-to-string> i) \)> i*
 
   // Annotations
   constructor-om:               Anno(c, ann)        -> Anno()

@@ -5,6 +5,7 @@ imports
 
   signatures/core/strategies-sig
   signatures/sugar/strategies-sig
+  signatures/sugar/terms-sig
 
 strategies
   aliases-to-guards =
@@ -18,3 +19,7 @@ strategies
 
 strategies
   combine-guards: (s1, s2) -> Seq(s1, s2)
+
+strategies
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()
