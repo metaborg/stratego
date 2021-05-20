@@ -18,8 +18,11 @@ menus
 //    action: "Show DFA (-O0)" = debug-show-dfa-pp-O0
 //    action: "Show DFA (-O1)" = debug-show-dfa-pp-O1
     action: "Show DFA (-O2)" = debug-show-dfa-pp-O2
+    action: "Show DFA (-O2, raw)" = debug-show-dfa-pp-raw-O2
     action: "Show DFA (-O3)" = debug-show-dfa-pp-O3
+    action: "Show DFA (-O3, raw)" = debug-show-dfa-pp-raw-O3
     action: "Show DFA (-O4)" = debug-show-dfa-pp-O4
+    action: "Show DFA (-O4, raw)" = debug-show-dfa-pp-raw-O4
 //    action: "Show DFA (-O5)" = debug-show-dfa-pp-O5
 
     action: "Show Java files" = debug-show-java

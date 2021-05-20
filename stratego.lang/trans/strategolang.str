@@ -83,19 +83,6 @@ rules // Debugging
     ; <set-config> ("--library", ()) // no main strategy necessary this way
     ; <translate-core(|path); pp-stratego-core> node => result
 
-  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
-  debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
-  debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
-  debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
-  debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
-  debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
-  debug-show-core-optimized(|O):
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|$[core.opt[O].stra])> path
-    ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; <translate-core(|path, O); pp-stratego-core> node => result
-
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
     with
@@ -145,9 +132,17 @@ rules // Debugging
   debug-show-dfa-pp-O0 = debug-show-pp-dfa(|0)
   debug-show-dfa-pp-O1 = debug-show-pp-dfa(|1)
   debug-show-dfa-pp-O2 = debug-show-pp-dfa(|2)
+  debug-show-dfa-pp-raw-O2 = raw; debug-show-pp-dfa(|2)
   debug-show-dfa-pp-O3 = debug-show-pp-dfa(|3)
+  debug-show-dfa-pp-raw-O3 = raw; debug-show-pp-dfa(|3)
   debug-show-dfa-pp-O4 = debug-show-pp-dfa(|4)
+  debug-show-dfa-pp-raw-O4 = raw; debug-show-pp-dfa(|4)
   debug-show-dfa-pp-O5 = debug-show-pp-dfa(|5)
+
+  raw = where(<set-config> ("--no-dfa-optimise", ()))
+  debug-show-pp-dfa(|O) =
+    debug-show-ctree-dfa(|O)
+  ; (id, pp-stratego-core)
 
   debug-show-dfa-ctree-O0 = debug-show-ctree-dfa(|0)
   debug-show-dfa-ctree-O1 = debug-show-ctree-dfa(|1)
@@ -165,5 +160,17 @@ rules // Debugging
     ; alltd(multimatch2dfa)
     ; ?result
 
-  debug-show-pp-dfa(|O) =
-    debug-show-ctree-dfa(|O); (id, pp-stratego-core)
+  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
+  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
+  debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
+  debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
+  debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
+  debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
+  debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
+
+  debug-show-core-optimized(|O):
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|$[core.opt[O].stra])> path
+    ; <set-config> ("--library", ()) // no main strategy necessary this way
+    ; <translate-core(|path, O); pp-stratego-core> node => result
