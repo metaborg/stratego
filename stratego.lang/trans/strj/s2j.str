@@ -68,7 +68,10 @@ rules
 //        end
       )
     ; log-timed(
-        backend-simplify
+        if <get-config> "--single-strategy"
+          then backend-simplify-quiet
+          else backend-simplify
+        end
       | "Backend preprocessing succeeded", 1
       )
     ; log-timed(
