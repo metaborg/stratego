@@ -12,7 +12,7 @@ signature
 strategies
 
 s(|x) = match sequential
-//          case   | C1(x, _): !1 // x == bound
+          case   | C1(x, _): !1 // x == bound
           case y | C1(y@_, _): !y // y == unbound; case matches C1(_, _)
           case z | z@C2(): !3   // matches on C2(), binds it to z
         end

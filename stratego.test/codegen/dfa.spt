@@ -196,6 +196,7 @@ strategies
 
 s_0_1( | x4 : ATerm( )) =
   match sequential
+    case | C1(x4@_, _){^_}: !1{^Nil( )}
     case y10 | C1(y10@_, _){^_}: !y10
     case z7 | z7@C2( ){^_}: !3{^Nil( )}
   end
@@ -216,14 +217,11 @@ s_0_1( | x4 : ATerm( )) =
   {y10, z7: switch current.type {
               alt APPL:
                 switch current.con {
-                  alt (C1, 2):
-                    switch current.1.type {
-                      default
-                        where !current.1; ?y10:
-                          !y10
-                        where id:
-                          fail
-                    }
+                  alt (C1, 2)
+                    where !current.1; ?x4:
+                      !1{^Nil( )}
+                    where !current.1; ?y10:
+                      !y10
                   alt (C2, 0)
                     where !current; ?z7:
                       !3{^Nil( )}

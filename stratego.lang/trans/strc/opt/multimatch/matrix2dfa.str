@@ -7,19 +7,26 @@ imports
   strj/multimatch/postprocess
 
   strc/stratego/strc/strc/strc
+  strc/stratego/strc/opt/scope-laws
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
 strategies
   /*======== Construct DFA from matrices =================*/ 
-  matrix2dfa = Scope(id, CompileDFA); SimplifyDFA
+  matrix2dfa =
+    Scope(id,
+        compile-dfa
+      ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
+      ; enhance-dfa
+    ); try(EmptyScope)
 
-  CompileDFA = log-timed(CC | "DFA - Compilation", 1)
+  compile-dfa = log-timed(CC | "DFA - Compilation", 1)
 
-  SimplifyDFA = if not(<get-config> "--no-dfa-optimise")
-                then log-timed(simplify-dfa | "DFA - Simplification", 1)
-                end
+  enhance-dfa =
+    if not(<get-config> "--no-dfa-optimise")
+    then log-timed(optimise-dfa | "DFA - Optimisation", 1)
+    end
 
   /*
    * Compilation scheme from Maranget (2008).

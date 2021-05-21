@@ -5,25 +5,21 @@ imports
   strj/multimatch/guard
   strj/multimatch/utils
 
-  strc/stratego/strc/opt/stratego-laws // simplify
-
   signatures/core/strategies-sig
 
 strategies
-//  desugar-dfa = id
-//  simplify-dfa = id
-//  optimise-dfa = id
-
-
-  simplify-dfa = id
-  ; simplify
-  ; bottomup(
-      try(simplify-guard)
-    ; repeat(simplify-switch
-          <+ eliminate-guard
-          <+ lift-guard
+  desugar-dfa =
+    repeat(
+      oncebu(
+        eliminate-guard
+      <+ simplify-switch
+      <+ lift-guard
       )
-//    ; try(check-id-guard)
+    )
+  ; topdown(try(ensure-id-guard))
+
+  optimise-dfa = bottomup(
+    try(drop-unreachable-guards; try(eliminate-guard))
   )
 
 strategies
@@ -37,52 +33,25 @@ strategies
   simplify-switch: SwitchT(p, [], GuardedDefault(guard*)) ->
                    GuardedLeafs(guard*)
 
-  simplify-guard = Guard(simplify, id)
-
   eliminate-guard =
     EliminateId
   + EliminateFail
-  + EliminateLeafs
 
-  EliminateId =
-    EliminateId1
-  + EliminateId2
-  + EliminateId3
+  EliminateId: GuardedAltV(t, [Guard(<is-id-guard>, a)]) -> AltV(t, a)
+  EliminateId: GuardedDefault([Guard(<is-id-guard>, a)]) -> Default(a)
 
-  EliminateId1: GuardedLeafs([Guard(s, a)]) -> a
-  where
-    <is-id-guard> s
-
-  EliminateId2: GuardedAltV(t, guard*) -> AltV(t, a)
-  where
-    <make-set> guard* => [Guard(s, a)]
-  ; <is-id-guard> s
-
-  EliminateId3: GuardedDefault(guard*) -> Default(a)
-  where
-    <make-set> guard* => [Guard(s, a)]
-  ; <is-id-guard> s
-
+  /*
+   * TODO: Investigate whether removing definitely failing guards violates
+   * soundness. Removing them too aggressively can lift the failure to a
+   * higher level in the tree, resulting in falling back to a different default,
+   * therefore changing the semantics of the tree.
+   */
   EliminateFail =
     EliminateFail1
 
   EliminateFail1: GuardedDefault(guard*) -> Default(Fail())
   where
-    <make-set> guard* => [Guard(s, _)]
-  ; <is-fail-guard> s
-
-  /*
-   * Merge guard from guarded leaf with surrounding guard.
-   *
-   * Desugar IR.
-   */
-  EliminateLeafs = fail
-  + EliminateLeafs1
-
-  EliminateLeafs1: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
-                   Guard(s3, s)
-  with
-    <combine-guards; simplify> (s1, s2) => s3
+    <foldr(![], union, ![<?Guard(<id>, _)>])> guard* => [<is-fail-guard>]
 
   /*
    * Lift guards from guarded leafs to enclosing switch arm.
@@ -94,34 +63,37 @@ strategies
    */
   lift-guard: AltV(t, GuardedLeafs(g*)) ->
               GuardedAltV(t, g*)
-
   lift-guard: Default(GuardedLeafs(g*)) ->
               GuardedDefault(g*)
+
+  /*
+   * Merge guard from guarded leaf with surrounding guard.
+   *
+   * Desugar IR.
+   */
+  lift-guard: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
+              Guard(s3, s)
+  with
+    <combine-guards> (s1, s2) => s3
 
   /*
    * Ensure that any guarded default has an `id`-guarded arm, which can
    * *always* be taken if any other match/guard does not succeed.
    *
    * Ensure soundness.
-   *
-   * In the process, remove any arms after the `id`-arm, as they will never
-   * be taken.
-   *
-   * Reduce code size.
    */
-  check-id-guard: GuardedDefault(guard*) -> GuardedDefault(guard'*)
-  where
-    guard'* := <drop-after(?Guard(<always-succeeds>, _))
-                <+ at-end(![Guard(Id(), Fail())])> guard*
+   ensure-id-guard = GuardedDefault(at-end(![Guard(Id(), Fail())]))
 
   /*
    * Remove any guarded arms *after* an `id`-guarded arm.
    *
    * Reduce code size.
    */
-  check-id-guard: GuardedAltV(t, guard*) -> GuardedAltV(t, guard'*)
-  where
-    guard'* := <drop-after(?Guard(<always-succeeds>, _))> guard*
+  drop-unreachable-guards =
+    GuardedDefault(drop-after(?Guard(<always-succeeds>, _)))
+  drop-unreachable-guards =
+    GuardedAltV(id, drop-after(?Guard(<always-succeeds>, _)))
 
 strategies
   always-succeeds = is-id-guard
+  always-fails = is-fail-guard

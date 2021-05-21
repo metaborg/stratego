@@ -100,8 +100,6 @@ constructors
 
 Nil : List(a)
 Cons : a * List(a) -> List(a)
-DR_UNDEFINE : ATerm( ) -> ATerm( )
-DR_DUMMY : ATerm( )
 
 strategies
 
@@ -124,7 +122,7 @@ Cons : a * List(a) -> List(a)
 
 strategies
 
-length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
+length_1_0(s31 : ATerm( ) -> ATerm( ) | ) =
   switch current.type {
     alt LIST:
       switch current {
