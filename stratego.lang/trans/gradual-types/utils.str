@@ -234,12 +234,12 @@ toBinding-HasType: DefHasType(name, stype) -> ((name{}, snum, tnum), stype')
     stype' := <try(desugar-SType)> stype
   ; (snum, tnum) := <arityOf-SType> stype'
 
-toBinding-HasType: ExtTypedDefInl(n, _, _, stype, _) -> ((name{}, snum, tnum), stype')
+toBinding-HasType: ExtTypedDefInl(n, _, _, stype, _) -> ((n{}, snum, tnum), stype')
   with
     stype' := <try(desugar-SType)> stype
   ; (snum, tnum) := <arityOf-SType> stype'
 
-toBinding-HasType: ExtTypedDef(n, stype) -> ((name{}, snum, tnum), stype')
+toBinding-HasType: ExtTypedDef(n, stype) -> ((n{}, snum, tnum), stype')
   with
     stype' := <try(desugar-SType)> stype
   ; (snum, tnum) := <arityOf-SType> stype'
