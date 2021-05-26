@@ -136,6 +136,8 @@ strategies
   // Variables
   is-var = ?Var(_)
   is-wld = ?Wld()
+  is-wld-core = ?Anno(<is-wld>, <is-wld>)
+
   constructor-om = is-wld; fail // by definition
   specialize-pats(|<is-wld>) = fail // by definition
 

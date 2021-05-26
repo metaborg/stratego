@@ -39,3 +39,5 @@ strategies
    */
   // TODO Rewrite with left fold
   make-set-lr = reverse; make-set; reverse
+
+  or(s1, s2, s3) = or(or(s1, s2), s3)

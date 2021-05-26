@@ -1,83 +1,220 @@
 module match-choices-to-multimatches
 
 imports
+  strc/stratego/strc/front/desugar
+  strc/stratego/strc/opt/bound-unbound-vars
+  strc/stratego/strc/lib/stratlib
+
+  strj/multimatch/decompose
+  strj/multimatch/guard
+  strj/multimatch/utils
+
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
-  strc/stratego/strc/opt/bound-unbound-vars
-  strc/stratego/strc/opt/stratego-laws
-  strc/stratego/strc/strc/strc // log-timed
-
 overlays
-  MultiMatch(cases) = MultiMatch(Sequential(), cases)
-
-  // TODO Fix semantics. Failure of a strategy in a choice tries the next strategy, while the resulting multimatch fails as a whole.
-  
-  // Suggestion: patterns of shape Match(p); ... ; Build(t) -> case | p where ...: t
-  // Edge case: building unbound vars.
-
-  MatchPattern(p) = Match(p)
-
-  MatchSuccessPattern(p) = MatchPattern(p)
-  MatchSuccessPattern(p, s) = Seq(MatchPattern(p), s)
-  MatchSuccessPattern(vars, p, s) = Scope(vars, MatchSuccessPattern(p, s))
-
-  ChoicePattern(s1, s2) = GuardedLChoice(s1, Id(), s2)
-  ChoicePattern(match, rhs, next) = GuardedLChoice(match, rhs, next)
+  MM(c) = MultiMatch(Sequential(), c)
 
 strategies
-  sdeft-match-choices-to-multimatches =
-  log-timed(
-    simplify
-  // TODO Is the analysis even necessary? Can just use the parent Scope.
+  choices-to-multimatches = id
+  ; desugar
   ; mark-bound-unbound-vars
-  ; SDefT(id, id, id, match-choices-to-multimatches)
+  ; repeat(oncetd(choice-to-multimatch
+               <+ extract-matches
+               <+ extract-righthandsides))
+  ; bottomup(try(lift-defaults))
   ; strip-annos
-  | "MatchBuild - translate", 1)
+  ; desugar
 
-  // Used for testing
-  match-choices-to-multimatches-test-NoDesugar =
-    simplify-NoDesugar
-  ; match-choices-to-multimatches
-  
-  match-choices-to-multimatches =
-    topdown(try(translate-match-choices))
-  ; simplify-clean // Remove vars from scopes if they are now scoped from a match case
+strategies
 
-  translate-match-choices =
-    !MultiMatch(<MatchCasesChoice>)
+  /* VERIFIED
+    foo = match sequential
+            case x | p where s1: s2
+            case ..
+          end
+       <+ match sequential
+            case y | q where s3: s4
+            case ... 
+          end
 
-  MatchCases =
-    MatchCasesChoice
- <+ MatchCasesDefault
+    foo' = match sequential
+           case x | p where s1: s2
+           case .. 
+           case y | q where s3: s4
+           case ... 
+         end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(MM(c1*), Id(), MM(c2*)) ->
+    MM([c1*, c2*])
 
-  MatchCasesChoice:
-    ChoicePattern(s1, s2) -> [<MatchCase> s1 | <MatchCases> s2]
+  /* VERIFIED
+    bar = match sequential
+            case ...
+            case x | p where s1: s2 
+          end < s3 + s4
 
-  // No fail needed in the last case; is implicit in MultiMatch.
-  MatchCasesDefault: Fail() -> []
-//  MatchCasesDefault = ![<MatchCase>]
-  MatchCasesDefault =
-    ![ScopedMatchCase(<collect-unbound-vars>, Anno(Wld(), Wld()), <id>)]
-
-  // Merge MultiMatch cases
-  MatchCase = ?MultiMatch(<id>)
-
-  MatchCase:
-    MatchSuccessPattern(p) -> ScopedMatchCase(x*, p, Id())
+    bar' = match sequential
+            case ...
+            case x | p where s1: s2; s3
+            case   | _ where s4: id
+          end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(MM(c*), s3, s4) ->
+    MM(c'*)
   where
-    <collect-unbound-vars> p => x*
-
-  MatchCase:
-    MatchSuccessPattern(p, s) -> ScopedMatchCase(x*, p, s)
-  where
-    <collect-unbound-vars> p => x*
-
-  MatchCase:
-    MatchSuccessPattern(x1*, p, s) -> ScopedMatchCase(x1*, p, s)
-  where
-    <collect-unbound-vars> p => x2*
+    <split-init-last> c* => (init*, last)
+  ; ScopedGuardedMatchCase(x*, p, s1, s2) := last
   with
-    <restore(subseteq, debug(!"(x2*, x1*): "))> (x2*, x1*)
+    c := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
+  ; <at-last(![c])> init* => c'*
 
-  collect-unbound-vars = collect(?Var(<id>){"unbound"})
+  /* VERIFIED
+    foo0 = s1 < s2 + s3
+  
+    foo0' = match sequential
+              case | _ where s1: s2
+              case | _ where s3: id
+            end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(s1, s2, s3) ->
+    MM([
+      ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s1, s2)
+    , ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s3, Id()) 
+    ])
+  where
+    <tvars; debug(!"tvars s1 ")> s1
+  ; <tvars; debug(!"tvars s2 ")> s2
+  ; <tvars; debug(!"tvars s3 ")> s3
+
+  /* VERIFIED
+    qux = match sequential
+            case ...
+            case   | _ where s1 < s2 + s3: id
+          end
+  
+    qux' = match sequential
+            case ...
+            case   | _ where s1: s2
+            case   | _ where s3: id
+          end
+  */
+  choice-to-multimatch:
+    MM(c*) ->
+    MM(c'*)
+  where
+    <split-init-last> c* => (init*, last)
+  ; !last => ScopedGuardedMatchCase([], p@<is-wld>, GuardedLChoice(s1, s2, s3), Id())
+  with
+    c1 := ScopedGuardedMatchCase([], p, s1, s2)
+  ; c2 := ScopedGuardedMatchCase([], p, s3, Id())
+  ; c'* := <at-last(![c1, c2])> init*
+
+strategies
+
+  /* VERIFIED
+    baz = match sequential
+            case ...
+            case   | _ where {y: ?q; s1}: s2
+          end
+
+    baz' =  match sequential
+              case ...
+              case y | q where s1: s2
+            end
+  */
+  extract-matches = MM(list-some(extract-match))
+
+  extract-match:
+    ScopedGuardedMatchCase(x*, p, Scope(y*, Seq(Match(q), s1)), s2) ->
+    ScopedGuardedMatchCase(z*, q, s1, s2)
+  where
+    <is-wld + is-wld-core> p
+  ; <isect> (x*, y*) => []
+  with
+    z* := <union> (x*, y*)
+
+  extract-match:
+    ScopedGuardedMatchCase(x*, p, Scope(y*, Match(q)), s2) ->
+    ScopedGuardedMatchCase(z*, q, Id(), s2)
+  where
+    <is-wld + is-wld-core> p
+  ; <isect> (x*, y*) => []
+  with
+    z* := <union> (x*, y*)
+
+  extract-match:
+    ScopedGuardedMatchCase(x*, p, Seq(Match(q), s1), s2) ->
+    ScopedGuardedMatchCase(x*, q, s1, s2)
+  where
+    <is-wld + is-wld-core> p
+
+  extract-match:
+    ScopedGuardedMatchCase(x*, p, Match(q), s2) ->
+    ScopedGuardedMatchCase(x*, q, Id(), s2)
+  where
+    <is-wld + is-wld-core> p
+
+strategies
+  extract-righthandsides = MM(list-some(extract-rhs))
+
+  extract-rhs:
+    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+    ScopedGuardedMatchCase(x*, p, Id(), s3)
+  where
+    <not(?Id()); always-succeeds> s1
+  with
+    s3 := <sequence-strategies> (s1, s2)
+
+strategies
+  lift-defaults:
+    MM(c*) -> MM([init*, last'*])
+  where
+    <split-init-last> c* => (init*, last)
+  ; <lift-default> last => last'*
+
+  // This is only valid for the very last case.
+  // TODO Verify validity.
+  lift-default:
+    ScopedGuardedMatchCase([], p, MM(c*), s) ->
+    <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s)))> c*
+  where
+    <is-wld + is-wld-core> p
+
+  // This is only valid for the very last case.
+  // TODO Verify validity.
+  lift-default:
+    ScopedGuardedMatchCase([], p, s, MM(c*)) ->
+    <map(ScopedGuardedMatchCase(id, id, <sequence-strategies> (s, <id>), id))> c*
+  where
+    <is-wld + is-wld-core> p
+
+strategies
+
+  /**
+   * Determines whether a strategy always succeeds (without side effects).
+   */
+  always-succeeds =
+    ?Id()
+  + ?Build(_) < collect-om(?Var(_){"unbound"} + ?Var(_){"(un)bound"}); ?[]
+  + ?Match(_) < collect-om(?Var(_){"bound"} + ?Var(_){"(un)bound"}); ?[]
+  + ?Seq(_, _) < Seq(always-succeeds, always-succeeds)
+  + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
+                                , GuardedLChoice(always-fails, id, always-succeeds)
+                                , GuardedLChoice(id, always-succeeds, always-succeeds))
+  + fail
+
+  /**
+   * Determines whether a strategy always fails (without side effects).
+   */
+  always-fails =
+    ?Fail()
+  + ?Build(_) < collect-om(?Var(_){"unbound"}; ?[_ | _])
+  + ?Seq(_, _) < or(Seq(always-fails, id), Seq(id, always-fails))
+  + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(id, always-fails, always-fails)
+                                , GuardedLChoice(always-succeeds, always-fails, id)
+                                , GuardedLChoice(always-fails, id, always-succeeds))
+  + fail
