@@ -16,7 +16,7 @@ strategies
       <+ lift-guard
       )
     )
-  ; topdown(try(ensure-id-guard))
+  ; topdown(try(wrap-guarded-leaves); try(ensure-id-guard))
 
   optimise-dfa = bottomup(
     try(drop-unreachable-guards; try(eliminate-guard))
@@ -82,7 +82,11 @@ strategies
    *
    * Ensure soundness.
    */
-   ensure-id-guard = GuardedDefault(at-end(![Guard(Id(), Fail())]))
+  ensure-id-guard = GuardedDefault(at-end(![Guard(Id(), Fail())]))
+
+  wrap-guarded-leaves:
+    GuardedLeafs(guard*) ->
+    SwitchT(Type(Cur()), [], GuardedDefault(guard*))
 
   /*
    * Remove any guarded arms *after* an `id`-guarded arm.
@@ -90,10 +94,6 @@ strategies
    * Reduce code size.
    */
   drop-unreachable-guards =
-    GuardedDefault(drop-after(?Guard(<always-succeeds>, _)))
+    GuardedDefault(drop-after(?Guard(<is-id-guard>, _)))
   drop-unreachable-guards =
-    GuardedAltV(id, drop-after(?Guard(<always-succeeds>, _)))
-
-strategies
-  always-succeeds = is-id-guard
-  always-fails = is-fail-guard
+    GuardedAltV(id, drop-after(?Guard(<is-id-guard>, _)))
