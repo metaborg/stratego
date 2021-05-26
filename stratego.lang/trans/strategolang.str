@@ -27,13 +27,13 @@ rules
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"dfa.aterm")> path
-    ; result := <desugar; alltd(multimatch2dfa)> node
+    ; result := <desugar; topdown(?MultiMatch(_, _) < multimatch2dfa + id)> node
 
   translate-core-mm-pp:
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"dfa.stra")> path
-    ; result := <desugar; alltd(multimatch2dfa); pp-stratego-core> node
+    ; result := <desugar; topdown(?MultiMatch(_, _) < multimatch2dfa + id); pp-stratego-core> node
 
   translate-core(|path) = translate-core(|path, 2)
 
@@ -157,7 +157,7 @@ rules // Debugging
       <set-config> ("--library", ()) // no main strategy necessary this way
     ; filename := <guarantee-extension(|"dfa.stra")> path
     ; <translate-core(|path, O)> node
-    ; alltd(multimatch2dfa)
+    ; topdown(?MultiMatch(_, _) < multimatch2dfa + id)
     ; ?result
 
   debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
