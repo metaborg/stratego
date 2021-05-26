@@ -67,7 +67,7 @@ strategies
   with
     // Split rows at first row not having only wildcard patterns
     guard* := <map(\ Row(_, s_a, s_g, s_rhs) ->
-                     Guard(<combine-guards> (s_a, s_g), s_rhs) \)> match_row*
+                     Guard(<sequence-strategies> (s_a, s_g), s_rhs) \)> match_row*
 
   /*
    * 3. In any other case, matrix P has at least one row and at least

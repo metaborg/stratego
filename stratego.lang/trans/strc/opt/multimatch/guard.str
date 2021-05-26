@@ -17,11 +17,13 @@ strategies
   ; !Matrix(p*, row'*)
 
   alias-to-guard(|p):
-    Row([As(t1, t2) | t*], Id(), s2, s3) ->
-    Row([t2 | t*], <Desugar> Assign(t1, Path(p)), s2, s3)
+    Row([As(t1, t2) | t*], s1, s2, s3) ->
+    Row([t2 | t*], <sequence-strategies> (s1, sa), s2, s3)
+  with
+    <Desugar> Assign(t1, Path(p)) => sa
 
 strategies
-  combine-guards: (s1, s2) -> <Simplify> Seq(s1, s2)
+  sequence-strategies: (s1, s2) -> <Simplify> Seq(s1, s2)
 
 strategies
   is-id-guard = ?Id()

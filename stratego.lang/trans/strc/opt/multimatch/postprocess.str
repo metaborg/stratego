@@ -74,7 +74,7 @@ strategies
   lift-guard: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
               Guard(s3, s)
   with
-    <combine-guards> (s1, s2) => s3
+    <sequence-strategies> (s1, s2) => s3
 
   /*
    * Ensure that any guarded default has an `id`-guarded arm, which can
