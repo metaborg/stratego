@@ -9,7 +9,6 @@ imports
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
-  signatures/sugar/strategies-sig // Assign
 
 strategies
   /*

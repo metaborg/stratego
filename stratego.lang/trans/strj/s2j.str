@@ -2031,8 +2031,11 @@ strategies
   ; bstm_guards := <translate-Guards> guards
 
   /** @type List(Guard) -> Block */
-  translate-Guards = translate-Guards(|Fail())
-  translate-Guards(|failure) = foldr(<translate-strategy> failure, debug(!"[i] t-G "); translate-Guard; debug(!"[o] t-G "))
+  translate-Guards =
+    translate-Guards(|Fail())
+
+  translate-Guards(|failure) =
+    foldr(<translate-strategy> failure, translate-Guard)
 
   /** @type Guard -> Block */  
   translate-Guard:
@@ -2054,8 +2057,8 @@ strategies
     ]|
    with
      x_termcopy := <newname> "term"
-   ; stm_s1     := <debug(!"[i] tgs 1 "); translate-strategy; debug(!"[o] tgs 1 ")> s1
-   ; stm_s2     := <debug(!"[i] tgs 2 "); translate-strategy; debug(!"[o] tgs 2 ")> s2
+   ; stm_s1     := <translate-strategy> s1
+   ; stm_s2     := <translate-strategy> s2
 
   java-Pat-to-Condition:
     (Fun("Nil", "0"), e_occ) ->
@@ -2097,7 +2100,7 @@ strategies
     (Tuple(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
-  translate-Path = debug(!"translate-Path ");
+  translate-Path =
     (translate-PathV
   + translate-PathT
   + translate-PathF)

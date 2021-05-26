@@ -15,8 +15,7 @@ strategies
   ; <mapconcat(MatchCase2Vars)> cases => vars
 
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
-  ; <error> ["MultiMatch should be converted to a sequential set of patterns first."]
-  ; fail
+  ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]
 
   MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t2], Id(), Id(), s) // just ignore scope?
     with <preprocess> t1 => t2
