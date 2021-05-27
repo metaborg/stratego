@@ -57,8 +57,6 @@ public class StrIncr implements TaskDef<StrIncr.Input, LinkedHashSet<ResourcePat
                 return true;
             if(getClass() != o.getClass())
                 return false;
-            if(!super.equals(o))
-                return false;
             Input input = (Input) o;
             return Objects.equals(javaPackageName, input.javaPackageName) && Objects.equals(cacheDir, input.cacheDir)
                 && constants.equals(input.constants) && extraArgs.equals(input.extraArgs) && outputPath
