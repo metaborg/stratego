@@ -22,7 +22,6 @@ imports
   stratego/strc/front/extract
   stratego/strc/front/introduce-congdefs
   stratego/strc/front/lift-dynamic-rules
-  stratego/strc/front/match-choices-to-multimatches
   stratego/strc/front/needed-constructors
   stratego/strc/front/needed-defs
   stratego/strc/front/normalize-spec

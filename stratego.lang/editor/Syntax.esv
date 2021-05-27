@@ -17,7 +17,6 @@ language
 menus
 
   menu: "Syntax" (openeditor) (source)
-
     action: "Format"          = editor-format
     action: "Show parsed AST" = debug-show-aterm
 
@@ -26,12 +25,31 @@ menus
     action: "Show desugared AST (batch comp.)" = debug-show-ctree
 
     action: "Show desugared program (Core)" = debug-show-core
-    action: "Show desugared optimized (-O0) program (Core)" = debug-show-core-optimized-O0
-    action: "Show desugared optimized (-O1) program (Core)" = debug-show-core-optimized-O1
-    action: "Show desugared optimized (-O2) program (Core)" = debug-show-core-optimized-O2
-    action: "Show desugared optimized (-O3) program (Core)" = debug-show-core-optimized-O3
-    action: "Show desugared optimized (-O4) program (Core)" = debug-show-core-optimized-O4
-    action: "Show desugared optimized (-O5) program (Core)" = debug-show-core-optimized-O5
+
+  menu: "Optimise (program)" (openeditor) (source)
+    action: "Show optimised (-O1) program" = debug-show-core-optimized-O1
+    action: "Show optimised (-O2) program" = debug-show-core-optimized-O2
+    action: "Show optimised (-O3) program" = debug-show-core-optimized-O3
+    action: "Show optimised (-O4) program" = debug-show-core-optimized-O4
+    action: "Show optimised (-O5) program" = debug-show-core-optimized-O5
+//    action: "Show optimised (-O6) program" = debug-show-core-optimized-O6
+
+  menu: "Optimise (AST)" (openeditor) (source)
+    action: "Show optimised (-O1) AST" = debug-show-ctree-optimized-O1
+    action: "Show optimised (-O2) AST" = debug-show-ctree-optimized-O2
+    action: "Show optimised (-O3) AST" = debug-show-ctree-optimized-O3
+    action: "Show optimised (-O4) AST" = debug-show-ctree-optimized-O4
+    action: "Show optimised (-O5) AST" = debug-show-ctree-optimized-O5
+//    action: "Show optimised (-O6) program" = debug-show-ctree-optimized-O6
+
+  menu: "Codegen" (openeditor) (source)
+    action: "Show Java files (-O0)" = debug-show-java-O0
+    action: "Show Java files (-O1)" = debug-show-java-O1
+    action: "Show Java files (-O2)" = debug-show-java-O2
+    action: "Show Java files (-O3)" = debug-show-java-O3
+    action: "Show Java files (-O4)" = debug-show-java-O4
+    action: "Show Java files (-O5)" = debug-show-java-O5
+//    action: "Show Java files (-O6)" = debug-show-java-O6
 
 views
 

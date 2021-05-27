@@ -23,21 +23,8 @@ imports
   strj/multimatch/multimatch2java
 
 rules
-  translate-core-mm-aterm:
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"dfa.aterm")> path
-    ; result := <desugar; topdown(?MultiMatch(_, _) < multimatch2dfa + id)> node
-
-  translate-core-mm-pp:
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"dfa.stra")> path
-    ; result := <desugar; topdown(?MultiMatch(_, _) < multimatch2dfa + id); pp-stratego-core> node
-
-  translate-core(|path) = translate-core(|path, 2)
-
   translate-core(|path, O) = id
+    ; where(<set-config> ("--library", ())) // no main strategy necessary this way
     ; local-pre-desugar-all
     ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
     ; where(
@@ -52,6 +39,7 @@ rules
 
 rules // Debugging
 
+  // Show parsed AST
   debug-show-aterm:
     (node, _, _, path, project-path) -> (filename, result)
     with
@@ -69,19 +57,19 @@ rules // Debugging
     ; frontend-sep-comp
     ; ?result
 
+  // Show desugared AST
   debug-show-ctree:
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"ctree.aterm")> path
-    ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; <translate-core(|path)> node => result
+    ; <translate-core(|path, 2)> node => result
 
+  // Show desugared concrete syntax
   debug-show-core:
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"core.stra")> path
-    ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; <translate-core(|path); pp-stratego-core> node => result
+    ; <translate-core(|path, 2); pp-stratego-core> node => result
 
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
@@ -108,69 +96,46 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
 
-  debug-show-java-unoptimized:
+  debug-show-java-O0 = debug-show-java(|0)
+  debug-show-java-O1 = debug-show-java(|1)
+  debug-show-java-O2 = debug-show-java(|2)
+  debug-show-java-O3 = debug-show-java(|3)
+  debug-show-java-O4 = debug-show-java(|4)
+  debug-show-java-O5 = debug-show-java(|5)
+  debug-show-java-O6 = debug-show-java(|6)
+
+  debug-show-java(|O):
     (node, _, _, path, project-path) -> (filename*, result*)
     with
-      <set-config> ("--library", ()) // no main strategy necessary this way
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
-    ; where(
-        <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
-      ; strj-preinit-options
-      ; <set-config> ("-O", 0) // set optimisation level to 0
-      ; <dirname> path
-      ; rules(OutputDirName := <id>)
-      )
-    ; strc-optimize
+      <translate-core(|path, O)> node
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
-  debug-show-dfa-pp-O0 = debug-show-pp-dfa(|0)
-  debug-show-dfa-pp-O1 = debug-show-pp-dfa(|1)
-  debug-show-dfa-pp-O2 = debug-show-pp-dfa(|2)
-  debug-show-dfa-pp-raw-O2 = raw; debug-show-pp-dfa(|2)
-  debug-show-dfa-pp-O3 = debug-show-pp-dfa(|3)
-  debug-show-dfa-pp-raw-O3 = raw; debug-show-pp-dfa(|3)
-  debug-show-dfa-pp-O4 = debug-show-pp-dfa(|4)
-  debug-show-dfa-pp-raw-O4 = raw; debug-show-pp-dfa(|4)
-  debug-show-dfa-pp-O5 = debug-show-pp-dfa(|5)
 
-  raw = where(<set-config> ("--no-dfa-optimise", ()))
-  debug-show-pp-dfa(|O) =
-    debug-show-ctree-dfa(|O)
-  ; (id, pp-stratego-core)
-
-  debug-show-dfa-ctree-O0 = debug-show-ctree-dfa(|0)
-  debug-show-dfa-ctree-O1 = debug-show-ctree-dfa(|1)
-  debug-show-dfa-ctree-O2 = debug-show-ctree-dfa(|2)
-  debug-show-dfa-ctree-O3 = debug-show-ctree-dfa(|3)
-  debug-show-dfa-ctree-O4 = debug-show-ctree-dfa(|4)
-  debug-show-dfa-ctree-O5 = debug-show-ctree-dfa(|5)
-
-  debug-show-ctree-dfa(|O):
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      <set-config> ("--library", ()) // no main strategy necessary this way
-    ; filename := <guarantee-extension(|"dfa.stra")> path
-    ; <translate-core(|path, O)> node
-    ; topdown(?MultiMatch(_, _) < multimatch2dfa + id)
-    ; ?result
-
-  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
-  debug-show-core-optimized-O0 = debug-show-core-optimized(|0)
   debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
   debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
   debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
   debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
   debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
+  debug-show-core-optimized-O6 = debug-show-core-optimized(|6)
+
+  debug-show-ctree-optimized-O1 = debug-show-ctree-optimized(|1)
+  debug-show-ctree-optimized-O2 = debug-show-ctree-optimized(|2)
+  debug-show-ctree-optimized-O3 = debug-show-ctree-optimized(|3)
+  debug-show-ctree-optimized-O4 = debug-show-ctree-optimized(|4)
+  debug-show-ctree-optimized-O5 = debug-show-ctree-optimized(|5)
+  debug-show-ctree-optimized-O6 = debug-show-ctree-optimized(|6)
+
+  debug-show-ctree-optimized(|O):
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|$[core.opt[O].aterm])> path
+    ; <translate-core(|path, O)> node => result
 
   debug-show-core-optimized(|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|$[core.opt[O].stra])> path
-    ; <set-config> ("--library", ()) // no main strategy necessary this way
     ; <translate-core(|path, O); pp-stratego-core> node => result

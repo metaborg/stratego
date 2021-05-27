@@ -7,8 +7,6 @@ module frontend
 imports
   strc/strc/format-check
 
-  strc/stratego/strc/front/match-choices-to-multimatches
-
 strategies
 
   frontend = 
@@ -116,8 +114,6 @@ strategies
 
       ; m-transform-local-defs(
           [rename-calls
-           ; simplify
-           ; choices-to-multimatches
            ; simplify
 	       ; define-congruences-def
           ]
