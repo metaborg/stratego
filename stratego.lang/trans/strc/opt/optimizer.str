@@ -10,6 +10,8 @@ imports signatures/Stratego strc/opt/stratego-laws libstratego-lib
 imports
   strc/stratego/strc/opt/choices-to-multimatches
 
+  strj/multimatch/multimatch2dfa
+
 strategies
 
   olevel(n, s) =
@@ -83,6 +85,9 @@ strategies
 //	; desugar-case
         //; save-as2(!".opt5")
       )
+    ; olevel5(
+      topdown(try(multimatch2dfa))
+    )
     // INLINING 
     // inline local definitions introduced by pattern match compilation
     ; olevel5(

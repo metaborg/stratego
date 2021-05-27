@@ -20,8 +20,6 @@ imports
   libjava-front
   libstratego-gpp
 
-  strj/multimatch/multimatch2java
-
 rules
   translate-core(|path, O) = id
     ; where(<set-config> ("--library", ())) // no main strategy necessary this way
@@ -101,6 +99,7 @@ rules // Debugging
   debug-show-java-O2 = debug-show-java(|2)
   debug-show-java-O3 = debug-show-java(|3)
   debug-show-java-O4 = debug-show-java(|4)
+  debug-show-java-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-java(|4)
   debug-show-java-O5 = debug-show-java(|5)
   debug-show-java-O6 = debug-show-java(|6)
 
@@ -113,29 +112,40 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
+imports
+  strc/stratego/strc/opt/bound-unbound-vars
+
+strategies
 
   debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
   debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
   debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
   debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
+  debug-show-core-optimized-O4-analysed = debug-show-core-optimized(mark-bound-unbound-vars|4)
   debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
+  debug-show-core-optimized-analysed-O5 = debug-show-core-optimized(mark-bound-unbound-vars|5)
+  debug-show-core-optimized-O5-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-core-optimized(|5)
   debug-show-core-optimized-O6 = debug-show-core-optimized(|6)
 
   debug-show-ctree-optimized-O1 = debug-show-ctree-optimized(|1)
   debug-show-ctree-optimized-O2 = debug-show-ctree-optimized(|2)
   debug-show-ctree-optimized-O3 = debug-show-ctree-optimized(|3)
   debug-show-ctree-optimized-O4 = debug-show-ctree-optimized(|4)
+  debug-show-ctree-optimized-O4-analysed = debug-show-ctree-optimized(mark-bound-unbound-vars|4)
   debug-show-ctree-optimized-O5 = debug-show-ctree-optimized(|5)
+  debug-show-ctree-optimized-O5-analysed = debug-show-ctree-optimized(mark-bound-unbound-vars|5)
   debug-show-ctree-optimized-O6 = debug-show-ctree-optimized(|6)
 
-  debug-show-ctree-optimized(|O):
+  debug-show-ctree-optimized(|O) = debug-show-ctree-optimized(id|O)
+  debug-show-ctree-optimized(s|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|$[core.opt[O].aterm])> path
-    ; <translate-core(|path, O)> node => result
+    ; <translate-core(|path, O); s> node => result
 
-  debug-show-core-optimized(|O):
+  debug-show-core-optimized(|O) = debug-show-core-optimized(id|O)
+  debug-show-core-optimized(s|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|$[core.opt[O].stra])> path
-    ; <translate-core(|path, O); pp-stratego-core> node => result
+    ; <translate-core(|path, O); s; pp-stratego-core> node => result
