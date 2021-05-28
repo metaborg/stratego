@@ -2,7 +2,7 @@ module desugar/matchchoice
 language stratego
 
 test match alts to MM [[
-module matchchoice
+specification
 
 signature
   sorts List
@@ -14,8 +14,8 @@ strategies
   s = ?Cons(_, Nil()); !1
    <+ ?Cons(_, Cons(_, Cons(_, Nil()))); !2
    <+ ?_; !3
-]] run match-choices-to-multimatches-test-NoDesugar to [[
-module matchchoice
+]] transform "Test -> Choice to MultiMatch" to [[
+specification
 
 signature
   sorts List

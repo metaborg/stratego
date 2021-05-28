@@ -18,7 +18,7 @@ length_0_0( | ) =
     case | Cons(_, Nil( ){^_}){^_}: !1{^Nil( )}
     case | Cons(_, _){^_}: id
   end
-]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+]] transform "Test -> MultiMatch to DFA" to [[
 specification
 
 signature
@@ -67,7 +67,7 @@ comp_0_0( | ) =
     case | (Nil( ){^_}, _){^_}: !1{^Nil( )}
     case | (_, Nil( ){^_}){^_}: !2{^Nil( )}
   end
-]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+]] transform "Test -> MultiMatch to DFA" to [[
 specification
 
 signature
@@ -136,7 +136,7 @@ uncar2_0_0( | ) =
     case | 8{^_}: !54{^Nil( )}
     case | 5.4{^_}: !8{^Nil( )}
   end
-]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+]] transform "Test -> MultiMatch to DFA" to [[
 specification
 
 signature
@@ -200,7 +200,7 @@ s_0_1( | x4 : ATerm( )) =
     case y10 | C1(y10@_, _){^_}: !y10
     case z7 | z7@C2( ){^_}: !3{^Nil( )}
   end
-]] transform "Codegen (AST) -> Translate MultiMatches" to [[
+]] transform "Test -> MultiMatch to DFA" to [[
 specification
 
 signature

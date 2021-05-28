@@ -149,3 +149,42 @@ strategies
     with
       filename := <guarantee-extension(|$[core.opt[O].stra])> path
     ; <translate-core(|path, O); s; pp-stratego-core> node => result
+
+// Testing strategies
+imports
+  strc/stratego/strc/front/desugar
+  strj/multimatch/multimatch2dfa
+
+strategies // for testing pruposes only
+  test-choice2multimatch = test-menuitem-aterm(|4)
+  test-choice2multimatch-pp = test-menuitem-pp(|4)
+
+  test-multimatch2dfa = test-menuitem-aterm(id, topdown(try(multimatch2dfa)))
+  test-multimatch2dfa-pp = test-menuitem-pp(id, topdown(try(multimatch2dfa)))
+
+  test-menuitem-pp(|O) = test-menuitem-pp(id, id|O)
+  test-menuitem-pp(s1, s2) = test-menuitem-pp(s1, s2|2)
+  test-menuitem-pp(s1, s2|O) = test-menuitem(s1, s2, pp-stratego-core|O, "stra")
+
+  test-menuitem-aterm(|O) = test-menuitem-aterm(id, id|O)
+  test-menuitem-aterm(s1, s2) = test-menuitem-aterm(s1, s2|2)
+  test-menuitem-aterm(s1, s2|O) = test-menuitem(s1, s2, id|O, "aterm")
+
+  test-menuitem(s1, s2|O, ext) = test-menuitem(s1, s2, id|O, ext)
+  test-menuitem(s1, s2, pp|O, ext):
+    (node, _, _, path, project-path) -> (filename, result)
+  with
+    filename := <guarantee-extension(|$[test.[ext]])> path
+  ; <test-translate-core(s1, s2|path, O); pp> node => result
+
+  test-translate-core(|path, O) = test-translate-core(id, id|path, O)
+  test-translate-core(s1, s2|path, O) = id
+  ; where(
+      <set-config> ("--library", ()) // no main strategy necessary this way
+    ; <set-config> ("-O", O)
+    )
+  ; local-pre-desugar-all
+  ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
+  ; s1
+  ; strc-optimize
+  ; s2

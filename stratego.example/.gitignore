@@ -4,6 +4,7 @@
 *.core.opt*.stra
 *.dfa.stra
 *.pp.stra
+*.test.stra
 *.java
 
 # Java
