@@ -16,12 +16,13 @@ strategies
    *
    * Maranget (2008), fig. 1.
    */
-  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, debug(!"ERROR - no default: "))))
+  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, fatal-err(|"ERROR - no default: "))))
   default-row: Row([<is-wld> | ps], s_a, s_g, s_rhs) -> Row(ps, s_a, s_g, s_rhs)
 
   non-default-row = ?Row([<non-default-head> | _], _, _, _) // by definition
   non-default-head =
     ?Op(_, _)
+  + ?Explode(_, _)
   + ?Var(_) // Could be a default row, but needs an assignment first.
   + is-literal
 
@@ -81,6 +82,9 @@ strategies
 
   // Tuples + lists + constructor applications
   arity = ?Op(_, <length>)
+//  arity = ?Explode("", <length>) // Tuple
+//  arity = where(?Explode(<is-string>, _)); ?Explode(_, <length>) // Op
+//  arity = where(?Explode(<is-list>, _)); !2 // List
 
   p-arity = ?Fun(_, <string-to-int>)
   p-arity = ?Tuple(<string-to-int>)

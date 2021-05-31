@@ -232,3 +232,9 @@ s_0_1( | x4 : ATerm( )) =
                 fail
             } }
 ]]
+
+test Term explosion [[
+
+]] transform "Test -> MultiMatch to DFA" to [[
+
+]]
