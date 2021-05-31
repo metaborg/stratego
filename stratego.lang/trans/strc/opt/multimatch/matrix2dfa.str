@@ -99,7 +99,7 @@ strategies
     c* := <constructors-om> col
   where
     !c* => [hc@Anno()]
-  ; debug(!"unwrapping annos... ")
+//  ; debug(!"unwrapping annos... ")
 
   tswitch:
     (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, Default(s_def))
@@ -114,7 +114,7 @@ strategies
 
   valt(|m): (c, s*) -> GuardedAltV(c, guards)
   where <is-switchable> c
-    ; <debug(!"valt ")> (c, s*)
+//    ; <debug(!"valt ")> (c, s*)
   with
     // Remove (i.e. replace by Id()) the alias guard
     guards := <map(!Guard(<id>, <specialize-set(set-alias-guard(|Id())|c); CC> m))> s*
