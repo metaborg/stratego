@@ -5,28 +5,31 @@ test match alts to MM [[
 specification
 
 signature
-  sorts List
+  sorts A() List(a)
   constructors
-    Nil  :                List(a)
-    Cons : a * List(a) -> List(a)
+    C1 : A() * A() -> A()
+    C2 : A()    -> A()
+    Nil :         List(a)
 
 strategies
-  s = ?Cons(_, Nil()); !1
-   <+ ?Cons(_, Cons(_, Cons(_, Nil()))); !2
-   <+ ?_; !3
+  s_0_0( | ) = ?C1(C2(_){^_}, _){^_}; !1{^Nil()}
+    < id + ?C2(C1(_, C2(_){^_}){^_}){^_}; !2{^Nil()}
+    < id + !3{^Nil()}
 ]] transform "Test -> Choice to MultiMatch" to [[
 specification
 
 signature
-  sorts List
+  sorts A() List(a)
   constructors
-    Nil  :                List(a)
-    Cons : a * List(a) -> List(a)
+    C1 : A() * A() -> A()
+    C2 : A()    -> A()
+    Nil :         List(a)
 
 strategies
-  s = match sequential
-    case | Cons(_, Nil( )): !1
-    case | Cons(_, Cons(_, Cons(_, Nil( )))): !2
-    case | _{^_}: !3
+s_0_0( | ) =
+  match sequential
+    case | C1(C2(_){^_}, _){^_} where id: !1{^Nil( )}
+    case | C2(C1(_, C2(_){^_}){^_}){^_} where id: !2{^Nil( )}
+    case | _{^_} where id: !3{^Nil( )}
   end
 ]]
