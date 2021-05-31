@@ -1,0 +1,45 @@
+module Box
+
+signature
+  constructors
+    CL       : FONT-PARAM
+    SZ       : FONT-PARAM
+    SH       : FONT-PARAM
+    SE       : FONT-PARAM
+    FM       : FONT-PARAM
+    FN       : FONT-PARAM
+    MATH     : FONT-OPERATOR
+    NUM      : FONT-OPERATOR
+    VAR      : FONT-OPERATOR
+    KW       : FONT-OPERATOR
+    F        : List(F-OPTION) -> FONT-OPERATOR
+    FFID     : FONT-PARAM * FID -> F-OPTION
+    FNAT     : FONT-PARAM * NatCon -> F-OPTION
+             : String -> FID
+    AOPTIONS : List(A-OPTION) -> A-OPTIONS
+    AR       : List(S-OPTION) -> A-OPTION
+    AC       : List(S-OPTION) -> A-OPTION
+    AL       : List(S-OPTION) -> A-OPTION
+    IS       : SPACE-SYMBOL
+    HS       : SPACE-SYMBOL
+    VS       : SPACE-SYMBOL
+    SOptB    : SPACE-SYMBOL * BOX -> S-OPTION
+    SOpt     : SPACE-SYMBOL * NatCon -> S-OPTION
+    LNAT     : NatCon * BOX -> BOX
+    L        : BOX * BOX -> BOX
+    C        : List(S-OPTION) * List(BOX) -> BOX
+    REF      : BoxLiteral * BOX -> BOX
+    LBL      : BoxLiteral * BOX -> BOX
+    FBOX     : FONT-OPERATOR * BOX -> BOX
+    R        : List(S-OPTION) * List(BOX) -> BOX
+    A        : A-OPTIONS * List(S-OPTION) * List(BOX) -> BOX
+    ALT      : BOX * BOX -> BOX
+    I        : List(S-OPTION) * BOX -> BOX
+    HZ       : List(S-OPTION) * List(BOX) -> BOX
+    Z        : List(S-OPTION) * List(BOX) -> BOX
+    HV       : List(S-OPTION) * List(BOX) -> BOX
+    V        : List(S-OPTION) * List(BOX) -> BOX
+    H        : List(S-OPTION) * List(BOX) -> BOX
+    S        : BoxLiteral -> BOX
+             : String -> NatCon
+             : String -> BoxLiteral

@@ -1,0 +1,146 @@
+module compile
+
+imports
+  signatures/Stratego-Sugar
+  strc/model/model
+  strc/front/rename-defs
+
+  strc/incr/split-large-term-builds
+  strc/incr/fix-new-grammar
+
+strategies
+
+  // The following are for compiling a single strategy + its overlays
+  stratego2-compile-top-level-def: spec ->
+      <MetaExplode;fix-new-grammar;frontend-sep-comp> spec
+    with id
+      ; <set-config> ("--library", ())
+      ; <set-config> ("--verbose", 0)
+
+strategies
+
+  frontend-sep-comp =
+    m-transform-no-overlays(id
+
+// commented: [DONE IN JAVA]
+//      // add some definitions and constructors
+//
+//      ; if-not-lib(m-add-main)
+//      // TODO: remove this congruence once bootstrapped (it's in the standard library now)
+//      ; m-add-anno-cong-def
+//      // TODO: remove these constructors once bootstrapped (they're in the standard library now)
+//      ; where(dr-constructors; map(m-add-constructor))
+
+// commented: [DONE IN JAVA]
+//      // desugar and check constructors
+//
+//      ; m-transform-constructors(id
+//// commented: Don't add to VarToConst which is used in pre-desugar to turn variables into nullary constructors if the variable matches that nullary constructor name. 
+////          ; pre-desugar; try(DeclareVarToConst)
+//          ; try((TupleDecl <+ QuotedConstrDecl); pre-desugar)
+//// commented: Used in check-constructors, which requires global info on constructors [DONE IN TYPESYSTEM]
+////          ; (GenerateCheckRule <+ dbg(|"GenerateCheckRule fails: "))
+//          // m-MkCongDef fails when the signature already exists (from a strategy), so we need to pass this info to Java to check if we should include this congruence
+//          ; try(where(
+//              m-MkCongDef
+//            ; where({
+//                sig@(name, n, m) := <m-def-signature>
+//                // pre-renaming as RenameSDef2 will do, so it matches ModDefinition key when SepCompCong is queried at the end
+//              ; renamed-sig := (<strategy-sig-to-string> sig, n, m)
+//              ; rules(SepCompCong : renamed-sig -> name)
+//            })
+//            ; m-add-def
+//          ))
+//        )
+
+      // desugar and check overlays
+      ; m-transform-overlays(scope-def-local-newname(id
+          ; pre-desugar
+          ; check-overlay
+//          ; try(DeclareVarToConst)
+        /*)
+
+      ; m-transform-overlays(id*/
+//// commented: Nullary constructors feature, off in separate compilation
+////          ; m-variables-to-constructors-in-def; pre-desugar
+          ; not(def-use-def)
+          ; not(check-where-with)
+          ; raise-annotations
+//          ; GenerateCheckRule
+          ; DeclareExpandOverlay
+// commented: [DONE IN JAVA]
+//          // We don't register this as a SepCompCong, because it is unconditionally added whereas
+//          //  m-MkCongDef fails when a definition of the same name already exists. 
+//          ; where(Overlay-to-Congdef; m-add-def)
+        | <m-overlay-signature;constr-sig-to-string>))
+
+// commented: checks if used constructor with such an arity exists. Therefore needs global information [DONE IN TYPESYSTEM]
+//      ; m-transform-overlays(
+//          not(check-constructors)
+//        )
+
+      // transform and check local definitions
+
+      ; m-transform-local-defs(map(scope-def-local-newname(id
+          ; m-repair-types
+          ; pre-desugar        
+          ; raise-annotations
+        | <m-def-signature;strategy-sig-to-string>)))
+
+      ; m-lift-dynamic-rules-from-spec
+
+// commented: checks if used strategy with such an arity exists. Therefore needs global information [DONE IN TYPESYSTEM]
+//      ; check-calls
+
+      ; m-transform-local-defs(scope-def-local-newname(
+          if Hd;m-def-signature;?("DYNAMIC_CALLS", 0, 0)
+            then ![]
+            else
+          map(id
+            ; stratego-desugar
+            ; raise-annotations
+            ; not(def-use-def)
+// commented: [DONE IN TYPESYSTEM]
+//            ; not(check-constructors)
+            ; expand-overlays-in-def
+            ; rules-to-sdefs-def
+            ; desugar-list-matching
+            ; desugar-DefaultVarDec
+            ; strename
+            ; desugar-def
+            ; check-patterns
+            ; split-large-term-builds
+          )
+        /*)
+
+      ; m-transform-local-defs(id*/
+          ; joindefs
+          ; rename-sdef2
+          ; ![<id>]
+            end
+        | <?[<m-def-signature;strategy-sig-to-string>|_]>))
+
+// commented: [DONE IN TYPESYSTEM]
+      ; m-transform-external-defs(id
+          ; if ?[_,_|_] then
+//              warn(|"multiple external definitions with same signature")
+              [id | ![]] // Cannot reuse dyn rule when already used in library
+            end
+          ; [ id
+             ; rename-sdef2
+             ; desugar-DefaultVarDec
+             ; strename
+            ]
+        )
+
+      ; m-transform-local-defs([scope-def-local-newname(id
+          ; rename-calls2
+          ; simplify
+          ; define-congruences-def
+        | <m-def-signature;Fst>)])
+
+// commented: Can't tell if unused without global information
+//      ; if-lib(remove-unused-external-defs, remove-unused-defs)
+    )
+// commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
+//    ; tfc1(|"Stratego-Core", "fe-cong")

@@ -1,9 +1,0 @@
----
-id: org.example:stratego.gradual.test:0.1.0-SNAPSHOT
-name: strategogradual
-dependencies:
-  compile:
-  - org.example:stratego.gradual:0.1.0-SNAPSHOT
-  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
-build:
-  useBuildSystemSpec: true

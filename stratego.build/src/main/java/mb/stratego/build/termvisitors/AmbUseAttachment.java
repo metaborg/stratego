@@ -14,4 +14,16 @@ public class AmbUseAttachment extends AbstractTermAttachment {
 
     private AmbUseAttachment() {
     }
+
+    @Override public boolean equals(Object other) {
+        return this == other || other != null && this.getClass() == other.getClass();
+    }
+
+    @Override public int hashCode() {
+        return 0;
+    }
+
+    private Object readResolve() {
+        return INSTANCE;
+    }
 }

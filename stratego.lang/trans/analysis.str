@@ -1,0 +1,62 @@
+module analysis
+
+imports
+
+  signatures/core/modules-sig
+  signatures/sugar/modules-sig
+  signatures/sugar/terms-sig
+  signatures/gradual-types/strategies-sig
+
+  gradual-types/modules
+  gradual-types/main
+  pp
+
+  libspoofax/term/origin
+
+rules // Desugar
+
+  local-pre-desugar-all = bottomup(try(local-pre-desugar))
+
+  local-pre-desugar: NoAnnoList(Tuple([t])) -> t
+
+rules // Analysis
+
+  test-analysis = strip-annos
+
+  editor-analyze:
+    (m@Module(_, decl*), path, project-path) -> (ast, errs, warns, notes)
+    with
+      (ast, errs, warns, notes) := <local-pre-desugar-all;prim("stratego_pie_analyze")> (m, path, project-path)
+
+  editor-analyze:
+    (s@Specification(_), path, project-path) -> (s, errs, warns, notes)
+    with
+      (errs, warns, notes)  := ([(s, "Illegal use of internal construct `specification`, use a named `module` instead.")], [], [])
+
+rules // Editor services
+
+  editor-resolve:
+    (node, position, ast, path, project-path) -> <fail>
+
+  editor-hover:
+    (node, position, ast, path, project-path) -> <fail>
+
+rules // Debugging
+
+  debug-show-analyzed:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := ast
+
+  debug-show-analyzed-concrete:
+    (_, _, ast, path, _) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"analyzed.str2")> path;
+      result   := <pp-StrategoLang-string> ast
+
+  count-inserted-casts = count-bottomup(?Cast(_));Snd
+
+  count-inserted-proxies = count-bottomup(?Proxy(_,_,_) + ?ProxyT(_,_,_,_,_));Snd
+
+  count-inserted-casts-and-proxies = count-bottomup(?Cast(_) + ?Proxy(_,_,_) + ?ProxyT(_,_,_,_,_));Snd

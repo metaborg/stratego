@@ -1,228 +1,191 @@
 package mb.stratego.build.strincr.message;
 
 import java.io.Serializable;
-import java.util.Set;
 
-import mb.log.api.Logger;
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
-import mb.stratego.build.strincr.MessageSeverity;
-import mb.stratego.build.strincr.message.java.AmbiguousStrategyCall;
-import mb.stratego.build.strincr.message.java.ConstantCongruence;
-import mb.stratego.build.strincr.message.java.ConstructorNotFound;
-import mb.stratego.build.strincr.message.java.CyclicOverlay;
-import mb.stratego.build.strincr.message.java.ExternalStrategyNotFound;
-import mb.stratego.build.strincr.message.java.ExternalStrategyOverlap;
-import mb.stratego.build.strincr.message.java.StrategyNotFound;
-import mb.stratego.build.strincr.message.java.UnresolvedImport;
-import mb.stratego.build.strincr.message.java.UnresolvedWildcardImport;
-import mb.stratego.build.strincr.message.java.VarConstrOverlap;
-import mb.stratego.build.strincr.message.stratego.AmbiguousConstructorUse;
-import mb.stratego.build.strincr.message.stratego.AsInBuildTerm;
-import mb.stratego.build.strincr.message.stratego.BuildDefaultInBuildTerm;
-import mb.stratego.build.strincr.message.stratego.BuildDefaultInMatchTerm;
-import mb.stratego.build.strincr.message.stratego.BuildUnboundTerm;
-import mb.stratego.build.strincr.message.stratego.CallDynamicNotSupported;
-import mb.stratego.build.strincr.message.stratego.CallStrategyArgumentTakesParameters;
-import mb.stratego.build.strincr.message.stratego.DuplicateTypeDefinition;
-import mb.stratego.build.strincr.message.stratego.MatchNotSpecificEnoughForTP;
-import mb.stratego.build.strincr.message.stratego.MissingDefinitionForTypeDefinition;
-import mb.stratego.build.strincr.message.stratego.MultipleAppsInMatch;
-import mb.stratego.build.strincr.message.stratego.NoInjectionBetween;
-import mb.stratego.build.strincr.message.stratego.NonListInAnno;
-import mb.stratego.build.strincr.message.stratego.NonStringOrListInExplodeConsPosition;
-import mb.stratego.build.strincr.message.stratego.ProceedInNonExtendStrategy;
-import mb.stratego.build.strincr.message.stratego.ProceedWrongNumberOfArguments;
-import mb.stratego.build.strincr.message.stratego.RawTermMessage;
-import mb.stratego.build.strincr.message.stratego.STypeMismatch;
-import mb.stratego.build.strincr.message.stratego.StrategyVariableTypedWithTermType;
-import mb.stratego.build.strincr.message.stratego.StringQuotationInMatchTerm;
-import mb.stratego.build.strincr.message.stratego.TermVariableTypedWithStrategyType;
-import mb.stratego.build.strincr.message.stratego.TypeMismatch;
-import mb.stratego.build.strincr.message.stratego.UnresolvedConstructor;
-import mb.stratego.build.strincr.message.stratego.UnresolvedLocal;
-import mb.stratego.build.strincr.message.stratego.UnresolvedStrategy;
-import mb.stratego.build.strincr.message.stratego.VariableBoundToIncompatibleType;
-import mb.stratego.build.strincr.message.stratego.WldInBuildTerm;
+import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
+import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
+import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
+import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.type.NoInjectionBetween;
+import mb.stratego.build.strincr.message.type.STypeMismatch;
+import mb.stratego.build.strincr.message.type.StrategyVariableTypedWithTermType;
+import mb.stratego.build.strincr.message.type.TermVariableTypedWithStrategyType;
+import mb.stratego.build.strincr.message.type.TypeMismatch;
+import mb.stratego.build.strincr.message.type.VariableBoundToIncompatibleType;
+import mb.stratego.build.util.WithLastModified;
 
-public abstract class Message<T extends IStrategoTerm> implements Serializable {
-    public final String moduleFilePath;
-    public final T locationTerm;
-    public final ImploderAttachment location;
+public abstract class Message implements WithLastModified, Serializable {
+    public final IStrategoTerm locationTerm;
+    // TODO: require location to be non-null once gradual type system stops losing origins
+    public final @Nullable ImploderAttachment location;
     public final MessageSeverity severity;
+    public final long lastModified;
 
-    public Message(String module, T name, MessageSeverity severity) {
-        this.moduleFilePath = module;
+    public Message(IStrategoTerm name, MessageSeverity severity, long lastModified) {
         this.locationTerm = name;
         this.location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(name));
+        assert this.location != null : "The given term " + name + " did not contain a location";
         this.severity = severity;
+        this.lastModified = lastModified;
     }
 
-    public static JavaMessage<IStrategoString> externalStrategyNotFound(String module, IStrategoString definitionName) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(definitionName);
-        if(origin != null && TermUtils.isString(origin)) {
-            definitionName = (IStrategoString) origin;
-        }
-        return new ExternalStrategyNotFound(module, definitionName);
-    }
-
-    public static JavaMessage<IStrategoString> strategyNotFound(String module, IStrategoString name,
-        MessageSeverity severity) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
-        }
-        return new StrategyNotFound(module, name, severity);
-    }
-
-    public static JavaMessage<IStrategoString> constructorNotFound(String module, IStrategoString name,
-        MessageSeverity severity) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
-        }
-        return new ConstructorNotFound(module, name, severity);
-    }
-
-    public static JavaMessage<IStrategoString> externalStrategyOverlap(String module, IStrategoString name) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
-        }
-        return new ExternalStrategyOverlap(module, name);
-    }
-
-    public static JavaMessage<IStrategoString> cyclicOverlay(String module, IStrategoString name, Set<String> overlayScc) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
-        }
-        return new CyclicOverlay(module, name, overlayScc);
-    }
-
-    public static JavaMessage<IStrategoString> ambiguousStrategyCall(String module, IStrategoString name,
-        Set<String> defs) {
-        IStrategoTerm origin = OriginAttachment.getOrigin(name);
-        if(origin != null && TermUtils.isString(origin)) {
-            name = (IStrategoString) origin;
-        }
-        return new AmbiguousStrategyCall(module, name, defs);
-    }
-
-    public static JavaMessage<IStrategoString> unresolvedImport(String module, IStrategoString path) {
-        return new UnresolvedImport(module, path);
-    }
-
-    public static JavaMessage<IStrategoString> unresolvedWildcardImport(String module, IStrategoString path) {
-        return new UnresolvedWildcardImport(module, path);
-    }
-
-    public static JavaMessage<IStrategoTerm> constantCongruence(String module, IStrategoTerm congruence) {
-        return new ConstantCongruence(module, congruence);
-    }
-
-    public static JavaMessage<IStrategoString> varConstrOverlap(String module, IStrategoString name) {
-        return new VarConstrOverlap(module, name);
-    }
-
-    public static StrategoMessage from(Logger logger, String module, IStrategoTerm messageTuple, MessageSeverity severity) {
+    public static Message from(IStrategoTerm messageTuple, MessageSeverity severity, long lastModified) {
         IStrategoTerm locationTerm = messageTuple.getSubterm(0);
         final IStrategoTerm messageTerm = messageTuple.getSubterm(1);
         switch(TermUtils.toAppl(messageTerm).getName()) {
             case "CallDynamicNotSupported":
-                return new CallDynamicNotSupported(module, locationTerm, severity);
+                return new CallDynamicNotSupported(locationTerm, severity, lastModified);
             case "TermVariableTypedWithStrategyType":
-                return new TermVariableTypedWithStrategyType(module, locationTerm, severity);
+                return new TermVariableTypedWithStrategyType(locationTerm, severity, lastModified);
             case "StrategyVariableTypedWithTermType":
-                return new StrategyVariableTypedWithTermType(module, locationTerm, severity);
+                return new StrategyVariableTypedWithTermType(locationTerm, severity, lastModified);
             case "DuplicateTypeDefinition":
-                return new DuplicateTypeDefinition(module, locationTerm, severity);
+                return new DuplicateTypeDefinition(locationTerm, severity, lastModified);
             case "MissingDefinitionForTypeDefinition":
-                return new MissingDefinitionForTypeDefinition(module, locationTerm, severity);
+                return new MissingDefinitionForTypeDefinition(locationTerm, severity, lastModified);
             case "ProceedWrongNumberOfArguments":
-                return new ProceedWrongNumberOfArguments(module, locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
-                    TermUtils.toJavaIntAt(messageTerm, 1), severity);
+                return new ProceedWrongNumberOfArguments(locationTerm,
+                    TermUtils.toJavaIntAt(messageTerm, 0), TermUtils.toJavaIntAt(messageTerm, 1),
+                    severity, lastModified);
             case "ProceedInNonExtendStrategy":
-                return new ProceedInNonExtendStrategy(module, locationTerm, severity);
+                return new ProceedInNonExtendStrategy(locationTerm, severity, lastModified);
             case "CallStrategyArgumentTakesParameters": // SFunType -> ErrorDesc
-                return new CallStrategyArgumentTakesParameters(module, locationTerm, messageTerm.getSubterm(0),
-                    severity);
+                return new CallStrategyArgumentTakesParameters(locationTerm,
+                    messageTerm.getSubterm(0), severity, lastModified);
             case "NoInjectionBetween": // Type * Type -> ErrorDesc
-                return new NoInjectionBetween(module, locationTerm, messageTerm.getSubterm(0),
-                    messageTerm.getSubterm(1), severity);
+                return new NoInjectionBetween(locationTerm, messageTerm.getSubterm(0),
+                    messageTerm.getSubterm(1), severity, lastModified);
             case "VariableBoundToIncompatibleType": // Type * Type -> ErrorDesc
-                return new VariableBoundToIncompatibleType(module, locationTerm, messageTerm.getSubterm(0),
-                    messageTerm.getSubterm(1), severity);
+                return new VariableBoundToIncompatibleType(locationTerm, messageTerm.getSubterm(0),
+                    messageTerm.getSubterm(1), severity, lastModified);
             case "TypeMismatch": // Type * Type -> ErrorDesc
-                return new TypeMismatch(module, locationTerm, messageTerm.getSubterm(0),
-                    messageTerm.getSubterm(1), severity);
+                return new TypeMismatch(locationTerm, messageTerm.getSubterm(0),
+                    messageTerm.getSubterm(1), severity, lastModified);
             case "STypeMismatch": // SType * SType -> ErrorDesc
-                return new STypeMismatch(module, locationTerm, messageTerm.getSubterm(0),
-                    messageTerm.getSubterm(1), severity);
+                return new STypeMismatch(locationTerm, messageTerm.getSubterm(0),
+                    messageTerm.getSubterm(1), severity, lastModified);
             case "UnresolvedLocal":
-                return new UnresolvedLocal(module, locationTerm, severity);
+                return new UnresolvedLocal(locationTerm, severity, lastModified);
             case "UnresolvedConstructor": // Int * Type -> ErrorDesc
-                return new UnresolvedConstructor(module, locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
-                    messageTerm.getSubterm(1), severity);
+                return new UnresolvedConstructor(locationTerm,
+                    TermUtils.toJavaIntAt(messageTerm, 0), messageTerm.getSubterm(1), severity,
+                    lastModified);
             case "UnresolvedStrategy":
-                return new UnresolvedStrategy(module, locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
-                    TermUtils.toJavaIntAt(messageTerm, 1), severity);
+                return new UnresolvedStrategy(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
+                    TermUtils.toJavaIntAt(messageTerm, 1), severity, lastModified);
             case "AmbiguousConstructorUse": // List(Type) -> ErrorDesc
-                return new AmbiguousConstructorUse(module, locationTerm, TermUtils.toJavaListAt(messageTerm, 0), severity);
+                return new AmbiguousConstructorUse(locationTerm,
+                    TermUtils.toJavaListAt(messageTerm, 0), severity, lastModified);
             case "AsInBuildTerm":
-                return new AsInBuildTerm(module, locationTerm, severity);
+                return new AsInBuildTerm(locationTerm, severity, lastModified);
             case "WldInBuildTerm":
-                return new WldInBuildTerm(module, locationTerm, severity);
+                return new WldInBuildTerm(locationTerm, severity, lastModified);
             case "BuildDefaultInBuildTerm":
-                return new BuildDefaultInBuildTerm(module, locationTerm, severity);
+                return new BuildDefaultInBuildTerm(locationTerm, severity, lastModified);
             case "BuildDefaultInMatchTerm":
-                return new BuildDefaultInMatchTerm(module, locationTerm, severity);
+                return new BuildDefaultInMatchTerm(locationTerm, severity, lastModified);
             case "StringQuotationInMatchTerm":
-                return new StringQuotationInMatchTerm(module, locationTerm, severity);
+                return new StringQuotationInMatchTerm(locationTerm, severity, lastModified);
             case "NonStringOrListInExplodeConsPosition": // Type -> ErrorDesc
-                return new NonStringOrListInExplodeConsPosition(module, locationTerm, messageTerm.getSubterm(0),
-                    severity);
+                return new NonStringOrListInExplodeConsPosition(locationTerm,
+                    messageTerm.getSubterm(0), severity, lastModified);
             case "NonListInAnno": // Type -> ErrorDesc
-                return new NonListInAnno(module, locationTerm, messageTerm.getSubterm(0), severity);
+                return new NonListInAnno(locationTerm, messageTerm.getSubterm(0), severity,
+                    lastModified);
             case "MultipleAppsInMatch":
-                return new MultipleAppsInMatch(module, locationTerm, severity);
+                return new MultipleAppsInMatch(locationTerm, severity, lastModified);
             case "BuildUnboundTerm":
-                return new BuildUnboundTerm(module, locationTerm, severity);
-            case "ErrorDesc.MatchNotSpecificEnoughForTP":
-                return new MatchNotSpecificEnoughForTP(module, locationTerm, messageTerm.getSubterm(0),
-                    severity);
+                return new BuildUnboundTerm(locationTerm, severity, lastModified);
+            case "MatchNotSpecificEnoughForTP":
+                return new MatchNotSpecificEnoughForTP(locationTerm, messageTerm.getSubterm(0),
+                    severity, lastModified);
+            case "UnsupportedCastRequiredInDynamicRule":
+                return new UnsupportedCastRequiredInDynamicRule(locationTerm, severity,
+                    lastModified);
+            case "DynRuleOverlapError":
+                return new DynRuleOverlapError(locationTerm,
+                    TermUtils.toJavaStringAt(messageTerm, 1),
+                    TermUtils.toJavaStringAt(messageTerm, 2),
+                    TermUtils.toJavaStringAt(messageTerm, 3),
+                    TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
             default:
-                logger.warn("Unrecognised message from type checker, passing raw message. ");
-                return new RawTermMessage(module, locationTerm, messageTerm, severity);
+                return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }
     }
 
     public String toString() {
-        return "In '" + moduleFilePath + "':\n" + getMessage();
+        return "In '" + locationString() + "':\n" + getMessage();
     }
 
-    @Override public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        final Message<?> message = (Message<?>) o;
-        if(!moduleFilePath.equals(message.moduleFilePath)) return false;
-        if(!locationTerm.equals(message.locationTerm)) return false;
-        if(severity != message.severity) return false;
-        return getMessage().equals(message.getMessage());
+    public String locationString() {
+        final IToken leftToken = location.getLeftToken();
+        final IToken rightToken = location.getRightToken();
+        final String filename = leftToken.getFilename();
+        final int leftLine = leftToken.getLine();
+        final int leftColumn = leftToken.getColumn();
+        final int rightLine = rightToken.getEndLine();
+        final int rightColumn = rightToken.getEndColumn()+1;
+        if(leftLine == rightLine) {
+            if(leftColumn == rightColumn) {
+                return filename + ":" + leftLine + ":" + leftColumn;
+            }
+            return filename + ":" + leftLine + ":" + leftColumn + "-" + rightColumn;
+        } else {
+            return filename + ":" + leftLine + "-" + rightLine + ":" + leftColumn + "-"
+                + rightColumn;
+        }
     }
 
-    @Override public int hashCode() {
-        int result = moduleFilePath.hashCode();
-        result = 31 * result + locationTerm.hashCode();
-        result = 31 * result + severity.hashCode();
-        result = 31 * result +  getMessage().hashCode();
-        return result;
+    protected String locationTermString() {
+        if(locationTerm instanceof IStrategoString) {
+            return ((IStrategoString) locationTerm).stringValue();
+        } else {
+            return locationTerm.toString();
+        }
+    }
+
+    public String moduleFilePath() {
+        final IToken leftToken = location.getLeftToken();
+        return leftToken.getFilename();
     }
 
     public abstract String getMessage();
-}
 
+    public long lastModified() {
+        return lastModified;
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+
+        Message message = (Message) o;
+
+        if(lastModified != message.lastModified)
+            return false;
+        if(!locationTerm.equals(message.locationTerm))
+            return false;
+        if(location != null ? !location.equals(message.location) : message.location != null)
+            return false;
+        return severity == message.severity;
+    }
+
+    @Override public int hashCode() {
+        int result = locationTerm.hashCode();
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + severity.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
+        return result;
+    }
+}

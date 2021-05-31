@@ -1,6 +1,0 @@
-module example
-
-strategies
-
-  children :: ? -> List(?)
-  children: _#(l) -> l

@@ -1,0 +1,98 @@
+/**
+ * Stratego Compiler Library
+ */
+module strc
+
+imports
+  libstratego-sglr
+
+  strc/model/model
+
+  strc/lib/stratlib
+
+  strc/front/add-main
+  strc/front/call-graph
+  strc/front/check-constructors
+  strc/front/combine-sections
+  strc/front/DefaultStrat
+  strc/front/desugar-list-matching
+  strc/front/desugar
+  strc/front/error-reporting
+  strc/front/expand-overlays
+  strc/front/extract
+  strc/front/introduce-congdefs
+  strc/front/lift-dynamic-rules
+  strc/front/needed-constructors
+  strc/front/needed-defs
+  strc/front/normalize-spec
+  strc/front/raise-annotations
+  strc/front/rename-defs
+  strc/front/repair-types
+  strc/front/report-ambs
+  strc/front/rules-to-sdefs
+  strc/front/stratego-ensugar
+  strc/front/stratego-warnings
+  strc/front/stratego-warnings-options
+  strc/front/use-def
+  strc/front/variables-to-constructors
+
+  strc/front/frontend
+  
+  strc/opt/bind-laws
+  strc/opt/bound-unbound-vars
+  strc/opt/build-match-laws
+  strc/opt/canonicalize-ng
+  strc/opt/congruence-laws
+  strc/opt/const-prop
+  strc/opt/dead-def-elim
+  strc/opt/dead-var-elim
+  strc/opt/define-congruences
+  strc/opt/defs-to-external-defs
+  strc/opt/fusion-rules
+  strc/opt/fusion
+  strc/opt/idfail-laws
+  strc/opt/inlining
+  strc/opt/lift-definitions
+  strc/opt/opt-lib
+  strc/opt/scope-laws
+  strc/opt/simplify1
+  strc/opt/simplify2
+  strc/opt/simplify3
+  strc/opt/stratego-laws
+  strc/opt/traversal-laws
+  strc/opt/worker-wrapper
+  
+  strc/opt/optimizer
+
+  strc/match/automaton
+  strc/match/compile-match
+  strc/match/desugar-case
+  strc/match/match-to-matrix
+  strc/match/matrix
+  strc/match/matrix-to-dfa
+  
+  strc/c/escaping-variables
+  // UNDONE: VladVergu. Not needed for bootstrapping to Java.
+  // strc/c/C-simplify
+  // strc/c/frame-composition
+  // strc/c/frames
+  // strc/c/s2c-ng
+
+  strc/strc/strc
+  strc/strc/strc-options
+  strc/strc/format-check
+  strc/strc/compile-c
+
+  strc/pack/pack-stratego
+  strc/pack/pack-stratego-options
+
+  strc/parse/parse-stratego
+  strc/parse/meta-explode
+
+  strc/pp/pp-stratego
+
+  strc/incr/compile
+  strc/incr/split-large-term-builds
+  strc/incr/fix-new-grammar
+  strc/incr/congdef
+  strc/incr/dyn-rule-related

@@ -1,0 +1,224 @@
+module rename-defs
+imports signatures/Stratego-Sugar 
+	strc/lib/stratlib 
+strategies
+
+  rename-defs = 
+     Specification([id, id, Strategies(rename-sdefs)])
+
+  // Rename the names of all top-level strategy definitions; 
+  // The Stratego syntax cannot be used for names of C functions.
+
+  rename-sdefs =
+    map(RenameSDef);
+    map(topdown(try(RenameCall)))
+
+  rename-sdef =
+    RenameSDef
+    ; topdown(try(RenameCall))
+
+  rename-calls =
+    topdown(try(RenameCall))
+
+rules
+
+  RenameSDef :
+    AnnoDef(a*, def) -> AnnoDef(a*, <RenameSDef> def)
+
+  RenameSDef : 
+    SDefT(x, args1, args2, s) -> SDefT(y, args1, args2, s)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m] => y
+        ; rules(
+            RenameVar : (x, (n,m)) -> y
+            CallSignature : y -> (y, n, m)
+          )
+        ; (<HoArg> x; rules(HoArg :- x)
+                   <+ rules(HoArg : x -> y))
+
+  RenameSDef : 
+    ExtSDef(x, args1, args2) -> ExtSDef(y, args1, args2)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m] => y
+        ; rules(
+            RenameVar : (x, (n,m)) -> y
+            CallSignature : y -> (y, n, m)
+          )
+        ; (<HoArg> x; rules(HoArg :- x )
+                   <+ rules(HoArg : x -> y))
+
+  RenameSDef : 
+    ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(y, args1, args2, s)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m] => y
+        ; rules(RenameVar : (x, (n,m)) -> y)
+        ; (<HoArg> x; rules(HoArg :- x)
+                   <+ rules(HoArg : x -> y))
+
+  RenameSDef : 
+    ExtTypedDef(x, t@FunTType(args1, args2, _)) -> ExtTypedDef(y, t)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m] => y
+        ; rules(
+            RenameVar : (x, (n,m)) -> y
+            CallSignature : y -> (y, n, m)
+          )
+        ; (<HoArg> x; rules(HoArg :- x )
+                   <+ rules(HoArg : x -> y))
+
+  RenameSDef : 
+    ExtTypedDefInl(x, args1, args2, t, s) -> ExtTypedDefInl(y, args1, args2, t, s)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <concat-strings>[<cify> x, "_", <int-to-string> n, "_", <int-to-string> m] => y
+        ; rules(RenameVar : (x, (n,m)) -> y)
+        ; (<HoArg> x; rules(HoArg :- x)
+                   <+ rules(HoArg : x -> y))
+
+  RenameCall : 
+    Call(SVar(x), ss) -> Call(SVar(y), ss)
+    where <length> ss => n
+        ; ( <RenameVar> (x,n) => y <+ <HoArg> x => y )
+
+  RenameCall : 
+    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+    where <length> ss => n
+        ; <length> ts => m
+        ; ( <RenameVar> (x,(n,m)) => y <+ <HoArg> x => y )
+
+  RenameCall : 
+    ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
+    where <length> ss => n
+        ; <length> ts => m
+        ; ( <RenameVar> (x,(n,m)) => y <+ <HoArg> x => y )
+
+
+// The next version of rename is used in incremental compilation
+
+signature constructors
+
+  LocalArg : Anno
+
+strategies
+
+  internal get-annotation(s) =
+    has-annos;
+    get-annos;
+    collect-one(s)
+
+  internal add-annotation(|a):
+    t{a*} -> t{a, a*} where <not(is-list)> a
+
+  internal remove-annotations(s):
+    t{a*} -> t{a'*}
+    where
+      a'* := <remove-all(s)> a*
+
+  // Rename the names of all top-level strategy definitions; 
+  // The Stratego syntax cannot be used for names of Java classes.
+
+  rename-calls2 =
+    topdown(try(RenameCall2))
+
+rules
+
+  rename-sdef2 =
+    ignore-anno-def(RenameSDef2)
+
+  RenameSDef2 : 
+    SDefT(x, args1, args2, s) -> SDefT(y, args1, args2, s')
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <strategy-sig-to-string>(x, n, m) => y
+        ; s' := <annotate-local-args(|<map(?VarDec(<rm-annotations>,_))> args1)> s
+
+  RenameSDef2 :
+    ExtSDef(x, args1, args2) -> ExtSDef(y, args1, args2)
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <strategy-sig-to-string>(x, n, m) => y
+
+  RenameSDef2 : 
+    ExtSDefInl(x, args1, args2, s) -> ExtSDefInl(y, args1, args2, s')
+    where <length> args1 => n
+        ; <length> args2 => m
+        ; <strategy-sig-to-string>(x, n, m) => y
+        ; s' := <annotate-local-args(|<map(?VarDec(<rm-annotations>,_))> args1)> s
+
+  RenameCall2 : 
+    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+    where id
+      ; <get-annotation(?LocalArg())> x
+      ; y := <remove-annotations(?LocalArg())> x
+
+  RenameCall2 :
+    CallT(SVar(x), [], []) -> CallT(SVar(y), [], [])
+    where id
+      ; <get-annotation(?AmbiguousStrategyResolution(n, m))> x
+      ; <strategy-sig-to-string>(x, n, m) => y
+
+  RenameCall2 : 
+    CallT(SVar(x), ss, ts) -> CallT(SVar(y), ss, ts)
+    where id
+      ; not(<get-annotation(?LocalArg() <+ ?AmbiguousStrategyResolution(_, _))> x)
+      ; <length> ss => n
+      ; <length> ts => m
+      ; <strategy-sig-to-string>(x, n, m) => y
+
+  RenameCall2 :
+    ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
+    where id
+      ; <get-annotation(?LocalArg())> x
+      ; y := <remove-annotations(?LocalArg())> x
+
+  RenameCall2 :
+    ProxyT([], [], i, o, SVar(x)) -> ProxyT([], [], i, o, SVar(y))
+    where id
+      ; <get-annotation(?AmbiguousStrategyResolution(n, m))> x
+      ; <strategy-sig-to-string>(x, n, m) => y
+
+  RenameCall2 : 
+    ProxyT(ss, ts, i, o, SVar(x)) -> ProxyT(ss, ts, i, o, SVar(y))
+    where id
+      ; not(<get-annotation(?LocalArg() <+ ?AmbiguousStrategyResolution(_, _))> x)
+      ; <length> ss => n
+      ; <length> ts => m
+      ; <strategy-sig-to-string>(x, n, m) => y
+
+
+  annotate-local-args(|larg*) =
+    alltd(preserve-annos(annotate-local-arg(|larg*)))
+
+  annotate-local-arg(|larg*):
+    Rec(name, body) -> Rec(name, body')
+  with id
+    ; larg'* := [name{}|larg*]
+    ; body' := <annotate-local-args(|larg'*)> body
+
+  annotate-local-arg(|larg*):
+    Let(sdeft*, body) -> Let(sdeft'*, body')
+  with id
+    ; def* := <map(?SDefT(<rm-annotations>, _, _, _))> sdeft*
+    ; larg'* := [def*,larg*]
+    ; body' := <annotate-local-args(|larg'*)> body
+    ; sdeft'* := <map({args1, arg*:
+        where(arg* := <?SDefT(_, <map(?VarDec(<rm-annotations>,_))>, _, _)>)
+      ; SDefT(id, id, id, annotate-local-args(|[arg*, larg'*]))})> sdeft*
+
+  annotate-local-arg(|larg*):
+    CallT(SVar(x1), ss, ts) -> CallT(SVar(x3), <map(annotate-local-args(|larg*))> ss, ts)
+  where id
+    ; x2 := x1{}
+    ; <getfirst(?x2)> larg*
+    ; x3 := <add-annotation(|LocalArg())> x1
+
+  annotate-local-arg(|larg*):
+    ProxyT(ss, ts, i, o, SVar(x1)) -> ProxyT(ss, ts, i, o, SVar(x3))
+  where id
+    ; x2 := x1{}
+    ; <getfirst(?x2)> larg*
+    ; x3 := <add-annotation(|LocalArg())> x1

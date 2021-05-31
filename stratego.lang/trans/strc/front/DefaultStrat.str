@@ -1,0 +1,7 @@
+module DefaultStrat
+imports signatures/Stratego-Sugar
+overlays
+
+  DefaultStrat = FunType([ConstType(Sort("ATerm",[]))], ConstType(Sort("ATerm",[])))
+
+  DefaultTerm = ConstType(Sort("ATerm",[]))

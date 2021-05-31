@@ -1,0 +1,62 @@
+module strc/incr/congdef
+
+imports
+
+  signatures/Stratego
+  strc/front/introduce-congdefs
+  strc/front/expand-overlays
+
+  strc/model/model
+
+  strc/front/desugar
+  strc/front/desugar-list-matching
+  strc/front/rules-to-sdefs
+  strc/front/use-def
+  strc/front/repair-types
+  strc/front/frontend
+  strc/incr/split-large-term-builds
+  strc/front/rename-defs
+  strc/opt/simplify1
+  strc/opt/define-congruences
+
+strategies
+
+  stratego2-mk-cong-def = stratego2-mk-cong-def-generate; stratego2-mk-cong-def-desugar
+
+  stratego2-mk-cong-def-generate: (f, n) -> SDefT(f, xdecs, [], Cong(f, <map(MkCall)> xs))
+  where
+    (is-string, is-int)
+  ; <range; unzip(!$[cong_arg_[<id>]]; !(VarDec(<id>, DefaultStrat()), <id>))> n => (xdecs, xs)
+
+  stratego2-mk-cong-def-generate = stratego2-mk-cong-def-overlay-pre-desugar; Overlay-to-Congdef
+
+  stratego2-mk-cong-def-overlay-pre-desugar =
+    pre-desugar
+  ; check-overlay
+  ; not(def-use-def)
+  ; not(check-where-with)
+  ; raise-annotations
+
+  stratego2-mk-cong-def-desugar: SDefT(f, xdecs, _, _) ->
+    <scope-def-local-newname(id
+          ; m-repair-types
+          ; pre-desugar
+          ; raise-annotations
+          ; stratego-desugar
+          ; raise-annotations
+          ; not(def-use-def)
+          ; expand-overlays-in-def
+          ; rules-to-sdefs-def
+          ; desugar-list-matching
+          ; desugar-DefaultVarDec
+          ; strename
+          ; desugar-def
+          ; check-patterns
+          ; split-large-term-builds
+          ; rename-sdef2
+          ; rename-calls2
+          ; simplify
+          ; define-congruences-def
+     | name)>
+  where
+    name := <strategy-sig-to-string> (f, <length> xdecs, 0)

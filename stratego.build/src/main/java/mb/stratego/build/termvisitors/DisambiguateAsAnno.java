@@ -29,7 +29,7 @@ public class DisambiguateAsAnno {
     private final Context context;
 
     private static class DisambiguationResult {
-        private boolean ambiguityFound;
+        private final boolean ambiguityFound;
         private @Nullable IStrategoTerm resolution;
 
         private DisambiguationResult(boolean ambiguityFound, @Nullable IStrategoTerm resolution) {
@@ -37,11 +37,7 @@ public class DisambiguateAsAnno {
             this.resolution = resolution;
         }
 
-        boolean ambiguityFound() {
-            return ambiguityFound;
-        }
-
-        IStrategoTerm resolution() {
+        @Nullable IStrategoTerm resolution() {
             return resolution;
         }
     }
@@ -50,10 +46,10 @@ public class DisambiguateAsAnno {
         this.context = context;
         visitor = new Strategy() {
             @Override
-            public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+            public @Nullable IStrategoTerm invoke(Context context, IStrategoTerm current) {
                 final IStrategoTerm visited = visit(current);
                 final DisambiguationResult ambiguityResolved = resolveAmbiguity(visited);
-                if(ambiguityResolved.ambiguityFound()) {
+                if(ambiguityResolved.ambiguityFound) {
                     return ambiguityResolved.resolution();
                 }
                 return visited;
@@ -67,18 +63,22 @@ public class DisambiguateAsAnno {
         // See also: https://github.com/metaborg/jsglr/pull/44#issuecomment-589648434
         if(TermUtils.isList(result)) {
             final ArrayList<IStrategoTerm> flatList = new ArrayList<>();
+            boolean nestedListFound = false;
             for(IStrategoTerm child : result) {
                 if(TermUtils.isList(child)) {
+                    nestedListFound = true;
                     Collections.addAll(flatList, child.getAllSubterms());
                 } else {
                     flatList.add(child);
                 }
             }
-            // TermFactory#replaceList apparently requires the lists to be equal length, or it will throw an exception
-            final ITermFactory factory = context.getFactory();
-            final IStrategoList newList =
-                factory.makeList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), result.getAnnotations());
-            return factory.replaceTerm(newList, result);
+            if(nestedListFound) {
+                // TermFactory#replaceList apparently requires the lists to be equal length, or it will throw an exception
+                final ITermFactory factory = context.getFactory();
+                final IStrategoList newList =
+                    factory.makeList(flatList.toArray(AbstractTermFactory.EMPTY_TERM_ARRAY), result.getAnnotations());
+                return factory.replaceTerm(newList, result);
+            }
         }
         return result;
     }
@@ -104,10 +104,7 @@ public class DisambiguateAsAnno {
         return new DisambiguationResult(false, null);
     }
 
-    public IStrategoTerm resolveAmbiguity(IStrategoTerm left, IStrategoTerm right) {
-        if(left == null || right == null) {
-            return null;
-        }
+    public @Nullable IStrategoTerm resolveAmbiguity(IStrategoTerm left, IStrategoTerm right) {
         if(left.getClass() != right.getClass()) {
             return null;
         }
@@ -127,8 +124,7 @@ public class DisambiguateAsAnno {
             final IStrategoAppl rightA = (IStrategoAppl) right;
 
             if(leftA.getConstructor().equals(rightA.getConstructor())) {
-                return resolveChildAmbiguity(leftA, rightA,
-                    (nc, l) -> context.getFactory().replaceAppl(leftA.getConstructor(), nc, l));
+                return resolveChildAmbiguity(leftA, rightA, this::replaceAppl);
             }
             switch(leftA.getName()) {
                 case "As":
@@ -154,12 +150,17 @@ public class DisambiguateAsAnno {
         return null;
     }
 
+    private IStrategoAppl replaceAppl(IStrategoTerm[] nc, IStrategoAppl l) {
+        return context.getFactory().replaceAppl(l.getConstructor(), nc, l);
+    }
+
     public <T extends IStrategoTerm> T resolveChildAmbiguity(T left, T right,
         BiFunction<IStrategoTerm[], T, T> replaceT) {
         final IStrategoTerm[] newChildren = new IStrategoTerm[left.getSubtermCount()];
         for(int i = 0; i < left.getSubtermCount(); i++) {
             newChildren[i] = resolveAmbiguity(left.getSubterm(i), right.getSubterm(i));
             if(newChildren[i] == null) {
+                //noinspection ConstantConditions
                 return null;
             }
         }

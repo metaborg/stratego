@@ -1,0 +1,111 @@
+module strc/incr/dyn-rule-related
+
+imports
+
+  signatures/Stratego
+  signatures/gradual-types/internal-sig
+
+  strc/lib/stratlib
+  strc/front/lift-dynamic-rules
+  strc/front/desugar
+  strc/front/raise-annotations
+  strc/model/model
+
+  libspoofax/term/origin
+
+strategies
+
+  stratego2-aux-signatures = collect-all(dyn-rule-to-aux-sig)
+
+  // Note: We use _#([lhs|_]) to match lhs of a Rule here, which can be _two_ constructors Rule
+  //       and RuleNoCond. That second one only exists in the old Stratego 1 grammar, but needs to
+  //       be supported for now.
+  dyn-rule-to-aux-sig: drd@_#([drid,_]) ->
+    ($[aux-[name]], sargs, <addi;int-inc> (targs, tvars))
+  where
+    lhs := <dyn-rule-lhs> drd
+  with
+    (name, sargs, targs) := <dyn-rule-id-to-sig> drid
+  ; tvars := <tvars;length> lhs
+
+strategies
+
+  // this helper is used in cases where AddScopeLabel/2 and UndefineDynRule/2 are not supposed to be matched
+  dyn-rule-lhs: SetDynRule(_, _#([lhs|_])) -> lhs
+  dyn-rule-lhs: AddDynRule(_, _#([lhs|_])) -> lhs
+  dyn-rule-lhs: SetDynRuleMatch(_, lhs) -> lhs
+  dyn-rule-lhs: DynRuleAssign(_, _) -> Wld()
+  dyn-rule-lhs: DynRuleAssignAdd(_, _) -> Wld()
+  dyn-rule-lhs: SetDynRuleDepends(_, _#([lhs|_]), _) -> lhs
+
+  dyn-rule-id-to-sig =
+    ?LabeledDynRuleId(<dyn-rule-dec-to-sig>, _)
+  + ?AddLabelDynRuleId(<dyn-rule-dec-to-sig>, _)
+  + ?DynRuleId(<dyn-rule-dec-to-sig>)
+
+  dyn-rule-dec-to-sig: RDecNoArgs(n) -> (n, 0, 0)
+  dyn-rule-dec-to-sig: RDec(n, s*) -> (n, <length> s*, 0)
+  dyn-rule-dec-to-sig: RDecT(n, s*, t*) -> (n, <length> s*, <length> t*)
+
+strategies
+
+  stratego2-dyn-rule-overlap-check = {| LeftHandSide:
+    map(pre-desugar; raise-annotations)
+  ; outermost(DesugarDynRuleDefId <+ DesugarDynRuleDef)
+  ; mapconcat({| ContextVar, CurrentDef: {\'def -> <collect-all-split-under-scope(equiv-of-SplitDynamicRule)> 'def
+      where
+        <def-tvars> 'def; DeclareContextVars
+      ; <def-name;strategy-sig-to-string> 'def => name
+      ; rules( CurrentDef : () -> name )\} |})
+  |}
+
+  collect-all-split-under-scope(s) =
+    ![<s> | <equiv-of-split-under-scope(collect-all-split-under-scope(s)) <+ crush(![],conc,collect-all-split-under-scope(s))>]
+    <+ (equiv-of-split-under-scope(collect-all-split-under-scope(s)) <+ crush(![],conc,collect-all-split-under-scope(s)))
+
+strategies
+
+  equiv-of-split-under-scope(f):
+    Scope(x*, s) -> s'
+  where {| ContextVar : <DeclareContextVars> x*; <f> s => s' |}
+
+  equiv-of-SplitDynamicRule =
+    ( ?SetDynRule(DynRuleId(_), _)
+    + SetDynRule(\LabeledDynRuleId(n, _) -> DynRuleId(n)\, id)
+    + \AddDynRule(rdid@DynRuleId(_), r) -> SetDynRule(rdid, r)\
+    + \AddDynRule(LabeledDynRuleId(n, _), r) -> SetDynRule(DynRuleId(n), r)\
+    ); equiv-of-SplitDynamicRule-1
+
+  // Note: We use _#([t1|_]) to match lhs of a Rule here, which can be _two_ constructors Rule
+  //       and RuleNoCond. That second one only exists in the old Stratego 1 grammar, but needs to
+  //       be supported for now.
+  equiv-of-SplitDynamicRule-1:
+    drd@SetDynRule(DynRuleId(RDecT(f, a1*, s2*)), Rule(t1, _, _)) -> result
+  where
+    <dr-rename-vars;get-stamp> drd
+  ; stdkey := <lookup-key(|<tnewvar> "dyn_rule_where");dr-rename-vars> t1
+  ; result := <equiv-of-detect-overlap(|f, t1, stdkey, <CurrentDef>())> ()
+
+  equiv-of-detect-overlap(|f, lhs1, rnkey1, def1) =
+    if <not(?NoAnnoList(Op("DR_UNDEFINE",[Var(_)])))> lhs1 then
+      <bagof-LeftHandSide> f
+      ; if not(fetch(?(_,rnkey1,_))) then
+          if fetch-elem(equiv-of-overlapping-keys(|rnkey1)) => (lhs2, rnkey2, def2) then
+            !(f, DynRuleOverlapError(f, <origin-track-forced(trm-to-string)> lhs1, def1, <origin-track-forced(trm-to-string)> lhs2, def2))
+          else
+            rules( LeftHandSide :+ f -> (lhs1, rnkey1, def1) )
+          ; fail
+          end
+        else fail
+        end
+    else fail
+    end
+
+  equiv-of-overlapping-keys(|key) = 
+    where(
+      !(key, <Snd>)
+      ; not(eq)
+      ; ![<id>]
+      ; listtd(repeat(match-keys-pos <+ match-keys-neg))
+      ; not(?[])
+    )

@@ -1,7 +1,0 @@
-module test
-
-language strategogradual
-
-test parse [[
-
-]] parse succeeds

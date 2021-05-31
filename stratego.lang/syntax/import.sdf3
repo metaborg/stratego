@@ -1,0 +1,8 @@
+module import
+
+imports
+  sugar/main
+  core/main
+  gradual-types/main
+
+context-free sorts Module

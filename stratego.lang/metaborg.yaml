@@ -1,0 +1,53 @@
+---
+id: org.metaborg:stratego.lang:${metaborgVersion}
+name: StrategoLang
+metaborgVersion: 2.6.0-SNAPSHOT
+metaborgBaselineVersion: 2.5.14
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
+  - org.metaborg:org.metaborg.meta.lang.template:${metaborgBaselineVersion}
+  source:
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
+pardonedLanguages:
+- EditorService
+- Stratego-Sugar
+- SDF
+language:
+  sdf:
+    pretty-print: StrategoLang
+    sdf2table: java
+    jsglr-version: v2
+    placeholder:
+      prefix: "$"
+  stratego:
+    format: jar
+    build: batch
+    args:
+    - -la
+    - stratego-lib
+    - -la
+    - stratego-sglr
+    - -la
+    - stratego-gpp
+    - -la
+    - stratego-xtc
+    - -la
+    - stratego-aterm
+    - -la
+    - stratego-rtg
+    - -la
+    - java-front
+    - -D
+    - VERSION_TERM="stratego-standalone"
+exports:
+- language: ATerm
+  directory: src-gen/syntax
+- language: TemplateLang
+  directory: syntax
+- language: Stratego-Sugar
+  directory: src-gen
+- language: EditorService
+  directory: src-gen
+- language: ds
+  directory: src-gen
