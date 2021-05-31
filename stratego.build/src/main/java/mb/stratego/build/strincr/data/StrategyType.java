@@ -83,7 +83,6 @@ public class StrategyType extends StrategoAppl {
             case "ExtTypedDefInl":
                 if(funttype == null) {
                     funttype = strategyDef.getSubterm(3);
-                    funttype = strategyDef.getSubterm(3);
                 }
 
                 if(!TermUtils.isListAt(funttype, 0)) {
@@ -115,6 +114,9 @@ public class StrategyType extends StrategoAppl {
 
     private static IStrategoTerm desugarSSimpleFunType(ITermFactory tf,
         IStrategoTerm sSimpleFunType) {
+        if(TermUtils.isAppl(sSimpleFunType, "TP", 0)) {
+            return sSimpleFunType;
+        }
         return tf.replaceTerm(
             tf.makeAppl("FunNoArgsType", DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(0)),
                 DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
