@@ -67,7 +67,7 @@ rules // Debugging
   debug-show-core:
     (node, _, _, path, project-path) -> (filename, result)
     with
-      filename := <guarantee-extension(|"core.stra")> path
+      filename := <guarantee-extension(|"core.str2")> path
     ; <translate-core(|path, 2); pp-stratego-core> node => result
 
   debug-show-java:
@@ -148,7 +148,7 @@ strategies
   debug-show-core-optimized(s|O):
     (node, _, _, path, project-path) -> (filename, result)
     with
-      filename := <guarantee-extension(|$[core.opt[O].stra])> path
+      filename := <guarantee-extension(|$[core.opt[O].str2])> path
     ; <translate-core(|path, O); s; pp-stratego-core> node => result
 
 // Testing strategies
@@ -165,7 +165,7 @@ strategies // for testing pruposes only
 
   test-menuitem-pp(|O) = test-menuitem-pp(id, id|O)
   test-menuitem-pp(s1, s2) = test-menuitem-pp(s1, s2|2)
-  test-menuitem-pp(s1, s2|O) = test-menuitem(s1, s2, pp-stratego-core|O, "stra")
+  test-menuitem-pp(s1, s2|O) = test-menuitem(s1, s2, pp-stratego-core|O, "str2")
 
   test-menuitem-aterm(|O) = test-menuitem-aterm(id, id|O)
   test-menuitem-aterm(s1, s2) = test-menuitem-aterm(s1, s2|2)

@@ -1,10 +1,10 @@
 # Spoofax generated files
 *.aterm
-*.core.stra
-*.core.opt*.stra
-*.dfa.stra
-*.pp.stra
-*.test.stra
+*.core.str2
+*.core.opt*.str2
+*.dfa.str2
+*.pp.str2
+*.test.str2
 *.java
 
 # Java
