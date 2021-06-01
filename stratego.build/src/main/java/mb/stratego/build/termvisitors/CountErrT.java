@@ -17,5 +17,8 @@ public class CountErrT extends TermVisitor {
         if(TermUtils.isAppl(term, "ErrT", 0)) {
             count++;
         }
+        if(TermUtils.isAppl(term, "Cast", 1) && TermUtils.isApplAt(term, 0, "Fail", 0)) {
+            count++;
+        }
     }
 }

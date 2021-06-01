@@ -72,6 +72,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                     strategyAnalysisDataTask);
             final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
+            assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
             compiledThroughDynamicRule.addAll(output.compiledStrategies);
         }
@@ -97,6 +98,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                     strategyAnalysisDataTask);
             final BackOutput output = context.require(back, normalInput);
             assert output != null;
+            assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
         }
         final boolean dynamicCallsDefined =
@@ -107,6 +109,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 input.library);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
+        assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
@@ -115,6 +118,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 dynamicRuleUndefineGenerated);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
+        assert !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(congruenceOutput.resultFiles);
 
         return new CompileOutput.Success(resultFiles, checkOutput.messages);
