@@ -18,7 +18,7 @@ import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 
 public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModuleOutput> {
-    public static final String id = "stratego." + CheckModule.class.getSimpleName();
+    public static final String id = "stratego." + CheckOpenModule.class.getSimpleName();
 
     private final CheckModule checkModule;
     private final Front front;
