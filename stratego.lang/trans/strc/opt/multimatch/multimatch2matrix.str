@@ -1,8 +1,8 @@
 module multimatch/multimatch2matrix
 
 imports
-  strj/multimatch/matrix
-  strj/multimatch/preprocess
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/preprocess
 
   signatures/core/strategies-sig
   signatures/core/terms-sig

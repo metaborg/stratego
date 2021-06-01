@@ -52,3 +52,6 @@ strategies
 
   parenthesize-Stratego = parenthesize-StrategoLang
   pp-stratego-string = pp-StrategoLang-string
+
+strategies
+  pp-stratego-core = alltd(\Str(s) -> Str($["[s]"])\); pp-stratego-string

@@ -1,9 +1,9 @@
 module multimatch/postprocess
 
 imports
-  strj/multimatch/decompose
-  strj/multimatch/guard
-  strj/multimatch/utils
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/utils
 
   signatures/core/strategies-sig
 

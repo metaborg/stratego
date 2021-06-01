@@ -1,13 +1,13 @@
 module multimatch/matrix2dfa
 
 imports
-  strj/multimatch/decompose
-  strj/multimatch/guard
-  strj/multimatch/matrix
-  strj/multimatch/postprocess
+  strc/strc/strc
+  strc/opt/scope-laws
 
-  strc/stratego/strc/strc/strc
-  strc/stratego/strc/opt/scope-laws
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/postprocess
 
   signatures/core/strategies-sig
   signatures/core/terms-sig

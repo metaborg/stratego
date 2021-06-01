@@ -10,8 +10,8 @@ imports
   signatures/-
 
   strc
-  strc/front/desugar
   strc/front/frontend
+  strc/incr/compile
 
   strj
   strj/s2j
@@ -19,6 +19,7 @@ imports
 
   libjava-front
   libstratego-gpp
+  libstratego-lib
 
 rules
   translate-core(|path, O) = id
@@ -113,7 +114,7 @@ rules // Debugging
     ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
 
 imports
-  strc/stratego/strc/opt/bound-unbound-vars
+  strc/opt/bound-unbound-vars
 
 strategies
 
@@ -152,8 +153,8 @@ strategies
 
 // Testing strategies
 imports
-  strc/stratego/strc/front/desugar
-  strj/multimatch/multimatch2dfa
+  strc/front/desugar
+  strc/opt/multimatch/multimatch2dfa
 
 strategies // for testing pruposes only
   test-choice2multimatch = test-menuitem-aterm(|4)

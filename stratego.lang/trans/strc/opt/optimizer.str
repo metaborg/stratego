@@ -8,9 +8,8 @@ module optimizer
 imports signatures/Stratego strc/opt/stratego-laws libstratego-lib
 
 imports
-  strc/stratego/strc/opt/choices-to-multimatches
-
-  strj/multimatch/multimatch2dfa
+  strc/opt/choices-to-multimatches
+  strc/opt/multimatch/multimatch2dfa
 
 strategies
 

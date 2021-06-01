@@ -1,8 +1,8 @@
 module multimatch2dfa
 
 imports
-  strj/multimatch/multimatch2matrix
-  strj/multimatch/matrix2dfa
+  strc/opt/multimatch/multimatch2matrix
+  strc/opt/multimatch/matrix2dfa
 
 strategies
   multimatch2dfa = multimatch2matrix; matrix2dfa

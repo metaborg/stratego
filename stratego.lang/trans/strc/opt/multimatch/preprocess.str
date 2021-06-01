@@ -1,7 +1,7 @@
 module multimatch/preprocess
 
 imports
-  strc/stratego/strc/front/desugar
+  strc/front/desugar
 
   signatures/core/terms-sig
 

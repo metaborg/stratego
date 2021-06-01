@@ -1,8 +1,8 @@
 module decompose
 
 imports
-  strj/multimatch/dfa
-  strj/multimatch/matrix
+  strc/opt/multimatch/dfa
+  strc/opt/multimatch/matrix
 
   signatures/core/terms-sig
 

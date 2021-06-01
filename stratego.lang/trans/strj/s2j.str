@@ -28,7 +28,7 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/strategies-sig
 
-  strj/multimatch/multimatch2dfa
+  strc/opt/multimatch/multimatch2dfa
 
 signature
   constructors

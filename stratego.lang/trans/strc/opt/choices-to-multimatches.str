@@ -1,13 +1,13 @@
 module choices-to-multimatches
 
 imports
-  strc/stratego/strc/front/desugar
-  strc/stratego/strc/opt/bound-unbound-vars
-  strc/stratego/strc/lib/stratlib
+  strc/front/desugar
+  strc/lib/stratlib
 
-  strj/multimatch/decompose
-  strj/multimatch/guard
-  strj/multimatch/utils
+  strc/opt/bound-unbound-vars
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/utils
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
@@ -85,10 +85,10 @@ strategies
       ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s1, s2)
     , ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s3, Id()) 
     ])
-  where
-    <tvars; debug(!"tvars s1 ")> s1
-  ; <tvars; debug(!"tvars s2 ")> s2
-  ; <tvars; debug(!"tvars s3 ")> s3
+//  where
+//    <tvars; debug(!"tvars s1 ")> s1
+//  ; <tvars; debug(!"tvars s2 ")> s2
+//  ; <tvars; debug(!"tvars s3 ")> s3
 
   /* VERIFIED
     qux = match sequential
@@ -169,6 +169,21 @@ strategies
   with
     s3 := <sequence-strategies> (s1, s2)
 
+  /*
+   * case x* | p where s1'; s1'': s2
+   * where s1' is not guaranteed to succeed
+   * and s1'' is guaranteed to succeed
+   * ->
+   * case x* | p where s1': s1''; s2
+   */
+  extract-rhs:
+    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+    ScopedGuardedMatchCase(x*, p, s1', s3)
+  where
+    <oncetd(Seq(id, where(always-succeeds); ?s1''); ?Seq(<id>, _))> s1 => s1'
+  with
+    <sequence-strategies> (s1'', s2) => s3
+
 strategies
   lift-defaults:
     MM(c*) -> MM([init*, last'*])
@@ -199,22 +214,24 @@ strategies
    */
   always-succeeds =
     ?Id()
-  + ?Build(_) < collect-om(?Var(_){"unbound"} + ?Var(_){"(un)bound"}); ?[]
-  + ?Match(_) < collect-om(?Var(_){"bound"} + ?Var(_){"(un)bound"}); ?[]
-  + ?Seq(_, _) < Seq(always-succeeds, always-succeeds)
+  // TODO Build and Match can contain more than vars, which should succeed too.
+  // Probably needs a build-always-succeeds strategy.
+  + Build(where(collect-om(?Var(_){"unbound"} + ?Var(_){"(un)bound"}); ?[]))
+  + Match(where(collect-om(?Var(_){"bound"} + ?Var(_){"(un)bound"}); ?[]))
+  + Seq(always-succeeds, always-succeeds)
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds)
                                 , GuardedLChoice(id, always-succeeds, always-succeeds))
-  + fail
+  + Scope(id, always-succeeds)
 
   /**
    * Determines whether a strategy always fails (without side effects).
    */
   always-fails =
     ?Fail()
-  + ?Build(_) < collect-om(?Var(_){"unbound"}; ?[_ | _])
+  + Build(where(collect-om(?Var(_){"unbound"}; ?[_ | _])))
   + ?Seq(_, _) < or(Seq(always-fails, id), Seq(id, always-fails))
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(id, always-fails, always-fails)
                                 , GuardedLChoice(always-succeeds, always-fails, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds))
-  + fail
+  + Scope(id, always-fails)

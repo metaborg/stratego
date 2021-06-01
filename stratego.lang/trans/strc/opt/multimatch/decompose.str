@@ -1,11 +1,12 @@
 module multimatch/decompose
 
 imports
-  strc/stratego/strc/c/escaping-variables // is-ListOp
-  strj/s2j                                // is-TupleOp
+  strc/c/escaping-variables // is-ListOp
 
-  strj/multimatch/matrix
-  strj/multimatch/utils
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/utils
+
+  strj/s2j                                // is-TupleOp
 
   signatures/core/strategies-sig
   signatures/core/terms-sig

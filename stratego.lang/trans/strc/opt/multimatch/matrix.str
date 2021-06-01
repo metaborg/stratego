@@ -3,8 +3,8 @@ module multimatch/matrix
 imports
   signatures/core/terms-sig
 
-  strj/multimatch/decompose
-  strj/multimatch/utils
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/utils
 
 signature
   sorts Matrix Row Col
