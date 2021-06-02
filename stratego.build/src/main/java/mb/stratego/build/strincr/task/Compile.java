@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import javax.inject.Inject;
 
@@ -46,7 +47,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             return new CompileOutput.Failure(checkOutput.messages);
         }
 
-        final HashSet<ResourcePath> resultFiles = new HashSet<>();
+        final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
         final CompileGlobalIndex compileGlobalIndex = PieUtils
             .requirePartial(context, resolve, input.checkInput.resolveInput(),
                 ToCompileGlobalIndex.INSTANCE);

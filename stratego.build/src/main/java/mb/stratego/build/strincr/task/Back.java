@@ -17,7 +17,8 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
-import mb.resource.fs.FSPath;
+import mb.resource.ResourceKeyString;
+import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -134,9 +135,9 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         assert TermUtils.isList(result1);
         for(IStrategoTerm fileNameTerm : result1) {
             if(TermUtils.isString(fileNameTerm)) {
-                final File file = new File(TermUtils.toJavaString(fileNameTerm));
+                final HierarchicalResource file = context.getResourceService().getHierarchicalResource(ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
                 context.provide(file);
-                resultFiles.add(new FSPath(file.toPath()));
+                resultFiles.add(file.getPath());
             }
         }
 

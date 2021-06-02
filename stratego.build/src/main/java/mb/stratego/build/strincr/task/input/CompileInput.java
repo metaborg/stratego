@@ -25,7 +25,7 @@ public class CompileInput implements Serializable {
         ResourcePath projectPath, ResourcePath outputDir, @Nullable String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
         ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting,
         boolean library, boolean autoImportStd) {
         this.checkInput = new CheckInput(mainModuleIdentifier, projectPath, strategoGradualSetting,

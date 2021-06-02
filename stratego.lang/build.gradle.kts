@@ -10,12 +10,9 @@ fun compositeBuild(name: String) = "$group:$name:$version"
 val spoofax2BaselineVersion: String by ext
 val spoofax2Version: String by ext
 spoofaxLanguageSpecification {
-  addCompileDependenciesFromMetaborgYaml.set(false)
   addSourceDependenciesFromMetaborgYaml.set(false)
 }
 dependencies {
-  compileLanguage(compositeBuild("org.metaborg.meta.lang.esv"))
-
   sourceLanguage(compositeBuild("meta.lib.spoofax"))
 }
 
