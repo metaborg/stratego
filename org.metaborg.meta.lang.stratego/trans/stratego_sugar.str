@@ -14,11 +14,6 @@ imports
 rules
 
   editor-analyze:
-    (ast, path, project-path) -> (ast, errors, warnings, notes)
-  where
-    (errors, warnings, notes) := <prim("stratego_pie_analyze")> (ast, path, project-path)
-    
-  editor-analyze:
     (ast, path, project-path) -> (ast', errors, warnings', [])
     with
       reset-dynamic-rules
