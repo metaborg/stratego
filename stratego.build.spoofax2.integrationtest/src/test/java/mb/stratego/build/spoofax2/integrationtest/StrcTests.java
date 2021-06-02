@@ -34,6 +34,8 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 
+import javax.annotation.Nullable;
+
 public class StrcTests {
     public static final String packageName = "mb.stratego2integrationtest";
     public static final String packageDirName = packageName.replace('.', '/');
@@ -177,7 +179,11 @@ public class StrcTests {
         final HashSet<ResourcePath> resultFiles = str2CompileOutput.resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for(ResourcePath resultFile : resultFiles) {
-            sourceFiles.add(resourceService.toLocalFile(resultFile));
+            final @Nullable File localFile = resourceService.toLocalFile(resultFile);
+            if(localFile == null) {
+                throw new IllegalArgumentException("Result file '" + resultFile + "' cannot be converted to a local file");
+            }
+            sourceFiles.add(localFile);
         }
         return sourceFiles;
     }
