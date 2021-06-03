@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -78,6 +79,16 @@ public class StrcTests {
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
+    @TestFactory
+    Stream<DynamicTest> testPMC() throws URISyntaxException, IOException {
+        HashSet<String> disabledTestFiles =
+                new HashSet<>(Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
+        final Predicate<Path> disableFilter =
+                p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
+                        && !disabledTestFiles.contains(p.getFileName().toString());
+        return compileAndRun("test-pmc", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
+    }
+
     protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
         Predicate<? super Path> disabled,
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
@@ -87,7 +98,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).sorted().filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = fileName.substring(0, fileName.length() - 4); // strip .str
+            final String baseName = FilenameUtils.removeExtension(fileName);
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {

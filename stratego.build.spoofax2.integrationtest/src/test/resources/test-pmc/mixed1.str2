@@ -1,0 +1,107 @@
+module mixed1
+imports libstratego-lib
+
+signature
+  constructors
+    Con1 : Term * Term -> Term
+    Con2 :                Term
+
+strategies
+  s =
+    match sequential
+      case | Con1(_, _): !1
+      case | Con2(): !2
+      case | (): !3
+      case | (1, 2): !4
+      case | []: !5
+      case | [1, 2 | _]: !6
+      case | "abc": !7
+      case | 8: !8
+      case | 5.4: !9
+    end
+
+  main =
+    test-suite(
+      !"mixed types"
+    , cons-binary
+    ; cons-nullary
+    ; tuple-empty
+    ; tuple-pair
+    ; list-empty
+    ; list-non-empty
+    ; prim-string
+    ; prim-int
+    ; prim-real
+    )
+
+  cons-binary =
+    apply-test(
+      !"cons-binary"
+    , s
+    , !Con1(1, 2)
+    , !1
+    )
+
+  cons-nullary =
+    apply-test(
+      !"cons-nullary"
+    , s
+    , !Con2()
+    , !2
+    )
+  
+  tuple-empty =
+    apply-test(
+      !"tuple-empty"
+    , s
+    , !()
+    , !3
+    )
+  
+  tuple-pair =
+    apply-test(
+      !"tuple-pair"
+    , s
+    , !(1, 2)
+    , !4
+    )
+  
+  list-empty =
+    apply-test(
+      !"list-empty"
+    , s
+    , ![]
+    , !5
+    )
+  
+  list-non-empty =
+    apply-test(
+      !"list-non-empty"
+    , s
+    , ![1, 2, 3]
+    , !6
+    )
+
+  prim-string =
+    apply-test(
+      !"string"
+    , s
+    , !"abc"
+    , !7
+    )
+  
+  prim-int =
+    apply-test(
+      !"int"
+    , s
+    , !8
+    , !8
+    )
+  
+  prim-real =
+    apply-test(
+      !"real"
+    , s
+    , !5.4
+    , !9
+    )

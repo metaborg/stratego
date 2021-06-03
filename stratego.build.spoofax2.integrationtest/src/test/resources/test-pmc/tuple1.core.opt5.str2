@@ -1,0 +1,55 @@
+specification
+
+signature
+constructors
+
+DR_UNDEFINE : ATerm( ) -> ATerm( )
+DR_DUMMY : ATerm( )
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt TUPLE:
+      switch current.size {
+        alt (0):
+          !1{^Nil( )}
+        alt (4):
+          !4{^Nil( )}
+        alt (2):
+          switch current.0.type {
+            alt INT:
+              switch current.0.int {
+                alt 1:
+                  switch current.1.type {
+                    alt INT:
+                      switch current.1.int {
+                        alt 2:
+                          !2{^Nil( )}
+                        default:
+                          !3{^Nil( )}
+                      }
+                    default:
+                      !3{^Nil( )}
+                  }
+                default:
+                  !3{^Nil( )}
+              }
+            default:
+              !3{^Nil( )}
+          }
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+
+Anno__Cong_____2_0(anno_cong_str_arg11 : ATerm( ) -> ATerm( ), anno_cong_str_arg21 : ATerm( ) -> ATerm( ) | ) =
+  {anno_cong_term_m1, anno_cong_anno_m1, anno_cong_term_b1, anno_cong_anno_b1: ?anno_cong_term_m1{^anno_cong_anno_m1}; !anno_cong_term_m1; anno_cong_str_arg11( | ); ?anno_cong_term_b1; !anno_cong_anno_m1; anno_cong_str_arg21( | ); ?anno_cong_anno_b1; !anno_cong_term_b1{^anno_cong_anno_b1} }
+
+DR__UNDEFINE_1_0(cong_arg_11 : ATerm( ) -> ATerm( ) | ) =
+  {trans_cong4, trans_cong3, trans_cong5: ?DR_UNDEFINE(trans_cong3){^trans_cong4}; !trans_cong3; cong_arg_11( | ); ?trans_cong5; !DR_UNDEFINE(trans_cong5){^trans_cong4} }
+
+DR__DUMMY_0_0( | ) =
+  ?DR_DUMMY( ){^_}
