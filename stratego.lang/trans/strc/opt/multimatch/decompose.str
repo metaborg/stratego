@@ -71,7 +71,7 @@ strategies
     with o* := <specialize-occ(|c)> o
 
   specialize-occ-by-arity(|a) =
-    where(i* := <range> (1, <inc> a))
+    where(i* := <range> (0, a))
   ; ?p
   ; <map(\ i -> Sub(p, <int-to-string> i) \)> i*
 
