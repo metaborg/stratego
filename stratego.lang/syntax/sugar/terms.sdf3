@@ -10,11 +10,11 @@ context-free syntax
 
 context-free syntax
 
-  Term.BuildDefault = <_<Term>> {prefer}
+  Term.BuildDefault = <_<Term>>
   Term.AnnoList     = <<PreTerm>{<{Term ", "}*>}>
   Term.NoAnnoList   = PreTerm
-  Term.App          = [<[Strategy]> [Term]] {prefer}
-  Term.RootApp      = [<[Strategy]>] {prefer}
+  Term.App          = [<[Strategy]> [Term]]
+  Term.RootApp      = [<[Strategy]>]
 
 context-free syntax
 
@@ -27,14 +27,21 @@ context-free syntax
 
   PreTerm.BuildDefaultPT = <_<PreTerm>>
 
-//context-free priorities // replacement for prefer on Term duplicates of PreTerm rules
-//  Term.NoAnnoList = PreTerm <0> .> {
-//    PreTerm = Var
-//    PreTerm = Wld
-//  }
-//, Term.NoAnnoList <0> .> {
-//    PreTerm.As
-//    PreTerm.App
-//    PreTerm.RootApp
-//    PreTerm.BuildDefaultPT
-//  }
+context-free priorities
+// replacement for prefer on Term duplicates of PreTerm rules
+  Term.NoAnnoList = PreTerm <0> .> {
+    PreTerm = Var
+    PreTerm = Wld
+  }
+, Term.NoAnnoList <0> .> {
+    PreTerm.As
+    PreTerm.App
+    PreTerm.RootApp
+    PreTerm.BuildDefaultPT
+  }
+// AnnoList binds tighter
+, Term.AnnoList > {
+    PreTerm.As
+    PreTerm.App
+  }
+, Term.Anno > PreTerm.App

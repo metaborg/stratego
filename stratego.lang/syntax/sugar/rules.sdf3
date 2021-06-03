@@ -31,8 +31,8 @@ context-free syntax
 
   // Rule definition with pattern matched term parameters
   RuleDef.RDefP =
-<<Id>(<{Typedid ", "}*> | <{Term ", "}*>):
-  <Rule>> {avoid}
+<<Id>(<{Typedid ", "}*> | <{TermNoID ", "}*>):
+  <Rule>>
 
 sorts Rule RuleCond
 
