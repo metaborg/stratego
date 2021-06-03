@@ -2101,9 +2101,9 @@ strategies
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
   translate-Path =
-    (translate-PathV
+    translate-PathV
   + translate-PathT
-  + translate-PathF)
+  + translate-PathF
 
   translate-PathVF =
     translate-PathV
@@ -2148,7 +2148,7 @@ strategies
 
   translate-PathF:
     Size(p) ->
-    e |[ ((IStrategoTuple) e).size() ]|
+    e |[ e.getSubtermCount() ]|
   with
     e := <translate-PathV> p
 
