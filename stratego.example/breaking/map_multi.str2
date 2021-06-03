@@ -1,30 +1,25 @@
 module map_multi
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
-  map(s) = 
+  override map(s) =
     rec x([] + [s | x])
 
-  map1(s) = 
+  override map1(s) =
     [s | id]; [id | try(map1(s))] <+ [id | map1(s)]
   
-  try(s) = 
+  override try(s) =
     s <+ id
 
-  union(eq) : 
+  override union(eq) :
     (l1, l2) -> <rec x(
                    ([]; !l2)
                 <+ (HdMember'(eq, !l2); x)
                 <+ [id | x]
                 )> l1
-  HdMember'(eq, mklst) : 
+  override HdMember'(eq, mklst) :
      [x | xs] -> xs 
      where mklst; fetch(\y -> <eq> (x, y)\)
 
-  fetch(s) = 
+  override fetch(s) =
     rec x([s | id] <+ [id | x])

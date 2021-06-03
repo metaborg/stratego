@@ -16,8 +16,8 @@ strategies
              case | 5.4: !8
            end
 
-//  uncar2(|x) = match sequential
-//                 case Cons(x, _): !x // equality check
-//                 case Cons(y, _): !y // matches all Cons(_, _)
-//                 case Cons(Nil(), z): !z // dead
-//              end
+  uncar2(|x) = match sequential
+                 case | Cons(x, _): !x // equality check
+                 case y | Cons(y, _): !y // matches all Cons(_, _)
+                 case z | Cons(Nil(), z): !z // dead
+              end

@@ -7,10 +7,11 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  length = match sequential
-             case | Nil(): !0
-             case | Cons(_, Nil()): !1
-             case | Cons(_, Cons(_, Nil())): !2
-             case | Cons(_, Cons(_, Cons(_, Nil()))): !3
-             case | Cons(_, _): !4
-           end
+  override length =
+    match sequential
+      case | Nil(): !0
+      case | Cons(_, Nil()): !1
+      case | Cons(_, Cons(_, Nil())): !2
+      case | Cons(_, Cons(_, Cons(_, Nil()))): !3
+      case | Cons(_, _): !4
+    end
