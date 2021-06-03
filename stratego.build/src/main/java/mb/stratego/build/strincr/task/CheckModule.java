@@ -341,13 +341,13 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(Map.Entry<ConstructorSignature, HashSet<ConstructorType>> e : typesLookup.constructorTypes
                 .entrySet()) {
                 for(ConstructorType ty : e.getValue()) {
-                    constructorTypes.__put(e.getKey(), ty);
+                    constructorTypes.__insert(e.getKey(), ty);
                 }
             }
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : typesLookup.allInjections
                 .entrySet()) {
                 for(IStrategoTerm to : e.getValue()) {
-                    injections.__put(e.getKey(), to);
+                    injections.__insert(e.getKey(), to);
                 }
             }
             // TODO: do not resolve imports transitively when the module importing is Stratego 2
