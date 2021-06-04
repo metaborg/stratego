@@ -1,0 +1,25 @@
+module soundnessofparallelengines
+
+imports libstrategolib
+
+signature
+
+sorts
+   N
+
+constructors
+   d0 : N 
+   s : N -> N 
+   g : N -> N 
+   f : N -> N 
+
+rules
+   REC_E: f (g (d0())) -> d0()
+   REC_E: f (g (s (X))) -> f (g (X))
+
+strategies
+   eval = memo (innermost (REC_E))
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (g (s (d0())))) ;
+      <exit> 0

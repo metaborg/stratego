@@ -52,7 +52,7 @@ public class StrcTests {
             new HashSet<>(Collections.singletonList("test113.str"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test1", "{test??.str,test???.str}", disableFilter, new ArrayList<>(
+        return compileAndRun("test1", "test*.str{,2}", disableFilter, new ArrayList<>(
             Arrays.asList(BuiltinLibraryIdentifier.StrategoLib,
                 BuiltinLibraryIdentifier.StrategoSdf)));
     }
@@ -64,7 +64,7 @@ public class StrcTests {
             new HashSet<>(Collections.singletonList("list-cons.str"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test2", "*.str", disableFilter,
+        return compileAndRun("test2", "*.str{,2}", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -75,18 +75,28 @@ public class StrcTests {
             new HashSet<>();//Arrays.asList("test05.str"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return failToCompile("testneg", "test*.str", disableFilter,
+        return failToCompile("testneg", "test*.str{,2}", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
     @TestFactory
     Stream<DynamicTest> testPMC() throws URISyntaxException, IOException {
         HashSet<String> disabledTestFiles =
-                new HashSet<>(Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
+                new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
         final Predicate<Path> disableFilter =
                 p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
                         && !disabledTestFiles.contains(p.getFileName().toString());
         return compileAndRun("test-pmc", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> testBenches() throws URISyntaxException, IOException {
+        HashSet<String> disabledTestFiles =
+                new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
+        final Predicate<Path> disableFilter =
+                p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
+                        && !disabledTestFiles.contains(p.getFileName().toString());
+        return compileAndRun("test-benches", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
     protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
