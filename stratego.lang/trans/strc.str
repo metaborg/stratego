@@ -93,3 +93,6 @@ imports
 
   strc/incr/compile
   strc/incr/split-large-term-builds
+  strc/incr/fix-new-grammar
+  strc/incr/congdef
+  strc/incr/dyn-rule-related

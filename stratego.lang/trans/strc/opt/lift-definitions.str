@@ -21,7 +21,15 @@ strategies
     ; rules(TopLevel : f -> ())
 
   DeclareTopLevel =
+    ?ExtTypedDefInl(f, xs, ys, _, s)
+    ; rules(TopLevel : f -> ())
+
+  DeclareTopLevel =
     ?ExtSDef(f, xs, ys)
+    ; rules(TopLevel : f -> ())
+
+  DeclareTopLevel =
+    ?ExtTypedDef(f, _)
     ; rules(TopLevel : f -> ())
 
   lift-sdefs :

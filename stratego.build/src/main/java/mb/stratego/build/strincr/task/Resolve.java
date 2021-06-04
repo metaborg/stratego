@@ -74,6 +74,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
+        final LinkedHashSet<OverlayData> overlayData = new LinkedHashSet<>();
 
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
             overlayUsesConstructors = new LinkedHashMap<>();
@@ -90,6 +91,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
             lastModified = Long.max(lastModified, index.lastModified);
             nonExternalConstructors.addAll(index.constructors);
+            nonExternalConstructors.removeAll(index.overlayData.keySet());
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
                 .entrySet()) {
@@ -122,10 +124,13 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 final HashSet<ConstructorSignature> overlayUsesCons = Relation
                     .getOrInitialize(overlayUsesConstructors, e.getKey(),
                         LinkedHashSet::new);
-                for(OverlayData overlayData : e.getValue()) {
-                    overlayUsesCons.addAll(overlayData.usedConstructors);
+                for(OverlayData overlayDatum : e.getValue()) {
+                    overlayUsesCons.addAll(overlayDatum.usedConstructors);
+                    overlayData.add(overlayDatum);
                 }
             }
+
+            messages.addAll(index.messages);
 
             final HashSet<IModuleImportService.ModuleIdentifier> imports =
                 new HashSet<>(index.imports);
@@ -137,16 +142,16 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
         return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
             strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
-            externalStrategies, dynamicRules, messages, lastModified);
+            externalStrategies, dynamicRules, overlayData, messages, lastModified);
     }
 
-    private static FrontInput getFrontInput(ResolveInput input,
+    static FrontInput getFrontInput(ResolveInput input,
         IModuleImportService.ModuleIdentifier moduleIdentifier) {
         if(input.fileOpenInEditor != null && input.fileOpenInEditor.moduleIdentifier.equals(moduleIdentifier)) {
             return input.fileOpenInEditor;
         }
         return new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-            input.includeDirs, input.linkedLibraries);
+            input.includeDirs, input.linkedLibraries, input.autoImportStd);
     }
 
     private void checkCyclicOverlays(

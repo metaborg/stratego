@@ -15,9 +15,16 @@ strategies
   escaping-variables-io = 
     io-wrap(escaping-variables)
 
-  escaping-variables = 
-      mark-escaping-variables
-      ; annotate-frame-offsets
+  escaping-variables-quiet = 
+    mark-escaping-variables
+  ; annotate-frame-offsets
+
+  escaping-variables =
+    {| Say
+     : rules(Say: () -> ())
+     ; mark-escaping-variables
+     ; annotate-frame-offsets
+     |}
 
   mark-escaping-variables =
     {| CurrentFrame, FrameOf, Escapes, Closure
@@ -118,8 +125,8 @@ strategies
     where frames := <frames-to-parent> x
 	; if <not([])> frames then
             rules( Escapes.x{} : x{t*} -> x{Escapes(),t*} )
-            <+ say(<concat-strings>
-                 ["* warning (escaping-var-id): ", x, " not declared"])
+            <+ if <Say> () then say(<concat-strings>
+                 ["* warning (escaping-var-id): ", x, " not declared"]) end
           end
 
   frames-to-parent =

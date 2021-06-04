@@ -26,5 +26,6 @@ imports
 signature
   constructors
     RuleNoCond               : Term * Term -> Rule
+    Rule                     : Term * Term * Strategy -> Rule
     StrategyCurly            : Strategy -> StrategyCurly
     ParenStrat               : Strategy -> StrategyParen

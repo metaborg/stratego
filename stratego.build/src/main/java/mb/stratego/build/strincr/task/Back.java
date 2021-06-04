@@ -17,16 +17,20 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
-import mb.resource.fs.FSPath;
+import mb.resource.ResourceKeyString;
+import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.function.GetMessages;
+import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
+import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
 
 /**
@@ -65,6 +69,12 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     @Override public BackOutput exec(ExecContext context, BackInput input) throws Exception {
+        final CheckOutputMessages checkOutput =
+            PieUtils.requirePartial(context, check, input.checkInput, GetMessages.INSTANCE);
+        if(checkOutput.containsErrors) {
+            return BackOutput.dependentTasksHaveErrorMessages;
+        }
+
         final LinkedHashSet<StrategySignature> compiledStrategies = new LinkedHashSet<>();
 
         // N.B. this call is potentially a lot of work:
@@ -72,15 +82,22 @@ public class Back implements TaskDef<BackInput, BackOutput> {
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
-        final Arguments arguments = new Arguments().add("-i", "passedExplicitly.ctree")
-            .add("-o", resourcePathConverter.toString(input.outputDir))
-            //            .add("--verbose", 3)
-            .addLine(input.packageName != null ? "-p " + input.packageName : "").add("--library")
-            .add("--fusion");
+        // @formatter:off
+        final Arguments arguments = new Arguments();
+        arguments.add("-i", "passedExplicitly.ctree");
+        arguments.add("-o", resourcePathConverter.toString(input.outputDir));
+//        arguments.add("--verbose", 3);
+        arguments.addLine(input.packageName != null ? "-p " + input.packageName : "");
+        arguments.add("--fusion");
+        // @formatter:on
         if(input instanceof BackInput.Boilerplate) {
             arguments.add("--boilerplate");
+            if(((BackInput.Boilerplate) input).library) {
+                arguments.add("--library");
+            }
         } else {
             arguments.add("--single-strategy");
+            arguments.add("--library");
         }
 
         for(ResourcePath includeDir : input.checkInput.includeDirs) {
@@ -111,15 +128,17 @@ public class Back implements TaskDef<BackInput, BackOutput> {
 
 
         final IStrategoTerm result1 = strategoLanguage
-            .toJava(buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()), resourcePathConverter.toString(input.projectPath));
+            .toJava(buildInput(ctree, arguments, strj_sep_comp_0_0.instance.getName()),
+                resourcePathConverter.toString(input.checkInput.projectPath));
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
         assert TermUtils.isList(result1);
         for(IStrategoTerm fileNameTerm : result1) {
-            assert TermUtils.isString(fileNameTerm);
-            final File file = new File(TermUtils.toJavaString(fileNameTerm));
-            context.provide(file);
-            resultFiles.add(new FSPath(file.toPath()));
+            if(TermUtils.isString(fileNameTerm)) {
+                final HierarchicalResource file = context.getResourceService().getHierarchicalResource(ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
+                context.provide(file);
+                resultFiles.add(file.getPath());
+            }
         }
 
         return new BackOutput(resultFiles, compiledStrategies);

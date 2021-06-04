@@ -24,9 +24,9 @@ rules // Analysis
   test-analysis = strip-annos
 
   editor-analyze:
-    (m@Module(_, decl*), path, project-path) -> (m, errs, warns, notes)
+    (m@Module(_, decl*), path, project-path) -> (ast, errs, warns, notes)
     with
-      (errs, warns, notes)  := <local-pre-desugar-all;prim("stratego_pie_analyze")> (m, path, project-path)
+      (ast, errs, warns, notes) := <local-pre-desugar-all;prim("stratego_pie_analyze")> (m, path, project-path)
 
   editor-analyze:
     (s@Specification(_), path, project-path) -> (s, errs, warns, notes)

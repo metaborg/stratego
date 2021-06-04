@@ -15,22 +15,32 @@ public class CheckInput implements Serializable {
     public final ArrayList<STask<?>> strFileGeneratingTasks;
     public final ArrayList<? extends ResourcePath> includeDirs;
     public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
+    public final boolean autoImportStd;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, StrategoGradualSetting strategoGradualSetting, ArrayList<STask<?>> strFileGeneratingTasks,
-        ArrayList<? extends ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries) {
+        ResourcePath projectPath, StrategoGradualSetting strategoGradualSetting,
+        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        boolean autoImportStd) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.projectPath = projectPath;
         this.strategoGradualSetting = strategoGradualSetting;
         this.strFileGeneratingTasks = strFileGeneratingTasks;
         this.includeDirs = includeDirs;
         this.linkedLibraries = linkedLibraries;
+        this.autoImportStd = autoImportStd;
     }
 
     public ResolveInput resolveInput() {
-        return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks,
-            includeDirs, linkedLibraries);
+        return new ResolveInput(mainModuleIdentifier, strFileGeneratingTasks, includeDirs,
+            linkedLibraries, autoImportStd);
+    }
+
+    public CheckModuleInput checkModuleInput(
+        IModuleImportService.ModuleIdentifier moduleIdentifier) {
+        return new CheckModuleInput(
+            new FrontInput.Normal(moduleIdentifier, strFileGeneratingTasks, includeDirs,
+                linkedLibraries, autoImportStd), mainModuleIdentifier, projectPath);
     }
 
     @Override public boolean equals(Object o) {
@@ -51,7 +61,9 @@ public class CheckInput implements Serializable {
             return false;
         if(!includeDirs.equals(that.includeDirs))
             return false;
-        return linkedLibraries.equals(that.linkedLibraries);
+        if(!linkedLibraries.equals(that.linkedLibraries))
+            return false;
+        return autoImportStd == that.autoImportStd;
     }
 
     @Override public int hashCode() {
@@ -61,6 +73,7 @@ public class CheckInput implements Serializable {
         result = 31 * result + strFileGeneratingTasks.hashCode();
         result = 31 * result + includeDirs.hashCode();
         result = 31 * result + linkedLibraries.hashCode();
+        result = 31 * result + (autoImportStd ? 1 : 0);
         return result;
     }
 

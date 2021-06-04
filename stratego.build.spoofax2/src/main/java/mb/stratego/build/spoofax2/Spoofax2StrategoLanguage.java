@@ -1,10 +1,10 @@
 package mb.stratego.build.spoofax2;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -101,13 +101,13 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         try {
             text = IOUtils.toString(inputStream, charset);
         } catch(ClosedByInterruptException e) {
-            throw new ExecException("Interrupted while reading file", e);
+            throw new IOException("Interrupted while reading file", e);
         }
         final ISpoofaxInputUnit inputUnit = unitService.inputUnit(inputFile, text, strategoLangImpl, strategoDialect);
         final ISpoofaxParseUnit parseResult = syntaxService.parse(inputUnit, JSGLRVersion.v2);
         ast = parseResult.ast();
         if(!parseResult.success() || ast == null) {
-            throw new ExecException("Cannot parse stratego file " + inputFile + ": " + parseResult.messages());
+            throw new IOException("Cannot parse stratego file " + inputFile + ": " + parseResult.messages());
         }
 
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
@@ -119,15 +119,14 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     @Override public IStrategoTerm parseRtree(InputStream inputStream) throws Exception {
         final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
         if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Module") && ast.getSubtermCount() == 2)) {
-            if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
-                && ast.getSubtermCount() == 1)) {
-                throw new ExecException(
-                    "Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
-            } else {
-                throw new ExecException(
-                    "Bug in custom library detection. Please file a bug report and "
-                        + "turn off Stratego separate compilation for now as a work-around. ");
+            if(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
+                    && ast.getSubtermCount() == 1) {
+                throw new IOException(
+                    "Custom library detected with Specification/1 term in RTree file. This is "
+                        + "currently not supported. ");
             }
+            throw new ExecException(
+                "Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
         }
         return ast;
     }
@@ -145,6 +144,21 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     @Override public IStrategoTerm toJava(IStrategoList buildInput, String projectPath)
         throws ExecException {
         return callStrategy(buildInput, projectPath, "stratego2-strj-sep-comp");
+    }
+
+    @Override public IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath)
+        throws ExecException {
+        return TermUtils.toAppl(callStrategy(ast, projectPath, "stratego2-mk-cong-def"));
+    }
+
+    @Override public IStrategoTerm auxSignatures(IStrategoTerm ast, String projectPath)
+        throws ExecException {
+        return callStrategy(ast, projectPath, "stratego2-aux-signatures");
+    }
+
+    @Override public IStrategoTerm overlapCheck(IStrategoTerm ast, String projectPath)
+        throws ExecException {
+        return callStrategy(ast, projectPath, "stratego2-dyn-rule-overlap-check");
     }
 
     private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName)

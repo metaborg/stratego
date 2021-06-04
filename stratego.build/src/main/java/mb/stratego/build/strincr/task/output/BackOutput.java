@@ -9,11 +9,22 @@ import mb.stratego.build.strincr.data.StrategySignature;
 public class BackOutput implements Serializable {
     public final LinkedHashSet<ResourcePath> resultFiles;
     public final LinkedHashSet<? extends StrategySignature> compiledStrategies;
+    public final boolean depTasksHaveErrorMessages;
+
+    public static final BackOutput dependentTasksHaveErrorMessages =
+        new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0), true);
 
     public BackOutput(LinkedHashSet<ResourcePath> resultFiles,
         LinkedHashSet<? extends StrategySignature> compiledStrategies) {
+        this(resultFiles, compiledStrategies, false);
+    }
+
+    private BackOutput(LinkedHashSet<ResourcePath> resultFiles,
+        LinkedHashSet<? extends StrategySignature> compiledStrategies,
+        boolean depTasksHaveErrorMessages) {
         this.resultFiles = resultFiles;
         this.compiledStrategies = compiledStrategies;
+        this.depTasksHaveErrorMessages = depTasksHaveErrorMessages;
     }
 
     @Override public boolean equals(Object o) {
@@ -22,16 +33,19 @@ public class BackOutput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        BackOutput output = (BackOutput) o;
+        BackOutput that = (BackOutput) o;
 
-        if(!resultFiles.equals(output.resultFiles))
+        if(depTasksHaveErrorMessages != that.depTasksHaveErrorMessages)
             return false;
-        return compiledStrategies.equals(output.compiledStrategies);
+        if(!resultFiles.equals(that.resultFiles))
+            return false;
+        return compiledStrategies.equals(that.compiledStrategies);
     }
 
     @Override public int hashCode() {
         int result = resultFiles.hashCode();
         result = 31 * result + compiledStrategies.hashCode();
+        result = 31 * result + (depTasksHaveErrorMessages ? 1 : 0);
         return result;
     }
 

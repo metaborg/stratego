@@ -125,6 +125,8 @@ public interface IModuleImportService {
         Collection<STask<?>> strFileGeneratingTasks)
         throws Exception;
 
+    @Nullable String fileName(ModuleIdentifier moduleIdentifier);
+
     boolean equals(Object o);
 
     int hashCode();

@@ -6,12 +6,13 @@ imports
   strc/front/rename-defs
 
   strc/incr/split-large-term-builds
+  strc/incr/fix-new-grammar
 
 strategies
 
   // The following are for compiling a single strategy + its overlays
   stratego2-compile-top-level-def: spec ->
-      <MetaExplode;strip-annos;frontend-sep-comp> spec
+      <MetaExplode;fix-new-grammar;frontend-sep-comp> spec
     with id
       ; <set-config> ("--library", ())
       ; <set-config> ("--verbose", 0)

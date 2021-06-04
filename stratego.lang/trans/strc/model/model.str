@@ -128,7 +128,8 @@ strategies
 
   m-call-signature =
     try(Desugar)
-    ; \CallT(SVar(f), as1, as2) -> [(f, <length> as1, <length> as2)]\
+    ; (  \CallT(SVar(f), as1, as2) -> [(f, <length> as1, <length> as2)]\
+      <+ \ProxyT(as1, as2, _, _, SVar(f)) -> [(f, <length> as1, <length> as2)]\)
 
   m-def-signature =
     try(Desugar)

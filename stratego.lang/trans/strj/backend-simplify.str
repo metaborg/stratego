@@ -29,6 +29,18 @@ strategies
     ; escaping-variables
     ; remove-closure-allocs
     )
+  
+  backend-simplify-quiet =
+    dr-scope-all-verbose(
+      dollars-for-capitals-top
+    ; split-large-strategies
+    ; lift-definitions
+    ; canonicalize2
+    ; simplify1
+    ; mark-bound-unbound-vars
+    ; escaping-variables-quiet
+    ; remove-closure-allocs
+    )
 
 rules
   

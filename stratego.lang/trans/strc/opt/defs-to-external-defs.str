@@ -31,6 +31,15 @@ strategies // exported strategies
     ExtSDefInl(<unmangle>f, a1*, a2*, <topdown(try(UnmangleSVar))> s)
     where <inlinable> s
 
+  DefToExtDef :
+    DefHasType(f, t) -> ExtTypedDef(<unmangle>f, t)
+
+// TODO: change to find both DefHasType and SDefT, or maybe change IR?
+//  DefToExtDefInl :
+//    (DefHasType(f, t), SDefT(f, a1*, a2*, s)) -> 
+//    ExtTypedDefInl(<unmangle>f, a1*, a2*, t, <topdown(try(UnmangleSVar))> s)
+//    where <inlinable> s
+
   inlinable = 
     false
     // where(not(<get-config>"--no-inlining"))
@@ -50,6 +59,8 @@ strategies // exported strategies
   is-exported-definition =
     ExtSDef(not(?"DYNAMIC_CALLS"), id, id)
     <+ ExtSDefInl(not(?"DYNAMIC_CALLS"), id, id, id)
+    <+ ExtTypedDef(not(?"DYNAMIC_CALLS"), id)
+    <+ ExtTypedDefInl(not(?"DYNAMIC_CALLS"), id, id, id, id)
 
 
 strategies // exported constructors

@@ -65,7 +65,7 @@ prepare-strategy-def(|st1):
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
   ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, SortVar(tv))> st\)> (tvs, st1)
 
-strat-lookup-def(|x, sn, tn, st1) = strat-lookup(|x, sn, tn, ErrT()); prepare-strategy-def(|st1)
+strat-lookup-def(|x, sn, tn, st1) = strat-lookup(|x, sn, tn, DynT()); prepare-strategy-def(|st1)
 
 strategies // StrategyDef
 
@@ -106,7 +106,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st4) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st4) 
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -127,7 +127,7 @@ insertCasts-StrategyDef-(|e1, st1):
   ; s3 := <StrategyDef-after-match> (s*, s2)
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s4), st5) 
+  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st5) 
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -156,8 +156,16 @@ insertCasts-StrategyDef-(|e1, st1) =
   ; insertCasts-StrategyDef(|e1, st1)
   ; (\SDefT(name, sargs, targs, body) -> ExtSDefInl(name, sargs, targs, body)\, id)
 
+insertCasts-StrategyDef-(|e1, st1) =
+    {name, sargs, targs, body: (ExtTypedDefInl(name, sargs, targs, t, body) -> SDefT(name, sargs, targs, body))}
+  ; insertCasts-StrategyDef(|e1, st1)
+  ; (\SDefT(name, sargs, targs, body) -> ExtTypedDefInl(name, sargs, targs, t, body)\, id)
+
 insertCasts-StrategyDef-(|e1, st1):
   d@ExtSDef(_, _, _) -> (d, st1)
+
+insertCasts-StrategyDef-(|e1, st1):
+  d@ExtTypedDef(_, _) -> (d, st1)
 
 strategies // RuleDef
 

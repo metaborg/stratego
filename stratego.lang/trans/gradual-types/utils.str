@@ -60,10 +60,11 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
 strategies
 
 desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
-desugar-SType = otf(\FunNoArgsType(i, o) -> FunTType([], [], FunNoArgsType(<desugar-Type> i, <desugar-Type> o))\)
+desugar-SType = otf(\st@FunNoArgsType(i, o) -> FunTType([], [], <desugar-SSimpleFunType> st)\)
 desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
-desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), FunNoArgsType(desugar-Type, desugar-Type));not(?a))
+desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-SSimpleFunType);not(?a))
 
+desugar-SSimpleFunType = ?TP()
 desugar-SSimpleFunType = otf(FunNoArgsType(desugar-Type, desugar-Type))
 
 desugar-Type- = otf(\SortVar("string") -> StringT()\)
@@ -111,14 +112,26 @@ nameOf-StrategyDef-RuleDef: SDefNoArgs(name, _) -> (name{}, 0, 0)
 nameOf-StrategyDef-RuleDef: SDefP(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 nameOf-StrategyDef-RuleDef: ExtSDefInl(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 nameOf-StrategyDef-RuleDef: ExtSDef(name, s*, t*) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: ExtTypedDefInl(name, s*, t*, _, _) -> (name{}, <length> s*, <length> t*)
+nameOf-StrategyDef-RuleDef: ExtTypedDef(name, FunTType(s*, t*, _)) -> (name{}, <length> s*, <length> t*)
 
 nameOf-StrategyDef-RuleDef: RDefT(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 nameOf-StrategyDef-RuleDef: RDef(name, s*, _) -> (name{}, <length> s*, 0)
 nameOf-StrategyDef-RuleDef: RDefNoArgs(name, _) -> (name{}, 0, 0)
 nameOf-StrategyDef-RuleDef: RDefP(name, s*, t*, _) -> (name{}, <length> s*, <length> t*)
 
-nameOf-DefHasType: DefHasType(name, <try(desugar-SType)>) -> (name{}, <length> s*, <length> t*)
+nameOf-HasType: DefHasType(name, <try(desugar-SType)>) -> (name{}, <length> s*, <length> t*)
   with ?FunTType(s*, t*, _)
+
+nameOf-HasType: ExtTypedDef(name, <try(desugar-SType)>) -> (name{}, <length> s*, <length> t*)
+  with ?FunTType(s*, t*, _)
+
+nameOf-HasType: ExtTypedDefInl(name, _, _, <try(desugar-SType)>, _) -> (name{}, <length> s*, <length> t*)
+  with ?FunTType(s*, t*, _)
+
+HasType = ?DefHasType(_, _)
+HasType = ?ExtTypedDef(_, _)
+HasType = ?ExtTypedDefInl(_, _, _, _, _)
 
 strategies
 
@@ -217,7 +230,17 @@ rm-redundant-cast: Seq(Cast(Id()), strat) -> strat
 rm-redundant-cast: Seq(strat, Cast(Id())) -> strat
 rm-redundant-cast: App(Cast(Id()), term) -> term
 
-toBinding-DefHasType: DefHasType(name, stype) -> ((name{}, snum, tnum), stype')
+toBinding-HasType: DefHasType(name, stype) -> ((name{}, snum, tnum), stype')
+  with
+    stype' := <try(desugar-SType)> stype
+  ; (snum, tnum) := <arityOf-SType> stype'
+
+toBinding-HasType: ExtTypedDefInl(n, _, _, stype, _) -> ((n{}, snum, tnum), stype')
+  with
+    stype' := <try(desugar-SType)> stype
+  ; (snum, tnum) := <arityOf-SType> stype'
+
+toBinding-HasType: ExtTypedDef(n, stype) -> ((n{}, snum, tnum), stype')
   with
     stype' := <try(desugar-SType)> stype
   ; (snum, tnum) := <arityOf-SType> stype'
@@ -245,22 +268,23 @@ strategies // Helpers
 getDefTypes =
   map(try(desugar-DefHasType))
   ; with(
-      (defHasTypes, defs) := <partition(try(?AnnoDef(_, <id>)); ?DefHasType(_, _))>
+      (defHasTypes, defs) := <partition(try(?AnnoDef(_, <id>)); HasType)>
     ; defNames := <filter(try(extToNormal); nameOf-StrategyDef-RuleDef);imset-from-list> defs
       // detect duplicates in defHasTypes => errors
     ; <imset-from-list> defHasTypes // TODO: add defHasTypes from imported files
-    ; imset-map(nameOf-DefHasType, where(\(name, _, _) -> <report-Err> (name, DuplicateTypeDefinition())\))
+    ; imset-map(nameOf-HasType, where(\(name, _, _) -> <report-Err> (name, DuplicateTypeDefinition())\))
       // detect missing definitions for defHasTypes => errors
     ; imset-subtract(|defNames)
     ; imset-map(where({?(name, _, _); <report-Err> (name, MissingDefinitionForTypeDefinition())}))
   )
   ; map(try(simpleDef))
-  ; partition(toBinding-DefHasType, toBinding-ExtSDef)
+  ; partition(toBinding-HasType, toBinding-ExtSDef)
   ; (immap-from-list, immap-from-list)
   ; immap-union(keep-left)
 
 extToNormal = ?AnnoDef(_, <extToNormal>)
 extToNormal: ExtSDefInl(n, s, t, b) -> SDefT(n, s, t, b)
+extToNormal: ExtTypedDefInl(n, s, t, _, b) -> SDefT(n, s, t, b)
 
 simpleDef = ?AnnoDef(_, <simpleDef>)
 simpleDef: ExtSDefInl(n, s, t, _) -> ExtSDef(n, s, t)

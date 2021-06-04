@@ -8,15 +8,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.terms.util.B;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
@@ -27,6 +29,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -34,6 +37,7 @@ import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.message.FailedToGetModuleAst;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.UnresolvedImport;
 import mb.stratego.build.strincr.task.input.FrontInput;
@@ -42,6 +46,7 @@ import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNamesFront;
+import mb.stratego.build.util.GenerateStratego;
 import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
@@ -64,17 +69,19 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     public final IModuleImportService moduleImportService;
     protected final StrIncrContext strContext;
     protected final ITermFactory tf;
-    protected final B b;
+    protected final GenerateStratego generateStratego;
+    protected final StrategoLanguage strategoLanguage;
 
-    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService) {
+    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
+        GenerateStratego generateStratego, StrategoLanguage strategoLanguage) {
         this.strContext = strContext;
         this.tf = strContext.getFactory();
-        this.b = new B(this.tf);
+        this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
+        this.strategoLanguage = strategoLanguage;
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        final LastModified<IStrategoTerm> ast = getModuleAst(context, input);
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>();
@@ -97,11 +104,39 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             new LinkedHashMap<>();
         final ArrayList<Message> messages = new ArrayList<>();
 
+        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
+        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
+
+        final LastModified<IStrategoTerm> ast;
+        try {
+            ast = getModuleAst(context, input);
+        } catch(ExecException e) {
+            throw e;
+        } catch(Exception e) {
+            final IStrategoString module = tf.makeString(input.moduleIdentifier.moduleString());
+            final @Nullable String fileName = moduleImportService.fileName(input.moduleIdentifier);
+            module.putAttachment(ImploderAttachment.createCompactPositionAttachment(
+                fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
+            messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
+
+            return new ModuleData(input.moduleIdentifier,
+                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,
+                externalConstrData, injections, externalInjections, strategyData,
+                internalStrategyData, externalStrategyData, dynamicRuleData, overlayData,
+                usedConstructors, usedStrategies, dynamicRules, usedAmbiguousStrategies, messages,
+                0L);
+        }
+
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new InvalidASTException(input.moduleIdentifier, def);
             }
+            // TODO: Use real project path (does this really matter?)
+            final String projectPath =
+                Optional.ofNullable(moduleImportService.fileName(input.moduleIdentifier))
+                    .orElseGet(input.moduleIdentifier::moduleString);
             switch(TermUtils.toAppl(def).getName()) {
                 case "Imports":
                     // Resolving imports here saves us from having to do in the multiple other tasks
@@ -123,20 +158,18 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     // fall-through
                 case "Strategies":
                     addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
-                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0));
+                        externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0),
+                        projectPath);
                     break;
                 default:
                     throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
-        if(!input.moduleIdentifier.isLibrary() && !imports
+        if(input.autoImportStd && !input.moduleIdentifier.isLibrary() && !imports
             .contains(BuiltinLibraryIdentifier.StrategoLib)) {
             imports.add(BuiltinLibraryIdentifier.StrategoLib);
         }
 
-        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-        final LinkedHashSet<StrategySignature> usedStrategies = new LinkedHashSet<>();
-        final LinkedHashSet<String> usedAmbiguousStrategies = new LinkedHashSet<>();
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
@@ -194,8 +227,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
-        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs)
-         {
+        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs,
+        String projectPath) throws ExecException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -229,6 +262,21 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
                     break;
                 }
+                case "ExtTypedDef":
+                case "ExtTypedDefInl": {
+                    final @Nullable StrategyType strategyType = StrategyType.fromDefinition(tf, strategyDef);
+                    if(strategyType == null) {
+                        throw new InvalidASTException(moduleIdentifier, strategyDef);
+                    }
+                    final StrategySignature strategySignature =
+                        strategyType.withName(TermUtils.toStringAt(strategyDef, 0));
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                        .add(new StrategyFrontData(strategySignature, strategyType, External));
+                    break;
+                }
+                // TODO: cases "ExtTypedDef" "ExtTypedDefInl"
                 case "ExtSDef":
                 case "ExtSDefInl":
                     kind = External;
@@ -253,19 +301,35 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     if(strategySignature == null) {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
-                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new)
-                        .add(new StrategyFrontData(strategySignature, strategySignature.standardType(tf), kind));
+                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new).add(
+                        new StrategyFrontData(strategySignature, strategySignature.standardType(tf),
+                            kind));
                     break;
             }
 
             // collect-om(dyn-rule-sig)
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
                 dynamicRules.add(dynRuleSig);
-                for(StrategySignature signature : dynRuleSig.dynamicRuleSignatures(tf).keySet()) {
-                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new)
-                        .add(new StrategyFrontData(signature, signature.standardType(tf), DynRuleGenerated));
+                final HashSet<StrategySignature> strategySignatures =
+                    new HashSet<>(dynRuleSig.dynamicRuleSignatures(tf).keySet());
+                auxRuleSigs(strategyDef, strategySignatures, projectPath);
+                for(StrategySignature signature : strategySignatures) {
+                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new).add(
+                        new StrategyFrontData(signature, signature.standardType(tf),
+                            DynRuleGenerated));
                 }
             }
+        }
+    }
+
+    private void auxRuleSigs(IStrategoTerm strategyDef, HashSet<StrategySignature> dynRuleSigs,
+        String projectPath) throws ExecException {
+        final IStrategoTerm result = strategoLanguage.auxSignatures(strategyDef, projectPath);
+        for(IStrategoTerm sig : TermUtils.toList(result)) {
+            assert TermUtils.isTuple(sig, 3);
+            dynRuleSigs.add(
+                new StrategySignature(TermUtils.toStringAt(sig, 0), TermUtils.toJavaIntAt(sig, 1),
+                    TermUtils.toJavaIntAt(sig, 2)));
         }
     }
 
@@ -280,7 +344,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         extract-constr:
           Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
          */
-        final IStrategoTerm dynT = b.applShared("DynT", b.applShared("Dyn"));
+        final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
         for(IStrategoTerm overlay : overlays) {
             final int arity;
             final ConstructorType type;
@@ -458,7 +522,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         break;
                     default:
                         final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = b.applShared("Sort", b.stringShared("Tuple"), tupleTypes);
+                        from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
 
                         final ConstructorSignature constrSig =
                             new ConstructorSignature("", froms.size());

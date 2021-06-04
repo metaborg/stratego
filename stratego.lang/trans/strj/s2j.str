@@ -63,12 +63,15 @@ rules
       with(
         s2j-init-options
       ; record-main-classname
-      ; if <get-config> "--single-strategy"
-          then <get-config;base-filename;remove-extension> "-i"; rules(SingleStrategy := <id>)
-        end
+//      ; if <get-config> "--single-strategy"
+//          then <get-config;base-filename;remove-extension> "-i"; rules(SingleStrategy := <id>)
+//        end
       )
     ; log-timed(
-        backend-simplify
+        if <get-config> "--single-strategy"
+          then backend-simplify-quiet
+          else backend-simplify
+        end
       | "Backend preprocessing succeeded", 1
       )
     ; log-timed(
@@ -493,6 +496,7 @@ rules
             x_name.init(compiledContext);
             bstm2*
             bstm3*
+            compiledContext.typeInfo.finishRegistration();
           }
         ]|
       }
@@ -1185,7 +1189,7 @@ strategies
     else
       // Lift definition and produce call
       with(
-        !SDefT(<concat-strings;newname => x> [<ConstantContainerClass>, "$lifted"], [], [], <id>)
+        !SDefT(<concat-strings;newname => x> [<ConstantContainerClass>, "_lifted"], [], [], <id>)
       ; rules(LiftedDef :+= <translate-inner-definition>)
       )
     ; <lifted-call-to-instance> CallT(SVar(x), [], [])

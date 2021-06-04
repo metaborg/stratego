@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
@@ -29,6 +30,7 @@ public class GlobalData implements Serializable {
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashSet<OverlayData> overlayData;
     public final ArrayList<Message> messages;
     public final long lastModified;
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
@@ -43,7 +45,8 @@ public class GlobalData implements Serializable {
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules, ArrayList<Message> messages,
+        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashSet<OverlayData> overlayData, ArrayList<Message> messages,
         long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.nonExternalInjections = nonExternalInjections;
@@ -54,6 +57,7 @@ public class GlobalData implements Serializable {
         this.internalStrategies = internalStrategies;
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
+        this.overlayData = overlayData;
         this.messages = messages;
         this.lastModified = lastModified;
     }
@@ -75,7 +79,7 @@ public class GlobalData implements Serializable {
                 getCompileGlobalIndex().nonExternalStrategies;
             congruenceGlobalIndex =
                 new CongruenceGlobalIndex(nonExternalConstructors, externalConstructors,
-                    nonExternalStrategies);
+                    nonExternalStrategies, overlayData);
         }
         return congruenceGlobalIndex;
     }
@@ -116,6 +120,8 @@ public class GlobalData implements Serializable {
             return false;
         if(!dynamicRules.equals(that.dynamicRules))
             return false;
+        if(!overlayData.equals(that.overlayData))
+            return false;
         return messages.equals(that.messages);
     }
 
@@ -129,6 +135,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + internalStrategies.hashCode();
         result = 31 * result + externalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
+        result = 31 * result + overlayData.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;

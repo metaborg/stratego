@@ -219,7 +219,7 @@ strategies
     ignore-anno-def(?SDefT(name, _, _,def))
     ; To => to
     ; !def
-    ; collect( CallT(SVar(?to), id, id);!to )
+    ; collect( CallT(SVar(?to), id, id);!to <+ ProxyT(id, id, id, id, SVar(?to)); !to )
     ; not([])
     ; !name
 

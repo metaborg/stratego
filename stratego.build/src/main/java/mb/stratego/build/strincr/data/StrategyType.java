@@ -10,7 +10,9 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.StrategoAppl;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.termvisitors.DesugarType;
@@ -39,6 +41,7 @@ public class StrategyType extends StrategoAppl {
         final ArrayList<IStrategoTerm> strategyArguments;
         final ArrayList<IStrategoTerm> termArguments;
         final IStrategoTerm sSimpleFunType;
+        @Nullable IStrategoTerm funttype = null;
         switch(TermUtils.toAppl(strategyDef).getName()) {
             case "DefHasTypeNoArgs":
                 strategyArguments = termArguments = new ArrayList<>(0);
@@ -74,6 +77,31 @@ public class StrategyType extends StrategoAppl {
 
                 sSimpleFunType = strategyDef.getSubterm(3);
                 break;
+            case "ExtTypedDef":
+                funttype = strategyDef.getSubterm(1);
+                // fall-through
+            case "ExtTypedDefInl":
+                if(funttype == null) {
+                    funttype = strategyDef.getSubterm(3);
+                }
+
+                if(!TermUtils.isListAt(funttype, 0)) {
+                    return null;
+                }
+                strategyArguments = new ArrayList<>(funttype.getSubterm(0).getSubtermCount());
+                for(IStrategoTerm strategyArgument : funttype.getSubterm(0)) {
+                    strategyArguments.add(DesugarType.tryDesugarSType(tf, strategyArgument));
+                }
+                if(!TermUtils.isListAt(funttype, 1)) {
+                    return null;
+                }
+                termArguments = new ArrayList<>(funttype.getSubterm(1).getSubtermCount());
+                for(IStrategoTerm termArgument : funttype.getSubterm(1)) {
+                    termArguments.add(DesugarType.tryDesugarType(tf, termArgument));
+                }
+
+                sSimpleFunType = funttype.getSubterm(2);
+                break;
             default:
                 return null;
         }
@@ -86,9 +114,12 @@ public class StrategyType extends StrategoAppl {
 
     private static IStrategoTerm desugarSSimpleFunType(ITermFactory tf,
         IStrategoTerm sSimpleFunType) {
+        if(TermUtils.isAppl(sSimpleFunType, "TP", 0)) {
+            return sSimpleFunType;
+        }
         return tf.replaceTerm(
-            tf.makeAppl("FunNoArgsType", DesugarType.desugarType(tf, sSimpleFunType.getSubterm(0)),
-                DesugarType.desugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
+            tf.makeAppl("FunNoArgsType", DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(0)),
+                DesugarType.tryDesugarType(tf, sSimpleFunType.getSubterm(1))), sSimpleFunType);
     }
 
     public StrategySignature withName(IStrategoString name) {

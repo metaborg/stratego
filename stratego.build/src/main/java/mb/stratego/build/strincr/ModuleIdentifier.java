@@ -18,7 +18,7 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
     }
 
     @Override public boolean isLibrary() {
-        return false;
+        return isLibrary;
     }
 
     @Override public String moduleString() {

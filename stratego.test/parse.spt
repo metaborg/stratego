@@ -1,6 +1,6 @@
 module parse
 
-language strategoGT
+language StrategoLang
 
 test parse [[
 
@@ -63,6 +63,22 @@ test As and Anno [[
         Match(
           As(Var("a"),
           AnnoList(Var("a"),[Var("a")]))))
+    ])
+  ])
+
+test As and Anno [[
+  specification
+  
+  strategies
+  
+  a = ?a@a{^a}
+]] parse to
+  Specification([
+    Strategies([
+      SDefNoArgs("a",
+        Match(
+          As(Var("a"),
+          Anno(Var("a"),Var("a")))))
     ])
   ])
 

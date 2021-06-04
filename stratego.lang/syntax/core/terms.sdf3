@@ -12,10 +12,10 @@ context-free syntax
 sorts Term // term with annotations
 context-free syntax
 
-  Term      = Var {prefer}
-  Term      = Wld {prefer}
+  Term      = Var
+  Term      = Wld
   Term.Anno = <<PreTerm>{^<PreTerm>}>
-  Term.As   = <<Var>@<Term>> {prefer}
+  Term.As   = <<Var>@<Term>>
 
 sorts PreTerm // term without annotations
 context-free syntax
@@ -34,4 +34,5 @@ context-free syntax
   Wld.Wld = <_>
 
 context-free priorities
-  PreTerm.Explode > Term.As
+  PreTerm.Explode > Term.As,
+  Term.Anno > PreTerm.As

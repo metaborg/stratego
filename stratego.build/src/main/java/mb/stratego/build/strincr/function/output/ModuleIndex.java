@@ -11,6 +11,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.WithLastModified;
 
 /**
@@ -26,6 +27,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashSet<StrategySignature> externalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final ArrayList<Message> messages;
     public final long lastModified;
 
     public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
@@ -36,7 +38,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData, long lastModified) {
+        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        ArrayList<Message> messages, long lastModified) {
         this.imports = imports;
         this.constructors = constructors;
         this.injections = injections;
@@ -46,6 +49,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.messages = messages;
         this.lastModified = lastModified;
     }
 
@@ -75,7 +79,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!dynamicRules.equals(that.dynamicRules))
             return false;
-        return overlayData.equals(that.overlayData);
+        if(!overlayData.equals(that.overlayData))
+            return false;
+        return messages.equals(that.messages);
     }
 
     @Override public int hashCode() {
@@ -88,6 +94,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         result = 31 * result + externalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
@@ -95,8 +102,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
     @Override public String toString() {
         return "ModuleIndex(" + imports + ", " + constructors + ", " + injections + ", "
             + externalConstructors + ", " + strategies + ", " + internalStrategies + ", "
-            + externalStrategies + ", " + dynamicRules + ", " + overlayData + ", " + lastModified
-            + ')';
+            + externalStrategies + ", " + dynamicRules + ", " + overlayData + ", " + messages
+            + ", " + lastModified + ')';
     }
 
     @Override public long lastModified() {

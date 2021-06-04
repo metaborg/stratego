@@ -16,8 +16,6 @@ import mb.stratego.build.strincr.function.output.ModuleIndentifiersAndMessages;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CheckInput;
-import mb.stratego.build.strincr.task.input.CheckModuleInput;
-import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.PieUtils;
@@ -51,10 +49,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
             if(moduleIdentifier.isLibrary()) {
                 continue;
             }
-            final STask<CheckModuleOutput> sTask = checkModule.createSupplier(new CheckModuleInput(
-                new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-                    input.includeDirs, input.linkedLibraries), input.mainModuleIdentifier,
-                input.projectPath));
+            final STask<CheckModuleOutput> sTask = checkModule.createSupplier(input.checkModuleInput(moduleIdentifier));
             final CheckModuleOutput output = context.require(sTask);
             for(StrategySignature strategySignature : output.dynamicRules.keySet()) {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
