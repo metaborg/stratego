@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.task;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -25,8 +24,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.GetMessages;
-import mb.stratego.build.strincr.function.output.CheckOutputMessages;
+import mb.stratego.build.strincr.function.ContainsErrors;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
@@ -69,9 +67,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     @Override public BackOutput exec(ExecContext context, BackInput input) throws Exception {
-        final CheckOutputMessages checkOutput =
-            PieUtils.requirePartial(context, check, input.checkInput, GetMessages.INSTANCE);
-        if(checkOutput.containsErrors) {
+        if(PieUtils.requirePartial(context, check, input.checkInput, ContainsErrors.INSTANCE)) {
             return BackOutput.dependentTasksHaveErrorMessages;
         }
 
