@@ -8,6 +8,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr2.messages.SourceRegion;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
@@ -24,16 +25,26 @@ import mb.stratego.build.strincr.message.type.VariableBoundToIncompatibleType;
 import mb.stratego.build.util.WithLastModified;
 
 public abstract class Message implements WithLastModified, Serializable {
-    public final IStrategoTerm locationTerm;
+    public final String locationTermString;
     // TODO: require location to be non-null once gradual type system stops losing origins
-    public final @Nullable ImploderAttachment location;
+    public final @Nullable SourceRegion sourceRegion;
+    public final @Nullable String filename;
     public final MessageSeverity severity;
     public final long lastModified;
 
-    public Message(IStrategoTerm name, MessageSeverity severity, long lastModified) {
-        this.locationTerm = name;
-        this.location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(name));
-        assert this.location != null : "The given term " + name + " did not contain a location";
+    public Message(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
+        if(locationTerm instanceof IStrategoString) {
+            this.locationTermString = ((IStrategoString) locationTerm).stringValue();
+        } else {
+            this.locationTermString = locationTerm.toString();
+        }
+        @Nullable ImploderAttachment location =
+            ImploderAttachment.get(OriginAttachment.tryGetOrigin(locationTerm));
+        this.sourceRegion = location == null ? null :
+            sourceRegionFromTokens(location.getLeftToken(), location.getRightToken());
+        this.filename = location == null ? null : location.getLeftToken().getFilename();
+        assert sourceRegion != null : "The given term " + locationTerm + " did not contain a location";
+        assert filename != null : "The given term " + locationTerm + " did not contain a location";
         this.severity = severity;
         this.lastModified = lastModified;
     }
@@ -127,35 +138,13 @@ public abstract class Message implements WithLastModified, Serializable {
     }
 
     public String locationString() {
-        final IToken leftToken = location.getLeftToken();
-        final IToken rightToken = location.getRightToken();
-        final String filename = leftToken.getFilename();
-        final int leftLine = leftToken.getLine();
-        final int leftColumn = leftToken.getColumn();
-        final int rightLine = rightToken.getEndLine();
-        final int rightColumn = rightToken.getEndColumn()+1;
-        if(leftLine == rightLine) {
-            if(leftColumn == rightColumn) {
-                return filename + ":" + leftLine + ":" + leftColumn;
-            }
-            return filename + ":" + leftLine + ":" + leftColumn + "-" + rightColumn;
-        } else {
-            return filename + ":" + leftLine + "-" + rightLine + ":" + leftColumn + "-"
-                + rightColumn;
-        }
+        return filename + ":" + sourceRegion.startRow + ":" + sourceRegion.startColumn
+            + " - " + sourceRegion.endRow + (sourceRegion.endColumn + 1);
     }
 
-    protected String locationTermString() {
-        if(locationTerm instanceof IStrategoString) {
-            return ((IStrategoString) locationTerm).stringValue();
-        } else {
-            return locationTerm.toString();
-        }
-    }
-
-    public String moduleFilePath() {
-        final IToken leftToken = location.getLeftToken();
-        return leftToken.getFilename();
+    public SourceRegion sourceRegionFromTokens(IToken left, IToken right) {
+        return new SourceRegion(left.getStartOffset(), left.getLine(), left.getColumn(),
+            right.getEndOffset(), right.getEndLine(), right.getEndColumn());
     }
 
     public abstract String getMessage();
@@ -174,16 +163,20 @@ public abstract class Message implements WithLastModified, Serializable {
 
         if(lastModified != message.lastModified)
             return false;
-        if(!locationTerm.equals(message.locationTerm))
+        if(!locationTermString.equals(message.locationTermString))
             return false;
-        if(location != null ? !location.equals(message.location) : message.location != null)
+        if(sourceRegion != null ? !sourceRegion.equals(message.sourceRegion) :
+            message.sourceRegion != null)
+            return false;
+        if(filename != null ? !filename.equals(message.filename) : message.filename != null)
             return false;
         return severity == message.severity;
     }
 
     @Override public int hashCode() {
-        int result = locationTerm.hashCode();
-        result = 31 * result + (location != null ? location.hashCode() : 0);
+        int result = locationTermString.hashCode();
+        result = 31 * result + (sourceRegion != null ? sourceRegion.hashCode() : 0);
+        result = 31 * result + (filename != null ? filename.hashCode() : 0);
         result = 31 * result + severity.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
