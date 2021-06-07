@@ -1,5 +1,0 @@
-module dfa2java
-
-strategies
-  /*======== Generate Jave code from DFA =================*/
-  dfa2java = fail
