@@ -39,3 +39,4 @@ context-free syntax
 context-free priorities
   PreTerm.Explode > Term.As,
   Term.Anno > PreTerm.As
+//  , Var.Var > Term.Path

@@ -2114,8 +2114,8 @@ strategies
     Cur() ->
     e |[ term ]|
 
-  translate-PathV =
-    ?Var(_); java-ConstructVar
+//  translate-PathV =
+//    ?Var(_); java-ConstructVar
 
   translate-PathV:
     Sub(p, x) ->

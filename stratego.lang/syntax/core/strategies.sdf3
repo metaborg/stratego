@@ -149,7 +149,7 @@ context-free syntax
   PathVF = PathF
 
   PathV.Cur = <current>
-  PathV.Var = Var
+//  PathV.Var = ID
   PathV.Sub = <<PathV>.<Int>>
   PathV.Anno = <<PathV>.anno>
   PathV.Head = <<PathV>.head>
