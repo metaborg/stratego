@@ -10,19 +10,20 @@ imports
   signatures/sugar/terms-sig
 
 strategies
-  aliases-to-guards =
-    ?Matrix(p*@[p | _], row*)
-  ; <map(try(alias-to-guard(|p)))> row* => row'*
-  ; !Matrix(p*, row'*)
+  aliases-to-guards:
+    Matrix(p*@[p | _], row*) ->
+    Matrix(p*, row'*)
+  with
+    <map(try(alias-to-guard(|p)))> row* => row'*
 
   alias-to-guard(|p):
     Row([As(t1, t2) | t*], s1, s2, s3) ->
     Row([t2 | t*], <sequence-strategies> (s1, sa), s2, s3)
   with
-    <Desugar> Assign(t1, Path(p)) => sa
+    <desugar> Where(Assign(t1, Path(p))) => sa
 
 strategies
-  sequence-strategies: (s1, s2) -> <Simplify> Seq(s1, s2)
+  sequence-strategies: (s1, s2) -> <try(Simplify)> Seq(s1, s2)
 
 strategies
   is-id-guard = ?Id()
