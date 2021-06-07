@@ -13,6 +13,7 @@ import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.Front;
 import mb.stratego.build.strincr.task.FrontSplit;
@@ -37,6 +38,7 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(Back.class, Back.id);
         bindTaskDef(Check.class, Check.id);
         bindTaskDef(CheckModule.class, CheckModule.id);
+        bindTaskDef(CheckOpenModule.class, CheckOpenModule.id);
         bindTaskDef(Resolve.class, Resolve.id);
         bindTaskDef(Front.class, Front.id);
         bindTaskDef(FrontSplit.class, FrontSplit.id);

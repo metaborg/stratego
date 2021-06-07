@@ -496,7 +496,7 @@ public abstract class BackInput implements Serializable {
                 .entrySet()) {
                 final IStrategoTerm from = e.getKey();
                 for(IStrategoTerm to : e.getValue()) {
-                    consInjTerms.add(backTask.tf.makeAppl("ConsDeclInj", backTask.tf.makeAppl("FunType",
+                    consInjTerms.add(backTask.tf.makeAppl("OpDeclInj", backTask.tf.makeAppl("FunType",
                         backTask.tf.makeList(ConstructorType.typeToConstType(backTask.tf, from)),
                         ConstructorType.typeToConstType(backTask.tf, to))));
                 }

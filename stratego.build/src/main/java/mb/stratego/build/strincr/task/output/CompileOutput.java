@@ -3,6 +3,7 @@ package mb.stratego.build.strincr.task.output;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import javax.annotation.Nullable;
 
@@ -15,10 +16,10 @@ public interface CompileOutput extends Serializable {
     String toString();
 
     class Success implements CompileOutput {
-        public final HashSet<ResourcePath> resultFiles;
+        public final LinkedHashSet<ResourcePath> resultFiles;
         public final ArrayList<Message> messages;
 
-        public Success(HashSet<ResourcePath> resultFiles, ArrayList<Message> messages) {
+        public Success(LinkedHashSet<ResourcePath> resultFiles, ArrayList<Message> messages) {
             this.resultFiles = resultFiles;
             this.messages = messages;
         }

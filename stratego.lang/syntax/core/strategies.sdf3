@@ -65,8 +65,8 @@ sorts Strategy SVar StrategyMid
 context-free syntax
   Strategy.Fail  = <fail>
   Strategy.Id    = <id>
-  Strategy.ProceedT = <proceed(<{Strategy ", "}*>|<{Term ", "}*>)> {prefer}
-  Strategy.ProceedNoArgs = <proceed> {prefer}
+  Strategy.ProceedT = <proceed(<{Strategy ", "}*>|<{Term ", "}*>)>
+  Strategy.ProceedNoArgs = <proceed>
   Strategy.Match = <?<Term>>
   Strategy.Build = <!<Term>>
   Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>

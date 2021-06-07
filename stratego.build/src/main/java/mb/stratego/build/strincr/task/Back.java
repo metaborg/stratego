@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.task;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -17,16 +16,19 @@ import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
-import mb.resource.fs.FSPath;
+import mb.resource.ResourceKeyString;
+import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.function.ContainsErrors;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
+import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.StrIncrContext;
 
 /**
@@ -65,6 +67,10 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     }
 
     @Override public BackOutput exec(ExecContext context, BackInput input) throws Exception {
+        if(PieUtils.requirePartial(context, check, input.checkInput, ContainsErrors.INSTANCE)) {
+            return BackOutput.dependentTasksHaveErrorMessages;
+        }
+
         final LinkedHashSet<StrategySignature> compiledStrategies = new LinkedHashSet<>();
 
         // N.B. this call is potentially a lot of work:
@@ -125,9 +131,9 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         assert TermUtils.isList(result1);
         for(IStrategoTerm fileNameTerm : result1) {
             if(TermUtils.isString(fileNameTerm)) {
-                final File file = new File(TermUtils.toJavaString(fileNameTerm));
+                final HierarchicalResource file = context.getResourceService().getHierarchicalResource(ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
                 context.provide(file);
-                resultFiles.add(new FSPath(file.toPath()));
+                resultFiles.add(file.getPath());
             }
         }
 

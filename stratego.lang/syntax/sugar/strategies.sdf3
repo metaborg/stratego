@@ -23,11 +23,17 @@ context-free syntax
 
   // Strategy definition with pattern matched term parameters
   StrategyDef.SDefP =
-<<Id>(<{Typedid ", "}*>|<{Term ","}*>) =
-  <Strategy>> {avoid}
+<<Id>(<{Typedid ", "}*>|<{TermNoVar ","}*>) =
+  <Strategy>>
 
 context-free syntax
   Typedid.DefaultVarDec = ID
+
+  TermNoVar = Term
+
+context-free priorities
+  TermNoVar = Term <0> .>
+  Term = Var
 
 context-free syntax
 
@@ -39,7 +45,7 @@ context-free syntax
   Strategy.Rec        = <rec <Id>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
-  Strategy.With       = <with(<Strategy>)> {prefer}
+  Strategy.With       = <with(<Strategy>)>
   Strategy.Test       = <test(<Strategy>)> {deprecated("Use `where` instead")}
   Strategy.PrimNoArgs = <prim(<String>)>
   Strategy.Prim       = <prim(<String>, <{Term ", "}*>)>
@@ -71,7 +77,7 @@ context-free syntax
   Strategy.SRule      = <(<Rule>)>
   Strategy.Choice     = <<Strategy> + <Strategy>> {right}
   Strategy.RChoice    = [[Strategy] +> [Strategy]] {right}
-  Strategy.Proceed    = <proceed(<{Strategy ", "}+>)> {prefer}
+  Strategy.Proceed    = <proceed(<{Strategy ", "}+>)>
   Strategy.CondChoice = <if <Strategy> then <Strategy> else <Strategy> end>
   Strategy.IfThen     = <if <Strategy> then <Strategy> end>
 
