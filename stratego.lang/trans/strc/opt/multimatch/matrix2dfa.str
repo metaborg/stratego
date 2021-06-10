@@ -45,8 +45,8 @@ strategies
   NoRows:
     m@Matrix(_, []) ->
     Fail()
-  where
-    <debug(!"NoRows ")> m
+//  where
+//    <debug(!"NoRows ")> m
 
   /*
    * 2. If the first row of P exists and is constituted by wildcards,
@@ -63,7 +63,7 @@ strategies
     GuardedLeafs(guard*)
   where
     <take-while(row-all-wildcards)> row* => match_row*
-  ; <debug(!"WildcardsFirstRow ")> m
+//  ; <debug(!"WildcardsFirstRow ")> m
   with
     // Split rows at first row not having only wildcard patterns
     guard* := <map(\ Row(_, s_a, s_g, s_rhs) ->
@@ -78,11 +78,11 @@ strategies
   SelectColumn:
     m@Matrix([p | _], [_ | _]) ->
     T
-  where
-    <debug(!"SelectColumn ")> m
+//  where
+//    <debug(!"SelectColumn ")> m
   with
     i := <find-first-col-index(not(all-wildcards))> m
-  ; <debug(!"  with i=")> i
+//  ; <debug(!"  with i=")> i
   ; if <gti> (i, 1) then
     /*
      * If i > 1 then swap columns 1 and i in both o and P,
