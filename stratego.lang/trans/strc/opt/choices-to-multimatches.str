@@ -118,15 +118,18 @@ strategies
   /* VERIFIED
     baz = match sequential
             case ...
-            case   | _ where {y: ?q; s1}: s2
+            case   | _ where {y*: ?q; s1}: s2
+            case ...
           end
 
     baz' =  match sequential
               case ...
-              case y | q where s1: s2
+              case y* | q where s1: s2
+              case ...
             end
   */
   extract-matches = MM(list-some(extract-match))
+
 
   extract-match:
     ScopedGuardedMatchCase(x*, p, Scope(y*, Seq(Match(q), s1)), s2) ->
@@ -217,8 +220,8 @@ strategies
     ?Id()
   // TODO Build and Match can contain more than vars, which should succeed too.
   // Probably needs a build-always-succeeds strategy.
-  + Build(where(collect-om(?Var(_){"unbound"} + ?Var(_){"(un)bound"}); ?[]))
-  + Match(where(collect-om(?Var(_){"bound"} + ?Var(_){"(un)bound"}); ?[]))
+  + ?Build(_) < (?Build(Path(Cur())) + Build(where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])))
+  + Match(where(collect-om(?Var(_){<?"bound" + ?"(un)bound">}); ?[]))
   + Seq(always-succeeds, always-succeeds)
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds)
