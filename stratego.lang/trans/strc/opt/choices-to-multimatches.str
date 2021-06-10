@@ -3,6 +3,7 @@ module choices-to-multimatches
 imports
   strc/front/desugar
   strc/lib/stratlib
+  strc/strc/strc // log-timed
 
   strc/opt/bound-unbound-vars
   strc/opt/multimatch/decompose
@@ -16,15 +17,18 @@ overlays
   MM(c) = MultiMatch(Sequential(), c)
 
 strategies
-  choices-to-multimatches = id
-  ; desugar
-  ; mark-bound-unbound-vars
-  ; repeat(oncetd(choice-to-multimatch
+  choices-to-multimatches = log-timed(id
+  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
+  ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 1)
+  ; log-timed(
+    repeat(oncetd(choice-to-multimatch
                <+ extract-matches
                <+ extract-righthandsides))
-  ; bottomup(try(lift-defaults))
-  ; strip-annos
-  ; desugar
+    | "  2. Translating choices", 1)
+  ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
+  ; log-timed(strip-annos|"  4. Stripping annos", 1)
+  ; log-timed(desugar|"  5. Desugaring", 1)
+  | "Optimisation: choices to multimatches", 1)
 
 strategies
 
