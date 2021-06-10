@@ -14,13 +14,11 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ToModuleIdentifiersAndMessages;
 import mb.stratego.build.strincr.function.output.ModuleIndentifiersAndMessages;
 import mb.stratego.build.strincr.message.Message;
-import mb.stratego.build.strincr.message.type.TypeMessage;
 import mb.stratego.build.strincr.task.input.CheckInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 /**
  * Runs {@link Resolve}, gets the list of all modules, then runs {@link CheckModule} on each module.
@@ -55,15 +53,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
                 Relation.getOrInitialize(dynamicRuleIndex, strategySignature, LinkedHashSet::new)
                     .add(moduleIdentifier);
             }
-            if(input.strategoGradualSetting == StrategoGradualSetting.NONE) {
-                for(Message message : output.messages) {
-                    if(!(message instanceof TypeMessage)) {
-                        messages.add(message);
-                    }
-                }
-            } else {
-                messages.addAll(output.messages);
-            }
+            messages.addAll(output.messages);
         }
 
         messages.addAll(moduleIndentifiersAndMessages.messages);

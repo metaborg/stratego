@@ -10,7 +10,6 @@ import org.metaborg.util.cmd.Arguments;
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class CompileInput implements Serializable {
     public final CheckInput checkInput;
@@ -26,9 +25,9 @@ public class CompileInput implements Serializable {
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
-        ArrayList<STask<?>> strFileGeneratingTasks, StrategoGradualSetting strategoGradualSetting,
+        ArrayList<STask<?>> strFileGeneratingTasks,
         boolean library, boolean autoImportStd) {
-        this.checkInput = new CheckInput(mainModuleIdentifier, projectPath, strategoGradualSetting,
+        this.checkInput = new CheckInput(mainModuleIdentifier, projectPath,
             strFileGeneratingTasks, includeDirs, linkedLibraries, autoImportStd);
         this.outputDir = outputDir.getNormalized();
         this.packageName = packageName;

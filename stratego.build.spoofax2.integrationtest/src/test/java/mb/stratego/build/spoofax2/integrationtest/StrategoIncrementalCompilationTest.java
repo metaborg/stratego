@@ -41,7 +41,6 @@ import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrategoIncrementalCompilationTest {
     public static @Nullable Spoofax spoofax;
@@ -110,7 +109,7 @@ public class StrategoIncrementalCompilationTest {
                 "mb.stratego.build.spoofax2.test",
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-                StrategoGradualSetting.DYNAMIC, true, true);
+                true, true);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -171,7 +170,7 @@ public class StrategoIncrementalCompilationTest {
             "mb.stratego.build.spoofax2.test",
             new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
             strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-            StrategoGradualSetting.STATIC, true, true);
+            true, true);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
