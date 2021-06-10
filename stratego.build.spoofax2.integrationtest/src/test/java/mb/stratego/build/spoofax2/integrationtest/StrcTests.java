@@ -34,6 +34,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.output.CompileOutput;
+import org.metaborg.util.cmd.Arguments;
 
 import javax.annotation.Nullable;
 
@@ -102,8 +103,17 @@ public class StrcTests {
     }
 
     protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
-        Predicate<? super Path> disabled,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
+                                                Predicate<? super Path> disabled,
+                                                ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
+        throws URISyntaxException, IOException {
+        final Arguments args = new Arguments();
+//        args.add("-O", "4");
+        return compileAndRun(subdir, glob, disabled, linkedLibraries, args);
+    }
+
+    protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
+                                                Predicate<? super Path> disabled,
+                                                ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments args)
         throws URISyntaxException, IOException {
         final Path strategoxtJarPath = Stratego.getStrategoxtJarPath();
         final Path dirWithTestFiles = getResourcePathRoot().resolve(subdir);
@@ -117,7 +127,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 final CompileOutput str2CompileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false, args);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));
@@ -149,7 +159,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 final CompileOutput compileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false, new Arguments());
                 Assertions.assertTrue(compileOutput instanceof CompileOutput.Failure,
                     "Compilation with stratego.lang compiler expected to fail");
             });
@@ -171,7 +181,7 @@ public class StrcTests {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
                 final CompileOutput str2CompileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false, new Arguments());
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));

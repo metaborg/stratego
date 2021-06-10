@@ -65,7 +65,9 @@ rules
 strategies
    eval = memo (innermost (REC_E))
    equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
-   eval-and-print = eval ; debug (!"result = ")
-   main = 
-      (<eval-and-print> finish()) ;
-      <exit> 0
+
+  main =
+    apply-and-show(eval|
+      "dart"
+    , finish()
+    )

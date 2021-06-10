@@ -73,8 +73,8 @@ public class Stratego {
     }
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
-        Path packageDir, boolean library,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd)
+                                     Path packageDir, boolean library,
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, Arguments args)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -108,13 +108,12 @@ public class Stratego {
             final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
             strjIncludeDirs.add(projectPath);
 
-            final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(false, baseName, new FSPath(input));
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
-                    new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
+                    new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
                     new ArrayList<>(0), StrategoGradualSetting.DYNAMIC, library, autoImportStd);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
