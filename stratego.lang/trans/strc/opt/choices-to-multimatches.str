@@ -89,10 +89,6 @@ strategies
       ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s1, s2)
     , ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s3, Id()) 
     ])
-//  where
-//    <tvars; debug(!"tvars s1 ")> s1
-//  ; <tvars; debug(!"tvars s2 ")> s2
-//  ; <tvars; debug(!"tvars s3 ")> s3
 
   /* VERIFIED
     qux = match sequential
@@ -173,20 +169,21 @@ strategies
   with
     s3 := <sequence-strategies> (s1, s2)
 
-  /*
-   * case x* | p where s1'; s1'': s2
-   * where s1' is not guaranteed to succeed
-   * and s1'' is guaranteed to succeed
-   * ->
-   * case x* | p where s1': s1''; s2
-   */
-  extract-rhs:
-    ScopedGuardedMatchCase(x*, p, s1, s2) ->
-    ScopedGuardedMatchCase(x*, p, s1', s3)
-  where
-    <oncetd(Seq(id, where(always-succeeds); ?s1''); ?Seq(<id>, _))> s1 => s1'
-  with
-    <sequence-strategies> (s1'', s2) => s3
+//  // FIX Causes undeclared vars
+//  /*
+//   * case x* | p where s1'; s1'': s2
+//   * where s1' is not guaranteed to succeed
+//   * and s1'' is guaranteed to succeed
+//   * ->
+//   * case x* | p where s1': s1''; s2
+//   */
+//  extract-rhs:
+//    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+//    ScopedGuardedMatchCase(x*, p, s1', s3)
+//  where
+//    <oncetd(Seq(id, where(always-succeeds); ?s1''); ?Seq(<id>, _))> s1 => s1'
+//  with
+//    <sequence-strategies> (s1'', s2) => s3
 
 strategies
   lift-defaults:
