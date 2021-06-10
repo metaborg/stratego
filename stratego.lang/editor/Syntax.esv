@@ -24,6 +24,9 @@ menus
     action: "Show desugared AST (incr. comp.)" = debug-show-desugared
     action: "Show desugared AST (batch comp.)" = debug-show-ctree
 
+  menu: "Codegen" (openeditor) (source)
+    action: "Show Java (-O2)" = debug-show-java
+
 views
 
   outline view: editor-outline (source)

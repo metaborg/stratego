@@ -18,23 +18,9 @@ imports
   strj/strj-options
 
   libjava-front
+  libstratego-aterm
   libstratego-gpp
   libstratego-lib
-
-rules
-  translate-core(|path, O) = id
-    ; where(<set-config> ("--library", ())) // no main strategy necessary this way
-    ; local-pre-desugar-all
-    ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
-    ; where(
-        <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
-      ; strj-preinit-options
-      ; <set-config> ("-O", O)
-      ; <dirname> path
-      ; rules(OutputDirName := <id>)
-      )
-    ; frontend
-    ; strc-optimize
 
 rules // Debugging
 
@@ -55,20 +41,6 @@ rules // Debugging
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend-sep-comp
     ; ?result
-
-  // Show desugared AST
-  debug-show-ctree:
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"ctree.aterm")> path
-    ; <translate-core(|path, 2)> node => result
-
-  // Show desugared concrete syntax
-  debug-show-core:
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"core.str2")> path
-    ; <translate-core(|path, 2); pp-stratego-core> node => result
 
   debug-show-java:
     (node, _, _, path, project-path) -> (filename*, result*)
@@ -95,6 +67,36 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
 
+
+rules
+  // Show desugared AST
+  debug-show-ctree:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"ctree.aterm")> path
+    ; <translate-core(|path, 2)> node => result
+
+  // Show desugared concrete syntax
+  debug-show-core:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"core.str2")> path
+    ; <translate-core(|path, 2); pp-stratego-core> node => result
+
+  translate-core(|path, O) = id
+    ; where(<set-config> ("--library", ())) // no main strategy necessary this way
+    ; local-pre-desugar-all
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
+      ; strj-preinit-options
+      ; <set-config> ("-O", O)
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; frontend
+    ; strc-optimize
+
   debug-show-java-O0 = debug-show-java(|0)
   debug-show-java-O1 = debug-show-java(|1)
   debug-show-java-O2 = debug-show-java(|2)
@@ -108,10 +110,11 @@ rules // Debugging
     (node, _, _, path, project-path) -> (filename*, result*)
     with
       <translate-core(|path, O)> node
+    ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
-    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
 
 imports
   strc/opt/bound-unbound-vars
