@@ -59,7 +59,7 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
 
 strategies
 
-desugar-SType = otf(\TP() -> FunTType([], [], TP())\)
+desugar-SType = otf(\t@TP() -> FunTType([], [], t)\)
 desugar-SType = otf(\st@FunNoArgsType(i, o) -> FunTType([], [], <desugar-SSimpleFunType> st)\)
 desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
 desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-SSimpleFunType);not(?a))
@@ -70,7 +70,7 @@ desugar-SSimpleFunType = otf(FunNoArgsType(desugar-Type, desugar-Type))
 desugar-Type- = otf(\SortVar("string") -> StringT()\)
 desugar-Type- = otf(\SortVar("int") -> IntT()\)
 desugar-Type- = otf(\SortVar("real") -> RealT()\)
-desugar-Type- = otf(\SortNoArgs(x) -> Sort(x, [])\)
+desugar-Type- = otf(\SortNoArgs(x) -> Sort(x, <otf(![])> x)\)
 desugar-Type- = otf(?a;Sort(id, map(desugar-Type-));not(?a))
 desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
@@ -92,7 +92,7 @@ tv2TP = id
 strategies
 
 unDyn = try(?DynT(<not(?Dyn())>))
-pushDyn = try(\DynT(Sort(x, t*@[_| _])) -> Sort(x, <map(otf(!DynT(<id>)))> t*)\)
+pushDyn = try(\DynT(sort@Sort(_, [_| _])) -> <otf(Sort(id, map(otf(!DynT(<id>)))))> sort\)
 listType: t1 -> t3
   where if ListT(t2) := <pushDyn> t1
     then t3 := t2
