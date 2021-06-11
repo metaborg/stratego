@@ -1,9 +1,9 @@
 module defs
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-specification
+module test
 
 signature
   constructors

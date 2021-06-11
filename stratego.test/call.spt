@@ -1,16 +1,16 @@
 module call
 
-language strategoGT
+language StrategoLang
 
 test undefined strategy cannot be found [[
-specification
+module test
 rules
   hello = [[this-is-undefined]]
 ]] 1 error at #1
    has origin locations
 
 test defined strategy can be found [[
-specification
+module test
 rules
   strategy-is-defined = id
 
@@ -19,21 +19,21 @@ rules
    has origin locations
 
 test call dynamic is not supported [[
-specification
+module test
 rules
   hello = [[call( "" | !1 | 2, 3 )]]
 ]] 1 error at #1
    has origin locations
 
 test strategy type is used, cast is inserted [[
-specification
+module test
 rules
   typed-strategy-is-defined :: int -> int
   typed-strategy-is-defined = id
 
   hello = typed-strategy-is-defined
 ]] run test-analysis to [[
-specification
+module test
 rules
   typed-strategy-is-defined :: int -> int
   typed-strategy-is-defined = id
