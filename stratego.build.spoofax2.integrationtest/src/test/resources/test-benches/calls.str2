@@ -1,6 +1,6 @@
 module calls
 
-imports libstrategolib
+imports libstratego-lib
 
 signature
 
@@ -47,39 +47,45 @@ strategies
      )
 
    calls1 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls1"
+     , a()
      , nullary_constructor()
      )
 
    calls2 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls2"
+     , b()
      , unary_constructor (nullary_constructor())
      )
 
    calls3 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls3"
+     , c()
      , nary_constructor (nullary_constructor(), nullary_constructor(), nullary_constructor())
      )
 
    calls4 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls4"
-     , nullary_function()
+     , d()
+     , nullary_constructor()
      )
 
    calls5 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls5"
-     , unary_function (nullary_function())
+     , e()
+     , unary_constructor (nullary_constructor())
      )
 
    calls6 =
-     apply-and-show(eval|
+     apply-test(eval|
        "calls6"
-     , nary_function (nullary_function(), nullary_function(), nullary_function())
+     , f()
+     , nary_constructor (nullary_constructor(), nullary_constructor(), nullary_constructor())
      )
 
   external test-suite(sn, st|)

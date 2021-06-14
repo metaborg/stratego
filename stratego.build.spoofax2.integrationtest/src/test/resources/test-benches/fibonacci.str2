@@ -1,6 +1,6 @@
 module fibonacci
 
-imports libstrategolib
+imports libstratego-lib
 
 signature
 
@@ -41,3 +41,12 @@ strategies
        "fibonacci18"
      , fibb (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (d0())))))))))))))))))))
      )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|tn, ti, to)
+  external apply-and-show(s|tn, ti)
+
+  external memo(s|)
+  external innermost(s|)
+  external equal(|t1, t2)
+  

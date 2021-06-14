@@ -1,6 +1,6 @@
 module parse/multimatch
 
-language stratego
+language StrategoLang
 
 fixture [[
 module parse/multimatch

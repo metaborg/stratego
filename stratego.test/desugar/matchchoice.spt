@@ -1,5 +1,5 @@
 module desugar/matchchoice
-language stratego
+language StrategoLang
 
 test match alts to MM [[
 specification

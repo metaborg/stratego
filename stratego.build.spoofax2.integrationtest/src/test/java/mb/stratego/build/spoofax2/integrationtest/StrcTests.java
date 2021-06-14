@@ -52,10 +52,11 @@ public class StrcTests {
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Collections.singletonList("test113.str"));
+            new HashSet<>(Collections.singletonList("test113.str2"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test1", "test*.str{,2}", disableFilter, new ArrayList<>(
+            p -> !disabledTestFiles.contains(p.getFileName().toString())
+                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
+        return compileAndRun("test1", "test*.str2", disableFilter, new ArrayList<>(
             Arrays.asList(BuiltinLibraryIdentifier.StrategoLib,
                 BuiltinLibraryIdentifier.StrategoSdf)));
     }
@@ -64,10 +65,11 @@ public class StrcTests {
     Stream<DynamicTest> test2() throws URISyntaxException, IOException {
         // list-cons is not a test file, it is imported by other test files.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Collections.singletonList("list-cons.str"));
+            new HashSet<>(Collections.singletonList("list-cons.str2"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test2", "*.str{,2}", disableFilter,
+            p -> !disabledTestFiles.contains(p.getFileName().toString())
+                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
+        return compileAndRun("test2", "*.str2", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -77,8 +79,9 @@ public class StrcTests {
         HashSet<String> disabledTestFiles =
             new HashSet<>();//Arrays.asList("test05.str"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return failToCompile("testneg", "test*.str{,2}", disableFilter,
+            p -> !disabledTestFiles.contains(p.getFileName().toString())
+                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
+        return failToCompile("testneg", "test*.str2", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -88,7 +91,8 @@ public class StrcTests {
                 new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
         final Predicate<Path> disableFilter =
                 p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
-                        && !disabledTestFiles.contains(p.getFileName().toString());
+                        && !disabledTestFiles.contains(p.getFileName().toString())
+                        && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
         return compileAndRun("test-pmc", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -98,7 +102,8 @@ public class StrcTests {
                 new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
         final Predicate<Path> disableFilter =
                 p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
-                        && !disabledTestFiles.contains(p.getFileName().toString());
+                        && !disabledTestFiles.contains(p.getFileName().toString())
+                        && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
         return compileAndRun("test-benches", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -107,7 +112,7 @@ public class StrcTests {
                                                 ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws URISyntaxException, IOException {
         final Arguments args = new Arguments();
-//        args.add("-O", "4");
+        args.add("-O", "4");
         return compileAndRun(subdir, glob, disabled, linkedLibraries, args);
     }
 
@@ -152,7 +157,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = fileName.substring(0, fileName.length() - 4); // strip .str
+            final String baseName = FilenameUtils.removeExtension(fileName); // strip .str
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {

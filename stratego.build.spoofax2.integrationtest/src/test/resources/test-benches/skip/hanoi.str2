@@ -1,6 +1,6 @@
 module hanoi4
 
-imports libstrategolib
+imports libstratego-lib
 
 signature
 
@@ -119,3 +119,12 @@ strategies
         "hanoi20"
       , solve (a(), b(), d20())
       )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|tn, ti, to)
+  external apply-and-show(s|tn, ti)
+
+  external memo(s|)
+  external innermost(s|)
+  external equal(|t1, t2)
+  

@@ -1,5 +1,5 @@
 module codegen/dfa
-language stratego
+language StrategoLang
 
 test Lists (Cons/Nil) [[
 specification

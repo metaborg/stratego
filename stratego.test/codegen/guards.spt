@@ -1,6 +1,6 @@
 module codegen/guards
 
-language stratego
+language StrategoLang
 
 test Drop unreachable guarded arms 1 [[
 specification

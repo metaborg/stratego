@@ -1,5 +1,5 @@
 module analysis/name-resolution/scopedmatchcase
-language stratego
+language StrategoLang
 
 fixture [[
 module matchchoice
