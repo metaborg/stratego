@@ -1,4 +1,4 @@
-module complex_default
+module list-merge
 
 signature
   sorts List
@@ -8,6 +8,7 @@ signature
 
 strategies
   comp = match sequential
-           case | (Nil(), _): !1
-           case | (_, Nil()): !2
+           case | ([], _): !1
+           case | (_, []): !2
+           case | ([x | xs], [y | ys]): !3
          end
