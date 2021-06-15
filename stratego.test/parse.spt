@@ -162,3 +162,17 @@ test BuildDefault, not Var("_a") [[
         BuildDefault(Var("a")))
     ])
   ])
+
+test SDefT, not SDefP, when no term arguments are given [[
+  specification
+  
+  strategies
+  
+  a(|) = ![]
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Build(NoAnnoList(List([]))))
+    ])
+  ])

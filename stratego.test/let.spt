@@ -1,15 +1,15 @@
 module let
 
-language strategoGT
+language StrategoLang
 
 test undefined strategy cannot be found [[
-specification
+module test
 rules
   hello = [[this-is-undefined]]
 ]] 1 error at #1
 
 test let defined strategy can be found [[
-specification
+module test
 rules
   hello =
     let local-strategy-is-defined = id
@@ -18,7 +18,7 @@ rules
 ]] 0 errors
 
 test let defined strategy can have a type [[
-specification
+module test
 rules
   hello =
     let
@@ -29,7 +29,7 @@ rules
 ]] 0 errors
 
 test let defined strategy type is used [[
-specification
+module test
 rules
   hello =
     let
@@ -38,7 +38,7 @@ rules
     in local-typed-strategy-is-defined
     end
 ]] run test-analysis to [[
-specification
+module test
 rules
   hello =
     let

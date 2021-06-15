@@ -1,9 +1,9 @@
 module high-level
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-  specification
+  module test
 
   signature constructors
     Int : string -> Expr
@@ -147,26 +147,26 @@ test Type ascription inside an untyped strategy is ok [[
    run count-inserted-casts-and-proxies to 0
 
 // TODO: requires tracking current-type originated from a specific variable
-test Strengthen type of dyn variable after use in typed position [[
-    typed1 :: Expr -> Expr
-    typed1: e -> Add(e, e)
-
-    typed2 :: Stat -> Stat
-    typed2 = id
-
-    untyped: Add(e1, _) -> e1
-    where
-      <typed1> e1
-    ; <[[typed2]]> e1
-]] 1 error at #1
-   0 warnings
-   has origin locations
+//test Strengthen type of dyn variable after use in typed position [[
+//    typed1 :: Expr -> Expr
+//    typed1: e -> Add(e, e)
+//
+//    typed2 :: Stat -> Stat
+//    typed2 = id
+//
+//    untyped: Add(e1, _) -> e1
+//    where
+//      <typed1> e1
+//    ; <[[typed2]]> e1
+//]] 1 error at #1
+//   0 warnings
+//   has origin locations
 
 test Different types in different branches [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -179,9 +179,9 @@ test Different types in different branches [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <something-else> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors

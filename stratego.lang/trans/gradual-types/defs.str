@@ -54,16 +54,16 @@ last-seq(s) = otf(Seq(id, last-seq(s))) <+ s
 prepare-strategy-def(|st1):
   t1@FunTType(_, _, _) -> (t2, st2)
   where
-    t2 := <alltd(\SortVar(x) -> Sort(x, [])\)> t1
+    t2 := <alltd(\tv@SortVar(x) -> Sort(x{tv}, [])\)> t1
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
-  ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, SortVar(tv))> st\)> (tvs, st1)
+  ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, Sort(tv{SortVar(tv)}, []))> st\)> (tvs, st1)
 
 prepare-strategy-def(|st1):
   t1{LocalDef()} -> (t2, st2)
   where
-    t2 := <alltd(\SortVar(x) -> <type-var-lookup(|x)> st1\ <+ otf(\SortVar(x) -> Sort(x, [])\))> t1
+    t2 := <alltd(\SortVar(x) -> <type-var-lookup(|x)> st1\ <+ otf(\tv@SortVar(x) -> Sort(x{tv}, [])\))> t1
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
-  ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, SortVar(tv))> st\)> (tvs, st1)
+  ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, Sort(tv{SortVar(tv)}, []))> st\)> (tvs, st1)
 
 strat-lookup-def(|x, sn, tn, st1) = strat-lookup(|x, sn, tn, DynT()); prepare-strategy-def(|st1)
 

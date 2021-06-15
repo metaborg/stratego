@@ -1,16 +1,22 @@
 module prenex-poly
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-  specification
+  module test
+
+  signature
+    sorts
+      PolyType(a)
+    constructors
+      One : a -> PolyType(a)
 
   rules
   [[...]]
 ]]
 
 test untyped map [[
-    map(s) = [s | map(s)] <+ ?[]
+    internal map(s) = [s | map(s)] <+ ?[]
 
     test-map :: ? -> List(string)
     test-map = ![1,2,3]; map(!"hi!")
@@ -19,21 +25,21 @@ test untyped map [[
    has origin locations
 
 test typed map [[
-    map(a -> b) :: List(a) -> List(b)
-    map(s) = [s | map(s)] <+ ?[]
+    internalmap(a -> b) :: List(a) -> List(b)
+    internalmap(s) = [s | internalmap(s)] <+ ?[]
 
     test-map :: ? -> List(string)
-    test-map = ![1,2,3]; map(!"hi!")
+    test-map = ![1,2,3]; internalmap(!"hi!")
     // `map`'s type is ideally instantiated as `(int -> string) List(int) -> List(string)`
     // but `(? -> string) List(?) -> List(string)` is also possible, since `!"hi!" :: ? -> string` by itself
 ]] 0 errors
    0 warnings
-//   has origin locations
+   has origin locations
 
 test untyped collect-all [[
-    mapconcat(s) = fail
+    internal mapconcat(s) = fail
 
-    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+    internal collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 
     test-collect-all :: ? -> List(string)
     test-collect-all = ![1,2,3]; collect-all(!"hi!")
@@ -42,18 +48,53 @@ test untyped collect-all [[
    has origin locations
 
 test typed collect-all [[
-    conc :: List(a) * List(a) -> List(a)
-    conc = fail
+    internalconc :: List(a) * List(a) -> List(a)
+    internalconc = fail
 
-    mapconcat(a -> List(b)) :: List(a) -> List(b)
-    mapconcat(s): [t@_#(c*) | t] -> <conc> (<s> t, <mapconcat(s)> c*)
-    mapconcat(s): [] -> []
+    internalmapconcat(a -> List(b)) :: List(a) -> List(b)
+    internalmapconcat(s): [t@_#(c*) | t] -> <internalconc> (<s> t, <internalmapconcat(s)> c*)
+    internalmapconcat(s): [] -> []
 
-    collect-all(? -> b) :: ? -> List(b)
-    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+    internalcollect-all(? -> b) :: ? -> List(b)
+    internalcollect-all(s) = ?t@_#(<id>); internalmapconcat(internalcollect-all(s)); (![<s> t | <id>] <+ id)
 
     test-collect-all :: ? -> List(string)
-    test-collect-all = ![1,2,3]; collect-all(!"hi!")
+    test-collect-all = ![1,2,3]; internalcollect-all(!"hi!")
 ]] 0 errors
+   0 warnings
+   has origin locations
+
+test build an option [[
+    MkSome :: b -> Option(b)
+    MkSome: c -> Some(c)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test build an option with wrong type [[
+    MkSome :: a -> Option(b)
+    MkSome: c -> [[Some]](c)
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test type-ascribe local type variable [[
+    MkSome :: b -> Option(b)
+    MkSome: c -> Some(c :: b)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Same type variable in type, strategy type, and local variable should not interfere [[
+    MkPolyType :: a -> PolyType(a)
+    MkPolyType: a -> One(a)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Cannot cast to type variable [[
+    MkPolyType :: ? -> PolyType(a)
+    MkPolyType: a -> One([[a]])
+]] 1 error at #1
    0 warnings
    has origin locations

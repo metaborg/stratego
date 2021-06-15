@@ -139,7 +139,7 @@ public abstract class Message implements WithLastModified, Serializable {
 
     public String locationString() {
         return filename + ":" + sourceRegion.startRow + ":" + sourceRegion.startColumn
-            + " - " + sourceRegion.endRow + (sourceRegion.endColumn + 1);
+            + " - " + sourceRegion.endRow + ":" + (sourceRegion.endColumn + 1);
     }
 
     public SourceRegion sourceRegionFromTokens(IToken left, IToken right) {

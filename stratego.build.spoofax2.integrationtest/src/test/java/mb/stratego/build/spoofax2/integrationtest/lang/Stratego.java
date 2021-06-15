@@ -33,7 +33,6 @@ import mb.stratego.build.strincr.ModuleIdentifier;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class Stratego {
     public static Path getStrategoxtJarPath() {
@@ -114,7 +113,7 @@ public class Stratego {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                    new ArrayList<>(0), StrategoGradualSetting.DYNAMIC, library, autoImportStd);
+                    new ArrayList<>(0), library, autoImportStd);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

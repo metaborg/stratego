@@ -23,7 +23,7 @@ context-free syntax
 
   // Strategy definition with pattern matched term parameters
   StrategyDef.SDefP =
-<<Id>(<{Typedid ", "}*>|<{TermNoVar ","}*>) =
+<<Id>(<{Typedid ", "}*>|<{TermNoVar ","}+>) =
   <Strategy>>
 
 context-free syntax
