@@ -220,7 +220,11 @@ strategies
     ?Id()
   // TODO Build and Match can contain more than vars, which should succeed too.
   // Probably needs a build-always-succeeds strategy.
-  + ?Build(_) < (?Build(Path(Cur())) + Build(where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])))
+  + ?Build(_) < (?Build(Path(Cur()))
+                 + Build(where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])
+                       ; where(not(oncetd(?Explode(Var(_), _))))
+                   )
+                )
   + Match(where(collect-om(?Var(_){<?"bound" + ?"(un)bound">}); ?[]))
   + Seq(always-succeeds, always-succeeds)
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
