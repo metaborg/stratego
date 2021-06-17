@@ -8,6 +8,8 @@ imports
   pp/StrategoLang-parenthesize
   pp/StrategoLang-pp
 
+  strc/front/stratego-ensugar
+
 rules
 
   editor-format:
@@ -54,4 +56,4 @@ strategies
   pp-stratego-string = pp-StrategoLang-string
 
 strategies
-  pp-stratego-core = alltd(\Str(s) -> Str($["[s]"])\); pp-stratego-string
+  pp-stratego-core = Stratego-Ensugar; pp-stratego-string

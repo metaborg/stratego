@@ -7,6 +7,7 @@ imports
   outline
   analysis
   signatures/core/modules-sig
+  signatures/core/strategies-sig
   signatures/-
 
   strc
@@ -67,6 +68,14 @@ rules // Debugging
     ; filename* := <map(output-filename)> ast*
     ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
 
+imports
+  libstratego-lib
+
+  strc/opt/bound-unbound-vars
+  strc/strc/strc
+
+  strj/backend-simplify
+  strj/s2j-options
 
 rules
   // Show desugared AST
@@ -86,6 +95,7 @@ rules
   translate-core(|path, O) = id
     ; where(<set-config> ("--library", ())) // no main strategy necessary this way
     ; local-pre-desugar-all
+    ; Module(?x_mod, id)
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; where(
         <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
@@ -96,6 +106,7 @@ rules
       )
     ; frontend
     ; strc-optimize
+    ; \Specification(d*) -> Module(x_mod, d*)\
 
   debug-show-java-O0 = debug-show-java(|0)
   debug-show-java-O1 = debug-show-java(|1)
@@ -110,14 +121,12 @@ rules
     (node, _, _, path, project-path) -> (filename*, result*)
     with
       <translate-core(|path, O)> node
+    ; \Module(_, d*) -> Specification(d*)\
     ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
-    ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
-
-imports
-  strc/opt/bound-unbound-vars
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail)> ast*
 
 strategies
 
