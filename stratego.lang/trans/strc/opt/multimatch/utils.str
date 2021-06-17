@@ -22,6 +22,17 @@ strategies
   ; <at-end(![x2])> x1*
 
   /*
+   * Find index of first element in list for which `s` succeeds.
+   * Index starts at 1.
+   */
+  find-first-index(s) = id
+  ; is-list
+  ; split-fetch(s)
+  ; Fst
+  ; length
+  ; inc
+
+  /*
    * Swap elements `m` and `n` in a list.
    * Index starts at 1.
    */

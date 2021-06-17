@@ -61,13 +61,17 @@ strategies
   WildcardsFirstRow:
     m@Matrix(_, row*@[Row(<all-wildcards>, _, _, _) | _]) ->
     GuardedLeafs(guard*)
-  where
-    <take-while(row-all-wildcards)> row* => match_row*
-//  ; <debug(!"WildcardsFirstRow ")> m
+//  where
+//    <debug(!"WildcardsFirstRow ")> m
   with
+    <take-while(row-all-wildcards)> row* => match_row*
+  ; <Matrix(id, drop-while(row-all-wildcards))> m => m'
     // Split rows at first row not having only wildcard patterns
-    guard* := <map(\ Row(_, s_a, s_g, s_rhs) ->
-                     Guard(<sequence-strategies> (s_a, s_g), s_rhs) \)> match_row*
+  ; let
+      row2guard = \ Row(_, s_a, s_g, s_rhs) -> Guard(<sequence-strategies> (s_a, s_g), s_rhs) \
+    in
+      guard* := <map(row2guard); at-end(![Guard(Id(), <CC> m')])> match_row*
+    end
 
   /*
    * 3. In any other case, matrix P has at least one row and at least
@@ -94,7 +98,8 @@ strategies
     ; <unwrap-annos <+ tswitch> (m', <col(|i)> m')
     end => T
 
-  unwrap-annos: (m, col) -> <specialize(|hc); CC> m
+  unwrap-annos:
+    (m, col) -> <specialize(|hc); CC> m
   with
     c* := <constructors-om> col
   where
@@ -108,16 +113,13 @@ strategies
   ; s_def   := <default; CC> m
   ; talt*   := <map(talt(|m, p, s_def))> arm*
 
-  talt(|m, p, s_def): (t, valt*) -> AltT(t, SwitchV(p', <map(valt(|m))> valt*, Default(s_def)))
+  talt(|m, p, s_def):
+    (t, c*) -> AltT(t, SwitchV(p', <map(valt(|m))> c*, Default(s_def)))
   with
     p' := <extend-path-by-type(|t)> p
 
-  valt(|m): (c, s*) -> GuardedAltV(c, guards)
-  where <is-switchable> c
-//    ; <debug(!"valt ")> (c, s*)
-  with
-    // Remove (i.e. replace by Id()) the alias guard
-    guards := <map(!Guard(<id>, <specialize-set(set-alias-guard(|Id())|c); CC> m))> s*
+  valt(|m) =
+    !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)
 
   is-switchable = ?Fun(_, _)
                 + is-literal

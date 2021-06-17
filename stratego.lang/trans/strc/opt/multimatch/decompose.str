@@ -39,19 +39,12 @@ strategies
   ; foldr(![], union, ![<constructor-om>])
 
   tswitch-arms =
-    ?Col(t*, s_a*, _, s_rhs*)
-  ; c* := <zipn
-         ; remove-all(where(Fst; (is-wld + ?As(_, <is-wld>))))
-         ; map(\ (t, s_a, s_rhs) -> (<cons-type <+ !()> t, <constructor-om> t, s_a, s_rhs) \)> (t*, s_a*, s_rhs*) // (t, c, s_a, s)
-  ; collect-types
-  ; collect-cons(|c*)
-
-  // [(t, c, s_a, s)*] -> [t*]
-  collect-types = foldr(![], union, ![<Fst>])
-  // [(t, c, s_a, s)*], [t*] -> [(t, [(c, [s*])*])*]
-  collect-cons(|c*) = map(\ t -> (t, <retain-all(where(Fst; ?t); Snd); make-set; collect-guards(|c*)> c*) \)
-  // [(t, c, s_a, s)*], [c*] -> [(c*, [s_a*])*]
-  collect-guards(|c*) = map(\ c -> (c, <retain-all(where(Snd; ?c); Third); make-set-lr> c*) \)
+    ?Col(<id>, _, _, _)
+  ; remove-all(where(is-wld + ?As(_, <is-wld>)))
+  ; map(split(cons-type, constructor-om))
+  ; ?p*
+  ; foldr(![], union, ![<Fst>]) // Set of types
+  ; map(split(id, <retain-all(where(Fst; ?t); Snd); make-set> p*)) // [(c, [t*])*]
 
   /*
    * Specialize the matrix to a certain constructor.
@@ -70,10 +63,8 @@ strategies
   specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o
 
-  specialize-occ-by-arity(|a) =
-    where(i* := <range> (0, a))
-  ; ?p
-  ; <map(\ i -> Sub(p, <int-to-string> i) \)> i*
+  specialize-occ-by-arity(|a):
+    p -> <range; map(\ i -> Sub(p, <int-to-string> i) \)> (0, a)
 
   // Annotations
   constructor-om:               Anno(c, ann)        -> Anno()
@@ -99,7 +90,8 @@ strategies
     ; <eq> (a, <arity> c)
   specialize-pats(|Tuple(x)):  [<is-wld> | ps*]       -> <prepend(|Wld(), a)> ps*
     where a := <string-to-int> x
-  specialize-occ(|Tuple(x)) = specialize-occ-by-arity(|<string-to-int> x)
+  specialize-occ(|Tuple(x)) =
+    specialize-occ-by-arity(|<string-to-int> x)
 
   // Lists
   constructor-om:               c@Op(f, ts)         -> Fun(f, <arity; int-to-string> c)
@@ -121,7 +113,8 @@ strategies
     ; <eq> (a, <arity> c)
   specialize-pats(|Fun(_, x)): [<is-wld> | ps*]        -> <prepend(|Wld(), a)> ps*
     with a := <string-to-int> x
-  specialize-occ(|Fun(_, x)) = specialize-occ-by-arity(|<string-to-int> x)
+  specialize-occ(|Fun(_, x)) =
+    specialize-occ-by-arity(|<string-to-int> x)
 
   // Literals
   is-literal = ?Str(_) + ?Int(_) + ?Real(_)

@@ -16,7 +16,7 @@ signature
     Col     : List(Term) * List(Strategy) * List(Strategy) * List(Strategy) -> Col
 
 strategies // predicates
-  row-all-wildcards = ?Row(<all-wildcards>, _, _, _)
+  row-all-wildcards = Row(all-wildcards, id, id, id)
 
   /*
    * Succeeds on a list if at least one element is not a wildcard.
@@ -39,10 +39,6 @@ strategies // getters
   ; s3* := <map(?Row(_, _ , _, <id>))> rows
 
 strategies // stdlib variants for Matrix/Row/Col
-  /*
-   * Find index of first element in list for which `s` succeeds.
-   * Index starts at 1.
-   */
   find-first-row-index(s) = id
   ; ?Matrix(_, <id>)
   ; find-first-index(s)
@@ -52,13 +48,6 @@ strategies // stdlib variants for Matrix/Row/Col
   ; map(?Row(<id>, _, _, _))
   ; matrix-transpose
   ; find-first-index(s)
-
-  find-first-index(s) = id
-  ; is-list
-  ; split-fetch(s)
-  ; Fst
-  ; length
-  ; inc
 
   /*
    * Map `s` over the patterns of matrix column `i`.
