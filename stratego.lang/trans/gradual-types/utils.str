@@ -23,6 +23,7 @@ gradual-types/signatures
 gradual-types/main
 gradual-types/environment
 
+libspoofax/term/annotation
 libspoofax/stratego/debug
 
 
@@ -154,6 +155,13 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
       <report-Warn> (subj, NoInjectionBetween(<itv(|st1)> from, DynT(<itv(|st1)> to)))
     ; t := from
     ; st2 := st1
+
+computeCoercion-(|subj, st1): (ErrT(), to) -> (<otf(!Id(){to})> subj, st1)
+
+computeCoercion-(|subj, st1): (from, to@Sort(<get-annotation(?SortVar(tv))>, _)) -> (<otf(!Fail(){ErrT()})> subj, st1)
+  where
+    not(<eq> (from, to))
+  ; <report-Err> (subj, CannotCastToRigidTypeVar(tv))
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to){to})> subj, st1)
 

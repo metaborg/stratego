@@ -48,11 +48,11 @@ test untyped collect-all [[
    has origin locations
 
 test typed collect-all [[
-    internalconc :: List(a) * List(a) -> List(a)
+    internalconc :: List(c) * List(c) -> List(c)
     internalconc = fail
 
     internalmapconcat(a -> List(b)) :: List(a) -> List(b)
-    internalmapconcat(s): [t@_#(c*) | t] -> <internalconc> (<s> t, <internalmapconcat(s)> c*)
+    internalmapconcat(s): [h | t] -> <internalconc> (<s> h, <internalmapconcat(s)> t)
     internalmapconcat(s): [] -> []
 
     internalcollect-all(? -> b) :: ? -> List(b)
@@ -62,7 +62,7 @@ test typed collect-all [[
     test-collect-all = ![1,2,3]; internalcollect-all(!"hi!")
 ]] 0 errors
    0 warnings
-   has origin locations
+//   has origin locations
 
 test build an option [[
     MkSome :: b -> Option(b)

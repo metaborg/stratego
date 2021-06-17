@@ -146,7 +146,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     //  or the empty list (in case of a list), or an int (in case of an int), etc.
     (trm3, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT())> st1)> trm1
   ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
-  ; st4 := <current-type(|DynT())> st3
+  ; st4 := <current-type-of(|st1)> st3
 
 strategies // Terms in build position (core)
 
@@ -255,7 +255,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       ; if [(ConstrType(t6*, t6), st3)] := t*
         then
           (t3*, t3) := <fresh-type-vars(?newvars)> (t6*, t6)
-        ; st4 := st3
+        ; (_, st4) := <computeCoercion(|trm1, st3)> (t3, t1)
         else
           newvars := []
         ; if [] := t*
@@ -293,7 +293,7 @@ insertCasts-StBuildTerm-(|e1, st1):
         // defined to disambiguate between current-type/0/0 and current-type/0/1
         set-type(|t) = current-type(|t)
       in (trm2*, _, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st4)
-      ; st6 := <current-type(|<instantiate-type-vars(|st5)> t3)> st5
+      ; st6 := <current-type(|<itv-err(|st5, cnstr)> t3)> st5
       ; trm2 := Op(cnstr, trm2*)
       end
     end
@@ -394,8 +394,12 @@ insertCasts-StMatchTerm-(|e1, st1):
   trm@List(trm1*) -> (List(trm2*), st4)
   with
     t1 := <current-type> st1
-  ; t1* := <map(!DynT())> trm1*
-  ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+  ; if ListT(t) := <pushDyn> t1
+      then t1* := <map(!t)> trm1*
+         ; st2 := st1
+      else t1* := <map(!DynT())> trm1*
+         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+    end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
   ; st4 := <current-type(|ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ListT(DynT())> t2*))> st3
 

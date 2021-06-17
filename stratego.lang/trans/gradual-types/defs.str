@@ -203,7 +203,7 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> (s*, cs2)
 
 insertCasts-RuleDef-(|e1, st1):
-  RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), st6)
+  RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), <current-type-of(|st5)> st6)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
