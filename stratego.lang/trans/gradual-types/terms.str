@@ -180,8 +180,8 @@ insertCasts-StBuildTerm-(|e1, st1):
            //  but unbound.
         st2 := <term-put(|v{}, t1)> st1
       ; t2 := t1
-    end ;<debug6> (t2, t1)
-  ; (trm2, st3) := <insertCastApp(|t2, t1);debug7> (trm1, st2)
+    end
+  ; (trm2, st3) := <insertCastApp(|t2, t1)> (trm1, st2)
   ; if DynT() := t2; not(DynT() := t1) <+ ErrT() := t2; not(ErrT() := t1)
       then
         // Strengthen the type of a variable that was previously dynamic
@@ -237,8 +237,8 @@ strategies
 
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@Op(cnstr, trm1*) -> (trm2, st7)
-  with debug0;
-    t1 := <current-type;debug1> st1
+  with
+    t1 := <current-type> st1
   ; if IllFormedTermT(x2, t1*) := t1
     then
       newvars := []
@@ -270,7 +270,7 @@ insertCasts-StBuildTerm-(|e1, st1):
         end
   //    end
     end
-  ; b* := <debug2;zip> (trm1*, t3*)
+  ; b* := <zip> (trm1*, t3*)
   ; if DynT() := t1 <+ ErrT() := t1
     then
       let
@@ -292,8 +292,8 @@ insertCasts-StBuildTerm-(|e1, st1):
       let
         // defined to disambiguate between current-type/0/0 and current-type/0/1
         set-type(|t) = current-type(|t)
-      in (trm2*, _, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1));debug3> (b*, st4)
-      ; st6 := <current-type(|<debug4;itv-err(|st5, cnstr);debug5> t3)> st5
+      in (trm2*, _, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st4)
+      ; st6 := <current-type(|<itv-err(|st5, cnstr)> t3)> st5
       ; trm2 := Op(cnstr, trm2*)
       end
     end

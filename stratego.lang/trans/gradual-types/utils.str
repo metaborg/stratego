@@ -137,7 +137,7 @@ HasType = ?ExtTypedDefInl(_, _, _, _, _)
 strategies
 
 computeCoercion(|subj, st1): (from1 ,to1) -> <computeCoercion-(|subj, st2)> (from2, to2)
-  with ((from2, to2), st2) :=  <debuga;try(CanCoerce);debugb> ((from1, to1), st1)
+  with ((from2, to2), st2) :=  <try(CanCoerce)> ((from1, to1), st1)
 
 // This is the mapping from the directed consistency rule (t ~> t) to coercions (t ~> t : c)
 // computeCoercion(|?, St) :: Type * Type -> Coercion
