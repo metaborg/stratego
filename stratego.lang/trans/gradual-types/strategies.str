@@ -76,7 +76,7 @@ insertCasts-Strategy(|e1, st1):
 
 insertCasts-CallT(|e1, st1) = otf22(insertCasts-CallT-(|e1, st1))
 
-insertCasts-CallT(|e1, st1): 
+insertCasts-CallT(|e1, st1):
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, t1, t2)) -> (c2, st6)
   with
     s2* := <zip> (s1*, st*)
@@ -636,31 +636,24 @@ insertCasts-Strategy-(|e1, st1):
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
-  ; if ListT(_) := <pushDyn> t1
-      then t3 := <pushDyn> t1 // workaround for strj bug: cannot use t3@ in the pattern above
-         ; st2 := st1
-      else t3 := ListT()
-      // Give a warning when it's guaranteed to fail based on type.
-      ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
-    end
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2)))> (s1*, st1)
-  ; st4 := <current-type(|t3)> st3
+  // Give a warning when it's guaranteed to fail based on type.
+  ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
+  ; tv := <newname> "listcongtv"
+  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
+  ; st4 := <current-type(|<instantiate-type-vars(|st3)> ListT(SortVar(tv)))> st3
 
 insertCasts-Strategy-(|e1, st1):
   s1@ListCong(s1*, s2) -> (ListCong(s2*, s3), st5)
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
-  ; if ListT(_) := <pushDyn> t1
-      then t3 := <pushDyn> t1 // workaround for strj bug: cannot use t3@ in the pattern above
-         ; st2 := st1
-      else t3 := ListT()
-      // Give a warning when it's guaranteed to fail based on type.
-      ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
-    end
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2)))> (s1*, st2)
-  ; (s3, st4) := <insertCasts-Sarg(|e1, st3)> (s2, FunTType(t3))
-  ; st5 := <current-type(|t3)> st4
+  // Give a warning when it's guaranteed to fail based on type.
+  ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
+  ; (ListT(_) := <pushDyn> t1 < ?t3 + t3 := ListT())
+  ; tv := <newname> "listcongtv"
+  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st2)
+  ; (s3, st4) := <insertCasts-Sarg(|e1, st3)> (s2, FunTType(t3, <itv(|st3)> ListT(SortVar(tv))))
+  ; st5 := <current-type(|<instantiate-type-vars(|st4)> ListT(SortVar(tv)))> st4
 
 insertCasts-Strategy-(|e1, st1):
   ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
