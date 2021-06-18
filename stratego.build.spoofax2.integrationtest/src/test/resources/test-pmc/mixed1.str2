@@ -3,7 +3,7 @@ imports libstratego-lib
 
 signature
   constructors
-    Con1 : Term * Term -> Term
+    Con1 : int * int -> Term
     Con2 :                Term
 
 strategies
@@ -35,73 +35,67 @@ strategies
     )
 
   cons-binary =
-    apply-test(
-      !"cons-binary"
-    , s
-    , !Con1(1, 2)
-    , !1
+    apply-test(s|
+      "cons-binary"
+    , Con1(1, 2)
+    , 1
     )
 
   cons-nullary =
-    apply-test(
-      !"cons-nullary"
-    , s
-    , !Con2()
-    , !2
+    apply-test(s|
+      "cons-nullary"
+    , Con2()
+    , 2
     )
   
   tuple-empty =
-    apply-test(
-      !"tuple-empty"
-    , s
-    , !()
-    , !3
+    apply-test(s|
+      "tuple-empty"
+    , ()
+    , 3
     )
   
   tuple-pair =
-    apply-test(
-      !"tuple-pair"
-    , s
-    , !(1, 2)
-    , !4
+    apply-test(s|
+      "tuple-pair"
+    , (1, 2)
+    , 4
     )
   
   list-empty =
-    apply-test(
-      !"list-empty"
-    , s
-    , ![]
-    , !5
+    apply-test(s|
+      "list-empty"
+    , []
+    , 5
     )
   
   list-non-empty =
-    apply-test(
-      !"list-non-empty"
-    , s
-    , ![1, 2, 3]
-    , !6
+    apply-test(s|
+      "list-non-empty"
+    , [1, 2, 3]
+    , 6
     )
 
   prim-string =
-    apply-test(
-      !"string"
-    , s
-    , !"abc"
-    , !7
+    apply-test(s|
+      "string"
+    , "abc"
+    , 7
     )
   
   prim-int =
-    apply-test(
-      !"int"
-    , s
-    , !8
-    , !8
+    apply-test(s|
+      "int"
+    , 8
+    , 8
     )
   
   prim-real =
-    apply-test(
-      !"real"
-    , s
-    , !5.4
-    , !9
+    apply-test(s|
+      "real"
+    , 5.4
+    , 9
     )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|t1, t2, t3)

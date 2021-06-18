@@ -61,3 +61,7 @@ strategies
     , !("1", "2")
     , !3
     )
+
+  external test-suite(s1, s2|)
+  external apply-test(s1, s2, s3, s4|)
+  external apply-and-fail(s1, s2, s3|)
