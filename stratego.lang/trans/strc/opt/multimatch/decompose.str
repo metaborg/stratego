@@ -44,7 +44,7 @@ strategies
   ; map(split(cons-type, constructor-om))
   ; ?p*
   ; foldr(![], union, ![<Fst>]) // Set of types
-  ; map(split(id, <retain-all(where(Fst; ?t); Snd); make-set> p*)) // [(c, [t*])*]
+  ; map(\ t -> <split(id, <retain-all(where(Fst; ?t); Snd); make-set> p*)> t \) // [(c, [t*])*]
 
   /*
    * Specialize the matrix to a certain constructor.
