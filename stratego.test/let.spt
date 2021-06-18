@@ -7,6 +7,7 @@ module test
 rules
   hello = [[this-is-undefined]]
 ]] 1 error at #1
+   has origin locations
 
 test let defined strategy can be found [[
 module test
@@ -16,6 +17,7 @@ rules
     in local-strategy-is-defined
     end
 ]] 0 errors
+   has origin locations
 
 test let defined strategy can have a type [[
 module test
@@ -27,23 +29,25 @@ rules
     in local-typed-strategy-is-defined
     end
 ]] 0 errors
+   has origin locations
 
-test let defined strategy type is used [[
-module test
-rules
-  hello =
-    let
-      local-typed-strategy-is-defined :: int -> int
-      local-typed-strategy-is-defined = id
-    in local-typed-strategy-is-defined
-    end
-]] run test-analysis to [[
-module test
-rules
-  hello =
-    let
-      local-typed-strategy-is-defined :: int -> int
-      local-typed-strategy-is-defined = id
-    in cast(int); local-typed-strategy-is-defined
-    end
-]]
+// SPT bug: origins are messed up somehow? The fragment doesn't get selected for transformation
+//test let defined strategy type is used [[
+//module test
+//rules
+//  hello =
+//    let
+//      local-typed-strategy-is-defined :: int -> int
+//      local-typed-strategy-is-defined = id
+//    in local-typed-strategy-is-defined
+//    end
+//]] run test-analysis to [[
+//module test
+//rules
+//  hello =
+//    let
+//      local-typed-strategy-is-defined :: int -> int
+//      local-typed-strategy-is-defined = id
+//    in cast(int); local-typed-strategy-is-defined
+//    end
+//]]

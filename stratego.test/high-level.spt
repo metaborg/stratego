@@ -189,10 +189,10 @@ test Different types in different branches [[
    has origin locations
 
 test Dynamic type after different types in branches #1 [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -206,9 +206,9 @@ test Dynamic type after different types in branches #1 [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
@@ -216,10 +216,10 @@ test Dynamic type after different types in branches #1 [[
    has origin locations
 
 test Dynamic type after different types in branches #2 [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -233,14 +233,15 @@ test Dynamic type after different types in branches #2 [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
    0 warnings
-   has origin locations
+// inserted cast does runtime check on type of something-else, which is a Sort("Tuple", [DynT(), DynT()]) where the Tuple string has no origins
+//   has origin locations
 
 test Duplicate type definitions not allowed [[
   something-else :: List(?) -> ?

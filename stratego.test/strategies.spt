@@ -24,6 +24,7 @@ bar-id :: Bar -> Bar
 bar-id = fail
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test fail strategy can be used as any typed strategy [[
 int-id(int -> int) :: ? -> ?
@@ -41,6 +42,7 @@ testing =
 ; bar-id(fail)
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test id strategy can be used in any typed strategy [[
 int-id :: int -> int
@@ -53,6 +55,7 @@ bar-id :: Bar -> Bar
 bar-id = id
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test id strategy can be used as any typed identity strategy [[
 int-id(int -> int) :: ? -> ?
@@ -70,49 +73,58 @@ testing =
 ; bar-id(id)
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test proceed may not be used in a non-extend strategy 1 [[
 foobar = [[proceed(|"a")]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed may not be used in a non-extend strategy 2 [[
 foobar = [[proceed]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test extend strategy should extend an external strategy [[
 extend [[foobar]] = proceed
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test override strategy should override an external strategy [[
 override [[foobar]] = proceed
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed should use the arity of the strategy it's in 1 [[
 external foobar(|)
 extend foobar = [[proceed(|"a")]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed should use the arity of the strategy it's in 2 [[
 external foobar(|a)
 extend foobar(|a) = [[proceed]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed in extend [[
 external foobar(|)
 extend foobar = proceed
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test proceed in override [[
 external foobar(|)
 override foobar = proceed
 ]] 0 errors
    0 warnings
+   has origin locations
 
 

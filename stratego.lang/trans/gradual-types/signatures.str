@@ -5,6 +5,8 @@ imports
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 
+gradual-types/utils
+
 overlays
 
   FunTType(from, to) = FunTType([], [], from, to)
@@ -16,3 +18,9 @@ overlays
   DynT()             = DynT(_Dyn())
 
   FunTType(sargs, targs, from, to) = FunTType(sargs, targs, FunNoArgsType(from, to))
+
+strategies
+
+  TupleT(|t) = TupleT(|t, t)
+  TupleT(|elems, t) = <otf(!Sort(<otf(!"Tuple")> t, elems))> t
+  ListT(|t) = <otf(\elem -> Sort(<otf(!"List")> elem, elem)\)> t
