@@ -221,9 +221,16 @@ strategies
   // TODO Build and Match can contain more than vars, which should succeed too.
   // Probably needs a build-always-succeeds strategy.
   + ?Build(_) < (?Build(Path(Cur()))
-                 + Build(where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])
-                       ; where(not(oncetd(?Explode(Var(_), _))))
-                   )
+                 + Build(
+                      // No (potentially) unbound vars in build   
+                      where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])
+                    ; where(
+                                   // No list builds where the tail is not a list
+                        not(oncetd(Cons(id, not(Cons(id, id)))
+                                   // No exploded builds where the constructor is a Var 
+                                 + ?Explode(Var(_), _)))
+                      )
+                  )
                 )
   + Match(where(collect-om(?Var(_){<?"bound" + ?"(un)bound">}); ?[]))
   + Seq(always-succeeds, always-succeeds)
