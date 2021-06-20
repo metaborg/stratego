@@ -382,7 +382,7 @@ insertCasts-Sarg(|e1, st1):
       case ?[FunTType(st*, tt*, _)]; not([?_{LocalDef()}]):
         st2 := st1
       ; a := AmbiguousStrategyResolution(<length> st*, <length> tt*)
-      ; c2 := <CallT(SVar(add-annotation(|a)), id, id)> c1
+      ; c2 := <otf(CallT(otf(SVar(add-annotation(|a))), id, id))> c1
       otherwise:
         st2 := st1
       ; c2 := c1
@@ -403,7 +403,7 @@ insertCasts-Sarg(|e1, st1):
       case ?[FunTType(st*, tt*, _)]; not([?_{LocalDef()}]):
         st2 := st1
       ; a := AmbiguousStrategyResolution(<length> st*, <length> tt*)
-      ; c2 := <Call(SVar(add-annotation(|a)), id)> c1
+      ; c2 := <otf(Call(otf(SVar(add-annotation(|a))), id))> c1
       otherwise:
         st2 := st1
       ; c2 := c1
@@ -424,7 +424,7 @@ insertCasts-Sarg(|e1, st1):
       case ?[FunTType(st2*, tt*, _)]; not([?_{LocalDef()}]):
         st2 := st1
       ; a := AmbiguousStrategyResolution(<length> st2*, <length> tt*)
-      ; c2 := <CallNoArgs(SVar(add-annotation(|a)))> c1
+      ; c2 := <otf(CallNoArgs(otf(SVar(add-annotation(|a)))))> c1
       otherwise:
         st2 := st1
       ; c2 := c1
@@ -458,7 +458,7 @@ insertCasts-Sarg-CallNoArgs-(|st1):
           then v' := v
           else
             a := AmbiguousStrategyResolution(<length> st1*, <length> tt1*)
-          ; v' := <SVar(add-annotation(|a))> v
+          ; v' := <otf(SVar(add-annotation(|a)))> v
         end
       ; (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
       ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
@@ -481,7 +481,7 @@ insertCasts-Sarg-CallNoArgs-(|st1):
           then v' := v
           else
             a := AmbiguousStrategyResolution(<length> st1*, <length> tt1*)
-          ; v' := <SVar(add-annotation(|a))> v
+          ; v' := <otf(SVar(add-annotation(|a)))> v
         end
       ; (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
       ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
@@ -696,7 +696,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
     (s3, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
-  ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType(DynT(ListT())))
+  ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType(ListT()))
   ; st4 := <current-type(|DynT())> st3
 
 insertCasts-Strategy(|e1, st1):

@@ -62,7 +62,7 @@ test typed collect-all [[
     test-collect-all = ![1,2,3]; internalcollect-all(!"hi!")
 ]] 0 errors
    0 warnings
-//   has origin locations
+   has origin locations
 
 test build an option [[
     MkSome :: b -> Option(b)

@@ -4,11 +4,22 @@ imports
   core/identifiers
   core/constants
 
+sorts Kind
+context-free syntax
+  Kind.Star = <*>
+
+sorts SortDef
+context-free syntax
+  SortDef.SortVar    = LCID {deprecated("This syntax never had a clear meaning should not be used")}
+  SortDef.SortNoArgs = UCID
+  SortDef.Sort = [[UCID]([{Kind ", "}*])]
+  SortDef.Sort = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
+
 sorts Sdecl
 context-free syntax
 
   Sdecl.Sorts =
-<sorts <Sort*>>
+<sorts <SortDef*>>
 
   Sdecl.Constructors =
 <constructors

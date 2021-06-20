@@ -145,7 +145,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     // Note that constructors can be strings (in case of applications, strings and tuples)
     //  or the empty list (in case of a list), or an int (in case of an int), etc.
     (trm3, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT())> st1)> trm1
-  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
+  ; (trm4, st3) := <insertCasts-StMatchTerm(|e1, <current-type(|ListT())> st2)> trm2
   ; st4 := <current-type-of(|st1)> st3
 
 strategies // Terms in build position (core)
@@ -321,7 +321,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   Explode(trm1, trm2) -> (Explode(trm3, trm4), st4)
   with
     (trm3, st2) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT())> st1)> trm1
-  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|DynT(ListT()))> st2)> trm2
+  ; (trm4, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|ListT())> st2)> trm2
   ; t1 := <current-type> st2
   ; st4 := <current-type(|DynT())> st3
 

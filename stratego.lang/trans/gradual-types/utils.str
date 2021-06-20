@@ -75,8 +75,8 @@ desugar-Type- = otf(\SortNoArgs(x) -> Sort(x, <otf(![])> x)\)
 desugar-Type- = otf(?a;Sort(id, map(desugar-Type-));not(?a))
 desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
 desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
-desugar-Type- = otf(\SortTuple(xs) -> TupleT(<map(desugar-Type)> xs)\)
-desugar-Type- = otf(\TupleT(t1, t2) -> TupleT([<desugar-Type> t1 | <map(desugar-Type)> t2])\)
+desugar-Type- = otf(\t@SortTuple(xs) -> <TupleT(|<map(desugar-Type)> xs, t)>\)
+desugar-Type- = otf(\t@TupleT(t1, t2) -> <TupleT(|[<desugar-Type> t1 | <map(desugar-Type)> t2], t)>\)
 
 desugar-Type = desugar-Type- <+ id
 
