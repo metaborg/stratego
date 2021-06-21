@@ -31,23 +31,24 @@ rules
 ]] 0 errors
    has origin locations
 
-// SPT bug: origins are messed up somehow? The fragment doesn't get selected for transformation
-//test let defined strategy type is used [[
-//module test
-//rules
-//  hello =
-//    let
-//      local-typed-strategy-is-defined :: int -> int
-//      local-typed-strategy-is-defined = id
-//    in local-typed-strategy-is-defined
-//    end
-//]] run test-analysis to [[
-//module test
-//rules
-//  hello =
-//    let
-//      local-typed-strategy-is-defined :: int -> int
-//      local-typed-strategy-is-defined = id
-//    in cast(int); local-typed-strategy-is-defined
-//    end
-//]]
+// PIE incrementality issue: when module in this test is called test, the origins of the analysed
+//     AST are those of the previous test with the same input...
+test let defined strategy type is used [[
+module test2
+rules
+  hello =
+    let
+      local-typed-strategy-is-defined :: int -> int
+      local-typed-strategy-is-defined = id
+    in local-typed-strategy-is-defined
+    end
+]] run test-analysis to [[
+module test2
+rules
+  hello =
+    let
+      local-typed-strategy-is-defined :: int -> int
+      local-typed-strategy-is-defined = id
+    in cast(int); local-typed-strategy-is-defined
+    end
+]]

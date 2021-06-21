@@ -13,6 +13,7 @@ signatures/sugar/strategies-sig
 signatures/core/strategies-sig
 signatures/gradual-types/modules-sig
 signatures/gradual-types/signatures-sig
+signatures/gradual-types/strategies-sig
 signatures/gradual-types/internal-sig
 
 gradual-types/utils
@@ -198,9 +199,9 @@ insertCasts-RuleDef-(|e1, st1):
       else <report-Err> (trm1, MatchNotSpecificEnoughForTP(<current-type> st3))
     end
   ; t3 := <current-type> st4
-  ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t3)> trm2
-  ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
+  ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
+  ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
 
 insertCasts-RuleDef-(|e1, st1):
   RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), <current-type-of(|st5)> st6)
@@ -213,9 +214,9 @@ insertCasts-RuleDef-(|e1, st1):
   ; st3 := <term-merge-env(keep-right)> (st2, <term-zip-new-env> (t2*, tt*))
   ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; t3 := <current-type> st4
-  ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t2)> trm2
-  ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
+  ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
+  ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
 
 insertCasts-RuleDef-(|e1, st1):
   RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t2*, Rule(trm3, trm4, cs3)), st6)
@@ -233,9 +234,9 @@ insertCasts-RuleDef-(|e1, st1):
       else <report-Err> (trm1, MatchNotSpecificEnoughForTP(<current-type> st3))
     end
   ; t3 := <current-type> st4
-  ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t3)> trm2
-  ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
+  ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
+  ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
 
 insertCasts-RuleDef-(|e1, st1):
   RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, Rule(trm3, trm4, cs3)), st6)
@@ -247,9 +248,9 @@ insertCasts-RuleDef-(|e1, st1):
   ; (t2*, (st3, s1*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
   ; (trm3, (st4, s2*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; t3 := <current-type> st4
-  ; (trm4, st5) := <insertCasts-BuildTerm(|e2, st4, t2)> trm2
-  ; (cs2, st6)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, <current-type(|t3)> st5)
+  ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
+  ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
 
 RuleDef-after-match: ([], cs) -> cs
 RuleDef-after-match: (s*, cs) -> [<otf(!WhereClause(s))> s | cs] where s := <seqs> s*
