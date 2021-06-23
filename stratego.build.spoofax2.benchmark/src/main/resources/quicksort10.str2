@@ -1,0 +1,62 @@
+module quicksort10
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Nat NatList NatListPair
+
+constructors
+   true : Bool 
+   false : Bool 
+   d0 : Nat 
+   s : Nat -> Nat 
+   nil : NatList 
+   cons : Nat * NatList -> NatList 
+   pair : NatList * NatList -> NatListPair 
+   Xnot : Bool -> Bool 
+   d10 : Nat 
+   st : Nat * Nat -> Bool 
+   get : Nat * Nat -> Bool 
+   plus : Nat * Nat -> Nat 
+   times : Nat * Nat -> Nat 
+   rev : Nat -> NatList 
+   split : Nat * NatList -> NatListPair 
+   qsort : NatList -> NatList 
+   append : NatList * NatList -> NatList 
+   p1 : NatListPair -> NatList 
+   p2 : NatListPair -> NatList 
+
+rules
+   REC_E: d10() -> s (s (s (s (s (s (s (s (s (s (d0()))))))))))
+   REC_E: Xnot (true()) -> false()
+   REC_E: Xnot (false()) -> true()
+   REC_E: st (d0(), s (N)) -> true()
+   REC_E: st (s (N), d0()) -> false()
+   REC_E: st (d0(), d0()) -> false()
+   REC_E: st (s (N), s (M)) -> st (N, M)
+   REC_E: get (N, M) -> Xnot (st (N, M))
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: times (d0(), N) -> d0()
+   REC_E: times (s (N), M) -> plus (M, times (N, M))
+   REC_E: rev (s (N)) -> cons (s (N), rev (N))
+   REC_E: rev (d0()) -> cons (d0(), nil())
+   REC_E: split (N, cons (M, L)) -> pair (p1 (split (N, L)), cons (M, p2 (split (N, L)))) where equal-after-eval (|st (N, M), true())
+   REC_E: split (N, cons (M, L)) -> pair (cons (M, p1 (split (N, L))), p2 (split (N, L))) where equal-after-eval (|get (N, M), true())
+   REC_E: split (N, nil()) -> pair (nil(), nil())
+   REC_E: append (cons (N, L), LT) -> cons (N, append (L, LT))
+   REC_E: append (nil(), L) -> L
+   REC_E: qsort (nil()) -> nil()
+   REC_E: qsort (cons (N, L)) -> append (qsort (p1 (split (N, L))), cons (N, qsort (p2 (split (N, L)))))
+   REC_E: p1 (pair (L1, L2)) -> L1
+   REC_E: p2 (pair (L1, L2)) -> L2
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> qsort (rev (d10()))) ;
+      <exit> 0
