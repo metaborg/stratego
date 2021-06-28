@@ -1,5 +1,6 @@
 package api;
 
+import benchmark.stratego2.template.benchmark.BaseBenchmark;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.store.InMemoryStore;
@@ -28,6 +29,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,7 +43,7 @@ public class Stratego2Program {
 
     private static final ResourceService resourceService = new DefaultResourceService(new FSResourceRegistry());
     private static final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries =
-            new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib));
+            new ArrayList<>(Collections.singletonList(BuiltinLibraryIdentifier.StrategoLib));
 
     private static final String javaPackageName = "benchmark";
 
@@ -53,23 +55,27 @@ public class Stratego2Program {
     private final String baseName;
     private final Path sourcePath;
     private final String metaborgVersion;
-    private final Arguments str2Args;
+    private final Arguments str2Args = new Arguments();
     private final boolean output;
 
-    private CompileOutput compiledProgram;
+    private CompileOutput compiledProgram = null;
+    private boolean javaCompilationResult = false;
 
+    @SuppressWarnings("unused")
     public Stratego2Program(Path sourcePath, String metaborgVersion) throws FileNotFoundException {
         this(sourcePath, metaborgVersion, new Arguments());
     }
 
+    @SuppressWarnings("unused")
     public Stratego2Program(Path sourcePath, String metaborgVersion, Arguments str2Args) throws FileNotFoundException {
         this(sourcePath, metaborgVersion, str2Args, false);
     }
 
+    @SuppressWarnings("unused")
     public Stratego2Program(@NotNull Path sourcePath, @NotNull String metaborgVersion, Arguments str2Args, boolean output) throws FileNotFoundException {
         this.sourcePath = sourcePath;
         this.metaborgVersion = metaborgVersion;
-        this.str2Args = str2Args;
+        this.str2Args.addAll(str2Args);
         this.output = output;
 
         File sourceFile = sourcePath.toFile();
@@ -87,8 +93,10 @@ public class Stratego2Program {
         this.pieDir = baseDir.resolve("pie");
     }
 
-    private static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
-        final HashSet<ResourcePath> resultFiles = str2CompileOutput.resultFiles;
+    private Iterable<? extends File> javaFiles() {
+        assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessfull compilation!";
+
+        final HashSet<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for (ResourcePath resultFile : resultFiles) {
             final @Nullable File localFile = resourceService.toLocalFile(resultFile);
@@ -121,6 +129,7 @@ public class Stratego2Program {
         return localRepository.resolve(Paths.get("org", "metaborg", "stratego.lang", metaborgVersion, String.format("stratego.lang-%s.spoofax-language", metaborgVersion)));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private CompileOutput str2(Path input, String baseName, String packageName,
                                File packageDir, boolean library,
                                ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, Arguments args, String metaborgVersion)
@@ -165,8 +174,7 @@ public class Stratego2Program {
                     spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
             try (final MixedSession session = pie.newSession()) {
-                CompileOutput result = Objects.requireNonNull(session.require(compileTask));
-                return result;
+                return Objects.requireNonNull(session.require(compileTask));
             } catch (ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
                         e);
@@ -181,28 +189,30 @@ public class Stratego2Program {
         PathUtils.delete(baseDir);
     }
 
-    public CompileOutput compile() throws MetaborgException {
+    public CompileOutput compileStratego() throws MetaborgException {
         // Take inspiration from stratego.build.spoofax2.integrationtest
-        final CompileOutput str2CompileOutput = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, false, str2Args, metaborgVersion);
-
-        assert str2CompileOutput instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(str2CompileOutput);
-
-        this.compiledProgram = str2CompileOutput;
-        return str2CompileOutput;
-    }
-
-    public String run() throws IOException, InterruptedException {
-        // Take inspiration from stratego.build.spoofax2.integrationtest
+        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, false, str2Args, metaborgVersion);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
 
-        final Iterable<? extends File> sourceFiles = javaFiles((CompileOutput.Success) compiledProgram);
+        return compiledProgram;
+    }
 
-        boolean javaCompilationResult = Java.compile(classDir, sourceFiles, Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
+    public boolean compileJava() throws IOException, BaseBenchmark.SkipException {
+        if (!(compiledProgram instanceof CompileOutput.Success)) {
+            throw new BaseBenchmark.SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
+        }
+
+        final Iterable<? extends File> sourceFiles = javaFiles();
+
+        javaCompilationResult = Java.compile(classDir, sourceFiles, Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
         assert javaCompilationResult : "Compilation with javac expected to succeed";
 
-        boolean javaExecutionResult = Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName), output);
-        assert javaExecutionResult : "Running java expected to succeed";
-
-        return null;
+        return javaCompilationResult;
     }
+
+    public BufferedReader run() throws Exception {
+        assert javaCompilationResult : "Cannot run program: Java compilation did not succeed!";
+        return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName));
+    }
+
 }

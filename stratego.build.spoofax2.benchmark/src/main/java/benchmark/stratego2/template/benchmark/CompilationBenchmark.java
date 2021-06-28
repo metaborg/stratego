@@ -29,43 +29,35 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package benchmark.stratego2;
+package benchmark.stratego2.template.benchmark;
 
-import api.Stratego2Program;
-import benchmark.stratego2.template.OptimisationBenchmark;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
-@State(Scope.Benchmark)
-public class CompilationBenchmark extends OptimisationBenchmark {
+@Warmup(iterations = 5)
+@Measurement(iterations = 5)
+@BenchmarkMode(Mode.SingleShotTime)
+public abstract class CompilationBenchmark extends OptimisationBenchmark {
 
-    //    @Param({"10", "20", "100", "720", "1000"})
-    @Param({"10", "100"})
-    public int problemSize;
-
-    @Override
-    @Setup(Level.Iteration)
-    public void setup() throws IOException {
-        Path p = Paths.get("src", "main", "resources", String.format("bubblesort%d.str2", problemSize));
-        program = new Stratego2Program(p, "2.6.0-SNAPSHOT", str2Args);
-    }
-
-    @Override
     @TearDown(Level.Iteration)
-    public void teardown() throws IOException {
-        program.cleanup();
+    final public void removeCompilationResults() throws Exception {
+        getProgram().cleanup();
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.SingleShotTime)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public CompileOutput compile() throws MetaborgException {
-        return program.compile();
+    public final CompileOutput compileStratego() throws MetaborgException {
+        return getProgram().compileStratego();
+    }
+
+    @Benchmark
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    public final Boolean compileJava() throws MetaborgException, IOException, SkipException {
+        getProgram().compileStratego();
+        return getProgram().compileJava();
     }
 }

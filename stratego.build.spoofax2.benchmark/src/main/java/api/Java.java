@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public class Java {
     public static boolean compile(File dest, Iterable<? extends File> sourceFiles,
@@ -32,6 +33,7 @@ public class Java {
             if (output) {
                 osw = null;
             } else {
+                //noinspection UnstableApiUsage
                 osw = new OutputStreamWriter(ByteStreams.nullOutputStream());
             }
 
@@ -41,23 +43,17 @@ public class Java {
         }
     }
 
-    public static boolean execute(String classPath, String mainClass, boolean output) throws IOException, InterruptedException {
+    public static BufferedReader execute(String classPath, String mainClass) throws Exception {
         final Path java = Paths.get(System.getProperty("java.home")).resolve(Paths.get("bin", "java"));
         final ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, mainClass);
         final Process process = processBuilder.start();
 
-        if (output) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    System.err.println(line);
-                }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
+        BufferedReader r = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+        if (process.waitFor() != 0) {
+            throw new Exception("Process did not finish successfully!\nErrors: " + r.lines().collect(Collectors.joining()));
         }
 
-        int result = process.waitFor();
-        return result == 0;
+        return r;
     }
 }
