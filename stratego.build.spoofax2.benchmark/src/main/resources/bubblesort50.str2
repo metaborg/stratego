@@ -45,5 +45,5 @@ strategies
    equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
    eval-and-print = eval ; debug (!"result = ")
    main = 
-      (<eval-and-print> rev (times (s (s (d0())), d10())));
+      (<eval-and-print> rev (times (s (s (s (s (s (d0()))))), d10())));
       <exit> 0
