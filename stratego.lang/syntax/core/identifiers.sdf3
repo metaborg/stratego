@@ -72,7 +72,7 @@ lexical syntax
   Keyword = "stratego"
   Keyword = "test"
   Keyword = "where"
-  Keyword = "with"
+//  Keyword = "with"
   Keyword = "import-term"
   Keyword = "is"
 

@@ -43,7 +43,6 @@ import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
-import mb.stratego.compiler.pack.Packer;
 
 public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
@@ -201,7 +200,8 @@ public abstract class BackInput implements Serializable {
             }
 
             IStrategoTerm desugaringInput =
-                Packer.packStrategy(backTask.tf, overlayContributions, strategyContributions);
+                backTask.generateStratego
+                    .packStrategy(overlayContributions, strategyContributions);
 
             final String projectPath =
                 backTask.resourcePathConverter.toString(checkInput.projectPath);
@@ -426,7 +426,7 @@ public abstract class BackInput implements Serializable {
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
 
-            return Packer.packStrategy(backTask.tf, new ArrayList<>(0), congruences);
+            return backTask.generateStratego.packStrategies(congruences);
         }
 
         @Override public String toString() {
@@ -509,7 +509,7 @@ public abstract class BackInput implements Serializable {
             if(dynamicCallsDefined) {
                 strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
-            return Packer.packBoilerplate(backTask.tf, consInjTerms,
+            return backTask.generateStratego.packBoilerplate(consInjTerms,
                 backTask.generateStratego.declStubs(strategies));
         }
 

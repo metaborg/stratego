@@ -48,7 +48,7 @@ public class StrategySignature extends StrategoTuple {
     }
 
     public HashMap<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {
-        final String n = cify(this.name);
+        final String n = this.name;
         final int s = this.noStrategyArgs;
         final int t = this.noTermArgs;
         final HashMap<StrategySignature, StrategyType> result = new HashMap<>(40);

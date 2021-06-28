@@ -10,8 +10,10 @@ import javax.inject.Inject;
 
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoString;
@@ -19,7 +21,7 @@ import org.spoofax.terms.util.B;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class GenerateStratego {
@@ -60,15 +62,77 @@ public class GenerateStratego {
         anno_cong__ast = annoCongAst();
     }
 
+    public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
+        String groupId, String id, String version, Collection<? extends IStrategoTerm> sorts,
+        Collection<? extends IStrategoTerm> constructors,
+        Collection<? extends StrategyFrontData> strategyFrontData) {
+        return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
+            tf.makeAppl("Maven", tf.makeString(groupId), tf.makeString(id),
+                tf.makeString(version))),
+            tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
+    }
+
+    public static IStrategoTerm packStr2Spec(IStrategoTermBuilder tf,
+        Collection<? extends IStrategoTerm> sorts, Collection<? extends IStrategoTerm> constructors,
+        Collection<? extends StrategyFrontData> strategyFrontData) {
+        return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
+            tf.makeList(tf.makeAppl("Sorts", tf.makeList(sorts)),
+                tf.makeAppl("Constructors", tf.makeList(constructors)))),
+            tf.makeAppl("Strategies", packStr2Strategies(tf, strategyFrontData))));
+    }
+
+    public static IStrategoTerm packStr2Strategies(IStrategoTermBuilder tf,
+        Collection<? extends StrategyFrontData> strategyFrontData) {
+        final IStrategoList.Builder builder = tf.arrayListBuilder();
+        for(StrategyFrontData sfd : strategyFrontData) {
+            builder.add(tf.makeAppl("ExtTypedDef", tf.makeString(sfd.signature.name), sfd.type));
+        }
+        return tf.makeList(builder);
+    }
+
+    public IStrategoTerm packBoilerplate(Collection<? extends IStrategoTerm> constructors,
+        Collection<? extends IStrategoAppl> strategyContributions) {
+        return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
+            tf.makeList(tf.makeAppl("Constructors", tf.makeList(constructors)))),
+            tf.makeAppl("Strategies", tf.makeList(strategyContributions))));
+    }
+
+    public IStrategoTerm packStrategy(Collection<? extends IStrategoAppl> overlayContributions,
+        Collection<? extends IStrategoAppl> strategyContributions) {
+        final IStrategoAppl term;
+        if(overlayContributions.isEmpty()) {
+            term = tf.makeAppl("Specification", tf.makeList(
+                tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))),
+                tf.makeAppl("Strategies", tf.makeList(strategyContributions))));
+        } else {
+            term = tf.makeAppl("Specification", tf.makeList(
+                tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))),
+                tf.makeAppl("Overlays", tf.makeList(overlayContributions)),
+                tf.makeAppl("Strategies", tf.makeList(strategyContributions))));
+        }
+        return term;
+    }
+
+    public IStrategoTerm packStrategies(Collection<? extends IStrategoAppl> strategies) {
+        final IStrategoAppl term;
+        final IStrategoList.Builder b = tf.arrayListBuilder(strategies.size());
+        b.add(tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))));
+        for(IStrategoAppl strategy : strategies) {
+            b.add(tf.makeAppl("Strategies", tf.makeList(strategy)));
+        }
+        term = tf.makeAppl("Specification", tf.makeList(b));
+        return term;
+    }
+
     public List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
         final List<IStrategoAppl> decls = new ArrayList<>(strategySignatures.size());
         for(StrategySignature sig : strategySignatures) {
-            decls.add(sdefStub(tf, sig.cifiedName(), sig.noStrategyArgs, sig.noTermArgs));
+            decls.add(sdefStub(sig.cifiedName(), sig.noStrategyArgs, sig.noTermArgs));
         }
         return decls;
     }
 
-    private IStrategoAppl sdefStub(ITermFactory tf, String strategyName, int svars, int tvars) {
+    private IStrategoAppl sdefStub(String strategyName, int svars, int tvars) {
         final IStrategoTerm name = tf.makeString(strategyName);
 
         final IStrategoTerm[] newSVarArray = new IStrategoTerm[svars];
