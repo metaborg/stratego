@@ -1,6 +1,8 @@
 import api.Stratego2Program;
+import org.metaborg.util.cmd.Arguments;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -15,7 +17,7 @@ public class Compile {
     }
 
     public static void main(String... args) throws Exception {
-        String filename = "bubblesort10.str2";
+        String filename = args[0];
 
         Compile c = new Compile(filename);
         c.loadProgram();
@@ -23,12 +25,18 @@ public class Compile {
         c.program.compileStratego();
         c.program.compileJava();
 
-        c.program.run();
+        BufferedReader br = c.program.run();
+        String line;
+        while (null != (line = br.readLine())) {
+            System.out.println(line);
+        }
 
 //        c.program.cleanup();
     }
 
-    private void loadProgram() throws FileNotFoundException {
-        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT");
+    private void loadProgram() throws IOException {
+        Arguments args = new Arguments();
+//        args.add("-O", "4");
+        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", args);
     }
 }
