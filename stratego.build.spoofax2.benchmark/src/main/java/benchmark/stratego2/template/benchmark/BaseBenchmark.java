@@ -1,6 +1,7 @@
 package benchmark.stratego2.template.benchmark;
 
 import api.Stratego2Program;
+import benchmark.exception.SkipException;
 import benchmark.stratego2.template.problem.Problem;
 import org.metaborg.util.cmd.Arguments;
 import org.openjdk.jmh.annotations.*;
@@ -51,13 +52,4 @@ public abstract class BaseBenchmark implements Problem {
         return String.format(problemFileNamePattern(), problemSize);
     }
 
-    public static class SkipException extends Exception {
-        public SkipException(String msg) {
-            super(msg);
-        }
-
-        public SkipException(String msg, Throwable cause) {
-            super(msg, cause);
-        }
-    }
 }

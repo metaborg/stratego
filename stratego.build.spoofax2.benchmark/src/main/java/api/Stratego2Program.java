@@ -1,6 +1,6 @@
 package api;
 
-import benchmark.stratego2.template.benchmark.BaseBenchmark;
+import benchmark.exception.SkipException;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.store.InMemoryStore;
@@ -197,9 +197,9 @@ public class Stratego2Program {
         return compiledProgram;
     }
 
-    public boolean compileJava() throws IOException, BaseBenchmark.SkipException {
+    public boolean compileJava() throws IOException, SkipException {
         if (!(compiledProgram instanceof CompileOutput.Success)) {
-            throw new BaseBenchmark.SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
+            throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
 
         final Iterable<? extends File> sourceFiles = javaFiles();

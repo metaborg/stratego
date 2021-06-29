@@ -31,6 +31,7 @@
 
 package benchmark.stratego2.template.benchmark;
 
+import benchmark.exception.SkipException;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
