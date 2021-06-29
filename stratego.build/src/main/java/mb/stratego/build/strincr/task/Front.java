@@ -133,7 +133,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
                 throw new InvalidASTException(input.moduleIdentifier, def);
             }
-            // TODO: Use real project path (does this really matter?)
+            // In this case the project path doesn't really matter, for calling auxSignatures in addStrategyData...
             final String projectPath =
                 Optional.ofNullable(moduleImportService.fileName(input.moduleIdentifier))
                     .orElseGet(input.moduleIdentifier::moduleString);

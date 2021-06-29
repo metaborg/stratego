@@ -76,26 +76,26 @@ public class DesugarType {
                         break;
                     }
                     return null;
-                // desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst>,<Snd>]))> xs\)
+                // desugar-Type- = otf(\SortList(xs) -> <foldr(!Sort("Nil",[]), !Sort("Cons",[<Fst;desugar-Type>,<Snd;desugar-Type>]))> xs\)
                 case "SortList":
                     if(term.getSubtermCount() == 1) {
                         IStrategoTerm desugared =
                             tf.makeAppl("Sort", tf.makeString("Nil"), tf.makeList());
                         for(IStrategoTerm t : term.getSubterm(0)) {
                             desugared = tf.makeAppl("Sort", tf.makeString("Cons"),
-                                tf.makeList(t, desugared));
+                                tf.makeList(tryDesugarType(tf, t), desugared));
                         }
                         result = desugared;
                         break;
                     }
                     return null;
-                // desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(!y, !Sort("Cons",[<Fst>,<Snd>]))> xs\)
+                // desugar-Type- = otf(\SortListTl(xs, y) -> <foldr(<desugar-Type> y, !Sort("Cons",[<Fst;desugar-Type>,<Snd;desugar-Type>]))> xs\)
                 case "SortListTl":
                     if(term.getSubtermCount() == 2) {
-                        IStrategoTerm desugared = term.getSubterm(1);
+                        IStrategoTerm desugared = tryDesugarType(tf, term.getSubterm(1));
                         for(IStrategoTerm t : term.getSubterm(0)) {
                             desugared = tf.makeAppl("Sort", tf.makeString("Cons"),
-                                tf.makeList(t, desugared));
+                                tf.makeList(tryDesugarType(tf, t), desugared));
                         }
                         result = desugared;
                         break;

@@ -70,10 +70,10 @@ insertCasts-DynRuleScopeId-(|e1, st1):
 insertCasts-Strategy-(|e1, st1):
   GenDynRules(d1*) -> (GenDynRules(d2*), <current-type-of(|st1)> st2)
   with
-    (d2*, st2) := <thread-map(insertCasts-DynRuleDef(|e1))> (d1*, <current-type(|DynT())> st1)
+    (d2*, st2) := <thread-map(insertCasts-DynRuleDef-Type(|e1, DynT()))> (d1*, st1)
 
 
-insertCasts-DynRuleDef(|e1): (d1, st1) -> <insertCasts-DynRuleDef(|e1, st1)> d1
+insertCasts-DynRuleDef-Type(|e1, t1): (d1, st1) -> <insertCasts-DynRuleDef(|e1, <current-type(|t1)> st1)> d1
 
 insertCasts-DynRuleDef(|e1, st1) = otf12(insertCasts-DynRuleDef-(|e1, st1))
 

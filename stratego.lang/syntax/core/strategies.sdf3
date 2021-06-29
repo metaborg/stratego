@@ -7,7 +7,6 @@ imports
   core/identifiers
 
 template options
-  Id = keyword {reject}
   keyword -/- [a-zA-Z0-9\'\-\_]
   tokenize: ")(|"
 

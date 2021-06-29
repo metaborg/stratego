@@ -16,6 +16,7 @@ public class GetDynamicRuleDefinitions
     implements SerializableFunction<ModuleData, ArrayList<IStrategoTerm>> {
     public static final GetDynamicRuleDefinitions INSTANCE = new GetDynamicRuleDefinitions();
 
+    // TODO: move to transient (derived) field in ModuleData
     @Override public ArrayList<IStrategoTerm> apply(ModuleData moduleData) {
         ArrayList<IStrategoTerm> result = new ArrayList<>();
         final IStrategoList defs = Front.getDefs(moduleData.moduleIdentifier, moduleData.ast);

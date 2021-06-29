@@ -18,3 +18,29 @@ test strategy def arity mismatch with type gives error [[
 int-id = fail
 ]] 1 error at #1
    has origin locations
+
+test Type error in rule rhs, although error in with clause [[
+testing :: int -> string
+testing: a -> [[b]]
+where b := 1
+]] 1 error at #1
+   has origin locations
+
+test Detect unbound variables in rule right-hand side [[
+testing2 :: int -> string
+testing2: a -> [[b]]
+]] 1 error at #1
+   has origin locations
+
+test Detect unbound variables in rule where clause [[
+testing2 :: int -> string
+testing2: a -> "hi!"
+where <testing2> [[b]]
+]] 1 error at #1
+   has origin locations
+
+test Detect unbound variables in strategy [[
+testing2 :: int -> string
+testing2 = ?a; !"hi!"; where(<testing2> [[b]])
+]] 1 error at #1
+   has origin locations

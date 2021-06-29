@@ -55,7 +55,7 @@ insertCasts-StMatchTerm(|e1, st1):
       ; if Id() := c
           then st3 := st2
           // Doing a cast after the fact in case the var was unbound before the match,
-          //    but already had a type due to its use in the rhs of a rule def
+          //    but already had a type due to a conditional match in previous code
           else st3 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> trm1, trm1))> trm1)> st2
         end
       else st3 := <term-put(|v{}, t1)> st1
@@ -173,13 +173,17 @@ insertCasts-StBuildTerm-(|e1, st1):
     t1 := <current-type> st1
   ; if t2 := <term-lookup(|v{})> st1
       then st2 := st1
-      else // We put the expected type here if the var is not found as this call may be in a
-           //  top-level defined rule with a type. In that case we infer the types of local
-           //  variables from the tld type before checking the whereclause(s).
-           // This _does_ mean we cannot give a warning or error here when a variable is built
-           //  but unbound.
-        st2 := <term-put(|v{}, t1)> st1
-      ; t2 := t1
+      else
+        <report-Err> (trm1, BuildUnboundTerm())
+      ; st2 := st1
+      ; t2 := ErrT()
+//           // We put the expected type here if the var is not found as this call may be in a
+//           //  top-level defined rule with a type. In that case we infer the types of local
+//           //  variables from the tld type before checking the whereclause(s).
+//           // This _does_ mean we cannot give a warning or error here when a variable is built
+//           //  but unbound.
+//        st2 := <term-put(|v{}, t1)> st1
+//      ; t2 := t1
     end
   ; (trm2, st3) := <insertCastApp(|t2, t1)> (trm1, st2)
   ; if DynT() := t2; not(DynT() := t1) <+ ErrT() := t2; not(ErrT() := t1)
