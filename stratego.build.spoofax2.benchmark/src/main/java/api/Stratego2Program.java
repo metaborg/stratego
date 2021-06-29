@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -62,17 +63,17 @@ public class Stratego2Program {
     private boolean javaCompilationResult = false;
 
     @SuppressWarnings("unused")
-    public Stratego2Program(Path sourcePath, String metaborgVersion) throws FileNotFoundException {
+    public Stratego2Program(Path sourcePath, String metaborgVersion) throws IOException {
         this(sourcePath, metaborgVersion, new Arguments());
     }
 
     @SuppressWarnings("unused")
-    public Stratego2Program(Path sourcePath, String metaborgVersion, Arguments str2Args) throws FileNotFoundException {
+    public Stratego2Program(Path sourcePath, String metaborgVersion, Arguments str2Args) throws IOException {
         this(sourcePath, metaborgVersion, str2Args, false);
     }
 
     @SuppressWarnings("unused")
-    public Stratego2Program(@NotNull Path sourcePath, @NotNull String metaborgVersion, Arguments str2Args, boolean output) throws FileNotFoundException {
+    public Stratego2Program(@NotNull Path sourcePath, @NotNull String metaborgVersion, Arguments str2Args, boolean output) throws IOException {
         this.sourcePath = sourcePath;
         this.metaborgVersion = metaborgVersion;
         this.str2Args.addAll(str2Args);
@@ -87,7 +88,7 @@ public class Stratego2Program {
         this.baseName = FilenameUtils.removeExtension(fileName);
 
         // TODO Change into actual temp dir using `Files.createTempDirectory`.
-        this.baseDir = Paths.get("tmp", baseName).toAbsolutePath();
+        this.baseDir = Files.createTempDirectory(baseName);
         this.javaDir = baseDir.resolve("java").toFile();
         this.classDir = baseDir.resolve("classes").toFile();
         this.pieDir = baseDir.resolve("pie");

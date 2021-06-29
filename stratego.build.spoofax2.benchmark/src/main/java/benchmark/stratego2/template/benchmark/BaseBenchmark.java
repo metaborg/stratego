@@ -7,6 +7,7 @@ import org.metaborg.util.cmd.Arguments;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +42,8 @@ public abstract class BaseBenchmark implements Problem {
             program = new Stratego2Program(sourcePath, metaborgVersion, str2Args);
         } catch (FileNotFoundException e) {
             throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
+        } catch (IOException e) {
+            throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
         }
     }
 
