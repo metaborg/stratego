@@ -5,16 +5,23 @@ import javax.annotation.Nullable;
 import mb.resource.hierarchical.ResourcePath;
 
 public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
+    public final boolean legacyStratego;
     public final boolean isLibrary;
     public final String moduleString;
     public final ResourcePath path;
 
-    public ModuleIdentifier(boolean isLibrary, String moduleString, ResourcePath path) {
+    public ModuleIdentifier(boolean legacyStratego, boolean isLibrary, String moduleString,
+        ResourcePath path) {
+        this.legacyStratego = legacyStratego;
         this.isLibrary = isLibrary;
         this.moduleString = moduleString;
         assert !moduleString.contains(
             ".") : "moduleStrings should be valid Stratego module names, and not contain file extensions";
         this.path = path;
+    }
+
+    @Override public boolean legacyStratego() {
+        return legacyStratego;
     }
 
     @Override public boolean isLibrary() {

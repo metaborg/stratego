@@ -79,7 +79,7 @@ public class ModuleImportService implements IModuleImportService {
                         final boolean isLibrary =
                             ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
                         result.add(
-                            new mb.stratego.build.strincr.ModuleIdentifier(isLibrary, moduleString,
+                            new mb.stratego.build.strincr.ModuleIdentifier(true, isLibrary, moduleString,
                                 rtreePath));
                     } else {
                         final ResourcePath str2Path = dir.appendOrReplaceWithPath(moduleString + ".str2");
@@ -88,7 +88,7 @@ public class ModuleImportService implements IModuleImportService {
                         if(str2Resource.exists()) {
                             foundSomethingToImport = true;
                             result.add(
-                                new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
+                                new mb.stratego.build.strincr.ModuleIdentifier(false, false, moduleString,
                                     str2Path));
                         } else {
                             final ResourcePath strPath = dir.appendOrReplaceWithPath(moduleString + ".str");
@@ -97,7 +97,8 @@ public class ModuleImportService implements IModuleImportService {
                             if(strResource.exists()) {
                                 foundSomethingToImport = true;
                                 result.add(
-                                    new mb.stratego.build.strincr.ModuleIdentifier(false, moduleString,
+                                    new mb.stratego.build.strincr.ModuleIdentifier(true,
+                                        false, moduleString,
                                         strPath));
                             }
                         }
@@ -131,17 +132,20 @@ public class ModuleImportService implements IModuleImportService {
                                     ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".rtree".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(isLibrary,
+                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
+                                    true, isLibrary,
                                     moduleString, moduleFile.getPath()));
                             } else if(filename.endsWith(".str2")) {
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".str2".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
+                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
+                                    false, false,
                                     moduleString, moduleFile.getPath()));
                             } else if(filename.endsWith(".str")) {
                                 final String moduleString = directory + "/" + filename
                                     .substring(0, filename.length() - ".str".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(false,
+                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
+                                    true, false,
                                     moduleString, moduleFile.getPath()));
                             }
                         }

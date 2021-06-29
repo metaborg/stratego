@@ -102,7 +102,7 @@ public class StrategoIncrementalCompilationTest {
         final Arguments newArgs = new Arguments();
         final String mainModuleName = "hello";
         final ModuleIdentifier mainModuleIdentifier =
-            new ModuleIdentifier(false, mainModuleName, new FSPath(helloFile));
+            new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
         CompileInput compileInput =
             new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),

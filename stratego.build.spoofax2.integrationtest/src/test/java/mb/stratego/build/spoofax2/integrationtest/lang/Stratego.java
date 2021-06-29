@@ -109,7 +109,7 @@ public class Stratego {
 
             final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
-                new ModuleIdentifier(false, baseName, new FSPath(input));
+                new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
