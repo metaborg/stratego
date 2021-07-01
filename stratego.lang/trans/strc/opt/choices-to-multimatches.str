@@ -23,7 +23,7 @@ strategies
   ; log-timed(
     topdown(try(repeat(choice-to-multimatch
                <+ extract-matches
-               <+ extract-righthandsides)))
+               /*<+ extract-righthandsides*/)))
     | "  2. Translating choices", 1)
   ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
   ; log-timed(strip-annos|"  4. Stripping annos", 1)
@@ -162,6 +162,10 @@ strategies
     <is-wld + is-wld-core> p
 
 strategies
+  /*
+   * Incorrect; does not preserve behaviour, as `always-succeeds` is too progressive.
+   * It permits possibly-failing strategies.
+   */
   extract-righthandsides = MM(list-some(extract-rhs))
 
   extract-rhs:
@@ -215,6 +219,7 @@ strategies
 
   /**
    * Determines whether a strategy always succeeds (without side effects).
+   * NOTE: Is too permissive/incorrect.
    */
   always-succeeds =
     ?Id()
