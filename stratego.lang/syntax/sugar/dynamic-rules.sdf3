@@ -11,7 +11,7 @@ imports
 template options
   tokenize: ")("
 
-sorts ScopeLabels
+context-free sorts ScopeLabels
 context-free syntax
   Strategy.DynRuleScope =
 <{| <ScopeLabels>
@@ -22,8 +22,7 @@ context-free syntax
 
   ScopeLabels.ScopeLabels = <~<Term>>
 
-sorts DynRuleDef DynRuleId DynRuleScopeId RuleDec
-
+context-free sorts DynRuleDef DynRuleId DynRuleScopeId
 context-free syntax
 
   Strategy.GenDynRules =
@@ -53,14 +52,14 @@ context-free syntax
     <<Id> . <Term>>
   DynRuleScopeId.DynRuleScopeId = Id
 
+context-free sorts RuleDec
 context-free syntax
 
   RuleDec.RDecNoArgs = Id
   RuleDec.RDec = <<Id>(<{Typedid ", "}*> )>
   RuleDec.RDecT = <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
-sorts RuleNames
-
+context-free sorts RuleNames
 context-free syntax
 
   RuleNames = {Id ", "}*
@@ -96,7 +95,7 @@ context-free syntax
   Strategy.DynRuleIntersectUnion =
     <<Strategy> /<RuleNames>\\<RuleNames>/ <Strategy>> {right}
 
- context-free priorities
+context-free priorities
      Strategy.BA
    > { Strategy.DynRuleIntersectFix Strategy.DynRuleUnionFix }
    > Strategy.AM

@@ -3,13 +3,33 @@ module gradual-types/internal
 imports
   core/identifiers
   core/constants
+  core/modules
   gradual-types/signatures
 
-sorts Type ConstrType ErrorDesc MessageType
+context-free sorts Str2Lib
 context-free syntax
-  MessageType.MTError = [error]
-  MessageType.MTWarning = [warning]
-  MessageType.MTNote = [note]
+
+  Str2Lib.Str2Lib = [library [ModNamePart]
+    [{Str2LibComponent "\n"}+]
+    [{Module "\n\n"}+]
+  ]
+
+  Str2LibComponent.Maven = [maven [groupId:Id]:[id:Id]:[MavenVersion]]
+
+  MavenVersion.Version = <<VersionNumber>.<VersionNumber>.<VersionNumber>-<VersionQualifier>>
+
+lexical sorts VersionNumber VersionQualifier
+lexical syntax
+
+VersionNumber = [0-9]+
+VersionQualifier = [A-Za-z0-9\-\.]+
+
+lexical restrictions
+
+  VersionQualifier -/- [A-Za-z0-9\-\.]
+
+context-free sorts Type ConstrType
+context-free syntax
 
   Def.DefHasType = [[Id] :: [SFunType]]
 
@@ -21,6 +41,12 @@ context-free syntax
   Dyn = Type // to allow DynT(<some type>)
 
   ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]
+
+context-free sorts ErrorDesc MessageType
+context-free syntax
+  MessageType.MTError = [error]
+  MessageType.MTWarning = [warning]
+  MessageType.MTNote = [note]
 
   ErrorDesc.CallDynamicNotSupported = [The dynamic `call(name|sargs|targs)` construct is no longer supported.]
   ErrorDesc.TermVariableTypedWithStrategyType = [This term variable was given a strategy type.]

@@ -350,11 +350,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__insert(e.getKey(), to);
                 }
             }
-            // TODO: do not resolve imports transitively when the module importing is Stratego 2
-            for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
-                if(!seen.contains(anImport)) {
-                    seen.add(anImport);
-                    worklist.add(anImport);
+            if(frontInput.moduleIdentifier.legacyStratego()) {
+                for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
+                    if(!seen.contains(anImport)) {
+                        seen.add(anImport);
+                        worklist.add(anImport);
+                    }
                 }
             }
         }

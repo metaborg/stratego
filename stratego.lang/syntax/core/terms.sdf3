@@ -5,22 +5,22 @@ imports
   core/constants
   core/strategies
 
-sorts ID Var Wld
+context-free sorts ID Var Wld
 context-free syntax
   Var.Var = ID
   ID      = Id
+  Wld.Wld = "_"
 
-sorts Term // term with annotations
+context-free sorts Term // term with annotations
 context-free syntax
 
   Term      = Var
   Term      = Wld
   Term.Anno = <<PreTerm>{^<PreTerm>}>
   Term.As   = <<Var>@<Term>>
-
   Term.Path = PathV
 
-sorts PreTerm // term without annotations
+context-free sorts PreTerm // term without annotations
 context-free syntax
 
   PreTerm         = Var
@@ -33,8 +33,6 @@ context-free syntax
   PreTerm.OpQ     = <<String>(<{Term ", "}*>)>
   PreTerm.Explode = <<Term>#(<Term>)>
   PreTerm.As      = <<Var>@<PreTerm>>
-
-  Wld.Wld = <_>
 
 context-free priorities
   PreTerm.Explode > Term.As,

@@ -4,18 +4,18 @@ imports
   core/identifiers
   core/constants
 
-sorts Kind
+context-free sorts Kind
 context-free syntax
   Kind.Star = <*>
 
-sorts SortDef
+context-free sorts SortDef
 context-free syntax
   SortDef.SortVar    = LCID {deprecated("This syntax never had a clear meaning should not be used")}
   SortDef.SortNoArgs = UCID
   SortDef.Sort = [[UCID]([{Kind ", "}*])]
   SortDef.Sort = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
 
-sorts Sdecl
+context-free sorts Sdecl
 context-free syntax
 
   Sdecl.Sorts =
@@ -26,13 +26,13 @@ context-free syntax
 
 <{Opdecl "\n"}*>>
 
-sorts Sort
+context-free sorts Sort
 context-free syntax
   Sort.SortVar    = LCID
   Sort.SortNoArgs = UCID
   Sort.Sort       = <<Id>(<{Sort ", "}*>)>
 
-sorts Opdecl
+context-free sorts Opdecl
 context-free syntax
   Opdecl.OpDecl    = <<Id> : <OpType>>
   Opdecl.OpDeclQ   = <<String> : <OpType>>
@@ -42,7 +42,7 @@ context-free syntax
   Opdecl.ExtOpDeclQ   = <external <String> : <OpType>>
   Opdecl.ExtOpDeclInj = <external : <OpType>>
 
-sorts OldType OldArgType ConstType FunType RetType OpType
+context-free sorts OldType OldArgType ConstType FunType RetType OpType
 context-free syntax
   ConstType.ConstType = Sort
 

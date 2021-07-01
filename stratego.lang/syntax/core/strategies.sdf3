@@ -10,9 +10,56 @@ template options
   keyword -/- [a-zA-Z0-9\'\-\_]
   tokenize: ")(|"
 
-sorts Def
+context-free sorts Def
 context-free syntax
   Def = StrategyDef
+
+context-free sorts StrategyDef
+context-free syntax
+  StrategyDef.SDefT =
+<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+  <Strategy>>
+
+  Def.AnnoDef = <<Anno+> <StrategyDef>>
+
+  StrategyDef.ExtSDefInl =
+<external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+  <Strategy>>
+
+  StrategyDef.ExtSDef =
+    <external <MaybeEmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+
+lexical sorts MaybeEmptyId
+lexical syntax
+  MaybeEmptyId =
+  MaybeEmptyId = Id
+
+context-free sorts Anno
+context-free syntax
+  Anno.Extend = <extend>
+  Anno.Override = <override>
+  Anno.Internal = <internal>
+
+context-free sorts Typedid
+context-free syntax
+  Typedid.VarDec = <<ID> : <OldType>>
+
+
+context-free sorts Strategy SVar
+context-free syntax
+  Strategy.Fail  = <fail>
+  Strategy.Id    = <id>
+  Strategy.ProceedT = <proceed(<{Strategy ", "}*>|<{Term ", "}*>)>
+  Strategy.ProceedNoArgs = <proceed>
+  Strategy.Match = <?<Term>>
+  Strategy.Build = <!<Term>>
+  Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
+  Strategy.Seq   = <<Strategy>; <Strategy>> {right}
+  Strategy.GuardedLChoice = [[Strategy] < [Strategy] + [Strategy]] {right}
+  Strategy.PrimT = <prim(<String>, <{Strategy ", "}*>|<{Term ", "}*>)>
+  Strategy.Some  = <some(<Strategy>)>
+  Strategy.One   = <one(<Strategy>)>
+  Strategy.All   = <all(<Strategy>)>
 
   SVar.SVar = Id
 
@@ -29,55 +76,10 @@ end>
   Strategy.CallDynamic =
     <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)> {deprecated("Dynamic calls are not supported")}
 
-sorts StrategyDef
-context-free syntax
-  StrategyDef.SDefT =
-<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
-  <Strategy>>
-
-  Def.AnnoDef = <<Anno+> <StrategyDef>>
-
-  StrategyDef.ExtSDefInl =
-<external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
-  <Strategy>>
-
-  StrategyDef.ExtSDef =
-    <external <MaybeEmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
-
-sorts MaybeEmptyId
-lexical syntax
-  MaybeEmptyId =
-  MaybeEmptyId = Id
-
-sorts Anno
-context-free syntax
-  Anno.Extend = <extend>
-  Anno.Override = <override>
-  Anno.Internal = <internal>
-
-sorts Typedid
-context-free syntax
-  Typedid.VarDec = <<ID> : <OldType>>
-
-
-sorts Strategy SVar StrategyMid
-context-free syntax
-  Strategy.Fail  = <fail>
-  Strategy.Id    = <id>
-  Strategy.ProceedT = <proceed(<{Strategy ", "}*>|<{Term ", "}*>)>
-  Strategy.ProceedNoArgs = <proceed>
-  Strategy.Match = <?<Term>>
-  Strategy.Build = <!<Term>>
-  Strategy.Scope = <{<{ID ", "}*>: <Strategy> }>
-  Strategy.Seq   = <<Strategy>; <Strategy>> {right}
-  Strategy.GuardedLChoice = [[Strategy] < [Strategy] + [Strategy]] {right}
-  Strategy.PrimT = <prim(<String>, <{Strategy ", "}*>|<{Term ", "}*>)>
-  Strategy.Some  = <some(<Strategy>)>
-  Strategy.One   = <one(<Strategy>)>
-  Strategy.All   = <all(<Strategy>)>
+  Strategy.ImportTerm = <import-term(<ModName>)>
 
 // PMC
-sorts MatchOrder MatchCase
+context-free sorts MatchOrder MatchCase
 context-free syntax
   Strategy.MultiMatch =
 <match <MatchOrder>
@@ -89,7 +91,7 @@ end>
   MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
   MatchCase.ScopedGuardedMatchCase = <case <{ID ", "}*> | <Term> where <Strategy>: <Strategy>>
 
-sorts DTree
+context-free sorts DTree
 context-free syntax
   Strategy = DTree // Can be factored out if only one DTree production exists.
 
@@ -102,7 +104,7 @@ context-free syntax
   // IR
   DTree.GuardedLeafs = <<{Guard "\n"}+>>
 
-sorts SwitchV
+context-free sorts SwitchV
 context-free syntax
   SwitchV.SwitchV =
 <switch <PathVF> {
@@ -110,7 +112,7 @@ context-free syntax
   <Default>
 }>
 
-sorts AltT AltV Default
+context-free sorts AltT AltV Default
 context-free syntax
   AltT.AltT =
 <alt <PatT>:
@@ -132,13 +134,13 @@ context-free syntax
 <default
   <{Guard "\n"}+>>
 
-sorts Guard
+context-free sorts Guard
 context-free syntax
   Guard.Guard =
 <where <Strategy>:
   <Strategy>>
 
-sorts Path PathV PathT PathF PathVF
+context-free sorts Path PathV PathT PathF PathVF
 context-free syntax
   Path = PathV
   Path = PathT
@@ -162,7 +164,7 @@ context-free syntax
   PathF.RealP = <<PathV>.real>
   PathF.StrP  = <<PathV>.str>
 
-sorts PatV
+context-free sorts PatV
 context-free syntax
   PatV.Fun = <(<Id>, <Int>)>
   PatV.Str = String
@@ -173,7 +175,7 @@ context-free syntax
   PatV.Var = Var
   PatV.Wld = Wld
 
-sorts PatT
+context-free sorts PatT
 context-free syntax
   PatT.ApplT = <APPL>
   PatT.LisT = <LIST>
@@ -192,6 +194,3 @@ context-free priorities
   }
 > Strategy.Seq
 > Strategy.GuardedLChoice
-
-context-free syntax
-  Strategy.ImportTerm = <import-term(<ModName>)>

@@ -1,9 +1,9 @@
 module gradual-types/modules
 imports
   core/identifiers
+  core/strategies
   gradual-types/signatures
 
-sorts Def
 context-free syntax
 
   Def.DefHasTypeNoArgs = [[Id] :: [SSimpleFunType]]

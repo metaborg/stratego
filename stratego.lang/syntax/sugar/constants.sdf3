@@ -5,7 +5,7 @@ imports
   core/constants
   sugar/string-quotations
 
-sorts Char CharChar
+lexical sorts Char CharChar
 lexical syntax
   Char     = "'" CharChar "'"
   CharChar = ~[\']

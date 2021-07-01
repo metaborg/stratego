@@ -2,13 +2,12 @@ module sugar/string-quotations
 
 imports sugar/terms
 
-sorts
+context-free sorts
   StringQuotation
-  StringQuotedPart1 StringQuotedChars1 DollarOpen1 DollarClose1 QuotedBracket1 Dollar1
-  StringQuotedPart2 StringQuotedChars2 DollarOpen2 DollarClose2 QuotedBracket2 Dollar2
-  StringQuotedPart3 StringQuotedChars3 DollarOpen3 DollarClose3 QuotedBracket3 Dollar3
-  StringQuotedPart4 StringQuotedChars4 DollarOpen4 DollarClose4 QuotedBracket4 Dollar4
-  Padding
+  StringQuotedPart1
+  StringQuotedPart2
+  StringQuotedPart3
+  StringQuotedPart4
 
 context-free syntax
   PreTerm = StringQuotation
@@ -27,6 +26,12 @@ context-free syntax
   StringQuotedPart2.QBr = QuotedBracket2
   StringQuotedPart3.QBr = QuotedBracket3
   StringQuotedPart4.QBr = QuotedBracket4
+
+lexical sorts
+  StringQuotedChars1 Dollar1 QuotedBracket1
+  StringQuotedChars2 Dollar2 QuotedBracket2
+  StringQuotedChars3 Dollar3 QuotedBracket3
+  StringQuotedChars4 Dollar4 QuotedBracket4
 
 lexical syntax
   StringQuotedChars1 = ~[\[\]\$]+
@@ -68,6 +73,12 @@ syntax
 
 // The following is the AST that is expected by Stratego compiler, but the Padding literal was
 //   filled by a hack in SDF2/JSGLR1 and is now done in postprocessing.
+context-free sorts
+  InternalStringQuotation
+  InternalStringQuotedPart1
+  InternalStringQuotedPart2
+  InternalStringQuotedPart3
+  InternalStringQuotedPart4
 syntax
 
   InternalStringQuotation-CF.StringQuotation1 = "$" "[" Padding-LEX InternalStringQuotedPart1-CF* "]"
@@ -80,6 +91,7 @@ syntax
   InternalStringQuotedPart3-CF.StringEscape3 = Padding-LEX "(" LAYOUT?-CF Term-CF LAYOUT?-CF ")"
   InternalStringQuotedPart4-CF.StringEscape4 = Padding-LEX "<" LAYOUT?-CF Term-CF LAYOUT?-CF ">"
 
+lexical sorts Padding
 lexical syntax
 
   Padding = ' '+

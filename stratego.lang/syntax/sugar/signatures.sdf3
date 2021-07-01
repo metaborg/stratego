@@ -5,8 +5,7 @@ imports
   sugar/constants
   core/identifiers
 
-sorts Sort
-
+context-free sorts Sort
 context-free syntax
   Sort.SortList   = <[<{Sort ", "}*> ]> {deprecated("This syntax never had real meaning and will be dropped")}
   Sort.SortListTl = <[<{Sort ", "}*> | <Sort> ]> {deprecated("This syntax never had real meaning and will be dropped")}

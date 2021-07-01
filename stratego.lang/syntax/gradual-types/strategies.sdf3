@@ -11,7 +11,7 @@ template options
   tokenize: ")(|"
 
 
-sorts Strategy Coercion SCoercion Proxy SVar
+context-free sorts Coercion SCoercion Proxy
 context-free syntax
 // Extension for highlighting casts
   Strategy.Cast   = [cast([Coercion])]
@@ -34,7 +34,7 @@ context-free syntax
 
   SVar = "cast" {reject}
 
-sorts StrategyDef TypedSVar TypedTVar
+context-free sorts TypedSVar TypedTVar
 context-free syntax
 
   StrategyDef.ExtTypedDef =

@@ -27,6 +27,8 @@ public interface IModuleImportService {
      * from include directories.
      */
     interface ModuleIdentifier extends Serializable {
+        boolean legacyStratego();
+
         boolean isLibrary();
 
         boolean equals(@Nullable Object other);
