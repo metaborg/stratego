@@ -86,8 +86,9 @@ public class Stratego2Program {
         String fileName = sourcePath.getFileName().toString();
         this.baseName = FilenameUtils.removeExtension(fileName);
 
-        // TODO Change into actual temp dir using `Files.createTempDirectory`.
         this.baseDir = Files.createTempDirectory(baseName);
+        this.baseDir.toFile().deleteOnExit();
+
         this.javaDir = baseDir.resolve("java").toFile();
         this.classDir = baseDir.resolve("classes").toFile();
         this.pieDir = baseDir.resolve("pie");

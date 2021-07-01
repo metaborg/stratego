@@ -8,4 +8,12 @@ public class HanoiExecution extends ExecutionBenchmark implements HanoiProblem {
 
     @Param({"4", "8", "12", "16", "20"})
     int problemSize;
+
+    public HanoiExecution() {
+        super();
+    }
+
+    public HanoiExecution(int problemSize) {
+        this.problemSize = problemSize;
+    }
 }
