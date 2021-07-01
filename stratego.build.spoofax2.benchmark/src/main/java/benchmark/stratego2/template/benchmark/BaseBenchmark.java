@@ -20,7 +20,7 @@ public abstract class BaseBenchmark implements Problem {
     private Path sourcePath;
 
     private Stratego2Program program;
-    private Arguments str2Args;
+    private Arguments str2Args = new Arguments();
 
     @Param({"2.6.0-SNAPSHOT"})
     public String metaborgVersion;
@@ -33,10 +33,11 @@ public abstract class BaseBenchmark implements Problem {
 
     @Setup(Level.Iteration)
     public void setup() throws SkipException {
-        str2Args = new Arguments();
-        str2Args.add("-O", optimisationLevel);
-
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
+
+        str2Args.add("-O", optimisationLevel);
+//        str2Args.add("--statistics", 1);
+//        str2Args.add("--verbose", 3);
 
         try {
             program = new Stratego2Program(sourcePath, metaborgVersion, str2Args);
