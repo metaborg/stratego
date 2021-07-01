@@ -165,7 +165,7 @@ public class Stratego2Program {
             strjIncludeDirs.add(projectPath);
 
             final ModuleIdentifier mainModuleIdentifier =
-                    new ModuleIdentifier(false, baseName, new FSPath(input));
+                    new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), library, baseName, new FSPath(input));
             CompileInput compileInput =
                     new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                             packageName, new FSPath(pieDir.resolve("cacheDir")),
