@@ -12,6 +12,8 @@ public class Compile {
 
     Path p = Paths.get("src", "main", "resources");
 
+    private int optimisationLevel = 2;
+
     public Compile(String filename) {
         this.filename = filename;
     }
@@ -31,12 +33,15 @@ public class Compile {
             System.out.println(line);
         }
 
-//        c.program.cleanup();
+        c.program.cleanup();
     }
 
     private void loadProgram() throws IOException {
-        Arguments args = new Arguments();
-//        args.add("-O", "4");
-        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", args);
+        Arguments str2Args = new Arguments();
+        str2Args.add("-O", optimisationLevel);
+        str2Args.add("--statistics", 1);
+        str2Args.add("--verbose", 10);
+
+        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", str2Args);
     }
 }
