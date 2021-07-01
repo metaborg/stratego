@@ -43,8 +43,7 @@ public class Stratego2Program {
     private static final Path localRepository = Paths.get(System.getProperty("user.home"), ".m2", "repository");
 
     private static final ResourceService resourceService = new DefaultResourceService(new FSResourceRegistry());
-    private static final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries =
-            new ArrayList<>(Collections.singletonList(BuiltinLibraryIdentifier.StrategoLib));
+    private static final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
 
     private static final String javaPackageName = "benchmark";
 
@@ -192,7 +191,7 @@ public class Stratego2Program {
 
     public CompileOutput compileStratego() throws MetaborgException {
         // Take inspiration from stratego.build.spoofax2.integrationtest
-        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, false, str2Args, metaborgVersion);
+        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, str2Args, metaborgVersion);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
 
         return compiledProgram;
