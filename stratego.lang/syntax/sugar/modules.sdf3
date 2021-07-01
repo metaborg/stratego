@@ -7,8 +7,7 @@ imports
   sugar/overlays
   sugar/rules
 
-sorts Decl Def
-
+context-free sorts Decl Def
 context-free syntax
   Decl.Rules =
 <rules

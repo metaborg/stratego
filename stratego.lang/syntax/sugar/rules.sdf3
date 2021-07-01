@@ -34,8 +34,7 @@ context-free syntax
 <<Id>(<{Typedid ", "}*> | <{TermNoVar ", "}*>):
   <Rule>>
 
-sorts Rule RuleCond
-
+context-free sorts Rule RuleCond
 context-free syntax
 
   Rule.Rule = [[Term] -> [Term]

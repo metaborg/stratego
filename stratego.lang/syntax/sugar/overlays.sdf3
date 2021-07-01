@@ -3,8 +3,7 @@ imports
   core/identifiers
   sugar/terms
 
-sorts Overlay
-
+context-free sorts Overlay
 context-free syntax
   Overlay.OverlayNoArgs = <<Id> = <Term>>
 

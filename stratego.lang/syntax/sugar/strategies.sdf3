@@ -81,7 +81,7 @@ context-free syntax
   Strategy.CondChoice = <if <Strategy> then <Strategy> else <Strategy> end>
   Strategy.IfThen     = <if <Strategy> then <Strategy> end>
 
-sorts SwitchCase
+context-free sorts SwitchCase
 context-free syntax
   Strategy.SwitchChoiceNoOtherwise =
 <switch <Strategy>
