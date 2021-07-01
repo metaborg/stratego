@@ -211,7 +211,7 @@ public class Stratego2Program {
         return javaCompilationResult;
     }
 
-    public BufferedReader run() throws Exception {
+    public BufferedReader run() throws IOException, InterruptedException {
         assert javaCompilationResult : "Cannot run program: Java compilation did not succeed!";
         return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName));
     }

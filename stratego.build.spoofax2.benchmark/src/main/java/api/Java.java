@@ -43,7 +43,7 @@ public class Java {
         }
     }
 
-    public static BufferedReader execute(String classPath, String mainClass) throws Exception {
+    public static BufferedReader execute(String classPath, String mainClass) throws IOException, InterruptedException {
         final Path java = Paths.get(System.getProperty("java.home")).resolve(Paths.get("bin", "java"));
         final ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, mainClass);
         final Process process = processBuilder.start();
@@ -51,7 +51,7 @@ public class Java {
         BufferedReader r = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
         if (process.waitFor() != 0) {
-            throw new Exception("Process did not finish successfully!\nErrors: " + r.lines().collect(Collectors.joining()));
+            throw new RuntimeException("Process did not finish successfully!\nErrors: " + r.lines().collect(Collectors.joining()));
         }
 
         return r;
