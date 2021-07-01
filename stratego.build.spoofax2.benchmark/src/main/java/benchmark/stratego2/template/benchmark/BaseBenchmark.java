@@ -31,8 +31,8 @@ public abstract class BaseBenchmark implements Problem {
     @Param({"-1"})
     public int problemSize;
 
-    @Setup(Level.Iteration)
-    public void setup() throws SkipException {
+    @Setup(Level.Trial)
+    public final void setup() throws SkipException {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
         str2Args.add("-O", optimisationLevel);
@@ -46,6 +46,11 @@ public abstract class BaseBenchmark implements Problem {
         } catch (IOException e) {
             throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
         }
+    }
+
+    @TearDown(Level.Trial)
+    public final void teardown() throws IOException {
+        getProgram().cleanup();
     }
 
     public Stratego2Program getProgram() {

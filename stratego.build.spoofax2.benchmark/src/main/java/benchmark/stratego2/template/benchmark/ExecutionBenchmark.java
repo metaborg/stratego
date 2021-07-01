@@ -15,7 +15,6 @@ public abstract class ExecutionBenchmark extends OptimisationBenchmark {
 
     @Setup(Level.Trial)
     public void compile() throws MetaborgException, IOException, SkipException {
-        setup();
         getProgram().compileStratego();
         getProgram().compileJava();
     }

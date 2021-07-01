@@ -86,7 +86,7 @@ public class Stratego2Program {
         String fileName = sourcePath.getFileName().toString();
         this.baseName = FilenameUtils.removeExtension(fileName);
 
-        this.baseDir = Files.createTempDirectory(baseName);
+        this.baseDir = Files.createTempDirectory("stratego2benchmark").resolve(baseName);
         this.baseDir.toFile().deleteOnExit();
 
         this.javaDir = baseDir.resolve("java").toFile();
@@ -186,8 +186,12 @@ public class Stratego2Program {
         }
     }
 
-    public void cleanup() throws IOException {
-        PathUtils.delete(baseDir);
+    public void cleanup() {
+        try {
+            PathUtils.delete(baseDir);
+        } catch (IOException e) {
+            System.err.println("Some files could not be deleted:\n" + e);
+        } catch (NullPointerException e) {}
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
