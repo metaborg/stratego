@@ -21,9 +21,9 @@ strategies
   ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
   ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 1)
   ; log-timed(
-    repeat(oncetd(choice-to-multimatch
+    topdown(try(repeat(choice-to-multimatch
                <+ extract-matches
-               <+ extract-righthandsides))
+               <+ extract-righthandsides)))
     | "  2. Translating choices", 1)
   ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
   ; log-timed(strip-annos|"  4. Stripping annos", 1)
