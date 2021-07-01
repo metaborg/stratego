@@ -1,0 +1,19 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99,9%)","Unit","Param: metaborgVersion","Param: optimisationLevel","Param: problemSize"
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,467574","0,030150","s/op",2.6.0-SNAPSHOT,2,10
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,618634","0,061514","s/op",2.6.0-SNAPSHOT,2,20
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"1,893381","0,213836","s/op",2.6.0-SNAPSHOT,2,50
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"14,359672","2,805517","s/op",2.6.0-SNAPSHOT,2,100
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"178,743659","15,731310","s/op",2.6.0-SNAPSHOT,2,200
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,471942","0,026266","s/op",2.6.0-SNAPSHOT,3,10
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,607683","0,018544","s/op",2.6.0-SNAPSHOT,3,20
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"1,834719","0,090325","s/op",2.6.0-SNAPSHOT,3,50
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"13,845109","2,620363","s/op",2.6.0-SNAPSHOT,3,100
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"182,660442","9,395128","s/op",2.6.0-SNAPSHOT,3,200
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,472936","0,039560","s/op",2.6.0-SNAPSHOT,4,10
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"0,574584","0,043089","s/op",2.6.0-SNAPSHOT,4,20
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"1,259230","0,089761","s/op",2.6.0-SNAPSHOT,4,50
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"7,486872","2,365321","s/op",2.6.0-SNAPSHOT,4,100
+"benchmark.stratego2.execution.Bubblesort.run","avgt",1,6,"101,904975","4,528864","s/op",2.6.0-SNAPSHOT,4,200
+"benchmark.stratego2.execution.Calls.run","avgt",1,6,"0,418867","0,051915","s/op",2.6.0-SNAPSHOT,2,-1
+"benchmark.stratego2.execution.Calls.run","avgt",1,6,"0,414392","0,042876","s/op",2.6.0-SNAPSHOT,3,-1
+"benchmark.stratego2.execution.Calls.run","avgt",1,6,"0,406751","0,011404","s/op",2.6.0-SNAPSHOT,4,-1
