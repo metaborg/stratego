@@ -109,6 +109,8 @@ public class Stratego2Program {
         return sourceFiles;
     }
 
+    // Take inspiration from stratego.build.spoofax2.integrationtest
+
     private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
         return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
                 .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
@@ -195,7 +197,6 @@ public class Stratego2Program {
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
-        // Take inspiration from stratego.build.spoofax2.integrationtest
         compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, str2Args, metaborgVersion);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
 
@@ -207,9 +208,7 @@ public class Stratego2Program {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
 
-        final Iterable<? extends File> sourceFiles = javaFiles();
-
-        javaCompilationResult = Java.compile(classDir, sourceFiles, Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
+        javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
         assert javaCompilationResult : "Compilation with javac expected to succeed";
 
         return javaCompilationResult;
