@@ -25,13 +25,22 @@ public interface StrategoLanguage {
     IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path) throws Exception;
 
     /**
-     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an AST
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an RTree AST
      *
      * @param inputStream the Stratego code
      * @return an ATerm representation of the AST of the program
      * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
      */
     IStrategoTerm parseRtree(InputStream inputStream) throws Exception;
+
+    /**
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an Str2Lib AST
+     *
+     * @param inputStream the Stratego code
+     * @return an ATerm representation of the AST of the program
+     * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
+     */
+    IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
 
     /**
      * Call to the gradual type system for Stratego, to type-check an AST and insert casts where necessary

@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.metaborg.core.language.LanguageIdentifier;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -63,12 +64,12 @@ public class GenerateStratego {
     }
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
-        String groupId, String id, String version, Collection<? extends IStrategoTerm> sorts,
+        LanguageIdentifier languageIdentifier, Collection<? extends IStrategoTerm> sorts,
         Collection<? extends IStrategoTerm> constructors,
         Collection<? extends StrategyFrontData> strategyFrontData) {
         return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
-            tf.makeAppl("Maven", tf.makeString(groupId), tf.makeString(id),
-                tf.makeString(version))),
+            tf.makeAppl("Maven", tf.makeString(languageIdentifier.groupId), tf.makeString(languageIdentifier.id),
+                tf.makeString(languageIdentifier.version.toString()))),
             tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
     }
 

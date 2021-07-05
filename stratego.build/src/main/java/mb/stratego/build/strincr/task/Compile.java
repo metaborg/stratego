@@ -69,7 +69,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             final BackInput.DynamicRule dynamicRuleInput =
                 new BackInput.DynamicRule(input.outputDir, input.packageName, input.cacheDir,
                     input.constants, input.extraArgs, input.checkInput, dynamicRule,
-                    strategyAnalysisDataTask);
+                    strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, dynamicRuleInput);
             assert output != null;
             assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
@@ -95,7 +95,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             final BackInput.Normal normalInput =
                 new BackInput.Normal(input.outputDir, input.packageName, input.cacheDir,
                     input.constants, input.extraArgs, input.checkInput, strategySignature,
-                    strategyAnalysisDataTask);
+                    strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
             assert output != null;
             assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
@@ -106,7 +106,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(input.outputDir, input.packageName, input.cacheDir,
                 input.constants, input.extraArgs, input.checkInput, dynamicCallsDefined,
-                input.library);
+                input.library, input.usingLegacyStrategoStdLib);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
@@ -115,7 +115,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(input.outputDir, input.packageName, input.cacheDir,
                 input.constants, input.extraArgs, input.checkInput, dynamicRuleNewGenerated,
-                dynamicRuleUndefineGenerated);
+                dynamicRuleUndefineGenerated, input.usingLegacyStrategoStdLib);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
         assert !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";

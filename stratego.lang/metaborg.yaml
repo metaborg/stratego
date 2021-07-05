@@ -7,7 +7,7 @@ dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
   - org.metaborg:org.metaborg.meta.lang.template:${metaborgBaselineVersion}
-  - org.metaborg:sdf3.ext.statix:${metaborgBaselineVersion}
+  #- org.metaborg:sdf3.ext.statix:${metaborgBaselineVersion}
   source:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
 pardonedLanguages:

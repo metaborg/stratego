@@ -9,6 +9,7 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.STask;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 
 public class CompileInput implements Serializable {
@@ -19,14 +20,14 @@ public class CompileInput implements Serializable {
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
     public final boolean library;
+    public final boolean usingLegacyStrategoStdLib;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, @Nullable String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
-        ArrayList<STask<?>> strFileGeneratingTasks,
-        boolean library, boolean autoImportStd) {
+        ArrayList<STask<?>> strFileGeneratingTasks, boolean library, boolean autoImportStd) {
         this.checkInput = new CheckInput(mainModuleIdentifier, projectPath,
             strFileGeneratingTasks, includeDirs, linkedLibraries, autoImportStd);
         this.outputDir = outputDir.getNormalized();
@@ -35,6 +36,7 @@ public class CompileInput implements Serializable {
         this.constants = constants;
         this.extraArgs = extraArgs;
         this.library = library;
+        this.usingLegacyStrategoStdLib = linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
     }
 
     @Override public boolean equals(Object o) {
@@ -57,7 +59,9 @@ public class CompileInput implements Serializable {
             return false;
         if(!extraArgs.equals(that.extraArgs))
             return false;
-        return library == that.library;
+        if(library != that.library)
+            return false;
+        return usingLegacyStrategoStdLib == that.usingLegacyStrategoStdLib;
     }
 
     @Override public int hashCode() {
@@ -68,6 +72,7 @@ public class CompileInput implements Serializable {
         result = 31 * result + constants.hashCode();
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + (library ? 1 : 0);
+        result = 31 * result + (usingLegacyStrategoStdLib ? 1 : 0);
         return result;
     }
 

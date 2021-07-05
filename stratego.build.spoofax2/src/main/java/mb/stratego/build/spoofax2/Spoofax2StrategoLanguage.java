@@ -131,6 +131,15 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         return ast;
     }
 
+    @Override public IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception {
+        final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
+        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Str2Lib") && ast.getSubtermCount() == 3)) {
+            throw new ExecException(
+                "Did not find Str2Lib/3 in Str2Lib file. Found: \n" + ast.toString(2));
+        }
+        return ast;
+    }
+
     @Override public IStrategoTerm insertCasts(String moduleName, GTEnvironment environment,
         String projectPath) throws ExecException {
         return callStrategy(environment, projectPath, "stratego2-insert-casts", " in module " + moduleName);

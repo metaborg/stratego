@@ -89,7 +89,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).sorted().filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = fileName.substring(0, fileName.length() - 4); // strip .str
+            final String baseName = fileName.substring(0, fileName.lastIndexOf(".str")); // strip .str{2,}
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
@@ -121,7 +121,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = fileName.substring(0, fileName.length() - 4); // strip .str
+            final String baseName = fileName.substring(0, fileName.lastIndexOf(".str")); // strip .str{2,}
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
@@ -143,7 +143,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = fileName.substring(0, fileName.length() - 4); // strip .str
+            final String baseName = fileName.substring(0, fileName.lastIndexOf(".str")); // strip .str{2,}
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {

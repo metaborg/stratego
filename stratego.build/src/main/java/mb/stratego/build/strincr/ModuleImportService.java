@@ -70,36 +70,47 @@ public class ModuleImportService implements IModuleImportService {
                 final Set<mb.stratego.build.strincr.ModuleIdentifier> result = new HashSet<>();
                 boolean foundSomethingToImport = false;
                 for(ResourcePath dir : includeDirs) {
-                    final ResourcePath rtreePath =
-                        dir.appendOrReplaceWithPath(moduleString + ".rtree");
-                    final HierarchicalResource rtreeResource = context
-                        .require(rtreePath, new ExistsAndRTreeStamper<HierarchicalResource>());
-                    if(rtreeResource.exists()) {
+                    final ResourcePath str2libPath =
+                        dir.appendOrReplaceWithPath(moduleString + ".str2lib");
+                    final HierarchicalResource str2libResource =
+                        context.require(str2libPath, ResourceStampers.<HierarchicalResource>exists());
+                    if(str2libResource.exists()) {
                         foundSomethingToImport = true;
-                        final boolean isLibrary =
-                            ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
-                        result.add(
-                            new mb.stratego.build.strincr.ModuleIdentifier(true, isLibrary, moduleString,
-                                rtreePath));
+                        result.add(new mb.stratego.build.strincr.ModuleIdentifier(false, true,
+                            moduleString, str2libPath));
                     } else {
-                        final ResourcePath str2Path = dir.appendOrReplaceWithPath(moduleString + ".str2");
-                        final HierarchicalResource str2Resource =
-                            context.require(str2Path, ResourceStampers.<HierarchicalResource>exists());
-                        if(str2Resource.exists()) {
+                        final ResourcePath rtreePath =
+                            dir.appendOrReplaceWithPath(moduleString + ".rtree");
+                        final HierarchicalResource rtreeResource = context
+                            .require(rtreePath, new ExistsAndRTreeStamper<HierarchicalResource>());
+                        if(rtreeResource.exists()) {
                             foundSomethingToImport = true;
+                            final boolean isLibrary =
+                                ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
                             result.add(
-                                new mb.stratego.build.strincr.ModuleIdentifier(false, false, moduleString,
-                                    str2Path));
+                                new mb.stratego.build.strincr.ModuleIdentifier(true, isLibrary,
+                                    moduleString, rtreePath));
                         } else {
-                            final ResourcePath strPath = dir.appendOrReplaceWithPath(moduleString + ".str");
-                            final HierarchicalResource strResource =
-                                context.require(strPath, ResourceStampers.<HierarchicalResource>exists());
-                            if(strResource.exists()) {
+                            final ResourcePath str2Path =
+                                dir.appendOrReplaceWithPath(moduleString + ".str2");
+                            final HierarchicalResource str2Resource = context
+                                .require(str2Path, ResourceStampers.<HierarchicalResource>exists());
+                            if(str2Resource.exists()) {
                                 foundSomethingToImport = true;
                                 result.add(
-                                    new mb.stratego.build.strincr.ModuleIdentifier(true,
-                                        false, moduleString,
-                                        strPath));
+                                    new mb.stratego.build.strincr.ModuleIdentifier(false, false,
+                                        moduleString, str2Path));
+                            } else {
+                                final ResourcePath strPath =
+                                    dir.appendOrReplaceWithPath(moduleString + ".str");
+                                final HierarchicalResource strResource = context.require(strPath,
+                                    ResourceStampers.<HierarchicalResource>exists());
+                                if(strResource.exists()) {
+                                    foundSomethingToImport = true;
+                                    result.add(
+                                        new mb.stratego.build.strincr.ModuleIdentifier(true, false,
+                                            moduleString, strPath));
+                                }
                             }
                         }
                     }
@@ -120,6 +131,7 @@ public class ModuleImportService implements IModuleImportService {
                     final HierarchicalResource searchDir =
                         context.getResourceService().getHierarchicalResource(searchDirectory);
                     if(searchDir.exists()) {
+                        // N.B. deliberate choice not to resolve to str2lib files here, those should be imported by name.
                         final List<HierarchicalResource> moduleFiles = searchDir.list(
                             new PathResourceMatcher(new ExtensionsPathMatcher("rtree", "str2", "str")))
                             .collect(Collectors.toList());
@@ -182,8 +194,10 @@ public class ModuleImportService implements IModuleImportService {
                 resource.openRead())) {
                 final long lastModified =
                     resource.getLastModifiedTime().getEpochSecond();
-                if(moduleIdentifier.isLibrary()) {
+                if(moduleIdentifier.isLibrary() && moduleIdentifier.legacyStratego()) {
                     return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
+                } else if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
+                    return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
                 } else {
                     return new LastModified<>(strategoLanguage
                         .parse(inputStream, StandardCharsets.UTF_8,

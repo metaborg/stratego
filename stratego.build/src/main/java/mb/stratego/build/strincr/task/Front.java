@@ -13,6 +13,8 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -34,6 +36,7 @@ import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -82,7 +85,10 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
+        @Nullable LanguageIdentifier languageIdentifier = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
+        final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
+        final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
@@ -120,14 +126,15 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier,
-                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,
-                externalConstrData, injections, externalInjections, strategyData,
-                internalStrategyData, externalStrategyData, dynamicRuleData, overlayData,
-                usedConstructors, usedStrategies, dynamicRules, usedAmbiguousStrategies, messages,
-                0L);
+            return new ModuleData(input.moduleIdentifier, languageIdentifier,
+                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
+                externalSortData, constrData, externalConstrData, injections, externalInjections,
+                strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
+                overlayData, usedConstructors, usedStrategies, dynamicRules,
+                usedAmbiguousStrategies, messages, 0L);
         }
 
+        languageIdentifier = getLanguageId(input.moduleIdentifier, ast.wrapped);
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
@@ -173,10 +180,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
-            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
-            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
-            dynamicRules, usedAmbiguousStrategies, messages, ast.lastModified);
+        return new ModuleData(input.moduleIdentifier, languageIdentifier, ast.wrapped, imports,
+            sortData, externalSortData, constrData, externalConstrData, injections,
+            externalInjections, strategyData, internalStrategyData, externalStrategyData,
+            dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
+            usedAmbiguousStrategies, messages, ast.lastModified);
     }
 
     public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
@@ -202,8 +210,34 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         return expandedImports;
     }
 
+    private @Nullable LanguageIdentifier getLanguageId(
+        IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast) {
+        if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
+            if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+                assert moduleIdentifier.moduleString().equals(TermUtils.toJavaStringAt(ast, 0)) :
+                    "Str2Lib file contains different library (" + TermUtils.toJavaStringAt(ast, 0)
+                        + ") than it has as filename (" + moduleIdentifier.moduleString() + ").";
+                final IStrategoList components = TermUtils.toListAt(ast, 1);
+                for(IStrategoTerm component : components) {
+                    if(TermUtils.isAppl(component, "Maven", 3)) {
+                        return new LanguageIdentifier(TermUtils.toJavaStringAt(component, 0),
+                            TermUtils.toJavaStringAt(component, 1),
+                            LanguageVersion.parse(TermUtils.toJavaStringAt(component, 2)));
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public static IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm ast) {
+        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+            final IStrategoList modules = TermUtils.toListAt(ast, 2);
+            if(modules.size() == 1) {
+                ast = modules.getSubterm(0);
+            }
+        }
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {

@@ -9,11 +9,13 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.metaborg.core.language.LanguageIdentifier;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
@@ -22,11 +24,17 @@ import mb.stratego.build.util.WithLastModified;
 
 /**
  * The AST of a module and some of it's data pre-extracted.
+ * The imports are pre-resolved and therefore are not purely derived from the ast, same with the
+ * messages. Everything in between is not put into hash/equals because it's directly derived from
+ * the ast.
  */
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
+    public final @Nullable LanguageIdentifier languageIdentifier;
     public final IStrategoTerm ast;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
+    public final LinkedHashSet<SortSignature> sortData;
+    public final LinkedHashSet<SortSignature> externalSortData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
@@ -48,8 +56,10 @@ public class ModuleData implements Serializable, WithLastModified {
     private transient @Nullable LinkedHashMap<String, LinkedHashSet<StrategyFrontData>>
         ambStrategyIndex = null;
 
-    public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
+    public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        @Nullable LanguageIdentifier languageIdentifier, IStrategoTerm ast,
         ArrayList<IModuleImportService.ModuleIdentifier> imports,
+        LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
@@ -65,8 +75,11 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
+        this.languageIdentifier = languageIdentifier;
         this.ast = ast;
         this.imports = imports;
+        this.sortData = sortData;
+        this.externalSortData = externalSortData;
         this.constrData = constrData;
         this.externalConstrData = externalConstrData;
         this.injections = injections;
@@ -100,32 +113,6 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!imports.equals(that.imports))
             return false;
-        if(!constrData.equals(that.constrData))
-            return false;
-        if(!externalConstrData.equals(that.externalConstrData))
-            return false;
-        if(!injections.equals(that.injections))
-            return false;
-        if(!externalInjections.equals(that.externalInjections))
-            return false;
-        if(!normalStrategyData.equals(that.normalStrategyData))
-            return false;
-        if(!internalStrategyData.equals(that.internalStrategyData))
-            return false;
-        if(!externalStrategyData.equals(that.externalStrategyData))
-            return false;
-        if(!dynamicRuleData.equals(that.dynamicRuleData))
-            return false;
-        if(!overlayData.equals(that.overlayData))
-            return false;
-        if(!usedConstructors.equals(that.usedConstructors))
-            return false;
-        if(!usedStrategies.equals(that.usedStrategies))
-            return false;
-        if(!dynamicRules.equals(that.dynamicRules))
-            return false;
-        if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
-            return false;
         return messages.equals(that.messages);
     }
 
@@ -133,19 +120,6 @@ public class ModuleData implements Serializable, WithLastModified {
         int result = moduleIdentifier.hashCode();
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
-        result = 31 * result + constrData.hashCode();
-        result = 31 * result + externalConstrData.hashCode();
-        result = 31 * result + injections.hashCode();
-        result = 31 * result + externalInjections.hashCode();
-        result = 31 * result + normalStrategyData.hashCode();
-        result = 31 * result + internalStrategyData.hashCode();
-        result = 31 * result + externalStrategyData.hashCode();
-        result = 31 * result + dynamicRuleData.hashCode();
-        result = 31 * result + overlayData.hashCode();
-        result = 31 * result + usedConstructors.hashCode();
-        result = 31 * result + usedStrategies.hashCode();
-        result = 31 * result + dynamicRules.hashCode();
-        result = 31 * result + usedAmbiguousStrategies.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
