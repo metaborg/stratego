@@ -172,7 +172,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
-        if(input.autoImportStd && !input.moduleIdentifier.isLibrary() && !imports
+        if(input.autoImportStd && input.moduleIdentifier.legacyStratego() && !imports
             .contains(BuiltinLibraryIdentifier.StrategoLib)) {
             imports.add(BuiltinLibraryIdentifier.StrategoLib);
         }
@@ -310,7 +310,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         .add(new StrategyFrontData(strategySignature, strategyType, External));
                     break;
                 }
-                // TODO: cases "ExtTypedDef" "ExtTypedDefInl"
                 case "ExtSDef":
                 case "ExtSDefInl":
                     kind = External;
