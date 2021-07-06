@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -18,6 +19,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
+import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -449,15 +451,20 @@ public abstract class BackInput implements Serializable {
     public static class Boilerplate extends BackInput {
         public final boolean dynamicCallsDefined;
         public final boolean library;
+        public final String libraryName;
+        public final LanguageIdentifier languageIdentifier;
 
         public Boilerplate(ResourcePath outputDir, @Nullable String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, boolean dynamicCallsDefined, boolean library,
-            boolean legacyStrategoStdLib) {
+            boolean legacyStrategoStdLib, String libraryName,
+            LanguageIdentifier languageIdentifier) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.dynamicCallsDefined = dynamicCallsDefined;
             this.library = library;
+            this.libraryName = libraryName;
+            this.languageIdentifier = languageIdentifier;
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -527,6 +534,10 @@ public abstract class BackInput implements Serializable {
             }
             return backTask.generateStratego.packBoilerplate(consInjTerms,
                 backTask.generateStratego.declStubs(strategies));
+        }
+
+        public ResourcePath str2LibFile() {
+            return outputDir.appendAsRelativePath(libraryName + ".str2lib");
         }
 
         @Override public String toString() {

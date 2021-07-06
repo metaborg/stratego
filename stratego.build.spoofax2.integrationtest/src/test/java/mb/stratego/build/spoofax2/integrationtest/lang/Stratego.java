@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -73,7 +74,8 @@ public class Stratego {
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
         Path packageDir, boolean library,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd)
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+        LanguageIdentifier languageIdentifier)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -114,7 +116,7 @@ public class Stratego {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), library, autoImportStd);
+                    new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, languageIdentifier);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

@@ -22,7 +22,10 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
+import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.ToModuleIndex;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.message.CyclicOverlay;
@@ -62,9 +65,11 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
+        final LinkedHashSet<SortSignature> nonExternalSorts = new LinkedHashSet<>();
         final LinkedHashSet<ConstructorSignature> nonExternalConstructors = new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, StrategyType> strategyTypes = new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             overlayIndex = new LinkedHashMap<>();
 
@@ -98,9 +103,10 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
                     .addAll(e.getValue());
             }
-            for(StrategySignature signature : index.strategies) {
-                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+            for(StrategyFrontData sfd : index.strategies) {
+                Relation.getOrInitialize(strategyIndex, sfd.signature, LinkedHashSet::new)
                     .add(moduleIdentifier);
+                strategyTypes.put(sfd.signature, sfd.type);
             }
             for(StrategySignature signature : index.internalStrategies) {
                 Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
@@ -141,7 +147,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
         return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
-            strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
+            strategyIndex, strategyTypes, nonExternalSorts, nonExternalConstructors, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, overlayData, messages, lastModified);
     }
 

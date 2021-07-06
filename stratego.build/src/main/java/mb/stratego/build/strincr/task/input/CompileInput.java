@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.project.NameUtil;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.STask;
@@ -21,22 +23,41 @@ public class CompileInput implements Serializable {
     public final Arguments extraArgs;
     public final boolean library;
     public final boolean usingLegacyStrategoStdLib;
+    public final String libraryName;
+    public final LanguageIdentifier languageIdentifier;
+
+    public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        ResourcePath projectPath, ResourcePath outputDir, @Nullable ResourcePath cacheDir,
+        ArrayList<String> constants, ArrayList<ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
+        boolean autoImportStd, String libraryName, LanguageIdentifier languageIdentifier) {
+        this(mainModuleIdentifier, projectPath, outputDir,
+            NameUtil.toJavaId(languageIdentifier.id) + ".trans", cacheDir, constants, includeDirs,
+            linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd, libraryName,
+            languageIdentifier);
+    }
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, @Nullable String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments extraArgs,
-        ArrayList<STask<?>> strFileGeneratingTasks, boolean library, boolean autoImportStd) {
-        this.checkInput = new CheckInput(mainModuleIdentifier, projectPath,
-            strFileGeneratingTasks, includeDirs, linkedLibraries, autoImportStd);
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
+        boolean autoImportStd, String libraryName, LanguageIdentifier languageIdentifier) {
+        this.libraryName = libraryName;
+        this.languageIdentifier = languageIdentifier;
+        this.checkInput =
+            new CheckInput(mainModuleIdentifier, projectPath, strFileGeneratingTasks, includeDirs,
+                linkedLibraries, autoImportStd);
         this.outputDir = outputDir.getNormalized();
         this.packageName = packageName;
         this.cacheDir = cacheDir;
         this.constants = constants;
         this.extraArgs = extraArgs;
         this.library = library;
-        this.usingLegacyStrategoStdLib = linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
+        this.usingLegacyStrategoStdLib =
+            linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
     }
 
     @Override public boolean equals(Object o) {

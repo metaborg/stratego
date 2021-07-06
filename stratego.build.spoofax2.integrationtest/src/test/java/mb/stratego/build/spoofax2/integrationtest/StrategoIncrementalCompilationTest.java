@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 
@@ -104,12 +106,15 @@ public class StrategoIncrementalCompilationTest {
         final ModuleIdentifier mainModuleIdentifier =
             new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
+        final String libraryName = "incrCompTest";
+        final LanguageIdentifier languageIdentifier =
+            new LanguageIdentifier("mb.stratego", libraryName, new LanguageVersion(1));
         CompileInput compileInput =
             new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
                 "mb.stratego.build.spoofax2.test",
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
-                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-                true, true);
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
+                libraryName, languageIdentifier);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -169,8 +174,8 @@ public class StrategoIncrementalCompilationTest {
         compileInput = new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
             "mb.stratego.build.spoofax2.test",
             new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
-            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-            true, true);
+            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, libraryName,
+            languageIdentifier);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

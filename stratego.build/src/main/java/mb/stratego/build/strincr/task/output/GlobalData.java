@@ -12,7 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
@@ -25,6 +27,8 @@ public class GlobalData implements Serializable {
         strategyIndex;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         overlayIndex;
+    public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
+    public final LinkedHashSet<SortSignature> nonExternalSorts;
     public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
@@ -41,17 +45,19 @@ public class GlobalData implements Serializable {
         LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
-        LinkedHashSet<ConstructorSignature> nonExternalConstructors,
+        LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
+        LinkedHashSet<SortSignature> nonExternalSorts, LinkedHashSet<ConstructorSignature> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules,
-        LinkedHashSet<OverlayData> overlayData, ArrayList<Message> messages,
-        long lastModified) {
+        LinkedHashSet<StrategySignature> dynamicRules, LinkedHashSet<OverlayData> overlayData,
+        ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
+        this.strategyTypes = strategyTypes;
+        this.nonExternalSorts = nonExternalSorts;
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.internalStrategies = internalStrategies;

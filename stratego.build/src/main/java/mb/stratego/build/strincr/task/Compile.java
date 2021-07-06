@@ -106,7 +106,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(input.outputDir, input.packageName, input.cacheDir,
                 input.constants, input.extraArgs, input.checkInput, dynamicCallsDefined,
-                input.library, input.usingLegacyStrategoStdLib);
+                input.library, input.usingLegacyStrategoStdLib, input.libraryName,
+                input.languageIdentifier);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";

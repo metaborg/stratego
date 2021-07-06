@@ -21,6 +21,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 
 import mb.resource.DefaultResourceService;
 import mb.resource.ResourceService;
@@ -41,7 +43,6 @@ public class StrcTests {
     public static final String packageDirName = packageName.replace('.', '/');
     public static final ResourceService resourceService =
         new DefaultResourceService(new FSResourceRegistry());
-
     // TODO: turn shell scripts from test-strc into tests here
 
     @TestFactory Stream<DynamicTest> test1() throws URISyntaxException, IOException {
@@ -95,8 +96,12 @@ public class StrcTests {
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
+                final LanguageIdentifier languageIdentifier =
+                    new LanguageIdentifier("mb.stratego", "compnrun_" + baseName,
+                        new LanguageVersion(1));
                 final CompileOutput str2CompileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false,
+                        languageIdentifier);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));
@@ -127,8 +132,12 @@ public class StrcTests {
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
+                final LanguageIdentifier languageIdentifier =
+                    new LanguageIdentifier("mb.stratego", "failtocomp_" + baseName,
+                        new LanguageVersion(1));
                 final CompileOutput compileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false,
+                        languageIdentifier);
                 Assertions.assertTrue(compileOutput instanceof CompileOutput.Failure,
                     "Compilation with stratego.lang compiler expected to fail");
             });
@@ -149,8 +158,12 @@ public class StrcTests {
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
                 FileUtils.deleteDirectory(testGenDir.toFile());
                 Files.createDirectories(packageDir);
+                final LanguageIdentifier languageIdentifier =
+                    new LanguageIdentifier("mb.stratego", "comp_" + baseName,
+                        new LanguageVersion(1));
                 final CompileOutput str2CompileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false);
+                    .str2(p, baseName, packageName, packageDir, true, linkedLibraries, false,
+                        languageIdentifier);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));
