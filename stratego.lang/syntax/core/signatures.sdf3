@@ -26,11 +26,13 @@ context-free syntax
 
 <{Opdecl "\n"}*>>
 
-context-free sorts Sort
+context-free sorts Sort SortArg
 context-free syntax
   Sort.SortVar    = LCID
   Sort.SortNoArgs = UCID
-  Sort.Sort       = <<Id>(<{Sort ", "}*>)>
+  Sort.Sort       = <<Id>(<{SortArg ", "}*>)>
+  SortArg = Sort
+  SortArg.TupleT      = [[Sort] * [{Sort " * "}+]]
 
 context-free sorts Opdecl
 context-free syntax
