@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -11,11 +12,11 @@ import mb.stratego.build.strincr.data.StrategyType;
 
 public class Str2LibInfo implements Serializable {
     public final LinkedHashSet<SortSignature> sorts;
-    public final LinkedHashSet<ConstructorSignature> constructors;
+    public final LinkedHashSet<ConstructorData> constructors;
     public final LinkedHashMap<StrategySignature, StrategyType> strategyFrontData;
 
     public Str2LibInfo(LinkedHashSet<SortSignature> sorts,
-        LinkedHashSet<ConstructorSignature> constructors,
+        LinkedHashSet<ConstructorData> constructors,
         LinkedHashMap<StrategySignature, StrategyType> strategyFrontData) {
         this.sorts = sorts;
         this.constructors = constructors;

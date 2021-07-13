@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
@@ -22,7 +23,7 @@ import mb.stratego.build.util.WithLastModified;
 public class ModuleIndex implements Serializable, WithLastModified {
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sorts;
-    public final LinkedHashSet<ConstructorSignature> constructors;
+    public final LinkedHashSet<ConstructorData> constructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashSet<SortSignature> externalSorts;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
@@ -35,7 +36,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
-        LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorSignature> constructors,
+        LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashSet<SortSignature> externalSorts,
         LinkedHashSet<ConstructorSignature> externalConstructors,

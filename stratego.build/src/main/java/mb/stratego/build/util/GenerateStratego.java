@@ -22,6 +22,7 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -67,7 +68,7 @@ public class GenerateStratego {
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
         LanguageIdentifier languageIdentifier, Collection<? extends IStrategoTerm> sorts,
-        Collection<? extends IStrategoTerm> constructors,
+        Collection<ConstructorData> constructors,
         Map<StrategySignature, StrategyType> strategyFrontData) {
         return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
             tf.makeAppl("Maven", tf.makeString(languageIdentifier.groupId), tf.makeString(languageIdentifier.id),
@@ -76,17 +77,21 @@ public class GenerateStratego {
     }
 
     public static IStrategoTerm packStr2Spec(IStrategoTermBuilder tf,
-        Collection<? extends IStrategoTerm> sorts, Collection<? extends IStrategoTerm> constructors,
+        Collection<? extends IStrategoTerm> sorts, Collection<ConstructorData> constructors,
         Map<StrategySignature, StrategyType> strategyFrontData) {
+        final IStrategoList.Builder cons = tf.arrayListBuilder(constructors.size());
+        for(ConstructorData d : constructors) {
+            cons.add(d.toTerm(tf));
+        }
         return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
             tf.makeList(tf.makeAppl("Sorts", tf.makeList(sorts)),
-                tf.makeAppl("Constructors", tf.makeList(constructors)))),
+                tf.makeAppl("Constructors", tf.makeList(cons)))),
             tf.makeAppl("Strategies", packStr2Strategies(tf, strategyFrontData))));
     }
 
     public static IStrategoTerm packStr2Strategies(IStrategoTermBuilder tf,
         Map<StrategySignature, StrategyType> strategyFrontData) {
-        final IStrategoList.Builder builder = tf.arrayListBuilder();
+        final IStrategoList.Builder builder = tf.arrayListBuilder(strategyFrontData.size());
         for(Map.Entry<StrategySignature, StrategyType> e : strategyFrontData.entrySet()) {
             builder.add(tf.makeAppl("ExtTypedDef", tf.makeString(e.getKey().name), e.getValue()));
         }

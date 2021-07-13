@@ -19,7 +19,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
-import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;

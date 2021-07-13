@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
@@ -29,7 +30,7 @@ public class GlobalData implements Serializable {
         overlayIndex;
     public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
     public final LinkedHashSet<SortSignature> nonExternalSorts;
-    public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
+    public final LinkedHashSet<ConstructorData> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
@@ -46,7 +47,7 @@ public class GlobalData implements Serializable {
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
-        LinkedHashSet<SortSignature> nonExternalSorts, LinkedHashSet<ConstructorSignature> nonExternalConstructors,
+        LinkedHashSet<SortSignature> nonExternalSorts, LinkedHashSet<ConstructorData> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
@@ -83,8 +84,12 @@ public class GlobalData implements Serializable {
         if(congruenceGlobalIndex == null) {
             final LinkedHashSet<StrategySignature> nonExternalStrategies =
                 getCompileGlobalIndex().nonExternalStrategies;
+            final LinkedHashSet<ConstructorSignature> nonExtCons = new LinkedHashSet<>(nonExternalConstructors.size());
+            for(ConstructorData d : nonExternalConstructors) {
+                nonExtCons.add(d.signature);
+            }
             congruenceGlobalIndex =
-                new CongruenceGlobalIndex(nonExternalConstructors, externalConstructors,
+                new CongruenceGlobalIndex(nonExtCons, externalConstructors,
                     nonExternalStrategies, overlayData);
         }
         return congruenceGlobalIndex;

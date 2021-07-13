@@ -20,6 +20,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
@@ -66,7 +67,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
         final LinkedHashSet<SortSignature> nonExternalSorts = new LinkedHashSet<>();
-        final LinkedHashSet<ConstructorSignature> nonExternalConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorData> nonExternalConstructors = new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, StrategyType> strategyTypes = new LinkedHashMap<>();
