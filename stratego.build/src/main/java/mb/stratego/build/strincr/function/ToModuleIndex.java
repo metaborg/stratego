@@ -20,11 +20,15 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
         for(LinkedHashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             strategies.addAll(strategyFrontData);
         }
-        final LinkedHashSet<ConstructorData> constrData = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();
         for(ArrayList<ConstructorData> data : moduleData.constrData.values()) {
-            constrData.addAll(data);
+            for(ConstructorData datum : data) {
+                if(!datum.isOverlay()) {
+                    nonOverlayConstructors.add(datum);
+                }
+            }
         }
-        return new ModuleIndex(moduleData.stratego2LibInfo, moduleData.imports, moduleData.sortData, constrData, moduleData.injections,
+        return new ModuleIndex(moduleData.stratego2LibInfo, moduleData.imports, moduleData.sortData, nonOverlayConstructors, moduleData.injections,
             moduleData.externalSortData, new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
             new LinkedHashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,

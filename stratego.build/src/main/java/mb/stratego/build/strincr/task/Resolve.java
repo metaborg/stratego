@@ -101,8 +101,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             if(index.languageIdentifier != null) {
                 importedStr2LibProjects.add(index.languageIdentifier);
             }
-            nonExternalConstructors.addAll(index.constructors);
-            nonExternalConstructors.removeAll(index.overlayData.keySet());
+            nonExternalConstructors.addAll(index.nonOverlayConstructors);
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
                 .entrySet()) {

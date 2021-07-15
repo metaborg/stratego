@@ -28,7 +28,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final @Nullable Stratego2LibInfo languageIdentifier;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sorts;
-    public final LinkedHashSet<ConstructorData> constructors;
+    public final LinkedHashSet<ConstructorData> nonOverlayConstructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashSet<SortSignature> externalSorts;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
@@ -41,7 +41,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(@Nullable Stratego2LibInfo languageIdentifier, ArrayList<IModuleImportService.ModuleIdentifier> imports,
-        LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> constructors,
+        LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> nonOverlayConstructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashSet<SortSignature> externalSorts,
         LinkedHashSet<ConstructorSignature> externalConstructors,
@@ -54,7 +54,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.languageIdentifier = languageIdentifier;
         this.imports = imports;
         this.sorts = sorts;
-        this.constructors = constructors;
+        this.nonOverlayConstructors = nonOverlayConstructors;
         this.injections = injections;
         this.externalSorts = externalSorts;
         this.externalConstructors = externalConstructors;
@@ -83,7 +83,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!sorts.equals(that.sorts))
             return false;
-        if(!constructors.equals(that.constructors))
+        if(!nonOverlayConstructors.equals(that.nonOverlayConstructors))
             return false;
         if(!injections.equals(that.injections))
             return false;
@@ -108,7 +108,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         int result = languageIdentifier != null ? languageIdentifier.hashCode() : 0;
         result = 31 * result + imports.hashCode();
         result = 31 * result + sorts.hashCode();
-        result = 31 * result + constructors.hashCode();
+        result = 31 * result + nonOverlayConstructors.hashCode();
         result = 31 * result + injections.hashCode();
         result = 31 * result + externalSorts.hashCode();
         result = 31 * result + externalConstructors.hashCode();
@@ -123,7 +123,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public String toString() {
-        return "ModuleIndex(" + imports + ", " + sorts + ", " + constructors + ", " + injections
+        return "ModuleIndex(" + imports + ", " + sorts + ", " + nonOverlayConstructors + ", " + injections
             + ", " + externalSorts + ", " + externalConstructors + ", " + strategies + ", "
             + internalStrategies + ", " + externalStrategies + ", " + dynamicRules + ", "
             + overlayData + ", " + messages + ", " + lastModified + ')';
