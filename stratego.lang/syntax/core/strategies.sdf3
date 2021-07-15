@@ -14,9 +14,11 @@ context-free sorts Def
 context-free syntax
   Def = StrategyDef
 
-context-free sorts StrategyDef
+context-free sorts StrategyDef SDefT
 context-free syntax
-  StrategyDef.SDefT =
+  // indirection for SDefP in sugar/strategies
+  StrategyDef = SDefT
+  SDefT.SDefT =
 <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
   <Strategy>>
 
