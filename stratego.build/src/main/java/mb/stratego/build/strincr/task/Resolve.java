@@ -20,6 +20,7 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -64,6 +65,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
+        final ArrayList<Stratego2LibInfo> importedStr2LibProjects = new ArrayList<>();
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
         final LinkedHashSet<SortSignature> nonExternalSorts = new LinkedHashSet<>();
@@ -96,6 +98,9 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
             lastModified = Long.max(lastModified, index.lastModified);
+            if(index.languageIdentifier != null) {
+                importedStr2LibProjects.add(index.languageIdentifier);
+            }
             nonExternalConstructors.addAll(index.constructors);
             nonExternalConstructors.removeAll(index.overlayData.keySet());
             externalConstructors.addAll(index.externalConstructors);
@@ -147,7 +152,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
-        return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
+        return new GlobalData(allModuleIdentifiers, importedStr2LibProjects, overlayIndex, nonExternalInjections,
             strategyIndex, strategyTypes, nonExternalSorts, nonExternalConstructors, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, overlayData, messages, lastModified);
     }

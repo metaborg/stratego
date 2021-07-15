@@ -1,0 +1,2 @@
+# stratego-lib Language Specification
+

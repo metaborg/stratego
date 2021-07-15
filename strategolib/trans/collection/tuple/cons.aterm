@@ -1,0 +1,515 @@
+Module(
+  "collection/tuple/cons"
+, [ Signature(
+      [ Constructors(
+          [ OpDeclInj(ConstType(SortTuple([])))
+          , OpDeclInj(
+              FunType(
+                [ConstType(SortVar("a"))]
+              , ConstType(SortTuple([SortVar("a")]))
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ConstType(SortVar("a")), ConstType(SortVar("b"))]
+              , ConstType(SortTuple([SortVar("a"), SortVar("b")]))
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ConstType(SortVar("a")), ConstType(SortVar("b")), ConstType(SortVar("c"))]
+              , ConstType(
+                  SortTuple([SortVar("a"), SortVar("b"), SortVar("c")])
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [SortVar("a"), SortVar("b"), SortVar("c"), SortVar("d")]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                , ConstType(SortVar("n"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    , SortVar("n")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                , ConstType(SortVar("n"))
+                , ConstType(SortVar("o"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    , SortVar("n")
+                    , SortVar("o")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                , ConstType(SortVar("n"))
+                , ConstType(SortVar("o"))
+                , ConstType(SortVar("p"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    , SortVar("n")
+                    , SortVar("o")
+                    , SortVar("p")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                , ConstType(SortVar("n"))
+                , ConstType(SortVar("o"))
+                , ConstType(SortVar("p"))
+                , ConstType(SortVar("q"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    , SortVar("n")
+                    , SortVar("o")
+                    , SortVar("p")
+                    , SortVar("q")
+                    ]
+                  )
+                )
+              )
+            )
+          , OpDeclInj(
+              FunType(
+                [ ConstType(SortVar("a"))
+                , ConstType(SortVar("b"))
+                , ConstType(SortVar("c"))
+                , ConstType(SortVar("d"))
+                , ConstType(SortVar("e"))
+                , ConstType(SortVar("f"))
+                , ConstType(SortVar("g"))
+                , ConstType(SortVar("h"))
+                , ConstType(SortVar("i"))
+                , ConstType(SortVar("j"))
+                , ConstType(SortVar("k"))
+                , ConstType(SortVar("l"))
+                , ConstType(SortVar("m"))
+                , ConstType(SortVar("n"))
+                , ConstType(SortVar("o"))
+                , ConstType(SortVar("p"))
+                , ConstType(SortVar("q"))
+                , ConstType(SortVar("r"))
+                ]
+              , ConstType(
+                  SortTuple(
+                    [ SortVar("a")
+                    , SortVar("b")
+                    , SortVar("c")
+                    , SortVar("d")
+                    , SortVar("e")
+                    , SortVar("f")
+                    , SortVar("g")
+                    , SortVar("h")
+                    , SortVar("i")
+                    , SortVar("j")
+                    , SortVar("k")
+                    , SortVar("l")
+                    , SortVar("m")
+                    , SortVar("n")
+                    , SortVar("o")
+                    , SortVar("p")
+                    , SortVar("q")
+                    , SortVar("r")
+                    ]
+                  )
+                )
+              )
+            )
+          ]
+        )
+      ]
+    )
+  , Overlays(
+      [ Overlay(
+          "Pair"
+        , ["x", "y"]
+        , NoAnnoList(Tuple([Var("x"), Var("y")]))
+        )
+      ]
+    )
+  ]
+)

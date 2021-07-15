@@ -15,6 +15,7 @@ context-free syntax
   ]
 
   Str2LibComponent.Maven = [maven [groupId:Id]:[id:Id]:[MavenVersion]]
+  Str2LibComponent.Package = [package [PackageName]]
 
 lexical sorts VersionNumber VersionQualifier MavenVersion
 lexical syntax
@@ -22,6 +23,8 @@ lexical syntax
   MavenVersion = VersionNumber "." VersionNumber "." VersionNumber VersionQualifier
   VersionNumber = [0-9]+
   VersionQualifier = "-" [A-Za-z0-9\-\.]+
+  PackageName = {Id "."}+
+  Id = [A-Za-z\_\$] [A-Za-z0-9\_\$]+
 
 lexical restrictions
 

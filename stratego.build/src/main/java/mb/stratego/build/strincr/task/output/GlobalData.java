@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -23,6 +24,7 @@ import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
     public final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
+    public final ArrayList<Stratego2LibInfo> importedStr2LibProjects;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
     public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         strategyIndex;
@@ -43,7 +45,7 @@ public class GlobalData implements Serializable {
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        ArrayList<Stratego2LibInfo> importedStr2LibProjects, LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
@@ -54,6 +56,7 @@ public class GlobalData implements Serializable {
         LinkedHashSet<StrategySignature> dynamicRules, LinkedHashSet<OverlayData> overlayData,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
+        this.importedStr2LibProjects = importedStr2LibProjects;
         this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
@@ -75,7 +78,7 @@ public class GlobalData implements Serializable {
                 new LinkedHashSet<>(strategyIndex.keySet());
             nonExternalStrategies.removeAll(externalStrategies);
             nonExternalStrategies.addAll(internalStrategies);
-            compileGlobalIndex = new CompileGlobalIndex(nonExternalStrategies, dynamicRules);
+            compileGlobalIndex = new CompileGlobalIndex(importedStr2LibProjects, nonExternalStrategies, dynamicRules);
         }
         return compileGlobalIndex;
     }
@@ -115,11 +118,17 @@ public class GlobalData implements Serializable {
             return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
             return false;
+        if(!importedStr2LibProjects.equals(that.importedStr2LibProjects))
+            return false;
         if(!nonExternalInjections.equals(that.nonExternalInjections))
             return false;
         if(!strategyIndex.equals(that.strategyIndex))
             return false;
         if(!overlayIndex.equals(that.overlayIndex))
+            return false;
+        if(!strategyTypes.equals(that.strategyTypes))
+            return false;
+        if(!nonExternalSorts.equals(that.nonExternalSorts))
             return false;
         if(!nonExternalConstructors.equals(that.nonExternalConstructors))
             return false;
@@ -138,9 +147,12 @@ public class GlobalData implements Serializable {
 
     @Override public int hashCode() {
         int result = allModuleIdentifiers.hashCode();
+        result = 31 * result + importedStr2LibProjects.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();
         result = 31 * result + strategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();
+        result = 31 * result + strategyTypes.hashCode();
+        result = 31 * result + nonExternalSorts.hashCode();
         result = 31 * result + nonExternalConstructors.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + internalStrategies.hashCode();

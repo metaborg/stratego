@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.metaborg.core.language.LanguageIdentifier;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -22,9 +21,9 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 
@@ -67,12 +66,14 @@ public class GenerateStratego {
     }
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
-        LanguageIdentifier languageIdentifier, Collection<? extends IStrategoTerm> sorts,
+        Stratego2LibInfo stratego2LibInfo, Collection<? extends IStrategoTerm> sorts,
         Collection<ConstructorData> constructors,
-        Map<StrategySignature, StrategyType> strategyFrontData) {
+        Map<StrategySignature, StrategyType> strategyFrontData, String packageName) {
         return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
-            tf.makeAppl("Maven", tf.makeString(languageIdentifier.groupId), tf.makeString(languageIdentifier.id),
-                tf.makeString(languageIdentifier.version.toString()))),
+            tf.makeAppl("Package", tf.makeString(packageName)),
+            tf.makeAppl("Maven", tf.makeString(stratego2LibInfo.groupId), tf.makeString(
+                stratego2LibInfo.id),
+                tf.makeString(stratego2LibInfo.version))),
             tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
     }
 

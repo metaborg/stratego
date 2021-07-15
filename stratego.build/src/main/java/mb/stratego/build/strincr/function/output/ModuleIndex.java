@@ -4,10 +4,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+
+import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -21,6 +25,7 @@ import mb.stratego.build.util.WithLastModified;
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
 public class ModuleIndex implements Serializable, WithLastModified {
+    public final @Nullable Stratego2LibInfo languageIdentifier;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sorts;
     public final LinkedHashSet<ConstructorData> constructors;
@@ -35,7 +40,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final ArrayList<Message> messages;
     public final long lastModified;
 
-    public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
+    public ModuleIndex(@Nullable Stratego2LibInfo languageIdentifier, ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashSet<SortSignature> externalSorts,
@@ -46,6 +51,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashSet<StrategySignature> dynamicRules,
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         ArrayList<Message> messages, long lastModified) {
+        this.languageIdentifier = languageIdentifier;
         this.imports = imports;
         this.sorts = sorts;
         this.constructors = constructors;
@@ -70,6 +76,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         ModuleIndex that = (ModuleIndex) o;
 
         if(lastModified != that.lastModified)
+            return false;
+        if(!Objects.equals(languageIdentifier, that.languageIdentifier))
             return false;
         if(!imports.equals(that.imports))
             return false;
@@ -97,7 +105,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public int hashCode() {
-        int result = imports.hashCode();
+        int result = languageIdentifier != null ? languageIdentifier.hashCode() : 0;
+        result = 31 * result + imports.hashCode();
         result = 31 * result + sorts.hashCode();
         result = 31 * result + constructors.hashCode();
         result = 31 * result + injections.hashCode();

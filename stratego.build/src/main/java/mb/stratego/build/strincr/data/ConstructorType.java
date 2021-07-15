@@ -70,13 +70,13 @@ public class ConstructorType extends StrategoAppl {
                 final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
                 final ArrayList<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
                 for(IStrategoTerm from : froms) {
-                    if(!TermUtils.isAppl(from, "ConstType", 1)) {
-                        fromTypes.add(dynT);
-                    } else {
+                    if(TermUtils.isAppl(from, "ConstType", 1)) {
                         fromTypes.add(tryDesugarType(tf, from.getSubterm(0)));
+                    } else {
+                        fromTypes.add(dynT);
                     }
                 }
-                if(!TermUtils.isApplAt(opType, 1, "ConstType", 1)) {
+                if(TermUtils.isApplAt(opType, 1, "ConstType", 1)) {
                     type = new ConstructorType(tf, fromTypes,
                         tryDesugarType(tf, opType.getSubterm(1).getSubterm(0)));
                 } else {

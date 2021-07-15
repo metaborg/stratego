@@ -1,0 +1,16 @@
+---
+id: org.metaborg:strategolib:0.1.0-SNAPSHOT
+name: stratego-lib
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
+pardonedLanguages:
+- EditorService
+language:
+  sdf:
+    enabled: no
+exports:
+- language: StrategoLang
+  directory: src-gen/java/strategolib/trans
+  includes: "strategolib.str2lib"

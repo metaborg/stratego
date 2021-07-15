@@ -13,8 +13,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageVersion;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -31,6 +29,7 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -85,7 +84,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        @Nullable LanguageIdentifier languageIdentifier = null;
+        @Nullable Stratego2LibInfo languageIdentifier = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
         final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
         final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
@@ -134,7 +133,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 usedAmbiguousStrategies, messages, 0L);
         }
 
-        languageIdentifier = getLanguageId(input.moduleIdentifier, ast.wrapped);
+        languageIdentifier = strategoLanguage.extractStr2LibInfo(ast.wrapped);
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
@@ -208,26 +207,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             }
         }
         return expandedImports;
-    }
-
-    private @Nullable LanguageIdentifier getLanguageId(
-        IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast) {
-        if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
-            if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
-                assert moduleIdentifier.moduleString().equals(TermUtils.toJavaStringAt(ast, 0)) :
-                    "Str2Lib file contains different library (" + TermUtils.toJavaStringAt(ast, 0)
-                        + ") than it has as filename (" + moduleIdentifier.moduleString() + ").";
-                final IStrategoList components = TermUtils.toListAt(ast, 1);
-                for(IStrategoTerm component : components) {
-                    if(TermUtils.isAppl(component, "Maven", 3)) {
-                        return new LanguageIdentifier(TermUtils.toJavaStringAt(component, 0),
-                            TermUtils.toJavaStringAt(component, 1),
-                            LanguageVersion.parse(TermUtils.toJavaStringAt(component, 2)));
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     public static IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,
@@ -519,12 +498,22 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
+        extract-inj:
+          OpDeclInj(ConstType(t1)) -> (Sort("Tuple", []), t2)
+          with
+            t2 := <desugar-Type> t1
+
         extract-constr:
           ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) ->
             (("", <length> t1*), ConstrType(t2*, t2))
           with
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
+
+        extract-constr:
+          ExtOpDeclInj(ConstType(t1)) -> (("", 0), ConstrType([], t2))
+          with
+            t2 := <desugar-Type> t1
          */
         if(!TermUtils.isAppl(constrDef)) {
             throw new InvalidASTException(moduleIdentifier, constrDef);
@@ -546,24 +535,18 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
                 final IStrategoTerm from;
                 final ArrayList<IStrategoTerm> froms = constrType.getFrom();
-                switch(froms.size()) {
-                    case 0:
-                        // ignore this weird edge-case generated from strategoGT/syntax/sugar/string-quotations.sdf3
-                        return;
-                    case 1:
-                        from = froms.get(0);
-                        break;
-                    default:
-                        final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
+                if(froms.size() == 1) {
+                    from = froms.get(0);
+                } else {
+                    final IStrategoList tupleTypes = tf.makeList(froms);
+                    from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
 
-                        final ConstructorSignature constrSig =
-                            new ConstructorSignature("", froms.size());
-                        final IStrategoTerm constrTerm =
-                            tf.replaceTerm(constrType.toOpType(tf), constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
-                        break;
+                    final ConstructorSignature constrSig =
+                        new ConstructorSignature("", froms.size());
+                    final IStrategoTerm constrTerm =
+                        tf.replaceTerm(constrType.toOpType(tf), constrDef);
+                    Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }

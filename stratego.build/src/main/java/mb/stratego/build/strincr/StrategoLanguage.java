@@ -43,6 +43,15 @@ public interface StrategoLanguage {
     IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
 
     /**
+     * Pulls the information out of a Str2Lib AST to look up what the package name is and where the corresponding Jar file is located
+     *
+     * @param ast the Str2Lib AST
+     * @return the information object with the package name and jar path, or null if the given AST is not an Str2Lib AST
+     * @throws Exception On IO problems, or inability to find Jar corresponding to the str2lib AST
+     */
+    @Nullable Stratego2LibInfo extractStr2LibInfo(IStrategoTerm ast) throws Exception;
+
+    /**
      * Call to the gradual type system for Stratego, to type-check an AST and insert casts where necessary
      *
      * @param moduleName The module name of the module to type-check

@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -16,8 +17,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 
@@ -38,6 +37,7 @@ import mb.stratego.build.spoofax2.integrationtest.lang.Stratego;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
@@ -107,14 +107,17 @@ public class StrategoIncrementalCompilationTest {
             new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
         final String libraryName = "incrCompTest";
-        final LanguageIdentifier languageIdentifier =
-            new LanguageIdentifier("mb.stratego", libraryName, new LanguageVersion(1));
+        final String packageName = "mb.stratego.build.spoofax2.test";
+        final Stratego2LibInfo stratego2LibInfo =
+            new Stratego2LibInfo(packageName, "mb.stratego", libraryName, "1.0.0",
+                new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
+        final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
         CompileInput compileInput =
-            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-                "mb.stratego.build.spoofax2.test",
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageName,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
-                libraryName, languageIdentifier);
+                libraryName, stratego2LibInfo);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -171,11 +174,12 @@ public class StrategoIncrementalCompilationTest {
 
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoAterm);
 
-        compileInput = new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-            "mb.stratego.build.spoofax2.test",
-            new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
-            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, libraryName,
-            languageIdentifier);
+        compileInput =
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageName,
+                new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
+                libraryName, stratego2LibInfo);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

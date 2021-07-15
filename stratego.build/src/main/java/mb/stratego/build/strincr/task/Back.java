@@ -104,7 +104,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final IStrategoTerm str2Lib = GenerateStratego
                 .packStr2Library(tf, boilerplateInput.libraryName,
                     boilerplateInput.languageIdentifier, str2LibInfo.sorts,
-                    str2LibInfo.constructors, str2LibInfo.strategyFrontData);
+                    str2LibInfo.constructors, str2LibInfo.strategyFrontData, input.packageName);
 
             // Output str2lib file
             final HierarchicalResource str2LibResource = context.getResourceService()

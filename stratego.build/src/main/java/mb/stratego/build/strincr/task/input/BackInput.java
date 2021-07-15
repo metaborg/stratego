@@ -11,7 +11,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -21,6 +20,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -451,13 +451,13 @@ public abstract class BackInput implements Serializable {
         public final boolean dynamicCallsDefined;
         public final boolean library;
         public final String libraryName;
-        public final LanguageIdentifier languageIdentifier;
+        public final Stratego2LibInfo languageIdentifier;
 
         public Boilerplate(ResourcePath outputDir, @Nullable String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, boolean dynamicCallsDefined, boolean library,
             boolean legacyStrategoStdLib, String libraryName,
-            LanguageIdentifier languageIdentifier) {
+            Stratego2LibInfo languageIdentifier) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.dynamicCallsDefined = dynamicCallsDefined;

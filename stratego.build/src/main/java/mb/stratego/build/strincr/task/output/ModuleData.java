@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.metaborg.core.language.LanguageIdentifier;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -30,7 +31,7 @@ import mb.stratego.build.util.WithLastModified;
  */
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
-    public final @Nullable LanguageIdentifier languageIdentifier;
+    public final @Nullable Stratego2LibInfo stratego2LibInfo;
     public final IStrategoTerm ast;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sortData;
@@ -57,7 +58,7 @@ public class ModuleData implements Serializable, WithLastModified {
         ambStrategyIndex = null;
 
     public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        @Nullable LanguageIdentifier languageIdentifier, IStrategoTerm ast,
+        @Nullable Stratego2LibInfo stratego2LibInfo, IStrategoTerm ast,
         ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
@@ -75,7 +76,7 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
-        this.languageIdentifier = languageIdentifier;
+        this.stratego2LibInfo = stratego2LibInfo;
         this.ast = ast;
         this.imports = imports;
         this.sortData = sortData;
@@ -109,6 +110,9 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
+        if(!Objects.equals(stratego2LibInfo, that.stratego2LibInfo)) {
+            return false;
+        }
         if(!ast.equals(that.ast))
             return false;
         if(!imports.equals(that.imports))
@@ -118,6 +122,7 @@ public class ModuleData implements Serializable, WithLastModified {
 
     @Override public int hashCode() {
         int result = moduleIdentifier.hashCode();
+        result = 31 * result + (stratego2LibInfo != null ? stratego2LibInfo.hashCode() : 0);
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + messages.hashCode();
