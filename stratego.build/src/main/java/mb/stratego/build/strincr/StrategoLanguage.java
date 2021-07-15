@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -94,6 +95,17 @@ public interface StrategoLanguage {
      * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
      */
     IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath) throws ExecException;
+
+    /**
+     * Call to the congruence construction code for Stratego, to transform the ASTs of all overlays
+     * to a strategy definitions (using all at once to apply in each others bodies)
+     *
+     * @param asts        the ASTs of the overlays to transform
+     * @param projectPath The path of the project the module resides in (to be removed at some point)
+     * @return The list of ASTs of the strategy definitions for the congruences
+     * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
+     */
+    Collection<? extends IStrategoAppl> toCongruenceAsts(Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException;
 
     /**
      * Call to the aux rule signature construction code for Stratego, to transform an AST with

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -213,6 +214,16 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     @Override public IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath)
         throws ExecException {
         return TermUtils.toAppl(callStrategy(ast, projectPath, "stratego2-mk-cong-def"));
+    }
+
+    @Override public Collection<? extends IStrategoAppl> toCongruenceAsts(
+        Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException {
+        final IStrategoList result = TermUtils.toList(callStrategy(termFactory.makeList(asts), projectPath, "stratego2-mk-cong-defs"));
+        final ArrayList<IStrategoAppl> congruences = new ArrayList<>(result.size());
+        for(IStrategoTerm t : result) {
+            congruences.add(TermUtils.toAppl(t));
+        }
+        return congruences;
     }
 
     @Override public IStrategoTerm auxSignatures(IStrategoTerm ast, String projectPath)

@@ -410,6 +410,7 @@ public abstract class BackInput implements Serializable {
                 compiledStrategies.add(congruenceSig);
                 congruences.add(backTask.strategoLanguage.toCongruenceAst(constructor, projectPath));
             }
+            ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>(globalIndex.overlayData.size());
             for(OverlayData overlayData : globalIndex.overlayData) {
                 final StrategySignature congruenceSig = overlayData.signature.toCongruenceSig();
                 if(globalIndex.nonExternalStrategies.contains(congruenceSig)) {
@@ -425,8 +426,9 @@ public abstract class BackInput implements Serializable {
                     continue;
                 }
                 compiledStrategies.add(congruenceSig);
-                congruences.add(backTask.strategoLanguage.toCongruenceAst(overlayData.astTerm, projectPath));
+                overlayContributions.add(overlayData.astTerm);
             }
+            congruences.addAll(backTask.strategoLanguage.toCongruenceAsts(overlayContributions, projectPath));
             if(usingLegacyStrategoStdLib) {
                 congruences.add(backTask.generateStratego.anno_cong__ast);
                 compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));
