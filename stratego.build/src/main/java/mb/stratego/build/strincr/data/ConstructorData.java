@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 public class ConstructorData implements Serializable {
@@ -25,7 +26,7 @@ public class ConstructorData implements Serializable {
         return false;
     }
 
-    public IStrategoTerm toTerm(ITermFactory tf) {
+    public IStrategoTerm toTerm(IStrategoTermBuilder tf) {
         return tf.makeAppl("OpDecl", tf.makeString(signature.name), type.toOpType(tf));
     }
 

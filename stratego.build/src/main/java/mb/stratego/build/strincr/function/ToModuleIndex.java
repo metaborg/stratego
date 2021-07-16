@@ -1,8 +1,11 @@
 package mb.stratego.build.strincr.function;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import mb.pie.api.SerializableFunction;
+import mb.stratego.build.strincr.data.ConstructorData;
+import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
@@ -13,10 +16,20 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
     }
 
     @Override public ModuleIndex apply(ModuleData moduleData) {
-        return new ModuleIndex(moduleData.imports,
-            new LinkedHashSet<>(moduleData.constrData.keySet()), moduleData.injections,
-            new LinkedHashSet<>(moduleData.externalConstrData.keySet()),
-            new LinkedHashSet<>(moduleData.normalStrategyData.keySet()),
+        final LinkedHashSet<StrategyFrontData> strategies = new LinkedHashSet<>();
+        for(LinkedHashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+            strategies.addAll(strategyFrontData);
+        }
+        final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();
+        for(ArrayList<ConstructorData> data : moduleData.constrData.values()) {
+            for(ConstructorData datum : data) {
+                if(!datum.isOverlay()) {
+                    nonOverlayConstructors.add(datum);
+                }
+            }
+        }
+        return new ModuleIndex(moduleData.stratego2LibInfo, moduleData.imports, moduleData.sortData, nonOverlayConstructors, moduleData.injections,
+            moduleData.externalSortData, new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
             new LinkedHashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
             moduleData.overlayData, moduleData.messages, moduleData.lastModified);

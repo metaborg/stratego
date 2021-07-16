@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -25,13 +26,31 @@ public interface StrategoLanguage {
     IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path) throws Exception;
 
     /**
-     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an AST
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an RTree AST
      *
      * @param inputStream the Stratego code
      * @return an ATerm representation of the AST of the program
      * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
      */
     IStrategoTerm parseRtree(InputStream inputStream) throws Exception;
+
+    /**
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an Str2Lib AST
+     *
+     * @param inputStream the Stratego code
+     * @return an ATerm representation of the AST of the program
+     * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
+     */
+    IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
+
+    /**
+     * Pulls the information out of a Str2Lib AST to look up what the package name is and where the corresponding Jar file is located
+     *
+     * @param ast the Str2Lib AST
+     * @return the information object with the package name and jar path, or null if the given AST is not an Str2Lib AST
+     * @throws Exception On IO problems, or inability to find Jar corresponding to the str2lib AST
+     */
+    @Nullable Stratego2LibInfo extractStr2LibInfo(IStrategoTerm ast) throws Exception;
 
     /**
      * Call to the gradual type system for Stratego, to type-check an AST and insert casts where necessary
@@ -76,6 +95,17 @@ public interface StrategoLanguage {
      * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
      */
     IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath) throws ExecException;
+
+    /**
+     * Call to the congruence construction code for Stratego, to transform the ASTs of all overlays
+     * to a strategy definitions (using all at once to apply in each others bodies)
+     *
+     * @param asts        the ASTs of the overlays to transform
+     * @param projectPath The path of the project the module resides in (to be removed at some point)
+     * @return The list of ASTs of the strategy definitions for the congruences
+     * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
+     */
+    Collection<? extends IStrategoAppl> toCongruenceAsts(Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException;
 
     /**
      * Call to the aux rule signature construction code for Stratego, to transform an AST with

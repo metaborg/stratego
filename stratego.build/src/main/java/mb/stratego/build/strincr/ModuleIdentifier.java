@@ -16,7 +16,7 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
         this.isLibrary = isLibrary;
         this.moduleString = moduleString;
         assert !moduleString.contains(
-            ".") : "moduleStrings should be valid Stratego module names, and not contain file extensions";
+            ".") : "moduleString should be valid Stratego module name, and not contain a file extension";
         this.path = path;
     }
 

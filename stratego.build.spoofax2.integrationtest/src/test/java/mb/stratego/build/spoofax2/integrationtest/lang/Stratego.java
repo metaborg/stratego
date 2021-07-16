@@ -5,9 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,6 +32,7 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
@@ -73,8 +76,21 @@ public class Stratego {
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
                                      Path packageDir, boolean library,
-                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, Arguments args)
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+                                     LanguageIdentifier languageIdentifier)
         throws MetaborgException, IOException {
+        return str2(input, baseName, packageName, packageDir, library, linkedLibraries, autoImportStd, languageIdentifier, new Arguments());
+    }
+
+    public static CompileOutput str2(Path input, String baseName, String packageName,
+                                     Path packageDir, boolean library,
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+                                     LanguageIdentifier languageIdentifier, Arguments newArgs)
+        throws MetaborgException, IOException {
+        final Stratego2LibInfo stratego2LibInfo =
+            new Stratego2LibInfo(packageName, languageIdentifier.groupId, languageIdentifier.id,
+                languageIdentifier.version.toString(),
+                new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
                 .toAbsolutePath();
@@ -109,11 +125,13 @@ public class Stratego {
 
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
+            final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
-                    packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
-                    new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                    new ArrayList<>(0), library, autoImportStd);
+                    javaClassDir, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
+                    new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
+                    new ArrayList<>(0), library, autoImportStd, languageIdentifier.id,
+                    stratego2LibInfo);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

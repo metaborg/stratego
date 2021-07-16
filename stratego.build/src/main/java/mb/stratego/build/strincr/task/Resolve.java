@@ -20,9 +20,14 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.Stratego2LibInfo;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
+import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.ToModuleIndex;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.message.CyclicOverlay;
@@ -60,11 +65,14 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
+        final ArrayList<Stratego2LibInfo> importedStr2LibProjects = new ArrayList<>();
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
-        final LinkedHashSet<ConstructorSignature> nonExternalConstructors = new LinkedHashSet<>();
+        final LinkedHashSet<SortSignature> nonExternalSorts = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorData> nonExternalConstructors = new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             strategyIndex = new LinkedHashMap<>();
+        final LinkedHashMap<StrategySignature, StrategyType> strategyTypes = new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
             overlayIndex = new LinkedHashMap<>();
 
@@ -90,17 +98,20 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
             lastModified = Long.max(lastModified, index.lastModified);
-            nonExternalConstructors.addAll(index.constructors);
-            nonExternalConstructors.removeAll(index.overlayData.keySet());
+            if(index.languageIdentifier != null) {
+                importedStr2LibProjects.add(index.languageIdentifier);
+            }
+            nonExternalConstructors.addAll(index.nonOverlayConstructors);
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
                 .entrySet()) {
                 Relation.getOrInitialize(nonExternalInjections, e.getKey(), ArrayList::new)
                     .addAll(e.getValue());
             }
-            for(StrategySignature signature : index.strategies) {
-                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+            for(StrategyFrontData sfd : index.strategies) {
+                Relation.getOrInitialize(strategyIndex, sfd.signature, LinkedHashSet::new)
                     .add(moduleIdentifier);
+                strategyTypes.put(sfd.signature, sfd.type);
             }
             for(StrategySignature signature : index.internalStrategies) {
                 Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
@@ -140,8 +151,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
-        return new GlobalData(allModuleIdentifiers, overlayIndex, nonExternalInjections,
-            strategyIndex, nonExternalConstructors, externalConstructors, internalStrategies,
+        return new GlobalData(allModuleIdentifiers, importedStr2LibProjects, overlayIndex, nonExternalInjections,
+            strategyIndex, strategyTypes, nonExternalSorts, nonExternalConstructors, externalConstructors, internalStrategies,
             externalStrategies, dynamicRules, overlayData, messages, lastModified);
     }
 

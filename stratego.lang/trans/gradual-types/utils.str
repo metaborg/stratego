@@ -418,6 +418,11 @@ extract-constr:
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
+extract-constr:
+  ExtOpDeclInj(ConstType(t1)) -> (("", 0), ConstrType([], t2))
+  with
+    t2 := <desugar-Type> t1
+
 extract-inj:
   OpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
 
@@ -429,6 +434,11 @@ extract-inj:
   with
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
+
+extract-inj:
+  OpDeclInj(ConstType(t1)) -> (TupleT([]), t2)
+  with
+    t2 := <desugar-Type> t1
 
 strategies
 

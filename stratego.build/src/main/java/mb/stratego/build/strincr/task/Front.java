@@ -29,11 +29,13 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -82,7 +84,10 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
+        @Nullable Stratego2LibInfo languageIdentifier = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
+        final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
+        final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
@@ -120,14 +125,15 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier,
-                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,
-                externalConstrData, injections, externalInjections, strategyData,
-                internalStrategyData, externalStrategyData, dynamicRuleData, overlayData,
-                usedConstructors, usedStrategies, dynamicRules, usedAmbiguousStrategies, messages,
-                0L);
+            return new ModuleData(input.moduleIdentifier, languageIdentifier,
+                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
+                externalSortData, constrData, externalConstrData, injections, externalInjections,
+                strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
+                overlayData, usedConstructors, usedStrategies, dynamicRules,
+                usedAmbiguousStrategies, messages, 0L);
         }
 
+        languageIdentifier = strategoLanguage.extractStr2LibInfo(ast.wrapped);
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
@@ -165,7 +171,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
-        if(input.autoImportStd && !input.moduleIdentifier.isLibrary() && !imports
+        if(input.autoImportStd && input.moduleIdentifier.legacyStratego() && !imports
             .contains(BuiltinLibraryIdentifier.StrategoLib)) {
             imports.add(BuiltinLibraryIdentifier.StrategoLib);
         }
@@ -173,10 +179,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
-            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
-            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
-            dynamicRules, usedAmbiguousStrategies, messages, ast.lastModified);
+        return new ModuleData(input.moduleIdentifier, languageIdentifier, ast.wrapped, imports,
+            sortData, externalSortData, constrData, externalConstrData, injections,
+            externalInjections, strategyData, internalStrategyData, externalStrategyData,
+            dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
+            usedAmbiguousStrategies, messages, ast.lastModified);
     }
 
     public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
@@ -204,6 +211,12 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
     public static IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm ast) {
+        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+            final IStrategoList modules = TermUtils.toListAt(ast, 2);
+            if(modules.size() == 1) {
+                ast = modules.getSubterm(0);
+            }
+        }
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {
@@ -276,7 +289,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         .add(new StrategyFrontData(strategySignature, strategyType, External));
                     break;
                 }
-                // TODO: cases "ExtTypedDef" "ExtTypedDefInl"
                 case "ExtSDef":
                 case "ExtSDefInl":
                     kind = External;
@@ -486,12 +498,22 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
+        extract-inj:
+          OpDeclInj(ConstType(t1)) -> (Sort("Tuple", []), t2)
+          with
+            t2 := <desugar-Type> t1
+
         extract-constr:
           ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) ->
             (("", <length> t1*), ConstrType(t2*, t2))
           with
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
+
+        extract-constr:
+          ExtOpDeclInj(ConstType(t1)) -> (("", 0), ConstrType([], t2))
+          with
+            t2 := <desugar-Type> t1
          */
         if(!TermUtils.isAppl(constrDef)) {
             throw new InvalidASTException(moduleIdentifier, constrDef);
@@ -513,24 +535,18 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
                 final IStrategoTerm from;
                 final ArrayList<IStrategoTerm> froms = constrType.getFrom();
-                switch(froms.size()) {
-                    case 0:
-                        // ignore this weird edge-case generated from strategoGT/syntax/sugar/string-quotations.sdf3
-                        return;
-                    case 1:
-                        from = froms.get(0);
-                        break;
-                    default:
-                        final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
+                if(froms.size() == 1) {
+                    from = froms.get(0);
+                } else {
+                    final IStrategoList tupleTypes = tf.makeList(froms);
+                    from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
 
-                        final ConstructorSignature constrSig =
-                            new ConstructorSignature("", froms.size());
-                        final IStrategoTerm constrTerm =
-                            tf.replaceTerm(constrType.toOpType(tf), constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
-                        break;
+                    final ConstructorSignature constrSig =
+                        new ConstructorSignature("", froms.size());
+                    final IStrategoTerm constrTerm =
+                        tf.replaceTerm(constrType.toOpType(tf), constrDef);
+                    Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }
