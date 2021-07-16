@@ -660,8 +660,9 @@ insertCasts-StMatchTerm-(|e1, st1):
     ; if Id() := c
         then trm3 := trm2; st4 := st3
         else
-          trm3 := <otf(!As(<otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta, trm2))> ta
-        ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, trm3))> ta)> st3
+          taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
+        ; trm3 := <otf(!As(taVar, trm2))> ta
+        ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
       end
     end
 
