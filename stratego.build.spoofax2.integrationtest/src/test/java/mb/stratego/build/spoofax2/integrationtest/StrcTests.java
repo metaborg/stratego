@@ -112,7 +112,6 @@ public class StrcTests {
                                                 ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws URISyntaxException, IOException {
         final Arguments args = new Arguments();
-        args.add("-O", "4");
         return compileAndRun(subdir, glob, disabled, linkedLibraries, args);
     }
 
@@ -194,13 +193,13 @@ public class StrcTests {
         });
     }
 
-    private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
+    static String getErrorMessagesString(CompileOutput str2CompileOutput) {
         return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
             .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
             .collect(Collectors.joining("\n"));
     }
 
-    private Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob)
+    private static Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob)
         throws IOException {
         final PathMatcher matcher =
             dirWithTestFiles.getFileSystem().getPathMatcher("glob:**/" + glob);
@@ -211,7 +210,7 @@ public class StrcTests {
         return Paths.get(this.getClass().getResource("/").toURI());
     }
 
-    private static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
+    static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
         final HashSet<ResourcePath> resultFiles = str2CompileOutput.resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for(ResourcePath resultFile : resultFiles) {
