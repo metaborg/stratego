@@ -1,8 +1,13 @@
 module gradual-types/terms
 imports
   core/terms
+  sugar/terms
   gradual-types/signatures
 
 context-free syntax
 
   Term.TypeAscription = [[Term] :: [Type]]
+
+context-free priorities
+
+  {Term.As Term.App Term.AnnoList} > Term.TypeAscription
