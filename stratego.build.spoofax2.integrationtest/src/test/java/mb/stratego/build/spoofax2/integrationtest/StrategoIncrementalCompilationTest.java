@@ -129,7 +129,7 @@ public class StrategoIncrementalCompilationTest {
             // Ignore
         }
 
-        Path strategoJavaPackageOutputDir = depPath;
+        Path strategoJavaPackageOutputDir = depPath.resolve(packageName.replace('.','/'));
         Assertions.assertTrue(Files.exists(strategoJavaPackageOutputDir));
         Assertions.assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
         final Path interopRegistererJavaFile = strategoJavaPackageOutputDir.resolve("InteropRegisterer.java");
