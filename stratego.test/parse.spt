@@ -240,3 +240,59 @@ test between type ascription, assign and app [[
         Assign(Var("a"), TypeAscription(App(CallNoArgs(SVar("a")), Var("b")), Sort("C", []))))
     ])
   ])
+
+test between annotation congruence and App [[
+  specification
+  
+  strategies
+  
+  a(|) = (a := <a> C(){"hi"})
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Assign(Var("a"), App(CallNoArgs(SVar("a")), AnnoList(Op("C", []), [NoAnnoList(Str("\"hi\""))]))))
+    ])
+  ])
+
+test between annotation congruence and BA [[
+  specification
+  
+  strategies
+  
+  a(|) = <a> C(){"hi"}
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        BA(CallNoArgs(SVar("a")), AnnoList(Op("C", []), [NoAnnoList(Str("\"hi\""))])))
+    ])
+  ])
+
+test between explode congruence and App [[
+  specification
+  
+  strategies
+  
+  a(|) = (a := <a> c#("hi"))
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Assign(Var("a"), App(CallNoArgs(SVar("a")), NoAnnoList(Explode(Var("c"), NoAnnoList(Str("\"hi\"")))))))
+    ])
+  ])
+
+test between explode congruence and BA [[
+  specification
+  
+  strategies
+  
+  a(|) = <a> c#("hi")
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        BA(CallNoArgs(SVar("a")),NoAnnoList(Explode(Var("c"),NoAnnoList(Str("\"hi\""))))))
+    ])
+  ])
