@@ -99,12 +99,13 @@ rules
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; where(
         <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
-      ; strj-preinit-options
+      ; strj-preinit-options(|["org.strategoxt.stratego_lib"])
       ; <set-config> ("-O", O)
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )
-    ; frontend
+    ; frontend-sep-comp
+    ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
     ; strc-optimize
     ; \Specification(d*) -> Module(x_mod, d*)\
 
