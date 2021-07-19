@@ -59,7 +59,7 @@ rules // Debugging
       ; <set-config> ("--fusion", "off")
       ; <set-config> ("--cache-dir", ".")
       ; <set-config> ("-p", "test")
-      ; strj-preinit-options
+      ; strj-preinit-options(|["org.strategoxt.stratego_lib"])
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )

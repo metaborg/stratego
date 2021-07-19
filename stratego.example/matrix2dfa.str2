@@ -1,0 +1,21 @@
+module matrix2dfa
+
+imports
+
+  libstratego-lib
+
+signature
+  sorts Strategy DTree AltV PatT PatV Path PathEl
+  constructors
+    SwitchV            : Path * List(AltV) * DTree -> SwitchV
+    AltV               : PatV * Strategy -> AltV
+    Path               : List(PathEl) -> Path
+    Cur                : PathEl
+    ApplT              : PatT
+
+strategies
+  vswitch(|_, [o1 | _], d) =
+    !SwitchV(Path([]), <map(\ _ -> [] \)>, d)
+
+//  map(s) =
+//    rec x([] + [s | x])

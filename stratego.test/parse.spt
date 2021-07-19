@@ -176,3 +176,67 @@ test SDefT, not SDefP, when no term arguments are given [[
         Build(NoAnnoList(List([]))))
     ])
   ])
+
+test SDefP with a mix of term patterns [[
+  specification
+  
+  strategies
+  
+  a(|_, b, Cons(_, _)) = ![]
+]] parse succeeds
+
+test the with strategy [[
+  specification
+  
+  strategies
+  
+  a(|) = with(![])
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        With(Build(NoAnnoList(List([])))))
+    ])
+  ])
+
+test a with strategy call [[
+  specification
+  
+  strategies
+  
+  a(|) = with(![], ![])
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Call(SVar("with"), [Build(NoAnnoList(List([]))), Build(NoAnnoList(List([])))]))
+    ])
+  ])
+
+test between type ascription and assign [[
+  specification
+  
+  strategies
+  
+  a(|) = (a := b :: C())
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Assign(Var("a"), TypeAscription(Var("b"), Sort("C", []))))
+    ])
+  ])
+
+test between type ascription, assign and app [[
+  specification
+  
+  strategies
+  
+  a(|) = (a := <a> b :: C())
+]] parse to
+  Specification([
+    Strategies([
+      SDefT("a", [], [],
+        Assign(Var("a"), TypeAscription(App(CallNoArgs(SVar("a")), Var("b")), Sort("C", []))))
+    ])
+  ])
