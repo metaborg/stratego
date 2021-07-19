@@ -80,12 +80,11 @@ strategies
     // PATTERN MATCH COMPILATION
     ; olevel4(
 	compile-match
-//	 compile-match-old
 //	; desugar-case
         //; save-as2(!".opt5")
       )
     ; olevel5(
-      topdown(try(multimatch2dfa))
+      topdown(try(multimatch2dfa)) // TODO Remove; this is only a hack to generate the concrete DFA from the Spoofax menu
     )
     // INLINING 
     // inline local definitions introduced by pattern match compilation

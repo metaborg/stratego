@@ -98,7 +98,7 @@ rules
     ; Module(?x_mod, id)
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; where(
-        <set-config> ("-o", <guarantee-extension(|$[opt[O].java])> path) // required output file path
+        <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
       ; strj-preinit-options(|["org.strategoxt.stratego_lib"])
       ; <set-config> ("-O", O)
       ; <dirname> path

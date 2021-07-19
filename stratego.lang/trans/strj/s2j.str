@@ -1609,8 +1609,7 @@ rules
               ; try(java-CastATermListSetAnnotations)
             end => e
 
-  java-ConstructTerm :
-    Path(p) -> <translate-Path> p
+  java-ConstructTerm = ?Path(<translate-Path>)
 
   java-check-aterm-list :
     e -> expr |[ x ]|

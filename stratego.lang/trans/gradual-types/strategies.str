@@ -293,6 +293,8 @@ insertCasts-MatchCase-(|e1, st1):
   ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1
   ; st5 := <term-env(immap-subtract(|new); immap-union(fail|orig))> st4
 
+insertCasts-MatchCase-(|e1, st1) = fail // TODO ScopedGuardedMatchCase
+
 insertCasts-Sarg(|e1):
   (b, st1) -> <insertCasts-Sarg(|e1, st1)> b
 

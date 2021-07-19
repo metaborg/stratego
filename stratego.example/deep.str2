@@ -7,7 +7,7 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  override length =
+  length =
     match sequential
       case | Nil(): !0
       case | Cons(_, Nil()): !1
