@@ -10,4 +10,4 @@ context-free syntax
 
 context-free priorities
 
-  {Term.As Term.App Term.AnnoList} > Term.TypeAscription
+  Term.As > Term.TypeAscription > Term.App
