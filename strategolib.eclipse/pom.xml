@@ -1,19 +1,46 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>strategolib</artifactId>
-  <packaging>spoofax-language</packaging>
+  <artifactId>strategolib.eclipse</artifactId>
+  <packaging>eclipse-plugin</packaging>
 
   <parent>
     <groupId>org.metaborg</groupId>
-    <artifactId>parent.language</artifactId>
+    <artifactId>parent.eclipse.language</artifactId>
     <version>2.6.0-SNAPSHOT</version>
+    <relativePath />
   </parent>
-  
+
+  <properties>
+    <lang.unpack.artifactId>strategolib</lang.unpack.artifactId>
+    <lang.baseline.unpack.skip>true</lang.baseline.unpack.skip>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>strategolib</artifactId>
+      <version>${project.version}</version>
+      <type>spoofax-language</type>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.metaborg</groupId>
+        <artifactId>spoofax-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>
@@ -35,8 +62,19 @@
         <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>spoofax-eclipse-repo</id>
+      <url>https://buildfarm.metaborg.org/job/metaborg/job/spoofax-releng/job/master/lastSuccessfulBuild/artifact/dist/spoofax/eclipse/site/</url>
+      <layout>p2</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
-  
+
   <pluginRepositories>
     <pluginRepository>
       <id>metaborg-release-repo</id>
