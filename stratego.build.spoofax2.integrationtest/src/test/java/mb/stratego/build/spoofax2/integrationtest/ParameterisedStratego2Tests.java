@@ -13,6 +13,8 @@ import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.*;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.util.cmd.Arguments;
 
 import java.io.File;
@@ -103,10 +105,13 @@ public class ParameterisedStratego2Tests {
         final String baseName = FilenameUtils.removeExtension(fileName);
         final Path testGenDir = filepath.resolveSibling(baseName + "/test-gen");
         final Path packageDir = testGenDir.resolve(packageDirName);
+        final LanguageIdentifier languageIdentifier =
+                new LanguageIdentifier("mb.stratego", "compnrun_" + baseName,
+                        new LanguageVersion(1));
         return DynamicTest.dynamicTest(String.format("Compile & run %s (%s)", baseName, args), () -> {
             FileUtils.deleteDirectory(testGenDir.toFile());
             Files.createDirectories(packageDir);
-            final CompileOutput str2CompileOutput = Stratego.str2(filepath, baseName, packageName, packageDir, false, new ArrayList<>(linkedLibraries), false, args);
+            final CompileOutput str2CompileOutput = Stratego.str2(filepath, baseName, packageName, packageDir, false, new ArrayList<>(linkedLibraries), false, languageIdentifier, args);
             Assumptions.assumeTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                             + getErrorMessagesString(str2CompileOutput));

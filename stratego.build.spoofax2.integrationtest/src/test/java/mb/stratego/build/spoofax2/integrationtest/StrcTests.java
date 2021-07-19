@@ -135,8 +135,8 @@ public class StrcTests {
                     new LanguageIdentifier("mb.stratego", "compnrun_" + baseName,
                         new LanguageVersion(1));
                 final CompileOutput str2CompileOutput = Stratego
-                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false, args
-                        languageIdentifier);
+                    .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false,
+                        languageIdentifier, args);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));
