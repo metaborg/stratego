@@ -6,3 +6,8 @@ dependencies:
   - org.metaborg:stratego.lang:${metaborgVersion}
 build:
   useBuildSystemSpec: true
+language:
+  stratego:
+    args:
+    - -la
+    - stratego-lib
