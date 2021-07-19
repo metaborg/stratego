@@ -1,6 +1,6 @@
 module sugar/string-quotations
 
-imports sugar/terms
+imports core/terms
 
 context-free sorts
   StringQuotation

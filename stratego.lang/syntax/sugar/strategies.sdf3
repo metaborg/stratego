@@ -112,9 +112,14 @@ context-free priorities
    Strategy.GuardedLChoice
   }
 
+// Strategy.AnnoCong and Strategy.ExplodeCong are same syntax as Term.AnnoList and Term.Explode
+//   respectively. So we need to disambiguate that we prefer the Term version to be on the
+//   right-hand side of Strategy productions that have a Term as the right-most part of their rule,
+//   and this is expressed by that we don't want such a production inside AnnoCong or ExplodeCong as
+//   the left-hand child.
 context-free priorities
   Strategy.AnnoCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign },
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM },
 
   Strategy.ExplodeCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign }
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM }

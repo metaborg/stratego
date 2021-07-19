@@ -17,12 +17,13 @@ context-free syntax
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
   SortT.SortVar    = SortVar
+
 context-free priorities
   Type.TupleT <0> .> Type.TupleT,
   {Type "*"}+ = Type <0> .> Type.TupleT,
   {Type "*"}+ = {Type "*"}+ "*" Type <2> .> Type.TupleT
 
-context-free sorts SType SFunType
+context-free sorts SType SFunType SSimpleFunType FunTType
 context-free syntax
   SType.SDyn             = [?]
   SType                  = SFunType
