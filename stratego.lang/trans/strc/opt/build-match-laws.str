@@ -20,6 +20,7 @@ rules // combinations of match and build
 
 	// + MatchBuildIdem + BuildBuild
     + BuildAlwaysSucceeds
+    + BuildCur
 
 
   MisMatch :
@@ -138,3 +139,8 @@ rules
     where <topdown(?Var(_) < ?Var(_){"bound"} 
                    + ?Op("Cons", _) < fail 
                    + id)> t
+
+  BuildCur =
+    ?Seq(Build(Path(Cur())), <id>)
+  BuildCur =
+    ?Seq(<id>, Build(Path(Cur())))
