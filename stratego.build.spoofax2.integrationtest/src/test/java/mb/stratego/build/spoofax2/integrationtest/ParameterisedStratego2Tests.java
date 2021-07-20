@@ -70,6 +70,32 @@ public class ParameterisedStratego2Tests {
                                 BuiltinLibraryIdentifier.StrategoSdf), args))));
     }
 
+    @TestFactory
+    private Stream<DynamicNode> failingTests() throws URISyntaxException {
+        // test113 tests that tabs are considered 4 spaces wide by string quotations.
+        //   This is currently not easy to support with post-processing, and we don't want to add
+        //   a hack specific to the Stratego grammar in there. The post-processing method therefore
+        //   works best when using spaces as indentation in Stratego files.
+        Path test1 = getResourcePathRoot().resolve("test1");
+        Path test2 = getResourcePathRoot().resolve("test2");
+
+        List<String> test1Names = Arrays.asList("test33", "test34", "test53", "test112");
+        List<String> test2Names = Arrays.asList("occan");
+//        List<String> test1Names = Collections.EMPTY_LIST;
+//        List<String> test2Names = Collections.EMPTY_LIST;
+
+        return Stream
+                .concat(
+                        test1Names.stream().map(s -> test1.resolve(s + ".str2")),
+                        test2Names.stream().map(s -> test2.resolve(s + ".str2"))
+                ).map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(),
+                        argParams
+                            .stream()
+                            .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoLib, BuiltinLibraryIdentifier.StrategoSdf), args)))
+                );
+    }
+
+    @TestFactory
     private Stream<DynamicNode> test2() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add

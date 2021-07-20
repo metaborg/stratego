@@ -109,6 +109,8 @@ strategies
   tswitch:
     (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, Default(s_def))
   with
+    <constructors-om; not(fetch(?Anno()))> col
+  with
     arm*    := <tswitch-arms> col
   ; s_def   := <default; CC> m
   ; talt*   := <map(talt(|m, p, s_def))> arm*

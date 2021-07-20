@@ -7,6 +7,7 @@ imports
 
   signatures/core/strategies-sig
   signatures/sugar/strategies-sig
+  signatures/core/terms-sig
   signatures/sugar/terms-sig
 
 strategies
@@ -14,7 +15,7 @@ strategies
     Matrix(p*@[p | _], row*) ->
     Matrix(p*, row'*)
   with
-    <map(try(alias-to-guard(|p)))> row* => row'*
+    <map(repeat(alias-to-guard(|p)))> row* => row'*
 
   alias-to-guard(|p):
     Row([As(t1, t2) | t*], s1, s2, s3) ->

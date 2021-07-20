@@ -11,6 +11,12 @@ signature
 
 strategies
 
+s' =
+  match sequential
+    case a1     | a1@(): !1
+    case a2, a3 | a2@a3: !2
+  end
+
 s(|x) = match sequential
           case   | C1(x, _): !1 // x == bound
           case y | C1(y@_, _): !y // y == unbound; case matches C1(_, _)
