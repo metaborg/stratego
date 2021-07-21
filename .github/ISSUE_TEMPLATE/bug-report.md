@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Bug Report for any project in this repository
+about: File a bug report for any project in this repository
 title: ''
 labels: State-Triage, Type-Bug
 assignees: Apanatshka
