@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Spoofax Documentation
+    url: https://www.spoofax.dev/spoofax-docs/
+    about: Documentation about Spoofax and all included Meta-Languages.
+  - name: Spoofax Support Page
+    url: https://www.spoofax.dev/spoofax-docs/support
+    about: Information on Spoofax Support, and how to get in touch.
