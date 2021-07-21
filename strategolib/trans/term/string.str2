@@ -335,6 +335,8 @@ strategies
     + Escape-backslash
     + Escape-linefeed
     + Escape-carriage-return
+//    + Escape-backspace // waiting for Stratego 2 bootstrap
+//    + Escape-form-feed
 
   /** @internal */
   Escape-double-quote    : ['"'  | cs ] -> ['\', '"'  | cs ]
@@ -351,6 +353,12 @@ strategies
   /** @internal */
   Escape-carriage-return : ['\r' | cs ] -> ['\', 'r'  | cs ]
 
+//  /** @internal */
+//  Escape-backspace       : ['\b' | cs ] -> ['\', 'b'  | cs ]
+//
+//  /** @internal */
+//  Escape-form-feed       : ['\f' | cs ] -> ['\', 'f'  | cs ]
+
   /**
    * @type List(Char) -> List(Char)
    */
@@ -360,6 +368,9 @@ strategies
     + UnEscape-linefeed
     + UnEscape-tab
     + UnEscape-carriage-return
+    + UnEscape-single-quote
+//    + UnEscape-backspace // waiting for Stratego 2 bootstrap
+//    + Unescape-form-feed
 
   /** @internal */
   UnEscape-double-quote    : ['\', '"'  | cs ] -> ['"'  | cs ]
@@ -378,6 +389,12 @@ strategies
 
   /** @internal */
   UnEscape-tab             : ['\', 't'  | cs ] -> ['\t' | cs ]
+
+//  /** @internal */
+//  UnEscape-backspace       : ['\', 'b'  | cs ] -> ['\b' | cs ]
+//
+//  /** @internal */
+//  UnEscape-form-feed       : ['\', 'f'  | cs ] -> ['\f' | cs ]
 
   /** @internal */
   UnEscape(|c) :

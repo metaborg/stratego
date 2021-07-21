@@ -646,6 +646,13 @@ rules
     "'\\r'" -> 13
   DesugarChar : // space
     "'\\ '" -> 32
+// waiting for Stratego 2 bootstrap
+//  DesugarChar : // quotation mark / double quote mark
+//    "'\\\"'" -> 34
+//  DesugarChar : // backspace
+//    "'\\b'" -> 8
+//  DesugarChar : // form feed
+//    "'\\f'" -> 12
 
 // note: this should not be done in frontend if already done by pack-stratego
   DesugarOnce : 

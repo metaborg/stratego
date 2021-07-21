@@ -8,6 +8,6 @@ imports
 lexical sorts Char CharChar
 lexical syntax
   Char     = "'" CharChar "'"
-  CharChar = ~[\']
-  CharChar = [\\] [\'ntr\ ]
+  CharChar = ~[\'\\\n]
+  CharChar = [\\] [tnrbf\"\'\\]
   Id       = Char {reject}

@@ -8,5 +8,5 @@ lexical syntax
 
   String  = "\"" StrChar* "\""
 
-  StrChar = ~[\"\\]
-  StrChar = [\\] [\"tnr\\]
+  StrChar = ~[\"\\\n]
+  StrChar = [\\] [tnrbf\"\'\\]
