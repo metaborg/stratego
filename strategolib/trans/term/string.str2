@@ -335,29 +335,29 @@ strategies
     + Escape-backslash
     + Escape-linefeed
     + Escape-carriage-return
-//    + Escape-backspace // waiting for Stratego 2 bootstrap
-//    + Escape-form-feed
+    + Escape-backspace
+    + Escape-form-feed
 
   /** @internal */
-  Escape-double-quote    : ['"'  | cs ] -> ['\', '"'  | cs ]
+  Escape-double-quote    : ['\"'  | cs ] -> ['\\', '\"'  | cs ]
 
   /** @internal */
-  Escape-single-quote    : ['\'' | cs ] -> ['\', '\'' | cs ]
+  Escape-single-quote    : ['\'' | cs ] -> ['\\', '\'' | cs ]
 
   /** @internal */
-  Escape-backslash       : ['\'  | cs ] -> ['\', '\'  | cs ]
+  Escape-backslash       : ['\\'  | cs ] -> ['\\', '\\'  | cs ]
 
   /** @internal */
-  Escape-linefeed        : ['\n' | cs ] -> ['\', 'n'  | cs ]
+  Escape-linefeed        : ['\n' | cs ] -> ['\\', 'n'  | cs ]
 
   /** @internal */
-  Escape-carriage-return : ['\r' | cs ] -> ['\', 'r'  | cs ]
+  Escape-carriage-return : ['\r' | cs ] -> ['\\', 'r'  | cs ]
 
-//  /** @internal */
-//  Escape-backspace       : ['\b' | cs ] -> ['\', 'b'  | cs ]
-//
-//  /** @internal */
-//  Escape-form-feed       : ['\f' | cs ] -> ['\', 'f'  | cs ]
+  /** @internal */
+  Escape-backspace       : ['\b' | cs ] -> ['\\', 'b'  | cs ]
+
+  /** @internal */
+  Escape-form-feed       : ['\f' | cs ] -> ['\\', 'f'  | cs ]
 
   /**
    * @type List(Char) -> List(Char)
@@ -369,36 +369,36 @@ strategies
     + UnEscape-tab
     + UnEscape-carriage-return
     + UnEscape-single-quote
-//    + UnEscape-backspace // waiting for Stratego 2 bootstrap
-//    + Unescape-form-feed
+    + UnEscape-backspace
+    + UnEscape-form-feed
 
   /** @internal */
-  UnEscape-double-quote    : ['\', '"'  | cs ] -> ['"'  | cs ]
+  UnEscape-double-quote    : ['\\', '\"'  | cs ] -> ['\"'  | cs ]
 
   /** @internal */
-  UnEscape-single-quote    : ['\', '\'' | cs ] -> ['\'' | cs ]
+  UnEscape-single-quote    : ['\\', '\'' | cs ] -> ['\'' | cs ]
 
   /** @internal */
-  UnEscape-backslash       : ['\', '\'  | cs ] -> ['\'  | cs ]
+  UnEscape-backslash       : ['\\', '\\'  | cs ] -> ['\\'  | cs ]
 
   /** @internal */
-  UnEscape-carriage-return : ['\', 'r'  | cs ] -> ['\r' | cs ]
+  UnEscape-carriage-return : ['\\', 'r'  | cs ] -> ['\r' | cs ]
 
   /** @internal */
-  UnEscape-linefeed        : ['\', 'n'  | cs ] -> ['\n' | cs ]
+  UnEscape-linefeed        : ['\\', 'n'  | cs ] -> ['\n' | cs ]
 
   /** @internal */
-  UnEscape-tab             : ['\', 't'  | cs ] -> ['\t' | cs ]
+  UnEscape-tab             : ['\\', 't'  | cs ] -> ['\t' | cs ]
 
-//  /** @internal */
-//  UnEscape-backspace       : ['\', 'b'  | cs ] -> ['\b' | cs ]
-//
-//  /** @internal */
-//  UnEscape-form-feed       : ['\', 'f'  | cs ] -> ['\f' | cs ]
+  /** @internal */
+  UnEscape-backspace       : ['\\', 'b'  | cs ] -> ['\b' | cs ]
+
+  /** @internal */
+  UnEscape-form-feed       : ['\\', 'f'  | cs ] -> ['\f' | cs ]
 
   /** @internal */
   UnEscape(|c) :
-    ['\', c | cs ] -> [c  | cs ]
+    ['\\', c | cs ] -> [c  | cs ]
 
 strategies
 
@@ -431,16 +431,16 @@ rules
   Cify(x) : ['_'  | cs] -> ['_', '_'      | <x>cs]
 
   /** @internal */
-  Cify(x) : ['"'  | cs] -> ['_', 'q', '_' | <x>cs]
+  Cify(x) : ['\"'  | cs] -> ['_', 'q', '_' | <x>cs]
 
   /** @internal */
-  Cify(x) : ['\'  | cs] -> ['_', 'b', '_' | <x>cs]
+  Cify(x) : ['\\'  | cs] -> ['_', 'b', '_' | <x>cs]
 
   /** @internal */
-  UnCify1(x) : ['_', 'b', '_' | cs] -> ['\'  | <x>cs]
+  UnCify1(x) : ['_', 'b', '_' | cs] -> ['\\'  | <x>cs]
 
   /** @internal */
-  UnCify1(x) : ['_', 'q', '_' | cs] -> ['"'  | <x>cs]
+  UnCify1(x) : ['_', 'q', '_' | cs] -> ['\"'  | <x>cs]
 
   /** @internal */
   UnCify1(x) : ['_', 'p', '_' | cs] -> ['\'' | <x>cs]
@@ -488,7 +488,7 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
-  double-quote-chars = <quote-chars> ('"' , <id>)
+  double-quote-chars = <quote-chars> ('\"' , <id>)
 
   /**
    * @inc single-quote-test
@@ -571,7 +571,7 @@ strategies
    *
    * @type  List(Char) -> List(Char)
    */
-  un-double-quote-chars = unquote-chars(?'"' )
+  un-double-quote-chars = unquote-chars(?'\"' )
 
   /**
    * Removes single quotes from the start and end of a string
@@ -604,7 +604,7 @@ strategies
   * @type   String -> String
   */
   is-double-quoted =
-    is-quoted(|'"')
+    is-quoted(|'\"')
 
   /**
    * Predicate that checks a string is quoted with single quotes.
@@ -621,7 +621,7 @@ strategies
    * @type List(Char) -> List(Char)
    */
   is-double-quoted-chars =
-    is-quoted-chars(|'"')
+    is-quoted-chars(|'\"')
 
   /**
    * Predicate that checks if a character list is single quoted. That is,

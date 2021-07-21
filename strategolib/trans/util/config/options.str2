@@ -255,10 +255,10 @@ strategies
       )
     + ArgOption("--verbose"
       , where(verbose-to-int; set-verbosity)
-      , !"--verbose i      Verbosity level i (default 1)
-                    ( i as a number or as a verbosity descriptor:
-                      emergency, alert, critical, error,
-                      warning, notice, info, debug, vomit )"
+      , !$[--verbose i      Verbosity level i (default 1)
+                               ( i as a number or as a verbosity descriptor:
+                                 emergency, alert, critical, error,
+                                 warning, notice, info, debug, vomit )]
       )
 
 strategies

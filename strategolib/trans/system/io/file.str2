@@ -158,7 +158,7 @@ strategies
   dirname =
     string-as-chars(
       /* (0) Convert backslashes to forward slashes */
-      all(try(\'\' -> '/'\))
+      all(try(\'\\' -> '/'\))
     ; /* (1) Strip trailing slashes */
       try(split-init-last; ?(<id>, '/'))
     ; /* (2) If string consists entirely of slash characters, string shall be
@@ -195,7 +195,7 @@ strategies
    * @inc   is-abs-path
    */
   is-abspath =
-    where(explode-string; ([?'/' + ?'\' | id] + [is-alpha, ?':', ?'/' + ?'\' | id]))
+    where(explode-string; ([?'/' + ?'\\' | id] + [is-alpha, ?':', ?'/' + ?'\\' | id]))
 
   /**
    * Succeeds if the input pathname is a relative path.
@@ -215,7 +215,7 @@ strategies
    * @inc   base-filename-test
    */
   base-filename =
-      <string-tokenize> (['/','\'], <id>)
+      <string-tokenize> (['/','\\'], <id>)
     ; last
 
 /**
@@ -306,12 +306,12 @@ strategies
          * The n-th . part should not contain / \ :
          * in that case it is not a real extension
          */
-        <not(fetch(?'/' + ?'\'))> ext
+        <not(fetch(?'/' + ?'\\'))> ext
 
         /**
          * The (n-1)th part should not end with a / or \
          * in that case, part n is not a real extension.
          */
-      ; <last; not(?'/' + '\')> base
+      ; <last; not(?'/' + '\\')> base
       )
     ; <implode-string> ext
