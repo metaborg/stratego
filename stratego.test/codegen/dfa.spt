@@ -83,14 +83,14 @@ comp_0_0( | ) =
     alt TUPLE:
       switch current.size {
         alt (2):
-          switch current.1.type {
+          switch current.0.type {
             alt LIST:
-              switch current.1 {
+              switch current.0 {
                 alt (Nil, 0):
                   !1{^Nil( )}
-                default: switch current.2.type {
+                default: switch current.1.type {
                            alt LIST:
-                             switch current.2 {
+                             switch current.1 {
                                alt (Nil, 0):
                                  !2{^Nil( )}
                                default: fail
@@ -98,9 +98,9 @@ comp_0_0( | ) =
                            default: fail
                          }
               }
-            default: switch current.2.type {
+            default: switch current.1.type {
                        alt LIST:
-                         switch current.2 {
+                         switch current.1 {
                            alt (Nil, 0):
                              !2{^Nil( )}
                            default: fail
@@ -181,7 +181,7 @@ uncar2_0_0( | ) =
   }
 ]]
 
-test Aliases [[
+test Exploded terms: nullary cons [[
 specification
 
 signature
@@ -189,16 +189,12 @@ constructors
 
 Nil : List(a)
 Cons : a * List(a) -> List(a)
-C1 : Term( ) * Term( ) -> Term( )
-C2 : Term( )
 
 strategies
 
-s_0_1( | x4 : ATerm( )) =
+s_0_0( | ) =
   match sequential
-    case | C1(x4@_, _){^_}: !1{^Nil( )}
-    case y10 | C1(y10@_, _){^_}: !y10
-    case z7 | z7@C2( ){^_}: !3{^Nil( )}
+    case | "Foo"{^_}#([]{^_}){^_}: id
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
@@ -208,33 +204,156 @@ constructors
 
 Nil : List(a)
 Cons : a * List(a) -> List(a)
-C1 : Term( ) * Term( ) -> Term( )
-C2 : Term( )
 
 strategies
 
-s_0_1( | x4 : ATerm( )) =
-  {y10, z7: switch current.type {
-              alt APPL:
-                switch current.con {
-                  alt (C1, 2)
-                    where !current.1; ?x4:
-                      !1{^Nil( )}
-                    where !current.1; ?y10:
-                      !y10
-                  alt (C2, 0)
-                    where !current; ?z7:
-                      !3{^Nil( )}
-                  default:
-                    fail
-                }
-              default:
-                fail
-            } }
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Foo, 0):
+          id
+        default:
+          fail
+      }
+    default:
+      fail
+  }
 ]]
 
-test Term explosion [[
+test Exploded terms: unary cons [[
+specification
 
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | "Bar"{^_}#([1{^_} | []{^_}]{^_}){^_}: id
+  end
 ]] transform "Test -> MultiMatch to DFA" to [[
+specification
 
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Bar, 1):
+          switch current.0.type {
+            alt INT:
+              switch current.0.int {
+                alt 1:
+                  id
+                default:
+                  fail
+              }
+            default:
+              fail
+          }
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+]]
+
+test Exploded terms: string [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | "\"Foo\""{^_}#([]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt STRING:
+      switch current.str {
+        alt "Foo":
+          id
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+]]
+
+test Exploded terms: ambiguous var [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | foo#([]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Foo, 0):
+          id
+        default:
+          fail
+      }
+    alt STRING:
+      switch current.str {
+        alt "Foo":
+          id
+        default:
+          fail
+      }
+    default:
+      fail
+  }
 ]]

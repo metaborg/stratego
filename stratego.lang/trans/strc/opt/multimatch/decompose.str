@@ -11,6 +11,10 @@ imports
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
+overlays
+  ExplodeNoAnno(t, anno_cons) = Explode(NoAnno(t), anno_cons)
+  NoAnno(t) = Anno(t, Wld())
+
 strategies
   /*
    * Determine default case for matrix.
@@ -74,9 +78,12 @@ strategies
 
   // Tuples + lists + constructor applications
   arity = ?Op(_, <length>)
-//  arity = ?Explode("", <length>) // Tuple
-//  arity = where(?Explode(<is-string>, _)); ?Explode(_, <length>) // Op
-//  arity = where(?Explode(<is-list>, _)); !2 // List
+  arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> 0
+  arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) -> 2
+
+  arity =
+    ?ExplodeNoAnno(f, <implode-anno-list; length>)
+  ; where(not(!f => Op(_, _)))
 
   p-arity = ?Fun(_, <string-to-int>)
   p-arity = ?Tuple(<string-to-int>)
@@ -116,6 +123,75 @@ strategies
   specialize-occ(|Fun(_, x)) =
     specialize-occ-by-arity(|<string-to-int> x)
 
+  /* Exploded terms */
+  // Tuple
+  constructor-om: c@ExplodeNoAnno(Str(""), _) -> Tuple(<arity; int-to-string> c)
+  cons-type:      ExplodeNoAnno(Str(""), _) -> TupleT()
+  specialize-pats(|Tuple(x)):
+    [c@ExplodeNoAnno(Str(""), qs*) | ps*]  -> [qs'*, ps*]
+  with
+    a := <string-to-int> x
+  ; qs'* := <implode-anno-list> qs*
+  where
+    <eq> (a, <length> qs'*)
+
+  // List
+  // Exploded pattern with `[]` constructor and 0 or more arguments
+  constructor-om: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> Fun("Nil", "0")
+  constructor-om: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) -> Fun("Cons", "2")
+  cons-type:    c@ExplodeNoAnno(Op("Nil", []), _) -> LisT()
+  specialize-pats(|Fun(f, a)):
+    [c@ExplodeNoAnno(Op("Nil", []), NoAnno(Op(f, qs*))) | ps*] -> [qs*, ps*]
+  where
+    <arity; int-to-string> c => a
+
+  // String
+  constructor-om:
+    c@ExplodeNoAnno(Str(f), _) -> Str(f') // String
+  where
+    <debug(|"string ")> c
+  where
+    <arity; debug(|"str arity: ")> c => 0
+  ; f' := <debug(|"  escaped: "); unescape; debug(|"unescaped: ")> f
+  ; <not(equal)> (f, f')
+  cons-type:
+    c@ExplodeNoAnno(Str(f), _) -> StringT() // String
+  where
+    <arity> c => 0
+  ; f' := <unescape> f
+  ; <not(equal)> (f, f')
+
+  specialize-pats(|l): [<?ExplodeNoAnno(l, _)> | ps*] -> ps*
+    where <is-literal> l
+
+  // Int
+  constructor-om: c@ExplodeNoAnno(Int(x), _) -> Int(x)
+  where <arity> c => 0
+  cons-type:      c@ExplodeNoAnno(Int(x), _) -> IntT()
+  where <arity> c => 0
+
+  // Real
+  constructor-om: c@ExplodeNoAnno(Real(x), _) -> Real(x)
+  where <arity> c => 0
+  cons-type:      c@ExplodeNoAnno(Real(x), _) -> RealT()
+  where <arity> c => 0
+
+  // Application
+  constructor-om: c@ExplodeNoAnno(Str(f), _) -> Fun(f, <arity; int-to-string> c)
+  where <debug(|"fun   escaped: "); unescape; debug(|"fun unescaped: ")> f
+  cons-type:      ExplodeNoAnno(Str(_), _) -> ApplT()
+  specialize-pats(|Fun(f, x)): [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] -> [qs*, ps*]
+    with
+      a := <string-to-int> x
+    ; qs* := <implode-anno-list> anno_cons
+    where
+      <eq> (a, <length> qs*)
+
+  // TODO Constructor var (multiple types)
+  cons-type:      ExplodeNoAnno(Var(x), _) -> [ApplT(), TupleT(), StringT(), IntT(), RealT()]
+
+  /* Exploded terms (end) */
+
   // Literals
   is-literal = ?Str(_) + ?Int(_) + ?Real(_)
   constructor-om = is-literal
@@ -133,10 +209,15 @@ strategies
   // Variables
   is-var = ?Var(_)
   is-wld = ?Wld()
-  is-wld-core = ?Anno(<is-wld>, <is-wld>)
+  is-wld-core = ?NoAnno(<is-wld>)
 
   constructor-om = is-wld; fail // by definition
   specialize-pats(|<is-wld>) = fail // by definition
 
   // Helpers
-  prepend(|t, n) = repeat(![t | <id>] | n)
+  internal prepend(|t, n) = repeat(![t | <id>] | n)
+  internal exploded-list-length = implode-anno-list; length
+  internal ensure-list = is-list <+ MkSingleton
+
+  internal implode-anno-list: NoAnno(Op("Cons", [e, tail])) -> [e | <implode-anno-list> tail]
+  internal implode-anno-list: NoAnno(Op("Nil", [])) -> []

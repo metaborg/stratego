@@ -13,5 +13,6 @@ strategies
   Var-to-AsWld =
     // TODO Possibly need to handle (t1, t2)@(t3, t4) and more complex as-patterns.
     As(id, Var-to-AsWld)
+ <+ Explode(id, Var-to-AsWld)
  <+ \ Var(x) -> As(Var(x), Wld()) \
  <+ all(try(Var-to-AsWld))
