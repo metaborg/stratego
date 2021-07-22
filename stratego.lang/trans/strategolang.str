@@ -136,10 +136,10 @@ strategies
   debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
   debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
   debug-show-core-optimized-O4-analysed = debug-show-core-optimized(mark-bound-unbound-vars|4)
-  debug-show-core-optimized-O4-backend-simplify = debug-show-core-optimized(s2j-init-options; backend-simplify|4)
+  debug-show-core-optimized-O4-backend-simplify = debug-show-core-optimized(strj-preinit-options(|["org.strategoxt.stratego_lib"]); backend-simplify|4)
+  debug-show-core-optimized-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-core-optimized(translate-MMs|4)
+  debug-show-core-optimized-O4-opt-DFA = debug-show-core-optimized(translate-MMs|4)
   debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
-  debug-show-core-optimized-analysed-O5 = debug-show-core-optimized(mark-bound-unbound-vars|5)
-  debug-show-core-optimized-O5-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-core-optimized(|5)
   debug-show-core-optimized-O6 = debug-show-core-optimized(|6)
 
   debug-show-ctree-optimized-O1 = debug-show-ctree-optimized(|1)
@@ -147,9 +147,10 @@ strategies
   debug-show-ctree-optimized-O3 = debug-show-ctree-optimized(|3)
   debug-show-ctree-optimized-O4 = debug-show-ctree-optimized(|4)
   debug-show-ctree-optimized-O4-analysed = debug-show-ctree-optimized(mark-bound-unbound-vars|4)
-  debug-show-ctree-optimized-O4-backend-simplify = debug-show-ctree-optimized(s2j-init-options; backend-simplify|4)
+  debug-show-ctree-optimized-O4-backend-simplify = debug-show-ctree-optimized(strj-preinit-options(|["org.strategoxt.stratego_lib"]); backend-simplify|4)
+  debug-show-ctree-optimized-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-ctree-optimized(translate-MMs|4)
+  debug-show-ctree-optimized-O4-opt-DFA = debug-show-ctree-optimized(translate-MMs|4)
   debug-show-ctree-optimized-O5 = debug-show-ctree-optimized(|5)
-  debug-show-ctree-optimized-O5-analysed = debug-show-ctree-optimized(mark-bound-unbound-vars|5)
   debug-show-ctree-optimized-O6 = debug-show-ctree-optimized(|6)
 
   debug-show-ctree-optimized(|O) = debug-show-ctree-optimized(id|O)
@@ -165,6 +166,9 @@ strategies
     with
       filename := <guarantee-extension(|$[core.opt[O].str2])> path
     ; <translate-core(|path, O); s; pp-stratego-core> node => result
+
+strategies
+  internal translate-MMs = topdown(?MultiMatch(_, _) < multimatch2dfa + id)
 
 // Testing strategies
 imports
