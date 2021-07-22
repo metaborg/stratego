@@ -2,10 +2,12 @@ package mb.stratego.build.strincr.task;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.Interactivity;
 import mb.pie.api.STaskDef;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
@@ -122,6 +124,10 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         resultFiles.addAll(congruenceOutput.resultFiles);
 
         return new CompileOutput.Success(resultFiles, checkOutput.messages);
+    }
+
+    @Override public boolean shouldExecWhenAffected(CompileInput input, Set<?> tags) {
+        return tags.isEmpty() || tags.contains(Interactivity.NonInteractive);
     }
 
     @Override public String getId() {

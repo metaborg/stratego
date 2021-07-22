@@ -3,9 +3,11 @@ package mb.stratego.build.strincr.task;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.inject.Inject;
 
+import mb.pie.api.Interactivity;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -152,6 +154,10 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         }
 
         return B.list(args);
+    }
+
+    @Override public boolean shouldExecWhenAffected(BackInput input, Set<?> tags) {
+        return tags.isEmpty() || tags.contains(Interactivity.NonInteractive);
     }
 
     @Override public String getId() {
