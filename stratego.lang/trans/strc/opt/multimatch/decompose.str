@@ -147,19 +147,18 @@ strategies
 
   // String
   constructor-om:
-    c@ExplodeNoAnno(Str(f), _) -> Str(f') // String
-  where
-    <debug(|"string ")> c
-  where
-    <arity; debug(|"str arity: ")> c => 0
-  ; f' := <debug(|"  escaped: "); unescape; debug(|"unescaped: ")> f
-  ; <not(equal)> (f, f')
-  cons-type:
-    c@ExplodeNoAnno(Str(f), _) -> StringT() // String
+    c@ExplodeNoAnno(s@Str(_), _) -> s' // String
   where
     <arity> c => 0
-  ; f' := <unescape> f
-  ; <not(equal)> (f, f')
+  ; s' := <DesugarOnce> s
+  ; <not(equal)> (s, s')
+
+  cons-type:
+    c@ExplodeNoAnno(s@Str(_), _) -> StringT() // String
+  where
+    <arity> c => 0
+  ; s' := <DesugarOnce> s
+  ; <not(equal)> (s, s')
 
   specialize-pats(|l): [<?ExplodeNoAnno(l, _)> | ps*] -> ps*
     where <is-literal> l
