@@ -12,7 +12,7 @@ strategies
   multimatch2matrix: MultiMatch(Sequential(), cases) -> Scope(vars, Matrix([Cur()], rows))
   with
     <map(MatchCase2Row)> cases => rows
-  ; <mapconcat(MatchCase2Vars)> cases => vars
+  ; <mapconcat(MatchCase2Vars)> cases => vars // TODO Vars should have unique names for each case
 
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]

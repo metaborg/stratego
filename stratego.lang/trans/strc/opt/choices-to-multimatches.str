@@ -18,7 +18,7 @@ overlays
 
 strategies
   choices-to-multimatches = log-timed(id
-  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
+//  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
   ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 1)
   ; log-timed(
     topdown(try(repeat(choice-to-multimatch
@@ -37,7 +37,7 @@ strategies
             case x | p where s1: s2
             case ..
           end
-       <+ match sequential
+       < id + match sequential
             case y | q where s3: s4
             case ... 
           end
@@ -87,8 +87,8 @@ strategies
   choice-to-multimatch:
     GuardedLChoice(s1, s2, s3) ->
     MM([
-      ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s1, s2)
-    , ScopedGuardedMatchCase([], Anno(Wld(), Wld()), s3, Id()) 
+      ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s1, s2)
+    , ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())
     ])
 
   /* VERIFIED
@@ -198,6 +198,15 @@ strategies
 
   // This is only valid for the very last case.
   // TODO Verify validity.
+  /*
+   case | p where match sequential
+                    case xs | q where s1: s2
+                    case ys | r where s3: s4
+                  end: s
+  ->
+   case xs | q where s1: s2; s
+   case ys | r where s3: s4; s
+  */
   lift-default:
     ScopedGuardedMatchCase([], p, MM(c*), s) ->
     <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s)))> c*
@@ -206,6 +215,15 @@ strategies
 
   // This is only valid for the very last case.
   // TODO Verify validity.
+  /*
+   case | p where s: match sequential
+                       case xs | q where s1: s2
+                       case ys | r where s3: s4
+                     end
+  ->
+   case xs | q where s; s1: s2
+   case ys | r where s; s3: s4
+  */
   lift-default:
     ScopedGuardedMatchCase([], p, s, MM(c*)) ->
     <map(ScopedGuardedMatchCase(id, id, <sequence-strategies> (s, <id>), id))> c*

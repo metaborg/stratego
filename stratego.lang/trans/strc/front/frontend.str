@@ -84,9 +84,6 @@ strategies
 	        ; not(def-use-def)
             ; not(check-constructors)
             ; expand-overlays-in-def
-//          )
-//          ; rules-to-multimatch
-//          ; map(id
             ; rules-to-sdefs-def
             ; desugar-list-matching
 	        ; desugar-DefaultVarDec

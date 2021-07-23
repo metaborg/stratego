@@ -178,7 +178,6 @@ strategies
 
   // Application
   constructor-om: c@ExplodeNoAnno(Str(f), _) -> Fun(f, <arity; int-to-string> c)
-  where <debug(|"fun   escaped: "); unescape; debug(|"fun unescaped: ")> f
   cons-type:      ExplodeNoAnno(Str(_), _) -> ApplT()
   specialize-pats(|Fun(f, x)): [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] -> [qs*, ps*]
     with
@@ -202,14 +201,8 @@ strategies
     where <is-literal> l
   specialize-occ(|<is-literal>) = ![]
 
-  // As-patterns
-  constructor-om = ?As(_, <constructor-om>)
-  cons-type = ?As(_, <cons-type>)
-
   // Variables
-  is-var = ?Var(_)
   is-wld = ?Wld()
-  is-wld-core = ?NoAnno(<is-wld>)
 
   constructor-om = is-wld; fail // by definition
   specialize-pats(|<is-wld>) = fail // by definition
