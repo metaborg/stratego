@@ -6,7 +6,6 @@ imports
   strc/strc/strc // log-timed
 
   strc/opt/bound-unbound-vars
-  strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
   strc/opt/multimatch/utils
 
@@ -257,3 +256,7 @@ strategies
                                 , GuardedLChoice(always-succeeds, always-fails, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds))
   + Scope(id, always-fails)
+
+// helpers
+strategies
+  internal is-wld-core = ?NoAnno(<is-wld>)
