@@ -17,8 +17,7 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.util.cmd.Arguments;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,13 +25,14 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static mb.stratego.build.spoofax2.integrationtest.StrcTests.getErrorMessagesString;
 import static mb.stratego.build.spoofax2.integrationtest.StrcTests.javaFiles;
 
 public class ParameterisedStratego2Tests {
-    public static final String packageName = "mb.stratego2integrationtest";
+    public static final String packageName = "mb.stratego2paramtest";
     public static final String packageDirName = packageName.replace('.', '/');
     public static final ResourceService resourceService =
             new DefaultResourceService(new FSResourceRegistry());
@@ -46,11 +46,13 @@ public class ParameterisedStratego2Tests {
     @TestFactory
     DynamicNode parameterisedTests() throws URISyntaxException, IOException {
         return DynamicContainer.dynamicContainer("Parameterised tests", Arrays.asList(
-                DynamicContainer.dynamicContainer("test1", test1()),
-                DynamicContainer.dynamicContainer("test2", test2())
+                DynamicContainer.dynamicContainer("Failing tests", failingTests())
+//                , DynamicContainer.dynamicContainer("test1", test1())
+//                , DynamicContainer.dynamicContainer("test2", test2())
         ));
     }
 
+    @TestFactory
     private Stream<DynamicNode> test1() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add
@@ -79,7 +81,7 @@ public class ParameterisedStratego2Tests {
         Path test1 = getResourcePathRoot().resolve("test1");
         Path test2 = getResourcePathRoot().resolve("test2");
 
-        List<String> test1Names = Arrays.asList("test33", "test34", "test53", "test112");
+        List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test53", "test112");
         List<String> test2Names = Arrays.asList("occan");
 //        List<String> test1Names = Collections.EMPTY_LIST;
 //        List<String> test2Names = Collections.EMPTY_LIST;

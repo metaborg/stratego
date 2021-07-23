@@ -3,12 +3,7 @@ language StrategoLang
 
 test Lists (Cons/Nil) [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -20,12 +15,7 @@ length_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -53,12 +43,7 @@ length_0_0( | ) =
 
 test Tuples (mutually inclusive -> complex default) [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -69,12 +54,7 @@ comp_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -117,12 +97,11 @@ comp_0_0( | ) =
 
 test Mixed types [[
 specification
+imports libstratego-lib
 
 signature
 constructors
 
-Nil : List(a)
-Cons : a * List(a) -> List(a)
 Car1 : a -> List(a)
 Car2 : a -> List(a)
 
@@ -138,12 +117,11 @@ uncar2_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
+imports libstratego-lib
 
 signature
 constructors
 
-Nil : List(a)
-Cons : a * List(a) -> List(a)
 Car1 : a -> List(a)
 Car2 : a -> List(a)
 
@@ -183,12 +161,7 @@ uncar2_0_0( | ) =
 
 test Exploded terms: nullary cons [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -198,12 +171,7 @@ s_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -223,12 +191,7 @@ s_0_0( | ) =
 
 test Exploded terms: unary cons [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -238,12 +201,7 @@ s_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -273,12 +231,7 @@ s_0_0( | ) =
 
 test Exploded terms: string [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -288,12 +241,7 @@ s_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -313,12 +261,7 @@ s_0_0( | ) =
 
 test Exploded terms: ambiguous var [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
@@ -328,12 +271,7 @@ s_0_0( | ) =
   end
 ]] transform "Test -> MultiMatch to DFA" to [[
 specification
-
-signature
-constructors
-
-Nil : List(a)
-Cons : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
 
