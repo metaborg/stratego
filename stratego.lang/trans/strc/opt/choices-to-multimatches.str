@@ -23,7 +23,7 @@ strategies
   ; log-timed(
     topdown(try(repeat(choice-to-multimatch
                <+ extract-matches
-               /*<+ extract-righthandsides*/)))
+               <+ extract-righthandsides)))
     | "  2. Translating choices", 1)
   ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
   ; log-timed(strip-annos|"  4. Stripping annos", 1)
@@ -163,10 +163,6 @@ strategies
     <is-wld + is-wld-core> p
 
 strategies
-  /*
-   * Incorrect; does not preserve behaviour, as `always-succeeds` is too progressive.
-   * It permits possibly-failing strategies.
-   */
   extract-righthandsides = MM(list-some(extract-rhs))
 
   extract-rhs:
@@ -220,25 +216,25 @@ strategies
 
   /**
    * Determines whether a strategy always succeeds (without side effects).
-   * NOTE: Is too permissive/incorrect.
    */
   always-succeeds =
     ?Id()
-  // TODO Build and Match can contain more than vars, which should succeed too.
-  // Probably needs a build-always-succeeds strategy.
-  + ?Build(_) < (?Build(Path(Cur()))
-                 + Build(
-                      // No (potentially) unbound vars in build   
-                      where(collect-om(?Var(_){<?"unbound" + ?"(un)bound">}); ?[])
-                    ; where(
-                                   // No list builds where the tail is not a list
-                        not(oncetd(Cons(id, not(Cons(id, id)))
-                                   // No exploded builds where the constructor is a Var 
-                                 + ?Explode(Var(_), _)))
-                      )
-                  )
-                )
-  + Match(where(collect-om(?Var(_){<?"bound" + ?"(un)bound">}); ?[]))
+  + Build(
+      ?Path(Cur())
+    + not(oncetd(id
+        // No (potentially) unbound vars in build
+        + ?Var(_){"unbound"}
+        + ?Var(_){"(un)bound"}
+        // No list builds where the tail is not a list
+        + ?Op("Cons", <not(?Op("Nil", _) + ?Op("Cons", _))>)
+        // No exploded builds where the constructor is a Var
+        + ?Explode(_, _))
+      )
+    )
+  + Match(not(oncetd(
+      ?Var(_){"bound"}
+    + ?Var(_){"(un)bound"}
+    )))
   + Seq(always-succeeds, always-succeeds)
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds)
@@ -250,7 +246,9 @@ strategies
    */
   always-fails =
     ?Fail()
-  + Build(where(collect-om(?Var(_){"unbound"}; ?[_ | _])))
+  + Build(oncetd(
+      ?Var(_){"unbound"}
+    ))
   + ?Seq(_, _) < or(Seq(always-fails, id), Seq(id, always-fails))
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(id, always-fails, always-fails)
                                 , GuardedLChoice(always-succeeds, always-fails, id)
