@@ -15,6 +15,7 @@ imports
 
 overlays
   MM(c) = MultiMatch(Sequential(), c)
+  NoAnnoMatch(t) = Anno(t, Wld())
 
 strategies
   choices-to-multimatches = log-timed(id
@@ -72,8 +73,9 @@ strategies
     <split-init-last> c* => (init*, last)
   ; ScopedGuardedMatchCase(x*, p, s1, s2) := last
   with
-    c := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
-  ; <at-last(![c])> init* => c'*
+    c1 := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
+  ; c2 := ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())
+  ; <at-last(![c1, c2])> init* => c'*
 
   /* VERIFIED
     foo0 = s1 < s2 + s3
