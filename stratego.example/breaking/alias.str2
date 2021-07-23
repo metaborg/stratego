@@ -1,10 +1,5 @@
 module lists
-
-signature
-  sorts List
-  constructors
-    Nil   :                List(a)
-    Cons  : a * List(a) -> List(a)
+imports libstratego-lib
 
 strategies
   comp = match sequential

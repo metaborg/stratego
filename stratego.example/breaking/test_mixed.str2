@@ -1,9 +1,8 @@
 module test_mixed
+imports libstratego-lib
 
 signature
   constructors
-    Nil 	: 				         List(a)
-    Cons 	: a * List(a) 	-> List(a)
     Car1  : a             -> List(a)
     Car2  : a             -> List(a)
 
@@ -15,9 +14,3 @@ strategies
              case | 8: !54
              case | 5.4: !8
            end
-
-  uncar2(|x) = match sequential
-                 case | Cons(x, _): !x // equality check
-                 case y | Cons(y, _): !y // matches all Cons(_, _)
-                 case z | Cons(Nil(), z): !z // dead
-              end
