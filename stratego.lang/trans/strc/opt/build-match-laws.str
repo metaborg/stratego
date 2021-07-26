@@ -141,6 +141,6 @@ rules
                    + id)> t
 
   BuildCur =
-    ?Seq(Build(Path(Cur())), <id>)
+    ?Seq(Build(Path(CurP())), <id>)
   BuildCur =
-    ?Seq(<id>, Build(Path(Cur())))
+    ?Seq(<id>, Build(Path(CurP())))

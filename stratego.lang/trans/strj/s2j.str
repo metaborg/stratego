@@ -27,6 +27,7 @@ imports
   strj/lib/dr-scoping
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/strategies-sig
+  signatures/core/strategies-sig
 
   strc/opt/multimatch/multimatch2dfa
 
@@ -2061,18 +2062,18 @@ strategies
    ; stm_s2     := <translate-strategy> s2
 
   java-Pat-to-Condition:
-    (Fun("Nil", "0"), e_occ) ->
+    (FunC("Nil", "0"), e_occ) ->
     e |[ ((IStrategoList) e_occ).isEmpty() ]| // special list treatment
 
   java-Pat-to-Condition:
-    (Fun("Cons", "2"), e_occ) ->
+    (FunC("Cons", "2"), e_occ) ->
     e |[ !((IStrategoList) e_occ).isEmpty() ]| // special list treatment
 
   java-Pat-to-Condition:
-    (op@Fun(c, x), e_occ) ->
+    (FunC(c, x), e_occ) ->
     e_cond
   where
-    <not(is-TupleOp + is-ListOp)> op
+    <not(?"Nil" + ?"Cons")> c
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
   ; if not(<get-config> "-sc" => "off") then
@@ -2082,22 +2083,22 @@ strategies
     end => e_cond
 
   java-Pat-to-Condition:
-    (Str(s), e_occ) ->
+    (StrC(s), e_occ) ->
     e |[ e_occ.equals(~<java-mk-string-const> s) ]|
 
-  java-Pat-to-Condition: (Int(x), e_occ) ->
+  java-Pat-to-Condition: (IntC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
   java-Pat-to-Condition:
-    (Real(x), e_occ) ->
+    (RealC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-float-const> x ]|
 
   java-Pat-to-Condition:
-    (Anno(), e_occ) ->
+    (AnnoC(), e_occ) ->
     e |[ true ]|
 
   java-Pat-to-Condition:
-    (Tuple(x), e_occ) ->
+    (TupleC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
   translate-Path =
@@ -2110,50 +2111,50 @@ strategies
   + translate-PathF
 
   translate-PathV:
-    Cur() ->
+    CurP() ->
     e |[ term ]|
 
 //  translate-PathV =
 //    ?Var(_); java-ConstructVar
 
   translate-PathV:
-    Sub(p, x) ->
+    SubP(p, x) ->
     e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
   with
     e := <translate-PathV> p
 
   translate-PathV:
-    Anno(p) ->
+    AnnoP(p) ->
     e |[ e.getAnnotations() ]|
   with
     e := <translate-PathV> p
 
   translate-PathV:
-    Head(p) ->
+    HeadP(p) ->
     e |[ ((IStrategoList) e).head() ]|
   with
     e := <translate-PathV> p
 
   translate-PathV:
-    Tail(p) ->
+    TailP(p) ->
     e |[ ((IStrategoList) e).tail() ]|
   with
     e := <translate-PathV> p
 
   translate-PathT:
-    Type(p) ->
+    TypeP(p) ->
     e |[ e.getType() ]|
   with
     e := <translate-PathV> p
 
   translate-PathF:
-    Size(p) ->
+    SizeP(p) ->
     e |[ e.getSubtermCount() ]|
   with
     e := <translate-PathV> p
 
   translate-PathF:
-    Con(p) ->
+    ConP(p) ->
     e |[ ((IStrategoAppl) e).getConstructor() ]|
   with
     e := <translate-PathV> p

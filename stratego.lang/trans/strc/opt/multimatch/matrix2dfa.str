@@ -103,13 +103,13 @@ strategies
   with
     c* := <constructors-om> col
   where
-    !c* => [hc@Anno()]
+    !c* => [hc@AnnoC()]
 //  ; debug(!"unwrapping annos... ")
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(Type(p), talt*, Default(s_def))
+    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(TypeP(p), talt*, Default(s_def))
   with
-    <constructors-om; not(fetch(?Anno()))> col
+    <constructors-om; not(fetch(?AnnoC()))> col
   with
     arm*    := <tswitch-arms> col
   ; s_def   := <default; CC> m
@@ -123,18 +123,18 @@ strategies
   valt(|m) =
     !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)
 
-  is-switchable = ?Fun(_, _)
-                + is-literal
-                + ?Tuple(_)
+  is-switchable = ?FunC(_, _)
+                + is-literal-cons
+                + ?TupleC(_)
                 + is-wld
 
-  extend-path-by-type(|ApplT()) = !Con(<id>)
+  extend-path-by-type(|ApplT()) = !ConP(<id>)
   extend-path-by-type(|LisT()) = id
   extend-path-by-type(|IntT()) = !IntP(<id>)
   extend-path-by-type(|RealT()) = !RealP(<id>)
   extend-path-by-type(|StringT()) = !StrP(<id>)
   extend-path-by-type(|CtorT()) = <fatal-error> ["CtorT not implemented"]
-  extend-path-by-type(|TupleT()) = !Size(<id>)
+  extend-path-by-type(|TupleT()) = !SizeP(<id>)
   extend-path-by-type(|RefT()) = <fatal-error> ["RefT not implemented"]
   extend-path-by-type(|BlobT()) = <fatal-error> ["BlobT not implemented"]
   extend-path-by-type(|PlaceT()) = <fatal-error> ["PlaceT not implemented"]

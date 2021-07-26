@@ -238,7 +238,7 @@ strategies
   always-succeeds =
     ?Id()
   + Build(
-      ?Path(Cur())
+      ?Path(CurP())
     + not(oncetd(id
         // No (potentially) unbound vars in build
         + ?Var(_){"unbound"}

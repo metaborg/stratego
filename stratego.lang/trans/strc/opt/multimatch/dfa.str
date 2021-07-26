@@ -20,14 +20,14 @@ signature
 //  constructors
 //    Path    : List(PathEl)  -> Path
 //
-//    Sub     : int           -> PathEl
-//    Ann     :                  PathEl
-//    Con     :                  PathEl
+//    SubP     : int           -> PathEl
+//    AnnoP     :                  PathEl
+//    ConP     :                  PathEl
 //
 //  sorts Pat // BindPat
 //  constructors
-//    Fun   : string  * int -> Pat
-//    Str   : string        -> Pat
-//    Int   : int           -> Pat
-//    Real  : real          -> Pat
-//    Anno  :                  Pat
+//    FunC   : string  * int -> Pat
+//    StrC   : string        -> Pat
+//    IntC   : int           -> Pat
+//    RealC  : real          -> Pat
+//    AnnoC  :                  Pat

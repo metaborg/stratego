@@ -151,31 +151,29 @@ context-free syntax
   PathVF = PathV
   PathVF = PathF
 
-  PathV.Cur = <current>
+  PathV.CurP = <current>
 //  PathV.Var = ID
-  PathV.Sub = <<PathV>.<Int>>
-  PathV.Anno = <<PathV>.anno>
-  PathV.Head = <<PathV>.head>
-  PathV.Tail = <<PathV>.tail>
+  PathV.SubP = <<PathV>.<Int>>
+  PathV.AnnoP = <<PathV>.anno>
+  PathV.HeadP = <<PathV>.head>
+  PathV.TailP = <<PathV>.tail>
 
-  PathT.Type = <<PathV>.type>
+  PathT.TypeP = <<PathV>.type>
 
-  PathF.Size = <<PathV>.size>
-  PathF.Con  = <<PathV>.con>
+  PathF.SizeP = <<PathV>.size>
+  PathF.ConP  = <<PathV>.con>
   PathF.IntP  = <<PathV>.int>
   PathF.RealP = <<PathV>.real>
   PathF.StrP  = <<PathV>.str>
 
 context-free sorts PatV
 context-free syntax
-  PatV.Fun = <(<Id>, <Int>)>
-  PatV.Str = String
-  PatV.Int = Int
-  PatV.Real = Real
-  PatV.Anno = <{_}>
-  PatV.Tuple = <(<Int>)>
-  PatV.Var = Var
-  PatV.Wld = Wld
+  PatV.FunC = <(<Id>, <Int>)>
+  PatV.StrC = String
+  PatV.IntC = Int
+  PatV.RealC = Real
+  PatV.AnnoC = <{_}>
+  PatV.TupleC = <(<Int>)>
 
 context-free sorts PatT
 context-free syntax

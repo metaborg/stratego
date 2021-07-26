@@ -86,7 +86,7 @@ strategies
 
   wrap-guarded-leaves:
     GuardedLeafs(guard*) ->
-    SwitchT(Type(Cur()), [], GuardedDefault(guard*))
+    SwitchT(TypeP(CurP()), [], GuardedDefault(guard*))
 
   /*
    * Remove any guarded arms *after* an `id`-guarded arm.
