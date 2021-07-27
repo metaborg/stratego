@@ -125,10 +125,11 @@ strategies
   valt(|m) =
     !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)
 
-  is-switchable = ?FunC(_, _)
-                + is-literal-cons
+  is-switchable = id
+                + ?AnnoC()
+                + ?FunC(_, _)
                 + ?TupleC(_)
-                + is-wld
+                + is-literal-cons
 
   extend-path-by-type(|ApplT()) = !ConP(<id>)
   extend-path-by-type(|LisT()) = id
