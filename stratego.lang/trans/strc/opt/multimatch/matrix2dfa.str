@@ -3,6 +3,7 @@ module multimatch/matrix2dfa
 imports
   strc/strc/strc
   strc/opt/scope-laws
+  strc/opt/stratego-laws
 
   strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
@@ -18,8 +19,9 @@ strategies
     Scope(id,
         compile-dfa
       ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
-      ; enhance-dfa
-    ); try(EmptyScope)
+    )
+    ; simplify
+    ; enhance-dfa
 
   compile-dfa = log-timed(CC | "DFA - Compilation", 1)
 

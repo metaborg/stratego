@@ -19,12 +19,12 @@ strategies
 
   alias-to-guard(|p):
     Row([As(t1, t2) | t*], s1, s2, s3) ->
-    Row([t2 | t*], <sequence-strategies> (s1, sa), s2, s3)
+    Row([t2 | t*], s, s2, s3)
   with
-    <desugar> Where(Assign(t1, Path(p))) => sa
+    <sequence-strategies> (s1, Where(Assign(t1, Path(p)))) => s
 
 strategies
-  sequence-strategies: (s1, s2) -> <try(Simplify)> Seq(s1, s2)
+  sequence-strategies = !Seq(<Fst>, <Snd>)
 
 strategies
   is-id-guard = ?Id()

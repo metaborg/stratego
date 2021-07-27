@@ -8,8 +8,9 @@ imports
   signatures/core/strategies-sig
 
 strategies
-  desugar-dfa =
-    repeat(
+  desugar-dfa = id
+  ; desugar
+  ; repeat(
       oncebu(
         eliminate-guard
       <+ simplify-switch
@@ -26,7 +27,7 @@ strategies
   /*
    * SwitchT with just a default arm.
    *
-   * Too aggressive? Only true if the path `p` is valid.
+   * TODO Too aggressive? Only true if the path `p` is valid.
    */
   simplify-switch = ?SwitchT(p, [], Default(<id>))
 
@@ -37,8 +38,8 @@ strategies
     EliminateId
   + EliminateFail
 
-  EliminateId: GuardedAltV(t, [Guard(<is-id-guard>, a)]) -> AltV(t, a)
-  EliminateId: GuardedDefault([Guard(<is-id-guard>, a)]) -> Default(a)
+  EliminateId: GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) -> AltV(t, a)
+  EliminateId: GuardedDefault([Guard(<is-id-guard>, a) | _]) -> Default(a)
 
   /*
    * TODO: Investigate whether removing definitely failing guards violates

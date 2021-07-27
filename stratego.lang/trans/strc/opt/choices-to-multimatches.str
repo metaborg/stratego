@@ -6,6 +6,7 @@ imports
   strc/strc/strc // log-timed
 
   strc/opt/bound-unbound-vars
+  strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
   strc/opt/multimatch/utils
 

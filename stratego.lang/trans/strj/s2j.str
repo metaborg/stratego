@@ -2077,10 +2077,10 @@ strategies
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
   ; if not(<get-config> "-sc" => "off") then
-      !(e |[ e_occ == e_cons ]|)
+      e_cond := e |[ e_occ == e_cons ]|
     else
-      !(e |[ e_occ.equals(e_cons) ]|)
-    end => e_cond
+      e_cond := e |[ e_occ.equals(e_cons) ]|
+    end
 
   java-Pat-to-Condition:
     (StrC(s), e_occ) ->
