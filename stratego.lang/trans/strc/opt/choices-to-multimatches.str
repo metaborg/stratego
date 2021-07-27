@@ -249,10 +249,7 @@ strategies
         + ?Explode(_, _))
       )
     )
-  + Match(not(oncetd(
-      ?Var(_){"bound"}
-    + ?Var(_){"(un)bound"}
-    )))
+  + ?Match(Var(_){"unbound"})
   + Seq(always-succeeds, always-succeeds)
   + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
                                 , GuardedLChoice(always-fails, id, always-succeeds)
