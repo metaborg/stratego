@@ -43,18 +43,19 @@ strategies
    *
    * Maranget (2008), sec 4, step 3a.
    */
-  constructors-om =
-    ?Col(<id>, _, _, _)
+  constructors-om = id
+  ; ?Col(<id>, _, _, _)
   ; remove-all(where(is-wld + ?As(_, <is-wld>)))
-  ; foldr(![], union, ![<constructor-om>])
+  ; foldr(![], union, ![<constructor>])
 
-  tswitch-arms =
-    ?Col(<id>, _, _, _)
-  ; remove-all(where(is-wld + ?As(_, <is-wld>)))
-  ; map(split(cons-type, constructor-om))
+  tswitch-arms = id
   ; ?p*
-  ; foldr(![], union, ![<Fst>]) // Set of types
-  ; map(\ t -> <split(id, <retain-all(where(Fst; ?t); Snd); make-set> p*)> t \) // [(c, [t*])*]
+  ; foldr(![], union, ![<Snd>]) // Set of types
+  ; let
+      collect_cons(|t) = split(id, <retain-all(where(Snd; ?t); Fst); make-set> p*)
+    in
+      map(collect_cons(|<id>))
+    end
 
   /*
    * Specialize the matrix to a certain constructor.
@@ -71,136 +72,80 @@ strategies
     with o* := <specialize-occ(|c)> o
 
 strategies
-  constructor-om:
+  constructor:
     Anno(_, _) ->
-    AnnoC()
+    (AnnoC(), ())
 
-  constructor-om:
+  constructor:
     c@Op(_, _) ->
-    TupleC(<arity; int-to-string> c)
+    (TupleC(<arity; int-to-string> c), TupleT())
   where
     <is-TupleOp> c
 
-  constructor-om:
+  constructor:
     c@Op(f, _) ->
-    FunC(f, <arity; int-to-string> c)
+    (FunC(f, <arity; int-to-string> c), LisT())
   where
     <is-ListOp> c
 
-  constructor-om:
+  constructor:
     c@Op(f, _) ->
-    FunC(f, <arity; int-to-string> c)
+    (FunC(f, <arity; int-to-string> c), ApplT())
   where
     <not(is-ListOp + is-TupleOp)> c
 
-  constructor-om:
+  constructor:
     c@ExplodeNoAnno(Str(""), _) ->
-    TupleC(<arity; int-to-string> c)
+    (TupleC(<arity; int-to-string> c), TupleT())
 
-  constructor-om:
+  constructor:
     ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) ->
-    FunC("Nil", "0")
+    (FunC("Nil", "0"), LisT())
 
-  constructor-om:
+  constructor:
     ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) ->
-    FunC("Cons", "2")
+    (FunC("Cons", "2"), LisT())
 
-  constructor-om:
+  constructor:
     c@ExplodeNoAnno(s@Str(_), _) ->
-    s'
+    (StrC(x), StringT())
   where
     <arity> c => 0
-  ; s' := <DesugarOnce> s
+  ; s'@Str(x) := <DesugarOnce> s
   ; <not(equal)> (s, s')
 
-  constructor-om:
+  constructor:
     c@ExplodeNoAnno(Int(x), _) ->
-    Int(x)
+    (IntC(x), IntT())
   where
     <arity> c => 0
 
-  constructor-om:
+  constructor:
     c@ExplodeNoAnno(Real(x), _) ->
-    Real(x)
+    (RealC(x), RealT())
   where
     <arity> c => 0
 
-  constructor-om:
+  constructor:
     c@ExplodeNoAnno(Str(f), _) ->
-    FunC(f, <arity; int-to-string> c)
+    (FunC(f, <arity; int-to-string> c), ApplT())
 
-  constructor-om:
+  constructor:
     Str(s) ->
-    StrC(s)
+    (StrC(s), StringT())
 
-  constructor-om:
+  constructor:
     Int(i) ->
-    IntC(i)
+    (IntC(i), StringT())
 
-  constructor-om:
+  constructor:
     Real(r) ->
-    RealC(r)
+    (RealC(r), RealT())
 
-
-  cons-type:
-    c@Op(_, _) ->
-    TupleT()
-  where
-    <is-TupleOp> c
-
-  cons-type:
-    c@Op(_, _) ->
-    LisT()
-  where
-    <is-ListOp> c
-  
-  cons-type:
-    c@Op(_, _) ->
-    ApplT()
-  where
-    <not(is-ListOp + is-TupleOp)> c
-
-  cons-type:
-    ExplodeNoAnno(Str(""), _) ->
-    TupleT()
-
-  cons-type:
-    ExplodeNoAnno(c@Op("Nil", _), _) ->
-    LisT()
-  where
-    <is-ListOp> c
-
-  cons-type:
-    c@ExplodeNoAnno(s@Str(_), _) -> StringT() // String
-  where
-    <arity> c => 0
-  ; s' := <DesugarOnce> s // TODO Fix
-  ; <not(equal)> (s, s')
-
-  cons-type:
-    c@ExplodeNoAnno(Int(_), _) ->
-    IntT()
-  where
-    <arity> c => 0
-  
-  cons-type:
-    c@ExplodeNoAnno(Real(_), _) ->
-    RealT()
-  where
-    <arity> c => 0
-  
-  cons-type:
-    ExplodeNoAnno(Str(_), _) ->
-    ApplT()
-  
   // TODO Constructor var (multiple types)
-  cons-type:
-    ExplodeNoAnno(Var(x), _) ->
-    [ApplT(), TupleT(), StringT(), IntT(), RealT()]
-
-  cons-type: Str(_) -> StringT()
-  cons-type: Int(_) -> IntT()
-  cons-type: Real(_) -> RealT()
+//  constructor:
+//    ExplodeNoAnno(Var(x), _) ->
+//    ([], [ApplT(), TupleT(), StringT(), IntT(), RealT()])
 
 
   specialize-pats(|AnnoC()):
@@ -241,7 +186,7 @@ strategies
     [<?ExplodeNoAnno(l, _)> | ps*] ->
     ps*
   where
-    c := <constructor-om; is-literal-cons> l
+    c := <constructor; Fst; is-literal-cons> l
   
   specialize-pats(|FunC(f, x)):
     [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] ->
@@ -256,7 +201,7 @@ strategies
     [p | ps*] ->
     ps*
   where
-    c := <constructor-om; is-literal-cons> p
+    c := <constructor; Fst; is-literal-cons> p
 
   specialize-pats(|c):
     [<is-wld> | ps*] ->

@@ -97,23 +97,22 @@ strategies
       <swap-cols(|1, i); CC> m
     else
       <aliases-to-guards> m => m'
-    ; <unwrap-annos <+ tswitch> (m', <col(|i)> m')
+    ; <col(|i); constructors-om> m' => cons*
+    ; <?(_, [(AnnoC(), _)]) < unwrap-annos + tswitch> (m', cons*)
     end => T
 
   unwrap-annos:
-    (m, col) -> <specialize(|hc); CC> m
-  with
-    c* := <constructors-om> col
+    (m, cons*) -> <specialize(|hc); CC> m
   where
-    !c* => [hc@AnnoC()]
+    <?[(hc@AnnoC(), _)]> cons*
 //  ; debug(!"unwrapping annos... ")
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), col) -> SwitchT(TypeP(p), talt*, Default(s_def))
+    (m@Matrix([p | _], [_ | _]), cons*) -> SwitchT(TypeP(p), talt*, Default(s_def))
+  where
+    <not(fetch(?(AnnoC(), _)))> cons*
   with
-    <constructors-om; not(fetch(?AnnoC()))> col
-  with
-    arm*    := <tswitch-arms> col
+    arm*    := <tswitch-arms> cons*
   ; s_def   := <default; CC> m
   ; talt*   := <map(talt(|m, p, s_def))> arm*
 
