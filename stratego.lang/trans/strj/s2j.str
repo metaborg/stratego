@@ -1965,7 +1965,7 @@ strategies
       }
     ]|
   with
-    e_occ := <translate-PathT> p
+    e_occ := <translate-PathTp> p
   ; cases := <map(translate-AltT)> alt*
 
   translate-Default:
@@ -2102,77 +2102,77 @@ strategies
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
   translate-Path =
-    translate-PathV
-  + translate-PathT
-  + translate-PathF
+    translate-PathTrm
+  + translate-PathTp
+  + translate-PathFld
 
   translate-PathVF =
-    translate-PathV
-  + translate-PathF
+    translate-PathTrm
+  + translate-PathFld
 
-  translate-PathV:
+  translate-PathTrm:
     CurP() ->
     e |[ term ]|
 
-//  translate-PathV =
+//  translate-PathTrm =
 //    ?Var(_); java-ConstructVar
 
-  translate-PathV:
+  translate-PathTrm:
     SubP(p, x) ->
     e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathV:
+  translate-PathTrm:
     AnnoP(p) ->
     e |[ e.getAnnotations() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathV:
+  translate-PathTrm:
     HeadP(p) ->
     e |[ ((IStrategoList) e).head() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathV:
+  translate-PathTrm:
     TailP(p) ->
     e |[ ((IStrategoList) e).tail() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathT:
+  translate-PathTp:
     TypeP(p) ->
     e |[ e.getType() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathF:
+  translate-PathFld:
     SizeP(p) ->
     e |[ e.getSubtermCount() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathF:
+  translate-PathFld:
     ConP(p) ->
     e |[ ((IStrategoAppl) e).getConstructor() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathF:
+  translate-PathFld:
     IntP(p) ->
     e |[ ((IStrategoInt) e).intValue() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathF:
+  translate-PathFld:
     RealP(p) ->
     e |[ ((IStrategoReal) e).realValue() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p
 
-  translate-PathF:
+  translate-PathFld:
     StrP(p) ->
     e |[ ((IStrategoString) e).stringValue() ]|
   with
-    e := <translate-PathV> p
+    e := <translate-PathTrm> p

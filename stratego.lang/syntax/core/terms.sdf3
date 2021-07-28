@@ -18,7 +18,7 @@ context-free syntax
   Term      = Wld
   Term.Anno = <<PreTerm>{^<PreTerm>}>
   Term.As   = <<Var>@<Term>>
-  Term.Path = PathV
+  Term.Path = PathTrm
 
 context-free sorts PreTerm // term without annotations
 context-free syntax
