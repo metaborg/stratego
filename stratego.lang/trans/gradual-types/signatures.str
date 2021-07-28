@@ -149,7 +149,7 @@ strategies // gradual-types/signatures
     ; if <not(sort-exists(|n, arity))> e
         then <report-Err> (s, UnresolvedSort(arity))
       end
-    ; <map(sort-check-Sort(|e))> sa*
+    ; <map(sort-check-Type(|e))> sa*
 
   sort-check-SortT(|e): SortVar(n) -> <id>
 
