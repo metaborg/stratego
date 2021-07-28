@@ -2,6 +2,8 @@ module dynamic-rules-test
 imports libstratego-lib
 
 signature
+  sorts
+    String Exp Int Decl List(a)
   constructors
     Var  : String -> Exp
     Int  : Int -> Exp

@@ -1,8 +1,10 @@
 module test14
 imports collection/list/cons collection/tuple/cons
 signature
-   constructors
-     Add : Int * Int -> Exp
+  sorts
+    Int Exp
+  constructors
+    Add : Int * Int -> Exp
 
 strategies
 

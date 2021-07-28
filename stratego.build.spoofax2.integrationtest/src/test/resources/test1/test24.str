@@ -2,6 +2,8 @@ module test24
 imports collection/list/cons collection/tuple/cons
 
 signature
+  sorts
+    Exp
   constructors
     A : Exp
     B : Exp

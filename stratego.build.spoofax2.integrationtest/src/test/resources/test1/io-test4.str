@@ -1,7 +1,10 @@
 module io-test4
 imports libstratego-lib
  
-signature 
+signature
+  sorts
+    Int
+    Foo
   constructors 
     "pp-tables-0" : Int -> Foo 
  

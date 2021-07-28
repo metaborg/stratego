@@ -14,6 +14,9 @@ imports
  * IndexedSet representations
  */
 signature
+  sorts
+    IndexedSet
+    IndexedSetImplBlob
   constructors
     IndexedSet : IndexedSetImplBlob -> IndexedSet
 

@@ -1,6 +1,8 @@
 module test72
 imports libstratego-lib
 signature
+  sorts
+    Block Program Id Exp Call Stat Stats Type String List(a)
   constructors
     Program : Block -> Program
     Call    : Id * List(Exp) -> Call

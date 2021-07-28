@@ -42,10 +42,10 @@ strategies // entry-points from Java
 //    Module ->
 //    Module * List(Message)
 stratego2-insert-casts:
-  (strats, constrs, injection-closure, lub-map, aliases, ast) ->
+  (strats, constrs, srts, injection-closure, lub-map, aliases, ast) ->
     (asts', errs, warns, notes)
   with {| CanCoerce, CanCoerceSType, LUB:
-    asts' := <insertCasts(|strats, constrs, injection-closure, aliases, lub-map)> ast
+    asts' := <insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map)> ast
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
@@ -74,24 +74,26 @@ fix-old-grammar = bottomup(try(otf(
 // insertCasts(|
 //    Map(String * Int * Int, SType) *
 //    Rel(String * Int, ConstrType) *
+//    Set(String * Int) *
 //    Rel(String, String) *
 //    Map(Type * Type, Type) *
 //    Rel(String * Int, ConstrType) )
 //    Module ->
 //    Module
-insertCasts(|strats, constrs, injection-closure, aliases, lub-map): ast -> ast'
+insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast -> ast'
   with id
   ; rules(CanCoerce: p -> <can-coerce(|injection-closure, aliases)> p)
   ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
   ; rules(LUB: pair -> <lub(|lub-map)> pair)
 
-  ; e := <new-env> (strats, constrs)
+  ; e := <new-env> (strats, constrs, srts)
   ; st := <new-st>
   ; let
       process-defs = map(fix-old-grammar;fix-new-grammar;insertCasts-Def(|e, st); Fst)
+      process-constrs = map(sort-check-Opdecl(|e))
       process-sections = map(origin-track-forced(
            Imports(id)
-        <+ Signature(id)
+        <+ Signature(map(Sorts(id) <+ Constructors(process-constrs)))
         <+ Overlays(id)
         <+ Strategies(process-defs)
         <+ Rules(process-defs)

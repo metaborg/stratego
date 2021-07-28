@@ -11,5 +11,7 @@ strategies
     ; ?Cons(2)
 
 signature
+  sorts
+    Int Term
   constructors
     Cons : Int -> Term

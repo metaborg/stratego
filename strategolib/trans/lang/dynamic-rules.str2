@@ -17,6 +17,7 @@ module lang/dynamic-rules
 
 imports
   collection/list/common
+  collection/list/cons
   collection/list/filter
   collection/list/index
   collection/list/set
@@ -33,6 +34,23 @@ imports
   util/log
 
 signature
+  sorts
+    RuleScope
+    
+    Label
+    SplitPos
+    BreakCS
+    ContinueCS
+    IgnoreB
+    IgnoreC
+    
+    Catch
+    Finally
+    TryBlock
+    Structure
+    IgnoreT
+    ThrowCS
+    ExceptionCS
   constructors
     RuleScope  : IndexedSet * Hashtable -> RuleScope
     ChangeSet  : IndexedSet * IndexedSet * Hashtable -> RuleScope
@@ -53,6 +71,8 @@ signature
     ExceptionCS : string * string -> ExceptionCS
 
 signature
+  sorts
+    DUMMY
   constructors
     DR_DUMMY : DUMMY
     DR_UNDEFINE : string -> DUMMY

@@ -13,6 +13,9 @@ imports
   strategy/conditional
 
 signature
+  sorts
+    ImmutableSet
+    ImmutableSetImplBlob
   constructors
     /**
      * Represents a reference to a Set

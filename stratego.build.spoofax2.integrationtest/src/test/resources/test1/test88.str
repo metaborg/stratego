@@ -2,6 +2,8 @@ module test88
 imports libstratego-lib
 
 signature
+  sorts
+    Id DeclId String
   constructors
     DeclId : Id -> DeclId
     Id : String -> Id

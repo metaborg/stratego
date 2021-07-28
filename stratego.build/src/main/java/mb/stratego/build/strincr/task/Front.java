@@ -40,6 +40,7 @@ import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.message.FailedToGetModuleAst;
+import mb.stratego.build.strincr.message.InvalidASTMessage;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.UnresolvedImport;
 import mb.stratego.build.strincr.task.input.FrontInput;
@@ -153,8 +154,20 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         input.linkedLibraries));
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, externalConstrData, injections,
-                        externalInjections, def.getSubterm(0));
+                    for(IStrategoTerm sdecl : def.getSubterm(0)) {
+                        switch(TermUtils.toAppl(sdecl).getName()) {
+                            case "Constructors":
+                                addSigData(input.moduleIdentifier, constrData, externalConstrData,
+                                    injections, externalInjections, sdecl.getSubterm(0));
+                                break;
+                            case "Sorts":
+                                addSortData(messages, ast.lastModified, sortData, externalSortData,
+                                    sdecl.getSubterm(0));
+                                break;
+                            default:
+                                throw new InvalidASTException(input.moduleIdentifier, sdecl);
+                        }
+                    }
                     break;
                 case "Overlays":
                     addOverlayData(input.moduleIdentifier, overlayData, constrData,
@@ -379,8 +392,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
             final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-            new UsedConstrs(usedConstructors)
-                .visit(overlay);
+            new UsedConstrs(usedConstructors).visit(overlay);
             final ConstructorSignature signature = new ConstructorSignature(name, arity);
             final OverlayData data =
                 new OverlayData(signature, (IStrategoAppl) overlay, type, usedConstructors);
@@ -389,41 +401,62 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         }
     }
 
+    private void addSortData(ArrayList<Message> messages, long lastModified,
+        LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
+        IStrategoTerm sorts) {
+        if(!TermUtils.isList(sorts)) {
+            messages.add(new InvalidASTMessage(sorts, lastModified, "a list"));
+            return;
+        }
+        for(IStrategoTerm sortDef : sorts) {
+            final @Nullable SortSignature sortSig = SortSignature.fromTerm(sortDef);
+            final LinkedHashSet<SortSignature> dataSet;
+            final @Nullable Boolean external = SortSignature.isExternal(sortDef);
+            if(sortSig == null || external == null) {
+                messages
+                    .add(new InvalidASTMessage(sortDef, lastModified, "a valid sort definition"));
+                continue;
+            }
+            if(external) {
+                dataSet = externalSortData;
+            } else {
+                dataSet = sortData;
+            }
+            dataSet.add(sortSig);
+        }
+    }
+
     protected void addSigData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs) {
-        for(IStrategoTerm sig : sigs) {
-            if(TermUtils.isAppl(sig, "Constructors", 1)) {
-                final IStrategoTerm constrs = sig.getSubterm(0);
-                if(!TermUtils.isList(constrs)) {
-                    throw new InvalidASTException(moduleIdentifier, constrs);
-                }
-                for(IStrategoTerm constrDef : constrs) {
-                    final @Nullable ConstructorSignature constrSig =
-                        ConstructorSignature.fromTerm(constrDef);
-                    if(constrSig == null) {
-                        addInjectionData(moduleIdentifier, constrDef, injections,
-                            externalInjections, constrData);
-                        continue;
-                    }
-                    final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
-                    final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                    final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
-                    final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
-                    if(external == null) {
-                        throw new InvalidASTException(moduleIdentifier, constrDef);
-                    }
-                    if(external) {
-                        dataMap = externalConstrData;
-                    } else {
-                        dataMap = constrData;
-                    }
-                    Relation.getOrInitialize(dataMap, constrSig, ArrayList::new).add(
-                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
-                }
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
+        IStrategoTerm constrs) {
+        if(!TermUtils.isList(constrs)) {
+            throw new InvalidASTException(moduleIdentifier, constrs);
+        }
+        for(IStrategoTerm constrDef : constrs) {
+            final @Nullable ConstructorSignature constrSig =
+                ConstructorSignature.fromTerm(constrDef);
+            if(constrSig == null) {
+                addInjectionData(moduleIdentifier, constrDef, injections, externalInjections,
+                    constrData);
+                continue;
             }
+            final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
+            final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
+            final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
+            final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
+            if(external == null) {
+                throw new InvalidASTException(moduleIdentifier, constrDef);
+            }
+            if(external) {
+                dataMap = externalConstrData;
+            } else {
+                dataMap = constrData;
+            }
+            Relation.getOrInitialize(dataMap, constrSig, ArrayList::new)
+                .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
         }
     }
 

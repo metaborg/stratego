@@ -15,6 +15,9 @@ imports
   collection/immutable/rel
 
 signature
+  sorts
+    ImmutableMap
+    ImmutableMapImplBlob
   constructors
     /**
      * Represents a reference to a Set

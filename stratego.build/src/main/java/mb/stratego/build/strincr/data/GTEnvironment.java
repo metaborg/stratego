@@ -2,16 +2,21 @@ package mb.stratego.build.strincr.data;
 
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoTuple;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Map;
+import io.usethesource.capsule.Set;
+
+import static org.spoofax.interpreter.library.ssl.StrategoImmutableRelation.transitiveClosure;
 
 public class GTEnvironment extends StrategoTuple {
     public final StrategoImmutableMap strategyEnvironment;
     public final StrategoImmutableRelation constructors;
+    public final StrategoImmutableSet sorts;
     public final StrategoImmutableRelation injectionClosure;
     public final StrategoImmutableMap lubMap;
     public final StrategoImmutableRelation aliasMap;
@@ -19,15 +24,16 @@ public class GTEnvironment extends StrategoTuple {
     public final long lastModified;
 
     private GTEnvironment(StrategoImmutableMap strategyEnvironment,
-        StrategoImmutableRelation constructors, StrategoImmutableRelation injectionClosure,
-        StrategoImmutableMap lubMap, StrategoImmutableRelation aliasMap, IStrategoTerm ast,
-        ITermFactory tf, long lastModified) {
+        StrategoImmutableRelation constructors, StrategoImmutableSet sorts,
+        StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap,
+        StrategoImmutableRelation aliasMap, IStrategoTerm ast, ITermFactory tf, long lastModified) {
         super(
             new IStrategoTerm[] { strategyEnvironment.withWrapper(tf), constructors.withWrapper(tf),
-                injectionClosure.withWrapper(tf), lubMap.withWrapper(tf), aliasMap.withWrapper(tf),
-                ast }, null);
+                sorts.withWrapper(tf), injectionClosure.withWrapper(tf), lubMap.withWrapper(tf),
+                aliasMap.withWrapper(tf), ast }, null);
         this.strategyEnvironment = strategyEnvironment;
         this.constructors = constructors;
+        this.sorts = sorts;
         this.injectionClosure = injectionClosure;
         this.lubMap = lubMap;
         this.aliasMap = aliasMap;
@@ -37,13 +43,13 @@ public class GTEnvironment extends StrategoTuple {
 
     public static GTEnvironment from(StrategoImmutableMap strategyEnvironment,
         BinaryRelation.Immutable<ConstructorSignature, ConstructorType> constructors,
-        BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections, IStrategoTerm ast,
+        Set.Immutable<SortSignature> sorts, BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> injections, IStrategoTerm ast,
         ITermFactory tf, long lastModified) {
         final StrategoImmutableRelation injectionClosure =
-            StrategoImmutableRelation.transitiveClosure(new StrategoImmutableRelation(injections));
+            transitiveClosure(new StrategoImmutableRelation(injections));
         return new GTEnvironment(strategyEnvironment, new StrategoImmutableRelation(constructors),
-            injectionClosure, lubMapFromInjClosure(injectionClosure, tf), StrategoImmutableRelation
-            .transitiveClosure(
+            new StrategoImmutableSet(sorts), injectionClosure, lubMapFromInjClosure(injectionClosure, tf),
+            transitiveClosure(
                 new StrategoImmutableRelation(extractAliases(constructors, injections))), ast, tf, lastModified);
     }
 

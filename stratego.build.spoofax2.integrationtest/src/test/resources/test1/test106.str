@@ -3,6 +3,10 @@ module test106
 imports collection/list/cons
 
 signature
+  sorts
+    Bar
+    String
+    Int
   constructors
     Bar : String * Int -> Bar
 

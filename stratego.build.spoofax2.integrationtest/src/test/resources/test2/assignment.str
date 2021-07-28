@@ -1,6 +1,8 @@
 module assignment
 imports list-cons
 signature
+  sorts
+    Term
   constructors
     A : Term
     G : Term -> Term

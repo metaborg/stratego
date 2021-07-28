@@ -1,6 +1,8 @@
 module io-test10  
 imports libstratego-lib
 signature
+  sorts
+    Nat
   constructors
     Zero  : Nat
     Succ  : Nat -> Nat

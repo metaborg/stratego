@@ -2,6 +2,11 @@ module flatten-test
 imports libstratego-lib
 
 signature
+  sorts
+    String
+    Section
+    Module(a)
+    List(a)
   constructors
     Imports : List(String) -> Section
     Module  : String * List(a) -> Module(a)

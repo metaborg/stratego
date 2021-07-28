@@ -8,6 +8,9 @@
 module test54
 imports libstratego-lib
 signature
+  sorts
+    List(a)
+    Nat
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)

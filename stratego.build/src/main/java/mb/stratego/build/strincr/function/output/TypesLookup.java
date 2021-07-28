@@ -4,28 +4,32 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 
 public class TypesLookup implements Serializable {
     public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
     public final LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes;
+    public final LinkedHashSet<SortSignature> sorts;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final long lastModified;
 
     public TypesLookup(LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
         LinkedHashMap<ConstructorSignature, HashSet<ConstructorType>> constructorTypes,
-        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections,
+        LinkedHashSet<SortSignature> sorts, LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> allInjections,
         ArrayList<IModuleImportService.ModuleIdentifier> imports, long lastModified) {
         this.strategyTypes = strategyTypes;
         this.constructorTypes = constructorTypes;
+        this.sorts = sorts;
         this.allInjections = allInjections;
         this.imports = imports;
         this.lastModified = lastModified;

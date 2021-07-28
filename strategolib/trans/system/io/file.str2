@@ -14,6 +14,10 @@ imports
  * Stream and file representations
  */
 signature
+  sorts
+    Stream
+    StreamImplBlob
+    FileLoc
   constructors
     Stream    : StreamImplBlob -> Stream
 

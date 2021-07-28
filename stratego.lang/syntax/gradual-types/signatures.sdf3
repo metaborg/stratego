@@ -16,6 +16,7 @@ context-free syntax
   Type             = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
+  SortT            = "TP" {reject}
   SortT.SortVar    = SortVar
 
 context-free priorities

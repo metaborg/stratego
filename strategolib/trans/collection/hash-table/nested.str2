@@ -4,6 +4,9 @@ imports
   system/io/term
   strategy/conditional
 signature
+  sorts
+    TableValue
+    TableKey
   constructors
     NestedTable : Hashtable -> TableValue
     Tables      : TableKey

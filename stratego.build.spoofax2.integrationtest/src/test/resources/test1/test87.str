@@ -1,6 +1,8 @@
 module test87
 imports libstratego-lib
 signature
+  sorts
+    String SDef List(a)
   constructors
     ExtSDef : String * List(String) * List(String) -> SDef
     ExtSDefInl : String * List(String) * List(String) * String -> SDef

@@ -65,9 +65,13 @@ rules
             + fail)> t_1
 
 signature
+  sorts
+    Unknown
   constructors
     Parenthetical : Unknown -> Unknown
 
+  sorts
+    Expr PrimType Literal IntType Id ExprName HexaLiteral IntLiteral String ID
   constructors
     And                     : Expr * Expr -> Expr
     Minus                   : Expr * Expr -> Expr

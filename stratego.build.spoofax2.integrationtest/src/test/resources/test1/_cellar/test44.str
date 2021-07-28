@@ -22,6 +22,12 @@ strategies
                    MkCons)
 
 signature
+  sorts
+    Product(a)
+    Term
+    Int
+    Cons(a, b)
+    Nil
   constructors
     GraphLet : List(Product([Int, Term])) * Term -> Term
 
@@ -52,7 +58,7 @@ rules
 	GraphLet(graph, <mklet>(a, skel, t))
 
 signature
-  sorts A
+  sorts A String
   constructors
     F : A * A -> A
     A : A 

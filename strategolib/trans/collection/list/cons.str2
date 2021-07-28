@@ -8,7 +8,8 @@
  */
 module collection/list/cons
 signature
-  sorts List(*)
+  sorts
+    List(*)
   constructors
 
     /**

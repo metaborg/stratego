@@ -3,7 +3,7 @@ module test28b
 imports collection/list/cons collection/tuple/cons
  
 signature 
-  sorts Exp Type 
+  sorts Exp Type String
   constructors 
     Var : String -> Exp 
     Plus : Exp * Exp -> Exp 

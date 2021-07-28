@@ -14,5 +14,7 @@ strategies
     "aap"( \ 1 -> 2 \ )
 
 signature
+  sorts
+    Term
   constructors
    "aap" : Term -> Term

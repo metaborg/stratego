@@ -49,5 +49,7 @@ rules
     where <(?As(_, _) + fail)> t_1
 
 signature
+  sorts
+    Unknown
   constructors
     Parenthetical : Unknown -> Unknown

@@ -94,6 +94,8 @@ strategies
     ?pid; prim("SSL_waitpid", pid)
 
 signature
+  sorts
+    WaitStatus
   constructors
     /**
      * Collects the information returned from a wait call.

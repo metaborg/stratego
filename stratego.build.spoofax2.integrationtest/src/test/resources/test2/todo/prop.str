@@ -31,7 +31,7 @@ strategies
     my-bottomup(not(s))
 
 signature
-  sorts Prop
+  sorts Prop String
   constructors
     False : Prop
     True  : Prop

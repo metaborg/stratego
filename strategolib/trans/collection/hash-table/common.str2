@@ -21,6 +21,9 @@ imports
   strategy/conditional
 
 signature
+  sorts
+    Hashtable
+    HashtableImplBlob
   constructors
 
     /**

@@ -1,6 +1,8 @@
 module test77
 imports libstratego-lib
 signature
+  sorts
+    Int Foo
   constructors 
     Foo : Int * Int * Int -> Foo
 

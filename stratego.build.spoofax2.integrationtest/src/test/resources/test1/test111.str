@@ -5,6 +5,8 @@ module test111
 imports libstratego-lib
 
 signature
+  sorts
+    Foo Bar Term
   constructors
     Foo : Bar -> Foo
     Bar : Term -> Bar

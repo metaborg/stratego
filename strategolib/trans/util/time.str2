@@ -9,6 +9,12 @@ imports
   util/log
 
 signature
+  sorts
+    EpochTime
+    ComponentTime
+    DayTime
+    Date
+    ComponentTimeDupl
   constructors
     EpochTime     : int -> EpochTime
 
@@ -17,6 +23,8 @@ signature
     Date          : int * Month * int -> Date    // Year, DayOfMonth
     Dupl          : int * int -> ComponentTimeDupl // DayOfWeek, DayOfYear
 
+  sorts
+    Month
   constructors
     January   : Month
     February  : Month
@@ -31,6 +39,8 @@ signature
     November  : Month
     December  : Month
 
+  sorts
+    DayOfWeek
   constructors
     Sunday    : DayOfWeek
     Monday    : DayOfWeek

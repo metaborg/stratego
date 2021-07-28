@@ -5,6 +5,14 @@ module test104
 imports libstratego-lib
 
 signature
+  sorts
+    A
+    B
+    C
+    D
+    String
+    List(a)
+    Tuple(a, b)
   constructors
     Foo : A * () * Tuple(B, C) -> D
     Bar : List(String) -> A

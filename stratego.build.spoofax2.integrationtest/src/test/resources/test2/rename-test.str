@@ -9,7 +9,7 @@ strategies
     )
 
 signature
-  sorts Exp
+  sorts Exp String
   constructors
     Abs : String * Exp -> Exp
     Var : String -> Exp
@@ -39,7 +39,7 @@ strategies
 	)
 
 signature
-  sorts Exp
+  sorts Exp String Type Fdec List(a)
   constructors
     Abs    : String * Type * Exp -> Exp
     Var    : String * Type -> Exp

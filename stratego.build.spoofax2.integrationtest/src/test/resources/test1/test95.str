@@ -1,6 +1,8 @@
 module test95
 imports libstratego-lib
 signature
+  sorts
+    String Expr List(a)
   constructors
           : a * b -> (a, b)
     Nil   : List(a)

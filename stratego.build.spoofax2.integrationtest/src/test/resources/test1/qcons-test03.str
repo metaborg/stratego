@@ -16,5 +16,7 @@ rules
     "aap"(1) -> "aap"(2)
 
 signature
+  sorts
+    Term
   constructors
    "aap" : Term -> Term
