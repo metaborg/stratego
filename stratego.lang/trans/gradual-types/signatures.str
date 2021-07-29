@@ -70,6 +70,12 @@ strategies // core/signatures & sugar/signatures
 
   sort-check-Sort(|e): SortVar(n) -> <id>
 
+  sort-check-Sort(|e) = ?StringT()
+
+  sort-check-Sort(|e) = ?IntT()
+
+  sort-check-Sort(|e) = ?RealT()
+
   sort-check-Sort(|e): s@SortNoArgs(n) -> <id>
     with
       arity := 0
