@@ -16,6 +16,7 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
@@ -26,6 +27,8 @@ import org.apache.commons.io.file.PathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 
@@ -60,6 +63,7 @@ public class Stratego2Program {
 
     private CompileOutput compiledProgram = null;
     private boolean javaCompilationResult = false;
+    private LanguageIdentifier languageIdentifier;
 
     @SuppressWarnings("unused")
     public Stratego2Program(Path sourcePath, String metaborgVersion) throws IOException {
@@ -92,6 +96,9 @@ public class Stratego2Program {
         this.javaDir = baseDir.resolve("java").toFile();
         this.classDir = baseDir.resolve("classes").toFile();
         this.pieDir = baseDir.resolve("pie");
+        languageIdentifier =
+                new LanguageIdentifier("mb.stratego", "compnrun_" + baseName,
+                        new LanguageVersion(1));
     }
 
     private Iterable<? extends File> javaFiles() {
@@ -135,7 +142,7 @@ public class Stratego2Program {
     @SuppressWarnings("SameParameterValue")
     private CompileOutput str2(Path input, String baseName, String packageName,
                                File packageDir, boolean library,
-                               ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, Arguments args, String metaborgVersion)
+                               ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, Arguments args, String metaborgVersion, LanguageIdentifier languageIdentifier)
             throws MetaborgException {
 
         try (Spoofax spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule())) {
@@ -168,11 +175,16 @@ public class Stratego2Program {
 
             final ModuleIdentifier mainModuleIdentifier =
                     new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), library, baseName, new FSPath(input));
+            final Stratego2LibInfo stratego2LibInfo =
+                    new Stratego2LibInfo(packageName, languageIdentifier.groupId, languageIdentifier.id,
+                            languageIdentifier.version.toString(),
+                            new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
+
             CompileInput compileInput =
                     new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
-                            packageName, new FSPath(pieDir.resolve("cacheDir")),
+                            new FSPath(classDir), packageName, new FSPath(pieDir.resolve("cacheDir")),
                             new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                            new ArrayList<>(0), library, autoImportStd);
+                            new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, stratego2LibInfo);
             Task<CompileOutput> compileTask =
                     spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -197,7 +209,7 @@ public class Stratego2Program {
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
-        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, str2Args, metaborgVersion);
+        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, str2Args, metaborgVersion, languageIdentifier);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
 
         return compiledProgram;
