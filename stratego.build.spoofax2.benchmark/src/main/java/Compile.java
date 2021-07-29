@@ -1,10 +1,9 @@
 import api.Stratego2Program;
-import org.apache.commons.io.FileUtils;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -15,9 +14,15 @@ public class Compile {
     Path p = Paths.get("src", "main", "resources");
 
     private final static int optimisationLevel = 2;
+    private final Arguments compilerArgs;
 
     public Compile(String filename) {
         this.filename = filename;
+
+        compilerArgs = new Arguments();
+        compilerArgs.add("-O", optimisationLevel);
+        compilerArgs.add("--statistics", 1);
+        compilerArgs.add("--verbose", 10);
     }
 
     public static void main(String... args) throws Exception {
@@ -40,20 +45,15 @@ public class Compile {
             System.out.println(line);
         }
 
-        System.out.printf("Size of Java directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.javaDir) / 1000);
-        System.out.printf("Size of classes directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.classDir) / 1000);
-        System.out.printf("Java bytes: %d%n", Files.walk(c.program.javaDir.toPath()).mapToLong(f -> f.toFile().length()).sum() / 1000);
-        System.out.printf("Class bytes: %d%n", Files.walk(c.program.classDir.toPath()).mapToLong(f -> f.toFile().length()).sum() / 1000);
+//        System.out.printf("Size of Java directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.javaDir) / 1000);
+//        System.out.printf("Size of classes directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.classDir) / 1000);
+//        System.out.printf("Java bytes: %d%n", Files.walk(c.program.javaDir.toPath()).mapToLong(f -> f.toFile().length()).sum() / 1000);
+//        System.out.printf("Class bytes: %d%n", Files.walk(c.program.classDir.toPath()).mapToLong(f -> f.toFile().length()).sum() / 1000);
 
         c.program.cleanup();
     }
 
-    private void loadProgram() throws IOException {
-        Arguments args = new Arguments();
-        args.add("-O", optimisationLevel);
-        args.add("--statistics", 1);
-        args.add("--verbose", 10);
-
-        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", args);
+    private void loadProgram() throws IOException, MetaborgException {
+        program = new Stratego2Program(p.resolve(filename), compilerArgs, false, true, "2.6.0-SNAPSHOT", true);
     }
 }

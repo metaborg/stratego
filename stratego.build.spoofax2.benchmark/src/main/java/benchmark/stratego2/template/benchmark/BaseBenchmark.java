@@ -3,6 +3,7 @@ package benchmark.stratego2.template.benchmark;
 import api.Stratego2Program;
 import benchmark.exception.SkipException;
 import benchmark.stratego2.template.problem.Problem;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
 import org.openjdk.jmh.annotations.*;
 
@@ -20,7 +21,7 @@ public abstract class BaseBenchmark implements Problem {
     private Path sourcePath;
 
     private Stratego2Program program;
-    private Arguments str2Args = new Arguments();
+    protected Arguments args = new Arguments();
 
     @Param({"2.6.0-SNAPSHOT"})
     public String metaborgVersion;
@@ -35,16 +36,18 @@ public abstract class BaseBenchmark implements Problem {
     public final void setup() throws SkipException {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
-        str2Args.add("-O", optimisationLevel);
-//        str2Args.add("--statistics", 1);
-//        str2Args.add("--verbose", 3);
+        args.add("-O", optimisationLevel);
+        args.add("--statistics", 1);
+        args.add("--verbose", 3);
 
         try {
-            program = new Stratego2Program(sourcePath, metaborgVersion, str2Args);
+            program = new Stratego2Program(sourcePath, args, metaborgVersion);
         } catch (FileNotFoundException e) {
             throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
         } catch (IOException e) {
             throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
+        } catch (MetaborgException e) {
+            throw new SkipException("Exception in build system! Skipping.", e);
         }
     }
 
