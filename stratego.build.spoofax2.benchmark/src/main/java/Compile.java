@@ -12,7 +12,7 @@ public class Compile {
 
     Path p = Paths.get("src", "main", "resources");
 
-    private int optimisationLevel = 2;
+    private final static int optimisationLevel = 2;
 
     public Compile(String filename) {
         this.filename = filename;
@@ -37,11 +37,11 @@ public class Compile {
     }
 
     private void loadProgram() throws IOException {
-        Arguments str2Args = new Arguments();
-        str2Args.add("-O", optimisationLevel);
-        str2Args.add("--statistics", 1);
-        str2Args.add("--verbose", 10);
+        Arguments args = new Arguments();
+        args.add("-O", optimisationLevel);
+        args.add("--statistics", 1);
+        args.add("--verbose", 10);
 
-        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", str2Args);
+        program = new Stratego2Program(p.resolve(filename), "2.6.0-SNAPSHOT", args);
     }
 }

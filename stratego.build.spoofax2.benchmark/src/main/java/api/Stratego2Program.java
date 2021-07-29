@@ -58,28 +58,21 @@ public class Stratego2Program {
     private final String baseName;
     private final Path sourcePath;
     private final String metaborgVersion;
-    private final Arguments str2Args = new Arguments();
+    private final Arguments args = new Arguments();
     private final boolean output;
 
     private CompileOutput compiledProgram = null;
     private boolean javaCompilationResult = false;
     private LanguageIdentifier languageIdentifier;
 
-    @SuppressWarnings("unused")
-    public Stratego2Program(Path sourcePath, String metaborgVersion) throws IOException {
-        this(sourcePath, metaborgVersion, new Arguments());
+    public Stratego2Program(Path sourcePath, String metaborgVersion, Arguments args) throws IOException {
+        this(sourcePath, metaborgVersion, args, false);
     }
 
-    @SuppressWarnings("unused")
-    public Stratego2Program(Path sourcePath, String metaborgVersion, Arguments str2Args) throws IOException {
-        this(sourcePath, metaborgVersion, str2Args, false);
-    }
-
-    @SuppressWarnings("unused")
-    public Stratego2Program(@NotNull Path sourcePath, @NotNull String metaborgVersion, Arguments str2Args, boolean output) throws IOException {
+    public Stratego2Program(@NotNull Path sourcePath, @NotNull String metaborgVersion, Arguments args, boolean output) throws IOException {
         this.sourcePath = sourcePath;
         this.metaborgVersion = metaborgVersion;
-        this.str2Args.addAll(str2Args);
+        this.args.addAll(args);
         this.output = output;
 
         File sourceFile = sourcePath.toFile();
@@ -102,7 +95,7 @@ public class Stratego2Program {
     }
 
     private Iterable<? extends File> javaFiles() {
-        assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessfull compilation!";
+        assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessful compilation!";
 
         final HashSet<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
@@ -205,11 +198,11 @@ public class Stratego2Program {
             PathUtils.delete(baseDir);
         } catch (IOException e) {
             System.err.println("Some files could not be deleted:\n" + e);
-        } catch (NullPointerException e) {}
+        } catch (NullPointerException ignored) {}
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
-        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, str2Args, metaborgVersion, languageIdentifier);
+        compiledProgram = str2(sourcePath, baseName, javaPackageName, javaDir.toPath().resolve(javaPackageName).toFile(), false, linkedLibraries, true, args, metaborgVersion, languageIdentifier);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
 
         return compiledProgram;
