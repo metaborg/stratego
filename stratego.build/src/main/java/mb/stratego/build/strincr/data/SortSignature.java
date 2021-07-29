@@ -34,88 +34,61 @@ public class SortSignature extends StrategoTuple {
         this.noArgs = noArgs.intValue();
     }
 
-    // TODO
-    public static @Nullable SortSignature fromTerm(IStrategoTerm consDef) {
-//        if(!TermUtils.isAppl(consDef)) {
-//            return null;
-//        }
-//        final IStrategoString name;
-//        switch(TermUtils.toAppl(consDef).getName()) {
-//            case "OpDeclQ":
-//                // fall-through
-//            case "ExtOpDeclQ":
-//                // fall-through
-//                final String escapedNameString = StringUtils
-//                    .escape(TermUtils.toStringAt(consDef, 0).stringValue());
-//                name = new StrategoString(escapedNameString, AbstractTermFactory.EMPTY_LIST);
-//                AbstractTermFactory.staticCopyAttachments(consDef.getSubterm(0), name);
-//                break;
-//            case "OpDecl":
-//                // fall-through
-//            case "ExtOpDecl":
-//                name = TermUtils.toStringAt(consDef, 0);
-//                break;
-//            case "OpDeclInj":
-//                // fall-through
-//            case "ExtOpDeclInj":
-//                // fall-through
-//            default:
-//                return null;
-//        }
-//
-//        final IStrategoAppl type = TermUtils.toApplAt(consDef, 1);
-//        final IStrategoInt arity;
-//
-//        switch(type.getName()) {
-//            case "ConstType":
-//                arity = B.integer(0);
-//                break;
-//            case "FunType":
-//                arity = B.integer(TermUtils.toListAt(type, 0).size());
-//                break;
-//            default:
-//                return null;
-//        }
-//
-//        return new SortSignature(name, arity);
-        return null;
+    public static @Nullable SortSignature fromTerm(IStrategoTerm sortDef) {
+        if(!TermUtils.isAppl(sortDef)) {
+            return null;
+        }
+        final IStrategoString name;
+        final IStrategoInt arity;
+        switch(TermUtils.toAppl(sortDef).getName()) {
+            case "SortNoArgs":
+                name = TermUtils.toStringAt(sortDef, 0);
+                arity = B.integer(0);
+                break;
+            case "Sort":
+            case "ExtSort":
+                name = TermUtils.toStringAt(sortDef, 0);
+
+                if(TermUtils.isListAt(sortDef, 1)) {
+                    arity = B.integer(TermUtils.toListAt(sortDef, 1).size());
+                } else  {
+                    return null;
+                }
+                break;
+            default:
+                return null;
+        }
+
+        return new SortSignature(name, arity);
     }
 
-    // TODO
     public IStrategoTerm toTerm(ITermFactory tf) {
-//        final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
-//        final IStrategoTerm opType;
-//        if(noArgs == 0) {
-//            opType = dynT;
-//        } else {
-//            opType = tf.makeAppl("FunType", tf.makeList(Collections.nCopies(noArgs, dynT)), dynT);
-//        }
-//        return tf.makeAppl("OpDecl", opType);
-        return null;
+        final IStrategoTerm star = tf.makeAppl("Star");
+        final IStrategoTerm sortDef;
+        if(noArgs == 0) {
+            sortDef = tf.makeAppl("Sort", tf.makeString(name));
+        } else {
+            sortDef = tf.makeAppl("Sort", tf.makeString(name), tf.makeList(Collections.nCopies(noArgs, star)));
+        }
+        return sortDef;
     }
 
-    // TODO
-    public @Nullable static Boolean isExternal(IStrategoTerm consDef) {
-//        if(!TermUtils.isAppl(consDef)) {
-//            return null;
-//        }
-//        boolean isExternal = true;
-//        switch(TermUtils.toAppl(consDef).getName()) {
-//            case "OpDecl":
-//            case "OpDeclQ":
-//            case "OpDeclInj":
-//                isExternal = false;
-//                // fall-through
-//            case "ExtOpDecl":
-//            case "ExtOpDeclQ":
-//            case "ExtOpDeclInj":
-//                // fall-through
-//                break;
-//            default:
-//                return null;
-//        }
-//
-//        return isExternal;
-        return null;
+    public @Nullable static Boolean isExternal(IStrategoTerm sortDef) {
+        if(!TermUtils.isAppl(sortDef)) {
+            return null;
+        }
+        boolean isExternal = true;
+        switch(TermUtils.toAppl(sortDef).getName()) {
+            case "SortNoArgs":
+            case "Sort":
+                isExternal = false;
+                // fall-through
+            case "ExtSort":
+                break;
+            default:
+                return null;
+        }
+
+        return isExternal;
     }
 }

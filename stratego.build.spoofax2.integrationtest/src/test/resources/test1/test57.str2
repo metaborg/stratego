@@ -2,6 +2,8 @@ module test57
 imports libstratego-lib
 
 signature
+  sorts
+    Dec Exp Seq(a) Int List(a)
    constructors
      Let : List(Dec) * List(Exp) -> Exp
      Seq : Seq(Exp) -> Exp

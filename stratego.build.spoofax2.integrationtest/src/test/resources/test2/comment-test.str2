@@ -3,7 +3,7 @@
 module bol-syntax
 signature
   sorts
-    BOLLambda BOLBndVar BOLVar
+    BOLLambda BOLBndVar BOLVar BOLExp List(a)
   constructors
       BOL_Lambda : BOLVar * List(BOLBndVar) * BOLExp -> BOLLambda
 strategies

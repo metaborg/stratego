@@ -2,6 +2,8 @@ module as-pattern
 imports libstratego-lib
 
 signature
+  sorts
+    S
   constructors
     A : S
     B : S

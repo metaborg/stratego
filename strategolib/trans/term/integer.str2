@@ -310,6 +310,8 @@ strategies
       end
 
 signature
+  sorts
+    IntI
   constructors
     Infinite : IntI
              : int -> IntI

@@ -20,6 +20,9 @@ strategies
   not-truly-type-preserving = add-one
   not-truly-type-preserving: e@<add-one> -> <id>
 
+  type-preserving :: TP
+  type-preserving = is(Expr); add-one
+
 strategies
 
  topdown( TP ) :: TP

@@ -32,6 +32,7 @@ public class GlobalData implements Serializable {
         overlayIndex;
     public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
     public final LinkedHashSet<SortSignature> nonExternalSorts;
+    public final LinkedHashSet<SortSignature> externalSorts;
     public final LinkedHashSet<ConstructorData> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
@@ -45,11 +46,13 @@ public class GlobalData implements Serializable {
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        ArrayList<Stratego2LibInfo> importedStr2LibProjects, LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        ArrayList<Stratego2LibInfo> importedStr2LibProjects, LinkedHashMap<ConstructorSignature,
+        LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
-        LinkedHashSet<SortSignature> nonExternalSorts, LinkedHashSet<ConstructorData> nonExternalConstructors,
+        LinkedHashSet<SortSignature> nonExternalSorts, LinkedHashSet<SortSignature> externalSorts,
+        LinkedHashSet<ConstructorData> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
@@ -62,6 +65,7 @@ public class GlobalData implements Serializable {
         this.overlayIndex = overlayIndex;
         this.strategyTypes = strategyTypes;
         this.nonExternalSorts = nonExternalSorts;
+        this.externalSorts = externalSorts;
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.internalStrategies = internalStrategies;
@@ -130,6 +134,8 @@ public class GlobalData implements Serializable {
             return false;
         if(!nonExternalSorts.equals(that.nonExternalSorts))
             return false;
+        if(!externalSorts.equals(that.externalSorts))
+            return false;
         if(!nonExternalConstructors.equals(that.nonExternalConstructors))
             return false;
         if(!externalConstructors.equals(that.externalConstructors))
@@ -153,6 +159,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + overlayIndex.hashCode();
         result = 31 * result + strategyTypes.hashCode();
         result = 31 * result + nonExternalSorts.hashCode();
+        result = 31 * result + externalSorts.hashCode();
         result = 31 * result + nonExternalConstructors.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + internalStrategies.hashCode();

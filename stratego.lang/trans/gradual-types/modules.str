@@ -31,9 +31,10 @@ insert-casts-top-level: ast1 -> (ast2, errs, warns, notes)
   ; injection-closure := <imrel-transitive-closure> injs
   ; lub-map := <lub-map> injection-closure
   ; strats := <extract-strategy-types(|<imset-new>, <imset-new>)> ast1
+  ; srts := <imset-new> // todo, extract
   ; let
       process-defs = map(
-          insertCasts(|strats, constrs, injection-closure, aliases, lub-map)
+          insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map)
 //        ; where(try(
 //            not(?DefHasType(_, _))
 //          ; ![Strategies([<id>])]

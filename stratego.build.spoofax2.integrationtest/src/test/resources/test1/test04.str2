@@ -1,5 +1,7 @@
 module test04
 signature
+  sorts
+    List(a)
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)

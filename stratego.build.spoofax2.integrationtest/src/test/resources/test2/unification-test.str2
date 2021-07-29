@@ -9,6 +9,8 @@ strategies
     )
 
 signature
+  sorts
+    Exp Type String
   constructors
     Typed  : Exp * Type -> Exp
     Var    : String -> Exp

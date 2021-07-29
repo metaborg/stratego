@@ -78,6 +78,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections =
             new LinkedHashMap<>();
+        final LinkedHashSet<SortSignature> externalSorts = new LinkedHashSet<>();
         final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
@@ -101,6 +102,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             if(index.languageIdentifier != null) {
                 importedStr2LibProjects.add(index.languageIdentifier);
             }
+            nonExternalSorts.addAll(index.sorts);
+            externalSorts.addAll(index.externalSorts);
             nonExternalConstructors.addAll(index.nonOverlayConstructors);
             externalConstructors.addAll(index.externalConstructors);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : index.injections
@@ -151,9 +154,10 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
-        return new GlobalData(allModuleIdentifiers, importedStr2LibProjects, overlayIndex, nonExternalInjections,
-            strategyIndex, strategyTypes, nonExternalSorts, nonExternalConstructors, externalConstructors, internalStrategies,
-            externalStrategies, dynamicRules, overlayData, messages, lastModified);
+        return new GlobalData(allModuleIdentifiers, importedStr2LibProjects, overlayIndex,
+            nonExternalInjections, strategyIndex, strategyTypes, nonExternalSorts, externalSorts,
+            nonExternalConstructors, externalConstructors, internalStrategies, externalStrategies,
+            dynamicRules, overlayData, messages, lastModified);
     }
 
     static FrontInput getFrontInput(ResolveInput input,

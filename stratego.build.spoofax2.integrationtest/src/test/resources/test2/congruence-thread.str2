@@ -11,6 +11,10 @@ strategies
     )
 
 signature
+  sorts
+    Exp
+    List(a)
+    Nat
   constructors
     If   : Exp * Exp * Exp -> Exp
     Id   : Exp
@@ -42,6 +46,8 @@ strategies
 */
 
 signature
+  sorts
+    String Symbol Box
   constructors
     sort : String -> Symbol
     lit  : String -> Symbol

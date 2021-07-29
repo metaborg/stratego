@@ -1,5 +1,8 @@
 module test06
 signature
+  sorts
+    List(a)
+    Nat
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)

@@ -157,6 +157,8 @@ strategies
     ?(path, permissions); prim("SSL_access", path, permissions)
 
 signature
+  sorts
+    AccessPermission
   constructors
     F_OK: AccessPermission
     R_OK: AccessPermission
@@ -259,5 +261,7 @@ strategies
     prim("SSL_pipe")
 
 signature
+  sorts
+    Pipe
   constructors
     Pipe       : int * int -> Pipe

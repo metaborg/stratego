@@ -1,6 +1,8 @@
 module test22
 imports libstratego-lib
 signature
+  sorts
+    String Fnord
   constructors
     Foo: String -> Fnord
     Bar: String * String -> Fnord

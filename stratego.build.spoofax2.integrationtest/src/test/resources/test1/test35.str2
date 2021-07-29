@@ -1,6 +1,8 @@
 module test35
 imports collection/list/cons collection/tuple/cons
 signature
+  sorts
+    ImplDep Stream String FileLoc
   constructors
     Stream    : ImplDep -> Stream
 

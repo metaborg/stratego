@@ -1,6 +1,8 @@
 module test10
 imports collection/list/cons
 signature
+  sorts
+    Nat
   constructors
     Zero  : Nat
     Succ  : Nat -> Nat

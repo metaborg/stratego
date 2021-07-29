@@ -32,7 +32,7 @@ public class DesugarType {
         return result == null ? term : result;
     }
 
-    public static @Nullable IStrategoTerm  desugarType(ITermFactory tf, IStrategoTerm term) {
+    public static @Nullable IStrategoTerm desugarType(ITermFactory tf, IStrategoTerm term) {
         if(!TermUtils.isAppl(term)) {
             return null;
         }

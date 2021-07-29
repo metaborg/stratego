@@ -1,6 +1,7 @@
 module strategy/general/option
 signature
-  sorts Option(*)
+  sorts
+    Option(*)
   constructors
     None : Option(a)
     Some : a -> Option(a)

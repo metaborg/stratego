@@ -17,6 +17,7 @@ import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -84,6 +85,8 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
             }
         }
 
+        final LinkedHashSet<SortSignature> sorts = new LinkedHashSet<>(moduleData.sortData);
+        sorts.addAll(moduleData.externalSortData);
 
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
             new LinkedHashMap<>(moduleData.injections);
@@ -91,7 +94,7 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
             .entrySet()) {
             Relation.getOrInitialize(injections, e.getKey(), ArrayList::new).addAll(e.getValue());
         }
-        return new TypesLookup(strategyTypes, constructorTypes, injections,
+        return new TypesLookup(strategyTypes, constructorTypes, sorts, injections,
             moduleData.imports, moduleData.lastModified);
     }
 

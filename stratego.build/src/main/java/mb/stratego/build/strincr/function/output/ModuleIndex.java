@@ -28,9 +28,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final @Nullable Stratego2LibInfo languageIdentifier;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sorts;
+    public final LinkedHashSet<SortSignature> externalSorts;
     public final LinkedHashSet<ConstructorData> nonOverlayConstructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
-    public final LinkedHashSet<SortSignature> externalSorts;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategyFrontData> strategies;
     public final LinkedHashSet<StrategySignature> internalStrategies;
@@ -41,10 +41,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final long lastModified;
 
     public ModuleIndex(@Nullable Stratego2LibInfo languageIdentifier, ArrayList<IModuleImportService.ModuleIdentifier> imports,
-        LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> nonOverlayConstructors,
-        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        LinkedHashSet<SortSignature> externalSorts,
-        LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<SortSignature> sorts, LinkedHashSet<SortSignature> externalSorts,
+        LinkedHashSet<ConstructorData> nonOverlayConstructors,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections, LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategyFrontData> strategies,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
@@ -54,9 +53,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.languageIdentifier = languageIdentifier;
         this.imports = imports;
         this.sorts = sorts;
+        this.externalSorts = externalSorts;
         this.nonOverlayConstructors = nonOverlayConstructors;
         this.injections = injections;
-        this.externalSorts = externalSorts;
         this.externalConstructors = externalConstructors;
         this.strategies = strategies;
         this.internalStrategies = internalStrategies;
@@ -83,11 +82,11 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!sorts.equals(that.sorts))
             return false;
+        if(!externalSorts.equals(that.externalSorts))
+            return false;
         if(!nonOverlayConstructors.equals(that.nonOverlayConstructors))
             return false;
         if(!injections.equals(that.injections))
-            return false;
-        if(!externalSorts.equals(that.externalSorts))
             return false;
         if(!externalConstructors.equals(that.externalConstructors))
             return false;
@@ -108,9 +107,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
         int result = languageIdentifier != null ? languageIdentifier.hashCode() : 0;
         result = 31 * result + imports.hashCode();
         result = 31 * result + sorts.hashCode();
+        result = 31 * result + externalSorts.hashCode();
         result = 31 * result + nonOverlayConstructors.hashCode();
         result = 31 * result + injections.hashCode();
-        result = 31 * result + externalSorts.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + strategies.hashCode();
         result = 31 * result + internalStrategies.hashCode();
@@ -123,10 +122,10 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public String toString() {
-        return "ModuleIndex(" + imports + ", " + sorts + ", " + nonOverlayConstructors + ", " + injections
-            + ", " + externalSorts + ", " + externalConstructors + ", " + strategies + ", "
-            + internalStrategies + ", " + externalStrategies + ", " + dynamicRules + ", "
-            + overlayData + ", " + messages + ", " + lastModified + ')';
+        return "ModuleIndex(" + imports + ", " + sorts + ", " + externalSorts + ", "
+            + nonOverlayConstructors + ", " + injections + ", " + externalConstructors + ", "
+            + strategies + ", " + internalStrategies + ", " + externalStrategies + ", "
+            + dynamicRules + ", " + overlayData + ", " + messages + ", " + lastModified + ')';
     }
 
     @Override public long lastModified() {

@@ -7,7 +7,7 @@ module occan
 imports libstratego-lib
 
 signature
-  sorts Exp
+  sorts Exp String Var Alt List(a)
   constructors
          : String -> Var
     Var  : Var -> Exp

@@ -650,7 +650,7 @@ strategies
 insertCasts-StMatchTerm-(|e1, st1):
   ta@TypeAscription(trm1, t1) -> (trm3, st4)
   with
-    t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
+    t2 := <desugar-Type;sort-check-Type(|e1);instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
   ; if ErrT() := <current-type> st2
@@ -669,7 +669,7 @@ insertCasts-StMatchTerm-(|e1, st1):
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@TypeAscription(trm2, t1) -> (trm3, st4)
   with
-    t2 := <desugar-Type;instantiate-type-vars(|st1)> t1
+    t2 := <desugar-Type;sort-check-Type(|e1);instantiate-type-vars(|st1)> t1
   ; t3 := <current-type> st1
   ; (_, st2) := <computeCoercion(|trm1, st1)> (t3, t2)
   ; (trm3, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st2)> trm2

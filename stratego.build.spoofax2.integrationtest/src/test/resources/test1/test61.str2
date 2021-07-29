@@ -11,5 +11,7 @@ strategies
     ; ?Cons()
 
 signature
+  sorts
+    Term
   constructors
     Cons : Term

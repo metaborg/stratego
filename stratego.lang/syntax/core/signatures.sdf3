@@ -15,6 +15,8 @@ context-free syntax
   SortDef.Sort = [[UCID]([{Kind ", "}*])]
   SortDef.Sort = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
 
+  SortDef.ExtSort = [external [UCID]([{Kind ", "}*])]
+
 context-free sorts Sdecl
 context-free syntax
 

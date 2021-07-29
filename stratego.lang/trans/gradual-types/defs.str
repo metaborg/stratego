@@ -46,7 +46,10 @@ insertCasts-Def(|e1, st1) = insertCasts-StrategyDef(|e1, st1)
 
 insertCasts-Def(|e1, st1) = insertCasts-RuleDef(|e1, st1)
 insertCasts-Def-(|e1, st1):
-  d -> (<desugar-DefHasType> d, st1)
+  d -> (<desugar-DefHasType;insertCasts-DefHasType-(|e1)> d, st1)
+
+insertCasts-DefHasType-(|e1): DefHasType(_, funttype) -> <id>
+  with <sort-check-FunTType(|e1)> funttype
 
 strategies
 
@@ -160,13 +163,15 @@ insertCasts-StrategyDef-(|e1, st1) =
 insertCasts-StrategyDef-(|e1, st1) =
     {name, sargs, targs, body: (ExtTypedDefInl(name, sargs, targs, t, body) -> SDefT(name, sargs, targs, body))}
   ; insertCasts-StrategyDef(|e1, st1)
+  ; with(<sort-check-FunTType(|e1)> t)
   ; (\SDefT(name, sargs, targs, body) -> ExtTypedDefInl(name, sargs, targs, t, body)\, id)
 
 insertCasts-StrategyDef-(|e1, st1):
   d@ExtSDef(_, _, _) -> (d, st1)
 
 insertCasts-StrategyDef-(|e1, st1):
-  d@ExtTypedDef(_, _) -> (d, st1)
+  d@ExtTypedDef(_, funttype) -> (d, st1)
+  with <sort-check-FunTType(|e1)> funttype
 
 strategies // RuleDef
 

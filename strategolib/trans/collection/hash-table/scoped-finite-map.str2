@@ -19,6 +19,8 @@ imports
   strategy/conditional
 
 signature
+  sorts
+    Key
   constructors
     Scopes : Key
 

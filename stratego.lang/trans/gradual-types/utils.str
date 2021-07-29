@@ -312,7 +312,7 @@ desugar-DefHasType = ?AnnoDef(_, <desugar-DefHasType>)
 desugar-DefHasType:
   d1@DefHasTypeNoArgs(n, t) -> d2
   where
-    t1 := <otf(!<desugar-SSimpleFunType> t)> d1
+    t1 := <otf(!FunTType([], [], <desugar-SSimpleFunType> t))> d1
   ; d2 := <otf(!DefHasType(n, t1))> d1
 desugar-DefHasType:
   d1@DefHasType(n, s*, t) -> d2

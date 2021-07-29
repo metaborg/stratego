@@ -74,7 +74,8 @@ imports
   term/string
 
 signature
-  sorts Option
+  sorts
+    Option
   constructors
     Program   : string -> Option
     Undefined : string -> Option

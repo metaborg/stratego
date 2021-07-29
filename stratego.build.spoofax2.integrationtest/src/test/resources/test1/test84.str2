@@ -1,6 +1,9 @@
 module test84
 imports collection/list/cons collection/tuple/cons
 signature
+  sorts
+    List(a)
+    Call
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)

@@ -141,5 +141,7 @@ rules
     QNewInstance(p_35, q_35, r_35, Not(t_35)) -> QNewInstance(p_35, q_35, r_35, Parenthetical(Not(t_35)))
 
 signature
+  sorts
+    Unknown
   constructors
     Parenthetical : Unknown -> Unknown

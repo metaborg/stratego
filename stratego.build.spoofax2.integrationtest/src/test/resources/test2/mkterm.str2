@@ -1,6 +1,8 @@
 module mkterm
 imports libstratego-lib
 signature
+  sorts
+    Term
   constructors
     F : Term * Term * Term -> Term
     X : Term

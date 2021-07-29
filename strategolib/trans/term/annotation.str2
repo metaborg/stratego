@@ -11,6 +11,7 @@ imports
   strategy/traversal/simple
 
 signature
+  sorts
   constructors
     Anno : a * b -> a
 

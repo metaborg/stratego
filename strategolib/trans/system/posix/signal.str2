@@ -12,6 +12,8 @@ imports
   collection/list/common
 
 signature
+  sorts
+    Signal
   constructors
     Signal:        string * int * string -> Signal
     UnknownSignal: int -> Signal

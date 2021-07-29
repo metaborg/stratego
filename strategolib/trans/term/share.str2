@@ -10,6 +10,7 @@ module term/share
 imports
   collection/list/set
   collection/list/common
+  collection/list/cons
   collection/tuple/common
   strategy/iteration
   strategy/general/unification
@@ -69,6 +70,8 @@ strategies
                    MkCons)
 
 signature
+  sorts
+    Term
   constructors
     GraphLet : List(int * Term) * Term -> Term
 
