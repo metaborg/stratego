@@ -51,8 +51,8 @@ public class Stratego2Program {
     private static final String javaPackageName = "benchmark";
 
     private final Path baseDir;
-    private final File javaDir;
-    private final File classDir;
+    public final File javaDir;
+    public final File classDir;
     private final Path pieDir;
 
     private final String baseName;
