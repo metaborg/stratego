@@ -72,6 +72,8 @@ public class Compiler {
     private final ArrayList<ResourcePath> strjIncludeDirs;
     private final ResourcePath projectPath;
 
+    long timer;
+
     public Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
         this(sourcePath, false, (ArrayList<IModuleImportService.ModuleIdentifier>) Collections.EMPTY_LIST, true, metaborgVersion, false, args);
     }
@@ -110,6 +112,7 @@ public class Compiler {
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
+        System.out.println("Dropping PIE store... ");
         pie.dropStore();
 
         str2(args);
@@ -141,11 +144,15 @@ public class Compiler {
         final FSPath serializingStorePath =
                 new FSPath(pieDir.resolve("pie-store"));
 
+        System.out.print("Discovering Spoofax languages... ");
+        timer = System.currentTimeMillis();
         // load Stratego language for later discovery during compilation (parsing in particular)
         spoofax.languageDiscoveryService
                 .languageFromArchive(spoofax.resolve(getStrategoPath(metaborgVersion).toFile()));
         spoofax.languageDiscoveryService
                 .languageFromArchive(spoofax.resolve(getStratego2Path(metaborgVersion).toFile()));
+
+        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
@@ -154,7 +161,10 @@ public class Compiler {
                         resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
                         InMemoryStore.class));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
+        System.out.print("Building PIE...");
+        timer = System.currentTimeMillis();
         pie = pieBuilder.build();
+        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         if (!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
             linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
@@ -162,17 +172,35 @@ public class Compiler {
     }
 
     private void str2(Arguments args) throws MetaborgException {
+        System.out.print("Instantiating compile input...");
+        timer = System.currentTimeMillis();
         CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
                         new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, stratego2LibInfo);
+        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
+        System.out.print("Creating compile task...");
+        timer = System.currentTimeMillis();
         Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
+        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
+        System.out.print("Generating new session...");
+        timer = System.currentTimeMillis();
         try (MixedSession session = pie.newSession()) {
+            System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
+            System.out.println("Requiring task...");
+            timer = System.currentTimeMillis();
             compiledProgram = Objects.requireNonNull(session.require(compileTask));
+            System.out.printf("Task finished in %d ms%n", System.currentTimeMillis() - timer);
+
+            int numOfJavaFiles = javaFiles().size();
+            assert numOfJavaFiles > 0;
+
+            System.out.println("Number of generated Java files: " + numOfJavaFiles);
+
             } catch (ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
                         e);
@@ -184,13 +212,14 @@ public class Compiler {
 
     public void cleanup() {
         try {
+            System.out.println("Deleting intermediate results...");
             PathUtils.delete(baseDir);
         } catch (IOException e) {
             System.err.println("Some files could not be deleted:\n" + e);
         } catch (NullPointerException ignored) {}
     }
 
-    private Iterable<? extends File> javaFiles() {
+    private Collection<? extends File> javaFiles() {
         assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessful compilation!";
 
         final HashSet<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
