@@ -14,8 +14,8 @@ imports
   signatures/core/terms-sig
 
 overlays
-  ExplodeNoAnno(t, anno_cons) = Explode(NoAnno(t), anno_cons)
-  NoAnno(t) = Anno(t, Wld())
+//  ExplodeNoAnno(t, anno_cons) = Explode(NoAnno(t), anno_cons)
+//  NoAnno(t) = Anno(t, Wld())
 
 
 strategies
@@ -30,8 +30,6 @@ strategies
   non-default-row = ?Row([<non-default-head> | _], _, _, _) // by definition
   non-default-head =
     ?Op(_, _)
-  + ?Explode(_, _)
-  + ?Var(_) // Could be a default row, but needs an assignment first.
   + ?Int(_)
   + ?Str(_)
   + ?Real(_)
@@ -94,41 +92,41 @@ strategies
   where
     <not(is-ListOp + is-TupleOp)> c
 
-  constructor:
-    c@ExplodeNoAnno(Str(""), _) ->
-    (TupleC(<arity; int-to-string> c), TupleT())
-
-  constructor:
-    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) ->
-    (FunC("Nil", "0"), LisT())
-
-  constructor:
-    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) ->
-    (FunC("Cons", "2"), LisT())
-
-  constructor:
-    c@ExplodeNoAnno(s@Str(_), _) ->
-    (StrC(x), StringT())
-  where
-    <arity> c => 0
-  ; s'@Str(x) := <DesugarOnce> s
-  ; <not(equal)> (s, s')
-
-  constructor:
-    c@ExplodeNoAnno(Int(x), _) ->
-    (IntC(x), IntT())
-  where
-    <arity> c => 0
-
-  constructor:
-    c@ExplodeNoAnno(Real(x), _) ->
-    (RealC(x), RealT())
-  where
-    <arity> c => 0
-
-  constructor:
-    c@ExplodeNoAnno(Str(f), _) ->
-    (FunC(f, <arity; int-to-string> c), ApplT())
+//  constructor:
+//    c@ExplodeNoAnno(Str(""), _) ->
+//    (TupleC(<arity; int-to-string> c), TupleT())
+//
+//  constructor:
+//    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) ->
+//    (FunC("Nil", "0"), LisT())
+//
+//  constructor:
+//    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) ->
+//    (FunC("Cons", "2"), LisT())
+//
+//  constructor:
+//    c@ExplodeNoAnno(s@Str(_), _) ->
+//    (StrC(x), StringT())
+//  where
+//    <arity> c => 0
+//  ; s'@Str(x) := <DesugarOnce> s
+//  ; <not(equal)> (s, s')
+//
+//  constructor:
+//    c@ExplodeNoAnno(Int(x), _) ->
+//    (IntC(x), IntT())
+//  where
+//    <arity> c => 0
+//
+//  constructor:
+//    c@ExplodeNoAnno(Real(x), _) ->
+//    (RealC(x), RealT())
+//  where
+//    <arity> c => 0
+//
+//  constructor:
+//    c@ExplodeNoAnno(Str(f), _) ->
+//    (FunC(f, <arity; int-to-string> c), ApplT())
 
   constructor:
     Str(s) ->
@@ -167,35 +165,35 @@ strategies
   ; a := <string-to-int> x
   ; <eq> (a, <arity> c)
 
-  specialize-pats(|TupleC(x)):
-    [c@ExplodeNoAnno(Str(""), qs*) | ps*] ->
-    [qs'*, ps*]
-  with
-    a := <string-to-int> x
-  ; qs'* := <implode-anno-list> qs*
-  where
-    <eq> (a, <length> qs'*)
-  
-  specialize-pats(|FunC(f, a)):
-    [c@ExplodeNoAnno(Op("Nil", []), NoAnno(Op(f, qs*))) | ps*] ->
-    [qs*, ps*]
-  where
-    <arity; int-to-string> c => a
-
-  specialize-pats(|c):
-    [<?ExplodeNoAnno(l, _)> | ps*] ->
-    ps*
-  where
-    c := <constructor; Fst; is-literal-cons> l
-  
-  specialize-pats(|FunC(f, x)):
-    [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] ->
-    [qs*, ps*]
-  with
-    a := <string-to-int> x
-  ; qs* := <implode-anno-list> anno_cons
-  where
-    <eq> (a, <length> qs*)
+//  specialize-pats(|TupleC(x)):
+//    [c@ExplodeNoAnno(Str(""), qs*) | ps*] ->
+//    [qs'*, ps*]
+//  with
+//    a := <string-to-int> x
+//  ; qs'* := <implode-anno-list> qs*
+//  where
+//    <eq> (a, <length> qs'*)
+//  
+//  specialize-pats(|FunC(f, a)):
+//    [c@ExplodeNoAnno(Op("Nil", []), NoAnno(Op(f, qs*))) | ps*] ->
+//    [qs*, ps*]
+//  where
+//    <arity; int-to-string> c => a
+//
+//  specialize-pats(|c):
+//    [<?ExplodeNoAnno(l, _)> | ps*] ->
+//    ps*
+//  where
+//    c := <constructor; Fst; is-literal-cons> l
+//  
+//  specialize-pats(|FunC(f, x)):
+//    [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] ->
+//    [qs*, ps*]
+//  with
+//    a := <string-to-int> x
+//  ; qs* := <implode-anno-list> anno_cons
+//  where
+//    <eq> (a, <length> qs*)
 
   specialize-pats(|c):
     [p | ps*] ->
@@ -236,23 +234,23 @@ strategies
 
   // Helpers
   internal arity = ?Op(_, <length>)
-  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> 0
-  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) -> 2
+//  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> 0
+//  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) -> 2
 
-  internal arity =
-    ?ExplodeNoAnno(f, <implode-anno-list; length>)
-  ; where(not(!f => Op(_, _)))
+//  internal arity =
+//    ?ExplodeNoAnno(f, <implode-anno-list; length>)
+//  ; where(not(!f => Op(_, _)))
 
   internal cons-arity: AnnoC() -> 2
   internal cons-arity = ?FunC(_, <string-to-int>)
   internal cons-arity = ?TupleC(<string-to-int>)
   internal cons-arity = is-literal-cons; !0
 
-  internal implode-anno-list: NoAnno(Op("Cons", [e, tail])) -> [e | <implode-anno-list> tail]
-  internal implode-anno-list: NoAnno(Op("Nil", [])) -> []
+//  internal implode-anno-list: NoAnno(Op("Cons", [e, tail])) -> [e | <implode-anno-list> tail]
+//  internal implode-anno-list: NoAnno(Op("Nil", [])) -> []
 
   internal prepend(|t, n) = repeat(![t | <id>] | n)
 
-  internal exploded-list-length = implode-anno-list; length
+//  internal exploded-list-length = implode-anno-list; length
 
-  internal ensure-list = is-list <+ MkSingleton
+//  internal ensure-list = is-list <+ MkSingleton

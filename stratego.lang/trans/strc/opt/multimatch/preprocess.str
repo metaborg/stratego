@@ -5,14 +5,27 @@ imports
 
   signatures/core/terms-sig
 
+  libstratego-lib
+
 strategies
-  preprocess =
-    Var-to-AsWld
+  Explode2Guard:
+    t -> (t', s*)
+  with
+    <thread-alltd(Explode2Guard')> (t, []) => (t', s*)
+
+  Explode2Guard':
+    (t1@Anno(Explode(_, _), Wld()), s*) ->
+    (t2, [s | s*])
+  where
+    x := <tnewvar> "expl_"
+  ; t2 := Var(x)
+  ; s := Where(Assign(t1, t2))
+  // TODO Instead of many where-clauses for each guard, put a where clause around the 'alias' guard later.
 
 strategies
   Var-to-AsWld =
     // TODO Possibly need to handle (t1, t2)@(t3, t4) and more complex as-patterns.
     As(id, Var-to-AsWld)
- <+ Explode(id, Var-to-AsWld)
+// <+ Explode(id, Var-to-AsWld)
  <+ \ Var(x) -> As(Var(x), Wld()) \
  <+ all(try(Var-to-AsWld))

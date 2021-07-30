@@ -2,6 +2,8 @@ module exploded
 imports libstratego-lib
 
 strategies
+//  s1 = {a: ?a; where(x#(xs) := a)}
+
   s( | ) =
     match sequential
       case | "Foo"#([]): !1 // Foo
@@ -10,6 +12,15 @@ strategies
       case | 1#([]): !4
       case | 5.4#([]): !5
       case foo | foo#([1, "x"]): !6
+      case x, xs | x#(xs): !13
+      case foo | _ where ?foo#([1, "x"]): id
+      case x, xs | [x#(xs), x#(xs) | _]: id
+//      case x, xs | [p1, p2 | _] where where(x#(xs) := p1); where(x#(xs) := p2): id
+//      case x, xs | [_, _ | _] where where(p1 := current.head); where(p2 := current.tail.head); where(x#(xs) := p1); where(x#(xs) := p2): id
+      
+//      case x | x where !x: ?x // TODO Add as test.
+//      case x | _ where <s> x; where(x := current): id
+      
       case | []#([1, 2, 3]): !7
       case | "Nil"#([]): !8
       case | "Cons"#([1, 2, 3]): !9

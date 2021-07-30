@@ -71,6 +71,7 @@ strategies
     // Split rows at first row not having only wildcard patterns
   ; let
       row2guard = \ Row(_, s_a, s_g, s_rhs) -> Guard(<sequence-strategies> (s_a, s_g), s_rhs) \
+      // TODO Put `where` clause around s_a here
     in
       guard* := <map(row2guard); at-end(![Guard(Id(), <CC> m')])> match_row*
     end

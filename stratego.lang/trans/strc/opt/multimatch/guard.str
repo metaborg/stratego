@@ -21,10 +21,16 @@ strategies
     Row([As(t1, t2) | t*], s1, s2, s3) ->
     Row([t2 | t*], s, s2, s3)
   with
-    <sequence-strategies> (s1, Where(Assign(t1, Path(p)))) => s
+    <sequence-strategies> (Where(Assign(t1, Path(p))), s1) => s
+    // TODO Instead of many where-clauses for each guard, put a where clause around the 'alias' guard later.
 
 strategies
   sequence-strategies = !Seq(<Fst>, <Snd>)
+
+  sequence-strategies: [s] -> s
+
+  sequence-strategies =
+    is-list; foldr(!Id(), sequence-strategies)
 
 strategies
   is-id-guard = ?Id()

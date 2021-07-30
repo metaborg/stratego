@@ -1,6 +1,7 @@
 module multimatch/multimatch2matrix
 
 imports
+  strc/opt/multimatch/guard
   strc/opt/multimatch/matrix
   strc/opt/multimatch/preprocess
 
@@ -17,10 +18,17 @@ strategies
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]
 
-  MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t2], Id(), Id(), s) // just ignore scope?
-    with <preprocess> t1 => t2
-  MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], Id(), s1, s2)
-    with <preprocess> t1 => t2
+  MatchCase2Row: ScopedMatchCase(_, t1, s) -> Row([t3], s_a, Id(), s) // just ignore scope?
+    with
+      <Explode2Guard> t1 => (t2, s*)
+    ; <Var-to-AsWld> t2 => t3
+    ; <sequence-strategies> s* => s_a
+
+  MatchCase2Row: ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t3], s_a, s1, s2)
+    with
+      <Explode2Guard> t1 => (t2, s*)
+    ; <Var-to-AsWld> t2 => t3
+    ; <sequence-strategies> s* => s_a
 
   MatchCase2Vars = ?ScopedMatchCase(<id>, _, _)
   MatchCase2Vars = ?ScopedGuardedMatchCase(<id>, _, _, _)
