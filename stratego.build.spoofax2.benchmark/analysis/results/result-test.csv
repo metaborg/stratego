@@ -1,0 +1,25 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99,9%)","Unit","Param: metaborgVersion","Param: optimisationLevel","Param: problemSize"
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"5,134898","22,761989","s/op",2.6.0-SNAPSHOT,2,10
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"4,130309","6,842533","s/op",2.6.0-SNAPSHOT,2,15
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"4,611272","4,126117","s/op",2.6.0-SNAPSHOT,2,20
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"3,742492","6,632889","s/op",2.6.0-SNAPSHOT,2,22
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"4,365392","23,310988","s/op",2.6.0-SNAPSHOT,3,10
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"3,575125","10,744462","s/op",2.6.0-SNAPSHOT,3,15
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"4,162306","19,518339","s/op",2.6.0-SNAPSHOT,3,20
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"3,916285","8,528323","s/op",2.6.0-SNAPSHOT,3,22
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"5,481347","12,057372","s/op",2.6.0-SNAPSHOT,4,10
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"6,485165","6,794690","s/op",2.6.0-SNAPSHOT,4,15
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"5,954588","10,038915","s/op",2.6.0-SNAPSHOT,4,20
+"benchmark.stratego2.compilation.Benchexpr.compileJava","ss",1,3,"6,867071","15,567942","s/op",2.6.0-SNAPSHOT,4,22
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,234997","4,648518","s/op",2.6.0-SNAPSHOT,2,10
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,489144","10,251034","s/op",2.6.0-SNAPSHOT,2,15
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"3,004146","11,439124","s/op",2.6.0-SNAPSHOT,2,20
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,167582","6,802719","s/op",2.6.0-SNAPSHOT,2,22
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,400026","11,958611","s/op",2.6.0-SNAPSHOT,3,10
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"1,987407","6,460500","s/op",2.6.0-SNAPSHOT,3,15
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,867272","11,126125","s/op",2.6.0-SNAPSHOT,3,20
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,322073","11,019392","s/op",2.6.0-SNAPSHOT,3,22
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"8,795868","10,581175","s/op",2.6.0-SNAPSHOT,4,10
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"5,474585","24,078388","s/op",2.6.0-SNAPSHOT,4,15
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"2,894612","8,838425","s/op",2.6.0-SNAPSHOT,4,20
+"benchmark.stratego2.compilation.Benchexpr.compileStratego","ss",1,3,"8,259599","24,269716","s/op",2.6.0-SNAPSHOT,4,22
