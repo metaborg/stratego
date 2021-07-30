@@ -136,7 +136,7 @@ strategies
 
   constructor:
     Int(i) ->
-    (IntC(i), StringT())
+    (IntC(i), IntT())
 
   constructor:
     Real(r) ->
