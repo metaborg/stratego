@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("JmhInspections")
 @State(Scope.Thread)
+@Fork(jvmArgsPrepend = {"--add-opens=java.base/java.lang=ALL-UNNAMED", "-Xss16M", "-Xms2G", "-Xmx2G"})
 @OutputTimeUnit(TimeUnit.SECONDS)
 public abstract class BaseBenchmark implements Problem {
 
