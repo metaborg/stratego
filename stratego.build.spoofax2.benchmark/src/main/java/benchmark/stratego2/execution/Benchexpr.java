@@ -1,4 +1,4 @@
-package benchmark.stratego2.execution.failing;
+package benchmark.stratego2.execution;
 
 import benchmark.stratego2.problem.BenchexprProblem;
 import benchmark.stratego2.template.benchmark.ExecutionBenchmark;

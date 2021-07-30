@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
 @BenchmarkMode(Mode.SingleShotTime)
+@Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
 public abstract class CompilationBenchmark extends OptimisationBenchmark {
 
     @TearDown(Level.Iteration)
@@ -57,7 +58,7 @@ public abstract class CompilationBenchmark extends OptimisationBenchmark {
 
     @Benchmark
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public final Boolean compileJava() throws MetaborgException, IOException, SkipException {
+    public final Boolean compileStrategoAndJava() throws MetaborgException, IOException, SkipException {
         getProgram().compileStratego();
         return getProgram().compileJava();
     }
