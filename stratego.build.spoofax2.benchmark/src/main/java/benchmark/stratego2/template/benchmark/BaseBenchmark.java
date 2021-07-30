@@ -33,11 +33,15 @@ public abstract class BaseBenchmark implements Problem {
     @Param({"-1"})
     public int problemSize;
 
+//    @Param({"on", "off"})
+//    public String fusion;
+
     @Setup(Level.Trial)
     public final void setup() throws SkipException {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
         args.add("-O", optimisationLevel);
+//        args.add("--fusion", fusion);
         args.add("--statistics", 1);
         args.add("--verbose", 3);
 
