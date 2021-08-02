@@ -147,6 +147,8 @@ computeCoercion-(|subj, st1): (from@IllFormedTermT(_, _), DynT(to)) -> (<otf(!Id
   //      ill-formed term is constructed does get a warning. 
 computeCoercion-(|subj, st1): (from, DynT(Dyn())) -> (<otf(!Id(){from})> subj, st1)
 
+computeCoercion-(|subj, st1): (DynT(Dyn()), t@DynT(to)) -> (<otf(!Id(){t})> subj, st1)
+
 computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
   where
     ((_, to2), st2) := <CanCoerce> ((<unDyn> from, to), st1)
