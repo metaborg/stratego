@@ -6,8 +6,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ import mb.resource.hierarchical.match.PathResourceMatcher;
 import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
 import mb.stratego.build.util.ExistsAndRTreeStamper;
 import mb.stratego.build.util.LastModified;
+import mb.stratego.build.util.Relation;
 
 public class ModuleImportService implements IModuleImportService {
     private final ResourcePathConverter resourcePathConverter;
@@ -122,7 +126,7 @@ public class ModuleImportService implements IModuleImportService {
             }
             case "ImportWildcard": {
                 final String directory = TermUtils.toJavaStringAt(appl, 0);
-                final Set<mb.stratego.build.strincr.ModuleIdentifier> result = new HashSet<>();
+                final Map<String, Set<mb.stratego.build.strincr.ModuleIdentifier>> foundModules = new HashMap<>();
                 boolean foundSomethingToImport = false;
                 for(ResourcePath includeDir : includeDirs) {
                     final ResourcePath searchDirectory =
@@ -138,33 +142,70 @@ public class ModuleImportService implements IModuleImportService {
                         for(HierarchicalResource moduleFile : moduleFiles) {
                             foundSomethingToImport = true;
                             @Nullable final String filename = moduleFile.getLeaf();
+                            @Nullable final String ext = moduleFile.getLeafExtension();
                             assert filename != null : "HierarchicalResource::list returned some resources without a path leaf?!";
-                            if(filename.endsWith(".rtree")) {
-                                final boolean isLibrary =
-                                    ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
-                                final String moduleString = directory + "/" + filename
-                                    .substring(0, filename.length() - ".rtree".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
-                                    true, isLibrary,
-                                    moduleString, moduleFile.getPath()));
-                            } else if(filename.endsWith(".str2")) {
-                                final String moduleString = directory + "/" + filename
-                                    .substring(0, filename.length() - ".str2".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
-                                    false, false,
-                                    moduleString, moduleFile.getPath()));
-                            } else if(filename.endsWith(".str")) {
-                                final String moduleString = directory + "/" + filename
-                                    .substring(0, filename.length() - ".str".length());
-                                result.add(new mb.stratego.build.strincr.ModuleIdentifier(
-                                    true, false,
-                                    moduleString, moduleFile.getPath()));
+                            assert ext != null : "HierarchicalResource::list returned some resources without an extension?!";
+                            boolean legacyStratego;
+                            boolean isLibrary = false;
+                            String moduleString;
+                            switch(ext) {
+                                case "rtree":
+                                    isLibrary = ExistsAndRTreeStamper.isLibraryRTree(moduleFile);
+                                    moduleString = directory + "/" + filename
+                                        .substring(0, filename.length() - ".rtree".length());
+                                    legacyStratego = true;
+                                    break;
+                                case "str2":
+                                    moduleString = directory + "/" + filename
+                                        .substring(0, filename.length() - ".str2".length());
+                                    legacyStratego = false;
+                                    break;
+                                case "str":
+                                    moduleString = directory + "/" + filename
+                                        .substring(0, filename.length() - ".str".length());
+                                    legacyStratego = true;
+                                    break;
+                                default:
+                                    assert false : "HierarchicalResource::list returned some resources an extension that it shouldn't search for?!";
+                                    continue;
                             }
+                            Relation.getOrInitialize(foundModules, moduleString, HashSet::new)
+                                .add(new mb.stratego.build.strincr.ModuleIdentifier(legacyStratego, isLibrary,
+                                    moduleString, moduleFile.getPath()));
                         }
                     }
                 }
                 if(!foundSomethingToImport) {
                     return UnresolvedImport.INSTANCE;
+                }
+                // Have rtree files for a module shadow str2/str files, have str2 files shadow str files
+                final Set<mb.stratego.build.strincr.ModuleIdentifier> result = new HashSet<>();
+                for(Set<mb.stratego.build.strincr.ModuleIdentifier> modules : foundModules.values()) {
+                    if(modules.size() == 1) {
+                        result.addAll(modules);
+                    } else {
+                        boolean foundSomething = false;
+                        for(mb.stratego.build.strincr.ModuleIdentifier module : modules) {
+                            if(module.path.getLeafFileExtension().equals("rtree")) {
+                                foundSomething = true;
+                                result.add(module);
+                            }
+                        }
+                        if(foundSomething) {
+                            continue;
+                        }
+                        for(mb.stratego.build.strincr.ModuleIdentifier module : modules) {
+                            if(module.path.getLeafFileExtension().equals("str2")) {
+                                foundSomething = true;
+                                result.add(module);
+                            }
+                        }
+                        if(foundSomething) {
+                            continue;
+                        }
+                        // they're all .str files
+                        result.addAll(modules);
+                    }
                 }
                 return new ResolvedImport(result);
             }
