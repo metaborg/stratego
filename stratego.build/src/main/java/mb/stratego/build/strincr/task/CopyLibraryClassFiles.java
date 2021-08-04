@@ -32,17 +32,17 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
         Stratego2LibInfo stratego2LibInfo = context.require(input.stratego2LibInfoSupplier);
         for(ResourcePath jarFileOrDir : stratego2LibInfo.jarFilesOrDirectories) {
             final ResourceService resourceService = context.getResourceService();
-            final HierarchicalResource jarResourceOfDir =
+            final HierarchicalResource jarResourceOrDir =
                 resourceService.getHierarchicalResource(jarFileOrDir);
-            if(jarResourceOfDir.isFile()) {
+            if(jarResourceOrDir.isFile()) {
                 final UnarchiveFromJar.Input unarchiveInput =
                     new UnarchiveFromJar.Input(jarFileOrDir, input.outputDir,
                         new ExtensionPathStringMatcher("class"), false, true,
                         input.stratego2LibInfoSupplier);
                 context.require(unarchiveFromJar, unarchiveInput);
-            } else if(jarResourceOfDir.isDirectory()) {
+            } else if(jarResourceOrDir.isDirectory()) {
                 // TODO copy entire directory structure with files to input.outputDir
-//                jarResourceOfDir.list(new FileResourceMatcher()).forEach(fileResource -> {
+//                jarResourceOrDir.list(new FileResourceMatcher()).forEach(fileResource -> {
 //                    final String relativePath = jarFileOrDir.relativize(fileResource.getPath());
 //                    resourceService.getWritableResource(input.outputDir.appendAsRelativePath(relativePath))
 //                });
