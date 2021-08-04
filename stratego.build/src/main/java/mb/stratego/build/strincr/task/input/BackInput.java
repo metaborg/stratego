@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -20,7 +21,6 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -46,14 +46,14 @@ import mb.stratego.build.util.PieUtils;
 
 public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
-    public final @Nullable String packageName;
+    public final String packageName;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
     public final CheckInput checkInput;
     public final boolean usingLegacyStrategoStdLib;
 
-    public BackInput(ResourcePath outputDir, @Nullable String packageName,
+    public BackInput(ResourcePath outputDir, String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
         CheckInput checkInput, boolean usingLegacyStrategoStdLib) {
         this.outputDir = outputDir;
@@ -78,9 +78,9 @@ public abstract class BackInput implements Serializable {
 
         if(!outputDir.equals(input.outputDir))
             return false;
-        if(packageName != null ? !packageName.equals(input.packageName) : input.packageName != null)
+        if(!packageName.equals(input.packageName))
             return false;
-        if(cacheDir != null ? !cacheDir.equals(input.cacheDir) : input.cacheDir != null)
+        if(!Objects.equals(cacheDir, input.cacheDir))
             return false;
         if(!constants.equals(input.constants))
             return false;
@@ -93,7 +93,7 @@ public abstract class BackInput implements Serializable {
 
     @Override public int hashCode() {
         int result = outputDir.hashCode();
-        result = 31 * result + (packageName != null ? packageName.hashCode() : 0);
+        result = 31 * result + packageName.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
         result = 31 * result + extraArgs.hashCode();
@@ -137,8 +137,7 @@ public abstract class BackInput implements Serializable {
                 return false;
             if(!outputDir.equals(key.outputDir))
                 return false;
-            return anythingElse != null ? anythingElse.equals(key.anythingElse) :
-                key.anythingElse == null;
+            return Objects.equals(anythingElse, key.anythingElse);
         }
 
         @Override public int hashCode() {
@@ -162,7 +161,7 @@ public abstract class BackInput implements Serializable {
         public final StrategySignature strategySignature;
         public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
 
-        public Normal(ResourcePath outputDir, @Nullable String packageName,
+        public Normal(ResourcePath outputDir, String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask,
@@ -190,8 +189,8 @@ public abstract class BackInput implements Serializable {
                 while(!newlyFoundConstructors.isEmpty()) {
                     final ArrayList<OverlayData> overlayData = PieUtils
                         .requirePartial(context, backTask.front,
-                            new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
-                                checkInput.includeDirs, checkInput.linkedLibraries, checkInput.autoImportStd),
+                            new FrontInput.Normal(moduleIdentifier, checkInput.importResolutionInfo,
+                                checkInput.autoImportStd),
                             new GetOverlayData(newlyFoundConstructors));
                     usedConstructors.addAll(newlyFoundConstructors);
                     newlyFoundConstructors.clear();
@@ -291,7 +290,7 @@ public abstract class BackInput implements Serializable {
     }
 
     public static class DynamicRule extends Normal {
-        public DynamicRule(ResourcePath outputDir, @Nullable String packageName,
+        public DynamicRule(ResourcePath outputDir, String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strFileGeneratingTasks,
@@ -345,7 +344,7 @@ public abstract class BackInput implements Serializable {
         public final HashSet<String> dynamicRuleNewGenerated;
         public final HashSet<String> dynamicRuleUndefineGenerated;
 
-        public Congruence(ResourcePath outputDir, @Nullable String packageName,
+        public Congruence(ResourcePath outputDir, String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, HashSet<String> dynamicRuleNewGenerated,
             HashSet<String> dynamicRuleUndefineGenerated, boolean legacyStrategoStdLib) {
@@ -453,19 +452,16 @@ public abstract class BackInput implements Serializable {
         public final boolean dynamicCallsDefined;
         public final boolean library;
         public final String libraryName;
-        public final Stratego2LibInfo languageIdentifier;
 
-        public Boilerplate(ResourcePath outputDir, @Nullable String packageName,
+        public Boilerplate(ResourcePath outputDir, String packageName,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, boolean dynamicCallsDefined, boolean library,
-            boolean legacyStrategoStdLib, String libraryName,
-            Stratego2LibInfo languageIdentifier) {
+            boolean legacyStrategoStdLib, String libraryName) {
             super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.dynamicCallsDefined = dynamicCallsDefined;
             this.library = library;
             this.libraryName = libraryName;
-            this.languageIdentifier = languageIdentifier;
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -500,8 +496,7 @@ public abstract class BackInput implements Serializable {
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : globalConsInj.allModuleIdentifiers) {
                 final ArrayList<ConstructorData> constructorData = PieUtils
                     .requirePartial(context, backTask.front,
-                        new FrontInput.Normal(moduleIdentifier, checkInput.strFileGeneratingTasks,
-                            checkInput.includeDirs, checkInput.linkedLibraries,
+                        new FrontInput.Normal(moduleIdentifier, checkInput.importResolutionInfo,
                             checkInput.autoImportStd), GetConstrData.INSTANCE);
                 for(ConstructorData constructorDatum : constructorData) {
                     consInjTerms.add(constructorDatum.toTerm(backTask.tf));

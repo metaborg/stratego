@@ -108,16 +108,13 @@ public class StrategoIncrementalCompilationTest {
         Path depPath = temporaryDirectoryPath.resolve("depPath");
         final String libraryName = "incrCompTest";
         final String packageName = "mb.stratego.build.spoofax2.test";
-        final Stratego2LibInfo stratego2LibInfo =
-            new Stratego2LibInfo(packageName, "mb.stratego", libraryName, "1.0.0",
-                new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
         final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
         CompileInput compileInput =
             new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
                 packageName,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
-                libraryName, stratego2LibInfo);
+                libraryName, new ArrayList<>());
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -179,7 +176,7 @@ public class StrategoIncrementalCompilationTest {
                 packageName,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
-                libraryName, stratego2LibInfo);
+                libraryName, new ArrayList<>());
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

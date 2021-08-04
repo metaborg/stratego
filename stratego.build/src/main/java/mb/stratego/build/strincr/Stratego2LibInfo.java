@@ -5,20 +5,22 @@ import java.util.ArrayList;
 
 import mb.resource.hierarchical.ResourcePath;
 
+/**
+ * Data class that contains a path to the .str2lib file that describes the Stratego 2 library, and
+ * jar files and/or directories with class files that should be copied by the Stratego compiler so
+ * they are included in the final result of compilation.
+ * These jar files may include libraries that are not the product of the Stratego 2 compiler but are
+ * used by the compiled Stratego code. At the same time, it is not required to provide the class
+ * files or jar of the Stratego 2 library, but then they should be added to the classpath when
+ * compiling the Java files that the Stratego 2 compiler outputs. 
+ */
 public class Stratego2LibInfo implements Serializable {
-    public final String packageName;
-    public final String groupId;
-    public final String id;
-    public final String version;
-    public final ArrayList<ResourcePath> jarFiles;
+    public final ResourcePath str2libFile;
+    public final ArrayList<ResourcePath> jarFilesOrDirectories;
 
-    public Stratego2LibInfo(String packageName, String groupId, String id, String version,
-        ArrayList<ResourcePath> jarFiles) {
-        this.packageName = packageName;
-        this.groupId = groupId;
-        this.id = id;
-        this.version = version;
-        this.jarFiles = jarFiles;
+    public Stratego2LibInfo(ResourcePath str2libFile, ArrayList<ResourcePath> jarFilesOrDirectories) {
+        this.str2libFile = str2libFile;
+        this.jarFilesOrDirectories = jarFilesOrDirectories;
     }
 
     @Override public boolean equals(Object o) {
@@ -29,28 +31,18 @@ public class Stratego2LibInfo implements Serializable {
 
         Stratego2LibInfo that = (Stratego2LibInfo) o;
 
-        if(!packageName.equals(that.packageName))
+        if(!str2libFile.equals(that.str2libFile))
             return false;
-        if(!groupId.equals(that.groupId))
-            return false;
-        if(!id.equals(that.id))
-            return false;
-        if(!version.equals(that.version))
-            return false;
-        return jarFiles.equals(that.jarFiles);
+        return jarFilesOrDirectories.equals(that.jarFilesOrDirectories);
     }
 
     @Override public int hashCode() {
-        int result = packageName.hashCode();
-        result = 31 * result + groupId.hashCode();
-        result = 31 * result + id.hashCode();
-        result = 31 * result + version.hashCode();
-        result = 31 * result + jarFiles.hashCode();
+        int result = str2libFile.hashCode();
+        result = 31 * result + jarFilesOrDirectories.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "Stratego2Lib(" + packageName + ", " + groupId + ':' + id + ':' + version + ", "
-            + jarFiles + ')';
+        return "Stratego2Lib(" + str2libFile + ", " + jarFilesOrDirectories + ')';
     }
 }

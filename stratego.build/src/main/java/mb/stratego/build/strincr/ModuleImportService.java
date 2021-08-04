@@ -4,13 +4,13 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,6 +24,7 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
+import mb.pie.api.Supplier;
 import mb.pie.api.stamp.output.OutputStampers;
 import mb.pie.api.stamp.resource.ResourceStampers;
 import mb.resource.hierarchical.HierarchicalResource;
@@ -45,15 +46,18 @@ public class ModuleImportService implements IModuleImportService {
     }
 
     @Override public ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
-        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
+        ImportResolutionInfo importResolutionInfo)
         throws ExecException, IOException {
         /*
          * Note that we require the sdf task here to force it to generated needed str files. We
          *     then discover those in this method with a directory search.
          */
-        for(final STask<?> t : strFileGeneratingTasks) {
+        for(final STask<?> t : importResolutionInfo.strFileGeneratingTasks) {
             context.require(t, OutputStampers.inconsequential());
+        }
+        List<ResourcePath> includeDirs = new ArrayList<>(importResolutionInfo.includeDirs);
+        for(Supplier<Stratego2LibInfo> str2lib : importResolutionInfo.str2libraries) {
+            includeDirs.add(context.require(str2lib).str2libFile.getParent());
         }
         if(!TermUtils.isAppl(anImport)) {
             throw new ExecException("Import term was not a constructor: " + anImport);
@@ -65,7 +69,7 @@ public class ModuleImportService implements IModuleImportService {
                 final @Nullable BuiltinLibraryIdentifier builtinLibraryIdentifier =
                     BuiltinLibraryIdentifier.fromString(moduleString);
                 if(builtinLibraryIdentifier != null) {
-                    if(!linkedLibraries.contains(builtinLibraryIdentifier)) {
+                    if(!importResolutionInfo.linkedLibraries.contains(builtinLibraryIdentifier)) {
                         return UnresolvedImport.INSTANCE;
                     }
                     return new ResolvedImport(Collections.singleton(builtinLibraryIdentifier));
@@ -128,7 +132,7 @@ public class ModuleImportService implements IModuleImportService {
                 final String directory = TermUtils.toJavaStringAt(appl, 0);
                 final Map<String, Set<mb.stratego.build.strincr.ModuleIdentifier>> foundModules = new HashMap<>();
                 boolean foundSomethingToImport = false;
-                for(ResourcePath includeDir : includeDirs) {
+                for(ResourcePath includeDir : importResolutionInfo.includeDirs) {
                     final ResourcePath searchDirectory =
                         includeDir.appendOrReplaceWithPath(directory);
                     context.require(searchDirectory);

@@ -15,5 +15,4 @@ language:
     enabled: no
 exports:
 - language: StrategoLang
-  directory: src-gen/java/strategolib/trans
-  includes: "strategolib.str2lib"
+  file: src-gen/java/strategolib/trans/strategolib.str2lib

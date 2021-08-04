@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.data.GTEnvironment;
@@ -44,13 +45,23 @@ public interface StrategoLanguage {
     IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
 
     /**
-     * Pulls the information out of a Str2Lib AST to look up what the package name is and where the corresponding Jar file is located
+     * Extract the package name from the Str2Lib ast
      *
-     * @param ast the Str2Lib AST
-     * @return the information object with the package name and jar path, or null if the given AST is not an Str2Lib AST
-     * @throws Exception On IO problems, or inability to find Jar corresponding to the str2lib AST
+     * @param ast the ast to extract from
+     * @return The package name in the str2lib or null is unavailable
      */
-    @Nullable Stratego2LibInfo extractStr2LibInfo(IStrategoTerm ast) throws Exception;
+    default @Nullable String extractPackageName(IStrategoTerm ast) {
+        @Nullable String packageName = null;
+        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+            final IStrategoList components = TermUtils.toListAt(ast, 1);
+            for(IStrategoTerm component : components) {
+                if(TermUtils.isAppl(component, "Package", 1)) {
+                    packageName = TermUtils.toJavaStringAt(component, 0);
+                }
+            }
+        }
+        return packageName;
+    }
 
     /**
      * Call to the gradual type system for Stratego, to type-check an AST and insert casts where necessary

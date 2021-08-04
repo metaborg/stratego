@@ -149,52 +149,6 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         return ast;
     }
 
-    @Override public @Nullable Stratego2LibInfo extractStr2LibInfo(IStrategoTerm ast) throws Exception {
-        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
-            @Nullable String packageName = null;
-            @Nullable String groupId = null;
-            @Nullable String id = null;
-            @Nullable String version = null;
-            final IStrategoList components = TermUtils.toListAt(ast, 1);
-            for(IStrategoTerm component : components) {
-                if(TermUtils.isAppl(component, "Package", 1)) {
-                    packageName = TermUtils.toJavaStringAt(component, 0);
-                } else if(TermUtils.isAppl(component, "Maven", 3)) {
-                    groupId = TermUtils.toJavaStringAt(component, 0);
-                    id = TermUtils.toJavaStringAt(component, 1);
-                    version = TermUtils.toJavaStringAt(component, 2);
-                }
-            }
-            if(packageName != null && groupId != null && id != null && version != null) {
-                final LanguageIdentifier languageIdentifier =
-                    new LanguageIdentifier(groupId, id, LanguageVersion.parse(version));
-
-                final @Nullable ILanguageImpl impl = languageService.getImpl(languageIdentifier);
-                if(impl != null) {
-                    final @Nullable DynamicClassLoadingFacet facet =
-                        impl.facet(DynamicClassLoadingFacet.class);
-                    if(facet != null) {
-                        final ArrayList<ResourcePath> jarFiles =
-                            new ArrayList<>(facet.jarFiles.size());
-                        for(FileObject file : facet.jarFiles) {
-                            jarFiles.add(new FSPath(resourceService.localFile(file)));
-                        }
-                        return new Stratego2LibInfo(packageName, groupId, id, version, jarFiles);
-                    }
-                    throw new MetaborgException("Str2Lib refers to " + languageIdentifier + ", but it has no compiled Java. ");
-                }
-                throw new MetaborgException("Str2Lib refers to " + languageIdentifier + ", but cannot find implementation loaded for it. ");
-            }
-            if(packageName == null) {
-                throw new MetaborgException("Str2Lib did not contain Package information.");
-            }
-            if(groupId == null) {
-                throw new MetaborgException("Str2Lib did not contain Maven information.");
-            }
-        }
-        return null;
-    }
-
     @Override public IStrategoTerm insertCasts(String moduleName, GTEnvironment environment,
         String projectPath) throws ExecException {
         return callStrategy(environment, projectPath, "stratego2-insert-casts",

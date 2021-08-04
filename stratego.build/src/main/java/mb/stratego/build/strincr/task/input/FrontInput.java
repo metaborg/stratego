@@ -1,32 +1,24 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.pie.api.STask;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;
 import mb.stratego.build.util.LastModified;
 
 public abstract class FrontInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
-    public final ArrayList<STask<?>> strFileGeneratingTasks;
-    public final ArrayList<? extends ResourcePath> includeDirs;
-    public final ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
+    public final ImportResolutionInfo importResolutionInfo;
     public final boolean autoImportStd;
 
     public FrontInput(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
-        boolean autoImportStd) {
+        ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
         this.moduleIdentifier = moduleIdentifier;
-        this.strFileGeneratingTasks = strFileGeneratingTasks;
-        this.includeDirs = includeDirs;
-        this.linkedLibraries = linkedLibraries;
+        this.importResolutionInfo = importResolutionInfo;
         this.autoImportStd = autoImportStd;
     }
 
@@ -38,20 +30,17 @@ public abstract class FrontInput implements Serializable {
 
         FrontInput that = (FrontInput) o;
 
+        if(autoImportStd != that.autoImportStd)
+            return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
-        if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
-            return false;
-        if(!includeDirs.equals(that.includeDirs))
-            return false;
-        return linkedLibraries.equals(that.linkedLibraries);
+        return importResolutionInfo.equals(that.importResolutionInfo);
     }
 
     @Override public int hashCode() {
         int result = moduleIdentifier.hashCode();
-        result = 31 * result + strFileGeneratingTasks.hashCode();
-        result = 31 * result + includeDirs.hashCode();
-        result = 31 * result + linkedLibraries.hashCode();
+        result = 31 * result + importResolutionInfo.hashCode();
+        result = 31 * result + (autoImportStd ? 1 : 0);
         return result;
     }
 
@@ -61,11 +50,8 @@ public abstract class FrontInput implements Serializable {
 
     public static class Normal extends FrontInput {
         public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
-            boolean autoImportStd) {
-            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries,
-                autoImportStd);
+            ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
+            super(moduleIdentifier, importResolutionInfo, autoImportStd);
         }
     }
 
@@ -73,12 +59,9 @@ public abstract class FrontInput implements Serializable {
         public final LastModified<IStrategoTerm> ast;
 
         public FileOpenInEditor(IModuleImportService.ModuleIdentifier moduleIdentifier,
-            ArrayList<STask<?>> strFileGeneratingTasks, ArrayList<? extends ResourcePath> includeDirs,
-            ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
-            LastModified<IStrategoTerm> ast,
+            ImportResolutionInfo importResolutionInfo, LastModified<IStrategoTerm> ast,
             boolean autoImportStd) {
-            super(moduleIdentifier, strFileGeneratingTasks, includeDirs, linkedLibraries,
-                autoImportStd);
+            super(moduleIdentifier, importResolutionInfo, autoImportStd);
             this.ast = ast;
         }
 

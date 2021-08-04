@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,12 +22,11 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -85,7 +83,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        @Nullable Stratego2LibInfo languageIdentifier = null;
+        @Nullable String str2LibPackageName = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
         final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
         final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
@@ -126,7 +124,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier, languageIdentifier,
+            return new ModuleData(input.moduleIdentifier, str2LibPackageName,
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
@@ -134,7 +132,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 usedAmbiguousStrategies, messages, 0L);
         }
 
-        languageIdentifier = strategoLanguage.extractStr2LibInfo(ast.wrapped);
+        str2LibPackageName = strategoLanguage.extractPackageName(ast.wrapped);
+
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
             if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
@@ -150,8 +149,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     // that use resolved imports, but it there are often changes to the
                     // strFileGeneratingTasks we may want to pull it into a separate task.
                     imports.addAll(expandImports(context, moduleImportService, def.getSubterm(0),
-                        ast.lastModified, messages, input.strFileGeneratingTasks, input.includeDirs,
-                        input.linkedLibraries));
+                        ast.lastModified, messages, input.importResolutionInfo));
                     break;
                 case "Signature":
                     for(IStrategoTerm sdecl : def.getSubterm(0)) {
@@ -192,7 +190,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, languageIdentifier, ast.wrapped, imports,
+        return new ModuleData(input.moduleIdentifier, str2LibPackageName, ast.wrapped, imports,
             sortData, externalSortData, constrData, externalConstrData, injections,
             externalInjections, strategyData, internalStrategyData, externalStrategyData,
             dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
@@ -202,14 +200,12 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, Iterable<IStrategoTerm> imports,
         long lastModified, @Nullable ArrayList<Message> messages,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
-        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
+        ImportResolutionInfo importResolutionInfo)
         throws IOException, ExecException {
         final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
-            final ImportResolution importResolution = moduleImportService
-                .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs,
-                    linkedLibraries);
+            final ImportResolution importResolution =
+                moduleImportService.resolveImport(context, anImport, importResolutionInfo);
             if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                 if(messages != null) {
                     messages.add(new UnresolvedImport(anImport, lastModified));
@@ -598,7 +594,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
     private LastModified<IStrategoTerm> getModuleAst(ExecContext context, FrontInput.Normal input)
         throws Exception {
-        return moduleImportService
-            .getModuleAst(context, input.moduleIdentifier, input.strFileGeneratingTasks);
+        return moduleImportService.getModuleAst(context, input.moduleIdentifier,
+            input.importResolutionInfo.strFileGeneratingTasks);
     }
 }

@@ -7,9 +7,13 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
 import mb.pie.api.STaskDef;
 import mb.pie.api.SerializableFunction;
+import mb.pie.api.Supplier;
 import mb.pie.api.Task;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.output.OutputStampers;
+import mb.resource.hierarchical.HierarchicalResource;
+import mb.stratego.build.strincr.Stratego2LibInfo;
+import mb.stratego.build.strincr.function.Str2LibFile;
 
 @SuppressWarnings("unchecked")
 public class PieUtils {

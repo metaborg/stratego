@@ -65,7 +65,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         workList.add(input.mainModuleIdentifier);
         seen.add(input.mainModuleIdentifier);
 
-        final ArrayList<Stratego2LibInfo> importedStr2LibProjects = new ArrayList<>();
+        final ArrayList<String> importedStr2LibPackageNames = new ArrayList<>();
         final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
             new LinkedHashSet<>();
         final LinkedHashSet<SortSignature> nonExternalSorts = new LinkedHashSet<>();
@@ -99,8 +99,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
 
             lastModified = Long.max(lastModified, index.lastModified);
-            if(index.languageIdentifier != null) {
-                importedStr2LibProjects.add(index.languageIdentifier);
+            if(index.str2LibPackageName != null) {
+                importedStr2LibPackageNames.add(index.str2LibPackageName);
             }
             nonExternalSorts.addAll(index.sorts);
             externalSorts.addAll(index.externalSorts);
@@ -154,7 +154,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         }
 
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
-        return new GlobalData(allModuleIdentifiers, importedStr2LibProjects, overlayIndex,
+        return new GlobalData(allModuleIdentifiers, importedStr2LibPackageNames, overlayIndex,
             nonExternalInjections, strategyIndex, strategyTypes, nonExternalSorts, externalSorts,
             nonExternalConstructors, externalConstructors, internalStrategies, externalStrategies,
             dynamicRules, overlayData, messages, lastModified);
@@ -165,8 +165,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         if(input.fileOpenInEditor != null && input.fileOpenInEditor.moduleIdentifier.equals(moduleIdentifier)) {
             return input.fileOpenInEditor;
         }
-        return new FrontInput.Normal(moduleIdentifier, input.strFileGeneratingTasks,
-            input.includeDirs, input.linkedLibraries, input.autoImportStd);
+        return new FrontInput.Normal(moduleIdentifier, input.importResolutionInfo,
+            input.autoImportStd);
     }
 
     private void checkCyclicOverlays(

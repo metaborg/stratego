@@ -67,14 +67,10 @@ public class GenerateStratego {
     }
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
-        Stratego2LibInfo stratego2LibInfo, Collection<SortSignature> sorts,
-        Collection<ConstructorData> constructors,
+        Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
         Map<StrategySignature, StrategyType> strategyFrontData, String packageName) {
-        return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
-            tf.makeAppl("Package", tf.makeString(packageName)),
-            tf.makeAppl("Maven", tf.makeString(stratego2LibInfo.groupId), tf.makeString(
-                stratego2LibInfo.id),
-                tf.makeString(stratego2LibInfo.version))),
+        return tf.makeAppl("Str2Lib", tf.makeString(libraryName),
+            tf.makeList(tf.makeAppl("Package", tf.makeString(packageName))),
             tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
     }
 
