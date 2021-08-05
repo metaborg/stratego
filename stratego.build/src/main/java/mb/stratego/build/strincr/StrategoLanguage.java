@@ -2,12 +2,14 @@ package mb.stratego.build.strincr;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.data.GTEnvironment;
@@ -25,13 +27,41 @@ public interface StrategoLanguage {
     IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path) throws Exception;
 
     /**
-     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an AST
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an RTree AST
      *
      * @param inputStream the Stratego code
      * @return an ATerm representation of the AST of the program
      * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
      */
     IStrategoTerm parseRtree(InputStream inputStream) throws Exception;
+
+    /**
+     * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an Str2Lib AST
+     *
+     * @param inputStream the Stratego code
+     * @return an ATerm representation of the AST of the program
+     * @throws Exception On IO problems, parsing problems, or an AST with unexpected top-level constructor
+     */
+    IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
+
+    /**
+     * Extract the package name from the Str2Lib ast
+     *
+     * @param ast the ast to extract from
+     * @return The package name in the str2lib or null is unavailable
+     */
+    default @Nullable String extractPackageName(IStrategoTerm ast) {
+        @Nullable String packageName = null;
+        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+            final IStrategoList components = TermUtils.toListAt(ast, 1);
+            for(IStrategoTerm component : components) {
+                if(TermUtils.isAppl(component, "Package", 1)) {
+                    packageName = TermUtils.toJavaStringAt(component, 0);
+                }
+            }
+        }
+        return packageName;
+    }
 
     /**
      * Call to the gradual type system for Stratego, to type-check an AST and insert casts where necessary
@@ -76,6 +106,17 @@ public interface StrategoLanguage {
      * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
      */
     IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath) throws ExecException;
+
+    /**
+     * Call to the congruence construction code for Stratego, to transform the ASTs of all overlays
+     * to a strategy definitions (using all at once to apply in each others bodies)
+     *
+     * @param asts        the ASTs of the overlays to transform
+     * @param projectPath The path of the project the module resides in (to be removed at some point)
+     * @return The list of ASTs of the strategy definitions for the congruences
+     * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
+     */
+    Collection<? extends IStrategoAppl> toCongruenceAsts(Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException;
 
     /**
      * Call to the aux rule signature construction code for Stratego, to transform an AST with

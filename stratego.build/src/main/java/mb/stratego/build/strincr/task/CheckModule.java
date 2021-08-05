@@ -22,6 +22,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
+import io.usethesource.capsule.Set;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -33,6 +34,7 @@ import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.GTEnvironment;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -311,14 +313,16 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
+        final Set.Transient<SortSignature> sorts =
+            Set.Transient.of();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 
         // Get the relevant strategy and constructor types and all injections, that are defined in
         //     the module itself
-        registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, injections);
+        registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, sorts, injections);
 
-        // Get the relevant strategy and constructor types and all injections, that are visible
+        // Get the relevant strategy and constructor types and all sorts and injections, that are visible
         //     through the import, not following them transitively!
         final ToTypesLookup toTypesLookup =
             new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
@@ -330,8 +334,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         while(!worklist.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
             final FrontInput moduleInput =
-                new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
-                    frontInput.includeDirs, frontInput.linkedLibraries, frontInput.autoImportStd);
+                new FrontInput.Normal(moduleIdentifier, frontInput.importResolutionInfo,
+                    frontInput.autoImportStd);
             final TypesLookup typesLookup =
                 PieUtils.requirePartial(context, front, moduleInput, toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
@@ -344,6 +348,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     constructorTypes.__insert(e.getKey(), ty);
                 }
             }
+            sorts.__insertAll(typesLookup.sorts);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : typesLookup.allInjections
                 .entrySet()) {
                 for(IStrategoTerm to : e.getValue()) {
@@ -363,14 +368,14 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final StrategoImmutableMap strategyEnvironment =
             new StrategoImmutableMap(strategyTypes.freeze());
         return GTEnvironment
-            .from(strategyEnvironment, constructorTypes.freeze(), injections.freeze(),
+            .from(strategyEnvironment, constructorTypes.freeze(), sorts.freeze(), injections.freeze(),
                 moduleData.ast, tf, moduleData.lastModified);
     }
 
     private void registerModuleDefinitions(ModuleData moduleData,
         io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes,
         BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes,
-        BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
+        Set.Transient<SortSignature> sorts, BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
         for(HashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
@@ -415,6 +420,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 constructorTypes.__put(e.getKey(), d.type);
             }
         }
+        sorts.__insertAll(moduleData.sortData);
+        sorts.__insertAll(moduleData.externalSortData);
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.injections
             .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {

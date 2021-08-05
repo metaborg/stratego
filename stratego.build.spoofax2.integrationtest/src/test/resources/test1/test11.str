@@ -1,7 +1,7 @@
 module test11
 imports collection/list/cons collection/tuple/cons
 signature
-  sorts Term
+  sorts Term String
   constructors
     Var : String -> Term
 

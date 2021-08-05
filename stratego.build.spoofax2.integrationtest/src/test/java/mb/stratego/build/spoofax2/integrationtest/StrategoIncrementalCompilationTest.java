@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,7 @@ import mb.stratego.build.spoofax2.integrationtest.lang.Stratego;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
@@ -104,12 +106,15 @@ public class StrategoIncrementalCompilationTest {
         final ModuleIdentifier mainModuleIdentifier =
             new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
+        final String libraryName = "incrCompTest";
+        final String packageName = "mb.stratego.build.spoofax2.test";
+        final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
         CompileInput compileInput =
-            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-                "mb.stratego.build.spoofax2.test",
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageName,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
-                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-                true, true);
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
+                libraryName, new ArrayList<>());
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -121,7 +126,7 @@ public class StrategoIncrementalCompilationTest {
             // Ignore
         }
 
-        Path strategoJavaPackageOutputDir = depPath;
+        Path strategoJavaPackageOutputDir = depPath.resolve(packageName.replace('.','/'));
         Assertions.assertTrue(Files.exists(strategoJavaPackageOutputDir));
         Assertions.assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
         final Path interopRegistererJavaFile = strategoJavaPackageOutputDir.resolve("InteropRegisterer.java");
@@ -166,11 +171,12 @@ public class StrategoIncrementalCompilationTest {
 
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoAterm);
 
-        compileInput = new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-            "mb.stratego.build.spoofax2.test",
-            new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
-            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-            true, true);
+        compileInput =
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageName,
+                new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true,
+                libraryName, new ArrayList<>());
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

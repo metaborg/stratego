@@ -12,6 +12,7 @@ imports
 template options
   tokenize: ")(|"
 
+context-free sorts SDefP
 context-free syntax
   StrategyDef.SDefNoArgs =
 <<Id> =
@@ -22,22 +23,21 @@ context-free syntax
   <Strategy>>
 
   // Strategy definition with pattern matched term parameters
-  StrategyDef.SDefP =
-<<Id>(<{Typedid ", "}*>|<{TermNoVar ","}+>) =
+  StrategyDef = SDefP
+  SDefP.SDefP =
+<<Id>(<{Typedid ", "}*>|<{Term ","}+>) =
   <Strategy>>
+  SDefP = SDefT {reject}
 
 context-free syntax
   Typedid.DefaultVarDec = ID
 
-  TermNoVar = Term
-
-context-free priorities
-  TermNoVar = Term <0> .>
-  Term = Var
-
+context-free sorts Call With
 context-free syntax
 
-  Strategy.Call = <<SVar>(<{Strategy ","}*>)>
+  Strategy = Call
+  Call.Call = <<SVar>(<{Strategy ","}*>)>
+  Call = With {reject}
   Strategy.ScopeDefault = <{<Strategy>}>
   Strategy.BA = [<[Strategy]> [Term]]
   Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
@@ -45,7 +45,8 @@ context-free syntax
   Strategy.Rec        = <rec <Id>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
-  Strategy.With       = <with(<Strategy>)>
+  Strategy = With
+  With.With       = <with(<Strategy>)>
   Strategy.Test       = <test(<Strategy>)> {deprecated("Use `where` instead")}
   Strategy.PrimNoArgs = <prim(<String>)>
   Strategy.Prim       = <prim(<String>, <{Term ", "}*>)>
@@ -111,9 +112,14 @@ context-free priorities
    Strategy.GuardedLChoice
   }
 
+// Strategy.AnnoCong and Strategy.ExplodeCong are same syntax as Term.AnnoList and Term.Explode
+//   respectively. So we need to disambiguate that we prefer the Term version to be on the
+//   right-hand side of Strategy productions that have a Term as the right-most part of their rule,
+//   and this is expressed by that we don't want such a production inside AnnoCong or ExplodeCong as
+//   the left-hand child.
 context-free priorities
   Strategy.AnnoCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign },
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM },
 
   Strategy.ExplodeCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign }
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM }

@@ -5,9 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,6 +32,7 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
@@ -73,7 +76,8 @@ public class Stratego {
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
         Path packageDir, boolean library,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd)
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+        LanguageIdentifier languageIdentifier)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -110,11 +114,12 @@ public class Stratego {
             final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
+            final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
-                    packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
+                    javaClassDir, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), library, autoImportStd);
+                    new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

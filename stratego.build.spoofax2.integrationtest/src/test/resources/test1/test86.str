@@ -3,6 +3,8 @@
 module test86
 imports libstratego-lib
 signature
+  sorts
+    E
   constructors
     F : E * E -> E
     G : E * E -> E

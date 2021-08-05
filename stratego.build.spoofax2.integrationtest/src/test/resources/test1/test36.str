@@ -1,6 +1,8 @@
 module test36
 imports collection/list/cons collection/tuple/cons
 signature
+  sorts
+    FILE
   constructors
     Stream : a -> b
     stdout : FILE

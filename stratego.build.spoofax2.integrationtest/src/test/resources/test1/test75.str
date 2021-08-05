@@ -2,6 +2,8 @@
 module test75
 imports  libstratego-lib
 signature
+  sorts
+    String Foo
   constructors
     Foo : String -> Foo
 

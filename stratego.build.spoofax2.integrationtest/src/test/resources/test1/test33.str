@@ -1,6 +1,8 @@
 module test33
 imports libstratego-lib
 signature
+  sorts
+    String Exp Decl List(a)
   constructors
     Var  : String -> Exp
     Let  : List(Decl) * Exp -> Exp

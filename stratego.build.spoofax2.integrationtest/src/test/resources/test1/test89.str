@@ -15,7 +15,7 @@ strategies
     bottomup-term(s) = all-term(bottomup-term(s)) ; s
 
 signature
-   sorts Term
+   sorts Term Int
    constructors
      A : Term
      B : Term

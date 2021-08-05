@@ -90,6 +90,9 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new UnresolvedConstructor(locationTerm,
                     TermUtils.toJavaIntAt(messageTerm, 0), messageTerm.getSubterm(1), severity,
                     lastModified);
+            case "UnresolvedSort": // Int -> ErrorDesc
+                return new UnresolvedSort(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
+                    severity, lastModified);
             case "UnresolvedStrategy":
                 return new UnresolvedStrategy(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
                     TermUtils.toJavaIntAt(messageTerm, 1), severity, lastModified);

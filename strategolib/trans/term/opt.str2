@@ -1,0 +1,20 @@
+/**
+ * Some primitives for the manipulation of Some(_) and None() terms.
+ */
+module term/opt
+
+imports
+
+  strategy/general/option
+
+strategies
+
+ /**
+  * Maps a strategy over an optional term.
+  */
+ map-opt(s) = ?None() <+ Some(s)
+
+ /**
+  * Filters a strategy over an optional term.
+  */
+ filter-opt(s) = ?None() <+ ?Some(<id>); (s; !Some(<id>) <+ !None())

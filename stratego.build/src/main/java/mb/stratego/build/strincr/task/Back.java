@@ -1,6 +1,10 @@
 package mb.stratego.build.strincr.task;
 
+import java.io.BufferedWriter;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,6 +31,8 @@ import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ContainsErrors;
+import mb.stratego.build.strincr.function.GetStr2LibInfo;
+import mb.stratego.build.strincr.function.output.Str2LibInfo;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.util.GenerateStratego;
@@ -90,15 +96,32 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         // @formatter:on
         if(input instanceof BackInput.Boilerplate) {
             arguments.add("--boilerplate");
-            if(((BackInput.Boilerplate) input).library) {
+            final BackInput.Boilerplate boilerplateInput = (BackInput.Boilerplate) input;
+            if(boilerplateInput.library) {
                 arguments.add("--library");
+            }
+            final Str2LibInfo str2LibInfo = PieUtils
+                .requirePartial(context, resolve, boilerplateInput.checkInput.resolveInput(),
+                    GetStr2LibInfo.INSTANCE);
+            final IStrategoTerm str2Lib = GenerateStratego
+                .packStr2Library(tf, boilerplateInput.libraryName, str2LibInfo.sorts,
+                    str2LibInfo.constructors, str2LibInfo.strategyFrontData, input.packageName);
+
+            // Output str2lib file
+            final HierarchicalResource str2LibResource = context.getResourceService()
+                .getHierarchicalResource(boilerplateInput.str2LibFile());
+            context.provide(str2LibResource);
+            try(final OutputStream os = str2LibResource.openWrite()) {
+                Writer out = new BufferedWriter(new OutputStreamWriter(os));
+                str2Lib.writeAsString(out, Integer.MAX_VALUE);
+                out.flush();
             }
         } else {
             arguments.add("--single-strategy");
             arguments.add("--library");
         }
 
-        for(ResourcePath includeDir : input.checkInput.includeDirs) {
+        for(ResourcePath includeDir : input.checkInput.importResolutionInfo.includeDirs) {
             arguments.add("-I", resourcePathConverter.toString(includeDir));
         }
 
@@ -113,7 +136,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             arguments.add("-D", constant);
         }
 
-        for(IModuleImportService.ModuleIdentifier linkedLibrary : input.checkInput.linkedLibraries) {
+        for(IModuleImportService.ModuleIdentifier linkedLibrary : input.checkInput.importResolutionInfo.linkedLibraries) {
             if(linkedLibrary instanceof BuiltinLibraryIdentifier) {
                 arguments.add("-la", ((BuiltinLibraryIdentifier) linkedLibrary).cmdArgString);
             }

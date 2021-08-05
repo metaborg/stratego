@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,21 +22,23 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
-import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
+import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.message.FailedToGetModuleAst;
+import mb.stratego.build.strincr.message.InvalidASTMessage;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.UnresolvedImport;
 import mb.stratego.build.strincr.task.input.FrontInput;
@@ -82,7 +83,10 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
+        @Nullable String str2LibPackageName = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
+        final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
+        final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData =
             new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
@@ -120,13 +124,15 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier,
-                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, constrData,
-                externalConstrData, injections, externalInjections, strategyData,
-                internalStrategyData, externalStrategyData, dynamicRuleData, overlayData,
-                usedConstructors, usedStrategies, dynamicRules, usedAmbiguousStrategies, messages,
-                0L);
+            return new ModuleData(input.moduleIdentifier, str2LibPackageName,
+                generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
+                externalSortData, constrData, externalConstrData, injections, externalInjections,
+                strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
+                overlayData, usedConstructors, usedStrategies, dynamicRules,
+                usedAmbiguousStrategies, messages, 0L);
         }
+
+        str2LibPackageName = strategoLanguage.extractPackageName(ast.wrapped);
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -143,12 +149,23 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     // that use resolved imports, but it there are often changes to the
                     // strFileGeneratingTasks we may want to pull it into a separate task.
                     imports.addAll(expandImports(context, moduleImportService, def.getSubterm(0),
-                        ast.lastModified, messages, input.strFileGeneratingTasks, input.includeDirs,
-                        input.linkedLibraries));
+                        ast.lastModified, messages, input.importResolutionInfo));
                     break;
                 case "Signature":
-                    addSigData(input.moduleIdentifier, constrData, externalConstrData, injections,
-                        externalInjections, def.getSubterm(0));
+                    for(IStrategoTerm sdecl : def.getSubterm(0)) {
+                        switch(TermUtils.toAppl(sdecl).getName()) {
+                            case "Constructors":
+                                addSigData(input.moduleIdentifier, constrData, externalConstrData,
+                                    injections, externalInjections, sdecl.getSubterm(0));
+                                break;
+                            case "Sorts":
+                                addSortData(messages, ast.lastModified, sortData, externalSortData,
+                                    sdecl.getSubterm(0));
+                                break;
+                            default:
+                                throw new InvalidASTException(input.moduleIdentifier, sdecl);
+                        }
+                    }
                     break;
                 case "Overlays":
                     addOverlayData(input.moduleIdentifier, overlayData, constrData,
@@ -165,7 +182,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     throw new InvalidASTException(input.moduleIdentifier, def);
             }
         }
-        if(input.autoImportStd && !input.moduleIdentifier.isLibrary() && !imports
+        if(input.autoImportStd && input.moduleIdentifier.legacyStratego() && !imports
             .contains(BuiltinLibraryIdentifier.StrategoLib)) {
             imports.add(BuiltinLibraryIdentifier.StrategoLib);
         }
@@ -173,23 +190,22 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, ast.wrapped, imports, constrData,
-            externalConstrData, injections, externalInjections, strategyData, internalStrategyData,
-            externalStrategyData, dynamicRuleData, overlayData, usedConstructors, usedStrategies,
-            dynamicRules, usedAmbiguousStrategies, messages, ast.lastModified);
+        return new ModuleData(input.moduleIdentifier, str2LibPackageName, ast.wrapped, imports,
+            sortData, externalSortData, constrData, externalConstrData, injections,
+            externalInjections, strategyData, internalStrategyData, externalStrategyData,
+            dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
+            usedAmbiguousStrategies, messages, ast.lastModified);
     }
 
     public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,
         IModuleImportService moduleImportService, Iterable<IStrategoTerm> imports,
         long lastModified, @Nullable ArrayList<Message> messages,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
-        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
+        ImportResolutionInfo importResolutionInfo)
         throws IOException, ExecException {
         final HashSet<IModuleImportService.ModuleIdentifier> expandedImports = new HashSet<>();
         for(IStrategoTerm anImport : imports) {
-            final ImportResolution importResolution = moduleImportService
-                .resolveImport(context, anImport, strFileGeneratingTasks, includeDirs,
-                    linkedLibraries);
+            final ImportResolution importResolution =
+                moduleImportService.resolveImport(context, anImport, importResolutionInfo);
             if(importResolution instanceof IModuleImportService.UnresolvedImport) {
                 if(messages != null) {
                     messages.add(new UnresolvedImport(anImport, lastModified));
@@ -204,6 +220,12 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
     public static IStrategoList getDefs(IModuleImportService.ModuleIdentifier moduleIdentifier,
         IStrategoTerm ast) {
+        if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
+            final IStrategoList modules = TermUtils.toListAt(ast, 2);
+            if(modules.size() == 1) {
+                ast = modules.getSubterm(0);
+            }
+        }
         if(TermUtils.isAppl(ast, "Module", 2)) {
             final IStrategoTerm defs = ast.getSubterm(1);
             if(TermUtils.isList(defs)) {
@@ -276,7 +298,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         .add(new StrategyFrontData(strategySignature, strategyType, External));
                     break;
                 }
-                // TODO: cases "ExtTypedDef" "ExtTypedDefInl"
                 case "ExtSDef":
                 case "ExtSDefInl":
                     kind = External;
@@ -367,8 +388,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
             final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-            new UsedConstrs(usedConstructors)
-                .visit(overlay);
+            new UsedConstrs(usedConstructors).visit(overlay);
             final ConstructorSignature signature = new ConstructorSignature(name, arity);
             final OverlayData data =
                 new OverlayData(signature, (IStrategoAppl) overlay, type, usedConstructors);
@@ -377,41 +397,62 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         }
     }
 
+    private void addSortData(ArrayList<Message> messages, long lastModified,
+        LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
+        IStrategoTerm sorts) {
+        if(!TermUtils.isList(sorts)) {
+            messages.add(new InvalidASTMessage(sorts, lastModified, "a list"));
+            return;
+        }
+        for(IStrategoTerm sortDef : sorts) {
+            final @Nullable SortSignature sortSig = SortSignature.fromTerm(sortDef);
+            final LinkedHashSet<SortSignature> dataSet;
+            final @Nullable Boolean external = SortSignature.isExternal(sortDef);
+            if(sortSig == null || external == null) {
+                messages
+                    .add(new InvalidASTMessage(sortDef, lastModified, "a valid sort definition"));
+                continue;
+            }
+            if(external) {
+                dataSet = externalSortData;
+            } else {
+                dataSet = sortData;
+            }
+            dataSet.add(sortSig);
+        }
+    }
+
     protected void addSigData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         HashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections, IStrategoTerm sigs) {
-        for(IStrategoTerm sig : sigs) {
-            if(TermUtils.isAppl(sig, "Constructors", 1)) {
-                final IStrategoTerm constrs = sig.getSubterm(0);
-                if(!TermUtils.isList(constrs)) {
-                    throw new InvalidASTException(moduleIdentifier, constrs);
-                }
-                for(IStrategoTerm constrDef : constrs) {
-                    final @Nullable ConstructorSignature constrSig =
-                        ConstructorSignature.fromTerm(constrDef);
-                    if(constrSig == null) {
-                        addInjectionData(moduleIdentifier, constrDef, injections,
-                            externalInjections, constrData);
-                        continue;
-                    }
-                    final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
-                    final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
-                    final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
-                    final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
-                    if(external == null) {
-                        throw new InvalidASTException(moduleIdentifier, constrDef);
-                    }
-                    if(external) {
-                        dataMap = externalConstrData;
-                    } else {
-                        dataMap = constrData;
-                    }
-                    Relation.getOrInitialize(dataMap, constrSig, ArrayList::new).add(
-                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
-                }
+        HashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
+        IStrategoTerm constrs) {
+        if(!TermUtils.isList(constrs)) {
+            throw new InvalidASTException(moduleIdentifier, constrs);
+        }
+        for(IStrategoTerm constrDef : constrs) {
+            final @Nullable ConstructorSignature constrSig =
+                ConstructorSignature.fromTerm(constrDef);
+            if(constrSig == null) {
+                addInjectionData(moduleIdentifier, constrDef, injections, externalInjections,
+                    constrData);
+                continue;
             }
+            final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
+            final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
+            final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
+            final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
+            if(external == null) {
+                throw new InvalidASTException(moduleIdentifier, constrDef);
+            }
+            if(external) {
+                dataMap = externalConstrData;
+            } else {
+                dataMap = constrData;
+            }
+            Relation.getOrInitialize(dataMap, constrSig, ArrayList::new)
+                .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
         }
     }
 
@@ -486,12 +527,22 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
+        extract-inj:
+          OpDeclInj(ConstType(t1)) -> (Sort("Tuple", []), t2)
+          with
+            t2 := <desugar-Type> t1
+
         extract-constr:
           ExtOpDeclInj(FunType(t1*@[_, _ | _], ConstType(t1))) ->
             (("", <length> t1*), ConstrType(t2*, t2))
           with
             t2 := <desugar-Type> t1
           ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
+
+        extract-constr:
+          ExtOpDeclInj(ConstType(t1)) -> (("", 0), ConstrType([], t2))
+          with
+            t2 := <desugar-Type> t1
          */
         if(!TermUtils.isAppl(constrDef)) {
             throw new InvalidASTException(moduleIdentifier, constrDef);
@@ -513,24 +564,18 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
                 final IStrategoTerm from;
                 final ArrayList<IStrategoTerm> froms = constrType.getFrom();
-                switch(froms.size()) {
-                    case 0:
-                        // ignore this weird edge-case generated from strategoGT/syntax/sugar/string-quotations.sdf3
-                        return;
-                    case 1:
-                        from = froms.get(0);
-                        break;
-                    default:
-                        final IStrategoList tupleTypes = tf.makeList(froms);
-                        from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
+                if(froms.size() == 1) {
+                    from = froms.get(0);
+                } else {
+                    final IStrategoList tupleTypes = tf.makeList(froms);
+                    from = tf.makeAppl("Sort", tf.makeString("Tuple"), tupleTypes);
 
-                        final ConstructorSignature constrSig =
-                            new ConstructorSignature("", froms.size());
-                        final IStrategoTerm constrTerm =
-                            tf.replaceTerm(constrType.toOpType(tf), constrDef);
-                        Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                            new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
-                        break;
+                    final ConstructorSignature constrSig =
+                        new ConstructorSignature("", froms.size());
+                    final IStrategoTerm constrTerm =
+                        tf.replaceTerm(constrType.toOpType(tf), constrDef);
+                    Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
+                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }
@@ -549,7 +594,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
     private LastModified<IStrategoTerm> getModuleAst(ExecContext context, FrontInput.Normal input)
         throws Exception {
-        return moduleImportService
-            .getModuleAst(context, input.moduleIdentifier, input.strFileGeneratingTasks);
+        return moduleImportService.getModuleAst(context, input.moduleIdentifier,
+            input.importResolutionInfo.strFileGeneratingTasks);
     }
 }

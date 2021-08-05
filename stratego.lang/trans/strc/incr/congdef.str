@@ -28,7 +28,17 @@ strategies
     (is-string, is-int)
   ; <range; unzip(!$[cong_arg_[<id>]]; !(VarDec(<id>, DefaultStrat()), <id>))> n => (xdecs, xs)
 
-  stratego2-mk-cong-def-generate = stratego2-mk-cong-def-overlay-pre-desugar; Overlay-to-Congdef
+  stratego2-mk-cong-defs =
+    {| ExpandOverlayInMatch, ExpandOverlayInBuild:
+      map(  stratego2-mk-cong-def-overlay-generate
+          ; stratego2-mk-cong-def-desugar )
+    |}
+  
+
+  stratego2-mk-cong-def-overlay-generate =
+    stratego2-mk-cong-def-overlay-pre-desugar
+  ; DeclareExpandOverlay
+  ; Overlay-to-Congdef
 
   stratego2-mk-cong-def-overlay-pre-desugar =
     pre-desugar

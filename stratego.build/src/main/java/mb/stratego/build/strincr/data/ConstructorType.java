@@ -29,7 +29,7 @@ public class ConstructorType extends StrategoAppl {
         return from;
     }
 
-    public IStrategoTerm toOpType(ITermFactory tf) {
+    public IStrategoTerm toOpType(IStrategoTermBuilder tf) {
         final IStrategoTerm to2;
         to2 = typeToConstType(tf, to);
         if(from.size() == 0) {
@@ -42,7 +42,7 @@ public class ConstructorType extends StrategoAppl {
         return tf.makeAppl("FunType", tf.makeList(froms), to2);
     }
 
-    public static IStrategoTerm typeToConstType(ITermFactory tf, IStrategoTerm type) {
+    public static IStrategoTerm typeToConstType(IStrategoTermBuilder tf, IStrategoTerm type) {
         final IStrategoTerm to2;
         if(TermUtils.isAppl(type, "DynT", 1)) {
             to2 = type;
@@ -63,22 +63,25 @@ public class ConstructorType extends StrategoAppl {
                     tryDesugarType(tf, opType.getSubterm(0)));
                 break;
             case "FunType":
-                if(opType.getSubtermCount() != 2 || !TermUtils.isListAt(opType, 0) || !TermUtils
-                    .isApplAt(opType, 1, "ConstType", 1)) {
+                if(opType.getSubtermCount() != 2 || !TermUtils.isListAt(opType, 0)) {
                     return null;
                 }
                 final IStrategoList froms = TermUtils.toListAt(opType, 0);
                 final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
                 final ArrayList<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
                 for(IStrategoTerm from : froms) {
-                    if(!TermUtils.isAppl(from, "ConstType", 1)) {
-                        fromTypes.add(dynT);
-                    } else {
+                    if(TermUtils.isAppl(from, "ConstType", 1)) {
                         fromTypes.add(tryDesugarType(tf, from.getSubterm(0)));
+                    } else {
+                        fromTypes.add(dynT);
                     }
                 }
-                type = new ConstructorType(tf, fromTypes,
-                    tryDesugarType(tf, opType.getSubterm(1).getSubterm(0)));
+                if(TermUtils.isApplAt(opType, 1, "ConstType", 1)) {
+                    type = new ConstructorType(tf, fromTypes,
+                        tryDesugarType(tf, opType.getSubterm(1).getSubterm(0)));
+                } else {
+                    type = new ConstructorType(tf, fromTypes, dynT);
+                }
                 break;
             default:
                 return null;

@@ -1,6 +1,8 @@
 module thread-test
 imports libstratego-lib
 signature
+  sorts
+    Int A
   constructors
     Ann  : Int * a -> a
 

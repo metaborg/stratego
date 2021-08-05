@@ -1,6 +1,73 @@
 module Stratego
 
 signature
+  sorts
+    String
+    SCoercion
+    Coercion
+    SVar
+    Proxy
+    SType
+    Type
+    SSimpleFunType
+    SFunType
+    SortVar
+    SortT
+    UCID
+    Id
+    Dyn
+    Term
+    RuleNames
+    Typedid
+    RuleDec
+    DynRuleScopeId
+    DynRuleId
+    Rule
+    RuleDef
+    DynRuleDef
+    ScopeLabels
+    Strategy
+    RuleCond
+    Overlay
+    SwitchCase
+    StrategyCurly
+    StrategyAngle
+    LId
+    LID
+    ModName
+    ImportModName
+    Decl
+    Def
+    Sdecl
+    Module
+    StrategyMid
+    StrategyParen
+    ID
+    OldType
+    Anno
+    EmptyId
+    StrategyDef
+    RuleNames
+    Char
+    Real
+    Int
+    ConstType
+    OpType
+    OldArgType
+    FunType
+    RetType
+    Opdecl
+    Sort
+    LCID
+    Wld
+    PreTerm
+    Var
+    Padding
+    StringQuotedPart4
+    StringQuotedPart3
+    StringQuotedPart2
+    StringQuotedPart1
+    StringQuotation
   constructors
     ProxyT                   : List(SCoercion) * List(Coercion) * Coercion * Coercion * SVar -> Proxy
     Proxy                    : Coercion * Coercion * SVar -> Proxy
@@ -246,12 +313,16 @@ signature
 
 
 signature
+  sorts
+    Option(a)
   constructors
     Some : a -> Option(a)
     None : Option(a)
 
 
 signature
+  sorts
+    List(a)
   constructors
     Cons : a * List(a) -> List(a)
     Nil  : List(a)

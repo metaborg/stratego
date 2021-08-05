@@ -14,5 +14,7 @@ strategies
     ; rules(Bar : Foo([x | xs]) -> xs)
 
 signature
+  sorts
+    A B
   constructors
     Foo : A -> B

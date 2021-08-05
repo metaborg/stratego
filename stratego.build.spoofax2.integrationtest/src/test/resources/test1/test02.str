@@ -1,6 +1,8 @@
 module test02
 imports collection/list/cons
 signature
+  sorts
+    Call
   constructors
     Call : a * List(a) -> Call
 

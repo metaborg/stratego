@@ -2,6 +2,8 @@ module test69
 imports libstratego-lib
 
 signature
+  sorts
+    Exp
   constructors
     If   : Exp * Exp -> Exp
     If   : Exp * Exp * Exp -> Exp

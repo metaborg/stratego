@@ -147,6 +147,8 @@ computeCoercion-(|subj, st1): (from@IllFormedTermT(_, _), DynT(to)) -> (<otf(!Id
   //      ill-formed term is constructed does get a warning. 
 computeCoercion-(|subj, st1): (from, DynT(Dyn())) -> (<otf(!Id(){from})> subj, st1)
 
+computeCoercion-(|subj, st1): (DynT(Dyn()), t@DynT(to)) -> (<otf(!Id(){t})> subj, st1)
+
 computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
   where
     ((_, to2), st2) := <CanCoerce> ((<unDyn> from, to), st1)
@@ -312,7 +314,7 @@ desugar-DefHasType = ?AnnoDef(_, <desugar-DefHasType>)
 desugar-DefHasType:
   d1@DefHasTypeNoArgs(n, t) -> d2
   where
-    t1 := <otf(!<desugar-SSimpleFunType> t)> d1
+    t1 := <otf(!FunTType([], [], <desugar-SSimpleFunType> t))> d1
   ; d2 := <otf(!DefHasType(n, t1))> d1
 desugar-DefHasType:
   d1@DefHasType(n, s*, t) -> d2
@@ -418,6 +420,11 @@ extract-constr:
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
+extract-constr:
+  ExtOpDeclInj(ConstType(t1)) -> (("", 0), ConstrType([], t2))
+  with
+    t2 := <desugar-Type> t1
+
 extract-inj:
   OpDeclInj(FunType([ConstType(from)], ConstType(to))) -> (<desugar-Type> from, <desugar-Type> to)
 
@@ -429,6 +436,11 @@ extract-inj:
   with
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
+
+extract-inj:
+  OpDeclInj(ConstType(t1)) -> (TupleT([]), t2)
+  with
+    t2 := <desugar-Type> t1
 
 strategies
 

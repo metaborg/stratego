@@ -6,7 +6,7 @@ strategies
   main = <rewr> f(100, empty())
 
 signature
-  sorts Domain Range Map
+  sorts Domain Range Map Int
   constructors
     undefined : Range
     empty     : Map

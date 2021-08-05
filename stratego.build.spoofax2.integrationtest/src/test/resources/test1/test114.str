@@ -4,8 +4,10 @@ imports
   libstratego-lib
   libstratego-sdf
 
-signature constructors
-  
+signature
+  sorts
+    Term
+  constructors
   sort : Term -> Term
 
 strategies

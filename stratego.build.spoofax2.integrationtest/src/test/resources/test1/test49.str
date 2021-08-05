@@ -2,6 +2,8 @@ module test49
 imports libstratego-lib
 
 signature
+  sorts
+    String FooBar
   constructors
     FooBar: String -> FooBar
 

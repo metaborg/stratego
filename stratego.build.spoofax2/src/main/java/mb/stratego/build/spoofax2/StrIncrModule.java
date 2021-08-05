@@ -2,6 +2,7 @@ package mb.stratego.build.spoofax2;
 
 import com.google.inject.Singleton;
 
+import mb.pie.task.archive.UnarchiveFromJar;
 import mb.pie.taskdefs.guice.TaskDefsModule;
 import mb.resource.DefaultResourceService;
 import mb.resource.ResourceService;
@@ -15,6 +16,7 @@ import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.Compile;
+import mb.stratego.build.strincr.task.CopyLibraryClassFiles;
 import mb.stratego.build.strincr.task.Front;
 import mb.stratego.build.strincr.task.FrontSplit;
 import mb.stratego.build.strincr.task.Resolve;
@@ -42,5 +44,7 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(Resolve.class, Resolve.id);
         bindTaskDef(Front.class, Front.id);
         bindTaskDef(FrontSplit.class, FrontSplit.id);
+        bindTaskDef(CopyLibraryClassFiles.class, CopyLibraryClassFiles.id);
+        bindTaskDef(UnarchiveFromJar.class, UnarchiveFromJar.class.getName());
     }
 }

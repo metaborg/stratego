@@ -1,16 +1,20 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CompileGlobalIndex implements Serializable {
+    public final ArrayList<String> importedStr2LibPackageNames;
     public final LinkedHashSet<StrategySignature> nonExternalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
 
-    public CompileGlobalIndex(LinkedHashSet<StrategySignature> nonExternalStrategies,
+    public CompileGlobalIndex(ArrayList<String> importedStr2LibPackageNames, LinkedHashSet<StrategySignature> nonExternalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules) {
+        this.importedStr2LibPackageNames = importedStr2LibPackageNames;
         this.nonExternalStrategies = nonExternalStrategies;
         this.dynamicRules = dynamicRules;
     }
@@ -23,18 +27,21 @@ public class CompileGlobalIndex implements Serializable {
 
         CompileGlobalIndex that = (CompileGlobalIndex) o;
 
+        if(!importedStr2LibPackageNames.equals(that.importedStr2LibPackageNames))
+            return false;
         if(!nonExternalStrategies.equals(that.nonExternalStrategies))
             return false;
         return dynamicRules.equals(that.dynamicRules);
     }
 
     @Override public int hashCode() {
-        int result = nonExternalStrategies.hashCode();
+        int result = importedStr2LibPackageNames.hashCode();
+        result = 31 * result + nonExternalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "GlobalIndex(" + nonExternalStrategies + ", " + dynamicRules + ')';
+        return "GlobalIndex(" + importedStr2LibPackageNames + ", " + nonExternalStrategies + ", " + dynamicRules + ')';
     }
 }

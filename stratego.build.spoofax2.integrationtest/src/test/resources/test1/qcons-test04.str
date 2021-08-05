@@ -10,6 +10,8 @@ strategies
     ; not(?aap(_))
 
 signature
+  sorts
+    Term
   constructors
    "aap" : Term -> Term
    aap   : Term -> Term

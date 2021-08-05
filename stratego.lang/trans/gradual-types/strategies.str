@@ -803,13 +803,13 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy(|e1, st1):
   s@Cast(RuntimeCheck(t)) -> (s, st2)
   with
-    st2 := <current-type(|<desugar-Type> t)> st1
+    st2 := <current-type(|<desugar-Type;sort-check-Type(|e1)> t)> st1
 
 insertCasts-Strategy(|e1, st1):
   s@TypeTest(t) -> (s, st3)
   with
     t1 := <current-type> st1
-  ; t2 := <desugar-Type> t
+  ; t2 := <desugar-Type;sort-check-Type(|e1)> t
   ; t3 := <TP2tv> t1
   ; if Sort(TP(), []) := t1; <oncetd(?DynT())> t2
       then <report-Err> (t, MatchNotSpecificEnoughForTP(t2))

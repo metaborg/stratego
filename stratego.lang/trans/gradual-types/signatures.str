@@ -2,10 +2,12 @@ module gradual-types/signatures
 
 imports
 
-signatures/gradual-types/signatures-sig
-signatures/gradual-types/internal-sig
+  signatures/core/signatures-sig
+  signatures/sugar/signatures-sig
+  signatures/gradual-types/signatures-sig
+  signatures/gradual-types/internal-sig
 
-gradual-types/utils
+  gradual-types/utils
 
 overlays
 
@@ -24,3 +26,142 @@ strategies
   TupleT(|t) = TupleT(|t, t)
   TupleT(|elems, t) = <otf(!Sort(<otf(!"Tuple")> t, elems))> t
   ListT(|t) = <otf(\elem -> Sort(<otf(!"List")> elem, elem)\)> t
+
+strategies // core/signatures & sugar/signatures
+
+  sort-check-Opdecl(|e): OpDecl(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): OpDeclQ(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): OpDeclInj(optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDecl(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDeclQ(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDeclInj(optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+
+  sort-check-OpType(|e) = sort-check-ConstType(|e)
+
+  sort-check-OpType(|e): FunType(c*, c) -> <id>
+    with
+      <map(sort-check-ConstType(|e))> c*
+    ; <sort-check-ConstType(|e)> c
+
+
+  sort-check-ConstType(|e): ConstType(s) -> <id>
+    with <sort-check-Sort(|e)> s
+
+
+  sort-check-Sort(|e): s@Sort(n, sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Err> (s, UnresolvedSort(arity))
+      end
+    ; <map(sort-check-Sort(|e))> sa*
+
+  sort-check-Sort(|e): SortVar(n) -> <id>
+
+  sort-check-Sort(|e) = ?StringT()
+
+  sort-check-Sort(|e) = ?IntT()
+
+  sort-check-Sort(|e) = ?RealT()
+
+  sort-check-Sort(|e): s@SortNoArgs(n) -> <id>
+    with
+      arity := 0
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Err> (s, UnresolvedSort(arity))
+      end
+
+  sort-check-Sort(|e): TupleT(s, s*) -> <id>
+    with
+      <sort-check-Sort(|e)> s
+    ; <map(sort-check-Sort(|e))> s*
+
+  sort-check-Sort(|e): SortList(s*) -> <id>
+    with
+      <map(sort-check-Sort(|e))> s*
+
+  sort-check-Sort(|e): SortListTl(s*, s) -> <id>
+    with
+      <sort-check-Sort(|e)> s
+    ; <map(sort-check-Sort(|e))> s*
+
+  sort-check-Sort(|e): SortTuple(s*) -> <id>
+    with
+      <map(sort-check-Sort(|e))> s*
+
+strategies // gradual-types/signatures
+
+  sort-check-SType(|e) = ?SDyn()
+
+  sort-check-SType(|e) = sort-check-SFunType(|e)
+
+
+  sort-check-SFunType(|e) = sort-check-SSimpleFunType(|e)
+
+  sort-check-SFunType(|e): FunType(stype*, ssimplefuntype) -> <id>
+    with
+      <map(sort-check-SType(|e))> stype*
+    ; <sort-check-SSimpleFunType(|e)> ssimplefuntype
+
+  sort-check-SFunType(|e) = sort-check-FunTType(|e)
+
+
+  sort-check-SSimpleFunType(|e) = ?TP()
+
+  sort-check-SSimpleFunType(|e): FunNoArgsType(type1, type2) -> <id>
+    with
+      <sort-check-Type(|e)> type1
+    ; <sort-check-Type(|e)> type2
+
+
+  sort-check-FunTType(|e): FunTType(stype*, type*, ssimplefuntype) -> <id>
+    with
+      <map(sort-check-SType(|e))> stype*
+    ; <map(sort-check-Type(|e))> type*
+    ; <sort-check-SSimpleFunType(|e)> ssimplefuntype
+
+
+  sort-check-Type(|e): TupleT(type, type*) -> <id>
+    with
+      <sort-check-Type(|e)> type
+    ; <map(sort-check-Type(|e))> type*
+
+  sort-check-Type(|e) = ?DynT(_)
+
+  sort-check-Type(|e) = ?StringT()
+
+  sort-check-Type(|e) = ?IntT()
+
+  sort-check-Type(|e) = ?RealT()
+
+  sort-check-Type(|e) = sort-check-SortT(|e)
+
+
+  sort-check-SortT(|e): s@Sort(n, sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Err> (s, UnresolvedSort(arity))
+      end
+    ; <map(sort-check-Type(|e))> sa*
+
+  sort-check-SortT(|e): SortVar(n) -> <id>
+
+  sort-check-SortT(|e): s@SortNoArgs(n) -> <id>
+    with
+      arity := 0
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Err> (s, UnresolvedSort(arity))
+      end

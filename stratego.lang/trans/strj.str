@@ -23,7 +23,7 @@ strategies
 
   stratego2-strj-sep-comp =
     ([name, ctree | args] -> [name | args])
-  ; strj-parse-options
+  ; strj-parse-options(|[])
   ; main-module-required
   ; log-timed(
       xtc-input(strj-or-die2(|ctree))
@@ -58,7 +58,7 @@ strategies
   ; log-timed(list-loop(output-java) | "Pretty printing succeeded", 1)
 
   main-strj =
-    strj-parse-options
+    strj-parse-options(|["org.strategoxt.stratego_lib"])
   ; main-module-required
   ; log-timed(
       xtc-input(strj-or-die)

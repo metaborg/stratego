@@ -1,6 +1,8 @@
 module test99
 imports libstratego-lib
 signature
+  sorts
+    Term
   constructors
     A : Term
     B : Term

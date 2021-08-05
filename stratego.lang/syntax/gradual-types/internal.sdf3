@@ -15,14 +15,16 @@ context-free syntax
   ]
 
   Str2LibComponent.Maven = [maven [groupId:Id]:[id:Id]:[MavenVersion]]
+  Str2LibComponent.Package = [package [PackageName]]
 
-  MavenVersion.Version = <<VersionNumber>.<VersionNumber>.<VersionNumber>-<VersionQualifier>>
-
-lexical sorts VersionNumber VersionQualifier
+lexical sorts VersionNumber VersionQualifier MavenVersion
 lexical syntax
 
-VersionNumber = [0-9]+
-VersionQualifier = [A-Za-z0-9\-\.]+
+  MavenVersion = VersionNumber "." VersionNumber "." VersionNumber VersionQualifier
+  VersionNumber = [0-9]+
+  VersionQualifier = "-" [A-Za-z0-9\-\.]+
+  PackageName = {Id "."}+
+  Id = [A-Za-z\_\$] [A-Za-z0-9\_\$]+
 
 lexical restrictions
 
@@ -68,6 +70,7 @@ context-free syntax
   ErrorDesc.TypeMismatch = [Expected [Type], but got [Type].]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
   ErrorDesc.UnresolvedLocal = [Undefined local variable.]
+  ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
   ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
