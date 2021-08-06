@@ -167,11 +167,12 @@ public interface IModuleImportService {
     /**
      * @param moduleIdentifier The unique identifier previously created by this service during
      *                         import resolution
+     * @param importResolutionInfo
      * @return The AST of the Stratego module
      * @throws IOException on IO exceptions during access to the file in which the module resides
      */
     LastModified<IStrategoTerm> getModuleAst(ExecContext context, ModuleIdentifier moduleIdentifier,
-        Collection<STask<?>> strFileGeneratingTasks)
+        ImportResolutionInfo importResolutionInfo)
         throws Exception;
 
     @Nullable String fileName(ModuleIdentifier moduleIdentifier);

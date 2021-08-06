@@ -60,8 +60,7 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
         final HierarchicalResource fromHR = resourceService.getHierarchicalResource(from);
         final HierarchicalResource toHR = resourceService.getHierarchicalResource(to);
         fromHR.walkForEach(ResourceMatcher.ofTrue(), f -> {
-            final HierarchicalResource fToHR = resourceService
-                .getHierarchicalResource(to.appendAsRelativePath(from.relativize(f.getPath())));
+            final HierarchicalResource fToHR = toHR.appendAsRelativePath(from.relativize(f.getPath()));
             if(f.isDirectory()) {
                 context.require(f);
                 f.copyTo(fToHR);

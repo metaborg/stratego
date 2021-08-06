@@ -26,16 +26,8 @@ public class CheckOutput implements Serializable {
 
     public CheckOutput(LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
         ArrayList<Message> messages) {
-        this.dynamicRuleIndex = dynamicRuleIndex;
-        this.messages = messages;
-        boolean containsErrors = false;
-        for(Message message : messages) {
-            if(message.severity == MessageSeverity.ERROR) {
-                containsErrors = true;
-                break;
-            }
-        }
-        this.containsErrors = containsErrors;
+        this(dynamicRuleIndex, messages,
+            messages.stream().anyMatch(m -> m.severity == MessageSeverity.ERROR));
     }
 
     @Override public boolean equals(Object o) {
