@@ -27,7 +27,6 @@ import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -83,7 +82,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
-        @Nullable String str2LibPackageName = null;
         final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>();
         final LinkedHashSet<SortSignature> sortData = new LinkedHashSet<>(0);
         final LinkedHashSet<SortSignature> externalSortData = new LinkedHashSet<>(0);
@@ -124,7 +122,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier, str2LibPackageName,
+            return new ModuleData(input.moduleIdentifier, null,
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
@@ -132,7 +130,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 usedAmbiguousStrategies, messages, 0L);
         }
 
-        str2LibPackageName = strategoLanguage.extractPackageName(ast.wrapped);
+        final @Nullable String str2LibPackageName = strategoLanguage.extractPackageName(ast.wrapped);
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -595,6 +593,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     private LastModified<IStrategoTerm> getModuleAst(ExecContext context, FrontInput.Normal input)
         throws Exception {
         return moduleImportService.getModuleAst(context, input.moduleIdentifier,
-            input.importResolutionInfo.strFileGeneratingTasks);
+            input.importResolutionInfo);
     }
 }

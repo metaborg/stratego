@@ -3,9 +3,9 @@ package mb.stratego.build.strincr;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -220,15 +220,15 @@ public class ModuleImportService implements IModuleImportService {
     }
 
     @Override public LastModified<IStrategoTerm> getModuleAst(ExecContext context,
-        IModuleImportService.ModuleIdentifier moduleIdentifier,
-        Collection<STask<?>> strFileGeneratingTasks) throws Exception {
+        ModuleIdentifier moduleIdentifier,
+        ImportResolutionInfo importResolutionInfo) throws Exception {
         /*
          * Every getModuleAst call depends on the sdf task so there is no hidden dep. To make
          *     sure that getModuleAst only runs when their input _files_ change, we need
          *     getModuleAst to depend on the sdf task with a simple stamper that allows the
          *     execution of the sdf task to be ignored.
          */
-        for(final STask<?> t : strFileGeneratingTasks) {
+        for(final STask<?> t : importResolutionInfo.strFileGeneratingTasks) {
             context.require(t, OutputStampers.inconsequential());
         }
         if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
@@ -242,6 +242,13 @@ public class ModuleImportService implements IModuleImportService {
                 if(moduleIdentifier.isLibrary() && moduleIdentifier.legacyStratego()) {
                     return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
                 } else if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
+                    for(Supplier<Stratego2LibInfo> str2library : importResolutionInfo.str2libraries) {
+                        if(str2library instanceof STask) {
+                            context.require((STask<Stratego2LibInfo>) str2library, OutputStampers.inconsequential());
+                        } else {
+                            context.require(str2library);
+                        }
+                    }
                     return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
                 } else {
                     return new LastModified<>(strategoLanguage

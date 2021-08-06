@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -32,8 +33,7 @@ public class CheckOpenModuleOutput implements Serializable {
 
         CheckOpenModuleOutput that = (CheckOpenModuleOutput) o;
 
-        if(astWithCasts != null ? !astWithCasts.equals(that.astWithCasts) :
-            that.astWithCasts != null)
+        if(!Objects.equals(astWithCasts, that.astWithCasts))
             return false;
         return messages.equals(that.messages);
     }
