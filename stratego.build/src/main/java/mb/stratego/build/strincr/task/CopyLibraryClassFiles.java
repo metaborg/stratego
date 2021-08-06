@@ -1,15 +1,18 @@
 package mb.stratego.build.strincr.task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
+import mb.pie.api.stamp.resource.ResourceStampers;
 import mb.pie.task.archive.UnarchiveFromJar;
 import mb.resource.ResourceService;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
+import mb.resource.hierarchical.match.ResourceMatcher;
 import mb.resource.hierarchical.match.path.string.ExtensionPathStringMatcher;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.Stratego2LibInfo;
@@ -41,11 +44,7 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
                         input.stratego2LibInfoSupplier);
                 context.require(unarchiveFromJar, unarchiveInput);
             } else if(jarResourceOrDir.isDirectory()) {
-                // TODO copy entire directory structure with files to input.outputDir
-//                jarResourceOrDir.list(new FileResourceMatcher()).forEach(fileResource -> {
-//                    final String relativePath = jarFileOrDir.relativize(fileResource.getPath());
-//                    resourceService.getWritableResource(input.outputDir.appendAsRelativePath(relativePath))
-//                });
+                copyDirectory(context, jarResourceOrDir.getPath(), input.outputDir);
             }
         }
         return new CLCFOutput(new ArrayList<>(0));
@@ -54,4 +53,25 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
     @Override public String getId() {
         return id;
     }
+
+    public static void copyDirectory(ExecContext context, ResourcePath from, ResourcePath to)
+        throws IOException {
+        final ResourceService resourceService = context.getResourceService();
+        final HierarchicalResource fromHR = resourceService.getHierarchicalResource(from);
+        final HierarchicalResource toHR = resourceService.getHierarchicalResource(to);
+        fromHR.walkForEach(ResourceMatcher.ofTrue(), f -> {
+            final HierarchicalResource fToHR = resourceService
+                .getHierarchicalResource(to.appendAsRelativePath(from.relativize(f.getPath())));
+            if(f.isDirectory()) {
+                context.require(f);
+                f.copyTo(fToHR);
+                context.provide(fToHR);
+            } else if(f.isFile()) {
+                context.require(f, ResourceStampers.modifiedFile());
+                f.copyTo(fToHR);
+                context.provide(fToHR, ResourceStampers.hashFile());
+            }
+        });
+    }
+
 }
