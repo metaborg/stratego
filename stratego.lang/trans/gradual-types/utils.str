@@ -134,6 +134,8 @@ HasType = ?DefHasType(_, _)
 HasType = ?ExtTypedDef(_, _)
 HasType = ?ExtTypedDefInl(_, _, _, _, _)
 
+rigidTV = ?Sort(<get-annotation(?tv@SortVar(_))>, _);!tv
+
 strategies
 
 computeCoercion(|subj, st1): (from1 ,to1) -> <computeCoercion-(|subj, st2)> (from2, to2)
@@ -160,10 +162,10 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
 
 computeCoercion-(|subj, st1): (ErrT(), to) -> (<otf(!Id(){to})> subj, st1)
 
-computeCoercion-(|subj, st1): (from, to@Sort(<get-annotation(?SortVar(tv))>, _)) -> (<otf(!Fail(){ErrT()})> subj, st1)
+computeCoercion-(|subj, st1): (from, to) -> (<otf(!Fail(){ErrT()})> subj, st1)
   where
     not(<eq> (from, to))
-  ; <report-Err> (subj, CannotCastToRigidTypeVar(tv))
+  ; <report-Err> (subj, CannotCastToRigidTypeVar(<sometd(rigidTV)> to))
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to){to})> subj, st1)
 
