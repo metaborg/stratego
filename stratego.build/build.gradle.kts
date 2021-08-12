@@ -9,6 +9,7 @@ dependencies {
   api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api("org.metaborg:pie.api")
+  api("org.metaborg:pie.task.archive")
   api("org.metaborg:resource")
   implementation(compositeBuild("org.metaborg.util"))
   api(compositeBuild("org.spoofax.terms"))
