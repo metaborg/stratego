@@ -8,13 +8,13 @@ import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CompileGlobalIndex implements Serializable {
-    public final ArrayList<Stratego2LibInfo> importedStr2LibProjects;
+    public final ArrayList<String> importedStr2LibPackageNames;
     public final LinkedHashSet<StrategySignature> nonExternalStrategies;
     public final LinkedHashSet<StrategySignature> dynamicRules;
 
-    public CompileGlobalIndex(ArrayList<Stratego2LibInfo> importedStr2LibProjects, LinkedHashSet<StrategySignature> nonExternalStrategies,
+    public CompileGlobalIndex(ArrayList<String> importedStr2LibPackageNames, LinkedHashSet<StrategySignature> nonExternalStrategies,
         LinkedHashSet<StrategySignature> dynamicRules) {
-        this.importedStr2LibProjects = importedStr2LibProjects;
+        this.importedStr2LibPackageNames = importedStr2LibPackageNames;
         this.nonExternalStrategies = nonExternalStrategies;
         this.dynamicRules = dynamicRules;
     }
@@ -27,7 +27,7 @@ public class CompileGlobalIndex implements Serializable {
 
         CompileGlobalIndex that = (CompileGlobalIndex) o;
 
-        if(!importedStr2LibProjects.equals(that.importedStr2LibProjects))
+        if(!importedStr2LibPackageNames.equals(that.importedStr2LibPackageNames))
             return false;
         if(!nonExternalStrategies.equals(that.nonExternalStrategies))
             return false;
@@ -35,13 +35,13 @@ public class CompileGlobalIndex implements Serializable {
     }
 
     @Override public int hashCode() {
-        int result = importedStr2LibProjects.hashCode();
+        int result = importedStr2LibPackageNames.hashCode();
         result = 31 * result + nonExternalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "GlobalIndex(" + importedStr2LibProjects + ", " + nonExternalStrategies + ", " + dynamicRules + ')';
+        return "GlobalIndex(" + importedStr2LibPackageNames + ", " + nonExternalStrategies + ", " + dynamicRules + ')';
     }
 }

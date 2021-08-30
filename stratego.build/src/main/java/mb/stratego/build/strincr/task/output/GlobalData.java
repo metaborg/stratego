@@ -24,7 +24,7 @@ import mb.stratego.build.strincr.message.Message;
 
 public class GlobalData implements Serializable {
     public final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
-    public final ArrayList<Stratego2LibInfo> importedStr2LibProjects;
+    public final ArrayList<String> importedStr2LibPackageNames;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections;
     public final LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>>
         strategyIndex;
@@ -46,7 +46,7 @@ public class GlobalData implements Serializable {
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        ArrayList<Stratego2LibInfo> importedStr2LibProjects, LinkedHashMap<ConstructorSignature,
+        ArrayList<String> importedStr2LibPackageNames, LinkedHashMap<ConstructorSignature,
         LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
@@ -59,7 +59,7 @@ public class GlobalData implements Serializable {
         LinkedHashSet<StrategySignature> dynamicRules, LinkedHashSet<OverlayData> overlayData,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
-        this.importedStr2LibProjects = importedStr2LibProjects;
+        this.importedStr2LibPackageNames = importedStr2LibPackageNames;
         this.nonExternalInjections = nonExternalInjections;
         this.strategyIndex = strategyIndex;
         this.overlayIndex = overlayIndex;
@@ -82,7 +82,7 @@ public class GlobalData implements Serializable {
                 new LinkedHashSet<>(strategyIndex.keySet());
             nonExternalStrategies.removeAll(externalStrategies);
             nonExternalStrategies.addAll(internalStrategies);
-            compileGlobalIndex = new CompileGlobalIndex(importedStr2LibProjects, nonExternalStrategies, dynamicRules);
+            compileGlobalIndex = new CompileGlobalIndex(importedStr2LibPackageNames, nonExternalStrategies, dynamicRules);
         }
         return compileGlobalIndex;
     }
@@ -122,7 +122,7 @@ public class GlobalData implements Serializable {
             return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
             return false;
-        if(!importedStr2LibProjects.equals(that.importedStr2LibProjects))
+        if(!importedStr2LibPackageNames.equals(that.importedStr2LibPackageNames))
             return false;
         if(!nonExternalInjections.equals(that.nonExternalInjections))
             return false;
@@ -153,7 +153,7 @@ public class GlobalData implements Serializable {
 
     @Override public int hashCode() {
         int result = allModuleIdentifiers.hashCode();
-        result = 31 * result + importedStr2LibProjects.hashCode();
+        result = 31 * result + importedStr2LibPackageNames.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();
         result = 31 * result + strategyIndex.hashCode();
         result = 31 * result + overlayIndex.hashCode();

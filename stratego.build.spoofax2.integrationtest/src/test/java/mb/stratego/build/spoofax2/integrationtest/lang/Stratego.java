@@ -126,8 +126,7 @@ public class Stratego {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                     javaClassDir, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
-                    new ArrayList<>(0), library, autoImportStd, languageIdentifier.id,
-                    new ArrayList<>());
+                    new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.STask;
+import mb.pie.api.Supplier;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -24,7 +25,6 @@ public class CompileInput implements Serializable {
     public final boolean library;
     public final boolean usingLegacyStrategoStdLib;
     public final String libraryName;
-    public final Stratego2LibInfo stratego2LibInfo;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, ResourcePath javaClassDir, String packageName,
@@ -32,13 +32,12 @@ public class CompileInput implements Serializable {
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
-        boolean autoImportStd, String libraryName, Stratego2LibInfo stratego2LibInfo) {
+        boolean autoImportStd, String libraryName, ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
         this.javaClassDir = javaClassDir;
         this.libraryName = libraryName;
-        this.stratego2LibInfo = stratego2LibInfo;
         this.checkInput =
-            new CheckInput(mainModuleIdentifier, projectPath, strFileGeneratingTasks, includeDirs,
-                linkedLibraries, autoImportStd);
+            new CheckInput(mainModuleIdentifier, projectPath, new IModuleImportService.ImportResolutionInfo(strFileGeneratingTasks, includeDirs,
+                linkedLibraries, str2libraries), autoImportStd);
         this.outputDir = outputDir.getNormalized();
         this.packageName = packageName;
         this.cacheDir = cacheDir;

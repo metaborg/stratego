@@ -24,6 +24,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 
@@ -66,28 +67,38 @@ public class GenerateStratego {
     }
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
-        Stratego2LibInfo stratego2LibInfo, Collection<? extends IStrategoTerm> sorts,
-        Collection<ConstructorData> constructors,
+        Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
         Map<StrategySignature, StrategyType> strategyFrontData, String packageName) {
-        return tf.makeAppl("Str2Lib", tf.makeString(libraryName), tf.makeList(
-            tf.makeAppl("Package", tf.makeString(packageName)),
-            tf.makeAppl("Maven", tf.makeString(stratego2LibInfo.groupId), tf.makeString(
-                stratego2LibInfo.id),
-                tf.makeString(stratego2LibInfo.version))),
+        return tf.makeAppl("Str2Lib", tf.makeString(libraryName),
+            tf.makeList(tf.makeAppl("Package", tf.makeString(packageName))),
             tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
     }
 
     public static IStrategoTerm packStr2Spec(IStrategoTermBuilder tf,
-        Collection<? extends IStrategoTerm> sorts, Collection<ConstructorData> constructors,
+        Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
         Map<StrategySignature, StrategyType> strategyFrontData) {
+        return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
+            tf.makeList(tf.makeAppl("Sorts", packStr2Sorts(tf, sorts)),
+                tf.makeAppl("Constructors", packStr2Constructors(tf, constructors)))),
+            tf.makeAppl("Strategies", packStr2Strategies(tf, strategyFrontData))));
+    }
+
+    private static IStrategoList packStr2Constructors(IStrategoTermBuilder tf,
+        Collection<ConstructorData> constructors) {
         final IStrategoList.Builder cons = tf.arrayListBuilder(constructors.size());
         for(ConstructorData d : constructors) {
             cons.add(d.toTerm(tf));
         }
-        return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
-            tf.makeList(tf.makeAppl("Sorts", tf.makeList(sorts)),
-                tf.makeAppl("Constructors", tf.makeList(cons)))),
-            tf.makeAppl("Strategies", packStr2Strategies(tf, strategyFrontData))));
+        return tf.makeList(cons);
+    }
+
+    private static IStrategoTerm packStr2Sorts(IStrategoTermBuilder tf,
+        Collection<SortSignature> sorts) {
+        final IStrategoList.Builder builder = tf.arrayListBuilder(sorts.size());
+        for(SortSignature sort : sorts) {
+            builder.add(sort.toExtDefTerm(tf));
+        }
+        return tf.makeList(builder);
     }
 
     public static IStrategoTerm packStr2Strategies(IStrategoTermBuilder tf,

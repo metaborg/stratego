@@ -64,17 +64,23 @@ strategies // core/signatures & sugar/signatures
     with
       arity := <length> sa*
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Err> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(arity))
       end
     ; <map(sort-check-Sort(|e))> sa*
 
   sort-check-Sort(|e): SortVar(n) -> <id>
 
+  sort-check-Sort(|e) = ?StringT()
+
+  sort-check-Sort(|e) = ?IntT()
+
+  sort-check-Sort(|e) = ?RealT()
+
   sort-check-Sort(|e): s@SortNoArgs(n) -> <id>
     with
       arity := 0
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Err> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(arity))
       end
 
   sort-check-Sort(|e): TupleT(s, s*) -> <id>
@@ -147,7 +153,7 @@ strategies // gradual-types/signatures
     with
       arity := <length> sa*
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Err> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(arity))
       end
     ; <map(sort-check-Type(|e))> sa*
 
@@ -157,5 +163,5 @@ strategies // gradual-types/signatures
     with
       arity := 0
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Err> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(arity))
       end

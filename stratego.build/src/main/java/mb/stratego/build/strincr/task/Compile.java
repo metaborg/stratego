@@ -9,6 +9,7 @@ import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.STaskDef;
+import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Stratego2LibInfo;
@@ -60,10 +61,13 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 ToCompileGlobalIndex.INSTANCE);
 
         final Arguments extraArgs = new Arguments(input.extraArgs);
-        final ResourcePath outputDirWithPackage = input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.','/'));
-        for(Stratego2LibInfo importedStr2LibProject : compileGlobalIndex.importedStr2LibProjects) {
-            context.require(copyLibraryClassFiles, new CLCFInput(importedStr2LibProject, input.javaClassDir));
-            extraArgs.add("-la", importedStr2LibProject.packageName);
+        final ResourcePath outputDirWithPackage =
+            input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.', '/'));
+        for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
+            context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.javaClassDir));
+        }
+        for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
+            extraArgs.add("-la", importedStr2LibPackageName);
         }
 
         final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
@@ -117,9 +121,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(outputDirWithPackage, input.packageName, input.cacheDir,
-                input.constants, extraArgs, input.checkInput, dynamicCallsDefined,
-                input.library, input.usingLegacyStrategoStdLib, input.libraryName,
-                input.stratego2LibInfo);
+                input.constants, extraArgs, input.checkInput, dynamicCallsDefined, input.library,
+                input.usingLegacyStrategoStdLib, input.libraryName);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";

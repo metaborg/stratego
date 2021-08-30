@@ -4,17 +4,16 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.AbstractTermFactory;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.StrategoTuple;
 import org.spoofax.terms.util.B;
-import org.spoofax.terms.util.StringUtils;
 import org.spoofax.terms.util.TermUtils;
 
 public class SortSignature extends StrategoTuple {
@@ -62,15 +61,22 @@ public class SortSignature extends StrategoTuple {
         return new SortSignature(name, arity);
     }
 
-    public IStrategoTerm toTerm(ITermFactory tf) {
+    public IStrategoTerm toTerm(IStrategoTermBuilder tf) {
         final IStrategoTerm star = tf.makeAppl("Star");
         final IStrategoTerm sortDef;
         if(noArgs == 0) {
             sortDef = tf.makeAppl("Sort", tf.makeString(name));
         } else {
-            sortDef = tf.makeAppl("Sort", tf.makeString(name), tf.makeList(Collections.nCopies(noArgs, star)));
+            sortDef = tf.makeAppl("Sort", tf.makeString(name),
+                tf.makeList(Collections.nCopies(noArgs, star)));
         }
         return sortDef;
+    }
+
+    public IStrategoTerm toExtDefTerm(IStrategoTermBuilder tf) {
+        final IStrategoTerm star = tf.makeAppl("Star");
+        return tf.makeAppl("ExtSort", tf.makeString(name),
+            tf.makeList(Collections.nCopies(noArgs, star)));
     }
 
     public @Nullable static Boolean isExternal(IStrategoTerm sortDef) {

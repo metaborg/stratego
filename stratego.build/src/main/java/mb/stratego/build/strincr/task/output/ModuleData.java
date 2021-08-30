@@ -31,7 +31,7 @@ import mb.stratego.build.util.WithLastModified;
  */
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
-    public final @Nullable Stratego2LibInfo stratego2LibInfo;
+    public final @Nullable String str2LibPackageName;
     public final IStrategoTerm ast;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sortData;
@@ -58,7 +58,7 @@ public class ModuleData implements Serializable, WithLastModified {
         ambStrategyIndex = null;
 
     public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        @Nullable Stratego2LibInfo stratego2LibInfo, IStrategoTerm ast,
+        @Nullable String str2LibPackageName, IStrategoTerm ast,
         ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
@@ -76,7 +76,7 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
-        this.stratego2LibInfo = stratego2LibInfo;
+        this.str2LibPackageName = str2LibPackageName;
         this.ast = ast;
         this.imports = imports;
         this.sortData = sortData;
@@ -110,7 +110,7 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
-        if(!Objects.equals(stratego2LibInfo, that.stratego2LibInfo)) {
+        if(!Objects.equals(str2LibPackageName, that.str2LibPackageName)) {
             return false;
         }
         if(!ast.equals(that.ast))
@@ -122,7 +122,7 @@ public class ModuleData implements Serializable, WithLastModified {
 
     @Override public int hashCode() {
         int result = moduleIdentifier.hashCode();
-        result = 31 * result + (stratego2LibInfo != null ? stratego2LibInfo.hashCode() : 0);
+        result = 31 * result + (str2LibPackageName != null ? str2LibPackageName.hashCode() : 0);
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + messages.hashCode();

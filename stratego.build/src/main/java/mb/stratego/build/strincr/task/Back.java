@@ -102,8 +102,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                 .requirePartial(context, resolve, boilerplateInput.checkInput.resolveInput(),
                     GetStr2LibInfo.INSTANCE);
             final IStrategoTerm str2Lib = GenerateStratego
-                .packStr2Library(tf, boilerplateInput.libraryName,
-                    boilerplateInput.languageIdentifier, str2LibInfo.sorts,
+                .packStr2Library(tf, boilerplateInput.libraryName, str2LibInfo.sorts,
                     str2LibInfo.constructors, str2LibInfo.strategyFrontData, input.packageName);
 
             // Output str2lib file
@@ -120,7 +119,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             arguments.add("--library");
         }
 
-        for(ResourcePath includeDir : input.checkInput.includeDirs) {
+        for(ResourcePath includeDir : input.checkInput.importResolutionInfo.includeDirs) {
             arguments.add("-I", resourcePathConverter.toString(includeDir));
         }
 
@@ -135,7 +134,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             arguments.add("-D", constant);
         }
 
-        for(IModuleImportService.ModuleIdentifier linkedLibrary : input.checkInput.linkedLibraries) {
+        for(IModuleImportService.ModuleIdentifier linkedLibrary : input.checkInput.importResolutionInfo.linkedLibraries) {
             if(linkedLibrary instanceof BuiltinLibraryIdentifier) {
                 arguments.add("-la", ((BuiltinLibraryIdentifier) linkedLibrary).cmdArgString);
             }

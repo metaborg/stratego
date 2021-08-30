@@ -28,7 +28,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
                 }
             }
         }
-        return new ModuleIndex(moduleData.stratego2LibInfo, moduleData.imports, moduleData.sortData,
+        return new ModuleIndex(moduleData.str2LibPackageName, moduleData.imports, moduleData.sortData,
             moduleData.externalSortData, nonOverlayConstructors, moduleData.injections,
             new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),

@@ -2,15 +2,16 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 
+import mb.pie.api.Supplier;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 
 public class CLCFInput implements Serializable {
-    public final Stratego2LibInfo stratego2LibInfo;
+    public final Supplier<Stratego2LibInfo> stratego2LibInfoSupplier;
     public final ResourcePath outputDir;
 
-    public CLCFInput(Stratego2LibInfo stratego2LibInfo, ResourcePath outputDir) {
-        this.stratego2LibInfo = stratego2LibInfo;
+    public CLCFInput(Supplier<Stratego2LibInfo> stratego2LibInfoSupplier, ResourcePath outputDir) {
+        this.stratego2LibInfoSupplier = stratego2LibInfoSupplier;
         this.outputDir = outputDir;
     }
 
@@ -22,14 +23,18 @@ public class CLCFInput implements Serializable {
 
         CLCFInput clcfInput = (CLCFInput) o;
 
-        return stratego2LibInfo.equals(clcfInput.stratego2LibInfo);
+        if(!stratego2LibInfoSupplier.equals(clcfInput.stratego2LibInfoSupplier))
+            return false;
+        return outputDir.equals(clcfInput.outputDir);
     }
 
     @Override public int hashCode() {
-        return stratego2LibInfo.hashCode();
+        int result = stratego2LibInfoSupplier.hashCode();
+        result = 31 * result + outputDir.hashCode();
+        return result;
     }
 
     @Override public String toString() {
-        return "CLCFInput(" + stratego2LibInfo + ')';
+        return "CLCFInput(" + stratego2LibInfoSupplier + ", " + outputDir + ')';
     }
 }

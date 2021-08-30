@@ -334,8 +334,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         while(!worklist.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
             final FrontInput moduleInput =
-                new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
-                    frontInput.includeDirs, frontInput.linkedLibraries, frontInput.autoImportStd);
+                new FrontInput.Normal(moduleIdentifier, frontInput.importResolutionInfo,
+                    frontInput.autoImportStd);
             final TypesLookup typesLookup =
                 PieUtils.requirePartial(context, front, moduleInput, toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
