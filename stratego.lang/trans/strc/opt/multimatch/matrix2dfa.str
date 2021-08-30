@@ -124,7 +124,7 @@ strategies
   valt(|m) =
     !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)
 
-  is-switchable = id
+  is-switchable = fail
                 + ?AnnoC()
                 + ?FunC(_, _)
                 + ?TupleC(_)
