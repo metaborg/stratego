@@ -87,10 +87,6 @@ public class Stratego {
                                      ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
                                      LanguageIdentifier languageIdentifier, Arguments newArgs)
         throws MetaborgException, IOException {
-        final Stratego2LibInfo stratego2LibInfo =
-            new Stratego2LibInfo(packageName, languageIdentifier.groupId, languageIdentifier.id,
-                languageIdentifier.version.toString(),
-                new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
                 .toAbsolutePath();
@@ -131,7 +127,7 @@ public class Stratego {
                     javaClassDir, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     new ArrayList<>(0), strjIncludeDirs, linkedLibraries, newArgs,
                     new ArrayList<>(0), library, autoImportStd, languageIdentifier.id,
-                    stratego2LibInfo);
+                    new ArrayList<>());
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
