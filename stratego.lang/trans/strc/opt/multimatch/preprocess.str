@@ -19,8 +19,7 @@ strategies
   where
     x := <tnewvar> "expl_"
   ; t2 := Var(x)
-  ; s := Where(Assign(t1, t2))
-  // TODO Instead of many where-clauses for each guard, put a where clause around the 'alias' guard later.
+  ; s := Assign(t1, t2)
 
 strategies
   Var-to-AsWld =

@@ -22,7 +22,6 @@ strategies
     Row([t2 | t*], s, s2, s3)
   with
     <sequence-strategies> (Where(Assign(t1, Path(p))), s1) => s
-    // TODO Instead of many where-clauses for each guard, put a where clause around the 'alias' guard later.
 
 strategies
   sequence-strategies = !Seq(<Fst>, <Snd>)
