@@ -26,11 +26,6 @@ strategies
 strategies
   sequence-strategies = !Seq(<Fst>, <Snd>)
 
-  sequence-strategies: [s] -> s
-
-  sequence-strategies =
-    is-list; foldr(!Id(), sequence-strategies)
-
 strategies
   is-id-guard = ?Id()
   is-fail-guard = ?Fail()
