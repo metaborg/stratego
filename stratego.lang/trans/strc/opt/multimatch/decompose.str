@@ -140,7 +140,7 @@ strategies
     Real(r) ->
     (RealC(r), RealT())
 
-  // TODO Constructor var (multiple types)
+  // Constructor var (multiple types) (not working)
 //  constructor:
 //    ExplodeNoAnno(Var(x), _) ->
 //    ([], [ApplT(), TupleT(), StringT(), IntT(), RealT()])
