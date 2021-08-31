@@ -217,7 +217,10 @@ strategies
   specialize-occ(|FunC("Nil", "0")) = ![]
   specialize-occ(|FunC("Cons", "2")): p -> [ HeadP(p), TailP(p) ]
 
-  specialize-occ(|FunC(f, x)) = specialize-occ-by-arity(|<string-to-int> x)
+  specialize-occ(|c@FunC(f, x)) =
+    if <not(?FunC("Nil", "0") + ?FunC("Cons", "2"))> c then
+      specialize-occ-by-arity(|<string-to-int> x)
+    end
 
   specialize-occ(|<is-literal-cons>) = ![]
 
