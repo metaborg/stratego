@@ -46,8 +46,8 @@ public class ParameterisedStratego2Tests {
     @TestFactory
     DynamicNode parameterisedTests() throws URISyntaxException, IOException {
         return DynamicContainer.dynamicContainer("Parameterised tests", Arrays.asList(
-//                DynamicContainer.dynamicContainer("Failing tests", failingTests())
-                DynamicContainer.dynamicContainer("test1", test1())
+                DynamicContainer.dynamicContainer("Failing tests", failingTests())
+                , DynamicContainer.dynamicContainer("test1", test1())
                 , DynamicContainer.dynamicContainer("test2", test2())
         ));
     }
@@ -81,15 +81,15 @@ public class ParameterisedStratego2Tests {
         Path test1 = getResourcePathRoot().resolve("test1");
         Path test2 = getResourcePathRoot().resolve("test2");
 
-        List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test53", "test112");
+        List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test37", "test53", "test76", "test77", "test78", "test87", "test90", "test98", "test112");
         List<String> test2Names = Arrays.asList("occan");
 //        List<String> test1Names = Collections.EMPTY_LIST;
 //        List<String> test2Names = Collections.EMPTY_LIST;
 
         return Stream
                 .concat(
-                        test1Names.stream().map(s -> test1.resolve(s + ".str2")),
-                        test2Names.stream().map(s -> test2.resolve(s + ".str2"))
+                        test2Names.stream().map(s -> test2.resolve(s + ".str2")),
+                        test1Names.stream().map(s -> test1.resolve(s + ".str2"))
                 ).map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(),
                         argParams
                             .stream()

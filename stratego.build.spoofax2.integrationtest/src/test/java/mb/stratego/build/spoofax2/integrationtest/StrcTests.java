@@ -113,6 +113,7 @@ public class StrcTests {
                                                 ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws URISyntaxException, IOException {
         final Arguments args = new Arguments();
+        args.add("-O", "4");
         return compileAndRun(subdir, glob, disabled, linkedLibraries, args);
     }
 
