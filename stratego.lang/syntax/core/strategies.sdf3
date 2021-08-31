@@ -85,7 +85,7 @@ context-free sorts MatchOrder MatchCase
 context-free syntax
   Strategy.MultiMatch =
 <match <MatchOrder>
-  <{MatchCase "\n"}+>
+  <{MatchCase "\n"}*>
 end>
 
   MatchOrder.Sequential = <sequential>
