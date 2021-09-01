@@ -2096,10 +2096,10 @@ strategies
     e |[ !((IStrategoList) e_occ).isEmpty() ]| // special list treatment
 
   java-Pat-to-Condition:
-    (FunC(c, x), e_occ) ->
+    (op@FunC(c, x), e_occ) ->
     e_cond
   where
-    <not(?"Nil" + ?"Cons")> c
+    <not(?FunC("Nil", "0") + ?FunC("Cons", "2"))> op
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
   ; if not(<get-config> "-sc" => "off") then
@@ -2112,7 +2112,8 @@ strategies
     (StrC(s), e_occ) ->
     e |[ e_occ.equals(~<java-mk-string-const> s) ]|
 
-  java-Pat-to-Condition: (IntC(x), e_occ) ->
+  java-Pat-to-Condition:
+    (IntC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
   java-Pat-to-Condition:

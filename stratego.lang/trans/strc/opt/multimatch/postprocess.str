@@ -50,12 +50,6 @@ strategies
   EliminateId: GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) -> AltV(t, a)
   EliminateId: GuardedDefault([Guard(<is-id-guard>, a) | _]) -> Default(a)
 
-  /*
-   * TODO: Investigate whether removing definitely failing guards violates
-   * soundness. Removing them too aggressively can lift the failure to a
-   * higher level in the tree, resulting in falling back to a different default,
-   * therefore changing the semantics of the tree.
-   */
   EliminateFail =
     EliminateFail1
 
@@ -65,9 +59,6 @@ strategies
 
   /*
    * Lift guards from guarded leafs to enclosing switch arm.
-   *
-   * Note: before doing this, all guarded arms have the same rhs.
-   * This rewrite (possibly) violates that property (?).
    *
    * Desugar IR.
    */
