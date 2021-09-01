@@ -17,10 +17,11 @@ strategies
       <+ lift-guard
       )
     )
-  ; topdown(try(wrap-guarded-leaves); try(ensure-id-guard))
+  ; topdown(try(wrap-guarded-leaves); try(eliminate-default))
 
   optimise-dfa = bottomup(
     try(drop-unreachable-guards; try(eliminate-guard))
+  ; try(eliminate-default)
   )
 
 strategies
@@ -33,6 +34,14 @@ strategies
 
   simplify-switch: SwitchT(p, [], GuardedDefault(guard*)) ->
                    GuardedLeafs(guard*)
+
+  eliminate-default:
+    SwitchT(p, alt*, Default(Fail())) ->
+    SwitchTNoDefault(p, alt*)
+
+  eliminate-default:
+    SwitchV(p, alt*, Default(Fail())) ->
+    SwitchVNoDefault(p, alt*)
 
   eliminate-guard =
     EliminateId
@@ -76,14 +85,6 @@ strategies
               Guard(s3, s)
   with
     <sequence-strategies> (s1, s2) => s3
-
-  /*
-   * Ensure that any guarded default has an `id`-guarded arm, which can
-   * *always* be taken if any other match/guard does not succeed.
-   *
-   * Ensure soundness.
-   */
-  ensure-id-guard = GuardedDefault(at-end(![Guard(Id(), Fail())]))
 
   wrap-guarded-leaves:
     GuardedLeafs(guard*) ->

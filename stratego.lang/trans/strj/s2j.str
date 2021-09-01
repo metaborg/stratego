@@ -1968,6 +1968,21 @@ strategies
     e_occ := <translate-PathTp> p
   ; cases := <map(translate-AltT)> alt*
 
+  translate-SwitchT:
+    SwitchTNoDefault(p, alt*) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Fail> Fail()
+          break;
+        }
+      }
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+  ; cases := <map(translate-AltT)> alt*
+
   translate-Default:
     Default(s) ->
     <translate-strategy> s
@@ -2000,11 +2015,22 @@ strategies
 
   translate-SwitchV:
     SwitchV(p, alt*, default) ->
+    <translate-SwitchV-helper> (p, alt*, bstm_def*)
+  with
+    bstm_def* := <translate-Default> default
+
+  translate-SwitchV:
+    SwitchVNoDefault(p, alt*) ->
+    <translate-SwitchV-helper> (p, alt*, stm_def)
+  with
+    stm_def := <translate-Fail> Fail()
+
+  translate-SwitchV-helper:
+    (p, alt*, bstm_def*) ->
     stm_alt
   with
-    stm_def := <translate-Default> default
-  ; e_path := <translate-PathVF> p
-  ; stm_alt := <foldr(!stm_def, translate-AltV(|e_path))> alt*
+    e_path := <translate-PathVF> p
+  ; stm_alt := <foldr(!bstm_def*, translate-AltV(|e_path))> alt*
 
   translate-AltV(|e_occ):
     (AltV(t, s), stm_else) ->
