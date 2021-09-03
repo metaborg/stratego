@@ -17,7 +17,6 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
@@ -68,7 +67,6 @@ public class Compiler {
     private Spoofax spoofax;
     private Pie pie;
     private final ModuleIdentifier mainModuleIdentifier;
-    private final Stratego2LibInfo stratego2LibInfo;
     private final ArrayList<ResourcePath> strjIncludeDirs;
     private final ResourcePath projectPath;
 
@@ -100,9 +98,6 @@ public class Compiler {
 
         languageIdentifier = new LanguageIdentifier("mb.stratego", "compnrun_" + baseName, new LanguageVersion(1));
         mainModuleIdentifier = new ModuleIdentifier(sourcePath.getFileName().toString().endsWith(".str"), this.library, baseName, new FSPath(sourcePath));
-        stratego2LibInfo = new Stratego2LibInfo(javaPackageName, languageIdentifier.groupId, languageIdentifier.id,
-                languageIdentifier.version.toString(),
-                new ArrayList<>(Collections.singletonList(new FSPath("stratego.jar"))));
         projectPath = new FSPath(sourcePath.getParent());
 
         strjIncludeDirs = new ArrayList<>(1);
@@ -178,7 +173,7 @@ public class Compiler {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                        new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, stratego2LibInfo);
+                        new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
         System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         System.out.print("Creating compile task...");
