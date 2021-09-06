@@ -1,6 +1,6 @@
 # CONFIG
 STRATEGO_REPO?=https://github.com/toinehartman/stratego.git
-STRATEGO_VERSION?=benchmarks
+STRATEGO_VERSION?=benchmark-docker
 STRATEGO_PROJECT?=stratego.lang
 BENCHMARK_PROJECT?=stratego.build.spoofax2.benchmark
 SPOOFAX_VERSION=2.6.0-SNAPSHOT
