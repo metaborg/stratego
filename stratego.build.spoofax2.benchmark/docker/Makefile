@@ -46,4 +46,5 @@ $(RESULTS_DIR):
 	mkdir $(RESULTS_DIR)
 
 run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) $(RESULTS_DIR)
+	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) -f 2 -e failing -rff $(RESULTS_DIR)/`date +%Y%m%d`.csv
