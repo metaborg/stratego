@@ -1,13 +1,7 @@
 FROM ubuntu:20.04
 
-ENV WORKDIR=/stratego2evaluation
+ENV WORKDIR=/app
 WORKDIR $WORKDIR
-
-ENV DATA_DIR=${WORKDIR}/data
-RUN mkdir ${DATA_DIR}
-
-ENV BIN_DIR=${WORKDIR}/bin
-RUN mkdir ${BIN_DIR}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -27,6 +21,16 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+# Directories
+ENV DATA_DIR=${WORKDIR}/data
+RUN mkdir ${DATA_DIR}
+
+ENV BIN_DIR=${WORKDIR}/bin
+RUN mkdir ${BIN_DIR}
+
+ENV BUILD_DIR=${WORKDIR}/build
+RUN mkdir ${BUILD_DIR}
+
 # Install Maven 3
 RUN cd ${BIN_DIR} &&\
     wget http://apache.mirror.anlx.net/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz &&\
@@ -38,6 +42,7 @@ RUN cd ${BIN_DIR} &&\
 # Local Maven settings (http://metaborg.org/dev/maven/#local-settings-file)
 RUN mkdir /root/.m2
 COPY maven-settings.xml /root/.m2/settings.xml
+ENV MAVEN_OPTS="-Xms512m -Xmx1024m -Xss16m"
 
 # Git config
 RUN git config --global user.name "Stratego2 Evaluation"
