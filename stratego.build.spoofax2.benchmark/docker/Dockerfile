@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 ENV WORKDIR=/app
 WORKDIR $WORKDIR
 
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
