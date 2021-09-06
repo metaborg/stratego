@@ -142,8 +142,8 @@ public class Compiler {
         System.out.print("Discovering Spoofax languages... ");
         timer = System.currentTimeMillis();
         // load Stratego language for later discovery during compilation (parsing in particular)
-        spoofax.languageDiscoveryService
-                .languageFromArchive(spoofax.resolve(getStrategoPath(metaborgVersion).toFile()));
+//        spoofax.languageDiscoveryService
+//                .languageFromArchive(spoofax.resolve(getStrategoPath(metaborgVersion).toFile()));
         spoofax.languageDiscoveryService
                 .languageFromArchive(spoofax.resolve(getStratego2Path(metaborgVersion).toFile()));
 
