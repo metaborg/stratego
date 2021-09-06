@@ -9,6 +9,7 @@ DATA_DIR?=./data
 BUILD_DIR?=./build
 
 REPO_DIR=$(BUILD_DIR)/stratego
+RESULTS_DIR=$(DATA_DIR)/benchmark_results
 
 # DERIVATiVES - DO NOT CHANGE
 STRATEGO_DIR=$(REPO_DIR)/$(STRATEGO_PROJECT)
@@ -41,5 +42,8 @@ $(BENCHMARK_JAR): $(UPDATE_REPO)
 	cd $(BENCHMARK_DIR) && \
 	mvn package
 
-run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR)
-	java -jar $(BENCHMARK_JAR) -f 2 -e failing -rff $(DATA_DIR)/benchmark_results/`date +%Y%m%d`.csv
+$(RESULTS_DIR):
+	mkdir $(RESULTS_DIR)
+
+run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) $(RESULTS_DIR)
+	java -jar $(BENCHMARK_JAR) -f 2 -e failing -rff $(RESULTS_DIR)/`date +%Y%m%d`.csv
