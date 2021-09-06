@@ -40,7 +40,8 @@ RUN cd ${BIN_DIR} &&\
     ln -s /usr/local/apache-maven-3.6.3/bin/mvnDebug /usr/bin/mvnDebug
 
 # Local Maven settings (http://metaborg.org/dev/maven/#local-settings-file)
-RUN mkdir /root/.m2
+ENV MAVEN_HOME=/root/.m2
+RUN mkdir ${MAVEN_HOME}
 COPY maven-settings.xml /root/.m2/settings.xml
 ENV MAVEN_OPTS="-Xms512m -Xmx1024m -Xss16m"
 
