@@ -21,7 +21,7 @@ public class Stratego2Program {
     public final Compiler compiler;
 
     public Stratego2Program(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
-        this(sourcePath, args, false, true, metaborgVersion, false);
+        this(sourcePath, args, false, true, metaborgVersion, true);
     }
 
     public Stratego2Program(@NotNull Path sourcePath, Arguments args, boolean library, boolean autoImportStd, @NotNull String metaborgVersion, boolean output) throws IOException, MetaborgException {
