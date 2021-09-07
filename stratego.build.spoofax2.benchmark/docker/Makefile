@@ -35,7 +35,7 @@ $(UPDATE_REPO): $(REPO_DIR)
 
 $(STRATEGO_LANGUAGE): $(UPDATE_REPO)
 	cd $(STRATEGO_DIR) && \
-	mvn install
+	mvn -q install
 
 $(BENCHMARK_JAR): $(UPDATE_REPO)
 	cd $(BENCHMARK_DIR) && \
