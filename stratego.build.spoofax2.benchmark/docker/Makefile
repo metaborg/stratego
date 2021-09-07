@@ -39,7 +39,7 @@ $(STRATEGO_LANGUAGE): $(UPDATE_REPO)
 
 $(BENCHMARK_JAR): $(UPDATE_REPO)
 	cd $(BENCHMARK_DIR) && \
-	mvn package
+	mvn -q package
 
 $(RESULTS_DIR):
 	mkdir $(RESULTS_DIR)
