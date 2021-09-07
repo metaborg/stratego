@@ -24,7 +24,6 @@ all: run-benchmark
 
 .PHONY: all run-benchmark $(UPDATE_REPO) prepare-benchmark
 
-.DELETE_ON_ERROR: $(REPO_DIR)
 
 $(REPO_DIR):
 	git clone $(STRATEGO_REPO) $(REPO_DIR)
