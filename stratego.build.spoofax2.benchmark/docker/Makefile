@@ -47,7 +47,7 @@ $(RESULTS_DIR):
 
 run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) $(RESULTS_DIR)
 	cd $(BENCHMARK_DIR) && \
-	java -jar $(BENCHMARK_JAR) -f 2 -e failing -rff $(RESULTS_DIR)/`date +%Y%m%d-%H%M%S`.csv
+	java -jar $(BENCHMARK_JAR) -f 2 -e failing -rff $(RESULTS_DIR)/`date +%Y%m%d-%H%M%S`.csv $(TARGET)
 	curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished"
 
 prepare-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) $(RESULTS_DIR)
