@@ -13,6 +13,7 @@ RUN apt-get update \
     curl \
     openjdk-8-jdk \
     locales \
+    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
