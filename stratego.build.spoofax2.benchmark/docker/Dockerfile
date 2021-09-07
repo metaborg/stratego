@@ -10,6 +10,7 @@ RUN apt-get update \
     git \
     make \
     wget \
+    curl \
     openjdk-8-jdk \
     locales \
     && apt-get clean \
