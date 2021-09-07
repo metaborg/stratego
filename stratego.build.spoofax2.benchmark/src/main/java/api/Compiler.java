@@ -89,12 +89,17 @@ public class Compiler {
 
         Path tempDir = Files.createTempDirectory("stratego2benchmark");
         this.baseDir = tempDir.resolve(baseName);
-        this.baseDir.toFile().deleteOnExit();
+//        this.baseDir.toFile().deleteOnExit();
 
         this.javaDir = baseDir.resolve("java").toFile();
         this.classDir = baseDir.resolve("classes").toFile();
         this.pieDir = tempDir.resolve("pie");
         this.packageDir = javaDir.toPath().resolve(javaPackageName).toFile();
+
+        System.out.println("Java dir: " + javaDir);
+        System.out.println("Class dir: " + classDir);
+        System.out.println("PIE dir: " + pieDir);
+        System.out.println("Package dir: " + packageDir);
 
         languageIdentifier = new LanguageIdentifier("mb.stratego", "compnrun_" + baseName, new LanguageVersion(1));
         mainModuleIdentifier = new ModuleIdentifier(sourcePath.getFileName().toString().endsWith(".str"), this.library, baseName, new FSPath(sourcePath));
@@ -129,6 +134,10 @@ public class Compiler {
 
     public BufferedReader run() throws IOException, InterruptedException {
         assert javaCompilationResult : "Cannot run program: Java compilation did not succeed!";
+        System.out.println("All files in class dir: ");
+        Files.walk(classDir.toPath()).forEach(System.out::println);
+        System.out.println();
+        System.out.println("Executing " + String.format("%s.Main", Compiler.javaPackageName));
         return Java.execute(classDir + ":" + Compiler.getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", Compiler.javaPackageName));
     }
 
@@ -226,6 +235,9 @@ public class Compiler {
             }
             sourceFiles.add(localFile);
         }
+
+        System.out.println("Java files: " + sourceFiles);
+
         return sourceFiles;
     }
 
