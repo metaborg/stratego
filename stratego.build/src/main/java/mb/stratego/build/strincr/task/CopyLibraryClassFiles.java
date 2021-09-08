@@ -63,7 +63,9 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
             final HierarchicalResource fToHR = toHR.appendAsRelativePath(from.relativize(f.getPath()));
             if(f.isDirectory()) {
                 context.require(f);
-                f.copyTo(fToHR);
+                if(!fToHR.exists()) {
+                    f.copyTo(fToHR);
+                }
                 context.provide(fToHR);
             } else if(f.isFile()) {
                 context.require(f, ResourceStampers.modifiedFile());
