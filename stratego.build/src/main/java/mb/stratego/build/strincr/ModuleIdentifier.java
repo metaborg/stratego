@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import mb.resource.hierarchical.ResourcePath;
 
-public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
+public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier, Comparable<ModuleIdentifier> {
     public final boolean legacyStratego;
     public final boolean isLibrary;
     public final String moduleString;
@@ -56,5 +56,9 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier {
 
     @Override public String toString() {
         return moduleString();
+    }
+
+    @Override public int compareTo(ModuleIdentifier o) {
+        return path.asString().compareTo(o.path.asString());
     }
 }

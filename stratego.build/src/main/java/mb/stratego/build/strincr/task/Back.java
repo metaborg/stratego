@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import mb.pie.api.Interactivity;
@@ -82,7 +83,12 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final LinkedHashSet<StrategySignature> compiledStrategies = new LinkedHashSet<>();
 
         // N.B. this call is potentially a lot of work:
-        final IStrategoTerm ctree = input.buildCTree(context, this, compiledStrategies);
+        final @Nullable IStrategoTerm ctree = input.buildCTree(context, this, compiledStrategies);
+        // if ctree is null, this was a task that should no longer be active, like a BackInput.Normal task where
+        //     one of the strategy contributions gained a dynamic rule definition.
+        if(ctree == null) {
+            return new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0));
+        }
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
