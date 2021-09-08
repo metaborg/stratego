@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
@@ -172,11 +173,15 @@ public abstract class BackInput implements Serializable {
             this.strategyAnalysisDataTask = strategyAnalysisDataTask;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
+        @Override public @Nullable IStrategoTerm buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
             final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
-            getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
+            final boolean taskIsStillRelevant =
+                getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
+            if(!taskIsStillRelevant) {
+                return null;
+            }
 
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
@@ -237,7 +242,18 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
-        public void getStrategyContributions(ExecContext context, Back backTask,
+        /**
+         * Note the return boolean of this method will communicate if this task is still relevant. It may have been
+         * required during a previous build but is now not accurate anymore because it's a Normal task for a strategy
+         * that has gained a dynamic rule definition, or the other way, or some other invalidation criterium.
+         *
+         * @param context
+         * @param backTask
+         * @param strategyContributions
+         * @param usedConstructors
+         * @return whether the task with this input is still relevant.
+         */
+        public boolean getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
@@ -251,11 +267,17 @@ public abstract class BackInput implements Serializable {
                         checkInput.checkModuleInput(moduleIdentifier),
                         new GetStrategyAnalysisData(strategySignature));
                 for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                    if(!strategyAnalysisDatum.definedDynamicRules.isEmpty()) {
+                        strategyContributions.clear();
+                        usedConstructors.clear();
+                        return false;
+                    }
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
                     new UsedConstrs(usedConstructors)
                         .visit(strategyAnalysisDatum.analyzedAst);
                 }
             }
+            return true;
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -299,12 +321,23 @@ public abstract class BackInput implements Serializable {
                 strategySignature, strFileGeneratingTasks, legacyStrategoStdLib);
         }
 
-        @Override public void getStrategyContributions(ExecContext context, Back backTask,
+        /**
+         * Note the return boolean of this method will communicate if this task is still relevant. It may have been
+         * required during a previous build but is now not accurate anymore because it's a Normal task for a strategy
+         * that has gained a dynamic rule definition, or the other way, or some other invalidation criterium.
+         *
+         * @param context
+         * @param backTask
+         * @param strategyContributions
+         * @param usedConstructors
+         * @return whether the task with this input is still relevant.
+         */
+        @Override public boolean getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
-            final HashSet<StrategySignature> seen = new HashSet<>();
+            final TreeSet<StrategySignature> seen = new TreeSet<>();
             seen.add(strategySignature);
             while(!workList.isEmpty()) {
                 StrategySignature strategySignature = workList.remove();
@@ -333,6 +366,11 @@ public abstract class BackInput implements Serializable {
                     }
                 }
             }
+            // Important test: only the BackInput.DynamicRule task with the "smallest" signature is allowed to compile
+            //     the set of strategies found through the above process. The Compile tasks is smart and starts with the
+            //     smallest signature for a dynamic rule, but there maybe be BackInput.DynamicRule tasks from previous
+            //     runs around that are no longer valid.
+            return seen.first().equals(strategySignature);
         }
 
         @Override public String toString() {

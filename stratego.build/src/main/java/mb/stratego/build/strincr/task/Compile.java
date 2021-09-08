@@ -79,6 +79,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             new STaskDef<>(CheckModule.id);
 
         for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
+            // Small optimisation, BackInput.DynamicRule tasks stop early when they detect a dynamic rule definition in
+            //     one of their contributions, that was already picked up by a different dynamic rule definition.
             if(compiledThroughDynamicRule.contains(dynamicRule)) {
                 continue;
             }
@@ -105,6 +107,8 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             }
         }
         for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
+            // Small optimisation, BackInput.Normal tasks stop early when they detect a dynamic rule definition in one
+            //     of their contributions, but with this if the tasks are not even required.
             if(compiledThroughDynamicRule.contains(strategySignature)) {
                 continue;
             }

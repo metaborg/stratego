@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 
@@ -20,7 +21,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -82,7 +82,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
-        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
+        final TreeSet<StrategySignature> dynamicRules = new TreeSet<>();
         final LinkedHashSet<OverlayData> overlayData = new LinkedHashSet<>();
 
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
