@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ public class ModuleImportService implements IModuleImportService {
         this.strategoLanguage = strategoLanguage;
     }
 
-    private enum SomethingToImport implements Serializable {
+    private enum SomethingToImport {
         Str2Lib,
         RTree,
         Str2,
@@ -87,7 +86,11 @@ public class ModuleImportService implements IModuleImportService {
 
         static class Comparator implements java.util.Comparator<Import> {
             @Override public int compare(Import o1, Import o2) {
-                return o1.forSorting.compareTo(o2.forSorting);
+                final int typeComparison = o1.forSorting.compareTo(o2.forSorting);
+                if(typeComparison != 0) {
+                    return typeComparison;
+                }
+                return o1.moduleIdentifier.compareTo(o2.moduleIdentifier);
             }
         }
     }
