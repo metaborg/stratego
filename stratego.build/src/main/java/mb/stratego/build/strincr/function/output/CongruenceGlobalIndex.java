@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 import mb.stratego.build.strincr.data.ConstructorSignature;

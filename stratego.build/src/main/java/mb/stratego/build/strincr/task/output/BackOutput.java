@@ -8,21 +8,26 @@ import mb.stratego.build.strincr.data.StrategySignature;
 
 public class BackOutput implements Serializable {
     public final LinkedHashSet<ResourcePath> resultFiles;
+    public final LinkedHashSet<ResourcePath> unreportedResultFiles;
     public final LinkedHashSet<? extends StrategySignature> compiledStrategies;
     public final boolean depTasksHaveErrorMessages;
 
     public static final BackOutput dependentTasksHaveErrorMessages =
-        new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0), true);
+        new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0), new LinkedHashSet<>(0),
+            true);
 
     public BackOutput(LinkedHashSet<ResourcePath> resultFiles,
+        LinkedHashSet<ResourcePath> unreportedResultFiles,
         LinkedHashSet<? extends StrategySignature> compiledStrategies) {
-        this(resultFiles, compiledStrategies, false);
+        this(resultFiles, unreportedResultFiles, compiledStrategies, false);
     }
 
     private BackOutput(LinkedHashSet<ResourcePath> resultFiles,
+        LinkedHashSet<ResourcePath> unreportedResultFiles,
         LinkedHashSet<? extends StrategySignature> compiledStrategies,
         boolean depTasksHaveErrorMessages) {
         this.resultFiles = resultFiles;
+        this.unreportedResultFiles = unreportedResultFiles;
         this.compiledStrategies = compiledStrategies;
         this.depTasksHaveErrorMessages = depTasksHaveErrorMessages;
     }

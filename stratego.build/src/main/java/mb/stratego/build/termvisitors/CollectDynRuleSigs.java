@@ -1,6 +1,7 @@
 package mb.stratego.build.termvisitors;
 
 import java.util.LinkedHashSet;
+import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.util.TermUtils;
@@ -8,9 +9,9 @@ import org.spoofax.terms.util.TermUtils;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CollectDynRuleSigs {
-    private final LinkedHashSet<StrategySignature> signatures = new LinkedHashSet<>();
+    private final TreeSet<StrategySignature> signatures = new TreeSet<>();
 
-    public static LinkedHashSet<StrategySignature> collect(IStrategoTerm ast) {
+    public static TreeSet<StrategySignature> collect(IStrategoTerm ast) {
         CollectDynRuleSigs instance = new CollectDynRuleSigs();
         instance.visit(ast);
         return instance.signatures;

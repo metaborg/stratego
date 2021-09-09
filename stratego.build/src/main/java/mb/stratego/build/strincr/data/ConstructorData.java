@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
-import org.spoofax.interpreter.terms.ITermFactory;
 
 public class ConstructorData implements Serializable {
     public final ConstructorSignature signature;

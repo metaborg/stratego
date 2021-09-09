@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -294,7 +295,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 if(strategySignature == null) {
                     throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final LinkedHashSet<StrategySignature> definedDynamicRules =
+                final TreeSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new).add(
                     new StrategyAnalysisData(strategySignature, strategyDefAppl,

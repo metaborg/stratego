@@ -6,7 +6,10 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -20,6 +23,7 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.ResourceKeyString;
 import mb.resource.hierarchical.HierarchicalResource;
@@ -31,6 +35,7 @@ import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ContainsErrors;
 import mb.stratego.build.strincr.function.GetStr2LibInfo;
+import mb.stratego.build.strincr.function.GetUnreportedResultFiles;
 import mb.stratego.build.strincr.function.output.Str2LibInfo;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
@@ -49,6 +54,18 @@ import mb.stratego.build.util.StrIncrContext;
  * Therefore no congruence strategies are generated. Instead we do this in a separate Back task for
  * all constructors at once. If this turns out to be costly we can split it up to generate per
  * module or even per constructor.
+ *
+ * CAUTION: Back tasks should not be depended upon directly when you consume their Java files. It is
+ * better to depend on the Compile task that requires all the Back tasks. This is because Back tasks
+ * may lie about who was really responsible for writing the file. Together they are consistent, and
+ * the ones that don't produce files when they report they do (to Pie) depend on the tasks that
+ * really produced those files (without reporting it to Pie). If you really want to depend on Back
+ * tasks, it's better to depend on all tasks with a BackInput.Normal input and not ones with a
+ * BackInput.DynamicRule input. Either the Normal tasks really produced the file or it depends on
+ * the DynamicRule task that secretly generated it.
+ * BUT WHY do they lie? Well, if they didn't, sometimes you could get overlapping provider errors
+ * during bottom-up builds. Normally a Normal task generates a file for a strategy. But dynamic rule
+ * definitions must be combined for compilation because of limitations of the desugaring/codegen
  */
 public class Back implements TaskDef<BackInput, BackOutput> {
     public static final String id = "stratego." + Back.class.getSimpleName();
@@ -81,12 +98,34 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final LinkedHashSet<StrategySignature> compiledStrategies = new LinkedHashSet<>();
 
         // N.B. this call is potentially a lot of work:
-        final @Nullable IStrategoTerm ctree = input.buildCTree(context, this, compiledStrategies);
-        // if ctree is null, this was a task that should no longer be active, like a BackInput.Normal task where
-        //     one of the strategy contributions gained a dynamic rule definition.
-        if(ctree == null) {
-            return new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0));
+        final BackInput.CTreeBuildResult buildResult =
+            input.buildCTree(context, this, compiledStrategies);
+        // if ctree is null, this was a task that should no longer be active, like a
+        //     BackInput.Normal task where one of the strategy contributions gained a dynamic rule
+        //     definition.
+        final @Nullable STask<BackOutput> generatingTask = buildResult.generatingTask();
+        if(generatingTask != null) {
+            final StrategySignature strategySignature =
+                ((BackInput.Normal) input).strategySignature;
+            final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
+            final LinkedHashSet<ResourcePath> unreportedResultFiles =
+                PieUtils.requirePartial(context, generatingTask, GetUnreportedResultFiles.INSTANCE);
+            final Set<String> strategySignatures;
+            if(input instanceof BackInput.DynamicRule) {
+                strategySignatures = ((BackInput.DynamicRule) input).getStrategySignatures(tf);
+            } else { // instanceof BackInput.Normal
+                strategySignatures = Collections.singleton(strategySignature.cifiedName());
+            }
+            for(ResourcePath unreportedResultFile : unreportedResultFiles) {
+                if(!collatoralStrategyOutput(unreportedResultFile, strategySignatures)) {
+                    resultFiles.add(unreportedResultFile);
+                    context.provide(context.getResourceService()
+                        .getHierarchicalResource(unreportedResultFile));
+                }
+            }
+            return new BackOutput(resultFiles, new LinkedHashSet<>(0), new LinkedHashSet<>(0));
         }
+        final IStrategoTerm ctree = Objects.requireNonNull(buildResult.result());
 
         // Call Stratego compiler
         // Note that we need --library and turn off fusion with --fusion for separate compilation
@@ -157,16 +196,57 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                 resourcePathConverter.toString(input.checkInput.projectPath));
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
+        final LinkedHashSet<ResourcePath> unreportedResultFiles = new LinkedHashSet<>();
         assert TermUtils.isList(result1);
-        for(IStrategoTerm fileNameTerm : result1) {
-            if(TermUtils.isString(fileNameTerm)) {
-                final HierarchicalResource file = context.getResourceService().getHierarchicalResource(ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
-                context.provide(file);
-                resultFiles.add(file.getPath());
+        if(input instanceof BackInput.DynamicRule) {
+            final Set<String> strategySignatures =
+                ((BackInput.DynamicRule) input).getStrategySignatures(tf);
+            for(IStrategoTerm fileNameTerm : result1) {
+                if(TermUtils.isString(fileNameTerm)) {
+                    final HierarchicalResource file = context.getResourceService()
+                        .getHierarchicalResource(
+                            ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
+                    if(collatoralStrategyOutput(file.getPath(), strategySignatures)) {
+                        unreportedResultFiles.add(file.getPath());
+                    } else {
+                        context.provide(file);
+                        resultFiles.add(file.getPath());
+                    }
+                }
+            }
+        } else {
+            for(IStrategoTerm fileNameTerm : result1) {
+                if(TermUtils.isString(fileNameTerm)) {
+                    final HierarchicalResource file = context.getResourceService()
+                        .getHierarchicalResource(
+                            ResourceKeyString.parse(TermUtils.toJavaString(fileNameTerm)));
+                    context.provide(file);
+                    resultFiles.add(file.getPath());
+                }
             }
         }
 
-        return new BackOutput(resultFiles, compiledStrategies);
+        return new BackOutput(resultFiles, unreportedResultFiles, compiledStrategies);
+    }
+
+    private static boolean collatoralStrategyOutput(ResourcePath file,
+        Set<String> strategySignatures) {
+        if("java".equals(file.getLeafFileExtension())) {
+            final String basename = Objects
+                .requireNonNull(file.getLeafWithoutFileExtension());
+            int lastUnderscore = basename.lastIndexOf('_');
+            if(lastUnderscore == -1) {
+                return false;
+            }
+            final String cifiedName;
+            if(basename.lastIndexOf("_lifted") == lastUnderscore) {
+                cifiedName = basename.substring(0, lastUnderscore);
+            } else {
+                cifiedName = basename;
+            }
+            return !strategySignatures.contains(cifiedName);
+        }
+        return false;
     }
 
     private static IStrategoList buildInput(IStrategoTerm ctree, Arguments arguments, String name) {

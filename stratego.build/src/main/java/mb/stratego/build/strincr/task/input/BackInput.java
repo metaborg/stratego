@@ -16,9 +16,11 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.STask;
 import mb.pie.api.STaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -41,6 +43,7 @@ import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.CheckModule;
+import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.util.PieUtils;
@@ -66,7 +69,7 @@ public abstract class BackInput implements Serializable {
         this.usingLegacyStrategoStdLib = usingLegacyStrategoStdLib;
     }
 
-    public abstract IStrategoTerm buildCTree(ExecContext context, Back backTask,
+    public abstract CTreeBuildResult buildCTree(ExecContext context, Back backTask,
         Collection<StrategySignature> compiledStrategies) throws ExecException;
 
     @Override public boolean equals(Object o) {
@@ -158,6 +161,32 @@ public abstract class BackInput implements Serializable {
         }
     }
 
+    public static abstract class CTreeBuildResult {
+        public @Nullable IStrategoTerm result() {
+            return null;
+        }
+
+        public @Nullable STask<BackOutput> generatingTask() {
+            return null;
+        }
+
+        public static CTreeBuildResult withResult(IStrategoTerm result) {
+            return new CTreeBuildResult() {
+                public IStrategoTerm result() {
+                    return result;
+                }
+            };
+        }
+
+        public static CTreeBuildResult withGeneratingTask(STask<BackOutput> generatingTask) {
+            return new CTreeBuildResult() {
+                public STask<BackOutput> generatingTask() {
+                    return generatingTask;
+                }
+            };
+        }
+    }
+
     public static class Normal extends BackInput {
         public final StrategySignature strategySignature;
         public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
@@ -173,14 +202,14 @@ public abstract class BackInput implements Serializable {
             this.strategyAnalysisDataTask = strategyAnalysisDataTask;
         }
 
-        @Override public @Nullable IStrategoTerm buildCTree(ExecContext context, Back backTask,
+        @Override public CTreeBuildResult buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final ArrayList<IStrategoAppl> strategyContributions = new ArrayList<>();
             final HashSet<ConstructorSignature> usedConstructors = new HashSet<>();
-            final boolean taskIsStillRelevant =
+            final @Nullable STask<BackOutput> generatingTask =
                 getStrategyContributions(context, backTask, strategyContributions, usedConstructors);
-            if(!taskIsStillRelevant) {
-                return null;
+            if(generatingTask != null) {
+                return CTreeBuildResult.withGeneratingTask(generatingTask);
             }
 
             final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningOverlay = PieUtils
@@ -219,7 +248,6 @@ public abstract class BackInput implements Serializable {
             final IStrategoTerm result =
                 backTask.strategoLanguage.desugar(desugaringInput, projectPath);
 
-            //noinspection ConstantConditions
             final Set<StrategySignature> cifiedStrategySignatures =
                 CheckModule.extractStrategyDefs(null, result, null).keySet();
             for(StrategySignature cified : cifiedStrategySignatures) {
@@ -239,21 +267,14 @@ public abstract class BackInput implements Serializable {
                 }
             }
 
-            return result;
+            return CTreeBuildResult.withResult(result);
         }
 
         /**
-         * Note the return boolean of this method will communicate if this task is still relevant. It may have been
-         * required during a previous build but is now not accurate anymore because it's a Normal task for a strategy
-         * that has gained a dynamic rule definition, or the other way, or some other invalidation criterium.
-         *
-         * @param context
-         * @param backTask
-         * @param strategyContributions
-         * @param usedConstructors
-         * @return whether the task with this input is still relevant.
+         * @return null if the contributions and used constructors were added to the parameters, or
+         *      the task that actually generates the outputs.
          */
-        public boolean getStrategyContributions(ExecContext context, Back backTask,
+        public @Nullable STask<BackOutput> getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final StrategySignature strategySignature = this.strategySignature;
@@ -270,14 +291,19 @@ public abstract class BackInput implements Serializable {
                     if(!strategyAnalysisDatum.definedDynamicRules.isEmpty()) {
                         strategyContributions.clear();
                         usedConstructors.clear();
-                        return false;
+                        return backTask.createSupplier(
+                            dynamicRuleInput(strategyAnalysisDatum.definedDynamicRules.first()));
                     }
                     strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                    new UsedConstrs(usedConstructors)
-                        .visit(strategyAnalysisDatum.analyzedAst);
+                    new UsedConstrs(usedConstructors).visit(strategyAnalysisDatum.analyzedAst);
                 }
             }
-            return true;
+            return null;
+        }
+
+        protected DynamicRule dynamicRuleInput(StrategySignature firstSig) {
+            return new DynamicRule(outputDir, packageName, cacheDir, constants, extraArgs,
+                checkInput, firstSig, strategyAnalysisDataTask, usingLegacyStrategoStdLib);
         }
 
         @Override public boolean equals(@Nullable Object o) {
@@ -322,17 +348,10 @@ public abstract class BackInput implements Serializable {
         }
 
         /**
-         * Note the return boolean of this method will communicate if this task is still relevant. It may have been
-         * required during a previous build but is now not accurate anymore because it's a Normal task for a strategy
-         * that has gained a dynamic rule definition, or the other way, or some other invalidation criterium.
-         *
-         * @param context
-         * @param backTask
-         * @param strategyContributions
-         * @param usedConstructors
-         * @return whether the task with this input is still relevant.
+         * @return null if the contributions and used constructors were added to the parameters, or
+         *      the task that actually generates the outputs.
          */
-        @Override public boolean getStrategyContributions(ExecContext context, Back backTask,
+        @Override public @Nullable STask<BackOutput> getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
             HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
@@ -355,8 +374,7 @@ public abstract class BackInput implements Serializable {
                             new GetDynamicRuleAnalysisData(strategySignature));
                     for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
                         strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                        new UsedConstrs(usedConstructors)
-                            .visit(strategyAnalysisDatum.analyzedAst);
+                        new UsedConstrs(usedConstructors).visit(strategyAnalysisDatum.analyzedAst);
                         for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
                             if(!seen.contains(definedDynamicRule)) {
                                 workList.add(definedDynamicRule);
@@ -366,11 +384,30 @@ public abstract class BackInput implements Serializable {
                     }
                 }
             }
-            // Important test: only the BackInput.DynamicRule task with the "smallest" signature is allowed to compile
-            //     the set of strategies found through the above process. The Compile tasks is smart and starts with the
-            //     smallest signature for a dynamic rule, but there maybe be BackInput.DynamicRule tasks from previous
-            //     runs around that are no longer valid.
-            return seen.first().equals(strategySignature);
+            // Important test: only the BackInput.DynamicRule task with the "smallest" signature is
+            // allowed to compile the set of strategies found through the above process. The Compile
+            // tasks is smart and starts with the smallest signature for a dynamic rule, but there
+            // maybe be BackInput.DynamicRule tasks from previous runs around that are no longer
+            // valid.
+            final StrategySignature firstSig = seen.first();
+            final boolean taskIsStillRelevant = firstSig.equals(strategySignature);
+            if(taskIsStillRelevant) {
+                return null;
+            } else {
+                strategyContributions.clear();
+                usedConstructors.clear();
+                return backTask.createSupplier(dynamicRuleInput(firstSig));
+            }
+        }
+
+        public Set<String> getStrategySignatures(ITermFactory tf) {
+            final Set<String> strategySignatures = new HashSet<>();
+            for(StrategySignature iStrategoTerms : strategySignature.dynamicRuleSignatures(tf)
+                .keySet()) {
+                String name = iStrategoTerms.cifiedName();
+                strategySignatures.add(name);
+            }
+            return strategySignatures;
         }
 
         @Override public String toString() {
@@ -414,7 +451,7 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
+        @Override public CTreeBuildResult buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) throws ExecException {
             final CongruenceGlobalIndex globalIndex = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
@@ -478,7 +515,8 @@ public abstract class BackInput implements Serializable {
                 compiledStrategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
 
-            return backTask.generateStratego.packStrategies(congruences);
+            return CTreeBuildResult
+                .withResult(backTask.generateStratego.packStrategies(congruences));
         }
 
         @Override public String toString() {
@@ -521,7 +559,7 @@ public abstract class BackInput implements Serializable {
             return result;
         }
 
-        @Override public IStrategoTerm buildCTree(ExecContext context, Back backTask,
+        @Override public CTreeBuildResult buildCTree(ExecContext context, Back backTask,
             Collection<StrategySignature> compiledStrategies) {
             final GlobalConsInj globalConsInj = PieUtils
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
@@ -566,8 +604,8 @@ public abstract class BackInput implements Serializable {
             if(dynamicCallsDefined) {
                 strategies.add(new StrategySignature("DYNAMIC_CALLS", 0, 0));
             }
-            return backTask.generateStratego.packBoilerplate(consInjTerms,
-                backTask.generateStratego.declStubs(strategies));
+            return CTreeBuildResult.withResult(backTask.generateStratego
+                .packBoilerplate(consInjTerms, backTask.generateStratego.declStubs(strategies)));
         }
 
         public ResourcePath str2LibFile() {
