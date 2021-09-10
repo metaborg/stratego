@@ -277,13 +277,12 @@ public class ModuleImportService implements IModuleImportService {
         if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
             final mb.stratego.build.strincr.ModuleIdentifier identifier =
                 (mb.stratego.build.strincr.ModuleIdentifier) moduleIdentifier;
-            HierarchicalResource resource = context.require(identifier.path);
-            try(final InputStream inputStream = new BufferedInputStream(
-                resource.openRead())) {
-                final long lastModified =
-                    resource.getLastModifiedTime().getEpochSecond();
                 if(moduleIdentifier.isLibrary() && moduleIdentifier.legacyStratego()) {
-                    return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
+                    }
                 } else if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
                     for(Supplier<Stratego2LibInfo> str2library : importResolutionInfo.str2libraries) {
                         if(str2library instanceof STask) {
@@ -292,13 +291,20 @@ public class ModuleImportService implements IModuleImportService {
                             context.require(str2library);
                         }
                     }
-                    return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
+                    }
                 } else {
-                    return new LastModified<>(strategoLanguage
-                        .parse(inputStream, StandardCharsets.UTF_8,
-                            resourcePathConverter.toString(identifier.path)), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage
+                            .parse(inputStream, StandardCharsets.UTF_8,
+                                resourcePathConverter.toString(identifier.path)), lastModified);
+                    }
                 }
-            }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
             final BuiltinLibraryIdentifier builtinLibraryIdentifier =
                 (BuiltinLibraryIdentifier) moduleIdentifier;
