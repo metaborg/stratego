@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
 @BenchmarkMode(Mode.SingleShotTime)
-@Timeout(time = 10, timeUnit = TimeUnit.MINUTES)
+@Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public abstract class ExecutionBenchmark extends OptimisationBenchmark {
 
     @Setup(Level.Trial)
