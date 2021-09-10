@@ -503,21 +503,20 @@ public abstract class BackInput implements Serializable {
         }
 
         @Override public boolean equals(@Nullable Object o) {
-            if(this == o)
-                return true;
-            if(o == null || getClass() != o.getClass())
-                return false;
-            if(!super.equals(o))
-                return false;
-
-            Boilerplate that = (Boilerplate) o;
-
-            return dynamicCallsDefined == that.dynamicCallsDefined;
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            if(!super.equals(o)) return false;
+            final Boilerplate that = (Boilerplate)o;
+            if(dynamicCallsDefined != that.dynamicCallsDefined) return false;
+            if(library != that.library) return false;
+            return libraryName.equals(that.libraryName);
         }
 
         @Override public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + (dynamicCallsDefined ? 1 : 0);
+            result = 31 * result + (library ? 1 : 0);
+            result = 31 * result + libraryName.hashCode();
             return result;
         }
 
