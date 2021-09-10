@@ -192,8 +192,4 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     @Override public String getId() {
         return id;
     }
-
-    @Override public Serializable key(BackInput input) {
-        return input.key();
-    }
 }
