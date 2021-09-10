@@ -1,6 +1,7 @@
-package benchmark.stratego2.template.benchmark;
+package benchmark.stratego2.template.benchmark.execution;
 
 import benchmark.exception.SkipException;
+import benchmark.stratego2.template.benchmark.base.OptimisationBenchmark;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
 

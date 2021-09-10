@@ -1,4 +1,4 @@
-package benchmark.stratego2.template.benchmark;
+package benchmark.stratego2.template.benchmark.base;
 
 import org.openjdk.jmh.annotations.Param;
 

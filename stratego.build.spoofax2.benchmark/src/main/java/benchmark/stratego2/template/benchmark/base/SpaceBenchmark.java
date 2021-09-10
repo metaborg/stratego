@@ -1,4 +1,4 @@
-package benchmark.stratego2.template.benchmark;
+package benchmark.stratego2.template.benchmark.base;
 
 import benchmark.exception.SkipException;
 import org.apache.commons.io.FileUtils;

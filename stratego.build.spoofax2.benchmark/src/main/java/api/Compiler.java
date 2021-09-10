@@ -36,6 +36,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -120,6 +121,8 @@ public class Compiler {
         if (!(compiledProgram instanceof CompileOutput.Success)) {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
+
+        System.out.println(String.format("Compiling %d Java files...", javaFiles().size()));
 
         javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
         assert javaCompilationResult : "Compilation with javac expected to succeed";
@@ -208,10 +211,12 @@ public class Compiler {
     public void cleanup() {
         try {
             System.out.println("Deleting intermediate results...");
-            PathUtils.delete(baseDir);
+            PathUtils.cleanDirectory(baseDir);
+        } catch (NoSuchFileException e) {
+            System.err.println("File already deleted: " + e.getFile());
         } catch (IOException e) {
             System.err.println("Some files could not be deleted:\n" + e);
-        } catch (NullPointerException ignored) {}
+        }
     }
 
     private Collection<? extends File> javaFiles() {

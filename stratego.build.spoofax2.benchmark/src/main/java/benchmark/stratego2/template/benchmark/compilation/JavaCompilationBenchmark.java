@@ -29,37 +29,25 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package benchmark.stratego2.template.benchmark;
+package benchmark.stratego2.template.benchmark.compilation;
 
 import benchmark.exception.SkipException;
-import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.metaborg.core.MetaborgException;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Setup;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
-@BenchmarkMode(Mode.SingleShotTime)
-@Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
-public abstract class CompilationBenchmark extends OptimisationBenchmark {
+public abstract class JavaCompilationBenchmark extends CompilationBenchmark {
 
-    @TearDown(Level.Iteration)
-    final public void removeCompilationResults() throws IOException {
-        getProgram().cleanup();
-    }
-
-    @Benchmark
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    public final CompileOutput compileStratego() throws MetaborgException {
-        return getProgram().compileStratego();
-    }
-
-    @Benchmark
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    public final Boolean compileStrategoAndJava() throws MetaborgException, IOException, SkipException {
+    @Setup(Level.Iteration)
+    public final void compileStratego() throws MetaborgException {
         getProgram().compileStratego();
+    }
+
+    @Benchmark
+    public final Boolean compileJava() throws IOException, SkipException {
         return getProgram().compileJava();
     }
 }

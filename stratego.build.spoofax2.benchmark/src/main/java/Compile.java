@@ -39,11 +39,15 @@ public class Compile {
 
         System.out.println("Done!");
 
+        long start = System.currentTimeMillis();
         BufferedReader br = c.program.run();
+        long elapsed = System.currentTimeMillis() - start;
         String line;
         while (null != (line = br.readLine())) {
             System.out.println(line);
         }
+
+        System.out.println(String.format("Time elapsed: %f s", elapsed / 1000.f));
 
 //        System.out.printf("Size of Java directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.javaDir) / 1000);
 //        System.out.printf("Size of classes directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.classDir) / 1000);

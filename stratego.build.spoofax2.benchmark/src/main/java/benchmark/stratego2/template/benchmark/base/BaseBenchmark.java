@@ -1,4 +1,4 @@
-package benchmark.stratego2.template.benchmark;
+package benchmark.stratego2.template.benchmark.base;
 
 import api.Stratego2Program;
 import benchmark.exception.SkipException;
