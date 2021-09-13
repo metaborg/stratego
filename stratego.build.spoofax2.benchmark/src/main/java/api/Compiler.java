@@ -113,6 +113,8 @@ public class Compiler {
 
         str2(args);
         assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
+        if (!(compiledProgram instanceof CompileOutput.Success))
+            throw new RuntimeException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
 
         return compiledProgram;
     }
@@ -123,15 +125,22 @@ public class Compiler {
         }
 
         System.out.println(String.format("Compiling %d Java files...", javaFiles().size()));
-
+        timer = System.currentTimeMillis();
         javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
+        System.out.printf("Done! (%d ms)%n", System.currentTimeMillis() - timer);
+
         assert javaCompilationResult : "Compilation with javac expected to succeed";
+        if (!javaCompilationResult)
+            throw new RuntimeException("Compilation with javac expected to succeed");
 
         return javaCompilationResult;
     }
 
     public BufferedReader run() throws IOException, InterruptedException {
         assert javaCompilationResult : "Cannot run program: Java compilation did not succeed!";
+        if (!javaCompilationResult)
+            throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
+
         return Java.execute(classDir + ":" + Compiler.getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", Compiler.javaPackageName));
     }
 
@@ -196,6 +205,7 @@ public class Compiler {
 
             int numOfJavaFiles = javaFiles().size();
             assert numOfJavaFiles > 0;
+            if (numOfJavaFiles == 0) throw new RuntimeException("No Java files resulted from compilation!");
 
             System.out.println("Number of generated Java files: " + numOfJavaFiles);
 
@@ -221,6 +231,8 @@ public class Compiler {
 
     private Collection<? extends File> javaFiles() {
         assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessful compilation!";
+        if (!(compiledProgram instanceof CompileOutput.Success))
+            throw new RuntimeException("Cannot get Java files from unsuccessful compilation!");
 
         final HashSet<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());

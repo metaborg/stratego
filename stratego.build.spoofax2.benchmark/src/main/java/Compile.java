@@ -34,10 +34,7 @@ public class Compile {
 
         System.out.println("Compiling Stratego...");
         c.program.compileStratego();
-        System.out.println("Compiling Java...");
         c.program.compileJava();
-
-        System.out.println("Done!");
 
         long start = System.currentTimeMillis();
         BufferedReader br = c.program.run();
