@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
@@ -34,7 +35,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashSet<StrategyFrontData> strategies;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
-    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final ArrayList<Message> messages;
     public final long lastModified;
@@ -46,7 +47,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashSet<StrategyFrontData> strategies,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         ArrayList<Message> messages, long lastModified) {
         this.str2LibPackageName = str2LibPackageName;

@@ -167,8 +167,8 @@ public class GenerateStratego {
     }
 
     public @Nullable IStrategoAppl dynamicCallsDefinition(
-        Collection<String> dynamicRulesNewGenerated,
-        Collection<String> dynamicRulesUndefineGenerated) {
+        Collection<StrategySignature> dynamicRulesNewGenerated,
+        Collection<StrategySignature> dynamicRulesUndefineGenerated) {
         @Nullable IStrategoAppl body = null;
 
         /* concrete syntax:
@@ -180,8 +180,8 @@ public class GenerateStratego {
          *     [Anno(Str("\"\""), Op("Nil", [])), Anno(Str("\"\""), Op("Nil", []))])
          * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
          */
-        for(String dynamicRuleName : dynamicRulesNewGenerated) {
-            final String drRuleNameNew = Interpreter.cify("new-" + dynamicRuleName) + "_0_2";
+        for(StrategySignature dynamicRule : dynamicRulesNewGenerated) {
+            final String drRuleNameNew = Interpreter.cify("new-" + dynamicRule.name) + "_0_2";
             final IStrategoAppl call =
                 tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
                     tf.makeList(), tf.makeList(emptyStringLit, emptyStringLit));
@@ -198,8 +198,8 @@ public class GenerateStratego {
          *   CallT("undefine_[dr-rule-name]_0_1", [], [Anno(Str("\"\""), Op("Nil", []))])
          * strung together with `[call] <+ [other-calls]` or `GuardedLChoice([call], Id(), [other-calls])`
          */
-        for(String dynamicRuleName : dynamicRulesUndefineGenerated) {
-            final String drRuleNameNew = Interpreter.cify("undefine-" + dynamicRuleName) + "_0_1";
+        for(StrategySignature dynamicRule : dynamicRulesUndefineGenerated) {
+            final String drRuleNameNew = Interpreter.cify("undefine-" + dynamicRule.name) + "_0_1";
             final IStrategoAppl call =
                 tf.makeAppl("CallT", tf.makeAppl("SVar", tf.makeString(drRuleNameNew)),
                     tf.makeList(), tf.makeList(emptyStringLit));

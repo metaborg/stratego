@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
@@ -49,7 +50,7 @@ public class ModuleData implements Serializable, WithLastModified {
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
     public final LinkedHashSet<StrategySignature> usedStrategies;
-    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashSet<String> usedAmbiguousStrategies;
     public final ArrayList<Message> messages;
     public final long lastModified;
@@ -71,7 +72,7 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;

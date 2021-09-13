@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.task;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 import javax.inject.Inject;
@@ -8,6 +7,7 @@ import javax.inject.Inject;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.STask;
 import mb.pie.api.STaskDef;
 import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
@@ -21,9 +21,11 @@ import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.input.CLCFInput;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.input.CompileDynamicRulesInput;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
+import mb.stratego.build.strincr.task.output.CompileDynamicRulesOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import mb.stratego.build.util.PieUtils;
 
@@ -38,13 +40,15 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public final Resolve resolve;
     public final CopyLibraryClassFiles copyLibraryClassFiles;
     public final Check check;
+    public final CompileDynamicRules compileDynamicRules;
     public final Back back;
 
     @Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
-        Back back) {
+        CompileDynamicRules compileDynamicRules, Back back) {
         this.resolve = resolve;
         this.copyLibraryClassFiles = copyLibraryClassFiles;
         this.check = check;
+        this.compileDynamicRules = compileDynamicRules;
         this.back = back;
     }
 
@@ -56,6 +60,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         }
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
+
         final CompileGlobalIndex compileGlobalIndex = PieUtils
             .requirePartial(context, resolve, input.checkInput.resolveInput(),
                 ToCompileGlobalIndex.INSTANCE);
@@ -70,37 +75,12 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             extraArgs.add("-la", importedStr2LibPackageName);
         }
 
-        final HashSet<StrategySignature> compiledThroughDynamicRule = new HashSet<>();
-
-        final HashSet<String> dynamicRuleNewGenerated = new HashSet<>();
-        final HashSet<String> dynamicRuleUndefineGenerated = new HashSet<>();
-
         final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
             new STaskDef<>(CheckModule.id);
 
-        for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
-            final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(outputDirWithPackage, input.packageName, input.cacheDir,
-                    input.constants, extraArgs, input.checkInput, dynamicRule,
-                    strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
-            final BackOutput output = context.require(back, dynamicRuleInput);
-            assert output != null;
-            assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
-            resultFiles.addAll(output.resultFiles);
-            compiledThroughDynamicRule.addAll(output.compiledStrategies);
-        }
-        for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules) {
-            final StrategySignature dynamicRuleNew =
-                new StrategySignature("new-" + dynamicRule.name, 0, 2);
-            if(compiledThroughDynamicRule.contains(dynamicRuleNew)) {
-                dynamicRuleNewGenerated.add(dynamicRule.name);
-            }
-            final StrategySignature dynamicRuleUndefine =
-                new StrategySignature("undefine-" + dynamicRule.name, 0, 1);
-            if(compiledThroughDynamicRule.contains(dynamicRuleUndefine)) {
-                dynamicRuleUndefineGenerated.add(dynamicRule.name);
-            }
-        }
+        final STask<CompileDynamicRulesOutput> compileDR = compileDynamicRules.createSupplier(new CompileDynamicRulesInput(input, outputDirWithPackage, strategyAnalysisDataTask));
+        resultFiles.addAll(context.require(compileDR).resultFiles);
+
         for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
             final BackInput.Normal normalInput =
                 new BackInput.Normal(outputDirWithPackage, input.packageName, input.cacheDir,
@@ -111,12 +91,10 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
         }
-        final boolean dynamicCallsDefined =
-            !dynamicRuleNewGenerated.isEmpty() || !dynamicRuleUndefineGenerated.isEmpty();
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(outputDirWithPackage, input.packageName, input.cacheDir,
-                input.constants, extraArgs, input.checkInput, dynamicCallsDefined, input.library,
-                input.usingLegacyStrategoStdLib, input.libraryName);
+                input.constants, extraArgs, input.checkInput, input.library,
+                input.usingLegacyStrategoStdLib, input.libraryName, compileDR);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null;
         assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
@@ -124,8 +102,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
         final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(outputDirWithPackage, input.packageName, input.cacheDir,
-                input.constants, extraArgs, input.checkInput, dynamicRuleNewGenerated,
-                dynamicRuleUndefineGenerated, input.usingLegacyStrategoStdLib);
+                input.constants, extraArgs, input.checkInput, input.usingLegacyStrategoStdLib, compileDR);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null;
         assert !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";

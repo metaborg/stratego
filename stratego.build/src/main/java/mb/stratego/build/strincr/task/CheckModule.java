@@ -131,12 +131,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         ArrayList<Message> messages, String projectPath) throws ExecException {
         checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
-        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules, moduleData.lastModified,
+        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(), moduleData.lastModified,
             messages, projectPath);
     }
 
     private void checkDynamicRuleOverlap(ExecContext context, ResolveInput input,
-        LinkedHashSet<StrategySignature> dynamicRules, long lastModified,
+        Collection<StrategySignature> dynamicRules, long lastModified,
         ArrayList<Message> messages, String projectPath) throws ExecException {
         final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule = new HashSet<>();
         for(StrategySignature dynamicRule : dynamicRules) {

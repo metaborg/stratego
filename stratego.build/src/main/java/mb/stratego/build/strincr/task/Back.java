@@ -6,7 +6,8 @@ import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -36,6 +37,8 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.ContainsErrors;
 import mb.stratego.build.strincr.function.GetStr2LibInfo;
 import mb.stratego.build.strincr.function.GetUnreportedResultFiles;
+import mb.stratego.build.strincr.function.ToCompileGlobalIndex;
+import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.Str2LibInfo;
 import mb.stratego.build.strincr.task.input.BackInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
@@ -109,21 +112,30 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                 ((BackInput.Normal) input).strategySignature;
             final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
             final LinkedHashSet<ResourcePath> unreportedResultFiles =
-                PieUtils.requirePartial(context, generatingTask, GetUnreportedResultFiles.INSTANCE);
-            final Set<String> strategySignatures;
+                new LinkedHashSet<>(PieUtils.requirePartial(context, generatingTask, GetUnreportedResultFiles.INSTANCE));
+            final Set<String> strategySignatures = new HashSet<>();
             if(input instanceof BackInput.DynamicRule) {
-                strategySignatures = ((BackInput.DynamicRule) input).getStrategySignatures(tf);
+                final CompileGlobalIndex compileGlobalIndex = PieUtils
+                    .requirePartial(context, resolve, input.checkInput.resolveInput(),
+                        ToCompileGlobalIndex.INSTANCE);
+                for(String cified : ((BackInput.DynamicRule) input).getStrategySignatures(compileGlobalIndex.dynamicRules)) {
+                    strategySignatures.add(dollarsForCapitals(cified));
+                }
             } else { // instanceof BackInput.Normal
-                strategySignatures = Collections.singleton(strategySignature.cifiedName());
+                final String cified = strategySignature.cifiedName();
+                strategySignatures.add(dollarsForCapitals(cified));
             }
-            for(ResourcePath unreportedResultFile : unreportedResultFiles) {
+            for(Iterator<ResourcePath> iterator = unreportedResultFiles.iterator(); iterator
+                .hasNext(); ) {
+                ResourcePath unreportedResultFile = iterator.next();
                 if(!collatoralStrategyOutput(unreportedResultFile, strategySignatures)) {
                     resultFiles.add(unreportedResultFile);
-                    context.provide(context.getResourceService()
-                        .getHierarchicalResource(unreportedResultFile));
+                    iterator.remove();
+                    context.provide(
+                        context.getResourceService().getHierarchicalResource(unreportedResultFile));
                 }
             }
-            return new BackOutput(resultFiles, new LinkedHashSet<>(0), new LinkedHashSet<>(0));
+            return new BackOutput(resultFiles, unreportedResultFiles, new LinkedHashSet<>(0));
         }
         final IStrategoTerm ctree = Objects.requireNonNull(buildResult.result());
 
@@ -134,7 +146,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         arguments.add("-i", "passedExplicitly.ctree");
         arguments.add("-o", resourcePathConverter.toString(input.outputDir));
 //        arguments.add("--verbose", 3);
-        arguments.addLine(input.packageName != null ? "-p " + input.packageName : "");
+        arguments.addLine("-p " + input.packageName);
         arguments.add("--fusion");
         // @formatter:on
         if(input instanceof BackInput.Boilerplate) {
@@ -199,8 +211,13 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         final LinkedHashSet<ResourcePath> unreportedResultFiles = new LinkedHashSet<>();
         assert TermUtils.isList(result1);
         if(input instanceof BackInput.DynamicRule) {
-            final Set<String> strategySignatures =
-                ((BackInput.DynamicRule) input).getStrategySignatures(tf);
+            final CompileGlobalIndex compileGlobalIndex = PieUtils
+                .requirePartial(context, resolve, input.checkInput.resolveInput(),
+                    ToCompileGlobalIndex.INSTANCE);
+            final Set<String> strategySignatures = new HashSet<>();
+            for(String s : ((BackInput.DynamicRule) input).getStrategySignatures(compileGlobalIndex.dynamicRules)) {
+                strategySignatures.add(dollarsForCapitals(s));
+            }
             for(IStrategoTerm fileNameTerm : result1) {
                 if(TermUtils.isString(fileNameTerm)) {
                     final HierarchicalResource file = context.getResourceService()
@@ -229,6 +246,10 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         return new BackOutput(resultFiles, unreportedResultFiles, compiledStrategies);
     }
 
+    private String dollarsForCapitals(String cified) {
+        return cified.replaceAll("\\p{Lu}", "\\$$0");
+    }
+
     private static boolean collatoralStrategyOutput(ResourcePath file,
         Set<String> strategySignatures) {
         if("java".equals(file.getLeafFileExtension())) {
@@ -238,9 +259,12 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             if(lastUnderscore == -1) {
                 return false;
             }
+            int penUltUnderscore = basename.lastIndexOf('_', lastUnderscore - 1);
             final String cifiedName;
             if(basename.lastIndexOf("_lifted") == lastUnderscore) {
                 cifiedName = basename.substring(0, lastUnderscore);
+            } else if(basename.lastIndexOf("_fragment") == penUltUnderscore) {
+                cifiedName = basename.substring(0, penUltUnderscore);
             } else {
                 cifiedName = basename;
             }

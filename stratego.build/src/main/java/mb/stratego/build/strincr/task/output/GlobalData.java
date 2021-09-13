@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.annotation.Nullable;
@@ -37,7 +38,7 @@ public class GlobalData implements Serializable {
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategySignature> externalStrategies;
-    public final TreeSet<StrategySignature> dynamicRules;
+    public final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashSet<OverlayData> overlayData;
     public final ArrayList<Message> messages;
     public final long lastModified;
@@ -56,7 +57,7 @@ public class GlobalData implements Serializable {
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategySignature> externalStrategies,
-        TreeSet<StrategySignature> dynamicRules, LinkedHashSet<OverlayData> overlayData,
+        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, LinkedHashSet<OverlayData> overlayData,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.importedStr2LibPackageNames = importedStr2LibPackageNames;
