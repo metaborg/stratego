@@ -27,15 +27,17 @@ public class CompileDynamicRulesInput implements Serializable {
     public final boolean usingLegacyStrategoStdLib;
     public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
 
-    public CompileDynamicRulesInput(CompileInput input, ResourcePath outputDirWithPackage,
-        STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask) {
-        this.checkInput = input.checkInput;
+    public CompileDynamicRulesInput(ResourcePath outputDirWithPackage, String packageName,
+        ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
+        STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask,
+        boolean usingLegacyStrategoStdLib) {
+        this.checkInput = checkInput;
         this.outputDirWithPackage = outputDirWithPackage;
-        this.packageName = input.packageName;
-        this.cacheDir = input.cacheDir;
-        this.constants = input.constants;
-        this.extraArgs = input.extraArgs;
-        this.usingLegacyStrategoStdLib = input.usingLegacyStrategoStdLib;
+        this.packageName = packageName;
+        this.cacheDir = cacheDir;
+        this.constants = constants;
+        this.extraArgs = extraArgs;
+        this.usingLegacyStrategoStdLib = usingLegacyStrategoStdLib;
         this.strategyAnalysisDataTask = strategyAnalysisDataTask;
     }
 

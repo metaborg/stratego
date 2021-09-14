@@ -78,7 +78,12 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
             new STaskDef<>(CheckModule.id);
 
-        final STask<CompileDynamicRulesOutput> compileDR = compileDynamicRules.createSupplier(new CompileDynamicRulesInput(input, outputDirWithPackage, strategyAnalysisDataTask));
+        final CompileDynamicRulesInput compileDRInput =
+            new CompileDynamicRulesInput(outputDirWithPackage, input.packageName, input.cacheDir,
+                input.constants, extraArgs, input.checkInput,
+                strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
+        final STask<CompileDynamicRulesOutput> compileDR =
+            compileDynamicRules.createSupplier(compileDRInput);
         resultFiles.addAll(context.require(compileDR).resultFiles);
 
         for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
