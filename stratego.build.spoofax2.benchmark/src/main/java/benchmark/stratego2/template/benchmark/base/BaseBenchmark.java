@@ -22,7 +22,7 @@ public abstract class BaseBenchmark implements Problem {
     private Path sourcePath;
 
     private Stratego2Program program;
-    protected Arguments args = new Arguments();
+    protected final Arguments args = new Arguments();
 
     @Param({"2.6.0-SNAPSHOT"})
     public String metaborgVersion;
@@ -57,7 +57,7 @@ public abstract class BaseBenchmark implements Problem {
     }
 
     @TearDown(Level.Trial)
-    public final void teardown() throws IOException {
+    public final void teardown() {
         getProgram().cleanup();
     }
 

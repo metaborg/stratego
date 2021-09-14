@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class CompilationBenchmark extends OptimisationBenchmark {
 
     @TearDown(Level.Iteration)
-    final public void removeCompilationResults() throws IOException {
+    public final void removeCompilationResults() {
         getProgram().cleanup();
     }
 

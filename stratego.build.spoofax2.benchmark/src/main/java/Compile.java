@@ -8,10 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Compile {
-    String filename;
+    final String filename;
     Stratego2Program program;
 
-    Path p = Paths.get("src", "main", "resources");
+    final Path p = Paths.get("src", "main", "resources");
 
     private final static int optimisationLevel = 2;
     private final Arguments compilerArgs;
@@ -44,7 +44,7 @@ public class Compile {
             System.out.println(line);
         }
 
-        System.out.println(String.format("Time elapsed: %f s", elapsed / 1000.f));
+        System.out.printf("Time elapsed: %f s%n", elapsed / 1000.f);
 
 //        System.out.printf("Size of Java directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.javaDir) / 1000);
 //        System.out.printf("Size of classes directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.classDir) / 1000);

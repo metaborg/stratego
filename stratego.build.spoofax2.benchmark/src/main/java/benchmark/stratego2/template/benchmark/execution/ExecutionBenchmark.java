@@ -16,14 +16,14 @@ import java.util.concurrent.TimeUnit;
 public abstract class ExecutionBenchmark extends OptimisationBenchmark {
 
     @Setup(Level.Trial)
-    public void compile() throws MetaborgException, IOException, SkipException {
+    public final void compile() throws MetaborgException, IOException, SkipException {
         getProgram().compileStratego();
         getProgram().compileJava();
     }
 
     @Benchmark
     @OutputTimeUnit(TimeUnit.SECONDS)
-    final public BufferedReader run() throws Exception {
+    public final BufferedReader run() throws Exception {
         return getProgram().run();
     }
 }

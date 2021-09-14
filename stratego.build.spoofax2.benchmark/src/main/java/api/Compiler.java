@@ -74,7 +74,7 @@ public class Compiler {
     long timer;
 
     public Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
-        this(sourcePath, false, (ArrayList<IModuleImportService.ModuleIdentifier>) Collections.EMPTY_LIST, true, metaborgVersion, false, args);
+        this(sourcePath, false, new ArrayList<>(), true, metaborgVersion, false, args);
     }
 
     public Compiler(Path sourcePath, boolean library, ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, String metaborgVersion, boolean output, Arguments args) throws IOException, MetaborgException {
@@ -112,7 +112,6 @@ public class Compiler {
         pie.dropStore();
 
         str2(args);
-        assert compiledProgram instanceof CompileOutput.Success : "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram);
         if (!(compiledProgram instanceof CompileOutput.Success))
             throw new RuntimeException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
 
@@ -124,12 +123,11 @@ public class Compiler {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
 
-        System.out.println(String.format("Compiling %d Java files...", javaFiles().size()));
+        System.out.printf("Compiling %d Java files...%n", javaFiles().size());
         timer = System.currentTimeMillis();
         javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
         System.out.printf("Done! (%d ms)%n", System.currentTimeMillis() - timer);
 
-        assert javaCompilationResult : "Compilation with javac expected to succeed";
         if (!javaCompilationResult)
             throw new RuntimeException("Compilation with javac expected to succeed");
 
@@ -137,7 +135,6 @@ public class Compiler {
     }
 
     public BufferedReader run() throws IOException, InterruptedException {
-        assert javaCompilationResult : "Cannot run program: Java compilation did not succeed!";
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
 
@@ -204,7 +201,6 @@ public class Compiler {
             System.out.printf("Task finished in %d ms%n", System.currentTimeMillis() - timer);
 
             int numOfJavaFiles = javaFiles().size();
-            assert numOfJavaFiles > 0;
             if (numOfJavaFiles == 0) throw new RuntimeException("No Java files resulted from compilation!");
 
             System.out.println("Number of generated Java files: " + numOfJavaFiles);
@@ -230,7 +226,6 @@ public class Compiler {
     }
 
     private Collection<? extends File> javaFiles() {
-        assert compiledProgram instanceof CompileOutput.Success : "Cannot get Java files from unsuccessful compilation!";
         if (!(compiledProgram instanceof CompileOutput.Success))
             throw new RuntimeException("Cannot get Java files from unsuccessful compilation!");
 
