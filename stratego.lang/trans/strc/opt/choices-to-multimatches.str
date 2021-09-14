@@ -6,6 +6,7 @@ imports
   strc/strc/strc // log-timed
 
   strc/opt/bound-unbound-vars
+  strc/opt/stratego-laws
   strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
   strc/opt/multimatch/utils
@@ -28,7 +29,7 @@ strategies
     | "  2. Translating choices", 1)
   ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
   ; log-timed(strip-annos|"  4. Stripping annos", 1)
-  ; log-timed(desugar|"  5. Desugaring", 1)
+  ; log-timed(simplify|"  5. Simplifying", 1)
   | "Optimisation: choices to multimatches", 1)
 
 strategies
@@ -247,8 +248,8 @@ strategies
         // No list builds where the tail is not a list
         + ?Op("Cons", <not(?Op("Nil", _) + ?Op("Cons", _))>)
         // No exploded builds where the constructor is a Var
-        + ?Explode(_, _))
-      )
+        + ?Explode(_, _)
+      ))
     )
   + ?Match(Var(_){"unbound"})
   + Seq(always-succeeds, always-succeeds)

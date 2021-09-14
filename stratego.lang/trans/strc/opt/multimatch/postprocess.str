@@ -5,11 +5,13 @@ imports
   strc/opt/multimatch/guard
   strc/opt/multimatch/utils
 
+  strc/opt/stratego-laws
+
   signatures/core/strategies-sig
 
 strategies
   desugar-dfa = id
-  ; desugar
+  ; simplify
   ; repeat(
       oncebu(
         eliminate-guard
