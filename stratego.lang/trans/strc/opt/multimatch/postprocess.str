@@ -48,16 +48,35 @@ strategies
   eliminate-guard =
     EliminateId
   + EliminateFail
+  + EliminateEmpty
 
-  EliminateId: GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) -> AltV(t, a)
-  EliminateId: GuardedDefault([Guard(<is-id-guard>, a) | _]) -> Default(a)
+  EliminateId:
+    GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) ->
+    AltV(t, a)
 
-  EliminateFail =
-    EliminateFail1
+  EliminateId:
+    GuardedDefault([Guard(<is-id-guard>, a) | _]) ->
+    Default(a)
 
-  EliminateFail1: GuardedDefault(guard*) -> Default(Fail())
+  EliminateId =
+    GuardedAltV(id, at-last(\ [Guard(Id(), Fail())] -> [] \))
+
+  EliminateId =
+    GuardedDefault(at-last(\ [Guard(Id(), Fail())] -> [] \))
+
+  EliminateFail:
+    GuardedDefault(guard*) ->
+    Default(Fail())
   where
     <foldr(![], union, ![<?Guard(<id>, _)>])> guard* => [<is-fail-guard>]
+
+  EliminateEmpty:
+    GuardedAltV(t, []) ->
+    AltV(t, Fail())
+
+  EliminateEmpty:
+    GuardedDefault([]) ->
+    Default(Fail())
 
   /*
    * Lift guards from guarded leafs to enclosing switch arm.
