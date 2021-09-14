@@ -240,7 +240,7 @@ strategies
     ?Id()
   + Build(
       ?Path(CurP())
-    + not(oncetd(id
+    + not(oncetd(fail
         // No (potentially) unbound vars in build
         + ?Var(_){"unbound"}
         + ?Var(_){"(un)bound"}
