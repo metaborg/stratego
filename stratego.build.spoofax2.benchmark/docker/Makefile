@@ -42,6 +42,9 @@ $(STRATEGO_LANGUAGE): $(UPDATE_REPO)
 	cd $(STRATEGO_DIR) && \
 	mvn -q install
 
+.PHONY: benchmark-jar
+benchmark-jar: $(BENCHMARK_JAR)
+
 $(BENCHMARK_JAR): $(UPDATE_REPO)
 	cd $(BENCHMARK_DIR) && \
 	mvn -q package
