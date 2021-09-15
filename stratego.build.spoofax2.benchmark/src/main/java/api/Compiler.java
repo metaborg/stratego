@@ -161,7 +161,7 @@ public class Compiler {
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
         pieBuilder.withStoreFactory(
-                (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde,
+                (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde, loggerFactory,
                         resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
                         InMemoryStore.class));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
