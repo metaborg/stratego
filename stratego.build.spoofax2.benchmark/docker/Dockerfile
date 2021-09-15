@@ -45,7 +45,7 @@ RUN cd ${BIN_DIR} &&\
 ENV MAVEN_HOME=/root/.m2
 RUN mkdir ${MAVEN_HOME}
 COPY maven-settings.xml /root/.m2/settings.xml
-ENV MAVEN_OPTS="-Xms2G -Xmx2G -Xss16m"
+ENV MAVEN_OPTS="-Xms4G -Xmx4G -Xss16m"
 
 # Git config
 RUN git config --global user.name "Stratego2 Evaluation"
