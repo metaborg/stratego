@@ -30,6 +30,9 @@ public abstract class BaseBenchmark implements Problem {
     @Param({"2"})
     public int optimisationLevel;
 
+    @Param({"on"})
+    public String sharedConstructors;
+
     @Param({"-1"})
     public int problemSize;
 
@@ -41,9 +44,10 @@ public abstract class BaseBenchmark implements Problem {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
         args.add("-O", optimisationLevel);
+        args.add("-sc", sharedConstructors);
 //        args.add("--fusion", fusion);
-        args.add("--statistics", 1);
-        args.add("--verbose", 3);
+//        args.add("--statistics", 1);
+//        args.add("--verbose", 3);
 
         try {
             program = new Stratego2Program(sourcePath, args, metaborgVersion);
