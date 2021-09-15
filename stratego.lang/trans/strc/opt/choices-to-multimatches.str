@@ -192,11 +192,7 @@ strategies
 //    <sequence-strategies> (s1'', s2) => s3
 
 strategies
-  lift-defaults:
-    MM(c*) -> MM([init*, last'*])
-  where
-    <split-init-last> c* => (init*, last)
-  ; <lift-default> last => last'*
+  lift-defaults = MM(at-last([lift-default]; flatten-list))
 
   // This is only valid for the very last case.
   // TODO Verify validity.
