@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ public class ModuleImportService implements IModuleImportService {
         this.strategoLanguage = strategoLanguage;
     }
 
-    private enum SomethingToImport implements Serializable {
+    private enum SomethingToImport {
         Str2Lib,
         RTree,
         Str2,
@@ -87,7 +86,11 @@ public class ModuleImportService implements IModuleImportService {
 
         static class Comparator implements java.util.Comparator<Import> {
             @Override public int compare(Import o1, Import o2) {
-                return o1.forSorting.compareTo(o2.forSorting);
+                final int typeComparison = o1.forSorting.compareTo(o2.forSorting);
+                if(typeComparison != 0) {
+                    return typeComparison;
+                }
+                return o1.moduleIdentifier.compareTo(o2.moduleIdentifier);
             }
         }
     }
@@ -274,13 +277,12 @@ public class ModuleImportService implements IModuleImportService {
         if(moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier) {
             final mb.stratego.build.strincr.ModuleIdentifier identifier =
                 (mb.stratego.build.strincr.ModuleIdentifier) moduleIdentifier;
-            HierarchicalResource resource = context.require(identifier.path);
-            try(final InputStream inputStream = new BufferedInputStream(
-                resource.openRead())) {
-                final long lastModified =
-                    resource.getLastModifiedTime().getEpochSecond();
                 if(moduleIdentifier.isLibrary() && moduleIdentifier.legacyStratego()) {
-                    return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage.parseRtree(inputStream), lastModified);
+                    }
                 } else if(moduleIdentifier.isLibrary() && !moduleIdentifier.legacyStratego()) {
                     for(Supplier<Stratego2LibInfo> str2library : importResolutionInfo.str2libraries) {
                         if(str2library instanceof STask) {
@@ -289,13 +291,20 @@ public class ModuleImportService implements IModuleImportService {
                             context.require(str2library);
                         }
                     }
-                    return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage.parseStr2Lib(inputStream), lastModified);
+                    }
                 } else {
-                    return new LastModified<>(strategoLanguage
-                        .parse(inputStream, StandardCharsets.UTF_8,
-                            resourcePathConverter.toString(identifier.path)), lastModified);
+                    final HierarchicalResource resource = context.require(identifier.path);
+                    try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
+                        final long lastModified = resource.getLastModifiedTime().getEpochSecond();
+                        return new LastModified<>(strategoLanguage
+                            .parse(inputStream, StandardCharsets.UTF_8,
+                                resourcePathConverter.toString(identifier.path)), lastModified);
+                    }
                 }
-            }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
             final BuiltinLibraryIdentifier builtinLibraryIdentifier =
                 (BuiltinLibraryIdentifier) moduleIdentifier;

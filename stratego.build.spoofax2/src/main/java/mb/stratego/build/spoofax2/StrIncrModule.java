@@ -16,6 +16,7 @@ import mb.stratego.build.strincr.task.Check;
 import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.CheckOpenModule;
 import mb.stratego.build.strincr.task.Compile;
+import mb.stratego.build.strincr.task.CompileDynamicRules;
 import mb.stratego.build.strincr.task.CopyLibraryClassFiles;
 import mb.stratego.build.strincr.task.Front;
 import mb.stratego.build.strincr.task.FrontSplit;
@@ -37,6 +38,7 @@ public class StrIncrModule extends TaskDefsModule {
         bind(IModuleImportService.class).to(ModuleImportService.class).in(Singleton.class);
 
         bindTaskDef(Compile.class, Compile.id);
+        bindTaskDef(CompileDynamicRules.class, CompileDynamicRules.id);
         bindTaskDef(Back.class, Back.id);
         bindTaskDef(Check.class, Check.id);
         bindTaskDef(CheckModule.class, CheckModule.id);

@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -99,7 +101,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             externalStrategyData = new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData =
             new LinkedHashMap<>();
-        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
+        final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new LinkedHashMap<>();
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
             new LinkedHashMap<>();
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections =
@@ -247,7 +249,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
-        LinkedHashSet<StrategySignature> dynamicRules, IStrategoTerm strategyDefs,
+        LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, IStrategoTerm strategyDefs,
         String projectPath) throws ExecException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
@@ -328,20 +330,20 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
             // collect-om(dyn-rule-sig)
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
-                dynamicRules.add(dynRuleSig);
-                final HashSet<StrategySignature> strategySignatures =
-                    new HashSet<>(dynRuleSig.dynamicRuleSignatures(tf).keySet());
+                final TreeSet<StrategySignature> strategySignatures =
+                    new TreeSet<>(dynRuleSig.dynamicRuleSignatures(tf).keySet());
                 auxRuleSigs(strategyDef, strategySignatures, projectPath);
                 for(StrategySignature signature : strategySignatures) {
                     Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new).add(
                         new StrategyFrontData(signature, signature.standardType(tf),
                             DynRuleGenerated));
                 }
+                Relation.getOrInitialize(dynamicRules, dynRuleSig, TreeSet::new).addAll(strategySignatures);
             }
         }
     }
 
-    private void auxRuleSigs(IStrategoTerm strategyDef, HashSet<StrategySignature> dynRuleSigs,
+    private void auxRuleSigs(IStrategoTerm strategyDef, Set<StrategySignature> dynRuleSigs,
         String projectPath) throws ExecException {
         final IStrategoTerm result = strategoLanguage.auxSignatures(strategyDef, projectPath);
         for(IStrategoTerm sig : TermUtils.toList(result)) {

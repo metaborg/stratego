@@ -3,17 +3,18 @@ package mb.stratego.build.strincr.function.output;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CompileGlobalIndex implements Serializable {
     public final ArrayList<String> importedStr2LibPackageNames;
     public final LinkedHashSet<StrategySignature> nonExternalStrategies;
-    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
 
     public CompileGlobalIndex(ArrayList<String> importedStr2LibPackageNames, LinkedHashSet<StrategySignature> nonExternalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules) {
+        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules) {
         this.importedStr2LibPackageNames = importedStr2LibPackageNames;
         this.nonExternalStrategies = nonExternalStrategies;
         this.dynamicRules = dynamicRules;

@@ -15,7 +15,11 @@ imports
 
 strategies
 
-  stratego2-aux-signatures = collect-all(dyn-rule-to-aux-sig)
+  stratego2-aux-signatures = 
+    pre-desugar
+  ; raise-annotations
+  ; outermost(DesugarDynRuleDefId <+ DesugarDynRuleDef)
+  ; collect-all(dyn-rule-to-aux-sig)
 
   // Note: We use _#([lhs|_]) to match lhs of a Rule here, which can be _two_ constructors Rule
   //       and RuleNoCond. That second one only exists in the old Stratego 1 grammar, but needs to

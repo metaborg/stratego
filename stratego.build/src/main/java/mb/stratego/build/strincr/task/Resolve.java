@@ -11,6 +11,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.inject.Inject;
 
@@ -20,7 +22,6 @@ import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.OverlayData;
@@ -82,7 +83,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
-        final LinkedHashSet<StrategySignature> dynamicRules = new LinkedHashSet<>();
+        final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new TreeMap<>();
         final LinkedHashSet<OverlayData> overlayData = new LinkedHashSet<>();
 
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
@@ -126,10 +127,10 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     .add(moduleIdentifier);
                 externalStrategies.add(signature);
             }
-            for(StrategySignature signature : index.dynamicRules) {
-                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+            for(Map.Entry<StrategySignature, TreeSet<StrategySignature>> e : index.dynamicRules.entrySet()) {
+                Relation.getOrInitialize(strategyIndex, e.getKey(), LinkedHashSet::new)
                     .add(moduleIdentifier);
-                dynamicRules.add(signature);
+                Relation.getOrInitialize(dynamicRules, e.getKey(), TreeSet::new).addAll(e.getValue());
             }
             for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
                 .entrySet()) {

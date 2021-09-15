@@ -2,16 +2,17 @@ package mb.stratego.build.strincr.data;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
+import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
 public class StrategyAnalysisData implements Serializable {
     public final StrategySignature signature;
     public final IStrategoAppl analyzedAst;
-    public final LinkedHashSet<StrategySignature> definedDynamicRules;
+    public final TreeSet<StrategySignature> definedDynamicRules;
 
     public StrategyAnalysisData(StrategySignature signature, IStrategoAppl analyzedAst,
-        LinkedHashSet<StrategySignature> definedDynamicRules) {
+        TreeSet<StrategySignature> definedDynamicRules) {
         this.signature = signature;
         this.analyzedAst = analyzedAst;
         this.definedDynamicRules = definedDynamicRules;

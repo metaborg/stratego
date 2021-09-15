@@ -16,7 +16,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class StrategySignature extends StrategoTuple {
+public class StrategySignature extends StrategoTuple implements Comparable<StrategySignature> {
     public final String name;
     public final int noStrategyArgs;
     public final int noTermArgs;
@@ -199,5 +199,17 @@ public class StrategySignature extends StrategoTuple {
                 return null;
         }
         return new StrategySignature(name, sArity, tArity);
+    }
+
+    @Override public int compareTo(StrategySignature o) {
+        final int nameComparison = this.name.compareTo(o.name);
+        if(nameComparison != 0) {
+            return nameComparison;
+        }
+        final int noStrategyArgsComparison = Integer.compare(this.noStrategyArgs, o.noStrategyArgs);
+        if(noStrategyArgsComparison != 0) {
+            return noStrategyArgsComparison;
+        }
+        return Integer.compare(this.noTermArgs, o.noTermArgs);
     }
 }
