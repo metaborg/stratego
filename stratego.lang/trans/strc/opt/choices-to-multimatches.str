@@ -175,21 +175,27 @@ strategies
   with
     s3 := <sequence-strategies> (s1, s2)
 
-//  // FIX Causes undeclared vars
-//  /*
-//   * case x* | p where s1'; s1'': s2
-//   * where s1' is not guaranteed to succeed
-//   * and s1'' is guaranteed to succeed
-//   * ->
-//   * case x* | p where s1': s1''; s2
-//   */
-//  extract-rhs:
-//    ScopedGuardedMatchCase(x*, p, s1, s2) ->
-//    ScopedGuardedMatchCase(x*, p, s1', s3)
-//  where
-//    <oncetd(Seq(id, where(always-succeeds); ?s1''); ?Seq(<id>, _))> s1 => s1'
-//  with
-//    <sequence-strategies> (s1'', s2) => s3
+  /*
+   * case x* | p where s1'; s1'': s2
+   * where s1' is not guaranteed to succeed
+   * and s1'' is guaranteed to succeed
+   * ->
+   * case x* | p where s1': s1''; s2
+   */
+  extract-rhs:
+    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+    ScopedGuardedMatchCase(x*, p, s1', s3)
+  where
+    <oncetd(Seq(id, always-succeeds; ?s_succ); ?Seq(<id>, _))> s1 => s1'
+  ; <not(collect-one(?Scope(_, _)))> s1
+  // TODO Code below breaks some annotations on variables.
+//  ; if <collect-one(?Scope(_, _)); debug(|"collected scope ")> s1 => s_scope then
+//      <not(is-subterm); debug(|"no subterm ")> (s1', s_scope)
+//    ; where(<pp-partial-StrategoLang-string; debug(|"strat:\n")> s1')
+//    ; where(<pp-partial-StrategoLang-string; debug(|"scope:\n")> s_scope)
+//    end
+  with
+    <sequence-strategies> (s_succ, s2) => s3
 
 strategies
   lift-defaults = MM(at-last([lift-default]; flatten-list))
