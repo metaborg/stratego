@@ -476,6 +476,10 @@ rules
 //    <tvars> t => x* // TODO BINDS: Fix
 
   Desugar :
+    ScopedMatchCase(x*, p, s) ->
+    ScopedGuardedMatchCase(x*, p, Id(), s)
+
+  Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
     where <not(Id)> s
     with x := <tnewvar> "where"
