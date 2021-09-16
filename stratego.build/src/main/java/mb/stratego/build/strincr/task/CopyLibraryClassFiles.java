@@ -44,7 +44,7 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
                         input.stratego2LibInfoSupplier);
                 context.require(unarchiveFromJar, unarchiveInput);
             } else if(jarResourceOrDir.isDirectory()) {
-                copyDirectory(context, jarResourceOrDir.getPath(), input.outputDir);
+                copyDirectory(context, jarFileOrDir, input.outputDir);
             }
         }
         return new CLCFOutput(new ArrayList<>(0));
@@ -59,16 +59,18 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
         final ResourceService resourceService = context.getResourceService();
         final HierarchicalResource fromHR = resourceService.getHierarchicalResource(from);
         final HierarchicalResource toHR = resourceService.getHierarchicalResource(to);
-        fromHR.walkForEach(ResourceMatcher.ofTrue(), f -> {
-            final HierarchicalResource fToHR = toHR.appendAsRelativePath(from.relativize(f.getPath()));
-            if(f.isDirectory()) {
-                context.require(f);
-                f.copyTo(fToHR);
-                context.provide(fToHR);
-            } else if(f.isFile()) {
-                context.require(f, ResourceStampers.modifiedFile());
-                f.copyTo(fToHR);
-                context.provide(fToHR, ResourceStampers.hashFile());
+        fromHR.walkForEach(ResourceMatcher.ofTrue(), fileOrDir -> {
+            final HierarchicalResource fileorDirDest = toHR.appendAsRelativePath(from.relativize(fileOrDir.getPath()));
+            if(fileOrDir.isDirectory()) {
+                context.require(fileOrDir);
+                if(!fileorDirDest.exists()) {
+                    fileOrDir.copyTo(fileorDirDest);
+                }
+                context.provide(fileorDirDest);
+            } else if(fileOrDir.isFile()) {
+                context.require(fileOrDir, ResourceStampers.modifiedFile());
+                fileOrDir.copyTo(fileorDirDest);
+                context.provide(fileorDirDest, ResourceStampers.hashFile());
             }
         });
     }

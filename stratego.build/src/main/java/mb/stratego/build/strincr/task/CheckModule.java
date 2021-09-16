@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -130,12 +131,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         ArrayList<Message> messages, String projectPath) throws ExecException {
         checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
-        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules, moduleData.lastModified,
+        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(), moduleData.lastModified,
             messages, projectPath);
     }
 
     private void checkDynamicRuleOverlap(ExecContext context, ResolveInput input,
-        LinkedHashSet<StrategySignature> dynamicRules, long lastModified,
+        Collection<StrategySignature> dynamicRules, long lastModified,
         ArrayList<Message> messages, String projectPath) throws ExecException {
         final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule = new HashSet<>();
         for(StrategySignature dynamicRule : dynamicRules) {
@@ -294,7 +295,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 if(strategySignature == null) {
                     throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final LinkedHashSet<StrategySignature> definedDynamicRules =
+                final TreeSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new).add(
                     new StrategyAnalysisData(strategySignature, strategyDefAppl,

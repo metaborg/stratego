@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
 
 import org.metaborg.core.MetaborgException;
@@ -32,7 +31,6 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
@@ -98,8 +96,8 @@ public class Stratego {
             final PieBuilder pieBuilder = new PieBuilderImpl();
             pieBuilder.withStoreFactory(
                 (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde,
-                    resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
-                    InMemoryStore.class));
+                    loggerFactory, resourceService.getWritableResource(serializingStorePath),
+                    InMemoryStore::new, InMemoryStore.class));
             pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
             Pie pie = pieBuilder.build();
 

@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 import mb.stratego.build.strincr.data.ConstructorData;
-import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
