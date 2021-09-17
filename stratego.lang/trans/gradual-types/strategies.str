@@ -219,7 +219,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
   ; (t2*, st3) := <thread-map(insertCasts-Targ(|e1))> (<map-pair-right(|DynT())> t1*, st2)
-  ; st4 := <current-type(|DynT())> st3
+  ; st4 := <current-type(|ErrT())> st3
 
 insertCasts-Strategy-(|e1, st1):
   Some(s1) -> (Some(s2), <current-type-of(| st1)> st2)
@@ -559,13 +559,13 @@ insertCasts-Strategy-(|e1, st1):
   ; st3 := <current-type-of(|st1)> st2
 
 insertCasts-Strategy(|e1, st1):
-  s@PrimNoArgs(_) -> (s, <current-type(|DynT())> st1)
+  s@PrimNoArgs(_) -> (s, <current-type(|ErrT())> st1)
 
 insertCasts-Strategy-(|e1, st1):
   Prim(x, t1*) -> (Prim(x, t2*), st3)
   with
     (t2*, st2) := <thread-map(insertCasts-Targ(|e1))> (<map-pair-right(|DynT())> t1*, st1)
-  ; st3 := <current-type(|DynT())> st2
+  ; st3 := <current-type(|ErrT())> st2
 
 
 litCongruence(|st1, t1) = otf12(litCongruence-(|st1, t1))

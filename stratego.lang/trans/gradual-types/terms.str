@@ -405,7 +405,7 @@ insertCasts-StMatchTerm-(|e1, st1):
          ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
-  ; st4 := <current-type(|ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ListT(DynT())> t2*))> st3
+  ; st4 := <current-type(|ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ListT(ErrT())> t2*))> st3
 
 insertCasts-StMatchTerm-(|e1, st1):
   trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st5)
