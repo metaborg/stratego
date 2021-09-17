@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -192,9 +193,12 @@ public class ModuleImportService implements IModuleImportService {
                         context.getResourceService().getHierarchicalResource(searchDirectory);
                     if(searchDir.exists()) {
                         // N.B. deliberate choice not to resolve to str2lib files here, those should be imported by name.
-                        final List<HierarchicalResource> moduleFiles = searchDir.list(
-                            new PathResourceMatcher(new ExtensionsPathMatcher("rtree", "str2", "str")))
-                            .collect(Collectors.toList());
+                        final List<HierarchicalResource> moduleFiles;
+                        try(Stream<? extends HierarchicalResource> filesStream = searchDir.list(
+                            new PathResourceMatcher(
+                                new ExtensionsPathMatcher("rtree", "str2", "str")))) {
+                            moduleFiles = filesStream.collect(Collectors.toList());
+                        }
                         for(HierarchicalResource moduleFile : moduleFiles) {
                             @Nullable final String filename = moduleFile.getLeaf();
                             @Nullable final String ext = moduleFile.getLeafExtension();
