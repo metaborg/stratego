@@ -53,4 +53,4 @@ RUN git config --global user.email "t.j.b.hartman@student.tudelft.nl"
 
 COPY Makefile .
 
-ENTRYPOINT make all
+ENTRYPOINT make -n all; make all
