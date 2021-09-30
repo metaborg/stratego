@@ -55,6 +55,6 @@ public class Compile {
     }
 
     private void loadProgram() throws IOException, MetaborgException {
-        program = new Stratego2Program(p.resolve(filename), compilerArgs, false, true, "2.6.0-SNAPSHOT", true);
+        program = new Stratego2Program(p.resolve(filename), compilerArgs, false, true, "2.6.0-SNAPSHOT", false);
     }
 }
