@@ -7,11 +7,13 @@ signature
     Cons  : a * List(a) -> List(a)
 
 strategies
-  length(s) = match sequential
-             // DFA Does only include the next case, ignoring all others. It
-             // should at least also include the `id`-guarded case.
-             case | Nil() where all(s): !2
-             case | Nil() where id: !3
-             case | Nil() where fail: !4
-             case | Nil() where some(s): !5
+  foo(s) = match sequential
+             case | Nil(): !()
+             case x, xs | [x | xs]: !x
+             case | _ where not(is-list): fail
            end
+
+  bar = match specificity
+          case | _: fail
+          case | (_, _): Fst
+        end

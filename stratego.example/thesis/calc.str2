@@ -16,8 +16,8 @@ signature
     Exp : Nat * Nat -> Nat
 
 strategies
-  calc: Plus(O(), S(n)) -> S(n)
-  calc: Plus(S(n), O()) -> S(n)
+  calc: Plus(O(), n) -> n
+  calc: Plus(n, O()) -> n
   calc: Plus(S(m), n) -> S(Plus(m, n))
 
   calc: Minus(O(), O()) -> O()
@@ -32,6 +32,8 @@ strategies
   calc: Exp(_, O()) -> S(O())
   calc: Exp(O(), _) -> O()
   calc: Exp(m, S(n)) -> Mul(m, Exp(m, n))
+
+  calculate = innermost(calc)
 
 // extension: Python-esque multiplication of strings
 signature
