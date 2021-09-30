@@ -49,7 +49,7 @@ public class Stratego2Program {
         return compiler.compileStratego();
     }
 
-    public boolean compileJava() throws IOException, SkipException {
+    public File compileJava() throws IOException, SkipException {
         return compiler.compileJava();
     }
 

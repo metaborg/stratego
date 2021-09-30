@@ -1,5 +1,8 @@
 module multimatch/utils
 
+imports
+  libstratego-lib
+
 strategies
 
   /*
@@ -52,3 +55,11 @@ strategies
   make-set-lr = reverse; make-set; reverse
 
   or(s1, s2, s3) = or(or(s1, s2), s3)
+
+strategies
+  cons-arity: AnnoC() -> 2
+  cons-arity = ?FunC(_, <string-to-int>)
+  cons-arity = ?TupleC(<string-to-int>)
+  cons-arity = is-literal-cons; !0
+
+  

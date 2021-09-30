@@ -8,6 +8,7 @@ menus
     action: "Show Java files (-O2)" = debug-show-java-O2
     action: "Show Java files (-O3)" = debug-show-java-O3
     action: "Show Java files (-O4)" = debug-show-java-O4
+    action: "Show Java files (-O4, experimental SwitchV)" = debug-show-java-O4-nested-switches
     action: "Show Java files (-O4, unoptimised DFA)" = debug-show-java-O4-unopt-DFA
     action: "Show Java files (-O5)" = debug-show-java-O5
 //    action: "Show Java files (-O6)" = debug-show-java-O6

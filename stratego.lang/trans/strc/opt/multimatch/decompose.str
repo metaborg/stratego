@@ -244,11 +244,6 @@ strategies
 //    ?ExplodeNoAnno(f, <implode-anno-list; length>)
 //  ; where(not(!f => Op(_, _)))
 
-  internal cons-arity: AnnoC() -> 2
-  internal cons-arity = ?FunC(_, <string-to-int>)
-  internal cons-arity = ?TupleC(<string-to-int>)
-  internal cons-arity = is-literal-cons; !0
-
 //  internal implode-anno-list: NoAnno(Op("Cons", [e, tail])) -> [e | <implode-anno-list> tail]
 //  internal implode-anno-list: NoAnno(Op("Nil", [])) -> []
 

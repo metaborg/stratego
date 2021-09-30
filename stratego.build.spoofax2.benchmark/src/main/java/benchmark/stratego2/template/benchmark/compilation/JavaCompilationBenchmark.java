@@ -37,6 +37,7 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Setup;
 
+import java.io.File;
 import java.io.IOException;
 
 public abstract class JavaCompilationBenchmark extends CompilationBenchmark {
@@ -47,7 +48,7 @@ public abstract class JavaCompilationBenchmark extends CompilationBenchmark {
     }
 
     @Benchmark
-    public final Boolean compileJava() throws IOException, SkipException {
+    public final File compileJava() throws IOException, SkipException {
         return getProgram().compileJava();
     }
 }

@@ -108,30 +108,48 @@ public class Compiler {
     }
 
     public CompileOutput compileStratego() throws MetaborgException {
-        System.out.println("Dropping PIE store... ");
+        debugPrintln("Dropping PIE store... ");
         pie.dropStore();
 
         str2(args);
         if (!(compiledProgram instanceof CompileOutput.Success))
             throw new RuntimeException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
 
+        System.out.println("Size of generated Java files (bytes): " + javaFiles().stream().map(File::toPath).mapToLong(path -> {
+            try {
+                return Files.size(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Long.MIN_VALUE;
+            }
+        }).sum());
+
         return compiledProgram;
     }
 
-    public boolean compileJava() throws IOException, SkipException {
+    public File compileJava() throws IOException, SkipException {
         if (!(compiledProgram instanceof CompileOutput.Success)) {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
 
-        System.out.printf("Compiling %d Java files...%n", javaFiles().size());
+        debugPrintf("Compiling %d Java files...%n", javaFiles().size());
         timer = System.currentTimeMillis();
         javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
-        System.out.printf("Done! (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintf("Done! (%d ms)%n", System.currentTimeMillis() - timer);
 
         if (!javaCompilationResult)
             throw new RuntimeException("Compilation with javac expected to succeed");
 
-        return javaCompilationResult;
+        System.out.println("Size of generated class files (bytes): " + Files.walk(classDir.toPath()).mapToLong(path -> {
+            try {
+                return Files.size(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Long.MIN_VALUE;
+            }
+        }).sum());
+
+        return classDir;
     }
 
     public BufferedReader run() throws IOException, InterruptedException {
@@ -148,7 +166,7 @@ public class Compiler {
         final FSPath serializingStorePath =
                 new FSPath(pieDir.resolve("pie-store"));
 
-        System.out.print("Discovering Spoofax languages... ");
+        debugPrint("Discovering Spoofax languages... ");
         timer = System.currentTimeMillis();
         // load Stratego language for later discovery during compilation (parsing in particular)
 //        spoofax.languageDiscoveryService
@@ -156,7 +174,7 @@ public class Compiler {
         spoofax.languageDiscoveryService
                 .languageFromArchive(spoofax.resolve(getStratego2Path(metaborgVersion).toFile()));
 
-        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
@@ -165,10 +183,10 @@ public class Compiler {
                         resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
                         InMemoryStore.class));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
-        System.out.print("Building PIE...");
+        debugPrint("Building PIE...");
         timer = System.currentTimeMillis();
         pie = pieBuilder.build();
-        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         if (!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
             linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
@@ -176,34 +194,29 @@ public class Compiler {
     }
 
     private void str2(Arguments args) throws MetaborgException {
-        System.out.print("Instantiating compile input...");
+        debugPrint("Instantiating compile input...");
         timer = System.currentTimeMillis();
         CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
                         new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
-        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
-        System.out.print("Creating compile task...");
+        debugPrint("Creating compile task...");
         timer = System.currentTimeMillis();
         Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
-        System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
-        System.out.print("Generating new session...");
+        debugPrint("Generating new session...");
         timer = System.currentTimeMillis();
         try (MixedSession session = pie.newSession()) {
-            System.out.printf(" (%d ms)%n", System.currentTimeMillis() - timer);
-            System.out.println("Requiring task...");
+            debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
+            debugPrintln("Requiring task...");
             timer = System.currentTimeMillis();
             compiledProgram = Objects.requireNonNull(session.require(compileTask));
-            System.out.printf("Task finished in %d ms%n", System.currentTimeMillis() - timer);
-
-            int numOfJavaFiles = javaFiles().size();
-            if (numOfJavaFiles == 0) throw new RuntimeException("No Java files resulted from compilation!");
-
-            System.out.println("Number of generated Java files: " + numOfJavaFiles);
+            debugPrintf("Task finished in %d ms%n", System.currentTimeMillis() - timer);
 
             } catch (ExecException e) {
                 throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
@@ -216,7 +229,7 @@ public class Compiler {
 
     public void cleanup() {
         try {
-            System.out.println("Deleting intermediate results...");
+            debugPrintln("Deleting intermediate results...");
             PathUtils.cleanDirectory(baseDir);
         } catch (NoSuchFileException e) {
             System.err.println("File already deleted: " + e.getFile());
@@ -225,7 +238,11 @@ public class Compiler {
         }
     }
 
-    private Collection<? extends File> javaFiles() {
+    private Collection<File> javaFiles() {
+        return javaFiles(compiledProgram);
+    }
+
+    public static Collection<File> javaFiles(CompileOutput compiledProgram) {
         if (!(compiledProgram instanceof CompileOutput.Success))
             throw new RuntimeException("Cannot get Java files from unsuccessful compilation!");
 
@@ -260,5 +277,17 @@ public class Compiler {
     @NotNull
     private static Path getStrategoPath(String metaborgVersion) {
         return localRepository.resolve(Paths.get("org", "metaborg", "org.metaborg.meta.lang.stratego", metaborgVersion, String.format("org.metaborg.meta.lang.stratego-%s.spoofax-language", metaborgVersion)));
+    }
+
+    private void debugPrintln(Object x) {
+        if (output) System.out.println(x);
+    }
+
+    private void debugPrint(Object x) {
+        if (output) System.out.print(x);
+    }
+
+    private void debugPrintf(String format, Object... args) {
+        if (output) System.out.printf(format, args);
     }
 }

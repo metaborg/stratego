@@ -34,7 +34,6 @@ package benchmark.stratego2.template.benchmark.compilation;
 import benchmark.stratego2.template.benchmark.base.OptimisationBenchmark;
 import org.openjdk.jmh.annotations.*;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 5)

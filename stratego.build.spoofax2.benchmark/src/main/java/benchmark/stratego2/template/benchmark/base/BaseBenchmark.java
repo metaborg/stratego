@@ -39,6 +39,31 @@ public abstract class BaseBenchmark implements Problem {
 //    @Param({"on", "off"})
 //    public String fusion;
 
+    public BaseBenchmark() {}
+
+    public BaseBenchmark(String metaborgVersion, int optimisationLevel, int problemSize, String sharedConstructors) {
+        this.metaborgVersion = metaborgVersion;
+        this.optimisationLevel = optimisationLevel;
+        this.sharedConstructors = sharedConstructors;
+        this.problemSize = problemSize;
+    }
+
+    public final void setMetaborgVersion(String metaborgVersion) {
+        this.metaborgVersion = metaborgVersion;
+    }
+
+    public final void setOptimisationLevel(int optimisationLevel) {
+        this.optimisationLevel = optimisationLevel;
+    }
+
+    public final void setSharedConstructors(String sharedConstructors) {
+        this.sharedConstructors = sharedConstructors;
+    }
+
+    public final void setProblemSize(int problemSize) {
+        this.problemSize = problemSize;
+    }
+
     @Setup(Level.Trial)
     public final void setup() throws SkipException {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
