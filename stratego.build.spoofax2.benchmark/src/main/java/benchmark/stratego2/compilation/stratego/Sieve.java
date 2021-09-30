@@ -6,7 +6,7 @@ import org.openjdk.jmh.annotations.Param;
 
 public class Sieve extends StrategoCompilationBenchmark implements SieveProblem {
 
-    @Param({"20", "100", "1000", "2000", "100000"})
+    @Param({"20", "100", "1000", "2000", "10000"})
     int problemSize;
 
 }
