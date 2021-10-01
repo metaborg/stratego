@@ -122,10 +122,12 @@ rules
   debug-show-java-O5 = debug-show-java(|5)
   debug-show-java-O6 = debug-show-java(|6)
 
-  debug-show-java(|O) = debug-show-java(id|O)
+  debug-show-java-ast-O4 = debug-show-java-ast(|4)
+  debug-show-java-ast-O4-nested-switches = debug-show-java-ast(<set-config> ("--pmc:switchv", "switch")|4)
 
-  debug-show-java(s|O):
-    (node, _, _, path, project-path) -> (filename*, result*)
+  debug-show-java-ast(|O) = debug-show-java-ast(id|O)
+  debug-show-java-ast(s|O):
+    (node, _, _, path, project-path) -> (filename*, ast*)
     with
       <translate-core(s|path, O)> node
     ; \Module(_, d*) -> Specification(d*)\
@@ -133,7 +135,11 @@ rules
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
-    ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail)> ast*
+
+  debug-show-java(|O) = debug-show-java(id|O)
+  debug-show-java(s|O) =
+    debug-show-java-ast(s|O)
+  ; (id, map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail))
 
 strategies
 

@@ -12,3 +12,7 @@ menus
     action: "Show Java files (-O4, unoptimised DFA)" = debug-show-java-O4-unopt-DFA
     action: "Show Java files (-O5)" = debug-show-java-O5
 //    action: "Show Java files (-O6)" = debug-show-java-O6
+
+  menu: "Codegen (AST)" (openeditor) (source)
+    action: "Show Java AST (-O4)" = debug-show-java-ast-O4
+    action: "Show Java AST (-O4, experimental SwitchV)" = debug-show-java-ast-O4-nested-switches

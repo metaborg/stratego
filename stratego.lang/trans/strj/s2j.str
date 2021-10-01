@@ -30,6 +30,7 @@ imports
   signatures/core/strategies-sig
 
   strc/opt/multimatch/multimatch2dfa
+  strc/opt/multimatch/utils
 
 signature
   constructors
@@ -1942,13 +1943,9 @@ strategies
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
 
 /* ================================ MultiMatch */
-  translate-MultiMatch:
-    mm@MultiMatch(_, _) -> bstm* |[
-      bstm_java*
-    ]|
-  with
-    <multimatch2dfa> mm => dfa
-  ; <translate-strategy> dfa => bstm_java*
+  translate-MultiMatch =
+    ?MultiMatch(Sequential(), _) < multimatch2dfa; translate-strategy
+  + fail
 
 /*======== Generate Java code from DFA =================*/
   translate-DFA = translate-SwitchT
@@ -1966,7 +1963,8 @@ strategies
     ]|
   with
     e_occ := <translate-PathTp> p
-  ; cases := <map(translate-AltT)> alt*
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
 
   translate-SwitchT:
     SwitchTNoDefault(p, alt*) ->
@@ -1981,7 +1979,8 @@ strategies
     ]|
   with
     e_occ := <translate-PathTp> p
-  ; cases := <map(translate-AltT)> alt*
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
 
   translate-Default:
     Default(s) ->
@@ -1991,16 +1990,23 @@ strategies
     GuardedDefault(guards) ->
     <translate-Guards> guards
 
-  translate-AltT:
-    AltT(t, switchv) ->
+  translate-AltT(|e_trm):
+    AltT(tp, switchv) ->
     switch-group |[
       case e: {
-        ~stm:<translate-SwitchV> switchv
+        bstm_asgn
+        bstm_switch*
         break;
       }
     ]|
   with
-    <pat-type-to-enum> t => e
+    <pat-type-to-enum> tp => e
+  ; <?SwitchV(<id>, _, _) + ?SwitchVNoDefault(<id>, _)> switchv => t_path
+  ; <translate-PathVF> t_path => e_path
+  ; <cast-path(|tp)> e_trm => e_cast
+  ; <typed-assign(|tp)> e_cast => (bstm_asgn, x_asgn)
+  ; <alltd((e_cast -> e |[ x_asgn ]|))> e_path => e_path'
+  ; <translate-SwitchV(|tp, e_path')> switchv => bstm_switch*
 
   pat-type-to-enum: ApplT()   -> e |[ APPL ]|
   pat-type-to-enum: LisT()    -> e |[ LIST ]|
@@ -2013,26 +2019,37 @@ strategies
   pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
   pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
 
-  translate-SwitchV:
-    SwitchV(p, alt*, default) ->
-    <translate-SwitchV-helper> (p, alt*, bstm_def*)
+  translate-SwitchV(|tp, e_path):
+    SwitchV(_, alt*, default) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
   with
-    bstm_def* := <translate-Default> default
+    stm_def := <translate-Default> default
 
-  translate-SwitchV:
-    SwitchVNoDefault(p, alt*) ->
-    <translate-SwitchV-helper> (p, alt*, stm_def)
+  translate-SwitchV(|tp, e_path):
+    SwitchVNoDefault(_, alt*) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
   with
     stm_def := <translate-Fail> Fail()
 
-  translate-SwitchV-helper:
-    (p, alt*, bstm_def*) ->
-    stm_alt
+  translate-SwitchV-helper(|tp):
+    (e_path, alt*, stm_def) ->
+    bstm_switch*
   with
-    e_path := <translate-PathVF> p
-  ; stm_alt := <foldr(!bstm_def*, translate-AltV(|e_path))> alt*
+    if tp := ApplT() then // TODO This criterion could be less strict.
+      switch <get-config> "--pmc:switchv" <+ !"elseif"
+        case ?"elseif": AltVs-as-ifs(|tp)
+        case ?"switch": AltVs-as-nested-switches
+        otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv'", <id>]
+      end
+    else
+      AltVs-as-ifs(|tp)
+    end => bstm_switch*
 
-  translate-AltV(|e_occ):
+  AltVs-as-ifs(|tp):
+    (e_path, alt*, stm_def) ->
+    <foldr(!stm_def, translate-AltV-if(|tp, e_path))> alt*
+
+  translate-AltV-if(|tp, e_occ):
     (AltV(t, s), stm_else) ->
     bstm* |[
       if (e_match) {
@@ -2042,9 +2059,9 @@ strategies
       }
     ]|
   with
-    e_match := <java-Pat-to-Condition> (t, e_occ)
+    e_match := <java-Pat-to-Condition> (t, tp, e_occ)
 
-  translate-AltV(|e_occ):
+  translate-AltV-if(|tp, e_occ):
     (GuardedAltV(t, guards), stm_else) ->
     bstm* |[
       if (e_match) {
@@ -2054,8 +2071,89 @@ strategies
       }
     ]|
   with
-    e_match := <java-Pat-to-Condition> (t, e_occ)
+    e_match := <java-Pat-to-Condition> (t, tp, e_occ)
   ; bstm_guards := <translate-Guards> guards
+
+  AltVs-as-nested-switches =
+    switch <get-config> "--pmc:switchv-order" <+ !"arity-name"
+      case ?"arity-name": ArityNameSwitch
+      case ?"name-arity": NameAritySwitch
+      otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv-order'", <id>]
+    end
+
+  ArityNameSwitch:
+    (e_path, alt*, stm_def) ->
+    bstm* |[
+      IStrategoConstructor x_cons = e_path;
+
+      switch (x_cons.getArity()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    x_cons := <newname> "cons"
+  ; pairs := <map(split(id, Alt2Arity; try(int-to-string)))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(ArityGroup(|e|[x_cons]|, stm_def))> grouped_by
+
+  Alt2Arity = ?AltV(<cons-arity>, _)
+  Alt2Arity = ?GuardedAltV(<cons-arity>, _)
+
+  ArityGroup(|e_path, stm_def):
+    (a, name_alt*) ->
+    switch-group |[
+      case e_arity: {
+        bstm_alt
+        break;
+      }
+    ]|
+  with
+    e_arity := <java-mk-int-const> a
+  ; bstm_alt := <NameSwitch(|e_path, stm_def)> name_alt*
+
+  NameSwitch(|e_path, stm_def):
+    alt* ->
+    bstm |[
+      switch (e_path.getName()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    pairs := <map(split(id, Alt2Name))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(NameGroup(|e_path, stm_def))> grouped_by
+
+  Alt2Name = ?AltV(<cons-name>, _)
+  Alt2Name = ?GuardedAltV(<cons-name>, _)
+
+  cons-name = ?FunC(<id>, _)
+
+  NameGroup(|_, _):
+    (name, [alt]) ->
+    switch-group |[
+      case e_name: {
+        stm_alt
+        break;
+      }
+    ]|
+  with
+    e_name := <java-mk-string-const> name
+  ; stm_alt := <translate-AltV-case> alt
+
+  translate-AltV-case = ?AltV(_, <translate-strategy>)
+  translate-AltV-case = ?GuardedAltV(_, <translate-Guards>)
+
+  NameAritySwitch = debug(|"NameAritySwitch "); fail
 
   /** @type List(Guard) -> Block */
   translate-Guards =
@@ -2087,15 +2185,53 @@ strategies
    ; stm_s1     := <translate-strategy> s1
    ; stm_s2     := <translate-strategy> s2
 
-  java-Pat-to-Condition:
+
+  typed-assign(|LisT()):
+    e_trm ->
+    (bstm |[ IStrategoList x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "list"
+
+  typed-assign(|ApplT()):
+    e_trm ->
+    (bstm |[ IStrategoAppl x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "appl"
+
+  typed-assign(|TupleT()):
+    e_trm ->
+    (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "tuple"
+
+  typed-assign(|StringT()):
+    e_trm ->
+    (bstm |[ IStrategoString x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "str"
+
+  typed-assign(|IntT()):
+    e_trm ->
+    (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "int"
+
+  typed-assign(|RealT()):
+    e_trm ->
+    (bstm |[ IStrategoReal x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <newname> "real"
+
+
+  pat-condition:
     (FunC("Nil", "0"), e_occ) ->
-    e |[ ((IStrategoList) e_occ).isEmpty() ]| // special list treatment
+    e |[ ((IStrategoList) e_occ).isEmpty() ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (FunC("Cons", "2"), e_occ) ->
-    e |[ !((IStrategoList) e_occ).isEmpty() ]| // special list treatment
+    e |[ !((IStrategoList) e_occ).isEmpty() ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (op@FunC(c, x), e_occ) ->
     e_cond
   where
@@ -2103,31 +2239,75 @@ strategies
   with
     e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
   ; if not(<get-config> "-sc" => "off") then
-      e_cond := e |[ e_occ == e_cons ]|
+      !e |[ e_occ == e_cons ]|
     else
-      e_cond := e |[ e_occ.equals(e_cons) ]|
-    end
+      !e |[ e_occ.equals(e_cons) ]|
+    end => e_cond
 
-  java-Pat-to-Condition:
+  pat-condition:
     (StrC(s), e_occ) ->
     e |[ e_occ.equals(~<java-mk-string-const> s) ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (IntC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (RealC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-float-const> x ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (AnnoC(), e_occ) ->
     e |[ true ]|
 
-  java-Pat-to-Condition:
+  pat-condition:
     (TupleC(x), e_occ) ->
     e |[ e_occ == ~<java-mk-int-const> x ]|
 
+
+  cast-path(|LisT()):
+    e_occ ->
+    e |[ (IStrategoList) e_occ ]|
+
+  cast-path(|ApplT()):
+    e_occ ->
+    e |[ (IStrategoAppl) e_occ ]|
+
+  cast-path(|IntT()):
+    e_occ ->
+    e |[ (IStrategoInt) e_occ ]|
+
+  cast-path(|RealT()):
+    e_occ ->
+    e |[ (IStrategoReal) e_occ ]|
+
+  cast-path(|StringT()):
+    e_occ ->
+    e |[ (IStrategoString) e_occ ]|
+
+  cast-path(|CtorT()):
+    e_occ ->
+    e |[ (IStrategoConstructor) e_occ ]|
+
+  cast-path(|TupleT()):
+    e_occ ->
+    e |[ (IStrategoTuple) e_occ ]|
+
+  cast-path(|RefT()):
+    e_occ ->
+    e |[ (IStrategoRef) e_occ ]|
+
+  cast-path(|PlaceT()):
+    e_occ ->
+    e |[ (IStrategoPlaceholder) e_occ ]|
+
+
+  java-Pat-to-Condition:
+    (t_pat, typ, e_path) ->
+    <pat-condition> (t_pat, e_path)
+
+
+  // TODO Only cast when necessary...
   translate-Path =
     translate-PathTrm
   + translate-PathTp
