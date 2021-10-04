@@ -2162,6 +2162,25 @@ strategies
   translate-Guards(|failure) =
     foldr(<translate-strategy> failure, translate-Guard)
 
+  translate-Guard:
+    (Guard(s1, Id()), stm_s2) ->
+    bstm* |[
+      // (this pattern is matched optimized in java-postprocess)
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           if (TRUE) // (avoid unreachable stm error)
+             break Success;
+        }
+        term = x_termcopy;
+        stm_s2
+      }
+    ]|
+   with
+     x_termcopy := <newname> "term"
+   ; stm_s1     := <translate-strategy> s1
+
   /** @type Guard -> Block */  
   translate-Guard:
     (Guard(s1, s2), stm_s3) ->
@@ -2180,10 +2199,12 @@ strategies
         stm_s3
       }
     ]|
-   with
-     x_termcopy := <newname> "term"
-   ; stm_s1     := <translate-strategy> s1
-   ; stm_s2     := <translate-strategy> s2
+  where
+    <not(?Id())> s2
+  with
+    x_termcopy := <newname> "term"
+  ; stm_s1     := <translate-strategy> s1
+  ; stm_s2     := <translate-strategy> s2
 
 
   typed-assign(|LisT()):
