@@ -38,11 +38,7 @@ length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
       switch current {
         alt (Nil, 0):
           !0{^Nil( )}
-        default:
-          fail
       }
-    default:
-      fail
   }
 ]]
 
@@ -84,11 +80,7 @@ length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
             !2{^Nil( )}
           where id:
             !3{^Nil( )}
-        default:
-          fail
       }
-    default:
-      fail
   }
 ]]
 

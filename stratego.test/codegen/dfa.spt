@@ -35,9 +35,7 @@ length_0_0( | ) =
               }
             default: id
           }
-        default: fail
       }
-    default: fail
   }
 ]]
 
@@ -73,9 +71,7 @@ comp_0_0( | ) =
                              switch current.1 {
                                alt (Nil, 0):
                                  !2{^Nil( )}
-                               default: fail
                              }
-                           default: fail
                          }
               }
             default: switch current.1.type {
@@ -83,15 +79,10 @@ comp_0_0( | ) =
                          switch current.1 {
                            alt (Nil, 0):
                              !2{^Nil( )}
-                           default: fail
                          }
-                       default: fail
                      }
           }
-
-        default: fail
       }
-    default: fail
   }
 ]]
 
@@ -135,27 +126,22 @@ uncar2_0_0( | ) =
           Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
         alt (Car2, 1):
           Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
-        default: fail
       }
     alt STRING:
       switch current.str {
         alt "abc":
           !"cba"{^Nil( )}
-        default: fail
       }
     alt INT:
       switch current.int {
         alt 8:
           !54{^Nil( )}
-        default: fail
       }
     alt REAL:
       switch current.real {
         alt 5.4:
           !8{^Nil( )}
-        default: fail
       }
-    default: fail
   }
 ]]
 
@@ -281,17 +267,11 @@ s_0_0( | ) =
       switch current.con {
         alt (Foo, 0):
           id
-        default:
-          fail
       }
     alt STRING:
       switch current.str {
         alt "Foo":
           id
-        default:
-          fail
       }
-    default:
-      fail
   }
 ]]
