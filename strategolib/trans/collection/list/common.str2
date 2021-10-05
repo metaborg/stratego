@@ -50,6 +50,7 @@ strategies
   Tl   : [_ | l] -> l
 
   /** @internal */
+  Last :: List(a) -> a
   Last : [x]     -> x
 
   /**
@@ -79,8 +80,8 @@ strategies
   /**
    * Succeeds if the input term is a list.
    */
-  is-list :: List(a) -> List(a)
-  is-list = [] <+ ?[_ | _]
+  is-list :: ? -> List(?)
+  is-list = ?[] <+ ?[_ | _]
 
   /**
    * Apply a strategy to each element of a list.
@@ -494,8 +495,7 @@ strategies
    * Generic term construction is used to avoid infinite recursion: makeConc
    * is used in the compilation of Conc itself.
    */
-//  makeConc :: List(a) * List(b) -> List(?)
-//  makeConc :: a * b -> Conc(a,b)
+  makeConc :: a * b -> List(?)
   makeConc =
     ?(xs, ys)
     ; if <is-list> xs; <is-list> ys then conc else !"Conc"#([xs, ys]) end
@@ -549,7 +549,7 @@ strategies
   matrix-transpose =
       map(?[]); ![]
     +   map(split-Cons)
-      ; unzip
+      ; unzip ; is(List(a) * List(List(a)))
       ; (id, matrix-transpose)
       ; MkCons
 
@@ -684,9 +684,9 @@ strategies
   foldl(a * b -> b) :: List(a) * b -> b
   foldl(s) =
     rec x( \ ([], y) -> y \ + FoldL(s); x)
-//  FoldL(a * b -> c) :: List(a) * b -> List(a) * c
 
   /** @internal */
+  mapfoldr1(List(a) -> b, a -> b, b * List(b) -> b) :: List(a) -> b
   mapfoldr1(s1, s2, s3) =
     rec x([id]; s1 <+ [s2|x]; \ [a|b]->(a,b)\; s3)
 
@@ -699,6 +699,7 @@ strategies
    * @param a -> List(b)
    * @type  List(a) -> List(b)
    */
+  mapconcat(a -> List(b)) :: List(a) -> List(b)
   mapconcat(s) =
     foldr([], conc, s)
 
@@ -709,6 +710,7 @@ strategies
    *
    * @type List(a) -> a
    */
+  last :: List(a) -> a
   last =
     rec x(Last <+ Tl; x)
 
@@ -720,6 +722,7 @@ strategies
    *
    * @type List(a) -> List(a)
    */
+  first-last :: List(a) -> List(a)
   first-last =
     [id | try(last; MkSingleton)] <+ []
 
@@ -733,6 +736,7 @@ strategies
   *
   * @type List(a) -> List(a)
   */
+  init :: List(a) -> List(a)
   init =
     at-last(Tl)
 
@@ -740,6 +744,7 @@ strategies
    * @inc split-init-last
    * @note Alias for split-init-last.
    */
+  split-last :: List(a) -> List(a) * a
   split-last =
     split-init-last
 
@@ -754,6 +759,7 @@ strategies
    *
    * @type Int * a -> List(a)
    */
+  copy :: int * a -> List(a)
   copy =
     for(\ (n,t) -> (n,t,[]) \
        ,\ (0,t,ts) -> ts \
@@ -764,17 +770,19 @@ strategies
    * the strategy s to every copy. The first input term is the
    * integer n, the second is the term to duplicate.
    *
-   * Example: <copy(\ "foo" -> "bar" \)> (3, "foo") => ["bar","bar,"bar"]
+   * Example: <copy(\ "foo" -> "bar" \)> (3, "foo") => ["bar","bar","bar"]
    *
    * @param s       a -> b
    * @type    Int * a -> List(n)
    */
+  copy(a -> b) :: int * a -> List(b)
   copy(s) =
     for(\ (n,t) -> (n,t,[]) \
        ,\ (0,t,ts) -> ts \
        ,\ (n,t,ts) -> (<subt>(n,1), t, [<s> t|ts]) where <geq>(n,1) \ )
 
   /** @internal */
+  thread-map(a * b -> c * b) :: List(a) * b -> List(c) * b
   thread-map(s) :
     ([], t) -> ([], t)
 
@@ -811,6 +819,7 @@ strategies
    * @param s a * Int -> a' * Int
    * @type List(a) -> List((a,n),...)
    */
+  number(a * int -> b) :: List(a) -> List(b)
   number(s) =
     !(<id>, 0); thread-map(!(<s>,<Snd;inc>)); ?(<id>,_)
 
@@ -827,6 +836,7 @@ strategies
    * @param s       a -> _
    * @type    List(a) -> List(a)
    */
+  take-while(a -> b) :: List(a) -> List(a)
   take-while(s) =
     at-suffix([] + ([not(s)|id];![]))
 
@@ -843,6 +853,7 @@ strategies
    * @param s       a -> _
    * @type    List(a) -> List(a)
    */
+  take-until(a -> a) :: List(a) -> List(a)
   take-until(s) =
     at-suffix([] + ([s|id];![]))
 
@@ -855,8 +866,9 @@ strategies
    * @param isn _ -> Int
    * @type List(a) -> List(a)
    */
+  take(Tuple() -> int) :: List(a) -> List(a)
   take(isn) =
-    take(|<isn>)
+    take(|<isn> ())
 
   /**
    * Returns the first n elements of a list, fails
@@ -865,6 +877,7 @@ strategies
    * @param n The number of elements to take.
    * @type List(a) -> List(a)
    */
+  take(|int) :: List(a) -> List(a)
   take(|n) =
     if <eq>(n,0) then
       ![]
@@ -883,6 +896,7 @@ strategies
    * @param s a -> b
    * @type List(a) -> List(b)
    */
+  takemap(a -> b|int) :: List(a) -> List(b)
   takemap(s|n) =
     if <eq>(n,0) then
       ![]
@@ -900,6 +914,7 @@ strategies
    * @param s       a -> _
    * @type    List(a) -> List(a)
    */
+  drop-while(a -> b) :: List(a) -> List(a)
   drop-while(s) =
     at-suffix(([] + [not(s)|id]);?xs); !xs
 
@@ -913,6 +928,7 @@ strategies
    * @param s       a -> _
    * @type    List(a) -> List(a)
    */
+  drop-until(a -> b) :: List(a) -> List(b)
   drop-until(s) =
     at-suffix(([] + [s|id]);?xs); !xs
 
@@ -923,6 +939,7 @@ strategies
    * @param n - the number of elements to drop
    * @type  List(a) -> List(a)
    */
+  drop(|int) :: List(a) -> List(a)
   drop(|n) =
     if <eq>(n,0) then
       id
@@ -942,6 +959,7 @@ strategies
    * @param n - the number of elements to apply s to, from the start
    * @type List(a) -> (List(b), List(a))
    */
+  splitmap(a -> b|int) :: List(a) -> List(b) * List(a)
   splitmap(s|n) =
     if <eq>(n,0) then
       !([], <id>)
@@ -955,6 +973,7 @@ strategies
    * @inc split-fetch
    * @note Alias for split-fetch/1
    */
+  split-at(a -> b) :: List(a) -> List(a) * List(a)
   split-at(s) =
     split-fetch(s)
 
@@ -966,13 +985,14 @@ strategies
    * @type List(a) -> (List(a), List(a))
    * @param n - the number of elements to split at (counting from the back)
    */
+  back-split-at(|int) :: List(a) -> List(a) * List(a)
   back-split-at(|n) =
     foldr(!(([], []), 0)
           , {x, l, r, m :
              ?(x, ((l, r), m))
              ; if <lt>(m, n)
                then
-                 !((l, [x | r]), <inc>m)
+                 !((l, [x | r]), <int-inc>m)
                else
                  !(([x | l], r), m)
                end})
@@ -987,11 +1007,12 @@ strategies
    * @type  List(a) -> List(a)
    * @param _ -> Int
    */
+  drop(Tuple() -> int) :: List(a) -> List(a)
   drop(isn) =
-    where(isn => n)
+    where(<isn> () => n)
     ; nzip0(id)
     ; drop-until(?(n,_))
-    ; map(Snd)
+    ; map(?(_, <id>))
 
   /**
    * Splits the list in two sublists, containing elements from 0 to
@@ -1001,6 +1022,7 @@ strategies
    *
    * @type List(a) -> (List(a), List(a))
    */
+  split-at(|int) :: List(a) -> List(a) * List(a)
   split-at(|n) =
     at-index-tail(?tail; ![] | n)
     ; !(<id>, tail)
@@ -1018,13 +1040,13 @@ strategies
    * @since 0.9.5
    * @inc   trim-test
    */
+  rtrim(a -> b) :: List(a) -> List(a)
   rtrim(s) =
-    ![()|<id>] // Add dummy element, or at-suffix-rev will fail at empty lists
-  ; at-suffix-rev(
+    ?[]
+  + at-suffix-rev(
       where( not(?[])     // This only succeeds if we're not at list-end
            ; not([s|id])) // and s fails at the head of the current suffix
     ; ![<Hd>]) // s failed, no further trimming.
-  ; Tl // Strip off dummy head element.
 
   /**
    * Trim elements from the start of a list.
@@ -1038,6 +1060,7 @@ strategies
    * @inc   trim-test
    * @note Alias for drop-while
    */
+  ltrim(a -> b) :: List(a) -> List(a)
   ltrim(s) = drop-while(s)
 
   /**
@@ -1051,6 +1074,7 @@ strategies
    * @since 0.9.5
    * @inc trim-test
    */
+  trim(a -> b) :: List(a) -> List(a)
   trim(s) = ltrim(s); rtrim(s)
 
 strategies
@@ -1063,6 +1087,7 @@ strategies
    * @type List(rec x(a or List(x))) -> List(a)
    * @inc flatten-test
    */
+  flatten-list :: List(?) -> List(?)
   flatten-list =
     foldr(![], (is-list, id) < conc + MkCons, is-list < flatten-list + id)
 
@@ -1075,6 +1100,7 @@ strategies
    *
    * @type (List(a), List(a)) -> (List(a), List(a))
    */
+  eliminate-common-suffix :: List(a) * List(a) -> List(a) * List(a)
   eliminate-common-suffix =
     ?([x | xs], [y | ys])
     ; <eliminate-common-suffix>(xs, ys)
@@ -1093,6 +1119,7 @@ strategies
    *
    * @type (List(a), List(a)) -> List(a)
    */
+  common-prefix :: List(a) * List(a) -> List(a)
   common-prefix =
     ?([x | xs], [x | ys])
     ; ![x | <common-prefix>(xs, ys)]
@@ -1123,8 +1150,10 @@ strategies
    *
    * @type List(List(a)) -> List(List(a))
    */
+  list-combinations :: List(List(a)) -> List(List(a))
   list-combinations =
-    let step = fail
+    let step :: List(List(a)) -> List(List(a))
+        step = fail
           <+ \ [] -> [[]] \
 
           <+ \ [[] | _] -> [] \
@@ -1134,6 +1163,7 @@ strategies
                ; map-intermediate(|xs)
              }
 
+        map-intermediate(|List(a)) :: List(List(a)) -> List(List(a))
         map-intermediate(|xs) = fail
           <+ \ [] -> [] \
 
@@ -1149,6 +1179,7 @@ strategies
          * introducing tuples, which means that we cannot
          * use a generic fold.
          */
+        map-xs(|List(a), List(List(a))) :: List(a) -> List(List(a))
         map-xs(|intermediate, tail) = fail
           <+ \ [] -> tail \
 

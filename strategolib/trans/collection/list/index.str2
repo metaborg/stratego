@@ -105,8 +105,10 @@ strategies
    *
    * @type List(a) -> List(a)
    */
+  at-index-tail(List(a) -> List(a)|int) :: List(a) -> List(a)
   at-index-tail(s|i) =
-    let next(|j) =
+    let next(|int) :: List(a) -> List(a)
+        next(|j) =
       if !j => i then
         s
       else

@@ -382,7 +382,7 @@ immap-subtract-set =
  * Returns a new set with the union.
  *
  * @param m: Term * Term -> Term
- * @param other: ImmutableMap - the map to remove from the current term immutable map
+ * @param other: ImmutableMap - the map to add to the current term immutable map
  * @type ImmutableMap -> ImmutableMap
  */
 immap-union(m|r) = where(ImmutableMap(other) := r);
