@@ -1,8 +1,6 @@
 module multimatch/guard
 
 imports
-  strc/front/desugar
-  strc/opt/stratego-laws // Simplify
   strc/opt/multimatch/matrix
 
   signatures/core/strategies-sig

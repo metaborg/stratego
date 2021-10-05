@@ -13,6 +13,8 @@ imports
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
+  libstratego-lib
+
 strategies
   /*======== Construct DFA from matrices =================*/ 
   matrix2dfa =
