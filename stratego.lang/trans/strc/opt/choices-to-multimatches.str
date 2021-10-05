@@ -55,7 +55,7 @@ strategies
     GuardedLChoice(MM(c1*), Id(), MM(c2*)) ->
     MM([c1*, c2*])
 
-  /* VERIFIED
+  /* TODO Check. Not correct?
     bar = match sequential
             case ...
             case x | p where s1: s2 
@@ -67,16 +67,16 @@ strategies
             case   | _ where s4: id
           end
   */
-  choice-to-multimatch:
-    GuardedLChoice(MM(c*), s3, s4) ->
-    MM(c'*)
-  where
-    <split-init-last> c* => (init*, last)
-  ; ScopedGuardedMatchCase(x*, p, s1, s2) := last
-  with
-    c1 := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
-  ; c2 := ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())
-  ; <at-last(![c1, c2])> init* => c'*
+//  choice-to-multimatch:
+//    GuardedLChoice(MM(c*), s3, s4) ->
+//    MM(c'*)
+//  where
+//    <split-init-last> c* => (init*, last)
+//  ; ScopedGuardedMatchCase(x*, p, s1, s2) := last
+//  with
+//    c1 := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
+//  ; c2 := ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())
+//  ; <at-last(![c1, c2])> init* => c'*
 
   /* VERIFIED
     foo0 = s1 < s2 + s3
@@ -86,6 +86,7 @@ strategies
               case | _ where s3: id
             end
   */
+  // TODO: This transformation is only useful if we can extract matches afterwards.
   choice-to-multimatch:
     GuardedLChoice(s1, s2, s3) ->
     MM([
@@ -93,47 +94,51 @@ strategies
     , ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())
     ])
 
-  /* VERIFIED
+  /* TODO Check. Not correct?
     qux = match sequential
             case ...
-            case   | _ where s1 < s2 + s3: id
+            case   | p where s1 < s2 + s3: s
           end
-  
+
     qux' = match sequential
             case ...
-            case   | _ where s1: s2
-            case   | _ where s3: id
+            case   | p where s1: s2; s
+            case   | p where s3: s
           end
   */
-  choice-to-multimatch:
-    MM(c*) ->
-    MM(c'*)
-  where
-    <split-init-last> c* => (init*, last)
-  ; !last => ScopedGuardedMatchCase([], p@<is-wld>, GuardedLChoice(s1, s2, s3), Id())
-  with
-    c1 := ScopedGuardedMatchCase([], p, s1, s2)
-  ; c2 := ScopedGuardedMatchCase([], p, s3, Id())
-  ; c'* := <at-last(![c1, c2])> init*
+//  choice-to-multimatch:
+//    MM(c*) ->
+//    MM(c'*)
+//  where
+//    <split-init-last> c* => (init*, last)
+//  ; !last => ScopedGuardedMatchCase([], p@<is-wld>, GuardedLChoice(s1, s2, s3), s)
+//  with
+//    c1 := ScopedGuardedMatchCase([], p, s1, <sequence-strategies> (s2, s))
+//  ; c2 := ScopedGuardedMatchCase([], p, s3, s)
+//  ; c'* := <at-last(![c1, c2])> init*
 
 strategies
 
   /* VERIFIED
     baz = match sequential
             case ...
-            case   | _ where {y*: ?q; s1}: s2
+            case without pattern, with match in guard
             case ...
           end
 
     baz' =  match sequential
               case ...
-              case y* | q where s1: s2
+              case with pattern, without match in guard
               case ...
             end
   */
   extract-matches = MM(list-some(extract-match))
 
-
+  /*
+    case   | _ where {y*: ?q; s1}: s2
+    ->
+    case y* | q where s1: s2
+  */
   extract-match:
     ScopedGuardedMatchCase(x*, p, Scope(y*, Seq(Match(q), s1)), s2) ->
     ScopedGuardedMatchCase(z*, q, s1, s2)
@@ -143,6 +148,11 @@ strategies
   with
     z* := <union> (x*, y*)
 
+  /*
+    case   | _ where {y*: ?q}: s2
+    ->
+    case y* | q where id: s2
+  */
   extract-match:
     ScopedGuardedMatchCase(x*, p, Scope(y*, Match(q)), s2) ->
     ScopedGuardedMatchCase(z*, q, Id(), s2)
@@ -152,12 +162,22 @@ strategies
   with
     z* := <union> (x*, y*)
 
+  /*
+    case   | _ where ?q; s1: s2
+    ->
+    case y* | q where s1: s2
+  */
   extract-match:
     ScopedGuardedMatchCase(x*, p, Seq(Match(q), s1), s2) ->
     ScopedGuardedMatchCase(x*, q, s1, s2)
   where
     <is-wld + is-wld-core> p
 
+  /*
+    case   | _ where ?q: s2
+    ->
+    case y* | q where id: s2
+  */
   extract-match:
     ScopedGuardedMatchCase(x*, p, Match(q), s2) ->
     ScopedGuardedMatchCase(x*, q, Id(), s2)
@@ -167,6 +187,13 @@ strategies
 strategies
   extract-righthandsides = MM(list-some(extract-rhs))
 
+  /*
+    case x* | p where s1: s2
+    ->
+    case x* | p where id: s1; s2
+    
+    Note: only if s1 always succeeds.
+  */
   extract-rhs:
     ScopedGuardedMatchCase(x*, p, s1, s2) ->
     ScopedGuardedMatchCase(x*, p, Id(), s3)
@@ -182,20 +209,19 @@ strategies
    * ->
    * case x* | p where s1': s1''; s2
    */
-  extract-rhs:
-    ScopedGuardedMatchCase(x*, p, s1, s2) ->
-    ScopedGuardedMatchCase(x*, p, s1', s3)
-  where
-    <oncetd(Seq(id, always-succeeds; ?s_succ); ?Seq(<id>, _))> s1 => s1'
-  ; <not(collect-one(?Scope(_, _)))> s1
-  // TODO Code below breaks some annotations on variables.
-//  ; if <collect-one(?Scope(_, _)); debug(|"collected scope ")> s1 => s_scope then
-//      <not(is-subterm); debug(|"no subterm ")> (s1', s_scope)
-//    ; where(<pp-partial-StrategoLang-string; debug(|"strat:\n")> s1')
-//    ; where(<pp-partial-StrategoLang-string; debug(|"scope:\n")> s_scope)
-//    end
-  with
-    <sequence-strategies> (s_succ, s2) => s3
+//  extract-rhs:
+//    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+//    ScopedGuardedMatchCase(x*, p, s1', s3)
+//  where
+//    <oncetd(where(?Seq(_, <always-succeeds; ?s_succ>)); ?Seq(<id>, _))> s1 => s1'
+//  ; <not(collect-one(?Scope(_, _)))> s1
+//  // TODO Code below breaks some annotations on variables.
+////  ; if <collect-one(?Scope(_, _)); debug(|"collected scope ")> s1 => s_scope then
+////      <not(is-subterm); debug(|"no subterm ")> (s1', s_scope)
+////    ; where(<pp-partial-StrategoLang-string; debug(|"strat:\n")> s1')
+////    ; where(<pp-partial-StrategoLang-string; debug(|"scope:\n")> s_scope)
+////    end
+//  ; <sequence-strategies> (s_succ, s2) => s3
 
 strategies
   lift-defaults = MM(at-last([lift-default]; flatten-list))
@@ -203,17 +229,17 @@ strategies
   // This is only valid for the very last case.
   // TODO Verify validity.
   /*
-   case | p where match sequential
-                    case xs | q where s1: s2
-                    case ys | r where s3: s4
+   case xs | _ where match sequential
+                    case ys | q where s1: s2
+                    case zs | r where s3: s4
                   end: s
   ->
    case xs | q where s1: s2; s
    case ys | r where s3: s4; s
   */
   lift-default:
-    ScopedGuardedMatchCase([], p, MM(c*), s) ->
-    <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s)))> c*
+    ScopedGuardedMatchCase(xs, p, MM(c*), s) ->
+    <map(ScopedGuardedMatchCase(<conc> (xs, <id>), id, id, <sequence-strategies> (<id>, s)))> c*
   where
     <is-wld + is-wld-core> p
 
@@ -247,8 +273,10 @@ strategies
         // No (potentially) unbound vars in build
         + ?Var(_){"unbound"}
         + ?Var(_){"(un)bound"}
-        // No list builds where the tail is not a list
-        + ?Op("Cons", <not(?Op("Nil", _) + ?Op("Cons", _))>)
+        // No list builds
+        + ?Op("Cons", _)
+        // No list builds where the tail is not a list (TODO Fix)
+//        + ?Op("Cons", <not(?Op("Nil", _) + ?Op("Cons", _))>)
         // No exploded builds where the constructor is a Var
         + ?Explode(_, _)
       ))
