@@ -5,7 +5,13 @@ import org.openjdk.jmh.annotations.Param;
 public abstract class OptimisationBenchmark extends BaseBenchmark {
     @SuppressWarnings("unused")
     @Param({"2", "3", "4"})
-    int optimisationLevel = -1;
+    public int optimisationLevel = -1;
+
+    @Param({"", "elseif", "switch"})
+    public String switchImplementation = "";
+
+    @Param({"", /*"name-arity",*/ "arity-name"})
+    public String switchImplementationOrder = "";
 
 //    @SuppressWarnings("unused")
 //    @Param({"on", "off"})

@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("JmhInspections")
@@ -29,6 +30,12 @@ public abstract class BaseBenchmark implements Problem {
 
     @Param({"2"})
     public int optimisationLevel;
+
+    @Param({""})
+    public String switchImplementation;
+
+    @Param({""})
+    public String switchImplementationOrder;
 
     @Param({"on"})
     public String sharedConstructors;
@@ -66,6 +73,18 @@ public abstract class BaseBenchmark implements Problem {
 
     @Setup(Level.Trial)
     public final void setup() throws SkipException {
+        if (optimisationLevel == 4) {
+            if (Objects.equals(switchImplementation, "") || Objects.equals(switchImplementationOrder, "")) {
+                throw new SkipException("Irrelevant configuration");
+            }
+
+            args.add("--pmc:switchv", switchImplementation);
+            args.add("--pmc:switchv-order", switchImplementationOrder);
+        } else {
+            if (!Objects.equals(switchImplementation, "") || !Objects.equals(switchImplementationOrder, ""))
+                throw new SkipException("Irrelevant configuration");
+        }
+
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
         args.add("-O", optimisationLevel);
