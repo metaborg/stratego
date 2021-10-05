@@ -6,6 +6,8 @@ fixture [[
 module test
 
 signature
+  sorts
+    Bar
   constructors
     Foo : Bar
 

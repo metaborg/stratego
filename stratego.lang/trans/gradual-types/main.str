@@ -84,7 +84,7 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   with id
   ; rules(CanCoerce: p -> <can-coerce(|injection-closure, aliases)> p)
   ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
-  ; rules(LUB: pair -> <lub(|lub-map)> pair)
+  ; rules(LUB: (pair, tve) -> <lub(|tve, lub-map)> pair)
 
   ; e := <new-env> (strats, constrs, srts)
   ; st := <new-st>
@@ -129,15 +129,14 @@ can-coerce(|injection-closure, aliases): ((a@Sort(x, t1*), b@Sort(x, t2*)), st1)
   ; (a', b') := (<otf(!Sort(x, t3*))> a, <otf(!Sort(x, t4*))> b)
 
 can-coerce(|injection-closure, aliases):
-  ((SortVar(x), t1@SortVar(y)), st1) -> (p, st2)
+  ((t1@SortVar(x), t2@SortVar(y)), st1) -> result
   where
-    if t2 := <type-var-lookup(|x)> st1
-    then p := (t2, t2); st2 := st1
-    else if t2 := <type-var-lookup(|y)> st1
-      then p := (t2, t2); st2 := st1
+    if t3 := <type-var-lookup(|x)> st1
+    then result := <CanCoerce> ((t3, t2), st1)
+    else if t3 := <type-var-lookup(|y)> st1
+      then result := <CanCoerce> ((t1, t3), st1)
       else not(<eq> (x,y))
-         ; st2 := <type-var-put(|x, t1)> st1
-         ; p := (t1, t1)
+         ; result := ((t2, t2), <type-var-put(|x, t2)> st1)
       end
     end
 
@@ -215,12 +214,12 @@ can-coerce-stype(|injection-closure):
   ; ((tt3*, tt4*), st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
-instantiate-type-vars(|st1) = instantiate-type-vars(!DynT()|st1)
-itv(|st1) = instantiate-type-vars(id|st1)
-itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()> (subj, CannotCastToRigidTypeVar(tv))\|st1)
+itv(|st1) = instantiate-type-vars(id|<type-var-env> st1)
+itv-tve(|tve) = instantiate-type-vars(id|tve)
+itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()> (subj, CannotCastToRigidTypeVar(subj, tv))\|<type-var-env> st1)
 
-instantiate-type-vars(s|st1): t1 -> t2
-  with t2 := <bottomup({x,t: ?t@SortVar(x) < <type-var-lookup(|x)> st1 <+ <s> t + id})> t1
+instantiate-type-vars(s|tve): t1 -> t2
+  with t2 := <bottomup({x,t: ?t@SortVar(x) < type-var-lookup(|x, tve) <+ <s> t + id})> t1
 
 fresh-type-vars(newvars): t1{LocalDef()} -> t1 with <newvars> []
 
@@ -231,14 +230,27 @@ fresh-type-vars(newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
 
 strategies
 
-lub(|lub-map): (x, x) -> x
-lub(|lub-map): (ErrT(), x) -> x
-lub(|lub-map): (x, ErrT()) -> x
-lub(|lub-map): (DynT(), _) -> DynT()
-lub(|lub-map): (_, DynT()) -> DynT()
+lub: (p, st1) -> (t, st2)
+  where
+    st2 := <type-var-env(\tve -> <LUB;?(t, <id>)> (<itv-tve(|tve)> p, tve)\)> st1
+
+lub(|tve, lub-map): (x, x) -> (x, tve)
+lub(|tve, lub-map): (ErrT(), x) -> (x, tve)
+lub(|tve, lub-map): (x, ErrT()) -> (x, tve)
+lub(|tve, lub-map): (DynT(), _) -> (DynT(), tve)
+lub(|tve, lub-map): (_, DynT()) -> (DynT(), tve)
+lub(|tve, lub-map): (SortVar(tv), t) -> (t, <immap-put(|tv, t)> tve)
+lub(|tve, lub-map): (t, SortVar(tv)) -> (t, <immap-put(|tv, t)> tve)
 // pointwise lift LUB over type parameters
-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> <otf(!Sort(x, <zip(lub(|lub-map))> (t1*, t2*)))> x
-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
+lub(|tve1, lub-map): (Sort(x, t1*), Sort(x, t2*)) -> (<otf(!Sort(x, t3*))> x, tve2)
+  where
+    (t3*, tve2) := <thread-map(\(p, tve) -> <itv-tve(|tve);lub(|tve, lub-map)> p\)> (<zip> (t1*, t2*), tve1)
+lub(|tve, lub-map): pair -> (<immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map, tve)
+
+st-lub-type(|st0): st1 -> st3
+  where
+    (t, st2) := <lub> ((<current-type> st1, <current-type> st0), st1)
+  ; st3 := <current-type(|t)> st2
 
 constr-lookup-from(st|name, arity, t1, st1) =
     constr-env

@@ -101,9 +101,18 @@ sort-exists(|name, arity) = sort-env; imset-contains(|(name, arity))
 sort-add(|name, arity) = sort-env(imset-insert(|(name, arity)))
 sort-merge-env: (e, se) -> <sort-env(imset-union(|se))> e
 
-type-var-lookup(|name) = type-var-env; ?env; immap-get(|name); try(recurse-type-var-lookup(|name, env))
+type-var-lookup(|name) = type-var-env; ?env; type-var-lookup(|name, env)
+type-var-lookup(|name, env) = !env; immap-get(|name); try(recurse-type-var-lookup(|name, env)); not(oncetd(?SortVar(name)))
 type-var-put(|name, type) = type-var-env(immap-put(|name, type))
 type-var-clear(|names) = type-var-env(\env -> <foldl(\(name, e) -> <immap-remove(|name)> e\)> (names, env)\)
+
+type-var-elim(|name) = where(<is-string> name); type-var-elim-string(|name)
+type-var-elim(|names) = where(<is-list> names); <foldl(\(name, st) -> <type-var-elim-string(|name)> st\)> (names, <id>)
+
+type-var-elim-string(|name) = where(type := <type-var-lookup(|name) <+ !ErrT()>); type-var-elim((SortVar(name) -> type)|name)
+type-var-elim(s|name) = St(immap-map-values(alltd(s)), alltd(s), immap-map-values(alltd(s));immap-remove(|name))
+type-var-elim(s|name) = StMatchTerm(type-var-elim(s|name), alltd(s), id)
+type-var-elim(s|name) = StBuildTerm(type-var-elim(s|name), alltd(s))
 
 recurse-type-var-lookup(|name1, env): SortVar(name2) -> <immap-get(|name2); try(recurse-type-var-lookup(|name2, env))> env
 where <not(eq)> (name1, name2)
@@ -137,18 +146,6 @@ type-var-env = ?StBuildTerm(<type-var-env>, _)
 type-var-env(s) = St(id, id, s)
 type-var-env(s) = StMatchTerm(type-var-env(s), id, id)
 type-var-env(s) = StBuildTerm(type-var-env(s), id)
-
-st-merge(s): (St(terms1, type1, tve1), St(terms2, type2, tve2)) -> St(terms3, type3, tve3)
-  with
-    terms3 := <immap-union(s|terms2)> terms1
-  ; type3 := <s> (type1, type2)
-  ; tve3 := <immap-union(s|tve2)> tve1
-
-st-merge(s): (StBuildTerm(st1, input), StBuildTerm(st2, input)) -> StBuildTerm(st3, input)
-  with st3 := <st-merge(s)> (st1, st2)
-
-st-merge(s): (StMatchTerm(st1, output, after), StMatchTerm(st2, output, after)) -> StMatchTerm(st3, output, after)
-  with st3 := <st-merge(s)> (st1, st2)
 
 output-type(|t) = StMatchTerm(id, \None() -> Some(t)\, id)
 after-match(|s) = StMatchTerm(id, id, ![s | <id>])

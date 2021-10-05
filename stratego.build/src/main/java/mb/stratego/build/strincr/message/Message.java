@@ -20,7 +20,7 @@ import mb.stratego.build.strincr.message.type.NoInjectionBetween;
 import mb.stratego.build.strincr.message.type.STypeMismatch;
 import mb.stratego.build.strincr.message.type.StrategyVariableTypedWithTermType;
 import mb.stratego.build.strincr.message.type.TermVariableTypedWithStrategyType;
-import mb.stratego.build.strincr.message.type.TypeMismatch;
+import mb.stratego.build.strincr.message.type.NoLUBBetween;
 import mb.stratego.build.strincr.message.type.VariableBoundToIncompatibleType;
 import mb.stratego.build.util.WithLastModified;
 
@@ -78,8 +78,8 @@ public abstract class Message implements WithLastModified, Serializable {
             case "VariableBoundToIncompatibleType": // Type * Type -> ErrorDesc
                 return new VariableBoundToIncompatibleType(locationTerm, messageTerm.getSubterm(0),
                     messageTerm.getSubterm(1), severity, lastModified);
-            case "TypeMismatch": // Type * Type -> ErrorDesc
-                return new TypeMismatch(locationTerm, messageTerm.getSubterm(0),
+            case "NoLUBBetween": // Type * Type -> ErrorDesc
+                return new NoLUBBetween(locationTerm, messageTerm.getSubterm(0),
                     messageTerm.getSubterm(1), severity, lastModified);
             case "STypeMismatch": // SType * SType -> ErrorDesc
                 return new STypeMismatch(locationTerm, messageTerm.getSubterm(0),

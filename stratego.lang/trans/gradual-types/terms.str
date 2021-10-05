@@ -53,7 +53,8 @@ insertCasts-StMatchTerm(|e1, st1):
       then
         (c, st2) := <computeCoercion(|trm1, st1)> (t1, t2)
       ; if Id() := c
-          then st3 := st2
+          // strengthen the type of the variable
+          then st3 := <term-put(|v{}, t1)> st2
           // Doing a cast after the fact in case the var was unbound before the match,
           //    but already had a type due to a conditional match in previous code
           else st3 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> trm1, trm1))> trm1)> st2
@@ -174,7 +175,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   ; if t2 := <term-lookup(|v{})> st1
       then st2 := st1
       else
-        <report-Err> (trm1, BuildUnboundTerm())
+        <report-Err> (trm1, UnresolvedLocal())
       ; st2 := st1
       ; t2 := ErrT()
 //           // We put the expected type here if the var is not found as this call may be in a
@@ -282,11 +283,11 @@ insertCasts-StBuildTerm-(|e1, st1):
       in (trm2*, t4*, st5) := <map-st-LUB(StBuildTerm-Op-threader(set-type|e1))> (b*, st4)
       ; switch <StBuildTerm-Op-type-relation(|st5)> (t4*, t3*)
           case ?AllCanCoerce():
-            st6 := <current-type(|<instantiate-type-vars(|st5)> t3)> st5
+            st6 := <current-type(|t3)> st5
           ; trm2 := Op(cnstr, trm2*)
           case ?SomeDyn():
             // insertCastApp here only generates warnings, not casts, because DynT(_) := t1
-            (trm2, st6) := <insertCastApp(|DynT(<instantiate-type-vars(|st5)> t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st5)
+            (trm2, st6) := <insertCastApp(|DynT(t3), t1)> (<otf(!Op(cnstr, trm2*))> trm1, st5)
           case ?Unrelated():
             st6 := <current-type(|IllFormedTermT(cnstr, t4*))> st5
           ; trm2 := Op(cnstr, trm2*)
@@ -301,7 +302,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       ; trm2 := Op(cnstr, trm2*)
       end
     end
-  ; st7 := <type-var-clear(|newvars)> st6
+  ; st7 := <type-var-elim(|newvars)> st6
 
 StBuildTerm-Op-threader(set-type|e1):
   ((trm1, t), st1) -> (trm2, st2)
@@ -395,7 +396,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; st4 := <current-type(|TupleT(t2*))> st3
 
 insertCasts-StMatchTerm-(|e1, st1):
-  trm@List(trm1*) -> (List(trm2*), st4)
+  trm@List(trm1*) -> (List(trm2*), st5)
   with
     t1 := <current-type> st1
   ; if ListT(t) := <pushDyn> t1
@@ -405,10 +406,11 @@ insertCasts-StMatchTerm-(|e1, st1):
          ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
-  ; st4 := <current-type(|ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ListT(ErrT())> t2*))> st3
+  ; (t2, st4) := <foldr1-thread(lub) <+ (!ErrT(), id)> (t2*, st3)
+  ; st5 := <current-type(|ListT(t2))> st4
 
 insertCasts-StMatchTerm-(|e1, st1):
-  trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st5)
+  trm@ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st7)
   with
     t1 := <current-type> st1
   ; if ListT(t) := <pushDyn> t1
@@ -419,8 +421,10 @@ insertCasts-StMatchTerm-(|e1, st1):
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
   ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
-  ; t3* := [t2*, <current-type> st4]
-  ; st5 := <current-type(|ListT(<foldr1(?[<id>], LUB <+ !DynT())> t3*))> st4
+  ; t2 := <current-type> st4
+  ; (_, st5) := <computeCoercion(|trm, st4)> (t2, ListT())
+  ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <pushDyn;?ListT(<id>) <+ !ErrT()> t2], st5)
+  ; st7 := <current-type(|ListT(t3))> st6
 
 insertCasts-StMatchTerm(|e1, st1):
   trm@BuildDefaultPT(_) -> (trm, st1)
@@ -486,13 +490,14 @@ insertCasts-StBuildTerm-(|e1, st1):
   ; st4 := <current-type(|t2)> st3
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@List(trm1*) -> (List(trm2*), st4)
+  trm1@List(trm1*) -> (List(trm2*), st5)
   with
     t := <current-type;listType> st1
   ; (trm2*, t*, st2) := <thread-map-Type(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
-  ; t1 := ListT(<foldr1(?[<id>], LUB <+ !DynT()) <+ !ErrT()> t*)
-  ; (_, st3) := <computeCoercion(|trm1, st1)> (t1, <current-type> st1)
-  ; st4 := <current-type(|t1)> st3
+  ; (t1, st3) := <foldr1-thread(lub) <+ (!ErrT(), id)> (t*, st2)
+  ; t2 := ListT(t1)
+  ; (_, st4) := <computeCoercion(|trm1, st3)> (t2, <current-type> st1)
+  ; st5 := <current-type(|t2)> st4
 
 insertCasts-StBuildTerm-ListVar(|e1, t1):
   (Var(ListVar(_)), _) -> <insertCasts-StBuildTerm-Type(|e1, t2)>
@@ -502,19 +507,20 @@ insertCasts-StBuildTerm-ListVar(|e1, t1):
 insertCasts-StBuildTerm-ListVar(|e1, t) = insertCasts-StBuildTerm-Type(|e1, t)
 
 insertCasts-StBuildTerm-(|e1, st1):
-  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st4)
+  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st5)
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
   ; (trm2*, t*, st2) := <thread-map-Type(insertCasts-StBuildTerm-ListVar(|e1, t2))> (trm1*, st1)
   ; (trm2, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t1)> st2)> trm1
-  ; t3 := <current-type> st3 
+  ; t3 := <current-type> st3
   ; if ListT(t4) := <pushDyn> t3
       then
-        t5 := <foldr1(?[<id>], LUB <+ !DynT())> [t*, t4]
-      ; st4 := <current-type(|ListT(t5))> st3
+        (t5, st4) := <foldr1-thread(lub)> ([t*, t4], st3)
+      ; st5 := <current-type(|ListT(t5))> st4
       else
         (_, st4) := <computeCoercion(|trm2, st3)> (t3, ListT())
+      ; st5 := <current-type(!List(ErrT()))> st4
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
@@ -650,7 +656,7 @@ strategies
 insertCasts-StMatchTerm-(|e1, st1):
   ta@TypeAscription(trm1, t1) -> (trm3, st4)
   with
-    t2 := <desugar-Type;sort-check-Type(|e1);instantiate-type-vars(|st1)> t1
+    t2 := <desugar-Type;sort-check-Type(|e1);alltd(\SortVar(name) -> <type-var-lookup(|name)> st1\)> t1
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
   ; if ErrT() := <current-type> st2
@@ -669,7 +675,7 @@ insertCasts-StMatchTerm-(|e1, st1):
 insertCasts-StBuildTerm-(|e1, st1):
   trm1@TypeAscription(trm2, t1) -> (trm3, st4)
   with
-    t2 := <desugar-Type;sort-check-Type(|e1);instantiate-type-vars(|st1)> t1
+    t2 := <desugar-Type;sort-check-Type(|e1);alltd(\SortVar(name) -> <type-var-lookup(|name)> st1\)> t1
   ; t3 := <current-type> st1
   ; (_, st2) := <computeCoercion(|trm1, st1)> (t3, t2)
   ; (trm3, st3) := <insertCasts-StBuildTerm(|e1, <current-type(|t2)> st2)> trm2

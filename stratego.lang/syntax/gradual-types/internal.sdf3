@@ -67,7 +67,7 @@ context-free syntax
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
-  ErrorDesc.TypeMismatch = [Expected [Type], but got [Type].]
+  ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
   ErrorDesc.UnresolvedLocal = [Undefined local variable.]
   ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
@@ -85,10 +85,9 @@ context-free syntax
   ErrorDesc.NonListInAnno = [Expected list, but got [Type].]
   ErrorDesc.MultipleAppsInMatch = [Multiple projections in one pattern, only one is actually returned. ]
 
-  ErrorDesc.BuildUnboundTerm = [Use of unbound local variable. ]
   ErrorDesc.MatchNotSpecificEnoughForTP = [Cannot infer specific type for TP rule match. Found result: [Type]. ]
 
   ErrorDesc.UnsupportedCastRequiredInDynamicRule = [Pattern induces cast, but cast is not supported in this position. ]
 
   ErrorDesc.DynRuleOverlapError = [Overlapping left-hand-sides for dynamic rule '[Id]': [String] in [String] overlaps with [String] in [String]. ]
-  ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast to type variable '[Id]', its type is not known at run-time in this position. ]
+  ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast [Type] to type [Type], its type is not known at run-time in this position. ]

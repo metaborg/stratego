@@ -41,6 +41,7 @@ strategies // Control-flow combinators
    * returns it unchanged (and succeeds) when s fails.
    */
 
+  try(a -> a) :: a -> a
   try(s) =
     s <+ id
 

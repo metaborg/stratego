@@ -60,6 +60,12 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
 
 strategies
 
+foldr1-thread(s): ([t], st) -> (t, st)
+foldr1-thread(s): ([t1|t*], st1) -> <s> ((t1, t2), st2)
+  where (t2, st2) := <foldr1-thread(s)> (t*, st1)
+
+strategies
+
 desugar-SType = otf(\t@TP() -> FunTType([], [], t)\)
 desugar-SType = otf(\st@FunNoArgsType(i, o) -> FunTType([], [], <desugar-SSimpleFunType> st)\)
 desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
@@ -134,7 +140,7 @@ HasType = ?DefHasType(_, _)
 HasType = ?ExtTypedDef(_, _)
 HasType = ?ExtTypedDefInl(_, _, _, _, _)
 
-rigidTV = ?Sort(<get-annotation(?tv@SortVar(_))>, _);!tv
+rigidTV: Sort(x, _) -> <get-annotation(?SortVar(_))> x
 
 strategies
 
@@ -161,15 +167,13 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
     ; st2 := st1
 
 computeCoercion-(|subj, st1): (ErrT(), to) -> (<otf(!Id(){to})> subj, st1)
-
-computeCoercion-(|subj, st1): (from, to) -> (<otf(!Fail(){ErrT()})> subj, st1)
-  where
-    not(<eq> (from, to))
-  ; <report-Err> (subj, CannotCastToRigidTypeVar(<sometd(rigidTV)> to))
+computeCoercion-(|subj, st1): (from, ErrT()) -> (<otf(!Id(){from})> subj, st1)
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to){to})> subj, st1)
+  where <not(oncetd(rigidTV))> to
 
 computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2})> subj, st2)
+  where <not(oncetd(rigidTV))> to1
   where
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
@@ -190,6 +194,11 @@ computeCoercion-(|subj, st1):
       then coercion := RuntimeCheck(to2){to2}
       else coercion := Id(){to2}
     end
+
+computeCoercion-(|subj, st1): (from, to) -> (<otf(!Fail(){ErrT()})> subj, st1)
+  where
+    not(<eq> (from, to))
+  ; <report-Err> (subj, CannotCastToRigidTypeVar(from, <sometd(rigidTV)> to))
 
 computeCoercion-(|subj, st1): (from, to) -> (<otf(!coercion)> subj, st2)
   where if (_, st2) := <CanCoerce> ((from, to), st1)
@@ -342,18 +351,17 @@ thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
   ; t2* := [<current-type> st2 | t1*]
 
 map-LUB(s): ([], st) -> ([], DynT(), st)
-map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t, st2)
+map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t, st3)
   where
-    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
-  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
-  ; t := <foldl(LUB <+ !DynT())> (st*, st)
+    (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
+  ; (trm2*, t*) := <unzip((id, current-type))> b*
+  ; (t, st3) := <foldr1-thread(lub)> (t*, st2)
 
 map-st-LUB(s): ([], st) -> ([], [], st)
 map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)
   where
-    (trm2*, [st | st*]) := <unzip(\trm -> <s> (trm, st1)\)> trm1*
-  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
-  ; t* := <map(current-type)> [st | st*]
+    (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
+  ; (trm2*, t*) := <unzip((id, current-type))> b*
 
 map-pair-left(|l) = map(split(!l, id))
 map-pair-right(|r) = map(split(id, !r))
