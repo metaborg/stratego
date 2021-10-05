@@ -6,18 +6,22 @@
 module strj
 
 imports
-  strj/shared-constructors
 
-//  libstrc
   libstratego-lib
   libstratego-xtc
   libstratego-gpp
   libjava-front
-    
+
+  strc
+  strc/strc/strc-options
+
+  signatures/core/modules-sig
+
   strj/strj-options
   strj/s2j
   strj/lib/dr-scoping
   strj/fast-print/main
+  strj/shared-constructors
 
 strategies
 

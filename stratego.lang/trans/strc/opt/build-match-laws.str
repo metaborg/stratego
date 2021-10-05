@@ -1,5 +1,14 @@
 module build-match-laws
-imports signatures/Stratego signatures/Stratego-MetaTransition
+
+imports
+  signatures/Stratego
+  signatures/Stratego-MetaTransition
+  signatures/core/strategies-sig
+  signatures/sugar/strategies-sig
+  signatures/core/terms-sig
+
+  strc/front/desugar
+  strc/opt/stratego-laws
 
 rules // combinations of match and build
 
