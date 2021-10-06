@@ -74,12 +74,10 @@ public abstract class BaseBenchmark implements Problem {
     @Setup(Level.Trial)
     public final void setup() throws SkipException {
         if (optimisationLevel == 4) {
-            if ((Objects.equals(switchImplementation, "") || Objects.equals(switchImplementation, "switch"))
-                    && Objects.equals(switchImplementationOrder, "")) {
-                throw new SkipException("Irrelevant configuration");
-            }
-
-            if (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, "")) {
+            if (Objects.equals(switchImplementation, "")
+                    || (Objects.equals(switchImplementation, "switch") && Objects.equals(switchImplementationOrder, ""))
+                    || (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, ""))
+            ) {
                 throw new SkipException("Irrelevant configuration");
             }
 
