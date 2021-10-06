@@ -520,7 +520,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       ; st5 := <current-type(|ListT(t5))> st4
       else
         (_, st4) := <computeCoercion(|trm2, st3)> (t3, ListT())
-      ; st5 := <current-type(!List(ErrT()))> st4
+      ; st5 := <current-type(|ListT(ErrT()))> st4
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
