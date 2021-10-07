@@ -115,7 +115,7 @@ can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
     <imrel-contains(|from, to)> injection-closure
 
 can-coerce(|injection-closure, aliases) = ?((ErrT(), _), _)
-can-coerce(|injection-closure, aliases) = ?((_, ErrT()), _)
+can-coerce(|injection-closure, aliases): ((t1, ErrT()), st1) -> ((t1, t1), st1)
 can-coerce(|injection-closure, aliases) = ?((_, DynT()), _)
 can-coerce(|injection-closure, aliases): ((SortVar(x), SortVar(x)), st1) -> <id>
   where

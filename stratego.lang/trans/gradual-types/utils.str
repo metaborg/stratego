@@ -169,8 +169,10 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
 computeCoercion-(|subj, st1): (ErrT(), to) -> (<otf(!Id(){to})> subj, st1)
 computeCoercion-(|subj, st1): (from, ErrT()) -> (<otf(!Id(){from})> subj, st1)
 
-computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to){to})> subj, st1)
-  where <not(oncetd(rigidTV))> to
+computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to2){to2})> subj, st1)
+  where
+      <not(oncetd(rigidTV))> to
+    ; to2 := <alltd(\ErrT() -> DynT()\)> to
 
 computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2})> subj, st2)
   where <not(oncetd(rigidTV))> to1
@@ -178,7 +180,7 @@ computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2}
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
       <report-Warn> (subj, NoInjectionBetween(<itv(|st1)> from, <itv(|st1)> to1))
-    ; to2 := to1
+    ; to2 := <alltd(\ErrT() -> DynT()\)> to1
     ; st2 := st1
 
 computeCoercion-(|subj, st1):

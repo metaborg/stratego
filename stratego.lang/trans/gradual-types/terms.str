@@ -507,7 +507,7 @@ insertCasts-StBuildTerm-ListVar(|e1, t1):
 insertCasts-StBuildTerm-ListVar(|e1, t) = insertCasts-StBuildTerm-Type(|e1, t)
 
 insertCasts-StBuildTerm-(|e1, st1):
-  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm2), st5)
+  ListTail(trm1*, trm1) -> (ListTail(trm2*, trm3), st5)
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
@@ -518,9 +518,10 @@ insertCasts-StBuildTerm-(|e1, st1):
       then
         (t5, st4) := <foldr1-thread(lub)> ([t*, t4], st3)
       ; st5 := <current-type(|ListT(t5))> st4
+      ; trm3 := trm2
       else
-        (_, st4) := <computeCoercion(|trm2, st3)> (t3, ListT())
-      ; st5 := <current-type(|ListT(ErrT()))> st4
+        (t5, st4) := <foldr1-thread(lub)> (t*, st3)
+      ; (trm3, st5) := <insertCastApp(|t3, ListT(t5))> (trm2, st4)
     end
 
 insertCasts-StBuildTerm-(|e1, st1):

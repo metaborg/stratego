@@ -533,17 +533,14 @@ insertCasts-Strategy-(|e1, st1):
    ; <report-Err> (s0, NoLUBBetween(<current-type> st2, <current-type> st3)))
 
 insertCasts-Strategy-(|e1, st1):
-  Rec(x, s1) -> (Rec(x, s2), st4)
+  Rec(x, s1) -> (Rec(x, s2), st3)
   with
     t1 := <current-type> st1
   ; tv1 := <newname> "rectv"
-  ; e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [((x{}, 0, 0), (FunTType(t1, SortVar(tv1))){LocalDef()})])
+  ; (t2, tv*) := <collect-split({(ErrT() -> (SortVar(tv), [tv]) where tv := <newname> "rectv")})> t1
+  ; e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [((x{}, 0, 0), (FunTType(t2, SortVar(tv1))){LocalDef()})])
   ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
-  ; if <not(type-var-lookup(|tv1))> st2
-      then st3 := <type-var-put(|tv1, ErrT())> st2
-      else st3 := st2
-    end
-  ; st4 := <type-var-elim(|tv1)> st3
+  ; st3 := <type-var-elim(|[tv1, tv*])> st2
 
 insertCasts-Strategy-(|e1, st1):
   Not(s1) -> (Not(s2), st3)
@@ -641,8 +638,7 @@ insertCasts-Strategy-(|e1, st1):
   ; [funt1 | funt1*] := <zip(\(t, tv) -> FunTType(t, SortVar(tv))\)> (t1*, tvs)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, funt1)
   ; (s2*, st3) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
-  ; t2* := <map(\tv -> <type-var-lookup(|tv) <+ !ErrT()> st3\)> tvs
-  ; st4 := <current-type(|TupleT(t2*));type-var-elim(|tvs)> st3
+  ; st4 := <current-type(|TupleT(<map(!SortVar(<id>))> tvs));type-var-elim(|tvs)> st3
 
 insertCasts-Strategy-(|e1, st1):
   s1@ListCongNoTail(s1*) -> (ListCongNoTail(s2*), st4)

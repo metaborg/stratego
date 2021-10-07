@@ -23,7 +23,7 @@ context-free syntax
   PreTerm.RootApp   = [<[Strategy]>]
   PreTerm.Tuple     = <(<{Term ", "}*>)>
   PreTerm.List      = <[<{Term ", "}*>]>
-  PreTerm.ListTail  = <[<{Term ", "}*> | <Term>]>
+  PreTerm.ListTail  = <[<{Term ", "}+> | <Term>]>
 
   PreTerm.BuildDefaultPT = <_<PreTerm>>
 
