@@ -136,7 +136,6 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         if(!TermUtils.isAppl(term)) {
             return null;
         }
-        final IStrategoString name = TermUtils.toStringAt(term, 0);
         final int sArity;
         final int tArity;
         switch(TermUtils.toAppl(term).getName()) {
@@ -198,6 +197,7 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
             default:
                 return null;
         }
+        final IStrategoString name = TermUtils.toStringAt(term, 0);
         return new StrategySignature(name, sArity, tArity);
     }
 

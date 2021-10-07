@@ -145,7 +145,7 @@ public abstract class Message implements WithLastModified, Serializable {
             + " - " + sourceRegion.endRow + ":" + (sourceRegion.endColumn + 1);
     }
 
-    public SourceRegion sourceRegionFromTokens(IToken left, IToken right) {
+    public static SourceRegion sourceRegionFromTokens(IToken left, IToken right) {
         return new SourceRegion(left.getStartOffset(), left.getLine(), left.getColumn(),
             right.getEndOffset(), right.getEndLine(), right.getEndColumn());
     }
