@@ -1,6 +1,7 @@
 package benchmark.stratego2.template.benchmark.base;
 
 import api.Stratego2Program;
+import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
 import benchmark.stratego2.template.problem.Problem;
 import org.metaborg.core.MetaborgException;
@@ -20,9 +21,9 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public abstract class BaseBenchmark implements Problem {
 
-    private Path sourcePath;
+    protected Path sourcePath;
 
-    private Stratego2Program program;
+    protected Stratego2Program program;
     protected final Arguments args = new Arguments();
 
     @Param({"2.6.0-SNAPSHOT"})
@@ -67,18 +68,26 @@ public abstract class BaseBenchmark implements Problem {
         this.sharedConstructors = sharedConstructors;
     }
 
+    public void setSwitchImplementation(String switchImplementation) {
+        this.switchImplementation = switchImplementation;
+    }
+
+    public void setSwitchImplementationOrder(String switchImplementationOrder) {
+        this.switchImplementationOrder = switchImplementationOrder;
+    }
+
     public final void setProblemSize(int problemSize) {
         this.problemSize = problemSize;
     }
 
     @Setup(Level.Trial)
-    public final void setup() throws SkipException {
+    public void setup() throws SkipException, InvalidConfigurationException {
         if (optimisationLevel == 4) {
             if (Objects.equals(switchImplementation, "")
                     || (Objects.equals(switchImplementation, "switch") && Objects.equals(switchImplementationOrder, ""))
                     || (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, ""))
             ) {
-                throw new SkipException("Irrelevant configuration");
+                throw new InvalidConfigurationException("No switch implementation set on -O 4");
             }
 
             args.add("--pmc:switchv", switchImplementation);
@@ -88,7 +97,7 @@ public abstract class BaseBenchmark implements Problem {
             }
         } else {
             if (!Objects.equals(switchImplementation, "") || !Objects.equals(switchImplementationOrder, ""))
-                throw new SkipException("Irrelevant configuration");
+                throw new InvalidConfigurationException("Switch implementation set, but not on -O 4");
         }
 
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
@@ -111,7 +120,7 @@ public abstract class BaseBenchmark implements Problem {
     }
 
     @TearDown(Level.Trial)
-    public final void teardown() {
+    public void teardown() {
         getProgram().cleanup();
     }
 

@@ -1,4 +1,5 @@
 import api.Compiler;
+import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
 import benchmark.stratego2.compilation.stratego.*;
 import benchmark.stratego2.template.benchmark.compilation.CompilationBenchmark;
@@ -25,11 +26,13 @@ public class SpaceBenchmarks {
 
         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(resultsFile));
 
-        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Score"}, Character.toString(delim)));
+        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Param: switchImplementation", "Param: switchImplementationOrder", "Score"}, Character.toString(delim)));
         fileWriter.newLine();
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
+        String[] switchImplementations = {"", "elseif", "switch"};
+        String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends CompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr.class,
@@ -44,49 +47,60 @@ public class SpaceBenchmarks {
                 Sieve.class));
 
         for (int optimisationLevel : optimisationLevels) {
-            for (Class<? extends CompilationBenchmark> problemClass : problems) {
-                for (int problemSize : Arrays.stream(
-                        FieldUtils.getField(problemClass, "problemSize", true)
-                                .getAnnotation(Param.class)
-                                .value())
-                        .mapToInt(Integer::valueOf).toArray()) {
-                    System.out.printf("Problem %s (%d); -O %d%n", problemClass.getSimpleName(), problemSize, optimisationLevel);
+            for (String switchImplementation : switchImplementations) {
+                for (String switchImplementationOrder : switchImplementationOrders){
+                    for (Class<? extends CompilationBenchmark> problemClass : problems) {
+                        for (int problemSize : Arrays.stream(
+                                        FieldUtils.getField(problemClass, "problemSize", true)
+                                                .getAnnotation(Param.class)
+                                                .value())
+                                .mapToInt(Integer::valueOf).toArray()) {
+                            System.out.printf("Problem %s (%d); -O %d%n", problemClass.getSimpleName(), problemSize, optimisationLevel);
 
-                    CompilationBenchmark benchmark = problemClass.newInstance();
-                    try {
-                        benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
-                        benchmark.setOptimisationLevel(optimisationLevel);
-                        benchmark.setProblemSize(problemSize);
-                        benchmark.setSharedConstructors("on");
+                            CompilationBenchmark benchmark = problemClass.newInstance();
+                            try {
+                                benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
+                                benchmark.setOptimisationLevel(optimisationLevel);
+                                benchmark.setProblemSize(problemSize);
+                                benchmark.setSharedConstructors("on");
+                                benchmark.setSwitchImplementation(switchImplementation);
+                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
 
-                        benchmark.setup();
-                        benchmark.removeCompilationResults();
+                                benchmark.setup();
 
-                        Map<String, Long> bms = new HashMap<>();
-                        bms.put("Java space", Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
-                        bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
+                                Map<String, Long> bms = new HashMap<>();
+                                bms.put("Java space", Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
+                                bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
 
-                        for (Map.Entry<String, Long> bm : bms.entrySet()) {
-                            fileWriter.write(problemClass.getName() + "." + bm.getKey());
+                                for (Map.Entry<String, Long> bm : bms.entrySet()) {
+                                    fileWriter.write(problemClass.getName() + "." + bm.getKey());
 
-                            fileWriter.write(delim);
-                            fileWriter.write(Integer.toString(problemSize));
+                                    fileWriter.write(delim);
+                                    fileWriter.write(Integer.toString(problemSize));
 
-                            fileWriter.write(delim);
-                            fileWriter.write(Integer.toString(optimisationLevel));
+                                    fileWriter.write(delim);
+                                    fileWriter.write(Integer.toString(optimisationLevel));
 
-                            fileWriter.write(delim);
-                            fileWriter.write(Long.toString(bm.getValue()));
+                                    fileWriter.write(delim);
+                                    fileWriter.write(switchImplementation);
 
-                            fileWriter.newLine();
-                            fileWriter.flush();
+                                    fileWriter.write(delim);
+                                    fileWriter.write(switchImplementationOrder);
+
+                                    fileWriter.write(delim);
+                                    fileWriter.write(Long.toString(bm.getValue()));
+
+                                    fileWriter.newLine();
+                                    fileWriter.flush();
+                                }
+                            } catch (MetaborgException | SkipException | IOException | InvalidConfigurationException e) {
+                                e.printStackTrace();
+                            } finally {
+                                benchmark.teardown();
+                            }
+
                         }
-                    } catch (MetaborgException | SkipException | IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        benchmark.removeCompilationResults();
                     }
-
                 }
             }
         }

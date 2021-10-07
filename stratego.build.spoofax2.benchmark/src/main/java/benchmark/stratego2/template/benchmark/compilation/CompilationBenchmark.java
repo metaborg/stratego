@@ -42,8 +42,9 @@ import java.util.concurrent.TimeUnit;
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public abstract class CompilationBenchmark extends OptimisationBenchmark {
 
+    @Override
     @TearDown(Level.Iteration)
-    public final void removeCompilationResults() {
+    public void teardown() {
         getProgram().cleanup();
     }
 
