@@ -13,12 +13,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -36,7 +36,6 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import org.metaborg.util.cmd.Arguments;
 
 import javax.annotation.Nullable;
 
@@ -53,11 +52,10 @@ public class StrcTests {
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Collections.singletonList("test113.str2"));
+            new HashSet<>(Collections.singletonList("test113.str"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString())
-                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
-        return compileAndRun("test1", "test*.str2", disableFilter, new ArrayList<>(
+            p -> !disabledTestFiles.contains(p.getFileName().toString());
+        return compileAndRun("test1", "{test??.str,test???.str}", disableFilter, new ArrayList<>(
             Arrays.asList(BuiltinLibraryIdentifier.StrategoLib,
                 BuiltinLibraryIdentifier.StrategoSdf)));
     }
@@ -66,11 +64,10 @@ public class StrcTests {
     Stream<DynamicTest> test2() throws URISyntaxException, IOException {
         // list-cons is not a test file, it is imported by other test files.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Collections.singletonList("list-cons.str2"));
+            new HashSet<>(Collections.singletonList("list-cons.str"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString())
-                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
-        return compileAndRun("test2", "*.str2", disableFilter,
+            p -> !disabledTestFiles.contains(p.getFileName().toString());
+        return compileAndRun("test2", "*.str", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
@@ -80,53 +77,21 @@ public class StrcTests {
         HashSet<String> disabledTestFiles =
             new HashSet<>();//Arrays.asList("test05.str"));
         final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString())
-                    && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
-        return failToCompile("testneg", "test*.str2", disableFilter,
+            p -> !disabledTestFiles.contains(p.getFileName().toString());
+        return failToCompile("testneg", "test*.str", disableFilter,
             new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
     }
 
-    @TestFactory
-    Stream<DynamicTest> testPMC() throws URISyntaxException, IOException {
-        HashSet<String> disabledTestFiles =
-                new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
-        final Predicate<Path> disableFilter =
-                p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
-                        && !disabledTestFiles.contains(p.getFileName().toString())
-                        && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
-        return compileAndRun("test-pmc", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
-    }
-
-    @TestFactory
-    Stream<DynamicTest> testBenches() throws URISyntaxException, IOException {
-        HashSet<String> disabledTestFiles =
-                new HashSet<>(); //Arrays.asList("evalexpr.str2", "evalsym.str2", "evaltree.str2"));
-        final Predicate<Path> disableFilter =
-                p -> p.getFileName().toString().indexOf('.') == p.getFileName().toString().lastIndexOf('.')
-                        && !disabledTestFiles.contains(p.getFileName().toString())
-                        && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
-        return compileAndRun("test-benches", "*.str2", disableFilter, new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
-    }
-
     protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
-                                                Predicate<? super Path> disabled,
-                                                ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
-        throws URISyntaxException, IOException {
-        final Arguments args = new Arguments();
-        args.add("-O", "4");
-        return compileAndRun(subdir, glob, disabled, linkedLibraries, args);
-    }
-
-    protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
-                                                Predicate<? super Path> disabled,
-                                                ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, Arguments args)
+        Predicate<? super Path> disabled,
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws URISyntaxException, IOException {
         final Path strategoxtJarPath = Stratego.getStrategoxtJarPath();
         final Path dirWithTestFiles = getResourcePathRoot().resolve(subdir);
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).sorted().filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = FilenameUtils.removeExtension(fileName);
+            final String baseName = fileName.substring(0, fileName.lastIndexOf(".str")); // strip .str{2,}
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
@@ -137,7 +102,7 @@ public class StrcTests {
                         new LanguageVersion(1));
                 final CompileOutput str2CompileOutput = Stratego
                     .str2(p, baseName, packageName, packageDir, false, linkedLibraries, false,
-                        languageIdentifier, args);
+                        languageIdentifier);
                 Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                         + getErrorMessagesString(str2CompileOutput));
@@ -162,7 +127,7 @@ public class StrcTests {
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).filter(disabled).map(p -> {
             final String fileName = p.getFileName().toString();
-            final String baseName = FilenameUtils.removeExtension(fileName); // strip .str
+            final String baseName = fileName.substring(0, fileName.lastIndexOf(".str")); // strip .str{2,}
             final Path testGenDir = p.resolveSibling(baseName + "/test-gen");
             final Path packageDir = testGenDir.resolve(packageDirName);
             return DynamicTest.dynamicTest("Compile & run " + baseName, () -> {
@@ -207,13 +172,18 @@ public class StrcTests {
         });
     }
 
-    static String getErrorMessagesString(CompileOutput str2CompileOutput) {
-        return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
-            .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
-            .collect(Collectors.joining("\n"));
+    private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
+        final StringJoiner joiner = new StringJoiner("\n");
+        for(Message m : ((CompileOutput.Failure) str2CompileOutput).messages) {
+            if(m.severity == MessageSeverity.ERROR) {
+                String toString = m.toString();
+                joiner.add(toString);
+            }
+        }
+        return joiner.toString();
     }
 
-    private static Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob)
+    private Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob)
         throws IOException {
         final PathMatcher matcher =
             dirWithTestFiles.getFileSystem().getPathMatcher("glob:**/" + glob);
@@ -224,7 +194,7 @@ public class StrcTests {
         return Paths.get(this.getClass().getResource("/").toURI());
     }
 
-    static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
+    private static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
         final HashSet<ResourcePath> resultFiles = str2CompileOutput.resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for(ResourcePath resultFile : resultFiles) {
