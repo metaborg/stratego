@@ -1,4 +1,4 @@
-module hanoi4
+module hanoi7
 
 imports libstrategolib
 

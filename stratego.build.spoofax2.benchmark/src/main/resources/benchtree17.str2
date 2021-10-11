@@ -1,4 +1,4 @@
-module benchtree10
+module benchtree17
 
 imports libstrategolib
 

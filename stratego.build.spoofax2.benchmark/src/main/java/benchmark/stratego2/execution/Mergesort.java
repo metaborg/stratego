@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
 public class Mergesort extends ExecutionBenchmark implements MergesortProblem {
 
-    @Param({"10", "100", "1000"})
+    @Param({"10", "15", /*"100", "1000"*/})
     int problemSize;
 
 }

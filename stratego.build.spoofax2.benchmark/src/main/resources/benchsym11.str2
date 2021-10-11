@@ -1,4 +1,4 @@
-module benchsym10
+module benchsym11
 
 imports libstrategolib
 

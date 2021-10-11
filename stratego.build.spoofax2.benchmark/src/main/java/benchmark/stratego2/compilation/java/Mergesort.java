@@ -6,7 +6,7 @@ import org.openjdk.jmh.annotations.Param;
 
 public class Mergesort extends JavaCompilationBenchmark implements MergesortProblem {
 
-    @Param({"10", "100", "1000"})
+    @Param({"10", "15", /*"100", "1000"*/})
     int problemSize;
 
 }

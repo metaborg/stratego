@@ -1,4 +1,4 @@
-module quicksort10
+module quicksort20
 
 imports libstrategolib
 
