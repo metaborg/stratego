@@ -46,8 +46,8 @@ signature
     Append : Str * Str -> Str
 
 strategies
-  calc: Mul(O(), String(s)) -> String("")
-  calc: Mul(S(n), String(s)) -> Append(s, Mul(n, String(s)))
+  calc: Mul(O(), String(_)) -> String("")
+  calc: Mul(S(n), s@String(_)) -> Append(s, Mul(n, s))
 
   calc:
     Append(String(s1), String(s2)) -> s3
