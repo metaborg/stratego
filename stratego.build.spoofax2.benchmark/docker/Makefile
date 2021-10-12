@@ -11,7 +11,7 @@ BUILD_DIR?=./build
 REPO=$(BUILD_DIR)/stratego
 RESULTS_DIR=$(DATA_DIR)/benchmark_results
 
-BENCHMARK_ARGS?=-e failing -rff $(RESULTS_DIR)/`date +%Y%m%d-%H%M%S`.csv $(TARGET)
+BENCHMARK_ARGS?=-e failing -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` $(TARGET).csv" $(TARGET)
 
 # DERIVATiVES - DO NOT CHANGE
 STRATEGO_DIR=$(REPO)/$(STRATEGO_PROJECT)
@@ -59,7 +59,7 @@ $(RESULTS_DIR):
 run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) | $(RESULTS_DIR)
 	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) $(BENCHMARK_ARGS)
-	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished"
+	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished%3A%0A${TARGET}"
 
 .PHONY: prepare-benchmark
 prepare-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) | $(RESULTS_DIR)

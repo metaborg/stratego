@@ -13,13 +13,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class SpaceBenchmarks {
     static char delim = ',';
 
     public static void main(String... args) throws IOException, InstantiationException, IllegalAccessException {
-        String resultsFileName = "results-compilespace.csv";
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-hhmmss");
+        String resultsFileName = String.format("%s_results-compilespace.csv", format.format(new Date()));
         File resultsFile = FileUtils.getFile(resultsFileName);
 
         System.out.println("Writing results to " + resultsFile.getAbsolutePath());
