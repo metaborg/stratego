@@ -389,6 +389,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if TupleT(t1*) := <pushDyn> t1; <eq> (<length> t1*, <length> trm1*)
       then t2* := t1*
          ; st2 := st1
+      // TODO: check if typevar, if so split into multiple derived typevars for children
       else t2* := <map(!DynT())> trm1*
          ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
     end

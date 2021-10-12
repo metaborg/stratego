@@ -40,7 +40,7 @@ st-from-stMatchTerm: StMatchTerm(st, Some(t), s*) -> (<current-type(|<tv2TP> t)>
 st-from-stMatchTerm: StMatchTerm(st, None(), s*) -> (<current-type(tv2TP)> st, s*)
 st-from-stBuildTerm: StBuildTerm(st, _) -> <current-type(tv2TP)> st
 
-stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type(TP2tv)> st2, ot2, s*)
+stMatchTerm-as-st(s|msg): StMatchTerm(st1, ot1, s*) -> StMatchTerm(<current-type-of(|st1)> st2, ot2, s*)
   where
     st2 := <current-type(tv2TP);s> st1
   ; if None() := ot1
