@@ -118,12 +118,14 @@ rules
   debug-show-java-O3 = debug-show-java(|3)
   debug-show-java-O4 = debug-show-java(|4)
   debug-show-java-O4-unopt-DFA = debug-show-java(<set-config> ("--no-dfa-optimise", ())|4)
-  debug-show-java-O4-nested-switches = debug-show-java(<set-config> ("--pmc:switchv", "switch")|4)
+  debug-show-java-O4-nested-switches = debug-show-java(<set-config> ("--pmc:switchv", "nested-switch")|4)
+  debug-show-java-O4-hash-switch = debug-show-java(<set-config> ("--pmc:switchv", "hash-switch")|4)
   debug-show-java-O5 = debug-show-java(|5)
   debug-show-java-O6 = debug-show-java(|6)
 
   debug-show-java-ast-O4 = debug-show-java-ast(|4)
-  debug-show-java-ast-O4-nested-switches = debug-show-java-ast(<set-config> ("--pmc:switchv", "switch")|4)
+  debug-show-java-ast-O4-nested-switches = debug-show-java-ast(<set-config> ("--pmc:switchv", "nested-switch")|4)
+  debug-show-java-ast-O4-hash-switch = debug-show-java-ast(<set-config> ("--pmc:switchv", "hash-switch")|4)
 
   debug-show-java-ast(|O) = debug-show-java-ast(id|O)
   debug-show-java-ast(s|O):

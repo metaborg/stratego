@@ -7,7 +7,7 @@ public abstract class OptimisationBenchmark extends BaseBenchmark {
     @Param({"2", "3", "4"})
     public int optimisationLevel = -1;
 
-    @Param({"", "elseif", "switch"})
+    @Param({"", "elseif", "nested-switch", "hash-switch"})
     public String switchImplementation = "";
 
     @Param({"", /*"name-arity",*/ "arity-name"})

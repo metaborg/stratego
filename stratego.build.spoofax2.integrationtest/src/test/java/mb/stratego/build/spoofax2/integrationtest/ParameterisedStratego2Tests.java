@@ -39,8 +39,8 @@ public class ParameterisedStratego2Tests {
 
     final List<Arguments> argParams = Lists.newArrayList(
             ArgumentsFactory("-O", "2"),
-            ArgumentsFactory("-O", "4", "--pmc:switchv", "elseif"),
-            ArgumentsFactory("-O", "4", "--pmc:switchv", "switch", "--pmc:switchv-order", "arity-name")
+//            ArgumentsFactory("-O", "4", "--pmc:switchv", "elseif"),
+            ArgumentsFactory("-O", "4", "--pmc:switchv", "hash-switch")
     );
 
     @TestFactory

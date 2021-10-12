@@ -83,16 +83,18 @@ public abstract class BaseBenchmark implements Problem {
     @Setup(Level.Trial)
     public void setup() throws SkipException, InvalidConfigurationException {
         if (optimisationLevel == 4) {
-            if (Objects.equals(switchImplementation, "")
-                    || (Objects.equals(switchImplementation, "switch") && Objects.equals(switchImplementationOrder, ""))
+            if (Objects.equals(switchImplementation, "")) {
+                throw new InvalidConfigurationException("No switch implementation set on -O 4");
+            } else if ((Objects.equals(switchImplementation, "nested-switch") && Objects.equals(switchImplementationOrder, ""))
+                    || (Objects.equals(switchImplementation, "hash-switch") && !Objects.equals(switchImplementationOrder, ""))
                     || (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, ""))
             ) {
-                throw new InvalidConfigurationException("No switch implementation set on -O 4");
+                throw new InvalidConfigurationException("Invalid combination of switch implementation and switch implementation order.");
             }
 
             args.add("--pmc:switchv", switchImplementation);
 
-            if (Objects.equals(switchImplementation, "switch")) {
+            if (Objects.equals(switchImplementation, "nested-switch")) {
                 args.add("--pmc:switchv-order", switchImplementationOrder);
             }
         } else {

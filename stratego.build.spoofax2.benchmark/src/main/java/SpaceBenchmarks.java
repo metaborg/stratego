@@ -31,11 +31,13 @@ public class SpaceBenchmarks {
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
-        String[] switchImplementations = {"", "elseif", "switch"};
+        String[] switchImplementations = {"", "elseif", "nested-switch", "hash-switch"};
         String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends CompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr.class,
+                Benchsym.class,
+                Benchtree.class,
                 Bubblesort.class,
                 Calls.class,
                 Factorial.class,
