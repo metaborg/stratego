@@ -1951,6 +1951,15 @@ strategies
   translate-DFA = translate-SwitchT
 
   translate-SwitchT:
+    SwitchT(p, [], default) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-Default> default
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
     SwitchT(p, alt*, default) ->
     bstm* |[
       switch (e_occ) {
