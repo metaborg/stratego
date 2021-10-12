@@ -11,9 +11,9 @@ BUILD_DIR?=./build
 REPO=$(BUILD_DIR)/stratego
 RESULTS_DIR=$(DATA_DIR)/benchmark_results
 
-BENCHMARK_ARGS?=-e failing -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` $(TARGET).csv" $(TARGET)
+BENCHMARK_ARGS?=-e failing -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` `echo $(TARGET) | tr -d '()|.'`.csv" $(TARGET)
 
-# DERIVATiVES - DO NOT CHANGE
+# DERIVATIVES - DO NOT CHANGE
 STRATEGO_DIR=$(REPO)/$(STRATEGO_PROJECT)
 BENCHMARK_DIR=$(REPO)/$(BENCHMARK_PROJECT)
 
