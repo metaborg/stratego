@@ -12,6 +12,7 @@ imports
   collection/list/filter
   collection/list/set
   collection/tuple/common
+  collection/tuple/cons
   term/integer
 
 strategies
@@ -23,10 +24,8 @@ strategies
    * <s>(x,y).
    *
    * Example: <cart(id)> ([1,2],[5,6]) => [(1,5),(1,6),(2,5),(2,6)]
-   *
-   * @param s              a * b -> c
-   * @type     List(a) * List(b) -> List(c)
    */
+  cart(a * b -> c) :: List(a) * List(b) -> List(c)
   cart(s) :
     (xs, ys) ->
     <foldr(![], conc, \ x -> <map(\y -> <s>(x, y)\ )> ys\ )> xs
@@ -38,18 +37,21 @@ strategies
    * @param s              a * b -> c
    * @type     List(a) * List(b) -> List(c)
    */
+  join(a * b -> c) :: List(a) * List(b) -> List(c)
   join(s) :
     (xs, ys) ->
     <foldr(![], union, \x -> <filter(\y -> <s>(x, y)\ )> ys\ )> xs
 
   /** @internal */
+  Skip(a -> b) :: List(c) * d -> c * (List(c) * d)
   Skip(s) : ([x|xs], ys) -> (x, (xs, ys))
 
 strategies
 
   /** @internal */
-  genzip(a, b, c, s) =
-    rec x(a + b; (s, x); c)
+  genzip(i -> o, i -> a * i, b * o -> o, a -> b) :: i -> o
+  genzip(empty, split, cons, s) =
+    empty + split; (s, genzip(empty, split, cons, s)); cons
 
   /**
    * Combines two lists into one by pairing up the elements from both lists.
@@ -61,6 +63,7 @@ strategies
    *
    * @type List(a) * List(b) -> List(a * b)
    */
+  zip :: List(a) * List(b) -> List(a * b)
   zip  = zip(id)
 
   /**
@@ -73,21 +76,31 @@ strategies
    * @param s              a * b -> c
    * @type     List(a) * List(b) -> List(c)
    */
+  zip(a * b -> c) :: List(a) * List(b) -> List(c)
   zip(s)  =
     genzip(Zip1,   Zip2,   Zip3,   s)
 
+  zip'(a * b -> c) :: List(a) * List(b) -> List(c)
   zip'(s) =
     genzip(Zip1a' <+ Zip1b',   Zip2,   Zip3,   s)
 
+  zipl(a * b -> c) :: List(a) * List(b) -> List(c)
   zipl(s) =
     genzip(Zip1a',   Zip2,   Zip3,   s)
 
+  zipr(a * b -> c) :: List(a) * List(b) -> List(c)
   zipr(s) =
     genzip(Zip1b',   Zip2,   Zip3,   s)
 
+  rest-zip(a * b -> c) :: List(a) * List(b) -> List(a) * List(b) * List(c)
   rest-zip(s) =
-    genzip((?([],_) + ?(_,[])); ?(tla, tlb); ![], Zip2, Zip3, s);
-    \ pairs -> (tla, tlb, pairs) \
+    let
+      split :: List(a) * List(b) -> List(c)
+      split = (?([],_) + ?(_,[])); ?(tla, tlb); ![]
+    in
+      genzip(split, Zip2, Zip3, s);
+      !(tla, tlb, <id>)
+    end
 
   /**
    * Combines two lists into one by pairing up the elements from both lists.
@@ -97,6 +110,7 @@ strategies
    * @param Second list : List(b)
    * @type List(a) -> List(c)
    */
+  zip((|b) a -> c | List(b)) :: List(a) -> List(c)
   zip(s : t * t -> t | ys) =
     if ?[x | xtail] then
       where(!ys => [y | ytail])
@@ -108,7 +122,6 @@ strategies
 
 strategies
 
-  // :: [a * b] -> [a] * [b]
   /**
    * Splits a list of pairs into two separate lists. This strategy
    * is the inverse of zip.
@@ -117,6 +130,7 @@ strategies
    *
    * @type     List(a * b) -> List(a) * List(b)
    */
+  unzip :: List(a * b) -> List(a) * List(b)
   unzip = unzip(id)
 
   /**
@@ -128,19 +142,24 @@ strategies
    *
    * @type     List(a * b) -> List(a) * List(b)
    */
+  unzip(a -> b * c) :: List(a) -> List(b) * List(c)
   unzip(s) =
     genzip(UnZip1, UnZip3, UnZip2, s)
 
  /**
   * @inc nzip0-test
   */
+  nzip0(int * a -> b) :: List(a) -> List(b)
   nzip0(s) =
     NZip00 ; genzip(NZip1,  NZip2,  NZip3,  s)
+  nzip(int * a -> b) :: List(a) -> List(b)
   nzip(s) =
     NZip01 ; genzip(NZip1,  NZip2,  NZip3,  s)
 
+  lzip(a * b -> c) :: List(a) * b -> List(c)
   lzip(s) =
     genzip(Zip1a', LZip2, Zip3, s)
+  rzip(a * b -> c) :: a * List(b) -> List(c)
   rzip(s) =
     genzip(Zip1b', RZip2, Zip3, s)
 
@@ -181,42 +200,60 @@ strategies
 rules
 
   /** @internal */
+  Zip1 :: List(a) * List(b) -> List(c)
   Zip1   : ([],[]) -> []
   /** @internal */
+  Zip1a' :: List(a) * b -> List(c)
   Zip1a' : ([],_) -> []
   /** @internal */
+  Zip1b' :: a * List(b) -> List(c)
   Zip1b' : (_,[]) -> []
   /** @internal */
+  Zip1c :: List(a) * b -> b
   Zip1c  : ([],x) -> x
   /** @internal */
+  Zip1c' :: a * List(b) -> a
   Zip1c' : (x,[]) -> x
   /** @internal */
+  Zip1d :: List(a) * List(b) -> List(c)
   Zip1d  : ([],[_|_]) -> []
   /** @internal */
+  Zip2 :: List(a) * List(b) -> (a * b) * (List(a) * List(b))
   Zip2   : ([x|xs],[y|ys]) -> ((x, y), (xs, ys))
 
   /** @internal */
+  LZip2 :: List(a) * b -> (a * b) * (List(a) * b)
   LZip2  : ([x|xs], y) -> ((x, y), (xs, y))
   /** @internal */
+  RZip2 :: a * List(b) -> (a * b) * (a * List(b))
   RZip2  : (x, [y|ys]) -> ((x, y), (x, ys))
 
   /** @internal */
+  Zip3 :: a * List(a) -> List(a)
   Zip3   : (x, xs) -> [x|xs]
 
   /** @internal */
+  UnZip1 :: List(a) -> List(b) * List(c)
   UnZip1 : [] -> ([], [])
   /** @internal */
+  UnZip2 :: (a * b) * (List(a) * List(b)) -> List(a) * List(b)
   UnZip2 : ((x, y), (xs, ys)) -> ([x|xs], [y|ys])
   /** @internal */
+  UnZip3 :: List(a) -> a * List(a)
   UnZip3 : [x |  xs] -> (x, xs)
 
   /** @internal */
+  NZip00 :: a -> int * a
   NZip00 : xs -> (0, xs)
   /** @internal */
+  NZip01 :: a -> int * a
   NZip01 : xs -> (1, xs)
   /** @internal */
+  NZip1 :: a * List(b) -> List(c)
   NZip1  : (n, []) -> []
   /** @internal */
-  NZip2  : (n, [y|ys]) -> ((n, y), (<add> (n, 1), ys))
+  NZip2 :: int * List(a) -> (int * a) * (int * List(a))
+  NZip2  : (n, [y|ys]) -> ((n, y), (<addi> (n, 1), ys))
   /** @internal */
+  NZip3 :: a * List(a) -> List(a)
   NZip3  : (x, xs) -> [x| xs]

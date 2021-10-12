@@ -549,7 +549,7 @@ strategies
   matrix-transpose =
       map(?[]); ![]
     +   map(split-Cons)
-      ; unzip ; is(List(a) * List(List(a)))
+      ; unzip
       ; (id, matrix-transpose)
       ; MkCons
 
@@ -756,14 +756,9 @@ strategies
    * @inc copy-test
    *
    * Example: <copy> (3, "foo") => ["foo", "foo", "foo"]
-   *
-   * @type Int * a -> List(a)
    */
   copy :: int * a -> List(a)
-  copy =
-    for(\ (n,t) -> (n,t,[]) \
-       ,\ (0,t,ts) -> ts \
-       ,\ (n,t,ts) -> (<subt>(n,1), t, [t|ts]) where <geq>(n,1) \ )
+  copy = copy(id)
 
   /**
    * Makes n copies of a term into a list of duplicates, applying
@@ -771,15 +766,21 @@ strategies
    * integer n, the second is the term to duplicate.
    *
    * Example: <copy(\ "foo" -> "bar" \)> (3, "foo") => ["bar","bar","bar"]
-   *
-   * @param s       a -> b
-   * @type    Int * a -> List(n)
    */
   copy(a -> b) :: int * a -> List(b)
   copy(s) =
-    for(\ (n,t) -> (n,t,[]) \
-       ,\ (0,t,ts) -> ts \
-       ,\ (n,t,ts) -> (<subt>(n,1), t, [<s> t|ts]) where <geq>(n,1) \ )
+    let
+      Copy1 :: int * a -> int * a * List(b)
+      Copy1: (n,t) -> (n,t,[])
+
+      Copy2 :: int * a * List(b) -> List(b)
+      Copy2: (0,t,ts) -> ts
+
+      Copy3 :: int * a * List(b) -> int * a * List(b)
+      Copy3: (n,t,ts) -> (<subt>(n,1), t, [<s> t|ts]) where <geq>(n,1)
+    in
+      for(Copy1, Copy2, Copy3)
+    end
 
   /** @internal */
   thread-map(a * b -> c * b) :: List(a) * b -> List(c) * b
@@ -928,7 +929,7 @@ strategies
    * @param s       a -> _
    * @type    List(a) -> List(a)
    */
-  drop-until(a -> b) :: List(a) -> List(b)
+  drop-until(a -> a) :: List(a) -> List(a)
   drop-until(s) =
     at-suffix(([] + [s|id]);?xs); !xs
 
@@ -1011,8 +1012,9 @@ strategies
   drop(isn) =
     where(<isn> () => n)
     ; nzip0(id)
-    ; drop-until(?(n,_))
-    ; map(?(_, <id>))
+    // TODO: remove type ascriptions
+    ; drop-until(?(n,_) :: int * a)
+    ; map(?(_, <id>) :: int * a)
 
   /**
    * Splits the list in two sublists, containing elements from 0 to
@@ -1040,7 +1042,7 @@ strategies
    * @since 0.9.5
    * @inc   trim-test
    */
-  rtrim(a -> b) :: List(a) -> List(a)
+  rtrim(a -> ?) :: List(a) -> List(a)
   rtrim(s) =
     ?[]
   + at-suffix-rev(

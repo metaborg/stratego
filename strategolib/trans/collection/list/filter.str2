@@ -17,10 +17,12 @@ strategies
    *
    * @inc test1
    */
+  filter(a -> b) :: List(a) -> List(b)
   filter(s) =
     [] + [s | filter(s)] <+ ?[_ | <filter(s)> ]
 
 
+  filter(a -> b, List(a) -> List(b)) :: List(a) -> List(b)
   filter(s, tail) =
     ?[]; tail
     <+ [s | filter(s, tail)]
@@ -34,6 +36,7 @@ strategies
    * @param s  a -> b
    * @type     List(a) -> List(b)
    */
+  retain-all(a -> b) :: List(a) -> List(b)
   retain-all(s) =
     filter(s)
 
@@ -43,6 +46,7 @@ strategies
    * @param s  a -> b
    * @type     List(a) -> List(a)
    */
+  remove-all(a -> b) :: List(a) -> List(a)
   remove-all(s) =
     filter(not(s))
 
@@ -55,9 +59,11 @@ strategies
    * @param s a -> b
    * @type  List(a) -> List(b)
    */
+//  reverse-filter(a -> b) :: List(a) -> List(b)
   reverse-filter(s) =
     [] + [id | reverse-filter(s)]; ([s | id] <+ ?[_  | <id>])
 
+  reverse-filter(a -> b, List(a) -> List(b)) :: List(a) -> List(b)
   reverse-filter(s, tail) =
     ?[]; tail
     + ?[x | xs]

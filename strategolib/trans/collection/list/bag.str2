@@ -10,6 +10,8 @@
  */
 module collection/list/bag
 imports collection/list/common
+imports collection/list/cons
+imports collection/tuple/cons
 imports term/integer
 imports strategy/conditional
 rules
@@ -20,9 +22,8 @@ rules
    * bag may be empty.
    *
    * Example: <bag-insert> (('a', 1), []) => [('a',1)]
-   *
-   * @type (elem, occur) * List(a) -> List(a)
    */
+  bag-insert :: (a * int) * List(a * int) -> List(a * int)
   bag-insert :
     ((x,j), l) ->
     <fetch(\ (y,i) -> (y, <add>(i,j)) where <eq>(y,x) \ ) <+ ![(x,j)|l]> l
@@ -34,6 +35,7 @@ rules
    *
    * @type List(a) * List(a) -> List(a)
    */
+  bag-union :: List(a * int) * List(a * int) -> List(a * int)
   bag-union :
     (l1, l2) -> <foldr(!l2, bag-insert)> l1
 
@@ -47,6 +49,7 @@ rules
    * @param  Used to test equality on elements.
    * @type   (elem, occurrence) * List(a) -> List(a)
    */
+//  bag-insert(a * a -> a) :: (a * int) * List(a * int) -> List(a * int)
   bag-insert(equ) :
     ((x,j), l) ->
     <fetch(\ (y,i) -> (<equ>(x,y), <add>(i,j)) \ ) <+ ![(x,j)|l]> l
@@ -58,5 +61,6 @@ rules
    * @param  Used to test equality on elements.
    * @type   List(a) * List(a) -> List(a)
    */
+  bag-union(a * a -> a) :: List(a * int) * List(a * int) -> List(a * int)
   bag-union(equ) :
     (l1, l2) -> <foldr(!l2, bag-insert(equ))> l1

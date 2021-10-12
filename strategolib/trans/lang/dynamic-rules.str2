@@ -59,14 +59,14 @@ signature
     SplitPos   : string * string -> SplitPos
     BreakCS    : string * string -> BreakCS
     ContinueCS : string * string -> ContinueCS
-    IgnoreB    : string -> IgnoreB
-    IgnoreC    : string -> IgnoreC
+    IgnoreB    : HashtableImplBlob -> IgnoreB
+    IgnoreC    : HashtableImplBlob -> IgnoreC
 
     Catch       : string * string -> Catch
     Finally     : string -> Finally
     TryBlock    : int * string * List(Catch) * Finally -> TryBlock
     Structure   : string -> Structure
-    IgnoreT     : string -> IgnoreT
+    IgnoreT     : HashtableImplBlob -> IgnoreT
     ThrowCS     : string * string -> ThrowCS
     ExceptionCS : string * string -> ExceptionCS
 
@@ -1441,7 +1441,7 @@ strategies // generic fix-point strategies
     // sure that when bagof-DR_BREAK is called in dr-label, only the proper
     // change sets are returned for merging
     ; <map({rulename, label:
-        ?rulename
+        ?rulename :: ?
         ; <DR_BREAK>Label(rulename) => label
         ; (<bagof-DR_BREAK>BreakCS(rulename, label) <+ ![])
         ; list-tokenize(|[()])
@@ -1887,7 +1887,7 @@ strategies // exception handling strategies
   dr-complete-exception-block(merge | rulenames) =
     where(
       <map({rulename, ID, csid, rs, hd, tl :
-        ?rulename
+        ?rulename :: ?
         ; (<once-DR_EXCEPTION>Structure(rulename) => TryBlock(_, ID, [], Finally(""))
            <+ fatal-err(|"dr-complete-exception-block was called before completing all catch clauses (and the finally clause) or in a non-proper exception handling context"))
         ; (dr-get-rule-set(|rulename) => [ChangeSet(_, _, Hashtable(csid)) | rs]
