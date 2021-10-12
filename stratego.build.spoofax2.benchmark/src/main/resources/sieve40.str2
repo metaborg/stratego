@@ -1,4 +1,4 @@
-module sieve20
+module sieve40
 
 imports libstrategolib
 
@@ -95,5 +95,5 @@ strategies
    equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
    eval-and-print = eval ; debug (!"result = ")
    main = 
-      (<eval-and-print> sieve (intsBetween (s (s (z())), mult(two(), ten())))) ;
+      (<eval-and-print> sieve (intsBetween (s (s (z())), mult(add(two(), two()), ten())))) ;
       <exit> 0
