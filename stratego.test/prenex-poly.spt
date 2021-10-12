@@ -11,6 +11,7 @@ fixture [[
       Option(*)
       PolyType(a)
       Tuple(*, *)
+      Tuple(*, *, *)
     constructors
       One : a -> PolyType(a)
       Cons : a * List(a) -> List(a)
@@ -52,7 +53,7 @@ test untyped collect-all [[
     test-collect-all = ![1,2,3]; collect-all(!"hi!")
 ]] 0 errors
    0 warnings
-   has origin locations
+//   has origin locations
 
 test typed collect-all [[
     internalconc :: List(c) * List(c) -> List(c)
@@ -201,4 +202,23 @@ test Mixed dynamically typed and typed should be fine [[
     rec x(s <+ [id | x])
 ]] 0 errors
    0 warnings
-   has origin locations
+//   has origin locations
+
+test rest-zip should typecheck [[
+  rest-zip(a * b -> c) :: List(a) * List(b) -> List(a) * List(b) * List(c)
+  rest-zip(s) =
+    genzip((?([],_) + ?(_,[])); ?(tla, tlb); ![], Zip2, Zip3, s);
+    \ pairs -> (tla, tlb, pairs) \
+
+
+  genzip(i -> o, i -> a * i, b * o -> o, a -> b) :: i -> o
+  genzip(empty, split, cons, s) =
+    empty + split; (s, genzip(empty, split, cons, s)); cons
+
+  Zip2 :: List(a) * List(b) -> (a * b) * (List(a) * List(b))
+  Zip2   : ([x|xs],[y|ys]) -> ((x, y), (xs, ys))
+
+  Zip3 :: a * List(a) -> List(a)
+  Zip3   : (x, xs) -> [x|xs]
+]] 0 errors
+   0 warnings
