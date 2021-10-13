@@ -59,7 +59,7 @@ $(RESULTS_DIR):
 run-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) | $(RESULTS_DIR)
 	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) $(BENCHMARK_ARGS)
-	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished%3A%0A${TARGET}"
+	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished%3A%0A`echo ${TARGET} | tr -d ' .'`"
 
 .PHONY: prepare-benchmark
 prepare-benchmark: $(STRATEGO_LANGUAGE) $(BENCHMARK_JAR) | $(RESULTS_DIR)
