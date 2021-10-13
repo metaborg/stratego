@@ -1976,6 +1976,15 @@ strategies
   ; cases := <map(translate-AltT(|e_trm))> alt*
 
   translate-SwitchT:
+    SwitchTNoDefault(p, []) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-strategy> Fail()
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
     SwitchTNoDefault(p, alt*) ->
     bstm* |[
       switch (e_occ) {
