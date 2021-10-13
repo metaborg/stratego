@@ -35,8 +35,8 @@ public abstract class BaseBenchmark implements Problem {
     @Param({""})
     public String switchImplementation;
 
-    @Param({""})
-    public String switchImplementationOrder;
+//    @Param({""})
+//    public String switchImplementationOrder;
 
     @Param({"on"})
     public String sharedConstructors;
@@ -72,9 +72,9 @@ public abstract class BaseBenchmark implements Problem {
         this.switchImplementation = switchImplementation;
     }
 
-    public void setSwitchImplementationOrder(String switchImplementationOrder) {
-        this.switchImplementationOrder = switchImplementationOrder;
-    }
+//    public void setSwitchImplementationOrder(String switchImplementationOrder) {
+//        this.switchImplementationOrder = switchImplementationOrder;
+//    }
 
     public final void setProblemSize(int problemSize) {
         this.problemSize = problemSize;
@@ -85,22 +85,22 @@ public abstract class BaseBenchmark implements Problem {
         if (optimisationLevel == 4) {
             if (Objects.equals(switchImplementation, "")) {
                 throw new InvalidConfigurationException("No switch implementation set on -O 4");
-            } else if ((Objects.equals(switchImplementation, "nested-switch") && Objects.equals(switchImplementationOrder, ""))
+            } /*else if ((Objects.equals(switchImplementation, "nested-switch") && Objects.equals(switchImplementationOrder, ""))
                     || (Objects.equals(switchImplementation, "hash-switch") && !Objects.equals(switchImplementationOrder, ""))
                     || (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, ""))
             ) {
                 throw new InvalidConfigurationException("Invalid combination of switch implementation and switch implementation order.");
-            }
+            }*/
 
             args.add("--pmc:switchv", switchImplementation);
 
-            if (Objects.equals(switchImplementation, "nested-switch")) {
-                args.add("--pmc:switchv-order", switchImplementationOrder);
-            }
-        } else {
+//            if (Objects.equals(switchImplementation, "nested-switch")) {
+//                args.add("--pmc:switchv-order", switchImplementationOrder);
+//            }
+        } /*else {
             if (!Objects.equals(switchImplementation, "") || !Objects.equals(switchImplementationOrder, ""))
                 throw new InvalidConfigurationException("Switch implementation set, but not on -O 4");
-        }
+        }*/
 
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 

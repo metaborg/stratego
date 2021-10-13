@@ -31,6 +31,7 @@
 
 package benchmark.stratego2.template.benchmark.compilation;
 
+import api.Stratego2Program;
 import benchmark.stratego2.template.benchmark.base.OptimisationBenchmark;
 import org.openjdk.jmh.annotations.*;
 
@@ -45,7 +46,9 @@ public abstract class CompilationBenchmark extends OptimisationBenchmark {
     @Override
     @TearDown(Level.Iteration)
     public void teardown() {
-        getProgram().cleanup();
+        Stratego2Program p = getProgram();
+        if (p != null)
+            p.cleanup();
     }
 
 }

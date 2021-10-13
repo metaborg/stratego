@@ -28,13 +28,13 @@ public class SpaceBenchmarks {
 
         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(resultsFile));
 
-        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Param: switchImplementation", "Param: switchImplementationOrder", "Score"}, Character.toString(delim)));
+        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Param: switchImplementation", /*"Param: switchImplementationOrder",*/ "Score"}, Character.toString(delim)));
         fileWriter.newLine();
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
         String[] switchImplementations = {"", "elseif", "nested-switch", "hash-switch"};
-        String[] switchImplementationOrders = {"", "arity-name"};
+//        String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends CompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr.class,
@@ -50,16 +50,16 @@ public class SpaceBenchmarks {
                 Quicksort.class,
                 Sieve.class));
 
-        for (int optimisationLevel : optimisationLevels) {
-            for (String switchImplementation : switchImplementations) {
-                for (String switchImplementationOrder : switchImplementationOrders){
-                    for (Class<? extends CompilationBenchmark> problemClass : problems) {
-                        for (int problemSize : Arrays.stream(
-                                        FieldUtils.getField(problemClass, "problemSize", true)
-                                                .getAnnotation(Param.class)
-                                                .value())
-                                .mapToInt(Integer::valueOf).toArray()) {
-                            System.out.printf("Problem %s (%d); -O %d%n", problemClass.getSimpleName(), problemSize, optimisationLevel);
+        for (Class<? extends CompilationBenchmark> problemClass : problems) {
+            for (int problemSize : Arrays.stream(
+                            FieldUtils.getField(problemClass, "problemSize", true)
+                                    .getAnnotation(Param.class)
+                                    .value())
+                    .mapToInt(Integer::valueOf).toArray()) {
+                for (int optimisationLevel : optimisationLevels) {
+                    for (String switchImplementation : switchImplementations) {
+//                        for (String switchImplementationOrder : switchImplementationOrders){
+                            System.out.printf("%s (%d); -O %d; switch: %s%n", problemClass.getSimpleName(), problemSize, optimisationLevel, switchImplementation);
 
                             CompilationBenchmark benchmark = problemClass.newInstance();
                             try {
@@ -68,7 +68,7 @@ public class SpaceBenchmarks {
                                 benchmark.setProblemSize(problemSize);
                                 benchmark.setSharedConstructors("on");
                                 benchmark.setSwitchImplementation(switchImplementation);
-                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
+//                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
 
                                 benchmark.setup();
 
@@ -88,8 +88,8 @@ public class SpaceBenchmarks {
                                     fileWriter.write(delim);
                                     fileWriter.write(switchImplementation);
 
-                                    fileWriter.write(delim);
-                                    fileWriter.write(switchImplementationOrder);
+//                                    fileWriter.write(delim);
+//                                    fileWriter.write(switchImplementationOrder);
 
                                     fileWriter.write(delim);
                                     fileWriter.write(Long.toString(bm.getValue()));
@@ -100,12 +100,13 @@ public class SpaceBenchmarks {
                             } catch (MetaborgException | SkipException | IOException | InvalidConfigurationException e) {
                                 e.printStackTrace();
                             } finally {
-                                benchmark.teardown();
+                                if (benchmark != null)
+                                    benchmark.teardown();
                             }
 
                         }
                     }
-                }
+//                }
             }
         }
 

@@ -10,8 +10,8 @@ public abstract class OptimisationBenchmark extends BaseBenchmark {
     @Param({"", "elseif", "nested-switch", "hash-switch"})
     public String switchImplementation = "";
 
-    @Param({"", /*"name-arity",*/ "arity-name"})
-    public String switchImplementationOrder = "";
+//    @Param({"", /*"name-arity",*/ "arity-name"})
+//    public String switchImplementationOrder = "";
 
 //    @SuppressWarnings("unused")
 //    @Param({"on", "off"})
