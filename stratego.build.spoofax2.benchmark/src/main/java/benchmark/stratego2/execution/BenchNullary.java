@@ -10,7 +10,6 @@ import org.openjdk.jmh.annotations.Timeout;
 import java.util.concurrent.TimeUnit;
 
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
-@BenchmarkMode({Mode.SampleTime})
 public class BenchNullary extends ExecutionBenchmark implements BenchNullaryProblem {
 
     @Param({"100", "200", "300", "400", "500", /*"600", "700", "800", "900", "1000"*/})
