@@ -2087,7 +2087,7 @@ strategies
       IStrategoConstructor x_cons = e_path;
 
       switch (x_cons.hashCode()) {
-        ~switch-group*:groups
+        ~switch-group*:cases
         default: {
           stm_def
           break;
@@ -2096,44 +2096,30 @@ strategies
     ]|
   with
     x_cons := <newname> "cons"
-  ; groups := <map(HashGroup(|e|[x_cons]|, stm_def))> alt*
+  ; pairs := <map(split(AltHash, id))> alt*
+  ; hash_set := <map(Fst); make-set> pairs
+  ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
+  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
+
+  AltHash:
+    alt@(_#([FunC(x, a), _])) ->
+    <constructor-checksum> appl
+  where
+    <?AltV(_, _) + ?GuardedAltV(_, _)> alt
+  with
+    appl := x#(<range> (0, <string-to-int> a))
 
   HashGroup(|e_occ, stm_def):
-    AltV(t@FunC(x, a), s) ->
+    (hash, alt*) ->
     switch-group |[
       case e_hash: {
-        if (e_match) {
-          ~<translate-strategy> s
-        } else {
-          stm_def
-        }
-
+        bstm_alts*
         break;
       }
     ]|
   with
-    e_match := <java-Pat-to-Condition> (t, e_occ)
-  ; appl := <debug(|"constructed term: ")> x#(<range> (0, <string-to-int> a))
-  ; e_hash := <constructor-checksum; java-mk-int-const> appl
-
-  HashGroup(|e_occ, stm_def):
-    GuardedAltV(t@FunC(x, a), guards) ->
-    switch-group |[
-      case e_hash: {
-        if (e_match) {
-          bstm_guards
-        } else {
-          stm_def
-        }
-
-        break;
-      }
-    ]|
-  with
-    e_match := <java-Pat-to-Condition> (t, e_occ)
-  ; bstm_guards := <translate-Guards> guards
-  ; appl := <debug(|"constructed term: ")> x#(<range> (0, <string-to-int> a))
-  ; e_hash := <constructor-checksum; java-mk-int-const> appl
+    e_hash := <java-mk-int-const> hash
+  ; bstm_alts* := <foldr(!stm_def, translate-AltV-if(|e_occ))> alt*
 
   constructor-checksum = prim("SSL_constructor_hash", <id>)
 
