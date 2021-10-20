@@ -49,7 +49,7 @@ rules
    * @param  Used to test equality on elements.
    * @type   (elem, occurrence) * List(a) -> List(a)
    */
-//  bag-insert(a * a -> a) :: (a * int) * List(a * int) -> List(a * int)
+  bag-insert(a * a -> a) :: (a * int) * List(a * int) -> List(a * int)
   bag-insert(equ) :
     ((x,j), l) ->
     <fetch(\ (y,i) -> (<equ>(x,y), <add>(i,j)) \ ) <+ ![(x,j)|l]> l

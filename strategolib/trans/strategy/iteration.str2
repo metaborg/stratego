@@ -10,6 +10,7 @@ strategies
   /**
    * Repeatedly apply s until it fails.
    */
+  repeat(a -> a) :: a -> a
   repeat(s) =
     try(s; repeat(s))
 

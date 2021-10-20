@@ -130,7 +130,7 @@ immap-contains-key(eq|k) = where(immap-get(eq|k))
  * Returns the associated value of the key in the immutable map,
  * or fails if the key is not in the immutable map.
  *
- * @param e - the key used to look up the value
+ * @param k - the key used to look up the value
  * @type ImmutableMap -?> Term
  */
 immap-get(|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get", k)
@@ -141,43 +141,45 @@ immap-get(|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get", k)
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
- * @param e - the key used to look up the value
+ * @param k - the key used to look up the value
  * @type ImmutableMap -?> Term
  */
 immap-get(eq|k) = ?ImmutableMap(<id>); prim("SSL_immutable_map_get_eq", eq | k)
 
 /**
- * Inserts an element in the immutable map. Returns a new map with the added element.
+ * Inserts a mapping in the immutable map. Returns a new map with the added mapping.
  *
- * @param e - the element that is inserted
+ * @param k - the key of the mapping to be inserted
+ * @param v - the value of the mapping to be inserted
  * @type ImmutableMap -> ImmutableMap
  */
 immap-put(|k, v) = ImmutableMap(prim("SSL_immutable_map_put", k, v))
 
 /**
- * Inserts an element in the immutable map. Returns a new map with the added element.
+ * Inserts a mapping in the immutable map. Returns a new map with the added mapping.
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
- * @param e - the element that is inserted
+ * @param k - the key of the mapping to be inserted
+ * @param v - the value of the mapping to be inserted
  * @type ImmutableMap -> ImmutableMap
  */
 immap-put(eq|k, v) = ImmutableMap(prim("SSL_immutable_map_put_eq", eq | k, v))
 
 /**
- * Removes an element in the immutable map. Returns a new map without the removed element.
+ * Removes a mapping in the immutable map. Returns a new map without the removed mapping.
  *
- * @param e - the element that is removed
+ * @param k - the key by which to find the mapping that is to be removed
  * @type ImmutableMap -> ImmutableMap
  */
 immap-remove(|k) = ImmutableMap(prim("SSL_immutable_map_remove", k))
 
 /**
- * Removes an element in the immutable map. Returns a new map without the removed element.
+ * Removes a mapping in the immutable map. Returns a new map without the removed mapping.
  * With a custom equality operator.
  *
  * @param eq: Term * Term -?>
- * @param e - the element that is removed
+ * @param k - the key by which to find the mapping that is to be removed
  * @type ImmutableMap -> ImmutableMap
  */
 immap-remove(eq|k) = ImmutableMap(prim("SSL_immutable_map_remove_eq", eq | k))
@@ -400,7 +402,7 @@ immap-union(m) =
   ?(l, r); <immap-union(m|r)> l
 
 /**
- * Combining operations with custom equality operator (prefers the current/left elements)
+ * Combining operations with custom equality operator (prefers the current/left mappings)
  */
 strategies
 

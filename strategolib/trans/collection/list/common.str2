@@ -21,7 +21,7 @@ strategies
    * @param Strategy to apply to every element (a -> _)
    * @type List(a) -> List(a)
    */
-  list-loop(List(a) -> b) :: List(a) -> List(a)
+  list-loop(a -> b) :: List(a) -> List(a)
   list-loop(s) =
     ?xs; prim("SSL_list_loop", s | xs)
 
@@ -476,6 +476,12 @@ strategies
   conc =
     \ (l1, l2) -> <at-end(!l2)> l1 \
     <+ \ "" # (xs) -> <concat> xs \
+
+  /**
+   * Concatenates all lists of a pair.
+   */
+  conc2 :: List(a) * List(a) -> List(a)
+  conc2 : (l1, l2) -> <at-end(!l2)> l1
 
   /**
    * Concatenates a list of lists into one list.

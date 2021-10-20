@@ -8,6 +8,7 @@ imports
   term/integer
   strategy/conditional
   collection/tuple/common
+  collection/tuple/cons
 
 strategies
 
@@ -16,6 +17,7 @@ strategies
    *
    * @type List(Int) -> Int
    */
+  sum :: List(int) -> int
   sum = foldr(!0, add)
 
   /**
@@ -25,6 +27,7 @@ strategies
    *
    * @type List(Int) -> Int
    */
+  average :: List(int) -> int
   average = split(sum, length); div
 
   /**
@@ -32,6 +35,7 @@ strategies
    *
    * @type List(Int) -> Int
    */
+  list-min :: List(int) -> int
   list-min = list-accum(min)
 
   /**
@@ -39,6 +43,7 @@ strategies
    *
    * @type List(Int) -> Int
    */
+  list-max :: List(int) -> int
   list-max = list-accum(max)
 
   /**
@@ -51,6 +56,7 @@ strategies
    * @param (a,b)   -> c
    * @type  List(a) -> d
    */
+  list-accum(a * a -> a) :: List(a) -> a
   list-accum(s) = !(<Tl>, <Hd>); foldl(s)
 
   /**
@@ -63,6 +69,7 @@ strategies
    *
    * @type List(List(Number)) -> List(Number)
    */
+  add-lists :: List(List(?)) -> List(?)
   add-lists = list-accum(zip(add <+ !""))
 
  /**
@@ -72,6 +79,7 @@ strategies
   *
   * @type List(Int) -> List(Int)
   */
+  int-sort :: List(int) -> List(int)
   int-sort = sort-list(SortL(gt))
 
  /**
@@ -85,6 +93,7 @@ strategies
   *
   * @type List(Int) -> _
   */
+  is-interval-from :: int * List(int) -> int
   is-interval-from =
   rec r(
     \ (low,[]) -> low \
@@ -108,7 +117,8 @@ strategies
    * @type  Int * Int -> List(Int)
    * @since 0.9.3
    */
-  range = is-int; <range> (0, <id>)
+  range :: ? -> List(int)
+  range = is(int); <range> (0, <id>)
 
   /**
    * Generates a range of numbers in the form of an integer list. This version
@@ -121,7 +131,7 @@ strategies
    * @type  Int * Int -> List(Int)
    * @since 0.9.3
    */
-  range = (is-int, is-int); range(|1)
+  range = (is(int), is(int)); range(|1)
 
 strategies
 
@@ -140,7 +150,8 @@ strategies
    * @type      Int * Int -> List(Int)
    * @since     0.9.3
    */
-  range(|step) = is-int; <range(|step)> (0, <id>)
+  range(|int) :: ? -> List(int)
+  range(|step) = is(int); <range(|step)> (0, <id>)
 
   /**
    * Generates a sequence of integers, using a specified step size. This version
@@ -156,7 +167,7 @@ strategies
    * @type      Int * Int -> List(Int)
    * @since     0.9.3
    */
-  range(|step) = (is-int, is-int); range(<add> (<id>, step))
+  range(|step) = (is(int), is(int)); range(<add> (<id>, step))
 
 strategies
 
@@ -171,7 +182,8 @@ strategies
    * @type next Int -> Int
    * @type      Int       -> List(Int)
    */
-  range(next) = is-int; <range(next)> (0, <id>)
+  range(int -> int) :: ? -> List(int)
+  range(next) = is(int); <range(next)> (0, <id>)
 
   /**
    * Generates a sequence of numbers using a generator strategy. The
@@ -185,9 +197,10 @@ strategies
    * @type      Int * Int -> List(Int)
    * @since 0.9.3
    */
-  range(next) = (is-int, is-int); range-next(next) <+ ![]
+  range(next) = (is(int), is(int)); range-next(next) <+ ![]
 
   /** @internal */
+  range-next(int -> int) :: int * int -> List (int)
   range-next(inc) :
       (start, 'end) -> [start | tail]
         where <inc> start => next
@@ -208,5 +221,6 @@ rules
    *
    * @type List(Int) -> _
    */
+  is-interval :: List(int) -> int * int
   is-interval:
     [x|xs] -> (x,<is-interval-from>(x,xs))

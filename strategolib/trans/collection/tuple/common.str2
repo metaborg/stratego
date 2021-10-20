@@ -52,6 +52,7 @@ strategies
    *
    * @type a -> Tuple(a, a)
    */
+  Dupl :: a -> a * a
   Dupl  : x -> (x, x)
 
   /** Apply a pair of strategies, f and g, to an element.
@@ -60,6 +61,7 @@ strategies
    * @param g        a -> b'
    * @type           a -> Tuple(a', b')
    */
+  split(a -> b, a -> c) :: a -> b * c
   split(f, g) = !(<f>, <g>)
 
   /** Apply a triple of strategies, f, g and h to an element.
@@ -69,12 +71,14 @@ strategies
    * @param h        a -> c'
    * @type           a -> Tuple(a', b', c')
    */
+  split3(a -> b, a -> c, a -> d) :: a -> b * c * d
   split3(f, g, h) = !(<f>, <g>, <h>)
 
   /** Swap two elements in a tuple.
    *
    * @type Tuple(a, b) -> Tuple(b, a)
    */
+  Swap :: a * b -> b * a
   Swap : (x, y) -> (y, x)
 
   /** Retrieve the head of a tuple.
@@ -97,6 +101,7 @@ strategies
    * @type (Int, Tuple(a)) -> a
    * @see index
    */
+  tindex :: int * ? -> ?
   tindex =
     (id, ?""#(<id>)); index
 
@@ -113,6 +118,7 @@ strategies
    * @param s          Tuple(b,a) -> Tuple(b', a')
    * @type             Tuple(a,b) -> Tuple(b', a')
    */
+  flip(a * b -> c * d) :: b * a -> c * d
   flip(s) = Swap; s
 
   /** Apply a strategy to each element of a tuple. This strategy maps
@@ -134,6 +140,7 @@ strategies
    * @param s          Tuple(List(a), List(a)) -> List(a)
    * @type             Tuple(List(a))
    */
+  tconcat(List(?) * List(?) -> List(?)) :: ? -> List(?)
   tconcat(s) =
     is-tuple; crush(![], s)
 
@@ -155,6 +162,7 @@ strategies
    * @type             Tuple(List(a))
    * @see tconcat
    */
+  tconcat'(List(c) -> b, List(?) * b -> b) :: ? -> b
   tconcat'(s1, s2) =
     is-tuple; crush(<s1> [], s2)
 
@@ -171,6 +179,7 @@ strategies
    * @type             Tuple(a) -> b
    * @see foldr
    */
+  tcata(List(c) -> b, ? * b -> b) :: ? -> b
   tcata(s1, s2) =
     is-tuple; crush(s1, s2)
 
@@ -183,6 +192,7 @@ strategies
    * @type             Tuple(a) -> b
    * @see tcata
    */
+  tfoldr(List(c) -> b, ? * b -> b) :: ? -> b
   tfoldr(s1, s2) =
     tcata(s1, s2)
 
@@ -194,12 +204,14 @@ strategies
    * @type             Tuple(Tuple(a), Tuple(b)) -> c
    * @see zip
    */
+  tzip(? * ? -> c) :: ? * ? -> List(c)
   tzip(s)  =
     (TupleToList, TupleToList); zip(s)
 
   /**
    * @inc tuple-zip-test
    */
+  tuple-zip(? * ? -> c) :: ? * ? -> List(c)
   tuple-zip(s) =
     rec x(![<tmap(Hd); s> | <tmap(Tl); x>]
           <+ tmap([]); ![])
@@ -207,6 +219,7 @@ strategies
   /**
    * @inc tuple-unzip-test
    */
+  tuple-unzip(List(?) -> ?) :: List(?) -> ?
   tuple-unzip(s) =
     rec x(![<map(Thd); s> | <map(Ttl); x>] <+ map(()); ![])
   ; !"" #(<id>)
