@@ -16,11 +16,12 @@ signatures/gradual-types/signatures-sig
 signatures/gradual-types/strategies-sig
 signatures/gradual-types/internal-sig
 
-gradual-types/utils
 gradual-types/environment
+gradual-types/main
 gradual-types/signatures
 gradual-types/strategies
 gradual-types/terms
+gradual-types/utils
 
 strategies // Def
 
@@ -77,70 +78,78 @@ insertCasts-StrategyDef(|e1, st1) = otf12(insertCasts-StrategyDef-(|e1, st1))
 
 // insertCasts-StrategyDef(|Environment, Store) :: Decl -> (Decl, Store)
 insertCasts-StrategyDef-(|e1, st1):
-  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s2), st4) 
+  d@SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s2), st5)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
-    tv := <newname> "tp"
-  ; t1 := Sort(TP(), []){tv}
+    tv1 := <newname> "tp"
+  ; tv2 := "def"
+  ; t1 := Sort(TP(), []){tv1}
   ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; t2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> t1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; st3 := <term-merge-env(keep-right);current-type(|t1)> (st2, <term-zip-new-env> (t2*, tt*))
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; t2 := <current-type> st4
-  ; if <eq> (t1, t2)
-      <+ <eq> (t2, <type-var-lookup(|tv)> st4)
+  ; if <itv(|st4);eq> (t1, t2)
+      <+ <eq> (t2, <type-var-lookup(|tv1)> st4)
          ; <not(oncetd(?DynT()))> t2
       <+ <?ErrT()> t2
       then id
       else <report-Err> (x, MatchNotSpecificEnoughForTP(t2))
     end
+  ; st5 := <type-var-elim(id|[tv1, tv2])> st4
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5) 
+  d@SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st6)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
-    s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
+    tv := "def"
+  ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; t2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> t1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; st3 := <term-merge-env(keep-right);current-type(|t1)> (st2, <term-zip-new-env> (t2*, tt*))
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
+  ; st6 := <type-var-elim(id|tv)> st5
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st4) 
+  d@SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s3), st5)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
-    tv := <newname> "tp"
-  ; t1 := Sort(TP(), []){tv}
+    tv1 := <newname> "tp"
+  ; tv2 := "def"
+  ; t1 := Sort(TP(), []){tv1}
   ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; (t2*, (st3, s*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; t2 := <current-type> st4
   ; if <eq> (t1, t2)
-      <+ <eq> (t2, <type-var-lookup(|tv)> st4)
+      <+ <eq> (t2, <type-var-lookup(|tv1)> st4)
          ; <not(oncetd(?DynT()))> t2
       <+ <?ErrT()> t2
       then id
       else <report-Err> (x, MatchNotSpecificEnoughForTP(t2))
     end
   ; s3 := <StrategyDef-after-match> (s*, s2)
+  ; st5 := <type-var-elim(id|[tv1, tv2])> st4
 
 insertCasts-StrategyDef-(|e1, st1):
-  SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st5) 
+  d@SDefP(x, s1*, t1*, s1) -> (SDefP(x, s1*, t1*, s4), st6)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
-    s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
+    tv := "def"
+  ; s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; (t2*, (st3, s*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
   ; (s2, st4) := <insertCasts-Strategy(|e2, st3)> s1
   ; s3 := <last-seq(\s -> <insertCastAfter(|<current-type> st4, t2);?(<id>, st5)> (s, st4)\)> s2
   ; s4 := <StrategyDef-after-match> (s*, s3)
+  ; st6 := <type-var-elim(id|tv)> st5
 
 StrategyDef-after-match: ([], s) -> s
 StrategyDef-after-match: (s*, s) -> <otf(!Where(<seqs> s*));otf(!Seq(<id>, s))> s
@@ -188,7 +197,7 @@ insertCasts-RuleDef(|e1, st1) =
 ; (otf(\RDefT(x, s1*, [], s1) -> RDef(x, s1*, s1)\), id)
 
 insertCasts-RuleDef-(|e1, st1):
-  RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), st6)
+  d@RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), st7)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -196,10 +205,11 @@ insertCasts-RuleDef-(|e1, st1):
   ; t2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> t1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; st3 := <term-merge-env(keep-right)> (st2, <term-zip-new-env> (t2*, tt*))
-  ; tv := <newname> "tp"
-  ; t1 := SortVar(tv){TP()}
+  ; tv1 := <newname> "tp"
+  ; tv2 := "def"
+  ; t1 := SortVar(tv1){TP()}
   ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
-  ; if <type-var-lookup(|tv);not(?SortVar(_) + oncetd(?DynT()))> st4
+  ; if <type-var-lookup(|tv1);not(?SortVar(_) + oncetd(?DynT()))> st4
       then id
       else <report-Err> (trm1, MatchNotSpecificEnoughForTP(<current-type> st3))
     end
@@ -207,9 +217,10 @@ insertCasts-RuleDef-(|e1, st1):
   ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
+  ; st7 := <type-var-elim(id|[tv1, tv2])> st6
 
 insertCasts-RuleDef-(|e1, st1):
-  RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), <current-type-of(|st5)> st6)
+  d@RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), <current-type-of(|st5)> st7)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -217,24 +228,27 @@ insertCasts-RuleDef-(|e1, st1):
   ; t2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> t1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; st3 := <term-merge-env(keep-right)> (st2, <term-zip-new-env> (t2*, tt*))
+  ; tv := "def"
   ; (trm3, (st4, s*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; t3 := <current-type> st4
   ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
+  ; st7 := <type-var-elim(id|tv)> st6
 
 insertCasts-RuleDef-(|e1, st1):
-  RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t2*, Rule(trm3, trm4, cs3)), st6)
+  d@RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t2*, Rule(trm3, trm4, cs3)), st7)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
     s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; (t2*, (st3, s1*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
-  ; tv := <newname> "tp"
-  ; t1 := SortVar(tv){TP()}
+  ; tv1 := <newname> "tp"
+  ; tv2 := "def"
+  ; t1 := SortVar(tv1){TP()}
   ; (trm3, (st4, s2*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
-  ; if <type-var-lookup(|tv);not(?SortVar(_) + oncetd(?DynT()))> st4
+  ; if <type-var-lookup(|tv1);not(?SortVar(_) + oncetd(?DynT()))> st4
       then id
       else <report-Err> (trm1, MatchNotSpecificEnoughForTP(<current-type> st3))
     end
@@ -242,20 +256,23 @@ insertCasts-RuleDef-(|e1, st1):
   ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
+  ; st7 := <type-var-elim(id|[tv1, tv2])> st6
 
 insertCasts-RuleDef-(|e1, st1):
-  RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, Rule(trm3, trm4, cs3)), st6)
+  d@RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, Rule(trm3, trm4, cs3)), st7)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
     s2* := <map(?DefaultVarDec(<id>) <+ ?VarDec(<id>, _))> s1*
   ; e2 := <strat-merge-env(keep-right)> (e1, <strat-zip-new-env> (s2*, <map(\st -> st{LocalDef()}\)> st*))
   ; (t2*, (st3, s1*)) := <thread-map(insertCasts-MatchTerm(|e2))> (<zip> (t1*, tt*), (st2, []))
+  ; tv := "def"
   ; (trm3, (st4, s2*)) := <insertCasts-MatchTerm(|e2, <current-type(|t1)> st3)> trm1
   ; t3 := <current-type> st4
   ; (cs2, st5)  := <thread-map(insertCasts-RuleCond(|e2))> (cs1, st4)
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
+  ; st7 := <type-var-elim(id|tv)> st6
 
 RuleDef-after-match: ([], cs) -> cs
 RuleDef-after-match: (s*, cs) -> [<otf(!WhereClause(s))> s | cs] where s := <seqs> s*

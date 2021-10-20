@@ -102,7 +102,8 @@ insertCasts-StMatchTerm-(|e1, st1):
   with
     t1 := <current-type> st1
   ; if IllFormedTermT(x2, t1*) := t1
-    then (trm2*, st5) := (trm1*, st1) // TODO: handle illformed term
+    then
+      (t3, t2*, st3) := (t1, t1*, st1)
     else
       t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
     ; if [(ConstrType(t1*, t2), st2)] := t*
@@ -127,14 +128,15 @@ insertCasts-StMatchTerm-(|e1, st1):
              ; t3 := ErrT() // workaround for backtracking issue in strj
              ; t2* := <map(!ErrT())> trm1*
           else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
+             // idea: use LUB of arguments?
              ; t3 := DynT() // workaround for backtracking issue in strj
              ; t2* := <map(!DynT())> trm1*
         end
       ; st3 := st1
       end
-    ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st3)
-    ; st5 := <current-type(|t3)> st4
     end
+  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st3)
+  ; st5 := <current-type(|t3)> st4
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(<escape> c, c*)\)
@@ -302,7 +304,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       ; trm2 := Op(cnstr, trm2*)
       end
     end
-  ; st7 := <type-var-elim(|newvars)> st6
+  ; st7 := <type-var-elim(|trm1, newvars)> st6
 
 StBuildTerm-Op-threader(set-type|e1):
   ((trm1, t), st1) -> (trm2, st2)
@@ -389,9 +391,14 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if TupleT(t1*) := <pushDyn> t1; <eq> (<length> t1*, <length> trm1*)
       then t2* := t1*
          ; st2 := st1
-      // TODO: check if typevar, if so split into multiple derived typevars for children
-      else t2* := <map(!DynT())> trm1*
-         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
+      else if SortVar(tv) := t1
+        then
+          t2* := <map(!SortVar(tv{<newname> "tupletv"}))> trm1*
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
+        else
+          t2* := <map(!DynT())> trm1*
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
+        end
     end
   ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st2)
   ; st4 := <current-type(|TupleT(t2*))> st3
@@ -403,11 +410,18 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if ListT(t) := <pushDyn> t1
       then t1* := <map(!t)> trm1*
          ; st2 := st1
-      else t1* := <map(!DynT())> trm1*
-         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+      else if SortVar(tv) := t1
+        then
+          ttv := SortVar(tv{<newname> "listtv"})
+        ; t1* := <copy> (<length> trm1*, ttv)
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT(ttv))
+        else
+          t1* := <map(!DynT())> trm1*
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+        end
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
-  ; (t2, st4) := <foldr1-thread(lub) <+ (!ErrT(), id)> (t2*, st3)
+  ; (t2, st4) := <foldr1-thread(lub) <+ (!SortVar("def"{<newname> "listtv"}), id)> (t2*, st3)
   ; st5 := <current-type(|ListT(t2))> st4
 
 insertCasts-StMatchTerm-(|e1, st1):
@@ -417,14 +431,21 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if ListT(t) := <pushDyn> t1
       then t1* := <map(!t)> trm1*
          ; st2 := st1
-      else t1* := <map(!DynT())> trm1*
-         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+      else if SortVar(tv) := t1
+        then
+          ttv := SortVar(tv{<newname> "listtv"})
+        ; t1* := <copy> (<length> trm1*, ttv)
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT(ttv))
+        else
+          t1* := <map(!DynT())> trm1*
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+        end
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
   ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
   ; t2 := <current-type> st4
   ; (_, st5) := <computeCoercion(|trm, st4)> (t2, ListT())
-  ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <pushDyn;?ListT(<id>) <+ !ErrT()> t2], st5)
+  ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <pushDyn;?ListT(<id>) <+ !SortVar("def"{<newname> "listtv"})> t2], st5)
   ; st7 := <current-type(|ListT(t3))> st6
 
 insertCasts-StMatchTerm(|e1, st1):
@@ -495,7 +516,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t := <current-type;listType> st1
   ; (trm2*, t*, st2) := <thread-map-Type(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
-  ; (t1, st3) := <foldr1-thread(lub) <+ (!ErrT(), id)> (t*, st2)
+  ; (t1, st3) := <foldr1-thread(lub) <+ (!SortVar("def"{<newname> "listtv"}), id)> (t*, st2)
   ; t2 := ListT(t1)
   ; (_, st4) := <computeCoercion(|trm1, st3)> (t2, <current-type> st1)
   ; st5 := <current-type(|t2)> st4

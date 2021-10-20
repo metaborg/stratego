@@ -10,15 +10,12 @@ signature
 
 
 rules
-  make-set :: List(a) -> List(a)
-  make-set =
-    foldr(![], union, ![<id>])
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
 
-  union :: ? -> ?
-  union = fail
-
-  foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
-  foldr(s1, s2, f) = fail
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
 
 /* libstratego-lib
 signature
@@ -29,7 +26,7 @@ signature
     F_OK              : AccessPermission()
     R_OK              : AccessPermission()
     W_OK              : AccessPermission()
-    X_OK              : AccessPermission()
+    X_OK              : AccessPermission() 
     Pipe              : Int() * Int() -> Pipe()
     EpochTime         : Int() -> EpochTime()
     ComponentTime     : Date() * DayTime() * ComponentTimeDupl() -> ComponentTime()

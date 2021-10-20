@@ -171,11 +171,11 @@ computeCoercion-(|subj, st1): (from, ErrT()) -> (<otf(!Id(){from})> subj, st1)
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to2){to2})> subj, st1)
   where
-      <not(oncetd(rigidTV))> to
+      <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to
     ; to2 := <alltd(\ErrT() -> DynT()\)> to
 
 computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2})> subj, st2)
-  where <not(oncetd(rigidTV))> to1
+  where <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to1
   where
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
@@ -225,11 +225,12 @@ computeSCoercion-(|subj): (from@SDyn(), sft@FunTType(_, _, _)) -> <otf(!SRuntime
 
 // Add a cast after the current strategy (in sequence) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()).
-insertCastAfter(|from, to): (strat, st1) -> (strat', st2)
+insertCastAfter(|from, to): (strat, st1) -> (strat', st3)
   with
     (c{t}, st2) := <computeCoercion(|strat, st1)> (from, to)
   ; 'cast := <otf(!Cast(c{}))> strat
   ; strat' := <try(rm-redundant-cast)> <otf(!Seq(strat, 'cast))> strat
+  ; st3 := <current-type(|t)> st2
 
 // Add a cast before the current strategy (in sequence) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 

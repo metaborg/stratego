@@ -59,7 +59,7 @@ context-free syntax
   ErrorDesc.ProceedInNonExtendStrategy = [Cannot call proceed in a strategy or rule defined without the `extend` keyword.]
   ErrorDesc.CallStrategyArgumentTakesParameters = [This call takes parameters, it has type: [SFunType].]
   ErrorDesc.AmbiguousStrategyResolution = [Call to strategy was ambiguous, could resolve to the following: [{SFunType ", "}+].]
-  
+
   ErrorDesc.NormalDefinitionOverlapsWithExternal = [Definition of strategy overlaps with definition of external strategy.]
   ErrorDesc.NormalDefinitionOverlapsWithInternal = [Definition of strategy overlaps with definition of internal strategy.]
   ErrorDesc.OverrideDefinitionWithoutExternal = [Cannot find external strategy to override.]
@@ -74,6 +74,7 @@ context-free syntax
   ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
+  ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]

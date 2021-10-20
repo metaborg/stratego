@@ -227,7 +227,7 @@ test rest-zip should typecheck [[
 test error on casting to rigid type var in sarg [[
   make-set :: List(a) -> List(a)
   make-set =
-    foldr(![], [[union]], ![<id>])
+    [[foldr(fail, union, ![<id>])]]
 
   union :: ? -> ?
   union = fail

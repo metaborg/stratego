@@ -102,17 +102,27 @@ sort-add(|name, arity) = sort-env(imset-insert(|(name, arity)))
 sort-merge-env: (e, se) -> <sort-env(imset-union(|se))> e
 
 type-var-lookup(|name) = type-var-env; ?env; type-var-lookup(|name, env)
-type-var-lookup(|name, env) = !env; immap-get(|name); try(recurse-type-var-lookup(|name, env)); not(oncetd(?SortVar(name)))
+type-var-lookup(|name, env) = <immap-get(|name)> env; try(recurse-type-var-lookup(|name, env)); not(oncetd(?SortVar(name)))
 type-var-put(|name, type) = type-var-env(immap-put(|name, type))
 type-var-clear(|names) = type-var-env(\env -> <foldl(\(name, e) -> <immap-remove(|name)> e\)> (names, env)\)
 
-type-var-elim(|name) = where(<is-string> name); type-var-elim-string(|name)
-type-var-elim(|names) = where(<is-list> names); <foldl(\(name, st) -> <type-var-elim-string(|name)> st\)> (names, <id>)
+type-var-elim(|subj, names) = type-var-elim(\tv -> <report-Err> (subj, UnboundTypeVar(tv))\|names)
+type-var-elim(lookupfail|name) = where(<is-string> name); type-var-elim(lookupfail, ?name <+ where(!<id>{};?name))
+type-var-elim(lookupfail|names) = where(<is-list> names); type-var-elim(lookupfail, getfirst(?name <+ where(!<id>{};?name)))
 
-type-var-elim-string(|name) = where(type := <type-var-lookup(|name) <+ !ErrT()>); type-var-elim((SortVar(name) -> type)|name)
-type-var-elim(s|name) = St(immap-map-values(alltd(s)), alltd(s), immap-map-values(alltd(s));immap-remove(|name))
-type-var-elim(s|name) = StMatchTerm(type-var-elim(s|name), alltd(s), id)
-type-var-elim(s|name) = StBuildTerm(type-var-elim(s|name), alltd(s))
+type-var-elim(lookupfail, match) =
+    where(env := <type-var-env>)
+  ; type-var-elim-(
+      {name,type: (SortVar(name) -> type
+          where
+            <match> name
+          ; type := <type-var-lookup(|name, env) <+ <lookupfail> name;!ErrT()>)}
+    , match
+    )
+
+type-var-elim-(s, match) = St(immap-map-values(alltd(s)), alltd(s), immap-map-values(alltd(s));immap-filter-keys(not(match)))
+type-var-elim-(s, match) = StMatchTerm(type-var-elim-(s, match), alltd(s), id)
+type-var-elim-(s, match) = StBuildTerm(type-var-elim-(s, match), alltd(s))
 
 recurse-type-var-lookup(|name1, env): SortVar(name2) -> <immap-get(|name2); try(recurse-type-var-lookup(|name2, env))> env
 where <not(eq)> (name1, name2)

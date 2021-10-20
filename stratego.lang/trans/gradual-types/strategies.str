@@ -67,7 +67,7 @@ insertCasts-Strategy(|e1, st1):
     if t1 := <strat-lookup-call(?freshvars|x{}, <length> s*, <length> t*, <current-type> st1)> e1
       then
         (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, t1)
-      ; result := (c2, <type-var-elim(|freshvars)> st2)
+      ; result := (c2, <type-var-elim(|c1, freshvars)> st2)
       else
         <report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
       ; (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, SErrT())
@@ -87,7 +87,7 @@ insertCasts-CallT(|e1, st1):
   ; (c2, st5) := <insertCastBefore(|t3, t1)> (<otf(!CallT(v, s3*, t3*))> c1, st4)
   ; st6 := <current-type(|t2)> st5
 
-insertCasts-CallT(|e1, st1): 
+insertCasts-CallT(|e1, st1):
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, TP())) -> (c2, st5)
   with
     s2* := <zip> (s1*, st*)
@@ -151,7 +151,7 @@ insertCasts-Strategy-(|e1, st1):
     ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1))> (t2*, st2)
     ; st4 := <current-type(|t2)> st3
     ; ('call, st5) := <insertCastBefore(|<current-type> st1, t1)> (<otf(!ProceedT(s3*, t3*))> p, st4)
-    ; st6 := <type-var-elim(|freshvars)> st5
+    ; st6 := <type-var-elim(|p, freshvars)> st5
     else
       <report-Err> (p, ProceedInNonExtendStrategy())
     ; s2* := <map-pair-right(|SErrT())> s1*
@@ -172,7 +172,7 @@ insertCasts-Strategy-(|e1, st1):
       end
     ; st2 := <current-type(|t2)> st1
     ; ('call, st3) := <insertCastBefore(|<current-type> st1, t1)> (p, st2)
-    ; st4 := <type-var-elim(|freshvars)> st3
+    ; st4 := <type-var-elim(|p, freshvars)> st3
     else
       <report-Err> (p, ProceedInNonExtendStrategy())
     ; st4 := <current-type(|ErrT())> st1
@@ -221,7 +221,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
   ; (t2*, st3) := <thread-map(insertCasts-Targ(|e1))> (<map-pair-right(|DynT())> t1*, st2)
-  ; st4 := <current-type(|ErrT())> st3
+  ; st4 := <current-type(|SortVar("def"{<newname> "primtv"}))> st3
 
 insertCasts-Strategy-(|e1, st1):
   Some(s1) -> (Some(s2), <current-type-of(| st1)> st2)
@@ -271,7 +271,7 @@ insertCasts-Sarg(|e1, st1):
     if t2 := <strat-lookup-call(?freshvars|x{}, <length> st*, <length> tt*, <current-type> st1)> e1
       then
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
-      ; st3 := <type-var-elim(|freshvars)> st2
+      ; st3 := <type-var-elim(|c, freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
@@ -284,7 +284,7 @@ insertCasts-Sarg(|e1, st1):
     if t2 := <strat-lookup-call(?freshvars|x{}, <length> st*, <length> tt*, <current-type> st1)> e1
       then
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
-      ; st3 := <type-var-elim(|freshvars)> st2
+      ; st3 := <type-var-elim(|c, freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
@@ -297,7 +297,7 @@ insertCasts-Sarg(|e1, st1):
     if t2 := <strat-lookup-call(?freshvars|x{}, <length> st*, <length> tt*, <current-type> st1)> e1
       then
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
-      ; st3 := <type-var-elim(|freshvars)> st2
+      ; st3 := <type-var-elim(|c, freshvars)> st2
       else
         <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SErrT())
@@ -533,14 +533,14 @@ insertCasts-Strategy-(|e1, st1):
    ; <report-Warn> (s0, NoLUBBetween(<current-type> st2, <current-type> st3)))
 
 insertCasts-Strategy-(|e1, st1):
-  Rec(x, s1) -> (Rec(x, s2), st3)
+  s@Rec(x, s1) -> (Rec(x, s2), st3)
   with
     t1 := <current-type> st1
   ; tv1 := <newname> "rectv"
   ; (t2, tv*) := <collect-split({(ErrT() -> (SortVar(tv), [tv]) where tv := <newname> "rectv")})> t1
   ; e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [((x{}, 0, 0), (FunTType(t2, SortVar(tv1))){LocalDef()})])
   ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
-  ; st3 := <type-var-elim(|[tv1, tv*])> st2
+  ; st3 := <type-var-elim(id|[tv1, tv*])> st2
 
 insertCasts-Strategy-(|e1, st1):
   Not(s1) -> (Not(s2), st3)
@@ -567,13 +567,13 @@ insertCasts-Strategy-(|e1, st1):
   ; st3 := <current-type-of(|st1)> st2
 
 insertCasts-Strategy(|e1, st1):
-  s@PrimNoArgs(_) -> (s, <current-type(|ErrT())> st1)
+  s@PrimNoArgs(_) -> (s, <current-type(|SortVar("def"{<newname> "primtv"}))> st1)
 
 insertCasts-Strategy-(|e1, st1):
   Prim(x, t1*) -> (Prim(x, t2*), st3)
   with
     (t2*, st2) := <thread-map(insertCasts-Targ(|e1))> (<map-pair-right(|DynT())> t1*, st1)
-  ; st3 := <current-type(|ErrT())> st2
+  ; st3 := <current-type(|SortVar("def"{<newname> "primtv"}))> st2
 
 
 litCongruence(|st1, t1) = otf12(litCongruence-(|st1, t1))
@@ -630,7 +630,7 @@ insertCasts-Strategy(|e1, st1):
   s@EmptyTupleCong() -> <litCongruence(|st1, TupleT([]))> s
 
 insertCasts-Strategy-(|e1, st1):
-  TupleCong(s1, s1*) -> (TupleCong(s2, s2*), st4)
+  s0@TupleCong(s1, s1*) -> (TupleCong(s2, s2*), st4)
   with
     t1 := <current-type> st1
   ; t1* := <tupleTypes(|<length;inc> s1*)> t1
@@ -638,7 +638,7 @@ insertCasts-Strategy-(|e1, st1):
   ; [funt1 | funt1*] := <zip(\(t, tv) -> FunTType(t, SortVar(tv))\)> (t1*, tvs)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, funt1)
   ; (s2*, st3) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
-  ; st4 := <current-type(|TupleT(<map(!SortVar(<id>))> tvs));type-var-elim(|tvs)> st3
+  ; st4 := <current-type(|TupleT(<map(!SortVar(<id>))> tvs));type-var-elim(id|tvs)> st3
 
 insertCasts-Strategy-(|e1, st1):
   s1@ListCongNoTail(s1*) -> (ListCongNoTail(s2*), st4)
@@ -649,7 +649,7 @@ insertCasts-Strategy-(|e1, st1):
   ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
   ; tv := <newname> "listcongtv"
   ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
-  ; st4 := <current-type(|ListT(SortVar(tv)));type-var-elim(|tv)> st3
+  ; st4 := <current-type(|ListT(SortVar(tv)));type-var-elim(id|tv)> st3
 
 insertCasts-Strategy-(|e1, st1):
   s1@ListCong(s1*, s2) -> (ListCong(s2*, s3), st6)
@@ -658,11 +658,17 @@ insertCasts-Strategy-(|e1, st1):
   ; t2 := <listType> t1
   // Give a warning when it's guaranteed to fail based on type.
   ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
-  ; (ListT(_) := <pushDyn> t1 < ?t3 + t3 := ListT())
-  ; tv := <newname> "listcongtv"
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st2)
-  ; (s3, st4) := <insertCasts-Sarg(|e1, <current-type-of(|st2)> st3)> (s2, FunTType(t3, ListT(SortVar(tv))))
-  ; st6 := <current-type(|ListT(SortVar(tv)));type-var-elim(|tv)> st4
+  ; if ListT(_) := <pushDyn> t1
+    then t3 := <pushDyn> t1
+    else if SortVar(tv1) := t1
+        then t3 := ListT(SortVar(tv1{<newname> "listcongtv"}))
+        else t3 := ListT()
+      end
+    end
+  ; tv2 := <newname> "listcongtv"
+  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv2))))> (s1*, st2)
+  ; (s3, st4) := <insertCasts-Sarg(|e1, <current-type-of(|st2)> st3)> (s2, FunTType(t3, ListT(SortVar(tv2))))
+  ; st6 := <current-type(|ListT(SortVar(tv2)));type-var-elim(id|tv2)> st4
 
 insertCasts-Strategy-(|e1, st1):
   ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
@@ -810,7 +816,7 @@ strategies // The Cast & Proxy extension
 insertCasts-Strategy(|e1, st1):
   s@Cast(Fail()) -> (s, st2)
   with
-    st2 := <current-type(|ErrT())> st1
+    st2 := <current-type(|SortVar("def"{<newname> "failtv"}))> st1
 
 insertCasts-Strategy(|e1, st1):
   s@Cast(Id()) -> (s, st1)

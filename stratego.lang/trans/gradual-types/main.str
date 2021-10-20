@@ -121,6 +121,10 @@ can-coerce(|injection-closure, aliases): ((SortVar(x), SortVar(x)), st1) -> <id>
   where
     not(<type-var-lookup(|x)> st1)
 
+can-coerce(|injection-closure, aliases) = ?((DynT(), IntT()), _)
+can-coerce(|injection-closure, aliases) = ?((DynT(), RealT()), _)
+can-coerce(|injection-closure, aliases) = ?((DynT(), StringT()), _)
+
 // We assume co-variant type parameters
 can-coerce(|injection-closure, aliases): ((a@Sort(x, t1*), b@Sort(x, t2*)), st1) -> ((a', b'), st2)
   where
@@ -145,8 +149,13 @@ can-coerce(|injection-closure, aliases):
   where
     if t2 := <type-var-lookup(|x)> st1
       then result := <CanCoerce> ((t2, t1), st1)
-      else st2 := <type-var-put(|x, t1)> st1
-        ; result := ((t1, t1), st2)
+      else
+        // don't save ? as upper-bound for unbound TV
+//        if not(DynT() := t1)
+//          then
+        st2 := <type-var-put(|x, t1)> st1
+//        end
+      ; result := ((t1, t1), st2)
     end
 
 can-coerce(|injection-closure, aliases):
@@ -154,8 +163,11 @@ can-coerce(|injection-closure, aliases):
   where
     if t2 := <type-var-lookup(|x)> st1
       then result := <CanCoerce> ((t1, t2), st1)
-      else st2 := <type-var-put(|x, t1)> st1
-        ; result := ((t1, t1), st2)
+      else
+        // don't allow ? as lower-bound for unbound TV
+//        not(DynT() := t1);
+        st2 := <type-var-put(|x, t1)> st1
+      ; result := ((t1, t1), st2)
     end
 
 can-coerce(|injection-closure, aliases):
