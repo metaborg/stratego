@@ -472,16 +472,16 @@ strategies
    *
    * @inc  conc-test
    */
-  conc :: ? -> List(?)
-  conc =
+  conct :: ? -> List(?)
+  conct =
     \ (l1, l2) -> <at-end(!l2)> l1 \
     <+ \ "" # (xs) -> <concat> xs \
 
   /**
    * Concatenates all lists of a pair.
    */
-  conc2 :: List(a) * List(a) -> List(a)
-  conc2 : (l1, l2) -> <at-end(!l2)> l1
+  conc :: List(a) * List(a) -> List(a)
+  conc : (l1, l2) -> <at-end(!l2)> l1
 
   /**
    * Concatenates a list of lists into one list.
@@ -504,7 +504,7 @@ strategies
   makeConc :: a * b -> List(?)
   makeConc =
     ?(xs, ys)
-    ; if <is-list> xs; <is-list> ys then conc else !"Conc"#([xs, ys]) end
+    ; if <is-list> xs; <is-list> ys then conct else !"Conc"#([xs, ys]) end
 
 strategies
 

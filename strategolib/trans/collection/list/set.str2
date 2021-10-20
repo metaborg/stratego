@@ -317,7 +317,7 @@ strategies
       rec r ( {x, xs, y, ys, y*:
         ([],rest)
       + ?([x|xs], y*)
-      ; <split-fetch(\ y -> <eq> (x, y)\); conc2> y* => ys
+      ; <split-fetch(\ y -> <eq> (x, y)\); conc> y* => ys
       ; <r> (xs, ys)
       })
     )

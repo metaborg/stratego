@@ -18,18 +18,19 @@
 module collection/hash-table/common
 imports
   collection/list/-
+  collection/tuple/cons
   strategy/conditional
 
 signature
   sorts
-    Hashtable
+    Hashtable(*, *)
     HashtableImplBlob
   constructors
 
     /**
      * Represents a reference to a hashtable.
      */
-    Hashtable : HashtableImplBlob -> Hashtable
+    Hashtable : HashtableImplBlob -> Hashtable(k, v)
 
 /**
  * Hashtable construction and deconstruction
@@ -41,6 +42,7 @@ strategies
    *
    * @type _ -> HashTable(K, V)
    */
+  new-hashtable :: a -> Hashtable(k, v)
   new-hashtable =
     new-hashtable(|117,75)
 
@@ -51,6 +53,7 @@ strategies
    * @param max_load - the load percentage at which the hashtable is expanded
    * @type _ -> HashTable(K, V)
    */
+  new-hashtable(|int, int) :: a -> Hashtable(k, v)
   new-hashtable(|initial_size, max_load) =
     prim("SSL_hashtable_create", initial_size, max_load); !Hashtable(<id>)
 
@@ -59,6 +62,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-destroy :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-destroy =
     ?Hashtable(tbl); prim("SSL_hashtable_destroy", tbl); !Hashtable(<id>)
 
@@ -67,6 +71,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-clear :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-clear =
     ?Hashtable(tbl); prim("SSL_hashtable_reset", tbl); !Hashtable(<id>)
 
@@ -83,6 +88,7 @@ strategies
    * @param value - any term can be used as a value
    * @type HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-put(|k, v) :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-put(|key, value) =
     ?Hashtable(tbl); prim("SSL_hashtable_put", tbl, key, value); !Hashtable(<id>)
 
@@ -93,6 +99,7 @@ strategies
    * @param key
    * @type HashTable(K, V) -> V
    */
+  hashtable-get(|k) :: Hashtable(k, v) -> v
   hashtable-get(|key) =
     ?Hashtable(tbl); prim("SSL_hashtable_get", tbl, key)
 
@@ -102,6 +109,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-remove(|k) :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-remove(|key) =
     ?Hashtable(tbl); prim("SSL_hashtable_remove", tbl, key); !Hashtable(<id>)
 
@@ -110,6 +118,7 @@ strategies
    *
    * @type HashTable(K, V) -> List(K)
    */
+  hashtable-keys :: Hashtable(k, v) -> List(k)
   hashtable-keys =
     ?Hashtable(tbl); prim("SSL_hashtable_keys", tbl)
 
@@ -118,6 +127,7 @@ strategies
    *
    * @type HashTable(K, V) -> List(V)
    */
+  hashtable-values :: Hashtable(k, v) -> List(v)
   hashtable-values =
     ?htbl
     ; hashtable-keys
@@ -132,6 +142,7 @@ strategies
    * @param a
    * @type HashTable(k, v) -> a
    */
+  hashtable-fold((|k, v) a -> a | a) :: Hashtable(k, v) -> a
   hashtable-fold(s : k * v * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_fold", s | t, tbl)
@@ -145,6 +156,7 @@ strategies
    * @param a
    * @type HashTable(k, v) -> a
    */
+  hashtable-fold-keys((|k) a -> a | a) :: Hashtable(k, v) -> a
   hashtable-fold-keys(s : k * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_keys_fold", s | t, tbl)
@@ -158,6 +170,7 @@ strategies
    * @param a
    * @type (v * a -> a) * a * HashTable(k, v) -> a
    */
+  hashtable-fold-values((|v) a -> a | a) :: Hashtable(k, v) -> a
   hashtable-fold-values(s : v * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_values_fold", s | t, tbl)
@@ -172,9 +185,11 @@ strategies
    *
    * @type HashTable(k,v) -> List((k,v), ...)
    */
+  hashtable-getlist :: Hashtable(k, v) -> List(k * v)
   hashtable-getlist =
     ?htbl
-    ; let insert(|k, v) = ![(k, v) | <id>]
+    ; let insert(|k, v) :: List(k * v) -> List(k * v)
+          insert(|k, v) = ![(k, v) | <id>]
        in hashtable-fold(insert | [])
       end
 
@@ -184,10 +199,12 @@ strategies
    * @param kv         List(Tuple(K, V), ...)
    * @type HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-putlist(|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-putlist(|kv*) =
     ?htbl
     ; where(<map(\ (key, value) -> <hashtable-put(|key, value)> htbl \)> kv*)
 
+  hashtable-putlist((|k, v) Hashtable(k, v) -> Hashtable(k, v)|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-putlist(f : ATerm * ATerm * Hashtable -> Hashtable|kv*) =
     ?htbl
     ; where(<map(\ (key, value) -> <f(|key, value)> htbl \)> kv*)
@@ -197,6 +214,7 @@ strategies
    *
    * @type List(Tuple(K, V), ...) -> HashTable(K, V)
    */
+  hashtable-init :: List(k * v) -> Hashtable(k, v)
   hashtable-init =
     ?kv*
   ; new-hashtable(|<length>, 75)
@@ -208,6 +226,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K,V)
    */
+  hashtable-copy :: Hashtable(k, v) -> Hashtable(k, v)
   hashtable-copy =
     hashtable-getlist
   ; hashtable-init
@@ -225,8 +244,15 @@ strategies
    * @param value      a - the value to insert
    * @type  HashTable(K, V) -> HashTable(K, V)
    */
+  hashtable-push(|k, v) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
   hashtable-push(|key, value) =
     hashtable-put(|key, [value | <hashtable-get(|key) <+ ![]>])
+
+// equivalents that _do_ typecheck:
+  hashtable-push(|key, value) =
+    where(value2 := [value | <hashtable-get(|key) <+ ![]>]); hashtable-put(|key, value2)
+  hashtable-push(|key, value) =
+    where(tail := <hashtable-get(|key) <+ ![]>); hashtable-put(|key, [value | tail])
 
   /**
    * Pushes values on top of the stack for key.
@@ -236,6 +262,7 @@ strategies
    * @param value      List(a) - the values to insert
    * @type  HashTable(K, V) -> HashTable(K, V')
    */
+  hashtable-pushlist(|k, List(v)) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
   hashtable-pushlist(|key, value) =
     hashtable-put(|key, <conc>(value, <hashtable-get(|key) <+ ![]>))
 
@@ -247,6 +274,7 @@ strategies
    * @param value      List(a) - the values to insert
    * @type  HashTable(K, V) -> HashTable(K, V')
    */
+  hashtable-pushunion(|k, List(v)) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
   hashtable-pushunion(|key, value) =
     hashtable-put(|key, <union>(value, <hashtable-get(|key) <+ ![]>))
 
@@ -257,6 +285,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
+  hashtable-pop(|k) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
   hashtable-pop(|key) =
     hashtable-put(|key, <hashtable-get(|key); Tl>)
 
@@ -267,6 +296,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
+  hashtable-peek(|k) :: Hashtable(k, List(v)) -> v
   hashtable-peek(|key) =
     hashtable-get(|key); Hd
 
@@ -277,6 +307,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
+  hashtable-peekpop(|k) :: Hashtable(k, List(v)) -> v
   hashtable-peekpop(|key) =
     where(hashtable-peek(|key) => val)
   ; hashtable-pop(|key)
