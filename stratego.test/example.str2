@@ -10,42 +10,15 @@ signature
 
 
 rules
-  FoldL(a * b -> c) :: List(a) * b -> List(a) * c
-  FoldL(s) : ([x | xs], y) -> (xs, <s> (x, y))
+  make-set :: List(a) -> List(a)
+  make-set =
+    foldr(![], union, ![<id>])
 
-  foldl(a * b -> b) :: List(a) * b -> b
-  foldl(s) =
-    rec x( \ ([], y) -> y \ + FoldL(s); x)
-
-  foldl(s): ([], y) -> y
-  foldl(s) = FoldL(s); foldl(s)
-
-rules
-  cart(s) :
-    (xs, ys) ->
-    <foldr(![], conc, \ x -> <map(\y -> <s>(x, y)\ )> ys\ )> xs
+  union :: ? -> ?
+  union = fail
 
   foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
-  foldr(s1, s2, f)  =
-    []; s1 +
-    \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
-
-  conc :: ? -> List(?)
-  conc =
-    \ (l1, l2) -> <at-end(!l2)> l1 \
-    <+ \ "" # (xs) -> <concat> xs \
-
-  map(a -> b) :: List(a) -> List(b)
-  map(s) =
-    rec x([] + [s | x])
-
-  concat :: List(List(a)) -> List(a)
-  concat =
-    rec x([] + \ [l | ls] -> <at-end(<x> ls)> l\)
-
-  at-end(List(b) -> List(a)) :: List(a) -> List(a)
-  at-end(s) =
-    rec x([id | x] + []; s)
+  foldr(s1, s2, f) = fail
 
 /* libstratego-lib
 signature
