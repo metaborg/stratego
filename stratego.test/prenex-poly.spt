@@ -9,15 +9,18 @@ fixture [[
     sorts
       List(*)
       Option(*)
-      PolyType(a)
+      PolyType(*)
       Tuple(*, *)
       Tuple(*, *, *)
+      Hashtable(*, *)
+      HashtableImplBlob
     constructors
       One : a -> PolyType(a)
       Cons : a * List(a) -> List(a)
       Nil : List(a)
       Some : a -> Option(a)
       None : Option(a)
+      Hashtable : HashtableImplBlob -> Hashtable(k, v)
 
   rules
   [[...]]
@@ -235,5 +238,39 @@ test error on casting to rigid type var in sarg [[
   foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
   foldr(s1, s2, f) = fail
 ]] 1 error at #1
+   0 warnings
+//   has origin locations
+
+test sarg can have arguments [[
+  hashtable-putlist((|k, v) Hashtable(k, v) -> Hashtable(k, v)|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-putlist(f : ATerm * ATerm * Hashtable -> Hashtable|kv*) =
+    ?htbl
+    ; where(<map(\ (key, value) -> <f(|key, value)> htbl \)> kv*)
+
+  map(a -> b) :: List(a) -> List(b)
+  map(s) = [s | map(s)] <+ ?[]
+]] 0 errors
+   0 warnings
+//   has origin locations
+
+test App in a buildterm in targ position should get the right "current type" to type-check [[
+  hashtable-push(|k, v) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-push(|key, value) =
+    hashtable-put(|key, [value | <hashtable-get(|key) <+ ![]>])
+
+// equivalents that typecheck without relying on current type being correct in targ position
+  hashtable-push(|key, value) =
+    where(value2 := [value | <hashtable-get(|key) <+ ![]>]); hashtable-put(|key, value2)
+  hashtable-push(|key, value) =
+    where(tail := <hashtable-get(|key) <+ ![]>); hashtable-put(|key, [value | tail])
+
+  hashtable-get(|k) :: Hashtable(k, v) -> v
+  hashtable-get(|key) =
+    ?Hashtable(tbl); prim("SSL_hashtable_get", tbl, key)
+
+  hashtable-put(|k, v) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-put(|key, value) =
+    ?Hashtable(tbl); prim("SSL_hashtable_put", tbl, key, value); !Hashtable(<id>)
+]] 0 errors
    0 warnings
 //   has origin locations
