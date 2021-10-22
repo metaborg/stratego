@@ -52,8 +52,8 @@ signature
     ThrowCS
     ExceptionCS
   constructors
-    RuleScope  : IndexedSet * Hashtable -> RuleScope
-    ChangeSet  : IndexedSet * IndexedSet * Hashtable -> RuleScope
+    RuleScope  : IndexedSet(l) * Hashtable(k,v) -> RuleScope
+    ChangeSet  : IndexedSet(l) * IndexedSet(l) * Hashtable(k,v) -> RuleScope
 
     Label      : string -> Label
     SplitPos   : string * string -> SplitPos
@@ -1157,7 +1157,7 @@ strategies // intersection and union of rule-sets
     ?(cs@ChangeSet(_, rmset, tbl), rsgood, rsbad)
     ; <filter(?RuleScope(_, Hashtable(<id>)))>rsgood => scpidsgood_
     ; <filter(?RuleScope(_, Hashtable(<id>)))>rsgood => scpidsbad_
-    ; try(
+    ; try(where(
         // only do this if it is indeed the case
         <not(eq)>(scpidsgood_, scpidsbad_)
         ; try(
@@ -1173,23 +1173,23 @@ strategies // intersection and union of rule-sets
         ; <iset-elements>rmset
         ; map({key, scpid, k, idx :
             ?key@(scpid, k)
-            ; try(
+            ; try(where(
                 <get-index>(scpid, scpidsbad) => idx
                 ; <iset-remove(|key)>rmset
                 ; <iset-add(|(<index>(idx, scpidsgood), k))>rmset
-              )
+              ))
           })
         ; <hashtable-keys>tbl
         ; map({key, scpid, k, idx, val :
             ?key@(scpid, k)
-            ; try(
+            ; try(where(
                 <get-index>(scpid, scpidsbad) => idx
                 ; <hashtable-get(|key)>tbl => val
                 ; <hashtable-remove(|key)>tbl
                 ; <hashtable-put(|(<index>(idx, scpidsgood), k), val)>tbl
-              )
+              ))
           })
-      )
+      ))
     ; !cs
 
   /**
@@ -1647,10 +1647,10 @@ strategies // labeling statements, break, continue
     ; <iset-elements>rmset1
     ; map({scpid, key, value :
         ?(scpid, key)
-        ; try(
+        ; try(where(
             <dr-lookup-rule-in-scope(|key, scpid)>ruleset => value
             ; <hashtable-put(|(scpid, key), value)>tbl
-          )
+          ))
       })
     ; <hashtable-keys>tbl1
     ; map({scpid, key, value :
@@ -1712,7 +1712,7 @@ strategies // labeling statements, break, continue
     ; <iset-elements>rmset
     ; map({k, scpid :
         ?k@(scpid, _)
-        ; try(<fetch-elem(?scpid)>scpids; <iset-remove(|k)>rmset)
+        ; try(where(<fetch-elem(?scpid)>scpids; <iset-remove(|k)>rmset))
       })
 
     // remove all the elements from tbl that refer to rule scopes
@@ -1720,7 +1720,7 @@ strategies // labeling statements, break, continue
     ; <hashtable-keys>tbl
     ; map({k, scpid :
         ?k@(scpid, _)
-        ; try(<fetch-elem(?scpid)>scpids; <hashtable-remove(|k)>tbl)
+        ; try(where(<fetch-elem(?scpid)>scpids; <hashtable-remove(|k)>tbl))
       })
 
     // return the built change set
@@ -1809,7 +1809,7 @@ strategies // exception handling strategies
 
     ; <zip>(css, rulenames)
     ; map({cs, rulename, pos, ID, cID, catches, fin, fID, cs', rs :
-        ?(cs, rulename)
+        ?(cs, rulename :: ?)
         ; (<once-DR_EXCEPTION>Structure(rulename) => TryBlock(pos, ID, [Catch(cID, _) | catches], fin@Finally(fID))
            <+ fatal-err(|"dr-complete-catch: Unexpected failure here!"))
         ; rules(DR_EXCEPTION :+ Structure(rulename) -> TryBlock(pos, ID, catches, fin))
@@ -1861,7 +1861,7 @@ strategies // exception handling strategies
       )
 
     ; <map({rulename, pos, ID, fID, csid, rs :
-        ?(TryBlock(pos, ID, [], Finally(fID)), _, rulename)
+        ?(TryBlock(pos, ID, [], Finally(fID :: ?)), _, rulename :: ?)
         ; rules(DR_EXCEPTION :+ Structure(rulename) -> TryBlock(pos, ID, [], Finally("")))
         ; rules(DR_EXCEPTION :- ExceptionCS(rulename, fID))
         ; (dr-get-rule-set(|rulename) => rs@[ChangeSet(_, _, Hashtable(csid)) | _]

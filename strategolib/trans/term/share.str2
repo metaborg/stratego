@@ -34,7 +34,7 @@ strategies
 
 strategies
 
-  edge(mkvar)      = split(address; mkvar, all(address; mkvar))
+  edge(mkvar)      = split(address; mkvar, \a :: ? -> <all(address; mkvar)> a\)
   list-edge(mkvar) = split(address; mkvar, map(address; mkvar))
 
  /**
