@@ -204,8 +204,10 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st2*, tt2*, t3, t5), SDyn()), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((t1, DynT()), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
+  ; (st2*, st3*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((t2, DynT()), st4)
 
 can-coerce-stype(|injection-closure):
@@ -213,8 +215,10 @@ can-coerce-stype(|injection-closure):
     ((SDyn(), FunTType(st3*, tt3*, t4, t6)), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((DynT(), t1), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
+  ; (st2*, st3*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((DynT(), t2), st4)
 
 can-coerce-stype(|injection-closure):
@@ -222,8 +226,10 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st3*, tt3*, t5, t7), FunTType(st4*, tt4*, t6, t8)), st5)
   where
     ((t5, t6), st2) := <CanCoerce> ((t1, t3), st1)
-  ; ((st3*, st4*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
-  ; ((tt3*, tt4*), st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
+  ; (st3*, st4*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; (tt3*, tt4*) := <unzip> ttpairs
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
 itv(|st1) = instantiate-type-vars(id|<type-var-env> st1)
