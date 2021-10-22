@@ -8,10 +8,6 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.util.TermUtils;
-import org.strategoxt.lang.Context;
-import org.strategoxt.lang.SRTS_all;
-import org.strategoxt.lang.Strategy;
-import org.strategoxt.stratego_lib.strip_annos_0_0;
 
 import mb.stratego.build.strincr.data.StrategySignature;
 
@@ -40,6 +36,9 @@ public class FindErrT extends TermVisitor {
             definitions.add(currentTopLevelStrategyName);
         }
         if(TermUtils.isAppl(term, "Cast", 1) && TermUtils.isApplAt(term, 0, "Fail", 0)) {
+            definitions.add(currentTopLevelStrategyName);
+        }
+        if(TermUtils.isAppl(term, "SFail", 0)) {
             definitions.add(currentTopLevelStrategyName);
         }
     }

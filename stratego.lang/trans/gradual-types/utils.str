@@ -216,6 +216,8 @@ computeSCoercion(|subj): ((from1, to1), st1) -> (scoercion, st2)
   ; scoercion := <computeSCoercion-(|subj) <+ !SId()> (from2, to2)
 
 computeSCoercion(|subj): ((from1, to1), st1) -> (SFail(), st1)
+  where
+    <report-Err> (subj, NoInjectionBetween(<itv(|st1)> from1, <itv(|st1)> to1))
 
 // computeSCoercion-(|?) :: (SType, SType) -> SCoercion
 computeSCoercion-(|subj): (from, SErrT()) -> <otf(!SId())> subj
