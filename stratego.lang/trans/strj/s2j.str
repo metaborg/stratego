@@ -1219,10 +1219,16 @@ strategies
     ; e_coercion := <translate-FunTCoercion> (s*, t*, i, o)
     ; e_instance := <lifted-call-to-instance> CallT(SVar(x), [], [])
     ; init := bstm |[
-        Proxy x_proxy = new Proxy(context, e_coercion, e_instance);
+        Proxy x_proxy;
       ]|
     ; rules(
         CallTDecls :+= init
+      )
+    ; assigns := bstm* |[
+        x_proxy = new Proxy(context, e_coercion, e_instance);
+      ]|
+    ; rules(
+        CallTAssigns :+= assigns
       )
   
   lifted-call-to-instance-self-call :
