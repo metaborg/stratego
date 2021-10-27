@@ -1018,9 +1018,8 @@ strategies
   drop(isn) =
     where(<isn> () => n)
     ; nzip0(id)
-    // TODO: remove type ascriptions
-    ; drop-until(?(n,_) :: int * a)
-    ; map(?(_, <id>) :: int * a)
+    ; drop-until(?(n,_))
+    ; map(?(_, <id>))
 
   /**
    * Splits the list in two sublists, containing elements from 0 to
