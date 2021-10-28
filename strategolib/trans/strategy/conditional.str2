@@ -3,20 +3,21 @@
  */
 module strategy/conditional
 imports strategy/general/option
+imports collection/tuple/cons
 
 strategies // Equality
 
   /**
    * Tests whether two terms are equal.
    */
-
+  eq :: a * a -> a * a
   eq =
     ?(x, x)
 
   /**
    * Tests whether two terms are equal.
    */
-
+  equal :: a * a -> a * a
   equal =
     ?(x, x)
 
@@ -24,13 +25,14 @@ strategies // Equality
    * Tests whether current term is equal to argument term.
    */
 
+  equal(|a) :: a -> a
   equal(|x) =
     ?x
 
   /**
    * Tests whether two argument terms are equal to each other.
    */
-
+  equal(|a, a) :: b -> b
   equal(|x, y) =
     where(!x => y)
 
@@ -69,6 +71,7 @@ strategies // Control-flow combinators
    * restored always, e.g., when maintaining scope information.
    */
 
+  restore-always(a -> a, a -> b) :: a -> b
   restore-always(s, rest) =
     s < rest + (rest; fail)
 
