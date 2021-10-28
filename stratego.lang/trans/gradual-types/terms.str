@@ -98,7 +98,7 @@ insertCasts-StMatchTerm-Lit(|e1, st1, t1):
   ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
 
 insertCasts-StMatchTerm-(|e1, st1):
-  Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st5)
+  trm0@Op(cnstr, trm1*) -> (Op(cnstr, trm2*), st5)
   with
     t1 := <current-type> st1
   ; if IllFormedTermT(x2, t1*) := t1
@@ -108,35 +108,37 @@ insertCasts-StMatchTerm-(|e1, st1):
       t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
     ; if [(ConstrType(t1*, t2), st2)] := t*
       then
-          (c, st3) := <computeCoercion(|cnstr, st2)> (t2, t1)
+          (t2*, t3) := <fresh-type-vars(?newvars)> (t1*, t2)
+        ; (c, st3) := <computeCoercion(|cnstr, st2)> (t3, t1)
         ; if not(Fail() := c)
             then if DynT() := t1
-                   then t2* := <map(!DynT(<id>))> t1*
-                      ; t3 := DynT(t2) // workaround for backtracking issue in strj
+                   then t3* := <map(!DynT(<id>))> t2*
+                      ; t4 := DynT(t3) // workaround for backtracking issue in strj
                    else if ErrT() := t1
-                     then t2* := <map(!ErrT())> t1*
-                        ; t3 := ErrT() // workaround for backtracking issue in strj
-                     else t2* := t1*
-                        ; t3 := t2 // workaround for backtracking issue in strj
+                     then t3* := <map(!ErrT())> t2*
+                        ; t4 := ErrT() // workaround for backtracking issue in strj
+                     else t3* := t2*
+                        ; t4 := t3 // workaround for backtracking issue in strj
                    end
                  end
-            else t2* := <map(!ErrT())> trm1*
-               ; t3 := ErrT() // workaround for backtracking issue in strj
+            else t3* := <map(!ErrT())> trm1*
+               ; t4 := ErrT() // workaround for backtracking issue in strj
           end
       else if [] := t*
           then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-             ; t3 := ErrT() // workaround for backtracking issue in strj
-             ; t2* := <map(!ErrT())> trm1*
+             ; t4 := ErrT() // workaround for backtracking issue in strj
+             ; t3* := <map(!ErrT())> trm1*
           else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
              // idea: use LUB of arguments?
-             ; t3 := DynT() // workaround for backtracking issue in strj
-             ; t2* := <map(!DynT())> trm1*
+             ; t4 := DynT() // workaround for backtracking issue in strj
+             ; t3* := <map(!DynT())> trm1*
         end
       ; st3 := st1
+      ; newvars := []
       end
     end
-  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t2*), st3)
-  ; st5 := <current-type(|t3)> st4
+  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t3*), st3)
+  ; st5 := <current-type(|t4);type-var-elim(|trm0, newvars)> st4
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(<escape> c, c*)\)
