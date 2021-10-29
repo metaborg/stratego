@@ -57,6 +57,7 @@ insertCasts-StMatchTerm(|e1, st1):
           then st3 := <term-put(|v{}, t1)> st2
           // Doing a cast after the fact in case the var was unbound before the match,
           //    but already had a type due to a conditional match in previous code
+          // TODO: avoid this cast when variable is guaranteed bound
           else st3 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> trm1, trm1))> trm1)> st2
         end
       else st3 := <term-put(|v{}, t1)> st1
@@ -103,7 +104,8 @@ insertCasts-StMatchTerm-(|e1, st1):
     t1 := <current-type> st1
   ; if IllFormedTermT(x2, t1*) := t1
     then
-      (t3, t2*, st3) := (t1, t1*, st1)
+      (t4, t3*, st3) := (t1, t1*, st1)
+    ; newvars := []
     else
       t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
     ; if [(ConstrType(t1*, t2), st2)] := t*
