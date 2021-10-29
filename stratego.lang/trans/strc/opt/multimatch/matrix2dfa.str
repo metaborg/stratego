@@ -1,0 +1,144 @@
+module multimatch/matrix2dfa
+
+imports
+  strc/strc/strc
+  strc/opt/scope-laws
+  strc/opt/stratego-laws
+
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/postprocess
+
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+  libstratego-lib
+
+strategies
+  /*======== Construct DFA from matrices =================*/ 
+  matrix2dfa =
+    Scope(id,
+        compile-dfa
+      ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
+    )
+    ; simplify
+    ; enhance-dfa
+
+  compile-dfa = log-timed(CC | "DFA - Compilation", 1)
+
+  enhance-dfa =
+    if not(<get-config> "--no-dfa-optimise")
+    then log-timed(optimise-dfa | "DFA - Optimisation", 1)
+    end
+
+  /*
+   * Compilation scheme from Maranget (2008).
+   *
+   * Changes w.r.t. paper:
+   * (none)
+   */
+  CC = NoRows
+    <+ WildcardsFirstRow
+    <+ SelectColumn
+
+  /*
+   * 1. If matrix P has no row (i.e. m = 0) then matching always fails,
+   * since there is no row to match.
+   */
+  NoRows:
+    m@Matrix(_, []) ->
+    Fail()
+//  where
+//    <debug(!"NoRows ")> m
+
+  /*
+   * 2. If the first row of P exists and is constituted by wildcards,
+   * then matching always succeeds and yields the first action.
+   *
+   * In particular, this case applies when there is at least
+   * one row (m > 0) and no column (n = 0).
+   * ================================================================
+   * Produce an intermediate guarded leaf.
+   * In a subsequent traversal, this guard can be pushed up to the switch arm.
+   */
+  WildcardsFirstRow:
+    m@Matrix(_, row*@[Row(<all-wildcards>, _, _, _) | _]) ->
+    GuardedLeafs(guard*)
+//  where
+//    <debug(!"WildcardsFirstRow ")> m
+  with
+    <take-while(row-all-wildcards)> row* => match_row*
+  ; <Matrix(id, drop-while(row-all-wildcards))> m => m'
+    // Split rows at first row not having only wildcard patterns
+  ; let
+      row2guard = \ Row(_, s_a, s_g, s_rhs) -> Guard(<sequence-strategies> (Where(s_a), s_g), s_rhs) \
+    in
+      guard* := <map(row2guard); at-end(![Guard(Id(), <CC> m')])> match_row*
+    end
+
+  /*
+   * 3. In any other case, matrix P has at least one row and at least
+   * one column (m > 0, n > 0). Furthermore, there exists at least one
+   * column of which at least one pattern is not a wildcard. Select
+   * one such column i.
+   */
+  SelectColumn:
+    m@Matrix([p | _], [_ | _]) ->
+    T
+//  where
+//    <debug(!"SelectColumn ")> m
+  with
+    i := <find-first-col-index(not(all-wildcards))> m
+//  ; <debug(!"  with i=")> i
+  ; if <gti> (i, 1) then
+    /*
+     * If i > 1 then swap columns 1 and i in both o and P,
+     * and run the algorithm on the resulting matrix.
+     */
+      <swap-cols(|1, i); CC> m
+    else
+      <aliases-to-guards> m => m'
+    ; <col(|i); constructors-om> m' => cons*
+    ; <?(_, [(AnnoC(), _)]) < unwrap-annos + tswitch> (m', cons*)
+    end => T
+
+  unwrap-annos:
+    (m, cons*) -> <specialize(|hc); CC> m
+  where
+    <?[(hc@AnnoC(), _)]> cons*
+//  ; debug(!"unwrapping annos... ")
+
+  tswitch:
+    (m@Matrix([p | _], [_ | _]), cons*) -> SwitchT(TypeP(p), talt*, Default(s_def))
+  where
+    <not(fetch(?(AnnoC(), _)))> cons*
+  with
+    arm*    := <tswitch-arms> cons*
+  ; s_def   := <default; CC> m
+  ; talt*   := <map(talt(|m, p, s_def))> arm*
+
+  talt(|m, p, s_def):
+    (t, c*) -> AltT(t, SwitchV(p', <map(valt(|m))> c*, Default(s_def)))
+  with
+    p' := <extend-path-by-type(|t)> p
+
+  valt(|m) =
+    !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)
+
+  is-switchable = fail
+                + ?AnnoC()
+                + ?FunC(_, _)
+                + ?TupleC(_)
+                + is-literal-cons
+
+  extend-path-by-type(|ApplT()) = !ConP(<id>)
+  extend-path-by-type(|LisT()) = id
+  extend-path-by-type(|IntT()) = !IntP(<id>)
+  extend-path-by-type(|RealT()) = !RealP(<id>)
+  extend-path-by-type(|StringT()) = !StrP(<id>)
+  extend-path-by-type(|CtorT()) = <fatal-error> ["CtorT not implemented"]
+  extend-path-by-type(|TupleT()) = !SizeP(<id>)
+  extend-path-by-type(|RefT()) = <fatal-error> ["RefT not implemented"]
+  extend-path-by-type(|BlobT()) = <fatal-error> ["BlobT not implemented"]
+  extend-path-by-type(|PlaceT()) = <fatal-error> ["PlaceT not implemented"]

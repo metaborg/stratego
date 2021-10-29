@@ -7,20 +7,25 @@ imports
   outline
   analysis
   signatures/core/modules-sig
+  signatures/core/strategies-sig
   signatures/-
 
   strc
   strc/front/frontend
+  strc/incr/compile
 
   strj
   strj/s2j
   strj/strj-options
 
   libjava-front
+  libstratego-aterm
   libstratego-gpp
+  libstratego-lib
 
 rules // Debugging
-  
+
+  // Show parsed AST
   debug-show-aterm:
     (node, _, _, path, project-path) -> (filename, result)
     with
@@ -36,17 +41,6 @@ rules // Debugging
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend-sep-comp
-    ; ?result
-
-  debug-show-ctree:
-    (node, _, _, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"ctree.aterm")> path
-    ; <set-config> ("--library", ()) // no main strategy necessary this way
-    ; !node
-    ; local-pre-desugar-all
-    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
-    ; frontend
     ; ?result
 
   debug-show-java:
@@ -72,4 +66,159 @@ rules // Debugging
     ; s2j
     ; ?ast*
     ; filename* := <map(output-filename)> ast*
-    ; result* := <map(pp-java5-to-abox; box2text-string(|80))> ast*
+    ; result* := <map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(|"Pretty printing Java failed: ")); fail)> ast*
+
+imports
+  libstratego-lib
+
+  strc/opt/bound-unbound-vars
+  strc/strc/strc
+
+  strj/backend-simplify
+  strj/s2j-options
+
+rules
+  // Show desugared AST
+  debug-show-ctree:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"ctree.aterm")> path
+    ; <translate-core(|path, 2)> node => result
+
+  // Show desugared concrete syntax
+  debug-show-core:
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"core.str2")> path
+    ; <translate-core(|path, 2); pp-stratego-core> node => result
+
+  translate-core(|path, O) = translate-core(id|path, O)
+
+  translate-core(s|path, O) = id
+    ; where(<set-config> ("--library", ())) // no main strategy necessary this way
+    ; local-pre-desugar-all
+    ; Module(?x_mod, id)
+    ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
+    ; where(
+        <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
+      ; strj-preinit-options(|["org.strategoxt.stratego_lib"])
+      ; <set-config> ("-O", O)
+      ; s
+      ; <dirname> path
+      ; rules(OutputDirName := <id>)
+      )
+    ; frontend-sep-comp
+    ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
+    ; strc-optimize
+    ; \Specification(d*) -> Module(x_mod, d*)\
+
+  debug-show-java-O0 = debug-show-java(|0)
+  debug-show-java-O1 = debug-show-java(|1)
+  debug-show-java-O2 = debug-show-java(|2)
+  debug-show-java-O3 = debug-show-java(|3)
+  debug-show-java-O4 = debug-show-java(|4)
+  debug-show-java-O4-unopt-DFA = debug-show-java(<set-config> ("--no-dfa-optimise", ())|4)
+  debug-show-java-O4-nested-switches = debug-show-java(<set-config> ("--pmc:switchv", "nested-switch")|4)
+  debug-show-java-O4-hash-switch = debug-show-java(<set-config> ("--pmc:switchv", "hash-switch")|4)
+  debug-show-java-O5 = debug-show-java(|5)
+  debug-show-java-O6 = debug-show-java(|6)
+
+  debug-show-java-ast-O4 = debug-show-java-ast(|4)
+  debug-show-java-ast-O4-nested-switches = debug-show-java-ast(<set-config> ("--pmc:switchv", "nested-switch")|4)
+  debug-show-java-ast-O4-hash-switch = debug-show-java-ast(<set-config> ("--pmc:switchv", "hash-switch")|4)
+
+  debug-show-java-ast(|O) = debug-show-java-ast(id|O)
+  debug-show-java-ast(s|O):
+    (node, _, _, path, project-path) -> (filename*, ast*)
+    with
+      <translate-core(s|path, O)> node
+    ; \Module(_, d*) -> Specification(d*)\
+    ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
+    ; s2j
+    ; ?ast*
+    ; filename* := <map(output-filename)> ast*
+
+  debug-show-java(|O) = debug-show-java(id|O)
+  debug-show-java(s|O) =
+    debug-show-java-ast(s|O)
+  ; (id, map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail))
+
+strategies
+
+  debug-show-core-optimized-O1 = debug-show-core-optimized(|1)
+  debug-show-core-optimized-O2 = debug-show-core-optimized(|2)
+  debug-show-core-optimized-O3 = debug-show-core-optimized(|3)
+  debug-show-core-optimized-O4 = debug-show-core-optimized(|4)
+  debug-show-core-optimized-O4-analysed = debug-show-core-optimized(mark-bound-unbound-vars|4)
+  debug-show-core-optimized-O4-backend-simplify = debug-show-core-optimized(strj-preinit-options(|["org.strategoxt.stratego_lib"]); backend-simplify|4)
+  debug-show-core-optimized-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-core-optimized(translate-MMs|4)
+  debug-show-core-optimized-O4-opt-DFA = debug-show-core-optimized(translate-MMs|4)
+  debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
+  debug-show-core-optimized-O6 = debug-show-core-optimized(|6)
+
+  debug-show-ctree-optimized-O1 = debug-show-ctree-optimized(|1)
+  debug-show-ctree-optimized-O2 = debug-show-ctree-optimized(|2)
+  debug-show-ctree-optimized-O3 = debug-show-ctree-optimized(|3)
+  debug-show-ctree-optimized-O4 = debug-show-ctree-optimized(|4)
+  debug-show-ctree-optimized-O4-analysed = debug-show-ctree-optimized(mark-bound-unbound-vars|4)
+  debug-show-ctree-optimized-O4-backend-simplify = debug-show-ctree-optimized(strj-preinit-options(|["org.strategoxt.stratego_lib"]); backend-simplify|4)
+  debug-show-ctree-optimized-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-ctree-optimized(translate-MMs|4)
+  debug-show-ctree-optimized-O4-opt-DFA = debug-show-ctree-optimized(translate-MMs|4)
+  debug-show-ctree-optimized-O5 = debug-show-ctree-optimized(|5)
+  debug-show-ctree-optimized-O6 = debug-show-ctree-optimized(|6)
+
+  debug-show-ctree-optimized(|O) = debug-show-ctree-optimized(id|O)
+  debug-show-ctree-optimized(s|O):
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|$[core.opt[O].aterm])> path
+    ; <translate-core(|path, O); s> node => result
+
+  debug-show-core-optimized(|O) = debug-show-core-optimized(id|O)
+  debug-show-core-optimized(s|O):
+    (node, _, _, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|$[core.opt[O].str2])> path
+    ; <translate-core(|path, O); s; pp-stratego-core> node => result
+
+strategies
+  internal translate-MMs = topdown(?MultiMatch(_, _) < multimatch2dfa + id)
+
+// Testing strategies
+imports
+  strc/front/desugar
+  strc/opt/multimatch/multimatch2dfa
+
+strategies // for testing pruposes only
+  test-choice2multimatch = test-menuitem-aterm(|4)
+  test-choice2multimatch-pp = test-menuitem-pp(|4)
+
+  test-multimatch2dfa = test-menuitem-aterm(id, topdown(try(multimatch2dfa)))
+  test-multimatch2dfa-pp = test-menuitem-pp(id, topdown(try(multimatch2dfa)))
+
+  test-menuitem-pp(|O) = test-menuitem-pp(id, id|O)
+  test-menuitem-pp(s1, s2) = test-menuitem-pp(s1, s2|2)
+  test-menuitem-pp(s1, s2|O) = test-menuitem(s1, s2, pp-stratego-core|O, "str2")
+
+  test-menuitem-aterm(|O) = test-menuitem-aterm(id, id|O)
+  test-menuitem-aterm(s1, s2) = test-menuitem-aterm(s1, s2|2)
+  test-menuitem-aterm(s1, s2|O) = test-menuitem(s1, s2, id|O, "aterm")
+
+  test-menuitem(s1, s2|O, ext) = test-menuitem(s1, s2, id|O, ext)
+  test-menuitem(s1, s2, pp|O, ext):
+    (node, _, _, path, project-path) -> (filename, result)
+  with
+    filename := <guarantee-extension(|$[test.[ext]])> path
+  ; <test-translate-core(s1, s2|path, O); pp> node => result
+
+  test-translate-core(|path, O) = test-translate-core(id, id|path, O)
+  test-translate-core(s1, s2|path, O) = id
+  ; where(
+      <set-config> ("--library", ()) // no main strategy necessary this way
+    ; <set-config> ("-O", O)
+    )
+  ; local-pre-desugar-all
+  ; try(\ Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*) \)
+  ; s1
+  ; strc-optimize
+  ; s2

@@ -1,0 +1,62 @@
+module logic3
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool3
+
+constructors
+   d0 : Bool3 
+   d1 : Bool3 
+   d2 : Bool3 
+   a : Bool3 
+   b : Bool3 
+   c : Bool3 
+   d : Bool3 
+   e : Bool3 
+   f : Bool3 
+   g : Bool3 
+   h : Bool3 
+   plus : Bool3 * Bool3 -> Bool3 
+   times : Bool3 * Bool3 -> Bool3 
+   and : Bool3 * Bool3 -> Bool3 
+   or : Bool3 * Bool3 -> Bool3 
+   Xnot : Bool3 -> Bool3 
+   succ : Bool3 -> Bool3 
+   eq : Bool3 * Bool3 -> Bool3 
+
+rules
+   REC_E: a() -> d0()
+   REC_E: b() -> d1()
+   REC_E: c() -> d2()
+   REC_E: d() -> d0()
+   REC_E: e() -> d1()
+   REC_E: f() -> d2()
+   REC_E: g() -> d0()
+   REC_E: h() -> d1()
+   REC_E: succ (d0()) -> d1()
+   REC_E: succ (d1()) -> d2()
+   REC_E: succ (d2()) -> d0()
+   REC_E: plus (d0(), X) -> X
+   REC_E: plus (d1(), X) -> succ (X)
+   REC_E: plus (d2(), X) -> succ (succ (X))
+   REC_E: times (d0(), X) -> d0()
+   REC_E: times (d1(), X) -> X
+   REC_E: times (d2(), d0()) -> d0()
+   REC_E: times (d2(), d1()) -> d2()
+   REC_E: times (d2(), d2()) -> d1()
+   REC_E: and (X,Y) -> plus ( times (times (X, X), times (Y, Y)),plus ( times (d2(), times (times (X, X), Y)),plus ( times (d2(), times (times (Y, Y), X)),times (d2(), times (X, Y)) )))
+   REC_E: or (X,Y) -> plus ( times (d2(), times (times (X, X), times (Y, Y))),plus ( times (times (X, X), Y),plus ( times (times (Y, Y), X),plus ( times (X, Y),plus (X, Y) ))))
+   REC_E: Xnot (X) -> plus (times (d2(), X), d1())
+   REC_E: eq (X,Y) -> d1() where equal-after-eval (|X, Y)
+   REC_E: eq (X,Y) -> d0() where not (equal-after-eval (|X, Y))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> eq (and (and (and (a(), b()), and (c(), d())), and (and (e(), f()), and (g(), h()))), Xnot (or (or (or (Xnot (a()), Xnot (b())), or (Xnot (c()), Xnot (d()))),or (or (Xnot (e()), Xnot (f())), or (Xnot (g()), Xnot (h()))))))) ;
+      <exit> 0

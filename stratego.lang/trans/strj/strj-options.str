@@ -24,6 +24,8 @@ strategies
   ; <set-config> ("--statistics", 1)
   ; <set-config> ("-O", 2)
   ; <set-config> ("-I", [])
+  ; <set-config> ("--pmc:switchv", "elseif") // TODO Change later? (depending on results)
+  ; <set-config> ("--pmc:switchv-order", "arity-name") // TODO Change later? (depending on results)
   ; <set-config> ("--no-concrete-syntax-externals", 1)
   ; <list-loop(\lib -> <post-extend-config> ("-la", [lib])\)> libs
 

@@ -1,0 +1,15 @@
+module alias2
+imports libstratego-lib
+
+strategies
+  s' =
+    match sequential
+      case a1     | a1@(): !1
+      case a2, a3 | a2@a3: !2
+    end
+  
+  uncar2(|x) = match sequential
+                 case | Cons(x, _): !x // equality check
+                 case y | Cons(y, _): !y // matches all Cons(_, _)
+                 case z | Cons(Nil(), z): !z // dead
+              end

@@ -1,0 +1,277 @@
+module codegen/dfa
+language StrategoLang
+
+test Lists (Cons/Nil) [[
+specification
+imports libstratego-lib
+
+strategies
+
+length_0_0( | ) =
+  match sequential
+    case | Nil( ){^_}: !0{^Nil( )}
+    case | Cons(_, Nil( ){^_}){^_}: !1{^Nil( )}
+    case | Cons(_, _){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+length_0_0( | ) =
+  switch current.type {
+    alt LIST:
+      switch current {
+        alt (Nil, 0):
+          !0{^Nil( )}
+        alt (Cons, 2):
+          switch current.tail.type {
+            alt LIST:
+              switch current.tail {
+                alt (Nil, 0):
+                  !1{^Nil( )}
+                default: id
+              }
+            default: id
+          }
+      }
+  }
+]]
+
+test Tuples (mutually inclusive -> complex default) [[
+specification
+imports libstratego-lib
+
+strategies
+
+comp_0_0( | ) =
+  match sequential
+    case | (Nil( ){^_}, _){^_}: !1{^Nil( )}
+    case | (_, Nil( ){^_}){^_}: !2{^Nil( )}
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+comp_0_0( | ) =
+  switch current.type {
+    alt TUPLE:
+      switch current.size {
+        alt (2):
+          switch current.0.type {
+            alt LIST:
+              switch current.0 {
+                alt (Nil, 0):
+                  !1{^Nil( )}
+                default: switch current.1.type {
+                           alt LIST:
+                             switch current.1 {
+                               alt (Nil, 0):
+                                 !2{^Nil( )}
+                             }
+                         }
+              }
+            default: switch current.1.type {
+                       alt LIST:
+                         switch current.1 {
+                           alt (Nil, 0):
+                             !2{^Nil( )}
+                         }
+                     }
+          }
+      }
+  }
+]]
+
+test Mixed types [[
+specification
+imports libstratego-lib
+
+signature
+constructors
+
+Car1 : a -> List(a)
+Car2 : a -> List(a)
+
+strategies
+
+uncar2_0_0( | ) =
+  match sequential
+    case | Car1(_){^_}: Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+    case | Car2(_){^_}: Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+    case | "abc"{^_}: !"cba"{^Nil( )}
+    case | 8{^_}: !54{^Nil( )}
+    case | 5.4{^_}: !8{^Nil( )}
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+signature
+constructors
+
+Car1 : a -> List(a)
+Car2 : a -> List(a)
+
+strategies
+
+uncar2_0_0( | ) =
+  switch current.type{
+    alt APPL:
+      switch current.con {
+        alt (Car1, 1):
+          Cons_2_0(!1{^Nil( )}, Nil_0_0( | )| )
+        alt (Car2, 1):
+          Cons_2_0(!2{^Nil( )}, Nil_0_0( | )| )
+      }
+    alt STRING:
+      switch current.str {
+        alt "abc":
+          !"cba"{^Nil( )}
+      }
+    alt INT:
+      switch current.int {
+        alt 8:
+          !54{^Nil( )}
+      }
+    alt REAL:
+      switch current.real {
+        alt 5.4:
+          !8{^Nil( )}
+      }
+  }
+]]
+
+test Exploded terms: nullary cons [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | "Foo"{^_}#([]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Foo, 0):
+          id
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+]]
+
+test Exploded terms: unary cons [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | "Bar"{^_}#([1{^_} | []{^_}]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Bar, 1):
+          switch current.0.type {
+            alt INT:
+              switch current.0.int {
+                alt 1:
+                  id
+                default:
+                  fail
+              }
+            default:
+              fail
+          }
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+]]
+
+test Exploded terms: string [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | "\"Foo\""{^_}#([]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt STRING:
+      switch current.str {
+        alt "Foo":
+          id
+        default:
+          fail
+      }
+    default:
+      fail
+  }
+]]
+
+test Exploded terms: ambiguous var [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  match sequential
+    case | foo#([]{^_}){^_}: id
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+imports libstratego-lib
+
+strategies
+
+s_0_0( | ) =
+  switch current.type {
+    alt APPL:
+      switch current.con {
+        alt (Foo, 0):
+          id
+      }
+    alt STRING:
+      switch current.str {
+        alt "Foo":
+          id
+      }
+  }
+]]

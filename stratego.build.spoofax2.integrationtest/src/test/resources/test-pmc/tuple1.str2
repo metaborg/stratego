@@ -1,0 +1,67 @@
+module tuple1
+imports libstratego-lib
+
+strategies
+  s =
+     match sequential
+       case | (): !1
+       case | (1, 2): !2
+       case | (_, _, _, _): !4
+       case | (_, _): !3
+     end
+  
+//  s2 = ?(1, 2)
+
+  main =
+    test-suite(
+      !"multimatch on tuples"
+    , tuple-empty
+    ; tuple-wld
+    ; tuple-elements
+    ; tuple-wrongsize
+    ; tuple-wrongtype
+    )
+
+  tuple-empty =
+    apply-test(
+      !"tuple-empty"
+    , s
+    , !()
+    , !1
+    )
+
+  tuple-wld =
+    apply-test(
+      !"tuple-wld"
+    , s
+    , !(5, 4)
+    , !3
+    )
+
+  tuple-elements =
+    apply-test(
+      !"tuple-elements"
+    , s
+    , !(1, 2)
+    , !2
+    )
+
+  tuple-wrongsize =
+    apply-and-fail(
+      !"tuple-wrongsize"
+    , s
+    , !(1, 2, 3)
+    )
+
+
+  tuple-wrongtype =
+    apply-test(
+      !"tuple-wrongtype"
+    , s
+    , !("1", "2")
+    , !3
+    )
+
+  external test-suite(s1, s2|)
+  external apply-test(s1, s2, s3, s4|)
+  external apply-and-fail(s1, s2, s3|)

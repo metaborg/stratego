@@ -1,0 +1,16 @@
+module improper-list-test
+imports libstratego-lib
+
+signature
+  sorts
+    List(a)
+  constructors
+    Bla : List(a) -> List(a)
+    Nil : List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies 
+
+  main = 
+    (!["a" | ["b" | Bla(["c" | ["d" | []]])]] <+ !"a");
+    ?"a"

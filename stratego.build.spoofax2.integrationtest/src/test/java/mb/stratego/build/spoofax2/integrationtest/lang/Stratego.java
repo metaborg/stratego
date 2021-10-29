@@ -73,9 +73,17 @@ public class Stratego {
     }
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
-        Path packageDir, boolean library,
-        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
-        LanguageIdentifier languageIdentifier)
+                                     Path packageDir, boolean library,
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+                                     LanguageIdentifier languageIdentifier)
+        throws MetaborgException, IOException {
+        return str2(input, baseName, packageName, packageDir, library, linkedLibraries, autoImportStd, languageIdentifier, new Arguments());
+    }
+
+    public static CompileOutput str2(Path input, String baseName, String packageName,
+                                     Path packageDir, boolean library,
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+                                     LanguageIdentifier languageIdentifier, Arguments newArgs)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -109,7 +117,6 @@ public class Stratego {
             final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
             strjIncludeDirs.add(projectPath);
 
-            final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
             final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");

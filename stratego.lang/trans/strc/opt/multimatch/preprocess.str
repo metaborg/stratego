@@ -1,0 +1,57 @@
+module multimatch/preprocess
+
+imports
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/lib/stratlib
+
+  signatures/core/terms-sig
+  signatures/sugar/strategies-sig
+
+  libstratego-lib
+
+strategies
+  preprocess =
+    Explode2Guard
+  ; (Var2AsWld, sequence-list)
+
+strategies
+  /*
+   * Extract exploded terms from a pattern,
+   */
+  Explode2Guard:
+    t -> (t', s*)
+  with
+    <thread-alltd(Explode2Guard')> (t, []) => (t', s*)
+
+  Explode2Guard':
+    (t1@Anno(Explode(_, _), Wld()), s*) ->
+    (t2, [s | s*])
+  with
+    x := <tnewvar> "expl_"
+  ; t2 := Var(x) // TODO Needs (offset/frames/escapes) annotations?
+  ; s := Assign(t1, t2)
+
+  Explode2Guard' =
+    (is-primitive, id)
+
+  is-primitive =
+    ?Var(_)
+  + is-wld
+  + ?Str(_)
+  + ?Int(_)
+  + ?Real(_)
+  + is-leaf
+
+strategies
+  Var2AsWld = rec s(
+    As(id, s)
+ <+ Explode(id, s)
+ <+ \ Var(x) -> As(Var(x), Wld()) \
+ <+ all(try(s))
+ )
+
+strategies
+  internal sequence-list =
+    ?[<id>]
+  + foldr(!Id(), sequence-strategies)

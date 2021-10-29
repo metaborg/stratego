@@ -1,0 +1,33 @@
+module dfa
+
+
+signature
+//  sorts DTree Alt
+//  constructors
+//    // Leaf : Action
+//    Leaf    : Strategy          -> DTree
+//    // Fail
+//    Fail    :                      DTree
+//    // Switch : Alts * Default
+//    Switch  : List(Alt) * DTree -> DTree
+//    // Swap : column ID * Continue
+//    Swap    : int * DTree       -> DTree
+//
+//    // Alt  : Pattern * Continue
+//    Alt     : Pat * DTree       -> Alt
+//
+//  sorts Path PathEl
+//  constructors
+//    Path    : List(PathEl)  -> Path
+//
+//    SubP     : int           -> PathEl
+//    AnnoP     :                  PathEl
+//    ConP     :                  PathEl
+//
+//  sorts Pat // BindPat
+//  constructors
+//    FunC   : string  * int -> Pat
+//    StrC   : string        -> Pat
+//    IntC   : int           -> Pat
+//    RealC  : real          -> Pat
+//    AnnoC  :                  Pat

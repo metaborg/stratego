@@ -1,0 +1,66 @@
+module multimatch/matrix
+
+imports
+  signatures/core/terms-sig
+
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/utils
+
+signature
+  sorts Matrix Row Col
+  constructors
+    Matrix  : List(Path) * List(Row)                      -> Matrix
+           // Patterns   * Alias guard * Row guard * RHS
+    Row     : List(Term) * Strategy * Strategy * Strategy -> Row
+
+    Col     : List(Term) * List(Strategy) * List(Strategy) * List(Strategy) -> Col
+
+strategies // predicates
+  row-all-wildcards = Row(all-wildcards, id, id, id)
+
+  /*
+   * Succeeds on a list if at least one element is not a wildcard.
+   */
+  all-wildcards = where(retain-all(not(is-wld)); ?[])
+
+strategies // setters
+  set-alias-guard(|s_a) =
+    Row(id, !s_a, id, id)
+
+strategies // getters
+  /*
+   * Get the `i`th column from a Matrix.
+   */
+  col(|i): Matrix(_, rows) -> Col(t*, s1*, s2*, s3*)
+  where
+    t* := <map(?Row(<index(|i)>, _, _, _))> rows
+  ; s1* := <map(?Row(_, <id>, _, _))> rows
+  ; s2* := <map(?Row(_, _ ,<id>, _))> rows
+  ; s3* := <map(?Row(_, _ , _, <id>))> rows
+
+strategies // stdlib variants for Matrix/Row/Col
+  find-first-row-index(s) = id
+  ; ?Matrix(_, <id>)
+  ; find-first-index(s)
+
+  find-first-col-index(s) = id
+  ; ?Matrix(_, <id>)
+  ; map(?Row(<id>, _, _, _))
+  ; matrix-transpose
+  ; find-first-index(s)
+
+  /*
+   * Map `s` over the patterns of matrix column `i`.
+   * Index starts at 1.
+   */
+  map-col(s|i) = Matrix(id, map(at-row-index(s|i)))
+
+  /*
+   * Apply `s` to the `i`-th subpattern of the row.
+   * Index starts at 1.
+   */
+  at-row-index(s|i) = Row(at-index(s|<dec> i), id, id, id)
+
+  swap-cols(|m, n) = Matrix(swap(|m, n), map(swap-row-el(|m, n)))
+
+  swap-row-el(|m, n) = Row(swap(|m, n), id, id, id)

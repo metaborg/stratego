@@ -1,0 +1,29 @@
+module multimatch/guard
+
+imports
+  strc/opt/multimatch/matrix
+
+  signatures/core/strategies-sig
+  signatures/sugar/strategies-sig
+  signatures/core/terms-sig
+  signatures/sugar/terms-sig
+
+strategies
+  aliases-to-guards:
+    Matrix(p*@[p | _], row*) ->
+    Matrix(p*, row'*)
+  with
+    <map(repeat(alias-to-guard(|p)))> row* => row'*
+
+  alias-to-guard(|p):
+    Row([As(t1, t2) | t*], s1, s2, s3) ->
+    Row([t2 | t*], s, s2, s3)
+  with
+    <sequence-strategies> (Where(Assign(t1, Path(p))), s1) => s
+
+strategies
+  sequence-strategies = !Seq(<Fst>, <Snd>)
+
+strategies
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()

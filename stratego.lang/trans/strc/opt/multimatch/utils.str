@@ -1,0 +1,65 @@
+module multimatch/utils
+
+imports
+  libstratego-lib
+
+strategies
+
+  /*
+   * Generic zip.
+   * Works on any number of input arguments >0.
+   */
+  zipn = zipn(id)
+  zipn(s) = genzip(ZipN1, ZipN2, ZipN3, s)
+  
+  ZipN1 = tmap(?[]); ![]
+  ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
+  ZipN3 = Zip3
+
+  /*
+   * Takes elements from the start of the list, including the first element at
+   * which `s` succeeds. Drops all subsequent elements.
+   */
+  drop-after(s) =
+    split-fetch-keep(where(s)) => (x1*, x2, _)
+  ; <at-end(![x2])> x1*
+
+  /*
+   * Find index of first element in list for which `s` succeeds.
+   * Index starts at 1.
+   */
+  find-first-index(s) = id
+  ; is-list
+  ; split-fetch(s)
+  ; Fst
+  ; length
+  ; inc
+
+  /*
+   * Swap elements `m` and `n` in a list.
+   * Index starts at 1.
+   */
+  swap(|m, n) = where(<eq> (m, n)); id
+  swap(|m, n): xs -> xs''
+  with
+    <is-list> xs
+  ; elM := <index(|m)> xs
+  ; elN := <index(|n)> xs
+  ; xs' := <set-index> (<dec> m, elN, xs)
+  ; xs'' := <set-index> (<dec> n, elM, xs')
+
+  /*
+   * Left-to-right `make-set`.
+   */
+  // TODO Rewrite with left fold
+  make-set-lr = reverse; make-set; reverse
+
+  or(s1, s2, s3) = or(or(s1, s2), s3)
+
+strategies
+  cons-arity: AnnoC() -> 2
+  cons-arity = ?FunC(_, <string-to-int>)
+  cons-arity = ?TupleC(<string-to-int>)
+  cons-arity = is-literal-cons; !0
+
+  

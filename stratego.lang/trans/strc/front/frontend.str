@@ -94,7 +94,7 @@ strategies
         )
 
       ; m-transform-local-defs(id
-          ; ![<joindefs>] 
+          ; ![<joindefs>]
           ; [RenameSDef]
         )
 

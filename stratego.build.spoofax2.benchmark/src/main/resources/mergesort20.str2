@@ -1,0 +1,60 @@
+module mergesort20
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Nat NatList ListPair
+
+constructors
+   true : Bool 
+   false : Bool 
+   d0 : Nat 
+   s : Nat -> Nat 
+   nil : NatList 
+   cons : Nat * NatList -> NatList 
+   pair : NatList * NatList -> ListPair 
+   d10 : Nat 
+   lte : Nat * Nat -> Bool 
+   plus : Nat * Nat -> Nat 
+   times : Nat * Nat -> Nat 
+   rev : Nat -> NatList 
+   split : NatList -> ListPair 
+   merge : NatList * NatList -> NatList 
+   mergesort : NatList -> NatList 
+   p1 : ListPair -> NatList 
+   p2 : ListPair -> NatList 
+
+rules
+   REC_E: d10() -> s (s (s (s (s (s (s (s (s (s (d0()))))))))))
+   REC_E: lte (d0(), s (N)) -> true()
+   REC_E: lte (s (N), d0()) -> false()
+   REC_E: lte (d0(), d0()) -> true()
+   REC_E: lte (s (N), s (M)) -> lte (N, M)
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: times (d0(), N) -> d0()
+   REC_E: times (s (N), M) -> plus (M, times (N, M))
+   REC_E: rev (s (N)) -> cons (s (N), rev (N))
+   REC_E: rev (d0()) -> cons (d0(), nil())
+   REC_E: merge (nil(), L) -> L
+   REC_E: merge (L, nil()) -> L
+   REC_E: merge (cons (X, L1), cons (Y, L2)) -> cons (X, merge (L1, cons (Y, L2))) where equal-after-eval (|lte (X, Y), true())
+   REC_E: merge (cons (X, L1), cons (Y, L2)) -> cons (Y, merge (cons (X, L1), L2)) where equal-after-eval (|lte (X, Y), false())
+   REC_E: split (cons (X, cons (Y, L))) -> pair (cons (X, p1 (split (L))), cons (Y, p2 (split (L))))
+   REC_E: split (nil()) -> pair (nil(), nil())
+   REC_E: split (cons (X, nil())) -> pair (cons (X, nil()), nil())
+   REC_E: mergesort (nil()) -> nil()
+   REC_E: mergesort (cons (X, nil())) -> cons (X, nil())
+   REC_E: mergesort (cons (X, cons (Y, L))) -> merge (mergesort (cons (X, p1 (split (L)))), mergesort (cons (Y, p2 (split (L)))))
+   REC_E: p1 (pair (L1, L2)) -> L1
+   REC_E: p2 (pair (L1, L2)) -> L2
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> mergesort (rev (times (d10(), s(s(d0())))))) ;
+      <exit> 0

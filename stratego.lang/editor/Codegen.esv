@@ -1,0 +1,19 @@
+module Codegen
+
+menus
+
+  menu: "Codegen" (openeditor) (source)
+    action: "Show Java files (-O0)" = debug-show-java-O0
+    action: "Show Java files (-O1)" = debug-show-java-O1
+    action: "Show Java files (-O2)" = debug-show-java-O2
+    action: "Show Java files (-O3)" = debug-show-java-O3
+    action: "Show Java files (-O4)" = debug-show-java-O4
+    action: "Show Java files (-O4, nested value switch)" = debug-show-java-O4-nested-switches
+    action: "Show Java files (-O4, hashed value switch)" = debug-show-java-O4-hash-switch
+    action: "Show Java files (-O4, unoptimised DFA)" = debug-show-java-O4-unopt-DFA
+    action: "Show Java files (-O5)" = debug-show-java-O5
+//    action: "Show Java files (-O6)" = debug-show-java-O6
+
+  menu: "Codegen (AST)" (openeditor) (source)
+    action: "Show Java AST (-O4)" = debug-show-java-ast-O4
+    action: "Show Java AST (-O4, experimental SwitchV)" = debug-show-java-ast-O4-nested-switches

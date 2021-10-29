@@ -467,6 +467,19 @@ rules
     (SwitchCase(s1, s2), s3) -> |[ if <~s1> x then ~s2 else ~s3 end ]|
 
   Desugar :
+    MultiMatchTerm(order, t, cases) ->
+    Seq(Build(t), MultiMatch(order, cases))
+
+//  Desugar :
+//   MatchCase(t, s) -> ScopedMatchCase([], t, s)
+//   where
+//    <tvars> t => x* // TODO BINDS: Fix
+
+  Desugar :
+    ScopedMatchCase(x*, p, s) ->
+    ScopedGuardedMatchCase(x*, p, Id(), s)
+
+  Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
     where <not(Id)> s
     with x := <tnewvar> "where"

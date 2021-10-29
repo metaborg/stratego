@@ -1,0 +1,52 @@
+module fibonacci
+
+imports libstratego-lib
+
+signature
+
+sorts
+   Nat
+
+constructors
+   d0 : Nat 
+   s : Nat -> Nat 
+   plus : Nat * Nat -> Nat 
+   fibb : Nat -> Nat 
+
+rules
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: fibb (d0()) -> d0()
+   REC_E: fibb (s (d0())) -> s (d0())
+   REC_E: fibb (s (s (N))) -> plus (fibb (s (N)), fibb (N))
+
+strategies
+   eval = memo (innermost (REC_E))
+
+  main =
+    test-suite(
+      !"fibbonacci"
+    , fibonacci5
+    ; fibonacci18
+    )
+
+   fibonacci5 =
+     apply-and-show(eval|
+       "fibonacci5"
+     , fibb (s (s (s (s (s (d0()))))))
+     )
+
+   fibonacci18 =
+     apply-and-show(eval|
+       "fibonacci18"
+     , fibb (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (d0())))))))))))))))))))
+     )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|tn, ti, to)
+  external apply-and-show(s|tn, ti)
+
+  external memo(s|)
+  external innermost(s|)
+  external equal(|t1, t2)
+  

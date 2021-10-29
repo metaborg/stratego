@@ -172,7 +172,7 @@ public class StrcTests {
         });
     }
 
-    private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
+    static String getErrorMessagesString(CompileOutput str2CompileOutput) {
         final StringJoiner joiner = new StringJoiner("\n");
         for(Message m : ((CompileOutput.Failure) str2CompileOutput).messages) {
             if(m.severity == MessageSeverity.ERROR) {
@@ -194,7 +194,7 @@ public class StrcTests {
         return Paths.get(this.getClass().getResource("/").toURI());
     }
 
-    private static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
+    protected static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
         final HashSet<ResourcePath> resultFiles = str2CompileOutput.resultFiles;
         final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for(ResourcePath resultFile : resultFiles) {
