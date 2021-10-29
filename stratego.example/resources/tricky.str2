@@ -1,0 +1,38 @@
+module tricky
+
+imports libstrategolib
+
+signature
+
+sorts
+   NSingleton USingleton Nat
+
+constructors
+   Ncons : NSingleton 
+   Ucons : Nat -> USingleton 
+   d0 : Nat 
+   succ : Nat -> Nat 
+   d1 : Nat 
+   d2 : Nat 
+   d3 : Nat 
+   f : Nat -> Nat 
+
+rules
+   REC_E: d1() -> succ (d0())
+   REC_E: d2() -> d0() where equal-after-eval (|d0(), d0())
+   REC_E: d3() -> d0() where not (equal-after-eval (|d0(), d0()))
+   REC_E: d3() -> d0() where equal-after-eval (|succ (d0()), d0())
+   REC_E: d3() -> succ (d0()) where not (equal-after-eval (|succ (d0()), d0()))
+   REC_E: f (N) -> N where not (equal-after-eval (|N, d0())) ; not (equal-after-eval (|N, succ (d0())))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> Ncons()) ;
+      (<eval-and-print> Ucons (d0())) ;
+      (<eval-and-print> d1()) ;
+      (<eval-and-print> d2()) ;
+      (<eval-and-print> d3()) ;
+      <exit> 0

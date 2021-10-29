@@ -1,0 +1,266 @@
+module benchexpr10
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat SNat Tree Boolean
+
+constructors
+   true : Boolean 
+   false : Boolean 
+   zero : Nat 
+   s : Nat -> Nat 
+   exz : SNat 
+   exone : SNat 
+   exs : SNat -> SNat 
+   explus : SNat * SNat -> SNat 
+   exmult : SNat * SNat -> SNat 
+   exexp : SNat * SNat -> SNat 
+   leaf : Nat -> Tree 
+   node : Nat * Nat * Tree * Tree -> Tree 
+   or : Boolean * Boolean -> Boolean 
+   and : Boolean * Boolean -> Boolean 
+   neg : Boolean -> Boolean 
+   equal : Nat * Nat -> Boolean 
+   less : Nat * Nat -> Boolean 
+   plus : Nat * Nat -> Nat 
+   mult : Nat * Nat -> Nat 
+   exp : Nat * Nat -> Nat 
+   succ17 : Nat -> Nat 
+   pred17 : Nat -> Nat 
+   plus17 : Nat * Nat -> Nat 
+   mult17 : Nat * Nat -> Nat 
+   exp17 : Nat * Nat -> Nat 
+   buildtree : Nat * Nat -> Tree 
+   calctree17 : Nat -> Nat 
+   getmax : Tree -> Nat 
+   getval : Tree -> Nat 
+   eval : SNat -> Nat 
+   eval17 : SNat -> Nat 
+   evalsym17 : SNat -> Nat 
+   evalexp17 : SNat -> Nat 
+   benchevalsym17 : SNat -> Boolean 
+   benchevalexp17 : SNat -> Boolean 
+   benchevaltree17 : SNat -> Boolean 
+   Xone : SNat 
+   two : SNat 
+   three : SNat 
+   four : SNat 
+   five : SNat 
+   six : SNat 
+   seven : SNat 
+   eight : SNat 
+   nine : SNat 
+   ten : SNat 
+   eleven : SNat 
+   twelve : SNat 
+   thirteen : SNat 
+   fourteen : SNat 
+   fifteen : SNat 
+   sixteen : SNat 
+   seventeen : SNat 
+   eighteen : SNat 
+   nineteen : SNat 
+   twenty : SNat 
+   twentyone : SNat 
+   twentytwo : SNat 
+   twentythree : SNat 
+   twentyfour : SNat 
+   twentyfive : SNat 
+   twentysix : SNat 
+   twentyseven : SNat 
+   twentyeight : SNat 
+   twentynine : SNat 
+   thirty : SNat 
+   thirtyone : SNat 
+   thirtytwo : SNat 
+   thirtythree : SNat 
+   thirtyfour : SNat 
+   thirtyfive : SNat 
+   dec : SNat -> SNat 
+   d0 : Nat 
+   d1 : Nat 
+   d2 : Nat 
+   d3 : Nat 
+   d4 : Nat 
+   d5 : Nat 
+   d6 : Nat 
+   d7 : Nat 
+   d8 : Nat 
+   d9 : Nat 
+   d10 : Nat 
+   d11 : Nat 
+   d12 : Nat 
+   d13 : Nat 
+   d14 : Nat 
+   d15 : Nat 
+   d16 : Nat 
+   d17 : Nat 
+   expand : SNat -> SNat 
+   nat2sym : Nat -> SNat 
+
+rules
+   REC_E: or (true(), B) -> true()
+   REC_E: or (false(), B) -> B
+   REC_E: and (true(), B) -> B
+   REC_E: and (false(), B) -> false()
+   REC_E: neg (false()) -> true()
+   REC_E: neg (true()) -> false()
+   REC_E: d0() -> zero()
+   REC_E: d1() -> s (d0())
+   REC_E: d2() -> s (d1())
+   REC_E: d3() -> s (d2())
+   REC_E: d4() -> s (d3())
+   REC_E: d5() -> s (d4())
+   REC_E: d6() -> s (d5())
+   REC_E: d7() -> s (d6())
+   REC_E: d8() -> s (d7())
+   REC_E: d9() -> s (d8())
+   REC_E: d10() -> s (d9())
+   REC_E: d11() -> s (d10())
+   REC_E: d12() -> s (d11())
+   REC_E: d13() -> s (d12())
+   REC_E: d14() -> s (d13())
+   REC_E: d15() -> s (d14())
+   REC_E: d16() -> s (d15())
+   REC_E: d17() -> s (d16())
+   REC_E: Xone() -> exs (exz())
+   REC_E: two() -> exs (Xone())
+   REC_E: three() -> exs (two())
+   REC_E: four() -> exs (three())
+   REC_E: five() -> exs (four())
+   REC_E: six() -> exs (five())
+   REC_E: seven() -> exs (six())
+   REC_E: eight() -> exs (seven())
+   REC_E: nine() -> exs (eight())
+   REC_E: ten() -> exs (nine())
+   REC_E: eleven() -> exs (ten())
+   REC_E: twelve() -> exs (eleven())
+   REC_E: thirteen() -> exs (twelve())
+   REC_E: fourteen() -> exs (thirteen())
+   REC_E: fifteen() -> exs (fourteen())
+   REC_E: sixteen() -> exs (fifteen())
+   REC_E: seventeen() -> exs (sixteen())
+   REC_E: eighteen() -> exs (seventeen())
+   REC_E: nineteen() -> exs (eighteen())
+   REC_E: twenty() -> exs (nineteen())
+   REC_E: twentyone() -> exs (twenty())
+   REC_E: twentytwo() -> exs (twentyone())
+   REC_E: twentythree() -> exs (twentytwo())
+   REC_E: twentyfour() -> exs (twentythree())
+   REC_E: twentyfive() -> exs (twentyfour())
+   REC_E: twentysix() -> exs (twentyfive())
+   REC_E: twentyseven() -> exs (twentysix())
+   REC_E: twentyeight() -> exs (twentyseven())
+   REC_E: twentynine() -> exs (twentyeight())
+   REC_E: thirty() -> exs (twentynine())
+   REC_E: thirtyone() -> exs (thirty())
+   REC_E: thirtytwo() -> exs (thirtyone())
+   REC_E: thirtythree() -> exs (thirtytwo())
+   REC_E: thirtyfour() -> exs (thirtythree())
+   REC_E: thirtyfive() -> exs (thirtyfour())
+   REC_E: dec (exexp (Xs,exz())) -> exs (exz())
+   REC_E: dec (exexp (Xs,exs (Ys))) -> exmult (exexp (Xs,Ys),Xs)
+   REC_E: dec (exexp (Xs,explus (Ys,Zs))) -> exmult (exexp (Xs,Ys),exexp (Xs,Zs))
+   REC_E: dec (exexp (Xs,exmult (Ys,Zs))) -> dec (exexp (exexp (Xs,Ys),Zs))
+   REC_E: dec (exexp (Xs,exexp (Ys,Zs))) -> dec (exexp (Xs, dec (exexp (Ys,Zs))))
+   REC_E: benchevalsym17 (Xs) -> equal (eval17 (exexp (two(), Xs)), evalsym17 (exexp (two(), Xs)))
+   REC_E: benchevalexp17 (Xs) -> equal (eval17 (exexp (two(), Xs)), evalexp17 (exexp (two(), Xs)))
+   REC_E: benchevaltree17 (Xs) -> equal (calctree17 (eval (Xs)), getval (buildtree (eval (Xs), zero())))
+   REC_E: equal (zero(), zero()) -> true()
+   REC_E: equal (zero(), s (X)) -> false()
+   REC_E: equal (s (X), zero()) -> false()
+   REC_E: equal (s (X), s (Y)) -> equal (X, Y)
+   REC_E: less (zero(), Y) -> true()
+   REC_E: less (s (X), s (Y)) -> less (X, Y)
+   REC_E: less (s (X), zero()) -> false()
+   REC_E: plus (X, zero()) -> X
+   REC_E: plus (X, s (Y)) -> s (plus (X, Y))
+   REC_E: mult (X, zero()) -> zero()
+   REC_E: mult (X, s (Y)) -> plus (mult (X, Y), X)
+   REC_E: exp (X, zero()) -> s (zero())
+   REC_E: exp (X, s (Y)) -> mult (X, exp (X, Y))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))))))) -> zero()
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (s (zero()))))))))))) -> s (s (s (s (s (s (s (s (s (s (s (zero())))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (s (zero())))))))))) -> s (s (s (s (s (s (s (s (s (s (zero()))))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (s (zero()))))))))) -> s (s (s (s (s (s (s (s (s (zero())))))))))
+   REC_E: succ17 (s (s (s (s (s (s (s (zero())))))))) -> s (s (s (s (s (s (s (s (zero()))))))))
+   REC_E: succ17 (s (s (s (s (s (s (zero()))))))) -> s (s (s (s (s (s (s (zero())))))))
+   REC_E: succ17 (s (s (s (s (s (zero())))))) -> s (s (s (s (s (s (zero()))))))
+   REC_E: succ17 (s (s (s (s (zero()))))) -> s (s (s (s (s (zero())))))
+   REC_E: succ17 (s (s (s (zero())))) -> s (s (s (s (zero()))))
+   REC_E: succ17 (s (s (zero()))) -> s (s (s (zero())))
+   REC_E: succ17 (s (zero())) -> s (s (zero()))
+   REC_E: succ17 (zero()) -> s (zero())
+   REC_E: pred17 (s (X)) -> X
+   REC_E: pred17 (zero()) -> s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (zero()))))))))))))))))
+   REC_E: plus17 (X, zero()) -> X
+   REC_E: plus17 (X, s (Y)) -> succ17 (plus17 (X, Y))
+   REC_E: mult17 (X, zero()) -> zero()
+   REC_E: mult17 (X, s (Y)) -> plus17 (X, mult17 (X, Y))
+   REC_E: exp17 (X, zero()) -> succ17 (zero())
+   REC_E: exp17 (X, s (Y)) -> mult17 (X, exp17 (X, Y))
+   REC_E: eval (exz()) -> zero()
+   REC_E: eval (exs (Xs)) -> s (eval (Xs))
+   REC_E: eval (explus (Xs, Ys)) -> plus (eval (Xs), eval (Ys))
+   REC_E: eval (exmult (Xs, Ys)) -> mult (eval (Xs), eval (Ys))
+   REC_E: eval (exexp (Xs, Ys)) -> exp (eval (Xs), eval (Ys))
+   REC_E: eval17 (exz()) -> zero()
+   REC_E: eval17 (exone()) -> s (zero())
+   REC_E: eval17 (exs (Xs)) -> succ17 (eval17 (Xs))
+   REC_E: eval17 (explus (Xs, Ys)) -> plus17 (eval17 (Xs), eval17 (Ys))
+   REC_E: eval17 (exmult (Xs, Ys)) -> mult17 (eval17 (Xs), eval17 (Ys))
+   REC_E: eval17 (exexp (Xs, Ys)) -> exp17 (eval17 (Xs), eval (Ys))
+   REC_E: evalsym17 (exz()) -> zero()
+   REC_E: evalsym17 (exs (Xs)) -> succ17 (evalsym17 (Xs))
+   REC_E: evalsym17 (explus (Xs, Ys)) -> plus17 (evalsym17 (Xs), evalsym17 (Ys))
+   REC_E: evalsym17 (exmult (Xs, exz())) -> zero()
+   REC_E: evalsym17 (exmult (Xs, exs (Ys))) -> evalsym17 (explus (exmult (Xs, Ys), Xs))
+   REC_E: evalsym17 (exmult (Xs, explus (Ys, Zs))) -> evalsym17 (explus (exmult (Xs, Ys), exmult (Xs, Zs)))
+   REC_E: evalsym17 (exmult (Xs, exmult (Ys, Zs))) -> evalsym17 (exmult (exmult (Xs, Ys), Zs))
+   REC_E: evalsym17 (exmult (Xs, exexp (Ys, Zs))) -> evalsym17 (exmult (Xs, dec (exexp (Ys, Zs))))
+   REC_E: evalsym17 (exexp (Xs, exz())) -> succ17 (zero())
+   REC_E: evalsym17 (exexp (Xs, exs (Ys))) -> evalsym17 (exmult (exexp (Xs, Ys), Xs))
+   REC_E: evalsym17 (exexp (Xs, explus (Ys, Zs))) -> evalsym17 (exmult (exexp (Xs, Ys), exexp (Xs, Zs)))
+   REC_E: evalsym17 (exexp (Xs, exmult (Ys, Zs))) -> evalsym17 (exexp (exexp (Xs, Ys), Zs))
+   REC_E: evalsym17 (exexp (Xs, exexp (Ys, Zs))) -> evalsym17 (exexp (Xs, dec (exexp (Ys, Zs))))
+   REC_E: evalexp17 (Xs) -> eval17 (expand (Xs))
+   REC_E: getval (leaf (Val)) -> Val
+   REC_E: getval (node (Val, Max, Left, Right)) -> Val
+   REC_E: getmax (leaf (Val)) -> Val
+   REC_E: getmax (node (Val, Max, Left, Right)) -> Max
+   REC_E: calctree17 (X) -> mult17 (exp17 (s (s (zero())), pred17 (X)), pred17 (exp17 (s (s (zero())), X)))
+   REC_E: nat2sym (zero()) -> exz()
+   REC_E: nat2sym (s (X)) -> exs (nat2sym (X))
+   REC_E: expand (exz()) -> exz()
+   REC_E: expand (exone()) -> exone()
+   REC_E: expand (exs (Xs)) -> explus (exone(), expand (Xs))
+   REC_E: expand (explus (Xs, Ys)) -> explus (expand (Xs), expand (Ys))
+   REC_E: expand (exmult (Xs, exz())) -> exz()
+   REC_E: expand (exmult (Xs, exone())) -> expand (Xs)
+   REC_E: expand (exmult (Xs, explus (Ys, Zs))) -> expand (explus (exmult (Xs, Ys), exmult (Xs, Zs)))
+   REC_E: expand (exmult (Xs, exs (Ys))) -> expand (exmult (Xs, expand (exs (Ys))))
+   REC_E: expand (exmult (Xs, exmult (Ys,Zs))) -> expand (exmult (Xs, expand (exmult (Ys,Zs))))
+   REC_E: expand (exmult (Xs, exexp (Ys,Zs))) -> expand (exmult (Xs, expand (exexp (Ys,Zs))))
+   REC_E: expand (exexp (Xs, exz())) -> exone()
+   REC_E: expand (exexp (Xs, exone())) -> expand (Xs)
+   REC_E: expand (exexp (Xs, explus (Ys, Zs))) -> expand (exmult (exexp (Xs, Ys), exexp (Xs, Zs)))
+   REC_E: expand (exexp (Xs, exs (Ys))) -> expand (exexp (Xs, expand (exs (Ys))))
+   REC_E: expand (exexp (Xs, exmult (Ys,Zs))) -> expand (exexp (Xs, expand (exmult (Ys,Zs))))
+   REC_E: expand (exexp (Xs, exexp (Ys,Zs))) -> expand (exexp (Xs, expand (exexp (Ys,Zs))))
+   REC_E: buildtree (zero(), Val) -> leaf (Val)
+   REC_E: buildtree (s (X), Y) -> node (plus17 (getval (buildtree (X, Y)),getval (buildtree (X, succ17 (getmax (buildtree (X, Y)))))), getmax (buildtree (X, succ17 (getmax (buildtree (X, Y))))), buildtree (X, Y),buildtree (X, succ17 (getmax (buildtree (X, Y)))))
+
+strategies
+   eval = memo (innermost (REC_E))
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> benchevalexp17 (ten())) ;
+      <exit> 0
