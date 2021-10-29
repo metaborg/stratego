@@ -2,8 +2,6 @@ package benchmark.stratego2.execution;
 
 import benchmark.stratego2.problem.BenchNullaryProblem;
 import benchmark.stratego2.template.benchmark.execution.ExecutionBenchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Timeout;
 

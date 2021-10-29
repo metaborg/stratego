@@ -1,6 +1,7 @@
 package api;
 
 import benchmark.exception.SkipException;
+import com.google.common.collect.Lists;
 import mb.log.stream.StreamLoggerFactory;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
@@ -31,6 +32,9 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.util.cmd.Arguments;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.strj.strj;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,6 +76,9 @@ public class Compiler {
     private final ResourcePath projectPath;
 
     long timer;
+    private final String baseName;
+    private final String fileName;
+    private final Path sourcePath;
 
     public Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
         this(sourcePath, false, new ArrayList<>(), true, metaborgVersion, false, args);
@@ -84,9 +91,10 @@ public class Compiler {
         this.metaborgVersion = metaborgVersion;
         this.output = output;
         this.args = args;
+        this.sourcePath = sourcePath.toAbsolutePath();
 
-        String fileName = sourcePath.getFileName().toString();
-        String baseName = FilenameUtils.removeExtension(fileName);
+        fileName = this.sourcePath.getFileName().toString();
+        baseName = FilenameUtils.removeExtension(fileName);
 
         Path tempDir = Files.createTempDirectory("stratego2benchmark");
         this.baseDir = tempDir.resolve(baseName);
@@ -262,6 +270,43 @@ public class Compiler {
         return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
                 .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
                 .collect(Collectors.joining("\n"));
+    }
+
+    public boolean strj() throws IOException {
+        strj.init();
+
+        System.out.println("Creating packagedir...");
+        Files.createDirectories(packageDir.toPath());
+
+//        System.out.println("Creating javadir...");
+//        Files.createDirectories()
+
+//        System.out.println("Args: " + args.toString());
+
+        List<String> strjArgs = Lists.newArrayList(
+                "-i", sourcePath.toString(),
+                "-o", packageDir.toPath().resolve("Main.java").toString(),
+                "-p", javaPackageName,
+                "-la", "stratego-lib",
+                "-D", "VERSION_TERM=\"${version}\"",
+                "-D", "SVN_REVISION_TERM=\"${revision}\"",
+//                "-I", "../../src/main/strategies",
+//                "-I", "../../src/main/strategies/ssl-compat",
+                "-m", "main-" + baseName,
+                "--verbose", "error"
+        );
+
+        strjArgs.addAll(args.asStrings(null));
+
+        final IStrategoTerm result;
+        try {
+            //@formatter:off
+            result = strj.mainNoExit(strjArgs.toArray(new String[strjArgs.size()]));
+            //@formatter:on
+        } catch(StrategoExit exit) {
+            return exit.getValue() == 0;
+        }
+        return result != null;
     }
 
     @NotNull

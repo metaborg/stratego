@@ -57,4 +57,8 @@ public class Stratego2Program {
         return compiler.run();
     }
 
+    public boolean compileStrj() throws IOException {
+        return compiler.strj();
+    }
+
 }
