@@ -42,14 +42,15 @@ strategies // Control-flow combinators
    * try(s) tries to apply s to the current term, but
    * returns it unchanged (and succeeds) when s fails.
    */
-
   try(a -> a) :: a -> a
   try(s) =
     s <+ id
 
+  if(a -> b, b -> a) :: a -> a
   if(c, b) =
     c < b + id
 
+  if(a -> b, b -> c, a -> c) :: a -> c
   if(c, b1, b2) =
     c < b1 + b2
 
@@ -59,7 +60,7 @@ strategies // Control-flow combinators
    * Typically useful if s performs side effects that should be
    * restored/undone in case s fails.
    */
-
+  restore(a -> b, a -> ?) :: a -> b
   restore(s, rest) =
     s <+ (rest; fail)
 
@@ -70,7 +71,6 @@ strategies // Control-flow combinators
    * Typically useful if s performs side effects that should be
    * restored always, e.g., when maintaining scope information.
    */
-
   restore-always(a -> a, a -> b) :: a -> b
   restore-always(s, rest) =
     s < rest + (rest; fail)
@@ -82,7 +82,7 @@ strategies // Control-flow combinators
    * @fail   s or f failed (consider try(f))
    * @type   a -> b, (a or b) -> _ :: a -> b
    */
-
+  finally(a -> b, ? -> ?) :: a -> b
   finally(s, f) =
     s < where(f) + (where(f); fail)
 
@@ -91,14 +91,14 @@ strategies // Boolean combinators
   /**
    * true is a synonym for id.
    */
-
+  true :: a -> a
   true =
     id
 
   /**
    * false is a synonym for fail.
    */
-
+  false :: a -> b
   false =
     fail
 
@@ -110,7 +110,7 @@ strategies // Boolean combinators
    *
    * The results of the transformations are returned.
    */
-
+  ior(a -> a, a -> a) :: a -> a
   ior(s1, s2) =
     (s1; try(s2)) <+ s2
 
@@ -118,9 +118,9 @@ strategies // Boolean combinators
    * or(s1, s2) is similar to ior(s1,s2), but the application
    * of the strategies is only tested.
    */
-
+  or(a -> b, a -> b) :: a -> a
   or(s1, s2) =
-    if s1 then try(test(s2)) else test(s2) end
+    if s1 then try(where(s2)) else where(s2) end
 
   /**
    * and(s1, s2) applies s1 and s2 to the current
@@ -128,15 +128,15 @@ strategies // Boolean combinators
    * be applied, i.e., and is *not* a short-circuit
    * operator
    */
-
+  and(a -> b, a -> b) :: a -> a
   and(s1, s2) =
-    if s1 then test(s2) else test(s2); fail end
+    if s1 then where(s2) else where(s2); fail end
 
 strategies
 
-  // a -> b :: a -> Option(b)
+  maybe(a -> b) :: a -> Option(b)
   maybe(s) = !Some(<s>) <+ !None()
 
-  // a -> b, () -> b :: Option(a) -> b
+  maybe(a -> b, Tuple() -> b) :: Option(a) -> b
   maybe(s1, s2) : Some(a) -> <s1> a
   maybe(s1, s2) : None()  -> <s2> ()

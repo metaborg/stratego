@@ -162,13 +162,13 @@ strategies
 
 strategies
 
-  gt    = ?(x,y); test(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
+  gt    = ?(x,y); where(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
 
   gti :: int * int -> int * int
-  gti    = ?(x,y); test(prim("SSL_gti",x,y))
+  gti    = ?(x,y); where(prim("SSL_gti",x,y))
 
   gtr :: real * real -> real * real
-  gtr    = ?(x,y); test(prim("SSL_gtr",x,y))
+  gtr    = ?(x,y); where(prim("SSL_gtr",x,y))
 
   geq = ?(x,x) <+ gt
   lt  = not(geq)

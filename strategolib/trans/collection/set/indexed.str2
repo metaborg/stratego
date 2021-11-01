@@ -79,7 +79,7 @@ strategies
    * @param  Int -> a
    * @type   IndexedSet -> (Int | a )
    */
-  iset-add(int -> int|a) :: IndexedSet -> int
+  iset-add(int -> int|?) :: IndexedSet -> int
   iset-add(on_old|elem) =
     ?IndexedSet(set); prim("SSL_indexedSet_put", on_old | set, elem)
 
@@ -88,7 +88,7 @@ strategies
    *
    * @type IndexedSet -> IndexedSet
    */
-  iset-add(|a) :: IndexedSet -> IndexedSet
+  iset-add(|?) :: IndexedSet -> IndexedSet
   iset-add(|elem) =
     ?set; iset-add(id|elem); !set
 
@@ -97,7 +97,7 @@ strategies
    *
    * @type IndexedSet -> IndexedSet
    */
-  iset-addlist(|List(a)) :: IndexedSet -> IndexedSet
+  iset-addlist(|List(?)) :: IndexedSet -> IndexedSet
   iset-addlist(|lst) =
     ?set; <map({ elem: ?elem; <iset-add(|elem)> set })> lst; !set
 
@@ -106,7 +106,7 @@ strategies
    *
    * @type  IndexedSet -> IndexedSet
    */
-  iset-contains(|a) :: IndexedSet -> IndexedSet
+  iset-contains(|?) :: IndexedSet -> IndexedSet
   iset-contains(|elem) =
     where(iset-get-index(|elem))
 
@@ -117,7 +117,7 @@ strategies
    *
    * @type  IndexedSet -> IndexedSet
    */
-  iset-remove(|a) :: IndexedSet -> IndexedSet
+  iset-remove(|?) :: IndexedSet -> IndexedSet
   iset-remove(|elem) =
     ?IndexedSet(set); prim("SSL_indexedSet_remove", set, elem); !IndexedSet(<id>)
 
