@@ -23,14 +23,14 @@ imports
 
 signature
   sorts
-    Hashtable(*, *)
+    Hashtable
     HashtableImplBlob
   constructors
 
     /**
      * Represents a reference to a hashtable.
      */
-    Hashtable : HashtableImplBlob -> Hashtable(k, v)
+    Hashtable : HashtableImplBlob -> Hashtable
 
 /**
  * Hashtable construction and deconstruction
@@ -42,7 +42,7 @@ strategies
    *
    * @type _ -> HashTable(K, V)
    */
-  new-hashtable :: a -> Hashtable(k, v)
+  new-hashtable :: ? -> Hashtable
   new-hashtable =
     new-hashtable(|117,75)
 
@@ -53,7 +53,7 @@ strategies
    * @param max_load - the load percentage at which the hashtable is expanded
    * @type _ -> HashTable(K, V)
    */
-  new-hashtable(|int, int) :: a -> Hashtable(k, v)
+  new-hashtable(|int, int) :: ? -> Hashtable
   new-hashtable(|initial_size, max_load) =
     prim("SSL_hashtable_create", initial_size, max_load); !Hashtable(<id>)
 
@@ -62,7 +62,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-destroy :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-destroy :: Hashtable -> Hashtable
   hashtable-destroy =
     ?Hashtable(tbl); prim("SSL_hashtable_destroy", tbl); !Hashtable(<id>)
 
@@ -71,7 +71,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-clear :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-clear :: Hashtable -> Hashtable
   hashtable-clear =
     ?Hashtable(tbl); prim("SSL_hashtable_reset", tbl); !Hashtable(<id>)
 
@@ -88,7 +88,7 @@ strategies
    * @param value - any term can be used as a value
    * @type HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-put(|k, v) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-put(|?, ?) :: Hashtable -> Hashtable
   hashtable-put(|key, value) =
     ?Hashtable(tbl); prim("SSL_hashtable_put", tbl, key, value); !Hashtable(<id>)
 
@@ -99,7 +99,7 @@ strategies
    * @param key
    * @type HashTable(K, V) -> V
    */
-  hashtable-get(|k) :: Hashtable(k, v) -> v
+  hashtable-get(|?) :: Hashtable -> ?
   hashtable-get(|key) =
     ?Hashtable(tbl); prim("SSL_hashtable_get", tbl, key)
 
@@ -109,7 +109,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-remove(|k) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-remove(|?) :: Hashtable -> Hashtable
   hashtable-remove(|key) =
     ?Hashtable(tbl); prim("SSL_hashtable_remove", tbl, key); !Hashtable(<id>)
 
@@ -118,7 +118,7 @@ strategies
    *
    * @type HashTable(K, V) -> List(K)
    */
-  hashtable-keys :: Hashtable(k, v) -> List(k)
+  hashtable-keys :: Hashtable -> List(?)
   hashtable-keys =
     ?Hashtable(tbl); prim("SSL_hashtable_keys", tbl)
 
@@ -127,7 +127,7 @@ strategies
    *
    * @type HashTable(K, V) -> List(V)
    */
-  hashtable-values :: Hashtable(k, v) -> List(v)
+  hashtable-values :: Hashtable -> List(?)
   hashtable-values =
     ?htbl
     ; hashtable-keys
@@ -142,8 +142,8 @@ strategies
    * @param a
    * @type HashTable(k, v) -> a
    */
-  hashtable-fold((|k, v) a -> a | a) :: Hashtable(k, v) -> a
-  hashtable-fold(s : k * v * a -> a | t) =
+  hashtable-fold((|?, ?) a -> a | a) :: Hashtable -> a
+  hashtable-fold(s : ? * ? * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_fold", s | t, tbl)
 
@@ -156,7 +156,7 @@ strategies
    * @param a
    * @type HashTable(k, v) -> a
    */
-  hashtable-fold-keys((|k) a -> a | a) :: Hashtable(k, v) -> a
+  hashtable-fold-keys((|?) a -> a | a) :: Hashtable -> a
   hashtable-fold-keys(s : k * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_keys_fold", s | t, tbl)
@@ -170,7 +170,7 @@ strategies
    * @param a
    * @type (v * a -> a) * a * HashTable(k, v) -> a
    */
-  hashtable-fold-values((|v) a -> a | a) :: Hashtable(k, v) -> a
+  hashtable-fold-values((|?) a -> a | a) :: Hashtable -> a
   hashtable-fold-values(s : v * a -> a | t) =
     ?Hashtable(tbl)
     ; prim("SSL_table_values_fold", s | t, tbl)
@@ -185,10 +185,10 @@ strategies
    *
    * @type HashTable(k,v) -> List((k,v), ...)
    */
-  hashtable-getlist :: Hashtable(k, v) -> List(k * v)
+  hashtable-getlist :: Hashtable -> List(? * ?)
   hashtable-getlist =
     ?htbl
-    ; let insert(|k, v) :: List(k * v) -> List(k * v)
+    ; let insert(|?, ?) :: List(? * ?) -> List(? * ?)
           insert(|k, v) = ![(k, v) | <id>]
        in hashtable-fold(insert | [])
       end
@@ -199,12 +199,12 @@ strategies
    * @param kv         List(Tuple(K, V), ...)
    * @type HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-putlist(|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-putlist(|List(? * ?)) :: Hashtable -> Hashtable
   hashtable-putlist(|kv*) =
     ?htbl
     ; where(<map(\ (key, value) -> <hashtable-put(|key, value)> htbl \)> kv*)
 
-  hashtable-putlist((|k, v) Hashtable(k, v) -> Hashtable(k, v)|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-putlist((|?, ?) Hashtable -> Hashtable|List(? * ?)) :: Hashtable -> Hashtable
   hashtable-putlist(f : ATerm * ATerm * Hashtable -> Hashtable|kv*) =
     ?htbl
     ; where(<map(\ (key, value) -> <f(|key, value)> htbl \)> kv*)
@@ -214,7 +214,7 @@ strategies
    *
    * @type List(Tuple(K, V), ...) -> HashTable(K, V)
    */
-  hashtable-init :: List(k * v) -> Hashtable(k, v)
+  hashtable-init :: List(? * ?) -> Hashtable
   hashtable-init =
     ?kv*
   ; new-hashtable(|<length>, 75)
@@ -226,7 +226,7 @@ strategies
    *
    * @type HashTable(K, V) -> HashTable(K,V)
    */
-  hashtable-copy :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-copy :: Hashtable -> Hashtable
   hashtable-copy =
     hashtable-getlist
   ; hashtable-init
@@ -244,7 +244,7 @@ strategies
    * @param value      a - the value to insert
    * @type  HashTable(K, V) -> HashTable(K, V)
    */
-  hashtable-push(|k, v) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-push(|?, ?) :: Hashtable -> Hashtable
   hashtable-push(|key, value) =
     hashtable-put(|key, [value | <hashtable-get(|key) <+ ![]>])
 
@@ -262,7 +262,7 @@ strategies
    * @param value      List(a) - the values to insert
    * @type  HashTable(K, V) -> HashTable(K, V')
    */
-  hashtable-pushlist(|k, List(v)) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-pushlist(|?, List(?)) :: Hashtable -> Hashtable
   hashtable-pushlist(|key, value) =
     hashtable-put(|key, <conc>(value, <hashtable-get(|key) <+ ![]>))
 
@@ -274,7 +274,7 @@ strategies
    * @param value      List(a) - the values to insert
    * @type  HashTable(K, V) -> HashTable(K, V')
    */
-  hashtable-pushunion(|k, List(v)) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-pushunion(|?, List(?)) :: Hashtable -> Hashtable
   hashtable-pushunion(|key, value) =
     hashtable-put(|key, <union>(value, <hashtable-get(|key) <+ ![]>))
 
@@ -285,7 +285,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
-  hashtable-pop(|k) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-pop(|?) :: Hashtable -> Hashtable
   hashtable-pop(|key) =
     hashtable-put(|key, <hashtable-get(|key); Tl>)
 
@@ -296,7 +296,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
-  hashtable-peek(|k) :: Hashtable(k, List(v)) -> v
+  hashtable-peek(|?) :: Hashtable -> ?
   hashtable-peek(|key) =
     hashtable-get(|key); Hd
 
@@ -307,7 +307,7 @@ strategies
    * @param key        t       - the key used for lookup
    * @type  HashTable(K, (V, ...)) -> V
    */
-  hashtable-peekpop(|k) :: Hashtable(k, List(v)) -> v
+  hashtable-peekpop(|?) :: Hashtable -> ?
   hashtable-peekpop(|key) =
     where(hashtable-peek(|key) => val)
   ; hashtable-pop(|key)
@@ -319,18 +319,31 @@ strategies
 
 strategies
 
+  symmetric-yes :: a -> a
   symmetric-yes = id
+  symmetric-no :: a -> b
   symmetric-no  = fail
+  iterate1-yes :: a -> a
   iterate1-yes  = id
+  iterate1-no :: a -> b
   iterate1-no   = fail
+  iterate2-yes :: a -> a
   iterate2-yes  = id
+  iterate2-no :: a -> b
   iterate2-no   = fail
+  remove-yes :: a -> a
   remove-yes    = id
+  remove-no :: a -> b
   remove-no     = fail
+  default-no :: a -> b
   default-no    = fail
+  change1-yes :: a -> a
   change1-yes   = id
+  change1-no :: a -> b
   change1-no    = fail
+  change2-yes :: a -> a
   change2-yes   = id
+  change2-no :: a -> b
   change2-no    = fail
 
 strategies
@@ -355,6 +368,7 @@ strategies
    * @todo : with a proper partial evaluator for Stratego this strategy can be
    *         used to create appropriately specialized algorithms.
    */
+  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
   hashtable-merge(symm, iterate1, iterate2, remove, merge
                  , default, change1, change2, lookup1, lookup2) :
     (tbl1, tbl2) -> tbl1
@@ -449,14 +463,15 @@ strategies
   /**
    * Version without change arguments for backward compatibility
    */
-  hashtable-merge(symm, iterate1, iterate2, remove, merge, default,
-                  lookup1, lookup2) =
-  hashtable-merge(symm, iterate1, iterate2, remove, merge, default,
-                  change1-yes, change2-yes, lookup1, lookup2)
+  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
+  hashtable-merge(symm, iterate1, iterate2, remove, merge, default, lookup1, lookup2) =
+    hashtable-merge(symm, iterate1, iterate2, remove, merge, default,
+                    change1-yes, change2-yes, lookup1, lookup2)
 
   /**
    * Merge hashtables creating a new one.
    */
+  hashtable-merge-func(? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
   hashtable-merge-func(iterate1, iterate2, remove, merge, default, lookup1, lookup2) :
     (tbl1, tbl2) -> tbl3
     where <hashtable-copy> tbl1 => tbl3
@@ -473,6 +488,7 @@ strategies // intersection merges
    * This is a 'pure' intersection: only keys that appear in both tables
    * remain in the input table, rest is removed.
    */
+  hashtable-intersect(|Hashtable) :: Hashtable -> Hashtable
   hashtable-intersect(|tbl2) =
     ?tbl1
     ; !(tbl1, tbl2)
@@ -485,7 +501,7 @@ strategies // intersection merges
         default-no,
         \ key -> <hashtable-get(|key)> tbl1 \,
         \ key -> <hashtable-get(|key)> tbl2 \
-     )
+     ) // why type error?
 
   /**
    * Intersect hashtables with default element.
@@ -495,6 +511,7 @@ strategies // intersection merges
    * the two listvalues for each key.
    * Places a dummy value if key does not exist in one of the tables.
    */
+  hashtable-intersect-wempty(|Hashtable, List(?)) :: Hashtable -> Hashtable
   hashtable-intersect-wempty(|tbl2, emptyElt) =
     ?tbl1
     ; !(tbl1, tbl2)
@@ -517,7 +534,7 @@ strategies // intersection merges
    * the two listvalues for each key.
    * Places a dummy value if key does not exist in one of the tables.
    */
-
+  hashtable-intersect-symm-wempty(|List(?)) :: Hashtable * Hashtable -> Hashtable
   hashtable-intersect-symm-wempty(|emptyElt) =
     ?(tbl1, tbl2)
     ; hashtable-merge(
@@ -539,7 +556,7 @@ strategies // intersection merges
    * the two listvalues for each key.
    * Places a dummy value if key does not exist in one of the tables.
    */
-
+  hashtable-intersect-symm-wempty-ignore-left(|List(?)) :: Hashtable * Hashtable -> Hashtable
   hashtable-intersect-symm-wempty-ignore-left(|emptyElt) =
     ?(tbl1, tbl2)
     ; hashtable-merge(
@@ -562,7 +579,7 @@ strategies // union merges
    *
    * Changes tbl1; fails if no changes are made
    */
-
+  hashtable-union(|Hashtable) :: Hashtable -> Hashtable
   hashtable-union(|tbl2) =
     ?tbl1
     ; !(tbl1, tbl2)
@@ -577,6 +594,7 @@ strategies // union merges
         fail
      )
 
+  hashtable-union-wempty(|Hashtable, List(?)) :: Hashtable -> Hashtable
   hashtable-union-wempty(|tbl2, emptyElt) =
     ?tbl1
     ; !(tbl1, tbl2)
@@ -591,6 +609,7 @@ strategies // union merges
         fail
      )
 
+  hashtable-union-symm-wempty(|List(?)) :: Hashtable * Hashtable -> Hashtable
   hashtable-union-symm-wempty(|emptyElt) =
     ?(tbl1, tbl2)
     ; hashtable-merge(
@@ -612,6 +631,7 @@ strategies
    *
    * @type Tuple(HashTable(K, V), HashTable(K,V)) -> _
    */
+  hashtable-eq :: Hashtable * Hashtable -> Hashtable * Hashtable
   hashtable-eq =
     hashtable-eq(eq)
 
@@ -624,6 +644,7 @@ strategies
    *
    * @type Tuple(HashTable(K, V), HashTable(K,V)) -> _
    */
+  hashtable-eq(? * ? -> ? * ?) :: Hashtable * Hashtable -> Hashtable * Hashtable
   hashtable-eq(eq) = ?(tbl1, tbl2);
     where((hashtable-keys => k*, hashtable-keys); set-eq)
   ; where(<map( \ key -> <eq> (<hashtable-get(|key)> tbl1, <hashtable-get(|key)> tbl2) \ )> k*)
@@ -637,12 +658,14 @@ strategies
    * Retrieves the primitive table-table as a Hashtable
    *
    */
+  table-hashtable :: ? -> Hashtable
   table-hashtable =
     prim("SSL_table_hashtable"); !Hashtable(<id>)
 
   /**
    * Retrieves a named table by looking it up in the table-table.
    */
+  lookup-table(|?) :: ? -> Hashtable
   lookup-table(|name) =
     table-hashtable
   ; (  hashtable-get(|name)
@@ -651,6 +674,7 @@ strategies
  /**
   * Creates a table with a given name, which can be any term.
   */
+  table-create :: ? -> ?
   table-create =
     ?name
   ; where(new-hashtable => htbl)
@@ -659,6 +683,7 @@ strategies
   /**
    * Destroy a table with a given name, which can be any term.
    */
+  table-destroy :: ? -> ?
   table-destroy =
     ?name
   ; where(table-hashtable
@@ -672,6 +697,7 @@ strategies
   *
   * E.g. <table-put> (t1, key, value) associates value with key in the t1 table.
   */
+  table-put :: ? * ? * ? -> ? * ? * ?
   table-put =
   where(
     ?(name,key,value)
@@ -684,6 +710,7 @@ strategies
   *
   * E.g. <table-get> (t1, key) yields the value associated to key or fails in the t1 table.
   */
+  table-get :: ? * ? -> ?
   table-get =
     ?(name,key)
   ; lookup-table(|name)
@@ -694,6 +721,7 @@ strategies
   *
   * E.g. <table-remove> (t1, key) removes the entry for key from table t1.
   */
+  table-remove :: ? * ? -> ? * ?
   table-remove =
   where(
     ?(name,key)
@@ -706,6 +734,7 @@ strategies
   *
   * E.g. <table-keys>t1 produces the list of keys of table t1.
   */
+  table-keys :: ? -> List(?)
   table-keys =
     ?name
   ; lookup-table(|name)
@@ -715,6 +744,7 @@ strategies
   * Renames a table, i.e. only the entry in the table-table is renamed,
   * the table contents remain untouched.
   */
+  table-rename :: ? * ? -> ?
   table-rename =
     ?(from-name, to-name)
   ; where(lookup-table(|from-name) => htbl)
@@ -731,6 +761,7 @@ strategies
   *
   * E.g. <table-getlist>t1 produces the list of (key,value) pairs in the table t1.
   */
+  table-getlist :: ? -> List(? * ?)
   table-getlist = ?name;
     table-keys; map(\ x -> (x, <table-get> (name, x))\ )
 
@@ -739,12 +770,15 @@ strategies
   *
   * E.g. <table-putlist>(name, list) puts the (key,value) pairs in list into table t1.
   */
+  table-putlist :: ? * List(? * ?) -> List(? * ? * ?)
   table-putlist = ?(name, list);
     <map({x,y: ?(x, y); <table-put> (name, x, y)})> list
 
+  table-putlist(n * ? * ? -> b) :: n * List(? * ?) -> List(b)
   table-putlist(s) = ?(name, list);
     <map({x,y: ?(x, y); <s> (name, x, y)})> list
 
+  table-copy :: ? * ? -> ? * ?
   table-copy = ?(name1, name2);
     where(<table-putlist>(name2, <table-getlist> name1))
 
@@ -758,12 +792,15 @@ strategies
 
 strategies
 
+  table-push :: ? * ? * ? -> ? * ? * ?
   table-push = ?(dis, key, val);
     where(<table-put>(dis, key, [val | <table-get <+ ![]>(dis, key)]))
 
+  table-pop :: ? * ? -> ? * ?
   table-pop = ?(dis, key);
     where(<table-put>(dis, key, <table-get; Tl <+ ![]>(dis, key)))
 
+  table-pop-rm :: ? * ? -> ? * ?
   table-pop-rm = ?(dis, key);
     where(
       <table-get>(dis, key) => [_|xs]
@@ -771,24 +808,30 @@ strategies
       + <table-remove>(dis, key)
     )
 
+  table-pop-get :: ? * ? -> ?
   table-pop-get = ?(dis, key);
     where( <table-get>(dis, key) => [val | vals]
          ; <table-put>(dis, key, vals)
          ); !val
 
+  table-lookup :: ? * ? -> ?
   table-lookup = ?(dis, key);
     <table-get>(dis, key); Hd
 
+  table-replace :: ? * ? * ? -> ? * ? * ?
   table-replace = ?(dis, key, value);
     where(<table-get>(dis, key) => [_|values]
          ; <table-put>(dis, key, [value|values])
          )
 
+  table-union :: ? * ? * ? -> ? * ? * ?
   table-union = ?(table, key, val);
     where(<table-put> (table, key, <union> (val, <table-get <+ ![]> (table, key))))
 
+  table-diff :: ? * ? * ? -> ? * ? * ?
   table-diff = ?(table, key, val);
     where(<table-put> (table, key, <diff> (<table-get <+ ![]> (table, key), val)))
 
+  table-append :: ? * ? * ? -> ? * ? * ?
   table-append = ?(table, key, val);
     where(<table-put> (table, key, <union> (<table-get <+ ![]> (table, key), val)))

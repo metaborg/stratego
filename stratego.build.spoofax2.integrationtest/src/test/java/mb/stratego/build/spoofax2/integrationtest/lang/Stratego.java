@@ -21,8 +21,7 @@ import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
 import mb.pie.api.Task;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.store.InMemoryStore;
-import mb.pie.runtime.store.SerializingStore;
+import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.fs.FSPath;
@@ -103,9 +102,11 @@ public class Stratego {
 
             final PieBuilder pieBuilder = new PieBuilderImpl();
             pieBuilder.withStoreFactory(
-                (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde,
-                    loggerFactory, resourceService.getWritableResource(serializingStorePath),
-                    InMemoryStore::new, InMemoryStore.class));
+                (serde, resourceService, loggerFactory) ->
+                    SerializingStoreBuilder
+                        .ofInMemoryStore(serde)
+                        .withResourceStorage(resourceService.getWritableResource(serializingStorePath))
+                        .build());
             pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
             Pie pie = pieBuilder.build();
 

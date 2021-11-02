@@ -50,13 +50,13 @@ strategies
   Disambiguate(paren) :
     e@op#([l | args]) -> (op#([l' | <conc>(mid', [r'])]))
     where <split-init-last> args => (mid, r)
-        ; <try(test(<RightAssoc> (e,<id>)); paren)> l => l'
-    ; <map(test(<GreaterThan>(e,<id>)); paren)> mid => mid'
-        ; <try(test(<LeftAssoc>  (e,<id>)); paren)> r => r'
+        ; <try(where(<RightAssoc> (e,<id>)); paren)> l => l'
+    ; <map(where(<GreaterThan>(e,<id>)); paren)> mid => mid'
+        ; <try(where(<LeftAssoc>  (e,<id>)); paren)> r => r'
 
   Disambiguate(paren) :
     e@op#([l]) -> (op#([l']))
-    where <test(<GreaterThan>(e,<id>)); paren> l => l'
+    where <where(<GreaterThan>(e,<id>)); paren> l => l'
 
 /**
  * Generation of the parenthesation rules.

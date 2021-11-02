@@ -285,5 +285,6 @@ constr-lookup-to(|name, arity, t1, st1) =
   ; imset-to-list
 
 constr-lookup-filter(|t1, st1):
-  t@ConstrType(_, t2) -> (t, st2)
-  where (_, st2) := <CanCoerce> ((t2, t1), st1)
+  t@ConstrType(_, t2) -> (t, st3)
+  where (_, st2) := <CanCoerce> ((<fresh-type-vars(?newvars)> t2, t1), st1)
+  ; st3 := <type-var-clear(|newvars)> st2
