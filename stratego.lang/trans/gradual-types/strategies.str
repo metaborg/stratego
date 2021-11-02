@@ -266,8 +266,7 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy-(|e1, st1): // TODO Check
   MultiMatch(o, c*) -> (MultiMatch(o, c'*), st2)
   with
-    (c'*, [st | st*]) := <unzip(insertCasts-MatchCase-(|e1, st1))> c*
-  ; st2 := <foldl(st-merge(LUB <+ !DynT()))> (st*, st)
+    (c'*, _, st2) := <map-LUB(insertCasts-MatchCase(|e1, st1))>
 
 insertCasts-Strategy-(|e1, st1): // TODO Check
   MultiMatchTerm(o, trm1, c*) -> (MultiMatchTerm(o, trm2, c'*), st3)
