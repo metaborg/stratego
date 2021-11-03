@@ -22,6 +22,7 @@ imports
   collection/list/index
   collection/list/set
   collection/list/zip
+  collection/tuple/cons
   collection/hash-table/common
   collection/set/indexed
   system/io/file
@@ -36,14 +37,14 @@ imports
 signature
   sorts
     RuleScope
-    
+
     Label
     SplitPos
     BreakCS
     ContinueCS
     IgnoreB
     IgnoreC
-    
+
     Catch
     Finally
     TryBlock
@@ -59,14 +60,14 @@ signature
     SplitPos   : string * string -> SplitPos
     BreakCS    : string * string -> BreakCS
     ContinueCS : string * string -> ContinueCS
-    IgnoreB    : string -> IgnoreB
-    IgnoreC    : string -> IgnoreC
+    IgnoreB    : HashtableImplBlob -> IgnoreB
+    IgnoreC    : HashtableImplBlob -> IgnoreC
 
     Catch       : string * string -> Catch
     Finally     : string -> Finally
     TryBlock    : int * string * List(Catch) * Finally -> TryBlock
     Structure   : string -> Structure
-    IgnoreT     : string -> IgnoreT
+    IgnoreT     : HashtableImplBlob -> IgnoreT
     ThrowCS     : string * string -> ThrowCS
     ExceptionCS : string * string -> ExceptionCS
 
@@ -86,23 +87,27 @@ strategies
   /**
    * Retrieve the primitive dynamic rules hashtable.
    */
+  dr-rule-sets-hashtable :: ? -> HashtableImplBlob
   dr-rule-sets-hashtable =
     prim("SSL_dynamic_rules_hashtable")
 
   /**
    * @type  _ -> List(RuleScope)
    */
+  dr-get-rule-set(|?) :: ? -> List(RuleScope)
   dr-get-rule-set(|name) =
     prim("SSL_hashtable_get", <dr-rule-sets-hashtable>, name)
     <+ dr-new-rule-set
        ; dr-set-rule-set(|name)
 
+  dr-set-rule-set(|?) :: List(RuleScope) -> List(RuleScope)
   dr-set-rule-set(|name) =
     where(
       ?ruleset
       ; prim("SSL_hashtable_put", <dr-rule-sets-hashtable>, name, ruleset)
     )
 
+  dr-switch-rule-set(|?) :: List(RuleScope) -> List(RuleScope)
   dr-switch-rule-set(|name) =
     where(dr-get-rule-set(|name) => rs)
     ; dr-set-rule-set(|name)
@@ -135,6 +140,7 @@ strategies // high-level API with implicit rule set
   // add-rule-name, lookup-rule-name, etc. Then the compiler
   // can specialize the applications.
 
+  dr-scope(a -> b | ?) :: a -> b
   dr-scope(s | name) =
     dr-begin-scope(|name)
     ; (s < dr-end-scope(|name)
@@ -143,6 +149,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-begin-scope(|?) :: a -> a
   dr-begin-scope(|name) =
     where(
       dr-get-rule-set(|name)
@@ -153,6 +160,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-end-scope(|?) :: a -> a
   dr-end-scope(|name) =
     where(
       dr-get-rule-set(|name)
@@ -166,6 +174,7 @@ strategies // high-level API with implicit rule set
    * @note While get-config and set-config do not actually use dynamic rules,
    *       this strategy also scopes the config hashtable.
    */
+  dr-scope-all(a -> b) :: a -> b
   dr-scope-all(s) =
     {| DrScopedRules, DrScopedConfig :
       finally(
@@ -182,6 +191,7 @@ strategies // high-level API with implicit rule set
    *
    * @see dr-scope-all(s)
    */
+  dr-scope-all-start :: a -> a
   dr-scope-all-start =
     where(
       config := <lookup-table(|"config")>
@@ -202,6 +212,7 @@ strategies // high-level API with implicit rule set
    *
    * @see dr-scope-all(s)
    */
+  dr-scope-all-end :: a -> a
   dr-scope-all-end =
     where(
       table := Hashtable(<dr-rule-sets-hashtable>)
@@ -219,6 +230,7 @@ strategies // high-level API with implicit rule set
       )
     )
 
+  dr-scopes(a -> b | List(?)) :: a -> b
   dr-scopes(s | names) =
     dr-begin-scopes(|names)
     ; (s < dr-end-scopes(|names)
@@ -227,6 +239,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-begin-scopes(|List(?)) :: a -> a
   dr-begin-scopes(|names) =
     where(
       !names
@@ -239,6 +252,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-end-scopes(|List(?)) :: a -> a
   dr-end-scopes(|names) =
     where(
       !names
@@ -251,6 +265,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-start-change-set(|?) :: a -> a
   dr-start-change-set(|name) =
     where(
       dr-get-rule-set(|name)
@@ -261,6 +276,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-commit-change-set(|?) :: a -> a
   dr-commit-change-set(|name) =
     where(
       dr-get-rule-set(|name)
@@ -271,6 +287,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-discard-change-set(|?) :: a -> a
   dr-discard-change-set(|name) =
     where(
       dr-get-rule-set(|name)
@@ -281,6 +298,7 @@ strategies // high-level API with implicit rule set
   /**
    * @type  t -> t
    */
+  dr-label-scope(|?, ?) :: a -> a
   dr-label-scope(|name, label) =
     where(
       dr-get-rule-set(|name)
@@ -291,7 +309,7 @@ strategies // high-level API with implicit rule set
    /**
     * Get all scope labels ordered from inner, most recent, to outer, oldest.
     */
-
+  dr-get-scope-labels(|?) :: ? -> List(?)
   dr-get-scope-labels(|name) =
     dr-get-rule-set(|name)
     ; dr-get-scope-labels
@@ -300,7 +318,7 @@ strategies // high-level API with implicit rule set
     * Get the first scope label for which s succeeds starting with the
     * inner, most recent, scope.
     */
-
+  dr-get-first-scope-label(? -> a|?) :: ? -> a
   dr-get-first-scope-label(s|name) =
     dr-get-rule-set(|name)
     ; dr-get-first-scope-label(s)
@@ -314,6 +332,7 @@ strategies
    * @param name of the dynamic rules (String)
    * @type a -> b
    */
+  dr-ignore-state(a -> b|?) :: a -> b
   dr-ignore-state(s|name) =
     where(
       dr-new-rule-set => newrule
@@ -332,6 +351,7 @@ strategies
    * @param names of the dynamic rules (List(String))
    * @type a -> b
    */
+  dr-ignore-states(a -> b|List(?)) :: a -> b
   dr-ignore-states(s|names) =
     where(
       newrules := <map(dr-new-rule-set)> names
@@ -345,22 +365,27 @@ strategies
 
 strategies
 
+  dr-lookup-rule(|?, ?) :: ? -> List(?) // returns the value of the hashtable in RuleScope constrs
   dr-lookup-rule(|name, key) =
     dr-get-rule-set(|name)
     ; dr-lookup-rule(|key)
 
+  dr-lookup-all-rules(|?, ?) :: ? -> List(?)
   dr-lookup-all-rules(|name, key) =
     dr-get-rule-set(|name)
     ; dr-lookup-all-rules(|key)
 
+  dr-lookup-rule-pointer(|?, ?) :: ? -> List(?) * ? * Hashtable
   dr-lookup-rule-pointer(|name, key) =
     dr-get-rule-set(|name)
     ; dr-lookup-rule-pointer(|key)
 
+  dr-all-keys(|?) :: ? -> List(?)
   dr-all-keys(|name) =
     dr-get-rule-set(|name)
     ; dr-all-keys(|[], <new-iset>)
 
+  dr-set-rule(|?, ?, ?) :: a -> a
   dr-set-rule(|name, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -368,6 +393,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-set-rule(|?, ?, ?, ?) :: a -> a
   dr-set-rule(|name, label, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -375,6 +401,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-set-rule-vis(|?, ?, ?, ?) :: a -> a
   dr-set-rule-vis(|name, label, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -382,6 +409,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-set-rules-vis(|?, ?, ?, List(?)) :: a -> a
   dr-set-rules-vis(|name, label, key, values) =
     where(
       dr-get-rule-set(|name)
@@ -389,6 +417,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-undefine-rule(|?, ?) :: a -> a
   dr-undefine-rule(|name, key) =
     where(
       dr-get-rule-set(|name)
@@ -396,6 +425,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-undefine-rule(|?, ?, ?) :: a -> a
   dr-undefine-rule(|name, label, key) =
     where(
       dr-get-rule-set(|name)
@@ -403,6 +433,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-undefine-rule-vis(|?, ?, ?) :: a -> a
   dr-undefine-rule-vis(|name, label, key) =
     where(
       dr-get-rule-set(|name)
@@ -410,6 +441,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-add-rule(|?, ?, ?) :: a -> a
   dr-add-rule(|name, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -417,6 +449,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-add-rule(|?, ?, ?, ?) :: a -> a
   dr-add-rule(|name, label, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -424,6 +457,7 @@ strategies
       ; dr-set-rule-set(|name)
     )
 
+  dr-add-rule-vis(|?, ?, ?, ?) :: a -> a
   dr-add-rule-vis(|name, label, key, value) =
     where(
       dr-get-rule-set(|name)
@@ -434,7 +468,7 @@ strategies
   /**
    * Intersect live rule-set with given rule set changing the live rule set.
    */
-
+  dr-intersect-with(|?) :: List(RuleScope) -> List(RuleScope)
   dr-intersect-with(|name) =
     <dr-intersect-rule-sets>(<dr-get-rule-set(|name)>, <id>)
     ; dr-set-rule-set(|name)
@@ -442,7 +476,7 @@ strategies
   /**
    * Intersect live rule-set with given rule set changing both.
    */
-
+  dr-intersect-symm(|?) :: List(RuleScope) -> List(RuleScope)
   dr-intersect-symm(|name) =
     <dr-intersect-rule-sets-symm>(<dr-get-rule-set(|name)>, <id>)
     ; dr-set-rule-set(|name)
@@ -450,7 +484,7 @@ strategies
   /**
    * Merge live rule-set with given rule set using union changing the live rule set.
    */
-
+  dr-union-with(|?) :: List(RuleScope) -> List(RuleScope)
   dr-union-with(|name) =
     <dr-union-rule-sets>(<dr-get-rule-set(|name)>, <id>)
     ; dr-set-rule-set(|name)
@@ -458,7 +492,7 @@ strategies
   /**
    * Merge live rule-set with give rule set using union changing both.
    */
-
+  dr-union-symm(|?) :: List(RuleScope) -> List(RuleScope)
   dr-union-symm(|name) =
 //    <dr-union-rule-sets-symm>(<id>, <dr-get-rule-set(|name)>)
     <dr-union-rule-sets-symm>(<dr-get-rule-set(|name)>, <id>)
@@ -468,7 +502,7 @@ strategies
   /**
    * Left choice with dynamic rule roll-back in case s1 fails.
    */
-
+  dr-left-choice(a -> b, a -> b | List(?)) :: a -> b
   dr-left-choice(s1,s2|rulenames) =
     where(<map(dr-start-change-set(|<id>))> rulenames)
     ; s1
@@ -482,32 +516,39 @@ strategies
 
 strategies // debugging
 
+  dr-save-rule-set :: ? -> ?
   dr-save-rule-set =
     alltd(hashtable-getlist)
 
 strategies // scope
 
   // a rule-set is represented by a list of (label list, hash-table) pairs
-
+  dr-new-scope :: ? -> RuleScope
   dr-new-scope =
     !RuleScope(<new-iset; iset-add(|())>, <new-hashtable>)
 
+  dr-new-rule-set :: ? -> List(RuleScope)
   dr-new-rule-set =
     ![<dr-new-scope>]
 
+  dr-add-scope :: List(RuleScope) -> List(RuleScope)
   dr-add-scope =
     ![<dr-new-scope> | <id>]
 
+  dr-destroy-scope :: RuleScope -> RuleScope
   dr-destroy-scope =
     RuleScope(iset-destroy, hashtable-destroy)
 
+  dr-leave-scope :: List(RuleScope) -> List(RuleScope)
   dr-leave-scope :
     [scope | scopes] -> scopes
     where <dr-destroy-scope> scope
 
+  dr-get-inner-scope :: List(RuleScope) -> RuleScope
   dr-get-inner-scope :
     [scope | scopes] -> scope
 
+  dr-label-scope(|?) :: List(RuleScope) -> List(RuleScope)
   dr-label-scope(|label) =
     [ RuleScope(iset-add(|label), id)
       + ChangeSet(iset-add(|label), id, id)
@@ -515,30 +556,35 @@ strategies // scope
     // todo: distinction between rulescope and changeset necessary here or not??
 //    [RuleScope(labels, tbl) | scopes] -> [RuleScope([label | labels], tbl) | scopes]
 
-   dr-get-scope-labels =
-     mapconcat(?RuleScope(<iset-elements>,_) + ?ChangeSet(<iset-elements>,_,_))
+  dr-get-scope-labels :: List(RuleScope) -> List(?)
+  dr-get-scope-labels =
+    mapconcat(?RuleScope(<iset-elements>,_) + ?ChangeSet(<iset-elements>,_,_))
 
-   /**
-    * Get the first scope label for which s succeeds.
-    */
-
-   dr-get-first-scope-label(s) =
-     fetch-elem(?RuleScope(<iset-elements; fetch-elem(s)>,_)
-                + ?ChangeSet(<iset-elements; fetch-elem(s)>,_,_))
+  /**
+   * Get the first scope label for which s succeeds.
+   */
+  dr-get-first-scope-label(? -> a) :: List(RuleScope) -> a
+  dr-get-first-scope-label(s) =
+    fetch-elem(?RuleScope(<iset-elements; fetch-elem(s)>,_)
+               + ?ChangeSet(<iset-elements; fetch-elem(s)>,_,_))
 
 strategies // change sets
 
+  dr-new-change-set :: ? -> RuleScope
   dr-new-change-set =
     !ChangeSet(<new-iset>, <new-iset>, <new-hashtable>)
 
+  dr-start-change-set :: ? -> List(RuleScope)
   dr-start-change-set =
     ![<dr-new-change-set> | <id>]
 
+  dr-destroy-change-set :: RuleScope -> RuleScope
   dr-destroy-change-set =
     ChangeSet(iset-destroy, iset-destroy, dr-destroy-and-unmark)
 
+  dr-destroy-and-unmark :: Hashtable -> Hashtable
   dr-destroy-and-unmark =
-    ?Hashtable(csid)
+    ?Hashtable(csid :: ?)
     ; hashtable-destroy
     ; try(
         <DR_BREAK>IgnoreB(csid) => labelb
@@ -553,6 +599,7 @@ strategies // change sets
         ; rules(DR_EXCEPTION :- IgnoreT(csid))
       )
 
+  dr-clone-change-set :: RuleScope -> RuleScope
   dr-clone-change-set =
     ?ChangeSet(labels1, rmset1, tbl1)
     ; dr-new-change-set => cs@ChangeSet(labels2, rmset2, tbl2)
@@ -562,6 +609,7 @@ strategies // change sets
     ; map({key : ?key; <hashtable-put(|key, <hashtable-get(|key)>tbl1)>tbl2})
     ; !cs
 
+  dr-commit-change-set :: List(RuleScope) -> List(RuleScope)
   dr-commit-change-set =
     dr-commit-change-set(id)
 
@@ -569,6 +617,7 @@ strategies // change sets
    * The strategy destroy indicates whether the change
    * set should also be destroyed after the commmit.
    */
+  dr-commit-change-set(List(RuleScope) -> ?) :: List(RuleScope) -> List(RuleScope)
   dr-commit-change-set(destroy) :
     [cs@ChangeSet(labelset, rmset, tbl@Hashtable(csid)) | rs] -> rs''
     where <hashtable-keys> tbl
@@ -597,12 +646,14 @@ strategies // change sets
                ; dr-define-ignoreT(|csidnextt)
                <+ fatal-err(|"dr-throw was not called in the proper exception handling context"))
           )
-        ; try(destroy; <dr-destroy-change-set> cs)
+        ; try(where(destroy; <dr-destroy-change-set> cs))
 
+  dr-discard-change-set :: List(RuleScope) -> List(RuleScope)
   dr-discard-change-set :
     [cs@ChangeSet(_, _, _) | rs] -> rs
     where <dr-destroy-change-set> cs
 
+  dr-commit-labels(|IndexedSet) :: List(RuleScope) -> List(RuleScope)
   dr-commit-labels(|labelset) =
     [ ChangeSet(iset-union(|labelset), id, id)
       + RuleScope(iset-union(|labelset), id)
@@ -613,15 +664,16 @@ strategies // change sets
    * RuleScope that has the appropriate scopeid (i.e. hashtable pointer)
    * and setting the key-value into it
    */
-
+  dr-apply-change(|Hashtable) :: (? * ?) * List(RuleScope) -> List(RuleScope)
   dr-apply-change(|tbl) :
     (key1@(scpid, key), rs) -> <dr-commit-to-rule-set(|scpid, key, <hashtable-get(|key1)> tbl)> rs
 
-
+  dr-commit-to-rule-set(|?, ?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-commit-to-rule-set(|scpid, key, value) =
     dr-commit-to-change-set(|scpid, key, value)
     <+ dr-commit-to-rule-scope(|scpid, key, value)
 
+  dr-commit-to-change-set(|?, ?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-commit-to-change-set(|scpid, key, value) =
     ?[ChangeSet(_, rmset, tbl) | rs]
     ; where(
@@ -631,6 +683,7 @@ strategies // change sets
         ; <iset-remove(|(scpid, key))>rmset
       )
 
+  dr-commit-to-rule-scope(|?, ?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-commit-to-rule-scope(|scpid, key, value) =
     ?[RuleScope(_, tbl@Hashtable(scpid)) | rs]
     ; where(<hashtable-put(|key, value)>tbl)
@@ -654,18 +707,22 @@ strategies // change sets
     ; where(<hashtable-put(|key, value)> tbl)
 */
 
+  dr-apply-removal :: (? * ?) * List(RuleScope) -> List(RuleScope)
   dr-apply-removal :
     (key1@(scpid, key), rs) -> <dr-remove-from-rule-set(|scpid, key)> rs
 
+  dr-remove-from-rule-set(|?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-remove-from-rule-set(|scpid, key) =
     fetch(
       dr-remove-from-change-set(|scpid, key)
     + dr-remove-from-rule-scope(|scpid, key))
 
+  dr-remove-from-change-set(|?, ?) :: RuleScope -> RuleScope
   dr-remove-from-change-set(|scpid, key) =
     ChangeSet(id, iset-add(|(scpid, key)), ?tbl)
   ; where(<hashtable-remove(|(scpid, key))> tbl)
 
+  dr-remove-from-rule-scope(|?, ?) :: RuleScope -> RuleScope
   dr-remove-from-rule-scope(|scpid, key) =
     ?RuleScope(_,tbl@Hashtable(scpid))
   ; where(<hashtable-remove(|key)> tbl)
@@ -685,9 +742,11 @@ strategies // looking up
   // some extra elements which should not be considered. This is the
   // case because of the in-place update of indexed sets.
 
+  dr-lookup-rule(|?) :: List(RuleScope) -> List(?)
   dr-lookup-rule(|key) =
     dr-lookup-rule(fail | key, [])
 
+  dr-lookup-rule(HashtableImplBlob * ? -> List(?) | ?, List(HashtableImplBlob * ?)) :: List(RuleScope) -> List(?)
   dr-lookup-rule(look | key, removed) =
     ?[RuleScope(_, tbl@Hashtable(hptr)) | rs]
     ; (<look>(hptr, key)
@@ -697,7 +756,8 @@ strategies // looking up
 
   dr-lookup-rule(look1 | key, removed) =
     ?[ChangeSet(_, rmset, tbl) | rs]
-    ; let look2 = look1
+    ; let look2 :: HashtableImplBlob * ? -> List(?)
+          look2 = look1
                   <+ {key':
                       ?key'
                       ; <not(fetch(?key'))> removed
@@ -716,17 +776,19 @@ strategies // looking up
    * identified by means of a label, i.e., a label indicates the
    * rule scope and the rule scope has a unique scope id.
    */
-
+  dr-lookup-rule-in-scope(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
   dr-lookup-rule-in-scope(|key, scpid) =
     dr-lookup-rule-in-scope-rs(|key, scpid)
     <+ dr-lookup-rule-in-scope-cs(|key, scpid)
 
+  dr-lookup-rule-in-scope-rs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
   dr-lookup-rule-in-scope-rs(|key, scpid) =
     ?[RuleScope(_, tbl@Hashtable(scpid)) | rs]      // if this is the right scope,
     < <hashtable-get(|key)>tbl                      // then check for key
     + (?[RuleScope(_, _) | rs]                      // else recurse
        ; <dr-lookup-rule-in-scope(|key, scpid)>rs)
 
+  dr-lookup-rule-in-scope-rs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
   dr-lookup-rule-in-scope-cs(|key, scpid) =
     ?[ChangeSet(_, rmset, tbl) | rs]
     ; (<iset-contains(|(scpid, key))>rmset
@@ -739,10 +801,11 @@ strategies // looking up
    * Fetch the most recent definition for key and return a pointer
    * to the table that defines it.
    */
-
+  dr-lookup-rule-pointer(|?) :: List(RuleScope) -> List(?) * ? * Hashtable
   dr-lookup-rule-pointer(|key) =
     dr-lookup-rule-pointer(fail | key, [])
 
+  dr-lookup-rule-pointer(HashtableImplBlob * ? -> List(?) * ? * Hashtable | ?, List(HashtableImplBlob * ?)) :: List(RuleScope) -> List(?) * ? * Hashtable
   dr-lookup-rule-pointer(look | key, removed) =
     ?[RuleScope(_, tbl@Hashtable(hptr)) | rs]
     ; (<look>(hptr, key)
@@ -753,7 +816,8 @@ strategies // looking up
 
   dr-lookup-rule-pointer(look1 | key, removed) =
     ?[ChangeSet(_, rmset, tbl) | rs]
-    ; let look2 = look1
+    ; let look2 :: HashtableImplBlob * ? -> List(?) * ? * Hashtable
+          look2 = look1
                   <+ {key':
                       ?key'
                       ; <not(fetch(?key'))> removed
@@ -768,10 +832,11 @@ strategies // looking up
   /**
    * Fetch all definitions for key.
    */
-
+  dr-lookup-all-rules(|?) :: List(RuleScope) -> List(?)
   dr-lookup-all-rules(|key) =
     dr-lookup-all-rules(fail | key, [])
 
+  dr-lookup-all-rules(HashtableImplBlob * ? -> List(?) | ?, List(HashtableImplBlob * ?)) :: List(RuleScope) -> List(?)
   dr-lookup-all-rules(look | key, removed) =
     ?[RuleScope(_, tbl@Hashtable(hptr)) | rs]
     ; <conc>(<<look>(hptr, key)
@@ -782,7 +847,8 @@ strategies // looking up
 
   dr-lookup-all-rules(look1 | key, removed) =
     ?[ChangeSet(_, rmset, tbl) | rs]
-    ; let look2 = look1
+    ; let look2 :: HashtableImplBlob * ? -> List(?)
+          look2 = look1
                   <+ {key':
                       ?key'
                       ; <not(fetch(?key'))> removed
@@ -797,7 +863,7 @@ strategies // looking up
   /**
    * Fetch all keys defined in a rule set.
    */
-
+  dr-all-keys(|List(HashtableImplBlob * ?), ?) :: List(RuleScope) -> List(?)
   dr-all-keys(|removed, result) =
     ?[RuleScope(_, tbl@Hashtable(hptr)) | rs]
     ; <partition(?(hptr, <id>))>removed => (localr, removed')
@@ -829,20 +895,25 @@ strategies // setting a rule
    * The inner scope has label () since all scopes are labeled
    * this way.
    */
-
+  dr-set-in-rule-set(|?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set(|key, value) =
     dr-set-in-rule-set(|(), key, value)
 
   /**
    * set a rule in the scope with specified label
    */
-
+  dr-set-in-rule-set(|?, ?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set(|label, key, value) =
     dr-set-in-rule-set(dr-set-fail | label, key, value)
 
+  dr-set-fail(|HashtableImplBlob, Hashtable, ?, ?) :: ? -> ?
   dr-set-fail(|scpid, tbl, key, value) =
     fail
 
+  dr-set-in-rule-set(
+    (|HashtableImplBlob, Hashtable, ?, ?) ? -> ?
+    | ?, ?, ?)
+    :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set(set : ATerm * Hashtable * ATerm * ATerm * ATerm -> ATerm
            | label, key, value) =
     ?[RuleScope(labelset, tbl@Hashtable(hptr)) | rs]
@@ -887,16 +958,23 @@ strategies // setting a rule
    * upto the specified scope. Deleting by removing from the table, not
    * undefining.
    */
-
+  dr-set-in-rule-set-vis(|?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set-vis(|key, value) =
     dr-set-in-rule-set(|key, value)
 
+  dr-set-in-rule-set-vis(|?, ?, ?) :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set-vis(|label, key, value) =
     dr-set-in-rule-set-vis(dr-set-fail, dr-rm-fail | label, key, value)
 
+  dr-rm-fail(|HashtableImplBlob, Hashtable, ?) :: ? -> ?
   dr-rm-fail(|scpid, tbl, key) =
     fail
 
+  dr-set-in-rule-set-vis(
+    (|HashtableImplBlob, Hashtable, ?, ?) ? -> ?,
+    (|HashtableImplBlob, Hashtable, ?) ? -> ?
+    | ?, ?, ?)
+    :: List(RuleScope) -> List(RuleScope)
   dr-set-in-rule-set-vis(
       set : ATerm * Hashtable * ATerm * ATerm * ATerm -> ATerm,
       rm  : ATerm * Hashtable * ATerm * ATerm         -> ATerm
@@ -918,7 +996,8 @@ strategies // setting a rule
       | label, key, value)
   = ?[ChangeSet(labelset, rmset, tbl1) | rs]
     ; where(
-        let set2(|scpid, tbl2, key, value) =
+        let set2(|HashtableImplBlob, Hashtable, ?, ?) :: ? -> ?
+            set2(|scpid, tbl2, key, value) =
               set1(|scpid, tbl2, key, value)
               <+ <dr-lookup-rule-in-scope(|key, scpid)> rs => value
                  ; <hashtable-remove(|(scpid, key))> tbl1
@@ -926,6 +1005,7 @@ strategies // setting a rule
               <+ <hashtable-put(|(scpid, key), value)> tbl1
                  ; <iset-remove(|(scpid, key))> rmset
 
+            rm2(|HashtableImplBlob, Hashtable, ?) :: ? -> ?
             rm2(|scpid, tbl2, key) =
               rm1(|scpid, tbl2, key)
               <+ if <dr-lookup-rule-in-scope(|key, scpid)> rs then
@@ -1157,7 +1237,7 @@ strategies // intersection and union of rule-sets
     ?(cs@ChangeSet(_, rmset, tbl), rsgood, rsbad)
     ; <filter(?RuleScope(_, Hashtable(<id>)))>rsgood => scpidsgood_
     ; <filter(?RuleScope(_, Hashtable(<id>)))>rsgood => scpidsbad_
-    ; try(
+    ; try(where(
         // only do this if it is indeed the case
         <not(eq)>(scpidsgood_, scpidsbad_)
         ; try(
@@ -1173,23 +1253,23 @@ strategies // intersection and union of rule-sets
         ; <iset-elements>rmset
         ; map({key, scpid, k, idx :
             ?key@(scpid, k)
-            ; try(
+            ; try(where(
                 <get-index>(scpid, scpidsbad) => idx
                 ; <iset-remove(|key)>rmset
                 ; <iset-add(|(<index>(idx, scpidsgood), k))>rmset
-              )
+              ))
           })
         ; <hashtable-keys>tbl
         ; map({key, scpid, k, idx, val :
             ?key@(scpid, k)
-            ; try(
+            ; try(where(
                 <get-index>(scpid, scpidsbad) => idx
                 ; <hashtable-get(|key)>tbl => val
                 ; <hashtable-remove(|key)>tbl
                 ; <hashtable-put(|(<index>(idx, scpidsgood), k), val)>tbl
-              )
+              ))
           })
-      )
+      ))
     ; !cs
 
   /**
@@ -1441,7 +1521,7 @@ strategies // generic fix-point strategies
     // sure that when bagof-DR_BREAK is called in dr-label, only the proper
     // change sets are returned for merging
     ; <map({rulename, label:
-        ?rulename
+        ?rulename :: ?
         ; <DR_BREAK>Label(rulename) => label
         ; (<bagof-DR_BREAK>BreakCS(rulename, label) <+ ![])
         ; list-tokenize(|[()])
@@ -1647,10 +1727,10 @@ strategies // labeling statements, break, continue
     ; <iset-elements>rmset1
     ; map({scpid, key, value :
         ?(scpid, key)
-        ; try(
+        ; try(where(
             <dr-lookup-rule-in-scope(|key, scpid)>ruleset => value
             ; <hashtable-put(|(scpid, key), value)>tbl
-          )
+          ))
       })
     ; <hashtable-keys>tbl1
     ; map({scpid, key, value :
@@ -1712,7 +1792,7 @@ strategies // labeling statements, break, continue
     ; <iset-elements>rmset
     ; map({k, scpid :
         ?k@(scpid, _)
-        ; try(<fetch-elem(?scpid)>scpids; <iset-remove(|k)>rmset)
+        ; try(where(<fetch-elem(?scpid)>scpids; <iset-remove(|k)>rmset))
       })
 
     // remove all the elements from tbl that refer to rule scopes
@@ -1720,7 +1800,7 @@ strategies // labeling statements, break, continue
     ; <hashtable-keys>tbl
     ; map({k, scpid :
         ?k@(scpid, _)
-        ; try(<fetch-elem(?scpid)>scpids; <hashtable-remove(|k)>tbl)
+        ; try(where(<fetch-elem(?scpid)>scpids; <hashtable-remove(|k)>tbl))
       })
 
     // return the built change set
@@ -1809,7 +1889,7 @@ strategies // exception handling strategies
 
     ; <zip>(css, rulenames)
     ; map({cs, rulename, pos, ID, cID, catches, fin, fID, cs', rs :
-        ?(cs, rulename)
+        ?(cs, rulename :: ?)
         ; (<once-DR_EXCEPTION>Structure(rulename) => TryBlock(pos, ID, [Catch(cID, _) | catches], fin@Finally(fID))
            <+ fatal-err(|"dr-complete-catch: Unexpected failure here!"))
         ; rules(DR_EXCEPTION :+ Structure(rulename) -> TryBlock(pos, ID, catches, fin))
@@ -1861,7 +1941,7 @@ strategies // exception handling strategies
       )
 
     ; <map({rulename, pos, ID, fID, csid, rs :
-        ?(TryBlock(pos, ID, [], Finally(fID)), _, rulename)
+        ?(TryBlock(pos, ID, [], Finally(fID :: ?)), _, rulename :: ?)
         ; rules(DR_EXCEPTION :+ Structure(rulename) -> TryBlock(pos, ID, [], Finally("")))
         ; rules(DR_EXCEPTION :- ExceptionCS(rulename, fID))
         ; (dr-get-rule-set(|rulename) => rs@[ChangeSet(_, _, Hashtable(csid)) | _]
@@ -1887,7 +1967,7 @@ strategies // exception handling strategies
   dr-complete-exception-block(merge | rulenames) =
     where(
       <map({rulename, ID, csid, rs, hd, tl :
-        ?rulename
+        ?rulename :: ?
         ; (<once-DR_EXCEPTION>Structure(rulename) => TryBlock(_, ID, [], Finally(""))
            <+ fatal-err(|"dr-complete-exception-block was called before completing all catch clauses (and the finally clause) or in a non-proper exception handling context"))
         ; (dr-get-rule-set(|rulename) => [ChangeSet(_, _, Hashtable(csid)) | rs]

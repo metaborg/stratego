@@ -46,25 +46,25 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData.type);
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
         }
         for(String usedStrategy : usedAmbiguousStrategies) {
             for(StrategyFrontData strategyFrontData : ambStrategyIndex
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
-                strategyTypes.put(strategyFrontData.signature, strategyFrontData.type);
+                registerStrategyType(strategyTypes, strategyFrontData.signature, strategyFrontData);
             }
         }
         for(ConstructorSignature usedConstructor : usedConstructors) {
@@ -99,19 +99,16 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
     }
 
     public static void registerStrategyType(Map<StrategySignature, StrategyType> strategyTypes,
-        StrategySignature usedStrategy, StrategyType strategyType) {
+        StrategySignature usedStrategy, StrategyFrontData strategyFrontData) {
         final @Nullable StrategyType current = strategyTypes.get(usedStrategy);
-        if(current == null || !(strategyType instanceof StrategyType.Standard)) {
-            if(current != null && !(current instanceof StrategyType.Standard)) {
-                //noinspection StatementWithEmptyBody
-                if(!current.equals(strategyType)) {
-                    // TODO: Add check to type checker about multiple type definitions in
-                    //      different modules
-                }
-                // Leave the first one we found...
-            } else {
-                strategyTypes.put(usedStrategy, strategyType);
-            }
+        if(current == null ||
+            current instanceof StrategyType.Standard && !(strategyFrontData.type instanceof StrategyType.Standard)) {
+            strategyTypes.put(usedStrategy, strategyFrontData.type);
+            return;
+        }
+        if(!current.equals(strategyFrontData.type)) {
+            // TODO: Add check to type checker about multiple type definitions in
+            //      different modules
         }
     }
 

@@ -1,6 +1,8 @@
 module collection/hash-table/nested
 imports
   collection/hash-table/common
+  collection/list/cons
+  collection/tuple/cons
   system/io/term
   strategy/conditional
 signature
@@ -13,14 +15,19 @@ signature
     NewTable    : TableKey
 strategies
 
+  nestedtable-put(|List(?), Hashtable) :: ? -> Hashtable
   nestedtable-put(|keys, value) =
-    let forward = try(?NewTable(); !NestedTable(<new-hashtable>); !(<id>,<id>))
-     in nestedtable-put(forward, id | keys, value)
+    let
+      forward = ?NewTable(); !NestedTable(<new-hashtable>); !(<id>,<id>)
+    in
+      nestedtable-put(try(forward), id | keys, value)
     end
 
+  nestedtable-put(TableKey -> ?|List(?), Hashtable) :: ? -> Hashtable
   nestedtable-put(forward | keys, value) =
     nestedtable-put(forward, id | keys, value)
 
+  nestedtable-put(TableKey -> ?, TableValue -> ?|List(?), Hashtable) :: ? -> Hashtable
   nestedtable-put(forward, changed | keys, value) =
     debug(!"nestedtable-put: ");
     forward
@@ -28,9 +35,11 @@ strategies
     ; ?NestedTable(tbl)
     ; <nestedtable-put-aux(forward, changed | tbl, value)> keys
 
+  nestedtable-get(|List(?)) :: ? -> ?
   nestedtable-get(|keys) =
     nestedtable-get(id | keys)
 
+  nestedtable-get(? -> ?|List(?)) :: ? -> ?
   nestedtable-get(forward | keys) =
     forward
     ; ?NestedTable(tbl)
@@ -46,6 +55,7 @@ strategies
 
 strategies // hidden
 
+  nestedtable-get-aux(? -> ?|Hashtable) :: List(?) -> ?
   nestedtable-get-aux(forward | tbl) :
     [] -> tbl
 
@@ -60,6 +70,7 @@ strategies // hidden
 
 strategies // hidden
 
+  nestedtable-put-aux(TableKey -> ?, TableValue -> ?|Hashtable, Hashtable) :: List(?) -> Hashtable
   nestedtable-put-aux(forward, changed | tbl, value) :
     [] -> tbl
     where debug(!"nestedtable-put-aux: "); fail

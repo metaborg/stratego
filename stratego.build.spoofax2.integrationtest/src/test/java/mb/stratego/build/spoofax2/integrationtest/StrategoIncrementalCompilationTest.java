@@ -25,9 +25,11 @@ import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
 import mb.pie.api.Task;
+import mb.pie.api.TopDownSession;
 import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.store.InMemoryStore;
 import mb.pie.runtime.store.SerializingStore;
+import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.fs.FSPath;
@@ -87,9 +89,11 @@ public class StrategoIncrementalCompilationTest {
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withStoreFactory(
-            (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde, loggerFactory,
-                resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
-                InMemoryStore.class));
+            (serde, resourceService, loggerFactory) ->
+                SerializingStoreBuilder
+                    .ofInMemoryStore(serde)
+                    .withResourceStorage(resourceService.getWritableResource(serializingStorePath))
+                    .build());
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         Pie pie = pieBuilder.build();
 
@@ -162,7 +166,7 @@ public class StrategoIncrementalCompilationTest {
 
         final String newHelloFileContents =
             "module hello " + "imports " + "  libstratego-lib " + "  world " + "rules "
-                + "  hello = !$[Hello, [<world>]]; debug";
+                + "  hello = !$[Hello, [<world>]]; debug; rules(A: (a, \"hi\") -> (a, \"no\"))";
 
         Files.write(helloFile, newHelloFileContents.getBytes(StandardCharsets.UTF_8),
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -180,15 +184,16 @@ public class StrategoIncrementalCompilationTest {
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
-        // compile
+        // compile bottom-up
 
         try(final MixedSession session = pie.newSession()) {
-            session.require(compileTask);
+            TopDownSession tdSession = session.updateAffectedBy(Collections.singleton(new FSPath(helloFile)));
             session.deleteUnobservedTasks(t -> true,
                 (t, r) -> r != null && Objects.equals(r.getLeafExtension(), "java"));
 
+            // compile in different place
             final CompileOutput compileOutput =
-                Objects.requireNonNull(session.require(compileTask));
+                Objects.requireNonNull(tdSession.require(compileTask));
             if(compileOutput instanceof CompileOutput.Failure) {
                 final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
                 int errorsCount = 0;

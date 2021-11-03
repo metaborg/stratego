@@ -6,6 +6,11 @@
  */
 module strj/variable-access
 
+imports
+
+  strc/c/frames
+  signatures/core/terms-sig
+
 rules
   
   to-java-vardecl :

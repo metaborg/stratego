@@ -5,6 +5,7 @@ module term/integer
 imports
   collection/list/common
   collection/tuple/common
+  collection/tuple/cons
   lang/dynamic-rules
   strategy/iteration
   term/real
@@ -25,17 +26,20 @@ strategies
   /**
    * Adds two integers
    */
+  addi :: int * int -> int
   addi = ?(x,y); prim("SSL_addi",x,y)
 
   /**
    * Adds two integers
    */
+  int-add(|int) :: int -> int
   int-add(|y) =
     ?x; prim("SSL_addi", x, y)
 
   /**
    * Adds two reals
    */
+  addr :: real * real -> real
   addr = ?(x,y); prim("SSL_addr",x,y)
 
 strategies
@@ -43,26 +47,31 @@ strategies
   /**
    * Bitwise OR's two integers
    */
+  iori :: int * int -> int
   iori = ?(x, y); prim("SSL_iori",x,y)
 
   /**
    * Bitwise XOR's two integers
    */
+  xori :: int * int -> int
   xori = ?(x, y); prim("SSL_xori",x,y)
 
   /**
    * Bitwise AND's two integers
    */
+  andi :: int * int -> int
   andi = ?(x, y); prim("SSL_andi",x,y)
 
   /**
    * Bitwise shift x to the left by y places
    */
+  shli :: int * int -> int
   shli = ?(x, y); prim("SSL_shli",x,y)
 
   /**
    * Bitwise shift x to the right by y places
    */
+  shri :: int * int -> int
   shri = ?(x, y); prim("SSL_shri",x,y)
 
 strategies
@@ -75,17 +84,20 @@ strategies
   /**
    * Subtracts two integers
    */
+  subti :: int * int -> int
   subti = ?(x,y); prim("SSL_subti",x,y)
 
   /**
    * Subtracts two integers
    */
+  int-subt(|int) :: int -> int
   int-subt(|y) =
     ?x; prim("SSL_subti", x, y)
 
   /**
    * Subtracts two reals
    */
+  subtr :: real * real -> real
   subtr = ?(x,y); prim("SSL_subtr",x,y)
 
 strategies
@@ -98,11 +110,13 @@ strategies
   /**
    * Multiplies two integers
    */
+  muli :: int * int -> int
   muli  = ?(x,y); prim("SSL_muli",x,y)
 
   /**
    * Multiplies two reals
    */
+  mulr :: real * real -> real
   mulr  = ?(x,y); prim("SSL_mulr",x,y)
 
 strategies
@@ -115,11 +129,13 @@ strategies
   /**
    * Divides two integers
    */
+  divi :: int * int -> int
   divi  = ?(x,y); prim("SSL_divi",x,y)
 
   /**
    * Divides two reals
    */
+  divr :: real * real -> real
   divr  = ?(x,y); prim("SSL_divr",x,y)
 
 strategies
@@ -133,20 +149,26 @@ strategies
   /**
    * Returns the modulo (remainder after division) of two integers
    */
+  modi :: int * int -> int
   modi =
     ?(x,y); prim("SSL_modi",x,y)
 
   /**
    * Returns the modulo (remainder after division) of two floats
    */
+  modr :: real * real -> real
   modr =
     ?(x,y); prim("SSL_modr",x,y)
 
 strategies
 
-  gt    = ?(x,y); test(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
-  gti    = ?(x,y); test(prim("SSL_gti",x,y))
-  gtr    = ?(x,y); test(prim("SSL_gtr",x,y))
+  gt    = ?(x,y); where(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
+
+  gti :: int * int -> int * int
+  gti    = ?(x,y); where(prim("SSL_gti",x,y))
+
+  gtr :: real * real -> real * real
+  gtr    = ?(x,y); where(prim("SSL_gtr",x,y))
 
   geq = ?(x,x) <+ gt
   lt  = not(geq)
@@ -157,18 +179,21 @@ strategies
   /**
    * @type Int -> Int
    */
+  int-leq(|int) :: int -> int
   int-leq(|y) =
     not(int-gt(|y))
 
   /**
    * @type Int -> Int
    */
+  int-gt(|int) :: int -> int
   int-gt(|y) =
     ?x; where(prim("SSL_gti",x,y))
 
   /**
    * @type Int -> Int
    */
+  int-lt(|int) :: int -> int
   int-lt(|y) =
     ?x; where(prim("SSL_lti", x, y))
 
@@ -181,6 +206,7 @@ strategies
    lt-lt  = comp-comp(lt,  lt)
 
   // Int * Int -> fail?, Int * Int -> fail? :: Int * Int * Int -> fail?
+  comp-comp(a * a -> b, a * a -> c) :: a * a * a -> a * a * a
   comp-comp(s1, s2) =
       ?(x, y, z)
     ; where(<s1> (x, y); <s2> (y, z))
@@ -196,7 +222,7 @@ strategies
    * @type (Int, Int) -> Int
    */
   max = gt < Fst + Snd
-  min    = gt < Snd + Fst
+  min = gt < Snd + Fst
 
   /**
    * @type  Int -> Int
@@ -204,6 +230,7 @@ strategies
   pos = where(<geq> (<id>, 0))
   neg = where(<lt>  (<id>, 0))
 
+  int :: ? -> int
   int   = ?x; prim("SSL_int",x)
 
 strategies
@@ -269,6 +296,7 @@ strategies
    *
    * @type Int -> Int
    */
+  int-inc :: int -> int
   int-inc =
     int-add(|1)
 
@@ -284,6 +312,7 @@ strategies
    *
    * @type Int -> Int
    */
+  int-dec :: int -> int
   int-dec =
     int-subt(|1)
 
@@ -345,7 +374,10 @@ strategies
 
 strategies
 
+  int-to-string :: int -> string
   int-to-string = ?x; prim("SSL_int_to_string",x)
+
+  string-to-int :: string -> int
   string-to-int = ?x; prim("SSL_string_to_int",x)
 
 /**

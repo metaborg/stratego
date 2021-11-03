@@ -14,8 +14,14 @@ strategies
 
   // reduce(s) = repeat(rec x(s + one(x)))
 
+  reduce(TP) :: TP
   reduce(s) =
-    repeat(rec x(some(x) + s))
+    let
+      red :: TP
+      red = some(red) + s
+    in
+      repeat(red)
+    end
 
   outermost(s) =
     repeat(oncetd(s))

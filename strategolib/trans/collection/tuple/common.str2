@@ -22,67 +22,58 @@ strategies
    *
    * @type List(a) -> Tuple(a)
    */
+  TupleToList :: ? -> List(?)
   TupleToList : "" # (xs) -> xs
 
   /** Convert a list to a tuple.
    *
    * @type Tuple(a) -> List(a)
    */
+  ListToTuple :: List(?) -> ?
   ListToTuple : xs -> "" # (xs)
 
-  /** Retrieve the first element of a tuple.
-   *
-   * @type Tuple(a, xs...) -> a
+  /** Retrieve the first element of a pair.
    */
-  Fst   : "" # ([x | xs]) -> x
+  Fst :: a * b -> a
+  Fst : (x,y) -> x
 
-  /** Retrieve the second element of a tuple.
+  /** Retrieve the second element of a pair.
    *
    * @type Tuple(a, b, xs...) -> b
    */
-  Snd   : "" # ([x, y | xs]) -> y
+  Snd :: a * b -> b
+  Snd : (x,y) -> y
 
-  /** Retrieve the third element of a tuple.
-   *
-   * @type Tuple(a, b, c, xs...) -> c
+  /** Retrieve the third element of a triple.
    */
-  Third : "" # ([x, y, z | xs]) -> z
+  Third :: a * b * c -> c
+  Third : (x,y,z) -> z
 
-  /** Duplicate a term into a two-element tuple
-   *
-   * @type a -> Tuple(a, a)
+  /** Duplicate a term into a pair.
    */
+  Dupl :: a -> a * a
   Dupl  : x -> (x, x)
 
   /** Apply a pair of strategies, f and g, to an element.
-   *
-   * @param f        a -> a'
-   * @param g        a -> b'
-   * @type           a -> Tuple(a', b')
    */
+  split(a -> b, a -> c) :: a -> b * c
   split(f, g) = !(<f>, <g>)
 
   /** Apply a triple of strategies, f, g and h to an element.
-   *
-   * @param f        a -> a'
-   * @param g        a -> b'
-   * @param h        a -> c'
-   * @type           a -> Tuple(a', b', c')
    */
+  split3(a -> b, a -> c, a -> d) :: a -> b * c * d
   split3(f, g, h) = !(<f>, <g>, <h>)
 
-  /** Swap two elements in a tuple.
-   *
-   * @type Tuple(a, b) -> Tuple(b, a)
+  /** Swap two elements in a pair.
    */
+  Swap :: a * b -> b * a
   Swap : (x, y) -> (y, x)
 
   /** Retrieve the head of a tuple.
    *
    * @type Tuple(a) -> a
-   * @see Fst
    */
-  Thd = Fst
+  Thd : "" # ([x | xs]) -> x
 
   /** Retrieve the tail of a tuple. A new tuple with all elements except
    * the first will be returned.
@@ -94,15 +85,13 @@ strategies
   /** Get the nth element of a tuple. The index must be smaller than the
    * number of elements in the tuple.
    *
-   * @type (Int, Tuple(a)) -> a
    * @see index
    */
+  tindex :: int * ? -> ?
   tindex =
     (id, ?""#(<id>)); index
 
   /** Predicate that checks if the supplied term is a tuple.
-   *
-   * @type Tuple(a) -?> Tuple(a)
    */
   is-tuple =
     ?""#(_)
@@ -113,6 +102,7 @@ strategies
    * @param s          Tuple(b,a) -> Tuple(b', a')
    * @type             Tuple(a,b) -> Tuple(b', a')
    */
+  flip(a * b -> c * d) :: b * a -> c * d
   flip(s) = Swap; s
 
   /** Apply a strategy to each element of a tuple. This strategy maps
@@ -130,10 +120,8 @@ strategies
    * The concatenation strategy is asked to concatenate a two-element
    * tuple of lists and produce a list. Concatenation goes from right to
    * left.
-   *
-   * @param s          Tuple(List(a), List(a)) -> List(a)
-   * @type             Tuple(List(a))
    */
+  tconcat(List(?) * List(?) -> List(?)) :: ? -> List(?)
   tconcat(s) =
     is-tuple; crush(![], s)
 
@@ -150,11 +138,9 @@ strategies
    *
    * Example: <tconcat'(!0, \([a],b)-><add> (a,b)\)> ([1],[2],[3]) => 6
    *
-   * @param s1         Nil -> b
-   * @param s2         Tuple(List(a), b) -> b
-   * @type             Tuple(List(a))
    * @see tconcat
    */
+  tconcat'(List(c) -> b, List(?) * b -> b) :: ? -> b
   tconcat'(s1, s2) =
     is-tuple; crush(<s1> [], s2)
 
@@ -166,11 +152,9 @@ strategies
    * This strategy is also named tfoldr, as it is equivalent to a
    * right-fold on tuples.
    *
-   * @param s1         Nil -> b
-   * @param s2         Tuple(a, b) -> b
-   * @type             Tuple(a) -> b
    * @see foldr
    */
+  tcata(List(c) -> b, ? * b -> b) :: ? -> b
   tcata(s1, s2) =
     is-tuple; crush(s1, s2)
 
@@ -178,11 +162,9 @@ strategies
    * Fold a tuple from right to left using s2 as the folding strategy.
    * s1 is used to obtain the right-element (of type b) for s2.
    *
-   * @param s1         Nil -> b
-   * @param s2         Tuple(a, b) -> b
-   * @type             Tuple(a) -> b
    * @see tcata
    */
+  tfoldr(List(c) -> b, ? * b -> b) :: ? -> b
   tfoldr(s1, s2) =
     tcata(s1, s2)
 
@@ -190,16 +172,16 @@ strategies
    *
    * Example: <tzip(add)> ((1,2,3),(5,4,3)) -> [6,6,6]
    *
-   * @param s          Tuple(a,b) -> c
-   * @type             Tuple(Tuple(a), Tuple(b)) -> c
    * @see zip
    */
+  tzip(? * ? -> c) :: ? * ? -> List(c)
   tzip(s)  =
     (TupleToList, TupleToList); zip(s)
 
   /**
    * @inc tuple-zip-test
    */
+  tuple-zip(? * ? -> c) :: ? * ? -> List(c)
   tuple-zip(s) =
     rec x(![<tmap(Hd); s> | <tmap(Tl); x>]
           <+ tmap([]); ![])
@@ -207,6 +189,7 @@ strategies
   /**
    * @inc tuple-unzip-test
    */
+  tuple-unzip(List(?) -> ?) :: List(?) -> ?
   tuple-unzip(s) =
     rec x(![<map(Thd); s> | <map(Ttl); x>] <+ map(()); ![])
   ; !"" #(<id>)

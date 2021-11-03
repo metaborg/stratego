@@ -65,6 +65,8 @@ insertCasts-DynRuleScopeId-(|e1, st1):
 insertCasts-DynRuleScopeId-(|e1, st1):
   DynRuleScopeId(v) -> (DynRuleScopeId(v), st1)
 
+strategies // Strategy (dynamic-rules, continued)
+
 //  GenDynRules              : List(DynRuleDef) -> Strategy
 
 insertCasts-Strategy-(|e1, st1):

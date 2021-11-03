@@ -11,8 +11,10 @@
  */
 module collection/list/sort
 imports
+  collection/list/cons
   collection/list/common
   collection/list/filter
+  collection/tuple/cons
   strategy/conditional
 rules
 
@@ -29,6 +31,7 @@ rules
    * @param s   a * b -> _
    * @type    List(a) -> List(a)
    */
+  SortL(a * a -> b) :: List(a) -> List(a)
   SortL(s) :
     [x, y | l] -> [y, x | l]
     where <s> (x, y)
@@ -48,6 +51,7 @@ rules
    * @param s  a * b -> _
    * @type     List(a) -> List(a)
    */
+  LSort(a * a -> b) :: List(a) -> List(a)
   LSort(s) :
     [x | l] -> [y, x | l']
     where <at-suffix({ys: ?[y | ys]; where(<s> (x, y)); !ys})> l => l'
@@ -64,6 +68,7 @@ rules
    * @param s   a * b -> c
    * @type    List(a) -> List(c | a)
    */
+  LMerge(a * a -> a) :: List(a) -> List(a)
   LMerge(s) :
     [x | l] -> [z | l']
     where <at-suffix(\ [y | ys] -> ys where <s> (x, y) => z\ )> l => l'
@@ -80,8 +85,13 @@ strategies
    * @param s List(a) -> List(a)
    * @type    List(a) -> List(a)
    */
+  sort-list(List(a) -> List(a)) :: List(a) -> List(a)
   sort-list(s) =
-    try(rec x((s <+ [id | x]); try(x)))
+    try(SortList(s))
+
+  SortList(List(a) -> List(a)) :: List(a) -> List(a)
+  SortList(s) =
+    (s <+ [id | SortList(s)]); try(SortList(s))
 
   /**
    * Sorts a list when given a suitable comparsion strategy s. The
@@ -93,12 +103,22 @@ strategies
    * @param s List(a) -> List(a)
    * @type    List(a) -> List(a)
    */
+  isort-list(List(a) -> List(a)) :: List(a) -> List(a)
   isort-list(s) =
-    try(rec x(([id | x] <+ s); try(x)))
+    try(ISortList(s))
+
+  ISortList(List(a) -> List(a)) :: List(a) -> List(a)
+  ISortList(s) =
+    ([id | ISortList(s)] <+ s); try(ISortList(s))
 
   /** @internal */
+  jsort-list(List(a) -> List(a)) :: List(a) -> List(a)
   jsort-list(s) =
-    try(rec x([id | x] <+ s; try(x)))
+    try(JSortList(s))
+
+  JSortList(List(a) -> List(a)) :: List(a) -> List(a)
+  JSortList(s) =
+    [id | JSortList(s)] <+ s; try(JSortList(s))
 
  /**
   * Removes duplicates from a list, returning a list of mutually unique terms.
@@ -107,8 +127,10 @@ strategies
   *
   * @inc tuple-uniq-test
   */
+  uniq :: List(a) -> List(a)
   uniq =
-    let Uniq = \ [x | xs] -> [x | <filter(not(?x))> xs] \
+    let Uniq :: List(a) -> List(a)
+        Uniq = \ [x | xs] -> [x | <filter(not(?x))> xs] \
      in listtd(try(Uniq))
     end
 
@@ -122,8 +144,10 @@ strategies
    * @param  swap  (a, a)  -> _
    * @type         List(a) -> List(a)
    */
+  qsort(a * a -> b) :: List(a) -> List(a)
   qsort(swap) =
-    let swapper(|a2) = <swap> (<id>, a2)
+    let swapper(|a) :: a -> b
+        swapper(|a2) = <swap> (<id>, a2)
      in quick-sort(swapper)
     end
 
@@ -132,9 +156,11 @@ strategies
  */
 strategies
 
+  quick-sort((|a) a -> b) :: List(a) -> List(a)
   quick-sort(swap : a * a -> b) =
     quick-sort(swap | [])
 
+  quick-sort((|a) a -> b | List(a)) :: List(a) -> List(a)
   quick-sort(swap : a * a -> b | tail) :
     [] -> tail
 

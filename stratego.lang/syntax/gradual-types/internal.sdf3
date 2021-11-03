@@ -59,7 +59,7 @@ context-free syntax
   ErrorDesc.ProceedInNonExtendStrategy = [Cannot call proceed in a strategy or rule defined without the `extend` keyword.]
   ErrorDesc.CallStrategyArgumentTakesParameters = [This call takes parameters, it has type: [SFunType].]
   ErrorDesc.AmbiguousStrategyResolution = [Call to strategy was ambiguous, could resolve to the following: [{SFunType ", "}+].]
-  
+
   ErrorDesc.NormalDefinitionOverlapsWithExternal = [Definition of strategy overlaps with definition of external strategy.]
   ErrorDesc.NormalDefinitionOverlapsWithInternal = [Definition of strategy overlaps with definition of internal strategy.]
   ErrorDesc.OverrideDefinitionWithoutExternal = [Cannot find external strategy to override.]
@@ -67,13 +67,14 @@ context-free syntax
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
-  ErrorDesc.TypeMismatch = [Expected [Type], but got [Type].]
+  ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
   ErrorDesc.UnresolvedLocal = [Undefined local variable.]
   ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
   ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
+  ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]
@@ -85,10 +86,9 @@ context-free syntax
   ErrorDesc.NonListInAnno = [Expected list, but got [Type].]
   ErrorDesc.MultipleAppsInMatch = [Multiple projections in one pattern, only one is actually returned. ]
 
-  ErrorDesc.BuildUnboundTerm = [Use of unbound local variable. ]
   ErrorDesc.MatchNotSpecificEnoughForTP = [Cannot infer specific type for TP rule match. Found result: [Type]. ]
 
   ErrorDesc.UnsupportedCastRequiredInDynamicRule = [Pattern induces cast, but cast is not supported in this position. ]
 
   ErrorDesc.DynRuleOverlapError = [Overlapping left-hand-sides for dynamic rule '[Id]': [String] in [String] overlaps with [String] in [String]. ]
-  ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast to type variable '[Id]', its type is not known at run-time in this position. ]
+  ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast [Type] to type [Type], its type is not known at run-time in this position. ]

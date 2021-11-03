@@ -16,6 +16,7 @@ module collection/hash-table/scoped-finite-map
 imports
   collection/hash-table/common
   collection/list/-
+  collection/tuple/cons
   strategy/conditional
 
 signature
@@ -26,17 +27,21 @@ signature
 
 strategies
 
+  init-name-space(a -> b) :: a -> a
   init-name-space(ns) =
     where(ns; table-create)
 
+  exit-name-space(a -> b) :: a -> a
   exit-name-space(ns) =
     where(ns; table-destroy)
 
+  begin-scope(a -> b) :: a -> a
   begin-scope(ns) = //debug(!"begin-scope: ");
   where(ns => ns
   ; <table-put>(ns, Scopes(), [[] | <table-get <+ ![]>(ns, Scopes())])
   )
 
+  end-scope(a -> b) :: a -> a
   end-scope(ns) = //debug(!"end-scope: ");
   where(ns => ns
   ; (<table-get; not(?[])>(ns, Scopes()) <+ ![[]]) => [scope | scopes]
@@ -47,9 +52,11 @@ strategies
 //  scope(ns, s) =
 //    begin-scope(ns); (s; end-scope(ns) <+ end-scope(ns); fail)
 
+  scope(a -> b, a -> a) :: a -> a
   scope(ns, s) =
     begin-scope(ns); restore-always(s, end-scope(ns))
 
+  assert(? * ? -> ?) :: ? * ? -> ? * ?
   assert(ns) = ?(key, val); //debug(!"assert: ");
   where(ns => ns
   ; <table-push>(ns, key, val)
@@ -58,12 +65,14 @@ strategies
   //; debug(!"asserted: ")
   )
 
+  override-key(a * b -> c) :: a * b -> a * b
   override-key(ns) = ?(key, val); //debug(!"override-key: ");
   where(ns => ns
   ; <table-replace>(ns, key, val)
   //; debug(!"overriden: ")
   )
 
+  rewrite(Tuple() -> ?) :: ? -> ?
   rewrite(ns) = //debug(!"rewrite: ");
     \ key -> <table-lookup>(<ns>(), key) \
   //; debug(!"rewriten: ")
@@ -71,6 +80,7 @@ strategies
 
 // for extend [overide] rules
 
+  extend-assert(? * ? -> ?) :: ? * ? -> ? * ?
   extend-assert(ns) = ?(key, val); //debug(!"assert: ");
   where(ns => ns
   ; (<table-get; not(?[])>(ns, Scopes()) <+ ![[]]) => [scope | scopes]
@@ -83,6 +93,7 @@ strategies
   //; debug(!"asserted: ")
   )
 
+  extend-override-key(? * ? -> ?) :: ? * ? -> ? * ?
   extend-override-key(ns) = ?(key, val); //debug(!"override-key: ");
   where(ns => ns
     ; <table-get>(ns, key) => [prevvals | morevals]
@@ -90,6 +101,7 @@ strategies
   //; debug(!"overriden: ")
   )
 
+  extend-assert-undefined(? -> ?) :: ? -> ?
   extend-assert-undefined(ns) = ?key; //debug(!"assert: ");
   where(ns => ns
   ; (<table-get; not(?[])>(ns, Scopes()) <+ ![[]]) => [scope | scopes]
@@ -102,6 +114,7 @@ strategies
   //; debug(!"asserted: ")
   )
 
+  extend-override-key-undefined(? -> ?) :: ? -> ?
   extend-override-key-undefined(ns) = ?key; //debug(!"override-key: ");
   where(ns => ns
     ; <table-get>(ns, key) => [prevvals | morevals]
@@ -109,7 +122,8 @@ strategies
   //; debug(!"overriden: ")
   )
 
-   extend-rewrite(ns) = rewrite(ns)
+  extend-rewrite(Tuple() -> ?) :: ? -> ?
+  extend-rewrite(ns) = rewrite(ns)
 
 /*
 

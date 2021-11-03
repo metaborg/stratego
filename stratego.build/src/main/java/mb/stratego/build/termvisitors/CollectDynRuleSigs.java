@@ -1,6 +1,5 @@
 package mb.stratego.build.termvisitors;
 
-import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;

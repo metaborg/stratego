@@ -1,0 +1,45 @@
+module type-preserving
+
+language StrategoLang
+
+fixture [[
+  module test
+
+  signature
+    sorts
+      List(*)
+      Option(*)
+      PolyType(a)
+      Tuple(*, *)
+    constructors
+      One : a -> PolyType(a)
+      Cons : a * List(a) -> List(a)
+      Nil : List(a)
+      Some : a -> Option(a)
+      None : Option(a)
+
+  rules
+  [[...]]
+]]
+
+test Type preserving generic traversal with explicit recursion [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Type preserving generic traversal with Rec construct [[
+  somespinetd(TP) :: TP
+  somespinetd(s) =
+    rec x(s; try(some(x)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+]] 0 errors
+   0 warnings
+   has origin locations

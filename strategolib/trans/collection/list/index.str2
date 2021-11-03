@@ -11,6 +11,7 @@ module collection/list/index
 imports
   collection/list/common
   collection/list/cons
+  collection/tuple/cons
   term/integer
   strategy/traversal/simple
 
@@ -23,6 +24,7 @@ strategies
   * @type (Int, List(a)) -> a
   * @inc test-index
   */
+  index :: int * List(a) -> a
   index =
     ?(i, <id>); index(|i)
 
@@ -34,6 +36,7 @@ strategies
    *
    * @type List(a) -> a
    */
+  index(|int) :: List(a) -> a
   index(|i) =
     at-index(?t | <dec> i); !t
 
@@ -44,19 +47,24 @@ strategies
    *
    * @type (a, List(a)) -> Int
    */
+  get-index :: a * List(a) -> int
   get-index =
     Gind0 ; rec x(Gind1 <+ Gind2 ; x)
 
 
   /** @internal */
+  Gind0 :: a * b -> int * a * b
   Gind0  : (x, ys) -> (1, x, ys)
 
   /** @internal */
+  Gind1 :: a * b * List(b) -> a
   Gind1  : (n, x, [x | xs]) -> n
 
   /** @internal */
+  Gind2 :: int * b * List(c) -> int * b * List(c)
   Gind2  : (n, y, [x | xs]) -> (<add> (n, 1), y, xs)
 
+  get-index0(a -> a) :: List(a) -> int
   get-index0(s) = at-suffix([s | id]; ![]); length
 
 strategies
@@ -68,6 +76,7 @@ strategies
    * @type (Int, a, List(a)) -> List(a)
    * @inc  test-set-index
    */
+  set-index :: int * a * List(a) -> List(a)
   set-index =
     ?(i, x, xs)
     ; <at-index(!x)> (i, xs)
@@ -78,6 +87,7 @@ strategies
    *
    * @type (Int, List(a)) -> List(a)
    */
+  at-index(a -> a) :: int * List(a) -> List(a)
   at-index(s) =
     ?(i, <id>)
     ; at-index(s | i)
@@ -88,13 +98,16 @@ strategies
    *
    * @type List(a)) -> List(a)
    */
+  at-index(a -> a | int) :: List(a) -> List(a)
   at-index(s | i) =
-    let next(|j) =
-          if !j => i then
-            [s | id]
-          else
-            [id | next(|<inc> j)]
-          end
+    let
+      next(|int) :: List(a) -> List(a)
+      next(|j) =
+        if !j => i then
+          [s | id]
+        else
+          [id | next(|<inc> j)]
+        end
      in next(|0)
     end
 
@@ -105,8 +118,10 @@ strategies
    *
    * @type List(a) -> List(a)
    */
+  at-index-tail(List(a) -> List(a)|int) :: List(a) -> List(a)
   at-index-tail(s|i) =
-    let next(|j) =
+    let next(|int) :: List(a) -> List(a)
+        next(|j) =
       if !j => i then
         s
       else
@@ -123,16 +138,20 @@ strategies
    * @type (Int, a, List(a)) -> List(a)
    * @inc test-insert
    */
+  insert :: int * a * List(a) -> List(a)
   insert =
     Ins0; rec x(Ins1 <+ Ins2(x))
 
   /** @internal */
+  Ins0 :: a * b * c -> int * a * b * c
   Ins0:    (i, x, ys) -> (0, i, x, ys)
 
   /** @internal */
+  Ins1 :: a * a * b * List(b) -> List(b)
   Ins1:    (i, i, x, xs) -> [x | xs]
 
   /** @internal */
+  Ins2(int * a * b * List(c) -> List(c)) :: int * a * b * List(c) -> List(c)
   Ins2(r): (n, i, x, [y | ys]) -> [y | <r>(<add> (n, 1), i, x, ys)]
 
 
@@ -145,6 +164,7 @@ strategies
    * @param The first index (e.g. 0 or 1)
    * @type  List(a) -> List(b)
    */
+  nmap((|int) a -> b | int) :: List(a) -> List(b)
   nmap(s : Int * a -> b | i) =
     [] + [s(|i) | nmap(s | <inc> i)]
 
@@ -159,8 +179,11 @@ strategies
    * @inc  test4a
    * @inc  test4b
    */
+  map-with-index(int * a -> b) :: List(a) -> List(b)
   map-with-index(s) =
-    let apply(|i) = <s> (i, <id>)
+    let
+      apply(|int) :: a -> b
+      apply(|i) = <s> (i, <id>)
      in nmap(apply | 1)
     end
 
@@ -173,5 +196,6 @@ strategies
    * @type List(a) -> List((Int, a))
    * @inc test5
    */
+  add-indices :: List(a) -> List(int * a)
   add-indices =
     map-with-index(id)

@@ -1244,7 +1244,7 @@ strategies
    * @type Char -> Char
    * @since 0.9.5
    */
-  is-whitespace = test('\t' + ' ')
+  is-whitespace = where('\t' + ' ')
 
   /**
    * Trims all trailing whitespace in a (single-line) string.

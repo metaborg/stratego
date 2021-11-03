@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,9 +173,14 @@ public class StrcTests {
     }
 
     private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
-        return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
-            .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
-            .collect(Collectors.joining("\n"));
+        final StringJoiner joiner = new StringJoiner("\n");
+        for(Message m : ((CompileOutput.Failure) str2CompileOutput).messages) {
+            if(m.severity == MessageSeverity.ERROR) {
+                String toString = m.toString();
+                joiner.add(toString);
+            }
+        }
+        return joiner.toString();
     }
 
     private Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob)

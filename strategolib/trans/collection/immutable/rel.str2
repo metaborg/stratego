@@ -10,18 +10,20 @@
 module collection/immutable/rel
 imports
   strategy/conditional
+  collection/list/cons
+  collection/tuple/cons
   collection/immutable/set
   collection/immutable/map
 
 signature
   sorts
-    ImmutableRelation
+    ImmutableRelation(*, *)
     ImmutableRelationImplBlob
   constructors
     /**
      * Represents a reference to a Set
      */
-    ImmutableRelation : ImmutableRelationImplBlob -> ImmutableRelation
+    ImmutableRelation : ImmutableRelationImplBlob -> ImmutableRelation(k, v)
 
 /**
  * Immutable relation construction and deconstruction
@@ -33,6 +35,7 @@ strategies
  *
  * @type _ -> ImmutableRelation
  */
+imrel-new :: a -> ImmutableRelation(k, v)
 imrel-new = prim("SSL_immutable_relation"); !ImmutableRelation(<id>)
 
 /**
@@ -40,6 +43,7 @@ imrel-new = prim("SSL_immutable_relation"); !ImmutableRelation(<id>)
  *
  * @type List -> ImmutableRelation
  */
+imrel-from-list :: List(k * v) -> ImmutableRelation(k, v)
 imrel-from-list = prim("SSL_immutable_relation_from_list"); !ImmutableRelation(<id>)
 
 /**
@@ -47,6 +51,7 @@ imrel-from-list = prim("SSL_immutable_relation_from_list"); !ImmutableRelation(<
  *
  * @type ImmutableRelation -> List
  */
+imrel-to-list :: ImmutableRelation(k, v) -> List(k * v)
 imrel-to-list = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_list")
 
 /**
@@ -55,6 +60,7 @@ imrel-to-list = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_list")
  *
  * @type ImmutableRelation -> ImmutableMap
  */
+imrel-to-map(v * v -> v) :: ImmutableRelation(k, v) -> ImmutableMap(k, v)
 imrel-to-map(merge) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_map", merge|); !ImmutableMap(<id>)
 
 /**
@@ -62,6 +68,7 @@ imrel-to-map(merge) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_
  *
  * @type ImmutableRelation -> List
  */
+imrel-pairs :: ImmutableRelation(k, v) -> List(k * v)
 imrel-pairs = imrel-to-list
 
 /**
@@ -69,6 +76,7 @@ imrel-pairs = imrel-to-list
  *
  * @type ImmutableRelation -> ImmutableSet
  */
+imrel-pairs-imset :: ImmutableRelation(k, v) -> ImmutableSet(k * v)
 imrel-pairs-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_set"); !ImmutableSet(<id>)
 
 /**
@@ -76,6 +84,7 @@ imrel-pairs-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_to_se
  *
  * @type ImmutableRelation -> List
  */
+imrel-keys :: ImmutableRelation(k, v) -> List(k)
 imrel-keys = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_keys")
 
 /**
@@ -83,6 +92,7 @@ imrel-keys = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_keys")
  *
  * @type ImmutableRelation -> List
  */
+imrel-keys-imset :: ImmutableRelation(k, v) -> ImmutableSet(k)
 imrel-keys-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_keys_set"); !ImmutableSet(<id>)
 
 /**
@@ -90,6 +100,7 @@ imrel-keys-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_keys_s
  *
  * @type ImmutableRelation -> List
  */
+imrel-values :: ImmutableRelation(k, v) -> List(v)
 imrel-values = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_values")
 
 /**
@@ -97,6 +108,7 @@ imrel-values = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_values")
  *
  * @type ImmutableRelation -> ImmutableSet
  */
+imrel-values-imset :: ImmutableRelation(k, v) -> ImmutableSet(v)
 imrel-values-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_values_set"); !ImmutableSet(<id>)
 
 /**
@@ -104,6 +116,7 @@ imrel-values-imset = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_valu
  *
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-transitive-closure :: ImmutableRelation(k, k) -> ImmutableRelation(k, k)
 imrel-transitive-closure = ImmutableRelation(prim("SSL_immutable_relation_transitive_closure"))
 
 /**
@@ -111,6 +124,7 @@ imrel-transitive-closure = ImmutableRelation(prim("SSL_immutable_relation_transi
  *
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-reflexive-transitive-closure :: ImmutableRelation(k, k) -> ImmutableRelation(k, k)
 imrel-reflexive-transitive-closure =
   ImmutableRelation(prim("SSL_immutable_relation_reflexive_transitive_closure"))
 
@@ -119,8 +133,9 @@ imrel-reflexive-transitive-closure =
  *
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-invert =
-  ImmutableRelation(prim("SSL_immutable_relation_inverse"))
+imrel-invert :: ImmutableRelation(k, v) -> ImmutableRelation(v, k)
+imrel-invert: ImmutableRelation(b) ->
+  ImmutableRelation(<prim("SSL_immutable_relation_inverse")> b)
 
 /**
  * Elemental operations
@@ -132,6 +147,7 @@ strategies
  *
  * @type ImmutableRelation -?> ImmutableRelation
  */
+imrel-empty :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-empty = equal(|<imrel-new>)
 
 /**
@@ -140,6 +156,7 @@ imrel-empty = equal(|<imrel-new>)
  * @param k - the key
  * @type ImmutableRelation -?> ImmutableRelation
  */
+imrel-contains-key(|k) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-contains-key(|k) = where(imrel-get(|k); not(imset-empty))
 
 /**
@@ -148,6 +165,7 @@ imrel-contains-key(|k) = where(imrel-get(|k); not(imset-empty))
  * @param k - the key
  * @type ImmutableRelation -?> ImmutableRelation
  */
+imrel-contains(|k, v) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-contains(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_contains", k, v))
 
 /**
@@ -157,6 +175,7 @@ imrel-contains(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_contains"
  * @param e - the key used to look up the value
  * @type ImmutableRelation -?> ImmutableSet
  */
+imrel-get(|k) :: ImmutableRelation(k, v) -> ImmutableSet(v)
 imrel-get(|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get", k); !ImmutableSet(<id>)
 
 /**
@@ -165,6 +184,7 @@ imrel-get(|k) = ?ImmutableRelation(<id>); prim("SSL_immutable_relation_get", k);
  * @param e - the element that is inserted
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-insert(|k, v) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-insert(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_insert", k, v))
 
 /**
@@ -173,6 +193,7 @@ imrel-insert(|k, v) = ImmutableRelation(prim("SSL_immutable_relation_insert", k,
  * @param e - the element that is removed
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-remove(|k) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-remove(|k) = ImmutableRelation(prim("SSL_immutable_relation_remove", k))
 
 /**
@@ -187,7 +208,8 @@ strategies
  * @param s: Term * Term -?> Term * Term
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-filter(s) = ImmutableRelation(prim("SSL_immutable_relation_filter", s|))
+imrel-filter(k1 * v1 -> k2 * v2) :: ImmutableRelation(k1, v1) -> ImmutableRelation(k2, v2)
+imrel-filter(s): ImmutableRelation(b) -> ImmutableRelation(<prim("SSL_immutable_relation_filter", s|)> b)
 
 /**
  * Remove all pairs from the immutable relation for which the filter strategy fails on the key.
@@ -196,6 +218,7 @@ imrel-filter(s) = ImmutableRelation(prim("SSL_immutable_relation_filter", s|))
  * @param s: Term -?> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-filter-keys(k1 -> k2) :: ImmutableRelation(k1, v) -> ImmutableRelation(k2, v)
 imrel-filter-keys(s) = imrel-filter((s, id))
 
 /**
@@ -205,6 +228,7 @@ imrel-filter-keys(s) = imrel-filter((s, id))
  * @param s: Term -?> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-filter-values(v1 -> v2) :: ImmutableRelation(k, v1) -> ImmutableRelation(k, v2)
 imrel-filter-values(s) = imrel-filter((id, s))
 
 /**
@@ -214,7 +238,8 @@ imrel-filter-values(s) = imrel-filter((id, s))
  * @param s: Term * Term -?> Term * Term
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-map(s) = ImmutableRelation(prim("SSL_immutable_relation_map", s|))
+imrel-map(k1 * v1 -> k2 * v2) :: ImmutableRelation(k1, v1) -> ImmutableRelation(k2, v2)
+imrel-map(s): ImmutableRelation(b) -> ImmutableRelation(<prim("SSL_immutable_relation_map", s|)> b)
 
 /**
  * Map all keys from the immutable relation.
@@ -223,6 +248,7 @@ imrel-map(s) = ImmutableRelation(prim("SSL_immutable_relation_map", s|))
  * @param s: Term -> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-map-keys(k1 -> k2) :: ImmutableRelation(k1, v) -> ImmutableRelation(k2, v)
 imrel-map-keys(s) = imrel-map((s, id))
 
 /**
@@ -232,6 +258,7 @@ imrel-map-keys(s) = imrel-map((s, id))
  * @param s: Term -> Term
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-map-values(v1 -> v2) :: ImmutableRelation(k, v1) -> ImmutableRelation(k, v2)
 imrel-map-values(s) = imrel-map((id, s))
 
 /**
@@ -247,8 +274,9 @@ strategies
  * @param other: ImmutableRelation
  * @type ImmutableRelation -> ImmutableRelation
  */
-imrel-compose(|r) =  where(ImmutableRelation(other) := r);
-  ImmutableRelation(prim("SSL_immutable_relation_compose", other))
+imrel-compose(|ImmutableRelation(k2, k3)) :: ImmutableRelation(k1, k2) -> ImmutableRelation(k1, k3)
+imrel-compose(|r): ImmutableRelation('one) -> ImmutableRelation(<prim("SSL_immutable_relation_compose", other)> 'one)
+  where ImmutableRelation(other) := r
 
 /**
  * Intersect with another immutable relation.
@@ -257,17 +285,17 @@ imrel-compose(|r) =  where(ImmutableRelation(other) := r);
  * @param other: ImmutableRelation
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-intersect(|ImmutableRelation(k, v)) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-intersect(|r) = where(ImmutableRelation(other) := r);
   ImmutableRelation(prim("SSL_immutable_relation_intersect", other))
 
 /**
  * Intersect two immutable relations.
- * The given strategy merges the values of the intersecting keys.
- * Returns a new immutable relation with the intersection.
+ * Returns a new immutable relation with the pairs that are in both relations.
  *
- * @param m: Term * Term -> Term
  * @type ImmutableRelation * ImmutableRelation -> ImmutableRelation
  */
+imrel-intersect :: ImmutableRelation(k, v) * ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-intersect =
   ?(l, r); <imrel-intersect(|r)> l
 
@@ -278,6 +306,7 @@ imrel-intersect =
  * @param other: ImmutableRelation - the relation to remove from the current term immutable relation
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-subtract(|ImmutableRelation(k, v)) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-subtract(|r) = where(ImmutableRelation(other) := r);
   ImmutableRelation(prim("SSL_immutable_relation_subtract", other))
 
@@ -287,6 +316,7 @@ imrel-subtract(|r) = where(ImmutableRelation(other) := r);
  *
  * @type ImmutableRelation * ImmutableRelation -> ImmutableRelation
  */
+imrel-subtract :: ImmutableRelation(k, v) * ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-subtract =
   ?(l, r); <imrel-subtract(|r)> l
 
@@ -297,6 +327,7 @@ imrel-subtract =
  * @param other: ImmutableRelation - the relation to remove from the current term immutable relation
  * @type ImmutableRelation -> ImmutableRelation
  */
+imrel-union(|ImmutableRelation(k, v)) :: ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-union(|r) = where(ImmutableRelation(other) := r);
   ImmutableRelation(prim("SSL_immutable_relation_union", other))
 
@@ -308,5 +339,6 @@ imrel-union(|r) = where(ImmutableRelation(other) := r);
  * @param m: Term * Term -> Term
  * @type ImmutableRelation * ImmutableSet -> ImmutableRelation
  */
+imrel-union :: ImmutableRelation(k, v) * ImmutableRelation(k, v) -> ImmutableRelation(k, v)
 imrel-union =
   ?(l, r); <imrel-union(|r)> l

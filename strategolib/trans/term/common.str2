@@ -4,8 +4,10 @@
 module term/common
 imports
   strategy/traversal/simple
+  collection/list/cons
   collection/list/common
   collection/list/set
+  collection/tuple/cons
   term/integer
 
 strategies
@@ -105,9 +107,11 @@ strategies
 
 strategies
 
+  crush(List(c) -> b, ? * b -> b) :: ? -> b
   crush(nul, sum) :
     _#(xs) -> <foldr(nul,sum)> xs
 
+  crush(List(d) -> b, c * b -> b, ? -> c) :: ? -> b
   crush(nul, sum, s) :
     _#(xs) -> <foldr(nul,sum, s)> xs
 

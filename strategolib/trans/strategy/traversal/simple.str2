@@ -185,6 +185,7 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  spinetd(TP) :: TP
   spinetd(s) =
     s; try(one(spinetd(s)))
 
@@ -198,6 +199,7 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  spinebu(TP) :: TP
   spinebu(s) =
     try(one(spinebu(s))); s
 
@@ -220,8 +222,9 @@ strategies
    * @type  Term -> Term
    * @see   spinetd
    */
+  somespinetd(TP) :: TP
   somespinetd(s) =
-    rec x(s; try(some(x)))
+    s; try(some(somespinetd(s)))
 
   /** Apply s everywhere along all spines where s applies, in bottom
    * up order.
@@ -230,8 +233,9 @@ strategies
    * @type  Term -> Term
    * @see   spinetd
    */
+  somespinebu(TP) :: TP
   somespinebu(s) =
-    rec x(try(some(x)); s)
+    try(some(somespinebu(s))); s
 
 /**
  * Apply s at one position. One s application has to succeed.

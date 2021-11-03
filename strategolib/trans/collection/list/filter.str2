@@ -7,6 +7,7 @@ imports
   collection/list/-
   strategy/conditional
   collection/tuple/common
+  collection/tuple/cons
 strategies
 
   /**
@@ -17,10 +18,12 @@ strategies
    *
    * @inc test1
    */
+  filter(a -> b) :: List(a) -> List(b)
   filter(s) =
     [] + [s | filter(s)] <+ ?[_ | <filter(s)> ]
 
 
+  filter(a -> b, List(a) -> List(b)) :: List(a) -> List(b)
   filter(s, tail) =
     ?[]; tail
     <+ [s | filter(s, tail)]
@@ -34,6 +37,7 @@ strategies
    * @param s  a -> b
    * @type     List(a) -> List(b)
    */
+  retain-all(a -> b) :: List(a) -> List(b)
   retain-all(s) =
     filter(s)
 
@@ -43,6 +47,7 @@ strategies
    * @param s  a -> b
    * @type     List(a) -> List(a)
    */
+  remove-all(a -> b) :: List(a) -> List(a)
   remove-all(s) =
     filter(not(s))
 
@@ -55,9 +60,14 @@ strategies
    * @param s a -> b
    * @type  List(a) -> List(b)
    */
+  reverse-filter(a -> b) :: List(a) -> List(b)
   reverse-filter(s) =
-    [] + [id | reverse-filter(s)]; ([s | id] <+ ?[_  | <id>])
+    []
+    + ?[x | xs]
+      ; <reverse-filter(s)> xs
+      ; try(![<s> x | <id>])
 
+  reverse-filter(a -> b, List(a) -> List(b)) :: List(a) -> List(b)
   reverse-filter(s, tail) =
     ?[]; tail
     + ?[x | xs]
@@ -65,18 +75,25 @@ strategies
       ; try(![<s> x | <id>])
 
   /** @internal */
+  filter-gen(List(a) -> List(b), (List(a) -> List(b)) List(b) -> List(b)) :: List(a) -> List(b)
   filter-gen(pred, cont : (term -> term) * term -> term) =
     rec x([] + (pred; cont(x)) <+ Tl; x)
 
   /** @internal */
+  filter-option-args(a -> a) :: List(a) -> List(a)
   filter-option-args(flag) =
-    let skip(s) = at-tail(s)
+    let
+      skip(List(a) -> List(a)) :: List(a) -> List(a)
+      skip(s) = at-tail(s)
      in filter-gen([flag | id]; Tl, skip)
     end
 
   /** @internal */
+  filter-options(a -> a) :: List(a) -> List(a)
   filter-options(flag) =
-    let skip(s) = at-tail(at-tail(s))
+    let
+      skip(List(a) -> List(a)) :: List(a) -> List(a)
+      skip(s) = at-tail(at-tail(s))
      in filter-gen([flag | id], skip)
     end
 
@@ -97,6 +114,7 @@ strategies
   *
   * @inc test2
   */
+  partition(a -> b) :: List(a) -> List(b) * List(a)
   partition(s) =
     partition(s, id)
 
@@ -107,13 +125,15 @@ strategies
   * @param s2   a -> c
   * @type      List(a) -> (List(b), List(c))
   */
+  partition(a -> b, a -> c) :: List(a) -> List(b) * List(c)
   partition(s1, s2) = rec part(
     \ [] -> ([],[]) \
-    + ({[s1 => x | id]; ?[_|<part>]; !([x | <Fst>], <Snd>)} <+
-       {[s2 => x | id]; ?[_|<part>]; !(<Fst>, [x | <Snd>])})
+    + \ [z | zs] -> <!([<s1> z | xs], ys) <+ !(xs, [<s2> z | ys])>
+        where <part> zs => (xs, ys) \
   )
 
   /** @internal */
+  partition'(a -> b) :: List(a) -> List(b) * List(a)
   partition'(s) = rec part(
     \ [] -> ([],[]) \
     + \ [z | zs] -> <!([<s> z | xs], ys) <+ !(xs, [z | ys])>

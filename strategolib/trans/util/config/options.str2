@@ -276,7 +276,7 @@ strategies
     ; u
 
   if-not-silent(s) =
-    test(verbosity => 0) <+ s
+    where(verbosity => 0) <+ s
 
   report-success =
       report-run-time

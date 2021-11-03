@@ -10,6 +10,7 @@ strategies
   /**
    * Repeatedly apply s until it fails.
    */
+  repeat(a -> a) :: a -> a
   repeat(s) =
     try(s; repeat(s))
 
@@ -53,12 +54,14 @@ strategies
   /**
    * While c succeeds apply s.
    */
+  while(a -> b, b -> a) :: a -> a
   while(c, s) =
     try(c; s; while(c, s))
 
   /**
    * While c does not succeed apply s.
    */
+  while-not(a -> b, a -> a) :: a -> b
   while-not(c, s) =
     c <+ (s; while-not(c, s))
 
@@ -72,6 +75,7 @@ strategies
    * Repeat application of s after initialization with i
    * while c fails.
    */
+  for(a -> b, b -> c, b -> b) :: a -> c
   for(i, c, s) =
     i; while-not(c, s)
 

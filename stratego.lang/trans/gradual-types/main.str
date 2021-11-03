@@ -84,7 +84,7 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   with id
   ; rules(CanCoerce: p -> <can-coerce(|injection-closure, aliases)> p)
   ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
-  ; rules(LUB: pair -> <lub(|lub-map)> pair)
+  ; rules(LUB: (pair, tve) -> <lub(|tve, lub-map)> pair)
 
   ; e := <new-env> (strats, constrs, srts)
   ; st := <new-st>
@@ -115,11 +115,15 @@ can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
     <imrel-contains(|from, to)> injection-closure
 
 can-coerce(|injection-closure, aliases) = ?((ErrT(), _), _)
-can-coerce(|injection-closure, aliases) = ?((_, ErrT()), _)
+can-coerce(|injection-closure, aliases): ((t1, ErrT()), st1) -> ((t1, t1), st1)
 can-coerce(|injection-closure, aliases) = ?((_, DynT()), _)
 can-coerce(|injection-closure, aliases): ((SortVar(x), SortVar(x)), st1) -> <id>
   where
     not(<type-var-lookup(|x)> st1)
+
+can-coerce(|injection-closure, aliases) = ?((DynT(), IntT()), _)
+can-coerce(|injection-closure, aliases) = ?((DynT(), RealT()), _)
+can-coerce(|injection-closure, aliases) = ?((DynT(), StringT()), _)
 
 // We assume co-variant type parameters
 can-coerce(|injection-closure, aliases): ((a@Sort(x, t1*), b@Sort(x, t2*)), st1) -> ((a', b'), st2)
@@ -129,15 +133,14 @@ can-coerce(|injection-closure, aliases): ((a@Sort(x, t1*), b@Sort(x, t2*)), st1)
   ; (a', b') := (<otf(!Sort(x, t3*))> a, <otf(!Sort(x, t4*))> b)
 
 can-coerce(|injection-closure, aliases):
-  ((SortVar(x), t1@SortVar(y)), st1) -> (p, st2)
+  ((t1@SortVar(x), t2@SortVar(y)), st1) -> result
   where
-    if t2 := <type-var-lookup(|x)> st1
-    then p := (t2, t2); st2 := st1
-    else if t2 := <type-var-lookup(|y)> st1
-      then p := (t2, t2); st2 := st1
+    if t3 := <type-var-lookup(|x)> st1
+    then result := <CanCoerce> ((t3, t2), st1)
+    else if t3 := <type-var-lookup(|y)> st1
+      then result := <CanCoerce> ((t1, t3), st1)
       else not(<eq> (x,y))
-         ; st2 := <type-var-put(|x, t1)> st1
-         ; p := (t1, t1)
+         ; result := ((t2, t2), <type-var-put(|x, t2)> st1)
       end
     end
 
@@ -146,8 +149,13 @@ can-coerce(|injection-closure, aliases):
   where
     if t2 := <type-var-lookup(|x)> st1
       then result := <CanCoerce> ((t2, t1), st1)
-      else st2 := <type-var-put(|x, t1)> st1
-        ; result := ((t1, t1), st2)
+      else
+        // don't save ? as upper-bound for unbound TV
+//        if not(DynT() := t1)
+//          then
+        st2 := <type-var-put(|x, t1)> st1
+//        end
+      ; result := ((t1, t1), st2)
     end
 
 can-coerce(|injection-closure, aliases):
@@ -155,8 +163,11 @@ can-coerce(|injection-closure, aliases):
   where
     if t2 := <type-var-lookup(|x)> st1
       then result := <CanCoerce> ((t1, t2), st1)
-      else st2 := <type-var-put(|x, t1)> st1
-        ; result := ((t1, t1), st2)
+      else
+        // don't allow ? as lower-bound for unbound TV
+//        not(DynT() := t1);
+        st2 := <type-var-put(|x, t1)> st1
+      ; result := ((t1, t1), st2)
     end
 
 can-coerce(|injection-closure, aliases):
@@ -193,8 +204,10 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st2*, tt2*, t3, t5), SDyn()), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((t1, DynT()), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
+  ; (st2*, st3*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((t2, DynT()), st4)
 
 can-coerce-stype(|injection-closure):
@@ -202,8 +215,10 @@ can-coerce-stype(|injection-closure):
     ((SDyn(), FunTType(st3*, tt3*, t4, t6)), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((DynT(), t1), st1)
-  ; ((st2*, st3*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
-  ; ((tt2*, tt3*), st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
+  ; (st2*, st3*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((DynT(), t2), st4)
 
 can-coerce-stype(|injection-closure):
@@ -211,16 +226,18 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st3*, tt3*, t5, t7), FunTType(st4*, tt4*, t6, t8)), st5)
   where
     ((t5, t6), st2) := <CanCoerce> ((t1, t3), st1)
-  ; ((st3*, st4*), st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
-  ; ((tt3*, tt4*), st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
+  ; (st3*, st4*) := <unzip> stpairs
+  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; (tt3*, tt4*) := <unzip> ttpairs
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
-instantiate-type-vars(|st1) = instantiate-type-vars(!DynT()|st1)
-itv(|st1) = instantiate-type-vars(id|st1)
-itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()> (subj, CannotCastToRigidTypeVar(tv))\|st1)
+itv(|st1) = instantiate-type-vars(id|<type-var-env> st1)
+itv-tve(|tve) = instantiate-type-vars(id|tve)
+itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()> (subj, CannotCastToRigidTypeVar(subj, tv))\|<type-var-env> st1)
 
-instantiate-type-vars(s|st1): t1 -> t2
-  with t2 := <bottomup({x,t: ?t@SortVar(x) < <type-var-lookup(|x)> st1 <+ <s> t + id})> t1
+instantiate-type-vars(s|tve): t1 -> t2
+  with t2 := <bottomup({x,t: ?t@SortVar(x) < type-var-lookup(|x, tve) <+ <s> t + id})> t1
 
 fresh-type-vars(newvars): t1{LocalDef()} -> t1 with <newvars> []
 
@@ -231,14 +248,27 @@ fresh-type-vars(newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
 
 strategies
 
-lub(|lub-map): (x, x) -> x
-lub(|lub-map): (ErrT(), x) -> x
-lub(|lub-map): (x, ErrT()) -> x
-lub(|lub-map): (DynT(), _) -> DynT()
-lub(|lub-map): (_, DynT()) -> DynT()
+lub: (p, st1) -> (t, st2)
+  where
+    st2 := <type-var-env(\tve -> <LUB;?(t, <id>)> (<itv-tve(|tve)> p, tve)\)> st1
+
+lub(|tve, lub-map): (x, x) -> (x, tve)
+lub(|tve, lub-map): (ErrT(), x) -> (x, tve)
+lub(|tve, lub-map): (x, ErrT()) -> (x, tve)
+lub(|tve, lub-map): (DynT(), _) -> (DynT(), tve)
+lub(|tve, lub-map): (_, DynT()) -> (DynT(), tve)
+lub(|tve, lub-map): (SortVar(tv), t) -> (t, <immap-put(|tv, t)> tve)
+lub(|tve, lub-map): (t, SortVar(tv)) -> (t, <immap-put(|tv, t)> tve)
 // pointwise lift LUB over type parameters
-lub(|lub-map): (Sort(x, t1*), Sort(x, t2*)) -> <otf(!Sort(x, <zip(lub(|lub-map))> (t1*, t2*)))> x
-lub(|lub-map): pair -> <immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map
+lub(|tve1, lub-map): (Sort(x, t1*), Sort(x, t2*)) -> (<otf(!Sort(x, t3*))> x, tve2)
+  where
+    (t3*, tve2) := <thread-map(\(p, tve) -> <itv-tve(|tve);lub(|tve, lub-map)> p\)> (<zip> (t1*, t2*), tve1)
+lub(|tve, lub-map): pair -> (<immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map, tve)
+
+st-lub-type(|st0): st1 -> st3
+  where
+    (t, st2) := <lub> ((<current-type> st1, <current-type> st0), st1)
+  ; st3 := <current-type(|t)> st2
 
 constr-lookup-from(st|name, arity, t1, st1) =
     constr-env
@@ -255,5 +285,6 @@ constr-lookup-to(|name, arity, t1, st1) =
   ; imset-to-list
 
 constr-lookup-filter(|t1, st1):
-  t@ConstrType(_, t2) -> (t, st2)
-  where (_, st2) := <CanCoerce> ((t2, t1), st1)
+  t@ConstrType(_, t2) -> (t, st3)
+  where (_, st2) := <CanCoerce> ((<fresh-type-vars(?newvars)> t2, t1), st1)
+  ; st3 := <type-var-clear(|newvars)> st2

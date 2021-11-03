@@ -7,6 +7,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeSet;
@@ -20,6 +21,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
@@ -61,7 +64,7 @@ import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.termvisitors.CountErrT;
+import mb.stratego.build.termvisitors.FindErrT;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
@@ -181,13 +184,24 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         // sanity check
         if(errors.isEmpty()) {
-            if(CountErrT.countErrT(astWithCasts) > 0) {
-                messages.add(
-                    new TypeSystemInternalCompilerError(input.environment.ast, MessageSeverity.ERROR,
-                        lastModified));
+            final List<StrategySignature> defsWithErrT = FindErrT.findErrT(astWithCasts);
+            if(defsWithErrT.size() > 0) {
+                // TODO: turn back on, turned off temporarily (locally) to build strategolib and therefore Spoofax
+                messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast), defsWithErrT,
+                    MessageSeverity.ERROR, lastModified));
             }
         }
         return new InsertCastsOutput(astWithCasts, messages);
+    }
+
+    private IStrategoString astToFilenameTerm(IStrategoTerm ast) {
+        final @Nullable ImploderAttachment location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(ast));
+        final String filename = location.getLeftToken().getFilename();
+        final IStrategoString filenameTerm = tf.makeString(filename);
+        if(location != null) {
+            filenameTerm.putAttachment(ImploderAttachment.createCompactPositionAttachment(filename, 0, 0, 0, 0));
+        }
+        return filenameTerm;
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context,

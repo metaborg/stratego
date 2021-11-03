@@ -6,6 +6,10 @@ fixture [[
 module test
 
 signature
+  sorts
+    Bar
+    List(*)
+    Tuple(*, *)
   constructors
     Foo : Bar
 
@@ -44,6 +48,18 @@ testing =
    0 warnings
    has origin locations
 
+test insert cast to int after call [[
+  list-max :: List(int) -> int
+  list-max = list-accum(max)
+  
+  max = fail
+  
+  list-accum(a * a -> b) :: List(a) -> b
+  list-accum(s) = fail
+]] 0 errors
+   0 warnings
+   has origin locations
+
 test id strategy can be used in any typed strategy [[
 int-id :: int -> int
 int-id = id
@@ -71,6 +87,15 @@ testing =
   int-id(id)
 ; str-id(id)
 ; bar-id(id)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test insert cast to int [[
+return-int :: int -> int
+return-int: i -> <untyped> i
+
+untyped = id
 ]] 0 errors
    0 warnings
    has origin locations
