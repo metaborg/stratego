@@ -1,0 +1,142 @@
+module lub
+
+language StrategoLang
+
+fixture [[
+  module test
+
+  signature
+    sorts
+      List(*)
+      Option(*)
+      Tuple(*, *)
+      A
+      B
+      D
+    constructors
+      A : A
+      B : B
+      C : B
+      D : D
+      : D -> B
+
+  rules
+  [[...]]
+]]
+
+test same type result in choice [[
+  hello = ("1" -> B()) <+ !C()
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test same type result in choice - typed [[
+  hello :: string -> B
+  hello = ("1" -> B()) <+ !C()
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test shared least upper bound (LUB) in choice [[
+  hello = ("1" -> B()) <+ !D()
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test shared least upper bound (LUB) in choice - typed [[
+  hello :: string -> B
+  hello = ("1" -> B()) <+ !D()
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test no shared least upper bound (LUB) in choice [[
+  hello = [[("1" -> B()) <+ !A()]]
+]] 0 errors
+   1 warning at #1
+   has origin locations
+
+// TODO: we probably want an error here, but the return type is only checked later, not passed backward
+test no shared least upper bound (LUB) in choice - typed [[
+  hello :: string -> B
+  hello = [[("1" -> B()) <+ !A()]]
+]] 0 errors
+   1 warning at #1
+   has origin locations
+
+test same type result in switch [[
+  hi = switch id
+    case ?"1": !B()
+    case ?_: !C()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test same type result in switch - typed [[
+  hi :: string -> B
+  hi = switch id
+    case ?"1": !B()
+    case ?_: !C()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test shared least upper bound (LUB) in switch [[
+  hi = switch id
+    case ?"1": !B()
+    case ?_: !D()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test shared least upper bound (LUB) in switch - typed [[
+  hi :: string -> B
+  hi = switch id
+    case ?"1": !B()
+    case ?_: !D()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test no shared least upper bound (LUB) in switch [[
+  hi = [[switch id
+    case ?"1": !B()
+    case ?_: !A()
+  end]]
+]] 0 errors
+   1 warning at #1
+   has origin locations
+
+// TODO: we probably want an error here, but the return type is only checked later, not passed backward
+test no shared least upper bound (LUB) in switch - typed [[
+  hi :: string -> B
+  hi = [[switch id
+    case ?"1": !B()
+    case ?_: !A()
+  end]]
+]] 0 errors
+   1 warning at #1
+   has origin locations
+
+test same type result in switch with otherwise [[
+  hi = switch id
+    case ?"1": !B()
+    otherwise: !C()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test same type result in switch with otherwise - typed [[
+  hi :: string -> B
+  hi = switch id
+    case ?"1": !B()
+    otherwise: !C()
+  end
+]] 0 errors
+   0 warnings
+   has origin locations

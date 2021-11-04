@@ -355,8 +355,8 @@ thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
     (trm2, st2) := <s> (trm1, st1)
   ; t2* := [<current-type> st2 | t1*]
 
-map-LUB(s|trm): ([], st) -> ([], DynT(), st)
-map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, t, st3)
+map-LUB(s|trm): ([], st) -> ([], st)
+map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, <current-type(|t)> st3)
   where
     let lub-fail =
       \((t1, t2), st) -> (DynT(), st)
