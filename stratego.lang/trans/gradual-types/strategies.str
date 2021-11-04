@@ -215,9 +215,7 @@ insertCasts-Strategy-(|e1, st1):
     (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (s5, st3) := <insertCasts-Strategy(|e1, st2)> s2
   ; (s6, st4) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st3)> s3
-  ; (st5 := <st-lub-type(|st3)> st4
-  <+ st5 := <current-type(|DynT())> st4
-   ; <report-Warn> (s0, NoLUBBetween(<current-type> st3, <current-type> st4)))
+  ; st5 := <st-lub-type(|st3, s0)> st4
 
 insertCasts-Strategy-(|e1, st1):
   PrimT(x, s1*, t1*) -> (PrimT(x, s2*, t2*), st4)
@@ -534,9 +532,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st2)> s2
-  ; (st4 := <st-lub-type(|st2)> st3
-  <+ st4 := <current-type(|DynT())> st3
-   ; <report-Warn> (s0, NoLUBBetween(<current-type> st2, <current-type> st3)))
+  ; st4 := <st-lub-type(|st2, s0)> st3
 
 insertCasts-Strategy-(|e1, st1):
   s@Rec(x, s1) -> (Rec(x, s2), st3)
@@ -737,18 +733,14 @@ insertCasts-Strategy-(|e1, st1):
   with
     (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st2)> s2
-  ; (st4 := <st-lub-type(|st2)> st3
-  <+ st4 := <current-type(|DynT())> st3
-   ; <report-Warn> (s0, NoLUBBetween(<current-type> st2, <current-type> st3)))
+  ; st4 := <st-lub-type(|st2, s0)> st3
 
 insertCasts-Strategy-(|e1, st1):
   s0@RChoice(s1, s2) -> (RChoice(s3, s4), st4)
   with
     (s4, st2) := <insertCasts-Strategy(|e1, st1)> s2
   ; (s3, st3) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st2)> s1
-  ; (st4 := <st-lub-type(|st2)> st3
-  <+ st4 := <current-type(|DynT())> st3
-   ; <report-Warn> (s0, NoLUBBetween(<current-type> st2, <current-type> st3)))
+  ; st4 := <st-lub-type(|st2, s0)> st3
 
 insertCasts-Strategy-(|e1, st1):
   p@Proceed(s1*) -> ('call, st4)
@@ -782,9 +774,7 @@ insertCasts-Strategy-(|e1, st1):
     (s4, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; (s5, st3) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st2)> s2
   ; (s6, st4) := <insertCasts-Strategy(|e1, <current-type-of(|st1)> st3)> s3
-  ; (st5 := <st-lub-type(|st3)> st4
-  <+ st5 := <current-type(|DynT())> st4
-   ; <report-Warn> (s0, NoLUBBetween(<current-type> st3, <current-type> st4)))
+  ; st5 := <st-lub-type(|st3, s0)> st4
 
 insertCasts-Strategy-(|e1, st1):
   IfThen(s1, s2) -> (IfThen(s3, s4), st3)
@@ -793,21 +783,22 @@ insertCasts-Strategy-(|e1, st1):
   ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type-of(| st1)> st2)> s2
 
 insertCasts-Strategy-(|e1, st1):
-  SwitchChoiceNoOtherwise(s1, sc1*) -> (SwitchChoiceNoOtherwise(s2, sc2*), st3)
+  s0@SwitchChoiceNoOtherwise(s1, sc1*) -> (SwitchChoiceNoOtherwise(s2, sc2*), st3)
   with
     (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; t1 := <current-type> st1
   ; t2 := <current-type> st2
-  ; (sc2*, _, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
+  ; (sc2*, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2)|s0)> (sc1*, st2)
 
 insertCasts-Strategy-(|e1, st1):
-  SwitchChoice(s1, sc1*, s2) -> (SwitchChoice(s3, sc2*, s4), st4)
+  s0@SwitchChoice(s1, sc1*, s2) -> (SwitchChoice(s3, sc2*, s4), st5)
   with
     (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
   ; t1 := <current-type> st1
   ; t2 := <current-type> st2
-  ; (sc2*, _, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2))> (sc1*, st2)
+  ; (sc2*, st3) := <map-LUB(insertCasts-SwitchCase(|e1, t1, t2)|s0)> (sc1*, st2)
   ; (s4, st4) := <insertCasts-Strategy(|e1, <current-type(|t1)> st3)> s2
+  ; st5 := <st-lub-type(|st3, s0)> st4
 
 insertCasts-SwitchCase(|e1, t1, t2) = otf22(insertCasts-SwitchCase-(|e1, t1, t2))
 
