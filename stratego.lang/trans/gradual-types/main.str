@@ -257,6 +257,7 @@ lub(|tve, lub-map): (ErrT(), x) -> (x, tve)
 lub(|tve, lub-map): (x, ErrT()) -> (x, tve)
 lub(|tve, lub-map): (DynT(), _) -> (DynT(), tve)
 lub(|tve, lub-map): (_, DynT()) -> (DynT(), tve)
+lub(|tve, lub-map): (IllFormedTermT(_, _), IllFormedTermT(_, _)) -> (DynT(), tve)
 lub(|tve, lub-map): (SortVar(tv), t) -> (t, <immap-put(|tv, t)> tve)
 lub(|tve, lub-map): (t, SortVar(tv)) -> (t, <immap-put(|tv, t)> tve)
 // pointwise lift LUB over type parameters
@@ -265,10 +266,13 @@ lub(|tve1, lub-map): (Sort(x, t1*), Sort(x, t2*)) -> (<otf(!Sort(x, t3*))> x, tv
     (t3*, tve2) := <thread-map(\(p, tve) -> <itv-tve(|tve);lub(|tve, lub-map)> p\)> (<zip> (t1*, t2*), tve1)
 lub(|tve, lub-map): pair -> (<immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map, tve)
 
-st-lub-type(|st0): st1 -> st3
+st-lub-type(|st0, trm): st1 -> st3
   where
     (t, st2) := <lub> ((<current-type> st1, <current-type> st0), st1)
   ; st3 := <current-type(|t)> st2
+  <+
+    st3 := <current-type(|DynT())> st1
+  ; <report-Warn> (trm, NoLUBBetween(<current-type> st0, <current-type> st1))
 
 constr-lookup-from(st|name, arity, t1, st1) =
     constr-env

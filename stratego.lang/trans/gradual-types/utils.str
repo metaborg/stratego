@@ -355,12 +355,17 @@ thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
     (trm2, st2) := <s> (trm1, st1)
   ; t2* := [<current-type> st2 | t1*]
 
-map-LUB(s): ([], st) -> ([], DynT(), st)
-map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t, st3)
+map-LUB(s|trm): ([], st) -> ([], DynT(), st)
+map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, t, st3)
   where
+    let lub-fail =
+      \((t1, t2), st) -> (DynT(), st)
+        where <report-Warn> (trm, NoLUBBetween(t1, t2))\
+    in
     (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
   ; (trm2*, t*) := <unzip((id, current-type))> b*
-  ; (t, st3) := <foldr1-thread(lub)> (t*, st2)
+  ; (t, st3) := <foldr1-thread(lub <+ lub-fail)> (t*, st2)
+    end
 
 map-st-LUB(s): ([], st) -> ([], [], st)
 map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)
