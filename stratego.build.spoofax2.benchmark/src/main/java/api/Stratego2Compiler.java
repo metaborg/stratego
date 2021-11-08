@@ -5,7 +5,8 @@ import com.google.common.collect.Lists;
 import mb.log.stream.StreamLoggerFactory;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.store.SerializingStoreBuilder;
+import mb.pie.runtime.store.InMemoryStore;
+import mb.pie.runtime.store.SerializingStore;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.DefaultResourceService;
@@ -22,7 +23,6 @@ import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.file.PathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,22 +45,16 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Compiler {
+public class Stratego2Compiler extends Compiler {
     protected static final String javaPackageName = "benchmark";
 
-    private static final Path localRepository = Paths.get(System.getProperty("user.home"), ".m2", "repository");
     private static final ResourceService resourceService = new DefaultResourceService(new FSResourceRegistry());
 
-    private final Path baseDir;
-    public final File javaDir;
-    public final File classDir;
     private final Path pieDir;
-    private final File packageDir;
 
     private final boolean library;
     private final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries;
     private final boolean autoImportStd;
-    private final String metaborgVersion;
     private final LanguageIdentifier languageIdentifier;
     private final boolean output;
     private final Arguments args;
@@ -68,39 +62,26 @@ public class Compiler {
     private CompileOutput compiledProgram;
     private boolean javaCompilationResult = false;
 
-    private Spoofax spoofax;
     private Pie pie;
     private final ModuleIdentifier mainModuleIdentifier;
     private final ArrayList<ResourcePath> strjIncludeDirs;
     private final ResourcePath projectPath;
 
     long timer;
-    private final String baseName;
-    private final String fileName;
-    private final Path sourcePath;
 
-    public Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
+    public Stratego2Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
         this(sourcePath, false, new ArrayList<>(), true, metaborgVersion, false, args);
     }
 
-    public Compiler(Path sourcePath, boolean library, ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, String metaborgVersion, boolean output, Arguments args) throws IOException, MetaborgException {
+    public Stratego2Compiler(Path sourcePath, boolean library, ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd, String metaborgVersion, boolean output, Arguments args) throws IOException, MetaborgException {
+        super(metaborgVersion, sourcePath);
+
         this.library = library;
         this.linkedLibraries = linkedLibraries;
         this.autoImportStd = autoImportStd;
-        this.metaborgVersion = metaborgVersion;
         this.output = output;
         this.args = args;
-        this.sourcePath = sourcePath.toAbsolutePath();
 
-        fileName = this.sourcePath.getFileName().toString();
-        baseName = FilenameUtils.removeExtension(fileName);
-
-        Path tempDir = Files.createTempDirectory("stratego2benchmark");
-        this.baseDir = tempDir.resolve(baseName);
-        this.baseDir.toFile().deleteOnExit();
-
-        this.javaDir = baseDir.resolve("java").toFile();
-        this.classDir = baseDir.resolve("classes").toFile();
         this.pieDir = tempDir.resolve("pie");
         this.packageDir = javaDir.toPath().resolve(javaPackageName).toFile();
 
@@ -114,6 +95,7 @@ public class Compiler {
         this.setupBuild();
     }
 
+    @Override
     public CompileOutput compileStratego() throws MetaborgException {
         debugPrintln("Dropping PIE store... ");
         pie.dropStore();
@@ -134,6 +116,7 @@ public class Compiler {
         return compiledProgram;
     }
 
+    @Override
     public File compileJava() throws IOException, SkipException {
         if (!(compiledProgram instanceof CompileOutput.Success)) {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
@@ -159,11 +142,12 @@ public class Compiler {
         return classDir;
     }
 
+    @Override
     public BufferedReader run() throws IOException, InterruptedException {
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
 
-        return Java.execute(classDir + ":" + Compiler.getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", Compiler.javaPackageName));
+        return Java.execute(classDir + ":" + Stratego2Compiler.getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", Stratego2Compiler.javaPackageName));
     }
 
     private void setupBuild() throws MetaborgException {
@@ -186,11 +170,9 @@ public class Compiler {
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
         pieBuilder.withStoreFactory(
-                (serde, resourceService, loggerFactory) ->
-                        SerializingStoreBuilder
-                                .ofInMemoryStore(serde)
-                                .withResourceStorage(resourceService.getWritableResource(serializingStorePath))
-                                .build());
+                (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde, loggerFactory,
+                        resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
+                        InMemoryStore.class));
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         debugPrint("Building PIE...");
         timer = System.currentTimeMillis();
@@ -247,7 +229,8 @@ public class Compiler {
         }
     }
 
-    private Collection<File> javaFiles() {
+    @Override
+    protected Collection<File> javaFiles() {
         return javaFiles(compiledProgram);
     }
 
