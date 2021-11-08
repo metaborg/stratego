@@ -18,7 +18,7 @@ public class Stratego2Program {
 
     private static final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>();
 
-    public final Compiler compiler;
+    public final Stratego2Compiler compiler;
 
     public Stratego2Program(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
         this(sourcePath, args, false, true, metaborgVersion, false);
@@ -31,7 +31,7 @@ public class Stratego2Program {
             throw new FileNotFoundException(String.format("Input Stratego program not found: %s", sourcePath));
         }
 
-        this.compiler = new Compiler(
+        this.compiler = new Stratego2Compiler(
                 sourcePath,
                 library,
                 linkedLibraries,

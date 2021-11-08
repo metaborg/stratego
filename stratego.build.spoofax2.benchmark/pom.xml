@@ -90,13 +90,28 @@ THE POSSIBILITY OF SUCH DAMAGE.
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
+            <artifactId>pie.api</artifactId>
+            <version>0.19.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
             <artifactId>pie.runtime</artifactId>
+            <version>0.19.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>pie.task.archive</artifactId>
+            <version>0.19.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>pie.taskdefs.guice</artifactId>
             <version>0.19.2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>21.0.1</version>
+            <version>22.0.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

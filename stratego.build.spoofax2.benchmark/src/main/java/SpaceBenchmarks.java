@@ -1,4 +1,4 @@
-import api.Compiler;
+import api.Stratego2Compiler;
 import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
 import benchmark.stratego2.compilation.stratego.*;
@@ -73,7 +73,7 @@ public class SpaceBenchmarks {
                                 benchmark.setup();
 
                                 Map<String, Long> bms = new HashMap<>();
-                                bms.put("Java space", Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
+                                bms.put("Java space", Stratego2Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
                                 bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
 
                                 for (Map.Entry<String, Long> bm : bms.entrySet()) {

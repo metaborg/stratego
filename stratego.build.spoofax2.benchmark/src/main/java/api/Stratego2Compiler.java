@@ -5,8 +5,7 @@ import com.google.common.collect.Lists;
 import mb.log.stream.StreamLoggerFactory;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.store.InMemoryStore;
-import mb.pie.runtime.store.SerializingStore;
+import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.DefaultResourceService;
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
 
 public class Stratego2Compiler extends Compiler {
     protected static final String javaPackageName = "benchmark";
-
     private static final ResourceService resourceService = new DefaultResourceService(new FSResourceRegistry());
 
     private final Path pieDir;
@@ -63,6 +61,7 @@ public class Stratego2Compiler extends Compiler {
     private boolean javaCompilationResult = false;
 
     private Pie pie;
+    private Session session;
     private final ModuleIdentifier mainModuleIdentifier;
     private final ArrayList<ResourcePath> strjIncludeDirs;
     private final ResourcePath projectPath;
@@ -98,7 +97,7 @@ public class Stratego2Compiler extends Compiler {
     @Override
     public CompileOutput compileStratego() throws MetaborgException {
         debugPrintln("Dropping PIE store... ");
-        pie.dropStore();
+        session.dropStore();
 
         str2(args);
         if (!(compiledProgram instanceof CompileOutput.Success))
@@ -170,9 +169,11 @@ public class Stratego2Compiler extends Compiler {
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
         pieBuilder.withStoreFactory(
-                (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde, loggerFactory,
-                        resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
-                        InMemoryStore.class));
+                (serde, resourceService, loggerFactory) ->
+                        SerializingStoreBuilder
+                                .ofInMemoryStore(serde)
+                                .withResourceStorage(resourceService.getWritableResource(serializingStorePath))
+                                .build());
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         debugPrint("Building PIE...");
         timer = System.currentTimeMillis();
@@ -202,20 +203,21 @@ public class Stratego2Compiler extends Compiler {
 
         debugPrint("Generating new session...");
         timer = System.currentTimeMillis();
-        try (MixedSession session = pie.newSession()) {
-            debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
-            debugPrintln("Requiring task...");
-            timer = System.currentTimeMillis();
+        session = pie.newSession();
+        debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
+        debugPrintln("Requiring task...");
+        timer = System.currentTimeMillis();
+
+        try {
             compiledProgram = Objects.requireNonNull(session.require(compileTask));
             debugPrintf("Task finished in %d ms%n", System.currentTimeMillis() - timer);
-
-            } catch (ExecException e) {
-                throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
-                        e);
-            } catch (InterruptedException e) {
-                throw new MetaborgException(
-                        "Incremental Stratego build interrupted: " + e.getMessage(), e);
-            }
+        } catch (ExecException e) {
+            throw new MetaborgException("Incremental Stratego build failed: " + e.getMessage(),
+                    e);
+        } catch (InterruptedException e) {
+            throw new MetaborgException(
+                    "Incremental Stratego build interrupted: " + e.getMessage(), e);
+        }
     }
 
     public void cleanup() {
