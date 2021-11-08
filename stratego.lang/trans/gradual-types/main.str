@@ -117,6 +117,7 @@ can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
 can-coerce(|injection-closure, aliases) = ?((ErrT(), _), _)
 can-coerce(|injection-closure, aliases): ((t1, ErrT()), st1) -> ((t1, t1), st1)
 can-coerce(|injection-closure, aliases) = ?((_, DynT()), _)
+can-coerce(|injection-closure, aliases): ((t1, IllFormedTermT(_, _)), st1) -> ((t1, DynT()), st1)
 can-coerce(|injection-closure, aliases): ((SortVar(x), SortVar(x)), st1) -> <id>
   where
     not(<type-var-lookup(|x)> st1)
@@ -232,6 +233,8 @@ can-coerce-stype(|injection-closure):
   ; (tt3*, tt4*) := <unzip> ttpairs
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
+itv: st1 -> <current-type(itv(|st1))> st1
+
 itv(|st1) = instantiate-type-vars(id|<type-var-env> st1)
 itv-tve(|tve) = instantiate-type-vars(id|tve)
 itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()> (subj, CannotCastToRigidTypeVar(subj, tv))\|<type-var-env> st1)
@@ -239,11 +242,13 @@ itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!ErrT()>
 instantiate-type-vars(s|tve): t1 -> t2
   with t2 := <bottomup({x,t: ?t@SortVar(x) < type-var-lookup(|x, tve) <+ <s> t + id})> t1
 
-fresh-type-vars(newvars): t1{LocalDef()} -> t1 with <newvars> []
+fresh-type-vars(newvars) = fresh-type-vars(newname, newvars)
 
-fresh-type-vars(newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
+fresh-type-vars(new, newvars): t1{LocalDef()} -> t1 with <newvars> []
+
+fresh-type-vars(new, newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
   with
-    tvmap := <collect(?SortVar(<id>));map(!(<id>, <newname>))> t1
+    tvmap := <collect(?SortVar(<id>));map(!(<id>, <new>))> t1
   ; <unzip;Snd;newvars> tvmap
 
 strategies
