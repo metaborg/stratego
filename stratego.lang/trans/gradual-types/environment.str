@@ -108,7 +108,7 @@ type-var-clear(|names) = type-var-env(\env -> <foldl(\(name, e) -> <immap-remove
 
 type-var-elim(|subj, names) = type-var-elim(\tv -> <report-Err> (subj, UnboundTypeVar(tv))\|names)
 type-var-elim(lookupfail|name) = where(<is-string> name); type-var-elim(lookupfail, ?name <+ where(!<id>{};?name))
-type-var-elim(lookupfail|names) = where(<is-list> names); type-var-elim(lookupfail, \name -> <getfirst(?name <+ where(!<id>{};?name))> names\)
+type-var-elim(lookupfail|names) = where(<is-list> names); type-var-elim(lookupfail, getfirst(?name <+ where(!<id>{};?name)))
 
 type-var-elim(lookupfail, match) =
     where(env := <type-var-env>)
