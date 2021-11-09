@@ -1,5 +1,6 @@
-package benchmark.stratego2.template.problem;
+package benchmark.generic;
 
+@FunctionalInterface
 public interface Problem {
     String problemFileNamePattern();
 }

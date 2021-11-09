@@ -1,7 +1,6 @@
-package benchmark.stratego2.compilation.strj;
+package benchmark.strj;
 
 import benchmark.stratego2.problem.FactorialProblem;
-import benchmark.stratego2.template.benchmark.compilation.StrjCompilationBenchmark;
 import org.openjdk.jmh.annotations.Param;
 
 public class Factorial extends StrjCompilationBenchmark implements FactorialProblem {

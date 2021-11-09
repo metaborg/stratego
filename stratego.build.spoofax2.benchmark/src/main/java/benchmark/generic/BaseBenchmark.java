@@ -1,9 +1,8 @@
-package benchmark.stratego2.template.benchmark.base;
+package benchmark.generic;
 
-import api.Stratego2Program;
 import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
-import benchmark.stratego2.template.problem.Problem;
+import org.apache.commons.lang3.NotImplementedException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
 import org.openjdk.jmh.annotations.*;
@@ -17,13 +16,14 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("JmhInspections")
 @State(Scope.Thread)
-@Fork(value = 3, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public abstract class BaseBenchmark implements Problem {
+@Fork(value = 3, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
 
     protected Path sourcePath;
 
-    protected Stratego2Program program;
+    protected P program;
     protected final Arguments args = new Arguments();
 
     @Param({"2.6.0-SNAPSHOT"})
@@ -47,15 +47,6 @@ public abstract class BaseBenchmark implements Problem {
 //    @Param({"on", "off"})
 //    public String fusion;
 
-    public BaseBenchmark() {}
-
-    public BaseBenchmark(String metaborgVersion, int optimisationLevel, int problemSize, String sharedConstructors) {
-        this.metaborgVersion = metaborgVersion;
-        this.optimisationLevel = optimisationLevel;
-        this.sharedConstructors = sharedConstructors;
-        this.problemSize = problemSize;
-    }
-
     public final void setMetaborgVersion(String metaborgVersion) {
         this.metaborgVersion = metaborgVersion;
     }
@@ -68,7 +59,7 @@ public abstract class BaseBenchmark implements Problem {
         this.sharedConstructors = sharedConstructors;
     }
 
-    public void setSwitchImplementation(String switchImplementation) {
+    public final void setSwitchImplementation(String switchImplementation) {
         this.switchImplementation = switchImplementation;
     }
 
@@ -82,7 +73,7 @@ public abstract class BaseBenchmark implements Problem {
 
     @Setup(Level.Trial)
     public void setup() throws SkipException, InvalidConfigurationException {
-        if (optimisationLevel == 4) {
+        if (4 == optimisationLevel) {
             if (Objects.equals(switchImplementation, "")) {
                 throw new InvalidConfigurationException("No switch implementation set on -O 4");
             } /*else if ((Objects.equals(switchImplementation, "nested-switch") && Objects.equals(switchImplementationOrder, ""))
@@ -97,10 +88,10 @@ public abstract class BaseBenchmark implements Problem {
 //            if (Objects.equals(switchImplementation, "nested-switch")) {
 //                args.add("--pmc:switchv-order", switchImplementationOrder);
 //            }
-        } /*else {
-            if (!Objects.equals(switchImplementation, "") || !Objects.equals(switchImplementationOrder, ""))
+        } else {
+            if (!Objects.equals(switchImplementation, "") /*|| !Objects.equals(switchImplementationOrder, "")*/)
                 throw new InvalidConfigurationException("Switch implementation set, but not on -O 4");
-        }*/
+        }
 
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
@@ -111,13 +102,9 @@ public abstract class BaseBenchmark implements Problem {
 //        args.add("--verbose", 3);
 
         try {
-            program = new Stratego2Program(sourcePath, args, metaborgVersion);
-        } catch (FileNotFoundException e) {
-            throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
-        } catch (IOException e) {
-            throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
-        } catch (MetaborgException e) {
-            throw new SkipException("Exception in build system! Skipping.", e);
+            instantiateProgram();
+        } catch (MetaborgException | IOException e) {
+            handleException(e);
         }
     }
 
@@ -126,11 +113,27 @@ public abstract class BaseBenchmark implements Problem {
         getProgram().cleanup();
     }
 
-    public Stratego2Program getProgram() {
+    protected abstract void instantiateProgram() throws MetaborgException, IOException;
+
+    /**
+     * @param e
+     * @throws SkipException
+     */
+    protected final void handleException(Exception e) {
+        if (e instanceof FileNotFoundException) {
+            throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
+        } else if (e instanceof IOException) {
+            throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
+        } else if (e instanceof MetaborgException) {
+            throw new SkipException("Exception in build system! Skipping.", e);
+        }
+    }
+
+    public final P getProgram() {
         return program;
     }
 
-    public String sourceFileName() {
+    protected final String sourceFileName() {
         return String.format(problemFileNamePattern(), problemSize);
     }
 

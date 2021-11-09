@@ -1,18 +1,17 @@
-package benchmark.stratego2.template.benchmark.compilation;
+package benchmark.strj;
 
-import api.Stratego2Program;
 import benchmark.exception.SkipException;
+import benchmark.stratego2.compilation.stratego.StrategoCompilationBenchmark;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-public abstract class StrjCompilationBenchmark extends CompilationBenchmark {
+public abstract class StrjCompilationBenchmark extends StrategoCompilationBenchmark {
 
     @Param({""})
     public String switchImplementation;
@@ -23,9 +22,12 @@ public abstract class StrjCompilationBenchmark extends CompilationBenchmark {
     @Param({"on"})
     public String sharedConstructors;
 
+    /**
+     * @throws SkipException
+     */
     @Override
     @Setup(Level.Trial)
-    public final void setup() throws SkipException {
+    public final void setup() {
         sourcePath = Paths.get("src", "main", "resources", sourceFileName());
 
         args.add("-O", optimisationLevel);
@@ -35,13 +37,9 @@ public abstract class StrjCompilationBenchmark extends CompilationBenchmark {
 //        args.add("--verbose", 3);
 
         try {
-            program = new Stratego2Program(sourcePath, args, metaborgVersion);
-        } catch (FileNotFoundException e) {
-            throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
-        } catch (IOException e) {
-            throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
-        } catch (MetaborgException e) {
-            throw new SkipException("Exception in build system! Skipping.", e);
+            instantiateProgram();
+        } catch (IOException | MetaborgException e) {
+            handleException(e);
         }
     }
 

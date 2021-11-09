@@ -1,6 +1,6 @@
 package benchmark.stratego2.problem;
 
-import benchmark.stratego2.template.problem.Problem;
+import benchmark.generic.Problem;
 
 public interface BubblesortProblem extends Problem {
 

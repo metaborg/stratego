@@ -1,5 +1,7 @@
-package api;
+package api.stratego2;
 
+import api.Compiler;
+import api.Java;
 import benchmark.exception.SkipException;
 import com.google.common.collect.Lists;
 import mb.log.stream.StreamLoggerFactory;
@@ -8,10 +10,7 @@ import mb.pie.runtime.PieBuilderImpl;
 import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
-import mb.resource.DefaultResourceService;
-import mb.resource.ResourceService;
 import mb.resource.fs.FSPath;
-import mb.resource.fs.FSResourceRegistry;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
@@ -34,7 +33,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.strj.strj;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,9 +42,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Stratego2Compiler extends Compiler {
-    protected static final String javaPackageName = "benchmark";
-    private static final ResourceService resourceService = new DefaultResourceService(new FSResourceRegistry());
+public final class Stratego2Compiler extends Compiler<CompileOutput> {
+    private static final String javaPackageName = "benchmark";
+    private final File classDir;
 
     private final Path pieDir;
 
@@ -56,9 +54,9 @@ public class Stratego2Compiler extends Compiler {
     private final LanguageIdentifier languageIdentifier;
     private final boolean output;
     private final Arguments args;
+    private final File packageDir;
 
-    private CompileOutput compiledProgram;
-    private boolean javaCompilationResult = false;
+    private boolean javaCompilationResult;
 
     private Pie pie;
     private Session session;
@@ -66,7 +64,7 @@ public class Stratego2Compiler extends Compiler {
     private final ArrayList<ResourcePath> strjIncludeDirs;
     private final ResourcePath projectPath;
 
-    long timer;
+    private long timer;
 
     public Stratego2Compiler(Path sourcePath, Arguments args, String metaborgVersion) throws IOException, MetaborgException {
         this(sourcePath, false, new ArrayList<>(), true, metaborgVersion, false, args);
@@ -81,8 +79,9 @@ public class Stratego2Compiler extends Compiler {
         this.output = output;
         this.args = args;
 
-        this.pieDir = tempDir.resolve("pie");
-        this.packageDir = javaDir.toPath().resolve(javaPackageName).toFile();
+        pieDir = tempDir.resolve("pie");
+        packageDir = compileDir.toPath().resolve(javaPackageName).toFile();
+        classDir = baseDir.resolve("classes").toFile();
 
         languageIdentifier = new LanguageIdentifier("mb.stratego", "compnrun_" + baseName, new LanguageVersion(1));
         mainModuleIdentifier = new ModuleIdentifier(sourcePath.getFileName().toString().endsWith(".str"), this.library, baseName, new FSPath(sourcePath));
@@ -91,13 +90,15 @@ public class Stratego2Compiler extends Compiler {
         strjIncludeDirs = new ArrayList<>(1);
         strjIncludeDirs.add(projectPath);
 
-        this.setupBuild();
+        setupBuild();
     }
 
     @Override
-    public CompileOutput compileStratego() throws MetaborgException {
-        debugPrintln("Dropping PIE store... ");
-        session.dropStore();
+    public CompileOutput compileProgram() throws MetaborgException {
+        if (null != session) {
+            debugPrintln("Dropping PIE store... ");
+            session.dropStore();
+        }
 
         str2(args);
         if (!(compiledProgram instanceof CompileOutput.Success))
@@ -115,8 +116,12 @@ public class Stratego2Compiler extends Compiler {
         return compiledProgram;
     }
 
-    @Override
-    public File compileJava() throws IOException, SkipException {
+    /**
+     * @return
+     * @throws IOException
+     * @throws SkipException
+     */
+    public File compileJava() throws IOException {
         if (!(compiledProgram instanceof CompileOutput.Success)) {
             throw new SkipException("Compilation with stratego.lang compiler expected to succeed, but gave errors:\n" + getErrorMessagesString(compiledProgram));
         }
@@ -142,18 +147,19 @@ public class Stratego2Compiler extends Compiler {
     }
 
     @Override
-    public BufferedReader run() throws IOException, InterruptedException {
+    public String run() throws IOException, InterruptedException {
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
 
-        return Java.execute(classDir + ":" + Stratego2Compiler.getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", Stratego2Compiler.javaPackageName));
+        return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName)).lines().collect(Collectors.joining());
     }
 
-    private void setupBuild() throws MetaborgException {
+    @Override
+    protected void setupBuild() throws MetaborgException {
         spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
         // compile
 
-        final FSPath serializingStorePath =
+        FSPath serializingStorePath =
                 new FSPath(pieDir.resolve("pie-store"));
 
         debugPrint("Discovering Spoofax languages... ");
@@ -166,7 +172,7 @@ public class Stratego2Compiler extends Compiler {
 
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
-        final PieBuilder pieBuilder = new PieBuilderImpl();
+        PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withLoggerFactory(StreamLoggerFactory.stdErrVeryVerbose());
         pieBuilder.withStoreFactory(
                 (serde, resourceService, loggerFactory) ->
@@ -231,8 +237,7 @@ public class Stratego2Compiler extends Compiler {
         }
     }
 
-    @Override
-    protected Collection<File> javaFiles() {
+    private Collection<File> javaFiles() {
         return javaFiles(compiledProgram);
     }
 
@@ -240,11 +245,11 @@ public class Stratego2Compiler extends Compiler {
         if (!(compiledProgram instanceof CompileOutput.Success))
             throw new RuntimeException("Cannot get Java files from unsuccessful compilation!");
 
-        final HashSet<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
-        final List<File> sourceFiles = new ArrayList<>(resultFiles.size());
+        Set<ResourcePath> resultFiles = ((CompileOutput.Success) compiledProgram).resultFiles;
+        Collection<File> sourceFiles = new ArrayList<>(resultFiles.size());
         for (ResourcePath resultFile : resultFiles) {
-            final @Nullable File localFile = resourceService.toLocalFile(resultFile);
-            if (localFile == null) {
+            @Nullable File localFile = resourceService.toLocalFile(resultFile);
+            if (null == localFile) {
                 throw new IllegalArgumentException("Result file '" + resultFile + "' cannot be converted to a local file");
             }
             sourceFiles.add(localFile);
@@ -254,7 +259,7 @@ public class Stratego2Compiler extends Compiler {
 
     private static String getErrorMessagesString(CompileOutput str2CompileOutput) {
         return ((CompileOutput.Failure) str2CompileOutput).messages.stream()
-                .filter(m -> m.severity == MessageSeverity.ERROR).map(Message::toString)
+                .filter(m -> MessageSeverity.ERROR == m.severity).map(Message::toString)
                 .collect(Collectors.joining("\n"));
     }
 
@@ -284,15 +289,15 @@ public class Stratego2Compiler extends Compiler {
 
         strjArgs.addAll(args.asStrings(null));
 
-        final IStrategoTerm result;
+        IStrategoTerm result;
         try {
             //@formatter:off
             result = strj.mainNoExit(strjArgs.toArray(new String[strjArgs.size()]));
             //@formatter:on
         } catch(StrategoExit exit) {
-            return exit.getValue() == 0;
+            return 0 == exit.getValue();
         }
-        return result != null;
+        return null != result;
     }
 
     @NotNull
@@ -301,7 +306,7 @@ public class Stratego2Compiler extends Compiler {
     }
 
     @NotNull
-    static Path getStrategoxtJarPath(String metaborgVersion) {
+    private static Path getStrategoxtJarPath(String metaborgVersion) {
         return localRepository.resolve(Paths.get("org", "metaborg", "strategoxt-jar", metaborgVersion, String.format("strategoxt-jar-%s.jar", metaborgVersion)));
     }
 

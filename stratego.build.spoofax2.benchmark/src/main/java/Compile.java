@@ -1,19 +1,18 @@
-import api.Stratego2Program;
+import api.stratego2.Stratego2Program;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Compile {
+class Compile {
     final String filename;
     Stratego2Program program;
 
     final Path p = Paths.get("src", "main", "resources");
 
-    private final static int optimisationLevel = 2;
+    private static final int optimisationLevel = 2;
     private final Arguments compilerArgs;
 
     public Compile(String filename) {
@@ -37,13 +36,10 @@ public class Compile {
         c.program.compileJava();
 
         long start = System.currentTimeMillis();
-        BufferedReader br = c.program.run();
+        String res = c.program.run();
         long elapsed = System.currentTimeMillis() - start;
-        String line;
-        while (null != (line = br.readLine())) {
-            System.out.println(line);
-        }
 
+        System.out.println(res);
         System.out.printf("Time elapsed: %f s%n", elapsed / 1000.f);
 
 //        System.out.printf("Size of Java directory: %d kB%n", FileUtils.sizeOfDirectory(c.program.javaDir) / 1000);

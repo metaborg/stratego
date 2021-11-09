@@ -1,7 +1,6 @@
 package benchmark.stratego2.compilation.stratego;
 
 import benchmark.stratego2.problem.BubblesortProblem;
-import benchmark.stratego2.template.benchmark.compilation.StrategoCompilationBenchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Timeout;
 

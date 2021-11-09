@@ -1,6 +1,7 @@
 package api;
 
 import com.google.common.io.ByteStreams;
+import org.jetbrains.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -14,22 +15,25 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class Java {
+public final class Java {
+    private Java() {
+    }
+
     public static boolean compile(File dest, Iterable<? extends File> sourceFiles,
                                   Iterable<? extends File> classPath, boolean output)
             throws IOException {
         Files.createDirectories(dest.toPath());
 
-        final javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         try (StandardJavaFileManager fileManager = compiler
                 .getStandardFileManager(null, Locale.getDefault(), null)) {
-            final Iterable<? extends JavaFileObject> compilationUnits =
+            Iterable<? extends JavaFileObject> compilationUnits =
                     fileManager.getJavaFileObjectsFromFiles(sourceFiles);
             fileManager.setLocation(StandardLocation.CLASS_OUTPUT,
                     Collections.singletonList(dest));
             fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
 
-            Writer osw;
+            @Nullable Writer osw;
             if (output) {
                 osw = null;
             } else {
@@ -37,20 +41,20 @@ public class Java {
                 osw = new OutputStreamWriter(ByteStreams.nullOutputStream());
             }
 
-            final javax.tools.JavaCompiler.CompilationTask task =
+            javax.tools.JavaCompiler.CompilationTask task =
                     compiler.getTask(osw, fileManager, null, null, null, compilationUnits);
             return task.call();
         }
     }
 
     public static BufferedReader execute(String classPath, String mainClass) throws IOException, InterruptedException {
-        final Path java = Paths.get(System.getProperty("java.home")).resolve(Paths.get("bin", "java"));
-        final ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, "-ss16M", "-ms2G", "-mx2G", mainClass);
-        final Process process = processBuilder.start();
+        Path java = Paths.get(System.getProperty("java.home")).resolve(Paths.get("bin", "java"));
+        ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, "-ss16M", "-ms2G", "-mx2G", mainClass);
+        Process process = processBuilder.start();
 
         BufferedReader r = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-        if (process.waitFor() != 0) {
+        if (0 != process.waitFor()) {
             throw new RuntimeException("Process did not finish successfully!\nErrors: " + r.lines().collect(Collectors.joining()));
         }
 

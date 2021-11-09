@@ -1,7 +1,6 @@
 package benchmark.stratego2.compilation.java;
 
 import benchmark.stratego2.problem.BenchtreeProblem;
-import benchmark.stratego2.template.benchmark.compilation.JavaCompilationBenchmark;
 import org.openjdk.jmh.annotations.Param;
 
 public class Benchtree extends JavaCompilationBenchmark implements BenchtreeProblem {

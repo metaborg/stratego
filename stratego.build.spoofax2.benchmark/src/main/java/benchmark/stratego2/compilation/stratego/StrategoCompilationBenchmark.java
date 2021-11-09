@@ -29,25 +29,31 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package benchmark.stratego2.template.benchmark.compilation;
+package benchmark.stratego2.compilation.stratego;
 
-import api.Stratego2Program;
-import benchmark.stratego2.template.benchmark.base.OptimisationBenchmark;
+import benchmark.generic.Program;
+import benchmark.stratego2.StrategoBenchmark;
+import mb.stratego.build.strincr.task.output.CompileOutput;
+import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
-@BenchmarkMode(Mode.SingleShotTime)
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public abstract class CompilationBenchmark extends OptimisationBenchmark {
+public abstract class StrategoCompilationBenchmark extends StrategoBenchmark {
+
+    @Benchmark
+    public final CompileOutput compileStratego() throws MetaborgException {
+        return getProgram().compileStratego();
+    }
 
     @Override
     @TearDown(Level.Iteration)
     public void teardown() {
-        Stratego2Program p = getProgram();
-        if (p != null)
+        Program<?> p = getProgram();
+        if (null != p)
             p.cleanup();
     }
 

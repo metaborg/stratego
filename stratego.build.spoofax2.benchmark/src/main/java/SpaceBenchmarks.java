@@ -1,8 +1,5 @@
-import api.Stratego2Compiler;
-import benchmark.exception.InvalidConfigurationException;
-import benchmark.exception.SkipException;
+import api.stratego2.Stratego2Compiler;
 import benchmark.stratego2.compilation.stratego.*;
-import benchmark.stratego2.template.benchmark.compilation.CompilationBenchmark;
 import joptsimple.internal.Strings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -16,8 +13,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class SpaceBenchmarks {
-    static char delim = ',';
+final class SpaceBenchmarks {
+    private static final char delim = ',';
+
+    private SpaceBenchmarks() {
+    }
 
     public static void main(String... args) throws IOException, InstantiationException, IllegalAccessException {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-hhmmss");
@@ -36,7 +36,7 @@ public class SpaceBenchmarks {
         String[] switchImplementations = {"", "elseif", "nested-switch", "hash-switch"};
 //        String[] switchImplementationOrders = {"", "arity-name"};
 
-        Collection<Class<? extends CompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
+        Collection<Class<? extends StrategoCompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr.class,
                 Benchsym.class,
                 Benchtree.class,
@@ -50,7 +50,7 @@ public class SpaceBenchmarks {
                 Quicksort.class,
                 Sieve.class));
 
-        for (Class<? extends CompilationBenchmark> problemClass : problems) {
+        for (Class<? extends StrategoCompilationBenchmark> problemClass : problems) {
             for (int problemSize : Arrays.stream(
                             FieldUtils.getField(problemClass, "problemSize", true)
                                     .getAnnotation(Param.class)
@@ -61,7 +61,7 @@ public class SpaceBenchmarks {
 //                        for (String switchImplementationOrder : switchImplementationOrders){
                             System.out.printf("%s (%d); -O %d; switch: %s%n", problemClass.getSimpleName(), problemSize, optimisationLevel, switchImplementation);
 
-                            CompilationBenchmark benchmark = problemClass.newInstance();
+                            StrategoCompilationBenchmark benchmark = problemClass.newInstance();
                             try {
                                 benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
                                 benchmark.setOptimisationLevel(optimisationLevel);
@@ -97,11 +97,10 @@ public class SpaceBenchmarks {
                                     fileWriter.newLine();
                                     fileWriter.flush();
                                 }
-                            } catch (MetaborgException | SkipException | IOException | InvalidConfigurationException e) {
+                            } catch (IOException | MetaborgException e) {
                                 e.printStackTrace();
                             } finally {
-                                if (benchmark != null)
-                                    benchmark.teardown();
+                                benchmark.teardown();
                             }
 
                         }

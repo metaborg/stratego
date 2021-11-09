@@ -29,26 +29,33 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package benchmark.stratego2.template.benchmark.compilation;
+package benchmark.stratego2.compilation.java;
 
 import benchmark.exception.SkipException;
+import benchmark.stratego2.StrategoBenchmark;
 import org.metaborg.core.MetaborgException;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-public abstract class JavaCompilationBenchmark extends CompilationBenchmark {
+@Warmup(iterations = 5)
+@Measurement(iterations = 5)
+@Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
+public abstract class JavaCompilationBenchmark extends StrategoBenchmark {
 
     @Setup(Level.Iteration)
     public final void compileStratego() throws MetaborgException {
         getProgram().compileStratego();
     }
 
+    /**
+     * @throws IOException
+     * @throws SkipException
+     */
     @Benchmark
-    public final File compileJava() throws IOException, SkipException {
+    public final File compileJava() throws IOException {
         return getProgram().compileJava();
     }
 }

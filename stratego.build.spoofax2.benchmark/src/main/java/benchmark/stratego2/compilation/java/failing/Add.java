@@ -1,7 +1,7 @@
 package benchmark.stratego2.compilation.java.failing;
 
 import benchmark.stratego2.problem.AddProblem;
-import benchmark.stratego2.template.benchmark.compilation.JavaCompilationBenchmark;
+import benchmark.stratego2.compilation.java.JavaCompilationBenchmark;
 import org.openjdk.jmh.annotations.Param;
 
 public class Add extends JavaCompilationBenchmark implements AddProblem {
