@@ -93,7 +93,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
                 throw new InvalidConfigurationException("Switch implementation set, but not on -O 4");
         }
 
-        sourcePath = Paths.get("src", "main", "resources", sourceFileName());
+        sourcePath = Paths.get("src", "main", "resources", languageSubFolder(), sourceFileName());
 
         args.add("-O", optimisationLevel);
         args.add("-sc", sharedConstructors);
@@ -136,5 +136,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     protected final String sourceFileName() {
         return String.format(problemFileNamePattern(), problemSize);
     }
+
+    protected abstract String languageSubFolder();
 
 }

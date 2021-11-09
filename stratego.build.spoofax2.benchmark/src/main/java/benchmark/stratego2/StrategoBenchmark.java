@@ -9,6 +9,8 @@ import java.io.IOException;
 
 public abstract class StrategoBenchmark extends OptimisationBenchmark<Stratego2Program> {
 
+    private static final String LANGUAGE_SUBFOLDER = "stratego2";
+
     @Param({"", "elseif", "nested-switch", "hash-switch"})
     public String switchImplementation = "";
 
@@ -24,4 +26,8 @@ public abstract class StrategoBenchmark extends OptimisationBenchmark<Stratego2P
         program = new Stratego2Program(sourcePath, args, metaborgVersion);
     }
 
+    @Override
+    protected String languageSubFolder() {
+        return LANGUAGE_SUBFOLDER;
+    }
 }
