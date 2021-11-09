@@ -1,0 +1,44 @@
+---
+id: org.example:stratego.statixintegrationtest:0.1.0-SNAPSHOT
+name: strategostatix-integrationtest
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
+  - org.metaborg:statix.lang:${metaborgVersion}
+  - org.metaborg:sdf3.ext.statix:${metaborgVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
+  source:
+  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
+  - org.metaborg:statix.runtime:${metaborgVersion}
+  - org.metaborg:strategolib:${metaborgVersion}
+pardonedLanguages:
+- EditorService
+- Stratego-Sugar
+- SDF
+language:
+  sdf:
+    enabled: true
+    pretty-print: strategostatix-integrationtest
+    sdf2table: java
+    placeholder:
+      prefix: "$"
+  stratego:
+    enabled: true
+    format: jar
+    args:
+    - -la
+    - stratego-sglr
+    - -la
+    - stratego-gpp
+    - -la
+    - stratego-xtc
+    - -la
+    - stratego-aterm
+    - -la
+    - stratego-sdf
+    - -la
+    - strc
+exports:
+- language: ATerm
+  directory: src-gen/statix
