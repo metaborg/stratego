@@ -805,7 +805,7 @@ strategies
     where(
       <table-get>(dis, key) => [_|xs]
       < <table-put>(dis, key, xs)
-      + <table-remove>(dis, key)
+      + <table-remove>(dis, key); is(?)
     )
 
   table-pop-get :: ? * ? -> ?
@@ -824,14 +824,14 @@ strategies
          ; <table-put>(dis, key, [value|values])
          )
 
-  table-union :: ? * ? * ? -> ? * ? * ?
+  table-union :: ? * ? * List(?) -> ? * ? * ?
   table-union = ?(table, key, val);
     where(<table-put> (table, key, <union> (val, <table-get <+ ![]> (table, key))))
 
-  table-diff :: ? * ? * ? -> ? * ? * ?
+  table-diff :: ? * ? * List(?) -> ? * ? * ?
   table-diff = ?(table, key, val);
     where(<table-put> (table, key, <diff> (<table-get <+ ![]> (table, key), val)))
 
-  table-append :: ? * ? * ? -> ? * ? * ?
+  table-append :: ? * ? * List(?) -> ? * ? * ?
   table-append = ?(table, key, val);
     where(<table-put> (table, key, <union> (<table-get <+ ![]> (table, key), val)))
