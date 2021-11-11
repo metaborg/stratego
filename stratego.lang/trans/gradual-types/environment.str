@@ -64,7 +64,7 @@ strat-lookup(|name, snum, tnum, type) =
   ; imrel-get(|(name, snum))
   ; imset-to-list
   ; not(?[])
-  ; if DynT() := type <+ IllFormedTermT(_, _) := type <+ ErrT() := type
+  ; if DynT() := type <+ IllFormedTermT(_, _) := type <+ EmptyT() := type
     then
       \[ConstrType(args, sort)] -> FunTType(<map(!FunTType(DynT(<id>), DynT(<id>)))> args, [], DynT(sort), DynT(sort))\
       <+ !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
@@ -106,7 +106,7 @@ type-var-lookup(|name, env) = <immap-get(|name)> env; try(recurse-type-var-looku
 type-var-put(|name, type) = type-var-env(immap-put(|name, type))
 type-var-clear(|names) = type-var-env(\env -> <foldl(\(name, e) -> <immap-remove(|name)> e\)> (names, env)\)
 
-type-var-elim(|subj, names) = type-var-elim(\tv -> <report-Err> (subj, UnboundTypeVar(tv))\|names)
+type-var-elim(|subj, names) = type-var-elim(id|names)
 type-var-elim(lookupfail|name) = where(<is-string> name); type-var-elim(lookupfail, ?name <+ where(!<id>{};?name))
 type-var-elim(lookupfail|names) = where(<is-list> names); type-var-elim(lookupfail, \name -> <getfirst(?name <+ where(!<id>{};?name))> names\)
 
@@ -116,7 +116,7 @@ type-var-elim(lookupfail, match) =
       {name,type: (SortVar(name) -> type
           where
             <match> name
-          ; type := <type-var-lookup(|name, env) <+ <lookupfail> name;!ErrT()>)}
+          ; type := <type-var-lookup(|name, env) <+ <lookupfail> name;!EmptyT()>)}
     , match
     )
 
