@@ -25,6 +25,7 @@ imports
   strj/s2j-options
   strj/lib/dr-scoping
   signatures/gradual-types/signatures-sig
+  signatures/gradual-types/internal-sig
   signatures/gradual-types/strategies-sig
 
 signature
@@ -1112,6 +1113,9 @@ strategies
 
   translate-Type:
     DynT(_) -> |[ DynT.INSTANCE ]|
+
+  translate-Type:
+    EmptyT() -> |[ BottomT.INSTANCE ]|
 
   translate-SCoercion:
     SId() -> |[ FunTCoercion.ID ]|

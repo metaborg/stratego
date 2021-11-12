@@ -181,7 +181,7 @@ strategies
   /**
    * @inc tuple-zip-test
    */
-  tuple-zip(? * ? -> c) :: ? * ? -> List(c)
+  tuple-zip(? -> c) :: ? -> List(c)
   tuple-zip(s) =
     rec x(![<tmap(Hd); s> | <tmap(Tl); x>]
           <+ tmap([]); ![])

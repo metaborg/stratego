@@ -37,7 +37,7 @@ strategies
    * @type  k * List(k * v) -> v
    */
   lookup :: k * List(k * v) -> v
-  lookup = rec x(Look1 <+ Look2 ; x)
+  lookup = Look1 <+ Look2 ; lookup
 
   /**
    * Find first element of a list to which s applies.
@@ -47,7 +47,7 @@ strategies
    * @type     List(a) -> b
    */
   getfirst(a -> b) :: List(a) -> b
-  getfirst(s) = rec x(Hd; s <+ Tl; x)
+  getfirst(s) = Hd; s <+ Tl; getfirst(s)
 
   /**
    * Faster version of lookup.
@@ -68,7 +68,7 @@ strategies
    * @type k * List(k * v) -> v
    */
   lookup(k * k -> ?) :: k * List(k * v) -> v
-  lookup(keyeq) = rec x((Look1'(keyeq) <+ Look2; x))
+  lookup(keyeq) = Look1'(keyeq) <+ Look2; lookup(keyeq)
 
 rules
 

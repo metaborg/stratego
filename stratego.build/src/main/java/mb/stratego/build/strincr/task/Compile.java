@@ -92,8 +92,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                     input.constants, extraArgs, input.checkInput, strategySignature,
                     strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
-            assert output != null;
-            assert !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
+            assert output != null && output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
         }
         final BackInput.Boilerplate boilerplateInput =
@@ -101,16 +100,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 input.constants, extraArgs, input.checkInput, input.library,
                 input.usingLegacyStrategoStdLib, input.libraryName, compileDR);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
-        assert boilerplateOutput != null;
-        assert !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
+        assert boilerplateOutput != null && !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(outputDirWithPackage, input.packageName, input.cacheDir,
                 input.constants, extraArgs, input.checkInput, input.usingLegacyStrategoStdLib, compileDR);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
-        assert congruenceOutput != null;
-        assert !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
+        assert congruenceOutput != null && !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(congruenceOutput.resultFiles);
 
         return new CompileOutput.Success(resultFiles, checkOutput.messages);

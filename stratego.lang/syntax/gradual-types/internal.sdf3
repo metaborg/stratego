@@ -36,10 +36,10 @@ context-free syntax
   Def.DefHasType = [[Id] :: [SFunType]]
 
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
-  Type.ErrT = [err]
+  Type.EmptyT = [empty]
   Anno.LocalDef = [localdef]
   Anno.AmbiguousStrategyResolution = [ambiguous strategy resolves to arities: [Int], [Int]]
-  SType.SErrT = [s-err]
+  SType.SEmptyT = [s-empty]
   Dyn = Type // to allow DynT(<some type>)
 
   ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]
@@ -66,6 +66,7 @@ context-free syntax
   ErrorDesc.ExtendDefinitionWithoutExternal = [Cannot find external strategy to extend.]
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
+  ErrorDesc.CastInserted = [Converting from [Type] to [Type] with a cast.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
   ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
@@ -75,6 +76,7 @@ context-free syntax
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
   ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
+  ErrorDesc.LiteralCastFail = [Cannot compile literal failing cast]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]

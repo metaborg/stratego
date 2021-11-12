@@ -412,9 +412,9 @@ immap-subtract-set(|r) = where(ImmutableSet(other) := r);
  *
  * @type ImmutableMap * ImmutableSet -> ImmutableMap
  */
-immap-subtract-set(|ImmutableSet(k)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract-set :: ImmutableMap(k,v) * ImmutableSet(k) -> ImmutableMap(k,v)
 immap-subtract-set =
-  ?(l, r); <immap-subtract(|r)> l
+  ?(l, r); <immap-subtract-set(|r)> l
 
 /**
  * Union with another immutable map.

@@ -449,7 +449,7 @@ rules
 
   /** @internal */
   UptoStep :: int * List(int) -> int * List(int)
-  UptoStep : (i, xs) -> (<subt> (i, 1), [i| xs])
+  UptoStep : (i, xs) -> (<subti> (i, 1), [i| xs])
 
 strategies
 
@@ -463,7 +463,12 @@ strategies
    */
   upto :: int -> List(int)
   upto =
-    UptoInit; rec x(UptoExit <+ UptoStep; x)
+    UptoInit;
+    let
+      x :: int * List(int) -> List(int)
+      x = UptoExit <+ UptoStep; x
+    in x
+    end
 
 strategies
 
@@ -504,7 +509,7 @@ strategies
   makeConc :: a * b -> List(?)
   makeConc =
     ?(xs, ys)
-    ; if <is-list> xs; <is-list> ys then conct else !"Conc"#([xs, ys]) end
+    ; if <is-list> xs; <is-list> ys then conct else !"Conc"#([xs, ys]) :: List(?) end
 
 strategies
 
@@ -634,7 +639,7 @@ strategies
    */
   foldr1(a * a -> a) :: List(a) -> a
   foldr1(s) =
-    rec x((FoldR1 <+ FoldR; (id, x)); s)
+    (FoldR1 <+ FoldR; (id, foldr1(s))); s
 
   /**
    * Right folds a list. That is, the strategy s2 is applied as a
@@ -689,7 +694,7 @@ strategies
    */
   foldl(a * b -> b) :: List(a) * b -> b
   foldl(s) =
-    rec x( \ ([], y) -> y \ + FoldL(s); x)
+    \ ([], y) -> y \ + FoldL(s); foldl(s)
 
   /** @internal */
   mapfoldr1(List(a) -> b, a -> b, b * List(b) -> b) :: List(a) -> b
@@ -718,7 +723,7 @@ strategies
    */
   last :: List(a) -> a
   last =
-    rec x(Last <+ Tl; x)
+    Last <+ Tl; last
 
 
   /**
@@ -783,7 +788,7 @@ strategies
       Copy2: (0,t,ts) -> ts
 
       Copy3 :: int * a * List(b) -> int * a * List(b)
-      Copy3: (n,t,ts) -> (<subt>(n,1), t, [<s> t|ts]) where <geq>(n,1)
+      Copy3: (n,t,ts) -> (<subti>(n,1), t, [<s> t|ts]) where <geq>(n,1)
     in
       for(Copy1, Copy2, Copy3)
     end
@@ -828,7 +833,7 @@ strategies
    */
   number(a * int -> b) :: List(a) -> List(b)
   number(s) =
-    !(<id>, 0); thread-map(!(<s>,<Snd;inc>)); ?(<id>,_)
+    !(<id>, 0); thread-map(!(<s>,<Snd;int-inc>)); ?(<id>,_)
 
   /**
    * Take elements from the start of a list while s succeeds.
@@ -889,7 +894,7 @@ strategies
     if <eq>(n,0) then
       ![]
     else
-      ![<Hd> | <Tl; take(|<subt>(n,1))>]
+      ![<Hd> | <Tl; take(|<subti>(n,1))>]
     end
 
   /**
@@ -908,7 +913,7 @@ strategies
     if <eq>(n,0) then
       ![]
     else
-      ![<Hd; s> | <Tl; takemap(s|<subt>(n,1))>]
+      ![<Hd; s> | <Tl; takemap(s|<subti>(n,1))>]
     end
 
   /**
@@ -951,7 +956,7 @@ strategies
     if <eq>(n,0) then
       id
     else
-      Tl; drop(|<subt>(n,1))
+      Tl; drop(|<subti>(n,1))
     end
 
   /**
@@ -972,7 +977,7 @@ strategies
       !([], <id>)
     else
       where(Hd; s => x)
-      ; where(Tl; splitmap(s|<subt>(n,1)) => (xs, ys))
+      ; where(Tl; splitmap(s|<subti>(n,1)) => (xs, ys))
       ; !([x | xs], ys)
     end
 
@@ -1097,7 +1102,6 @@ strategies
   flatten-list :: List(?) -> List(?)
   flatten-list =
     foldr(![], (is-list, id) < conc + MkCons, is-list < flatten-list + id)
-
 
   /**
    * Eliminates all elements at the end of the two lists that are equal.

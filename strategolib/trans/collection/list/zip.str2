@@ -163,12 +163,15 @@ strategies
   rzip(s) =
     genzip(Zip1b', RZip2, Zip3, s)
 
+  zipFetch(a * b -> ?) :: List(a) * List(b) -> ? * ?
   zipFetch(s) =
-    rec x(Zip2; ((s, id) <+ (id, x)))
+    Zip2; ((s, id) <+ (id, zipFetch(s)))
+  lzipFetch(a * b -> ?) :: List(a) * b -> ? * ?
   lzipFetch(s) =
-    rec x(LZip2; ((s, id) <+ (id, x)))
+    LZip2; ((s, id) <+ (id, lzipFetch(s)))
+  rzipFetch(a * b -> ?) :: a * List(b) -> ? * ?
   rzipFetch(s) =
-    rec x(RZip2; ((s, id) <+ (id, x)))
+    RZip2; ((s, id) <+ (id, rzipFetch(s)))
 
   /**
    * Combines two lists, which may have different lengths, into one by pairing
@@ -182,20 +185,27 @@ strategies
    * @param padding            _ -> d
    * @type     List(a) * List(b) -> List(c)
    */
+//  zipPad(a * b -> c, ? -> c) :: List(a) * List(b) -> List(c)
   zipPad(s, padding) =
-    rec x(Zip1 + Zip2; (s, x); Zip3 +
-          ([], [id|id]); (![<padding>()|[]], id); x +
-          ([id|id], []); (id, ![<padding>()|[]]); x)
+    Zip1 + Zip2; (s, zipPad(s, padding)); Zip3 +
+          ([], [id|id]); (![<padding>()|[]], id); zipPad(s, padding) +
+          ([id|id], []); (id, ![<padding>()|[]]); zipPad(s, padding)
 
+  zip-tail :: List(a) * List(b) -> List(b)
   zip-tail =
-    rec x(Zip1c + (Tl, Tl); x)
+    Zip1c + (Tl, Tl); zip-tail
+  zipl-tail-match(a * b -> ?) :: List(a) * List(b) -> List(b)
   zipl-tail-match(s) =
-    rec x(Zip1c + Zip2; (s, id); Snd; x)
+    Zip1c + Zip2; (s, id); Snd; zipl-tail-match(s)
+  zipr-tail-match(a * b -> ?) :: List(a) * List(b) -> List(a)
   zipr-tail-match(s) =
-    rec x(Zip1c' + Zip2; (s, id); Snd; x)
+    Zip1c' + Zip2; (s, id); Snd; zipr-tail-match(s)
 
+//  zip-skip(? -> ?, a * b -> a) :: List(a) * List(b) -> List(a)
   zip-skip(pred, s) =
-    rec x(Zip1 + (Skip(pred); (id, x) <+ Zip2; (s, x)); Zip3)
+    Zip1 + (Skip(pred); (id, zip-skip(pred, s)) <+ Zip2; (s, zip-skip(pred, s))); Zip3
+
+//Skip(a -> b) :: List(c) * d -> c * (List(c) * d)
 
 rules
 
