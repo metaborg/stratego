@@ -94,7 +94,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                     input.constants, extraArgs, input.checkInput, strategySignature,
                     strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
-            assert output != null && output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
+            assert output != null && !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
         }
         final BackInput.Boilerplate boilerplateInput =
