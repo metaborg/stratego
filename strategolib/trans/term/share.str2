@@ -11,6 +11,7 @@ imports
   collection/list/set
   collection/list/common
   collection/list/cons
+  collection/tuple/cons
   collection/tuple/common
   strategy/iteration
   strategy/general/unification
@@ -35,6 +36,7 @@ strategies
 strategies
 
   edge(mkvar)      = split(address; mkvar, \a :: ? -> <all(address; mkvar)> a\)
+  list-edge(?) :: List(?) -> ? * ?
   list-edge(mkvar) = split(address; mkvar, map(address; mkvar))
 
  /**

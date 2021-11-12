@@ -11,6 +11,9 @@ imports
   strategy/traversal/simple
   strategy/conditional
   collection/list/common
+  collection/list/lookup
+  collection/list/cons
+  collection/tuple/cons
 
 strategies
 
@@ -53,11 +56,13 @@ strategies
 
 strategies
 
+  is-proper-subterm-set :: List(a) * List(a) -> List(a) * List(a)
   is-proper-subterm-set =
-    ?([y|_], xs); where(<fetch(not(?y); oncetd(?y))> xs)
+    ?([y|_], xs); where(<getfirst(not(?y); oncetd(equal(|y :: ?)))> xs)
 
+  is-proper-superterm-set :: List(a) * List(a) -> List(a) * List(a)
   is-proper-superterm-set =
-    ?([x|_], ys); where(<fetch(<is-proper-superterm>(x,<id>))> ys)
+    ?([x|_], ys); where(<getfirst(<is-proper-superterm>(x,<id>))> ys)
 
 strategies
 
