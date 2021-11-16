@@ -27,6 +27,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set;
+import mb.log.api.Logger;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -114,7 +115,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
-        final InsertCastsOutput output = insertCasts(insertCastsInput, projectPath);
+        final InsertCastsOutput output = insertCasts(insertCastsInput, projectPath, context.logger());
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -154,11 +155,14 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final IStrategoTerm overlapMessages =
             strategoLanguage.overlapCheck(tf.makeList(containsDynRuleDefs), projectPath);
         for(IStrategoTerm messageTerm : TermUtils.toList(overlapMessages)) {
+            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(messageTerm.getSubterm(0))) == null) {
+                context.logger().warn("MessageTerm in checkDynamicRuleOverlap missing origin: " + messageTerm);
+            }
             messages.add(Message.from(messageTerm, MessageSeverity.ERROR, lastModified));
         }
     }
 
-    InsertCastsOutput insertCasts(InsertCastsInput input, String projectPath) throws ExecException {
+    InsertCastsOutput insertCasts(InsertCastsInput input, String projectPath, Logger logger) throws ExecException {
         final String moduleName = input.moduleIdentifier.moduleString();
 
         final IStrategoTerm result =
@@ -173,12 +177,21 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         ArrayList<Message> messages =
             new ArrayList<>(errors.size() + warnings.size() + notes.size());
         for(IStrategoTerm errorTerm : errors) {
+            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(errorTerm.getSubterm(0))) == null) {
+                logger.warn("MessageTerm in insertCasts missing origin: " + errorTerm);
+            }
             messages.add(Message.from(errorTerm, MessageSeverity.ERROR, lastModified));
         }
         for(IStrategoTerm warningTerm : warnings) {
+            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(warningTerm.getSubterm(0))) == null) {
+                logger.warn("MessageTerm in insertCasts missing origin: " + warningTerm);
+            }
             messages.add(Message.from(warningTerm, MessageSeverity.WARNING, lastModified));
         }
         for(IStrategoTerm noteTerm : notes) {
+            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(noteTerm.getSubterm(0))) == null) {
+                logger.warn("MessageTerm in insertCasts missing origin: " + noteTerm);
+            }
             messages.add(Message.from(noteTerm, MessageSeverity.NOTE, lastModified));
         }
 
