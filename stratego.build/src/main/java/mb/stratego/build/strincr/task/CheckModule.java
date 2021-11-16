@@ -420,19 +420,19 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.constrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
         for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.externalConstrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
         for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : moduleData.overlayData
             .entrySet()) {
             for(OverlayData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
         sorts.__insertAll(moduleData.sortData);
@@ -440,13 +440,13 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.injections
             .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
-                injections.__put(e.getKey(), to);
+                injections.__insert(e.getKey(), to);
             }
         }
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.externalInjections
             .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
-                injections.__put(e.getKey(), to);
+                injections.__insert(e.getKey(), to);
             }
         }
     }
