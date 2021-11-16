@@ -87,6 +87,7 @@ strategies // core/signatures & sugar/signatures
     with
       <sort-check-Sort(|e)> s
     ; <map(sort-check-Sort(|e))> s*
+    // TODO check that the Tuple sort with right arity is available
 
   sort-check-Sort(|e): SortList(s*) -> <id>
     with
@@ -100,6 +101,7 @@ strategies // core/signatures & sugar/signatures
   sort-check-Sort(|e): SortTuple(s*) -> <id>
     with
       <map(sort-check-Sort(|e))> s*
+    // TODO check that the Tuple sort with right arity is available
 
 strategies // gradual-types/signatures
 
