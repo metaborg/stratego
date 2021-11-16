@@ -16,7 +16,7 @@ public class FailedToGetModuleAst extends Message {
 
     @Override public String getMessage() {
         return "Cannot get module AST for module " + moduleIdentifier.moduleString()
-            + "with exception:\n" + exception.toString();
+            + " with exception:\n" + exception.toString();
     }
 
     @Override public boolean equals(Object o) {
