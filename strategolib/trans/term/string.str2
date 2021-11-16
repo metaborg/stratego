@@ -200,6 +200,7 @@ strategies
    *
    * @type String -> List(Char)
    */
+  explode-string :: string -> List(int)
   explode-string = ?x; prim("SSL_explode_string", x)
 
   /**

@@ -4,6 +4,7 @@
 module term/integer
 imports
   collection/list/common
+  collection/list/cons
   collection/tuple/common
   collection/tuple/cons
   lang/dynamic-rules
@@ -174,6 +175,10 @@ strategies
   lt  = not(geq)
   leq = not(gt)
 
+  int-geq = ?(x,x) <+ gti
+  int-lt = not(int-geq)
+  int-leq = not(gti)
+
 strategies
 
   /**
@@ -224,6 +229,11 @@ strategies
   max = gt < Fst + Snd
   min = gt < Snd + Fst
 
+  int-max :: int * int -> int
+  int-max = gti < Fst + Snd
+  int-min :: int * int -> int
+  int-min = gti < Snd + Fst
+
   /**
    * @type  Int -> Int
    */
@@ -268,15 +278,23 @@ strategies
 
 strategies
 
+  apply-int-to-str-tuple(int * int -> int) :: string * string -> string
   apply-int-to-str-tuple(s) =
     (string-to-int, string-to-int) ; s ; int-to-string
 
+  addS :: string * string -> string
   addS  = apply-int-to-str-tuple(add)
+  subtS :: string * string -> string
   subtS = apply-int-to-str-tuple(subt)
+  mulS :: string * string -> string
   mulS  = apply-int-to-str-tuple(mul)
+  divS :: string * string -> string
   divS  = apply-int-to-str-tuple(div)
+  modS :: string * string -> string
   modS  = apply-int-to-str-tuple(mod)
+  maxS :: string * string -> string
   maxS  = apply-int-to-str-tuple(max)
+  minS :: string * string -> string
   minS  = apply-int-to-str-tuple(min)
 
   gtS   = where((string-to-int, string-to-int); gt)
@@ -318,9 +336,10 @@ strategies
 
 strategies
 
+  log2 :: int -> int
   log2 =
     !(<id>, 0);
-    repeat((!(<divi>(<id>, 2), <mod; ?0>(<id>, 2)); Fst, inc));
+    repeat((!(<divi>(<id>, 2), <modi; ?0>(<id>, 2)); Fst, int-inc));
     ?(1, <id>)
 
 strategies
@@ -389,45 +408,54 @@ strategies
   * @type String -> Int
   * @inc hex-string-test
   */
+  hex-string-to-int :: string -> int
   hex-string-to-int = <generic-string-to-int> (<id>, 16)
 
  /**
   * @type String -> Int
   * @inc dec-string-test
   */
+  dec-string-to-int :: string -> int
   dec-string-to-int = <generic-string-to-int> (<id>, 10)
 
+  oct-string-to-int :: string -> int
   oct-string-to-int = <generic-string-to-int> (<id>, 8)
 
  /**
   * @type String -> Int
   * @inc bin-string-test
   */
+  bin-string-to-int :: string -> int
   bin-string-to-int = <generic-string-to-int> (<id>, 2)
 
   /**
    * @type List(Char) -> Int
    */
+  hex-chars-to-int :: List(int) -> int
   hex-chars-to-int = <generic-chars-to-int> (<id>, 16)
 
   /**
    * @type List(Char) -> Int
    */
+  dec-chars-to-int :: List(int) -> int
   dec-chars-to-int = <generic-chars-to-int> (<id>, 10)
 
   /**
    * @type List(Char) -> Int
    */
+  oct-chars-to-int :: List(int) -> int
   oct-chars-to-int = <generic-chars-to-int> (<id>, 8)
 
   /**
    * @type List(Char) -> Int
    */
+  bin-chars-to-int :: List(int) -> int
   bin-chars-to-int = <generic-chars-to-int> (<id>, 2)
 
   /**
    * @type String * Int -> Int
    */
+  generic-string-to-int :: string * int -> int
   generic-string-to-int =
       (explode-string, id)
     ; generic-chars-to-int
@@ -435,31 +463,35 @@ strategies
   /**
    * @type List(Char) * Int -> Int
    */
+  generic-chars-to-int :: List(int) * int -> int
   generic-chars-to-int =
     neg-chars-to-int <+ pos-chars-to-int
 
   // :: List(Char) * Int -> Int
+  neg-chars-to-int :: List(int) * int -> int
   neg-chars-to-int:
-    (['-' | chars], radix) -> <mul> (-1, <pos-chars-to-int> (chars, radix))
+    (['-' | chars], radix) -> <muli> (-1, <pos-chars-to-int> (chars, radix))
       where <gt> (<length> chars, 0)
 
   // :: List(Char) * Int -> Int
+  pos-chars-to-int :: List(int) * int -> int
   pos-chars-to-int =
       ?([char | chars], r)
-    ; <foldl(<add> (<char-to-digit> (<Fst>, r), <mul> (<Snd>, r)))>
+    ; <foldl(<addi> (<char-to-digit> (<Fst>, r), <muli> (<Snd>, r)))>
         (chars, <char-to-digit> (char, r))
 
   // :: Char -> Int
+  char-to-digit :: int * int -> int
   char-to-digit:
     (x, radix) -> result
       where <is-num> x
-          ; <subt> (x, '0') => result
-          ; <lt> (result, radix)
+          ; <subti> (x, '0') => result
+          ; <int-lt> (result, radix)
 
   char-to-digit:
-    (x, 16) -> <add> (10, <subt> (x, 'a'))
+    (x, 16) -> <addi> (10, <subti> (x, 'a'))
       where <leq-leq> ('a', x, 'f')
 
   char-to-digit:
-    (x, 16) -> <add> (10, <subt> (x, 'A'))
+    (x, 16) -> <addi> (10, <subti> (x, 'A'))
       where <leq-leq> ('A', x, 'F')

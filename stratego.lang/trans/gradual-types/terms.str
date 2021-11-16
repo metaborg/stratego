@@ -106,11 +106,14 @@ insertCasts-StMatchTerm-(|e1, st1):
     then
       (t4, t3*, st3) := (t1, t1*, st1)
     ; newvars := []
+    ; unusedvars := []
     else
       t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
     ; if [(ConstrType(t1*, t2), st2)] := t*
       then
-        (t2*, t3) := <fresh-type-vars(?newvars)> (t1*, t2)
+        (t2*, t3) := <fresh-type-vars(?allvars)> (t1*, t2)
+      ; newvars := <collect(?SortVar(<id>))> t2*
+      ; unusedvars := <diff> (allvars, newvars)
       ; (c, st3) := <computeCoercion(|cnstr, st2)> (t3, t1)
       ; if not(Fail() := c)
         then
@@ -118,32 +121,33 @@ insertCasts-StMatchTerm-(|e1, st1):
           then t3* := <map(!DynT(<id>))> t2*
              ; t4 := DynT(t3) // workaround for backtracking issue in strj
           else
-            if ErrT() := t1
-            then t3* := <map(!ErrT())> t2*
-               ; t4 := ErrT() // workaround for backtracking issue in strj
+            if EmptyT() := t1
+            then t3* := <map(!EmptyT())> t2*
+               ; t4 := EmptyT() // workaround for backtracking issue in strj
             else t3* := t2*
                ; t4 := t3 // workaround for backtracking issue in strj
             end
           end
-        else t3* := <map(!ErrT())> trm1*
-           ; t4 := ErrT() // workaround for backtracking issue in strj
+        else t3* := <map(!EmptyT())> trm1*
+           ; t4 := EmptyT() // workaround for backtracking issue in strj
         end
       else
-        if [] := t*
+        newvars := []
+      ; unusedvars := []
+      ; if [] := t*
         then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-           ; t4 := ErrT() // workaround for backtracking issue in strj
-           ; t3* := <map(!ErrT())> trm1*
+           ; t4 := EmptyT() // workaround for backtracking issue in strj
+           ; t3* := <map(!EmptyT())> trm1*
         else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
            // idea: use LUB of arguments?
            ; t4 := DynT() // workaround for backtracking issue in strj
            ; t3* := <map(!DynT())> trm1*
         end
       ; st3 := st1
-      ; newvars := []
       end
     end
   ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t3*), st3)
-  ; st5 := <current-type(|t4);type-var-elim(|trm0, newvars)> st4
+  ; st5 := <current-type(|t4);type-var-elim(|trm0,newvars);type-var-elim(id|unusedvars)> st4
 
 insertCasts-StMatchTerm(|e1, st1) =
     otf(\OpQ(c, c*) -> Op(<escape> c, c*)\)
@@ -186,7 +190,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       else
         <report-Err> (trm1, UnresolvedLocal())
       ; st2 := st1
-      ; t2 := ErrT()
+      ; t2 := EmptyT()
 //           // We put the expected type here if the var is not found as this call may be in a
 //           //  top-level defined rule with a type. In that case we infer the types of local
 //           //  variables from the tld type before checking the whereclause(s).
@@ -196,7 +200,7 @@ insertCasts-StBuildTerm-(|e1, st1):
 //      ; t2 := t1
     end
   ; (trm2, st3) := <insertCastApp(|t2, t1)> (trm1, st2)
-  ; if DynT() := t2; not(DynT() := t1) <+ ErrT() := t2; not(ErrT() := t1)
+  ; if DynT() := t2; not(DynT() := t1) <+ EmptyT() := t2; not(EmptyT() := t1)
       then
         // Strengthen the type of a variable that was previously dynamic
         st4 := <term-put(|v{}, t1)> st3
@@ -205,7 +209,7 @@ insertCasts-StBuildTerm-(|e1, st1):
     end
 
 insertCasts-StBuildTerm(|e1, st1):
-  trm@Wld() -> (trm, <current-type(|ErrT())> st1)
+  trm@Wld() -> (trm, <current-type(|EmptyT())> st1)
   with
     <report-Err> (trm, WldInBuildTerm())
 
@@ -221,7 +225,7 @@ insertCasts-StBuildTerm-(|e1, st1):
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
-  trm1@As(Var(v), trm2) -> (As(Var(v), trm3), <current-type(|ErrT())> st2)
+  trm1@As(Var(v), trm2) -> (As(Var(v), trm3), <current-type(|EmptyT())> st2)
   with
     (trm3, st2) := <insertCasts-StBuildTerm(|e1, st1)> trm2
   ; <report-Err> (trm1, AsInBuildTerm())
@@ -255,7 +259,8 @@ insertCasts-StBuildTerm-(|e1, st1):
     t1 := <current-type> st1
   ; if IllFormedTermT(x2, t1*) := t1
     then
-      newvars := []
+      constrvars := []
+    ; unusedvars := []
     ; (t3*, t3, st4) := (<map(!DynT())> trm1*, DynT(), st1) // TODO: handle illformed term
     else
     // In a top-level term e.g. in Build(Op(..., ...)) the current term type in DynT().
@@ -268,14 +273,17 @@ insertCasts-StBuildTerm-(|e1, st1):
         t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
       ; if [(ConstrType(t6*, t6), st3)] := t*
         then
-          (t3*, t3) := <fresh-type-vars(?newvars)> (t6*, t6)
+          (t3*, t3) := <fresh-type-vars(?allvars)> (t6*, t6)
+        ; constrvars := <collect(?SortVar(<id>))> t3*
+        ; unusedvars := <diff> (allvars, constrvars)
         ; (_, st4) := <computeCoercion(|trm1, st3)> (t3, t1)
         else
-          newvars := []
+          constrvars := []
+        ; unusedvars := []
         ; if [] := t*
             then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
-               ; t3 := ErrT() // workaround for backtracking issue in strj
-               ; t3* := <map(!ErrT())> trm1*
+               ; t3 := EmptyT() // workaround for backtracking issue in strj
+               ; t3* := <map(!EmptyT())> trm1*
             else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
                ; t3 := DynT() // workaround for backtracking issue in strj
                ; t3* := <map(!DynT())> trm1*
@@ -285,7 +293,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   //    end
     end
   ; b* := <zip> (trm1*, t3*)
-  ; if DynT() := t1 <+ ErrT() := t1
+  ; if DynT() := t1 <+ EmptyT() := t1
     then
       let
         set-type(|t) = current-type(|DynT(t))
@@ -311,7 +319,7 @@ insertCasts-StBuildTerm-(|e1, st1):
       ; trm2 := Op(cnstr, trm2*)
       end
     end
-  ; st7 := <type-var-elim(|trm1, newvars)> st6
+  ; st7 := <type-var-elim(|trm1, constrvars);type-var-elim(id|unusedvars);itv> st6
 
 StBuildTerm-Op-threader(set-type|e1):
   ((trm1, t), st1) -> (trm2, st2)
@@ -428,7 +436,7 @@ insertCasts-StMatchTerm-(|e1, st1):
         end
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
-  ; (t2, st4) := <foldr1-thread(lub) <+ (!SortVar("def"{<newname> "listtv"}), id)> (t2*, st3)
+  ; (t2, st4) := <foldr1-thread(lub) <+ (<otf(!EmptyT())> t1, id)> (t2*, st3)
   ; st5 := <current-type(|ListT(t2))> st4
 
 insertCasts-StMatchTerm-(|e1, st1):
@@ -452,7 +460,7 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
   ; t2 := <current-type> st4
   ; (_, st5) := <computeCoercion(|trm, st4)> (t2, ListT())
-  ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <pushDyn;?ListT(<id>) <+ !SortVar("def"{<newname> "listtv"})> t2], st5)
+  ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <otf(!EmptyT())> t2], st5)
   ; st7 := <current-type(|ListT(t3))> st6
 
 insertCasts-StMatchTerm(|e1, st1):
@@ -489,21 +497,23 @@ insertCasts-StBuildTerm-(|e1, st1):
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
-  App(s1, trm1) -> (App(s2, trm2), st5)
+  App(s1, trm1) -> (App(s3, trm2), st6)
   with
     !st1
   ; stBuildTerm-as-st(\st2 -> st4 where
       (trm2, st3) := <insertCasts-BuildTerm(|e1, st2)> trm1
     ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1\)
   ; ?st5
+  ; (s3, st6) := <insertCastAfter(|<current-type> st4, <current-type> st1)> (s2, st5)
 
 insertCasts-StBuildTerm-(|e1, st1):
-  RootApp(s1) -> (RootApp(s2), st4)
+  RootApp(s1) -> (RootApp(s3), st5)
   with
     !st1
   ; stBuildTerm-as-st(\st2 -> st3 where
       (s2, st3) := <insertCasts-Strategy(|e1, st2)> s1\)
   ; ?st4
+  ; (s3, st5) := <insertCastAfter(|<current-type> st4, <current-type> st1)> (s2, st4)
 
 insertCasts-StBuildTerm(|e1, st1):
   trm@Char(_) -> <insertCasts-StBuildTerm-Lit(|st1, IntT())>
@@ -523,7 +533,7 @@ insertCasts-StBuildTerm-(|e1, st1):
   with
     t := <current-type;listType> st1
   ; (trm2*, t*, st2) := <thread-map-Type(insertCasts-StBuildTerm-ListVar(|e1, t))> (trm1*, st1)
-  ; (t1, st3) := <foldr1-thread(lub) <+ (!SortVar("def"{<newname> "listtv"}), id)> (t*, st2)
+  ; (t1, st3) := <foldr1-thread(lub) <+ (!EmptyT(), id)> (t*, st2)
   ; t2 := ListT(t1)
   ; (_, st4) := <computeCoercion(|trm1, st3)> (t2, <current-type> st1)
   ; st5 := <current-type(|t2)> st4
@@ -689,7 +699,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     t2 := <desugar-Type;sort-check-Type(|e1);alltd(\SortVar(name) -> <type-var-lookup(|name)> st1\)> t1
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
-  ; if ErrT() := <current-type> st2
+  ; if EmptyT() := <current-type> st2
     then trm3 := trm2; st3 := st2
     else
       (c, st3) := <computeCoercion(|ta, st2)> (t3, t2)

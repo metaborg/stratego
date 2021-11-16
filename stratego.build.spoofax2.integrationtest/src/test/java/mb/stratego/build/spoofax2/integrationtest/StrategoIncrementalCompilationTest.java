@@ -27,8 +27,6 @@ import mb.pie.api.PieBuilder;
 import mb.pie.api.Task;
 import mb.pie.api.TopDownSession;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.store.InMemoryStore;
-import mb.pie.runtime.store.SerializingStore;
 import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
@@ -62,7 +60,7 @@ public class StrategoIncrementalCompilationTest {
 
         final Path helloFile = temporaryDirectoryPath.resolve("hello.str");
         final String helloFileContents =
-            "module hello " + "imports " + "  libstratego-lib " + "  world " + "rules "
+            "module hello " + "imports " + "  world " + "rules "
                 + "  hello = !$[Hello, [<world>]]; debug";
 
         Files.write(helloFile, helloFileContents.getBytes(StandardCharsets.UTF_8),
@@ -70,7 +68,7 @@ public class StrategoIncrementalCompilationTest {
 
         final Path worldFile = temporaryDirectoryPath.resolve("world.str");
         final String worldFileContents =
-            "module world " + "imports " + "  libstratego-lib " + "rules "
+            "module world " + "imports " + "rules "
                 + "  world = !\"world!\"";
 
         Files.write(worldFile, worldFileContents.getBytes(StandardCharsets.UTF_8),

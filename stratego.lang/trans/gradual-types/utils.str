@@ -144,8 +144,10 @@ rigidTV: Sort(x, _) -> <get-annotation(?SortVar(_))> x
 
 strategies
 
-computeCoercion(|subj, st1): (from1 ,to1) -> <computeCoercion-(|subj, st2)> (from2, to2)
+computeCoercion(|subj, st1): (from1 ,to1) -> (c, st3)
   with ((from2, to2), st2) :=  <try(CanCoerce)> ((from1, to1), st1)
+  where
+    (c, st3) := <computeCoercion-(|subj, st2)> (from2, to2)
 
 // This is the mapping from the directed consistency rule (t ~> t) to coercions (t ~> t : c)
 // computeCoercion(|?, St) :: Type * Type -> Coercion
@@ -154,6 +156,10 @@ computeCoercion-(|subj, st1): (from@IllFormedTermT(_, _), DynT(to)) -> (<otf(!Id
   //      If used in a typed position it will still raise an error, and the first place an
   //      ill-formed term is constructed does get a warning. 
 computeCoercion-(|subj, st1): (from, DynT(Dyn())) -> (<otf(!Id(){from})> subj, st1)
+
+computeCoercion-(|subj, st1): (DynT(Dyn()), DynT(to@SortVar(_))) -> (<otf(!Id(){t})> subj, st2)
+  where
+    ((_, t), st2) := <CanCoerce> ((DynT(), to), st1)
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), t@DynT(to)) -> (<otf(!Id(){t})> subj, st1)
 
@@ -166,13 +172,13 @@ computeCoercion-(|subj, st1): (from, DynT(to)) -> (<otf(!Id(){t})> subj, st2)
     ; t := from
     ; st2 := st1
 
-computeCoercion-(|subj, st1): (ErrT(), to) -> (<otf(!Id(){to})> subj, st1)
-computeCoercion-(|subj, st1): (from, ErrT()) -> (<otf(!Id(){from})> subj, st1)
+computeCoercion-(|subj, st1): (EmptyT(), to) -> (<otf(!Id(){to})> subj, st1)
+//computeCoercion-(|subj, st1): (from, EmptyT()) -> (<otf(!Id(){from})> subj, st1)
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to2){to2})> subj, st1)
   where
       <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to
-    ; to2 := <alltd(\ErrT() -> DynT()\)> to
+    ; to2 := <alltd(\EmptyT() -> DynT()\)> to
 
 computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2})> subj, st2)
   where <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to1
@@ -180,7 +186,7 @@ computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2}
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
       <report-Warn> (subj, NoInjectionBetween(<itv(|st1)> from, <itv(|st1)> to1))
-    ; to2 := <alltd(\ErrT() -> DynT()\)> to1
+    ; to2 := <alltd(\EmptyT() -> DynT()\)> to1
     ; st2 := st1
 
 computeCoercion-(|subj, st1):
@@ -190,14 +196,15 @@ computeCoercion-(|subj, st1):
     <eq> (<length> c1*, <length> c2*)
   ; zipped := <zip> (c1*, c2*)
   ; not(<map(eq)> zipped)
-  ; (coercions, st2) := <thread-map(\(pair, st) -> <computeCoercion(|subj, st)> pair\)> (zipped, st1)
+  ; (coercions, st2) := <thread-map(\(pair, st) -> <computeCoercion-(|subj, st)> pair\)> (zipped, st1)
   ; to2 := <otf(!Sort(x, <map(?_{<id>})> coercions))> to
-  ; if <fetch(?RuntimeCheck(_))> coercions
-      then coercion := RuntimeCheck(to2){to2}
-      else coercion := Id(){to2}
+  ; switch !coercions
+      case getfirst(?Fail()): coercion := Fail(){to2}
+      case getfirst(?RuntimeCheck(_)): coercion := RuntimeCheck(to2){to2}
+      otherwise: coercion := Id(){to2}
     end
 
-computeCoercion-(|subj, st1): (from, to) -> (<otf(!Fail(){ErrT()})> subj, st1)
+computeCoercion-(|subj, st1): (from, to) -> (<otf(!Fail(){EmptyT()})> subj, st1)
   where
     not(<eq> (from, to))
   ; <report-Err> (subj, CannotCastToRigidTypeVar(from, <sometd(rigidTV)> to))
@@ -206,7 +213,7 @@ computeCoercion-(|subj, st1): (from, to) -> (<otf(!coercion)> subj, st2)
   where if (_, st2) := <CanCoerce> ((from, to), st1)
     then coercion := Id(){from}
     else <report-Err> (subj, NoInjectionBetween(<itv(|st1)> from, <itv(|st1)> to))
-       ; coercion := Fail(){ErrT()}
+       ; coercion := Fail(){EmptyT()}
        ; st2 := st1
   end
 
@@ -220,8 +227,7 @@ computeSCoercion(|subj): ((from1, to1), st1) -> (SFail(), st1)
     <report-Err> (subj, NoInjectionBetween(<itv(|st1)> from1, <itv(|st1)> to1))
 
 // computeSCoercion-(|?) :: (SType, SType) -> SCoercion
-computeSCoercion-(|subj): (from, SErrT()) -> <otf(!SId())> subj
-computeSCoercion-(|subj): (SErrT(), to) -> <otf(!SId())> subj
+computeSCoercion-(|subj): (SEmptyT(), to) -> <otf(!SId())> subj
 computeSCoercion-(|subj): (from, SDyn()) -> <otf(!SId())> subj
 computeSCoercion-(|subj): (from@SDyn(), sft@FunTType(_, _, _)) -> <otf(!SRuntimeCheck(sft))> subj
 
@@ -233,14 +239,23 @@ insertCastAfter(|from, to): (strat, st1) -> (strat', st3)
   ; 'cast := <otf(!Cast(c{}))> strat
   ; strat' := <try(rm-redundant-cast)> <otf(!Seq(strat, 'cast))> strat
   ; st3 := <current-type(|t)> st2
+  ; if RuntimeCheck(_) := c
+      then <report-Note> (strat, <itv(|st3)> CastInserted(from, to))
+    end
 
 // Add a cast before the current strategy (in sequence) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 
-insertCastBefore(|from, to): (strat, st1) -> (strat', st2)
+insertCastBefore(|from, to): (strat, st1) -> <insertCastBefore(|c{t}, from, to)> (strat, st2)
   with
     (c{t}, st2) := <computeCoercion(|strat, st1)> (from, to)
-  ; 'cast := <otf(!Cast(c{}))> strat
+
+insertCastBefore(|c{t}, from, to): (strat, st1) -> (strat', st1)
+  with
+    'cast := <otf(!Cast(c{}))> strat
   ; strat' := <try(rm-redundant-cast)> <otf(!Seq('cast, strat))> strat
+  ; if RuntimeCheck(_) := c
+      then <report-Note> (strat, <itv(|st1)> CastInserted(from, to))
+    end
 
 // Add a cast on the current term (the App or `<cast(to)> term`) if necessary to go from `from` to `to`
 // Doesn't insert Cast(Id()). Adds error message when inserting Cast(Fail()). 
@@ -250,6 +265,9 @@ insertCastApp(|from, to): (term1, st1) -> (term2, st3)
   ; 'cast := <otf(!Cast(c{}))> term1
   ; term2 := <try(rm-redundant-cast)> <otf(!App('cast, term1))> term1
   ; st3 := <current-type(|t)> st2
+  ; if RuntimeCheck(_) := c
+      then <report-Note> (term1, <itv(|st3)> CastInserted(from, to))
+    end
 
 // Used to remove Id() casts
 rm-redundant-cast: Seq(Cast(Id()), strat) -> strat
@@ -355,12 +373,17 @@ thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
     (trm2, st2) := <s> (trm1, st1)
   ; t2* := [<current-type> st2 | t1*]
 
-map-LUB(s): ([], st) -> ([], DynT(), st)
-map-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t, st3)
+map-LUB(s|trm): ([], st) -> ([], st)
+map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, <current-type(|t)> st3)
   where
+    let lub-fail =
+      \((t1, t2), st) -> (DynT(), st)
+        where <report-Warn> (trm, NoLUBBetween(t1, t2))\
+    in
     (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
   ; (trm2*, t*) := <unzip((id, current-type))> b*
-  ; (t, st3) := <foldr1-thread(lub)> (t*, st2)
+  ; (t, st3) := <foldr1-thread(lub <+ lub-fail)> (t*, st2)
+    end
 
 map-st-LUB(s): ([], st) -> ([], [], st)
 map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)

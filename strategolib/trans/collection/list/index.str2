@@ -38,7 +38,7 @@ strategies
    */
   index(|int) :: List(a) -> a
   index(|i) =
-    at-index(?t | <dec> i); !t
+    at-index(?t | <int-dec> i); !t
 
 strategies
 
@@ -49,7 +49,12 @@ strategies
    */
   get-index :: a * List(a) -> int
   get-index =
-    Gind0 ; rec x(Gind1 <+ Gind2 ; x)
+    Gind0 ;
+    let
+      x :: int * a * List(a) -> int
+      x = Gind1 <+ Gind2 ; x
+    in x
+    end
 
 
   /** @internal */
@@ -62,7 +67,7 @@ strategies
 
   /** @internal */
   Gind2 :: int * b * List(c) -> int * b * List(c)
-  Gind2  : (n, y, [x | xs]) -> (<add> (n, 1), y, xs)
+  Gind2  : (n, y, [x | xs]) -> (<addi> (n, 1), y, xs)
 
   get-index0(a -> a) :: List(a) -> int
   get-index0(s) = at-suffix([s | id]; ![]); length
@@ -106,7 +111,7 @@ strategies
         if !j => i then
           [s | id]
         else
-          [id | next(|<inc> j)]
+          [id | next(|<int-inc> j)]
         end
      in next(|0)
     end
@@ -125,7 +130,7 @@ strategies
       if !j => i then
         s
       else
-        [id | next(|<inc> j)]
+        [id | next(|<int-inc> j)]
       end
     in next(|0)
     end
@@ -152,7 +157,7 @@ strategies
 
   /** @internal */
   Ins2(int * a * b * List(c) -> List(c)) :: int * a * b * List(c) -> List(c)
-  Ins2(r): (n, i, x, [y | ys]) -> [y | <r>(<add> (n, 1), i, x, ys)]
+  Ins2(r): (n, i, x, [y | ys]) -> [y | <r>(<addi> (n, 1), i, x, ys)]
 
 
 strategies
@@ -166,7 +171,7 @@ strategies
    */
   nmap((|int) a -> b | int) :: List(a) -> List(b)
   nmap(s : Int * a -> b | i) =
-    [] + [s(|i) | nmap(s | <inc> i)]
+    [] + [s(|i) | nmap(s | <int-inc> i)]
 
   /**
    * Apply strategies that require some knowledge of the index of an element
