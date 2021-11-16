@@ -47,6 +47,10 @@ public class Stratego {
         return Paths.get(System.getProperty("stratego-lang"));
     }
 
+    public static Path getStrategoLibPath() {
+        return Paths.get(System.getProperty("strategolib"));
+    }
+
     static boolean strj(Path input, String baseName, String packageName, Path packageDir) {
         strj.init();
         final IStrategoTerm result;
