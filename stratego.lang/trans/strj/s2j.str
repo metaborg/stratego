@@ -2058,7 +2058,7 @@ strategies
 
   translate-SwitchV-helper(|tp) =
     if tp := ApplT() then // TODO This criterion could be less strict.
-      switch <get-config> "--pmc:switchv" <+ !"elseif"
+      switch <get-config> "--pmc:switchv" <+ !"hash-switch"
         case ?"elseif": AltVs-as-ifs
         case ?"nested-switch": AltVs-as-nested-switches
         case ?"hash-switch": AltV-as-hash-switch
