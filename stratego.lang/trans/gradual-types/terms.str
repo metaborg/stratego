@@ -700,16 +700,20 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
   ; if EmptyT() := <current-type> st2
-    then trm3 := trm2; st3 := st2
-    else
-      (c, st3) := <computeCoercion(|ta, st2)> (t3, t2)
-    ; if Id() := c
-        then trm3 := trm2; st4 := st3
-        else
-          taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
-        ; trm3 := <otf(!As(taVar, trm2))> ta
-        ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
-      end
+      then
+        trm3 := trm2
+      ; st4 := st2
+      else
+        (c, st3) := <computeCoercion(|ta, st2)> (t3, t2)
+      ; if Id() := c
+          then
+            trm3 := trm2
+          ; st4 := st3
+          else
+            taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
+          ; trm3 := <otf(!As(taVar, trm2))> ta
+          ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
+        end
     end
 
 insertCasts-StBuildTerm-(|e1, st1):
