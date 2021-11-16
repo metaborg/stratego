@@ -14,6 +14,10 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+USER myuser
+WORKDIR /home/myuser
+ENV WORKDIR=/home/myuser
+
 # Directories
 ENV DATA_DIR=${WORKDIR}/data
 RUN mkdir ${DATA_DIR}
@@ -28,8 +32,6 @@ RUN mkdir ${BUILD_DIR}
 RUN git config --global user.name "Stratego2 Evaluation" && \
     git config --global user.email "t.j.b.hartman@student.tudelft.nl"
 
-USER myuser
-WORKDIR /home/myuser
 
 COPY Makefile .
 
