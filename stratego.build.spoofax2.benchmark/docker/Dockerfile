@@ -1,19 +1,10 @@
-FROM ubuntu:20.04
+FROM spoofax/stratego2-bench:latest
 
-ENV WORKDIR=/app
-WORKDIR $WORKDIR
-
-ARG DEBIAN_FRONTEND=noninteractive
+USER root
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-    git \
-    make \
-    wget \
-    curl \
-    openjdk-8-jdk \
     locales \
-    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,23 +24,12 @@ RUN mkdir ${BIN_DIR}
 ENV BUILD_DIR=${WORKDIR}/build
 RUN mkdir ${BUILD_DIR}
 
-# Install Maven 3
-RUN cd ${BIN_DIR} &&\
-    wget http://apache.mirror.anlx.net/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz &&\
-    tar -zxf apache-maven-3.6.3-bin.tar.gz &&\
-    cp -R apache-maven-3.6.3 /usr/local &&\
-    ln -s /usr/local/apache-maven-3.6.3/bin/mvn /usr/bin/mvn &&\
-    ln -s /usr/local/apache-maven-3.6.3/bin/mvnDebug /usr/bin/mvnDebug
-
-# Local Maven settings (http://metaborg.org/dev/maven/#local-settings-file)
-ENV MAVEN_HOME=/root/.m2
-RUN mkdir ${MAVEN_HOME}
-COPY maven-settings.xml /root/.m2/settings.xml
-ENV MAVEN_OPTS="-Xms4G -Xmx4G -Xss16m"
-
 # Git config
-RUN git config --global user.name "Stratego2 Evaluation"
-RUN git config --global user.email "t.j.b.hartman@student.tudelft.nl"
+RUN git config --global user.name "Stratego2 Evaluation" && \
+    git config --global user.email "t.j.b.hartman@student.tudelft.nl"
+
+USER myuser
+WORKDIR /home/myuser
 
 COPY Makefile .
 

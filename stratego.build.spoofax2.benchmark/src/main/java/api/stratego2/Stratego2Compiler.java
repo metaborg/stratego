@@ -146,7 +146,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         return classDir;
     }
 
-    @Override
+//    @Override
     public String run() throws IOException, InterruptedException {
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");

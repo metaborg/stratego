@@ -5,13 +5,17 @@ import mb.resource.ResourceService;
 import mb.resource.fs.FSResourceRegistry;
 import org.apache.commons.io.FilenameUtils;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.unit.IUnit;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
+import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 
 public abstract class Compiler<R> {
     protected static final Path localRepository = Paths.get(System.getProperty("user.home"), ".m2", "repository");
@@ -46,7 +50,7 @@ public abstract class Compiler<R> {
 
     public abstract R compileProgram() throws MetaborgException;
 
-    public abstract CharSequence run() throws IOException, InterruptedException, MetaborgException;
+//    public abstract CharSequence run() throws IOException, InterruptedException, MetaborgException;
 
     protected abstract void setupBuild() throws MetaborgException, IOException;
 

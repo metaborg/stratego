@@ -24,7 +24,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     protected Path sourcePath;
 
     protected P program;
-    protected final Arguments args = new Arguments();
+    protected Arguments args;
 
     @Param({"2.6.0-SNAPSHOT"})
     public String metaborgVersion;
@@ -71,8 +71,13 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
         this.problemSize = problemSize;
     }
 
+    /**
+     * @throws SkipException
+     * @throws InvalidConfigurationException
+     */
     @Setup(Level.Trial)
-    public void setup() throws SkipException, InvalidConfigurationException {
+    public void setup() {
+        args = new Arguments();
         if (4 == optimisationLevel) {
             if (Objects.equals(switchImplementation, "")) {
                 throw new InvalidConfigurationException("No switch implementation set on -O 4");

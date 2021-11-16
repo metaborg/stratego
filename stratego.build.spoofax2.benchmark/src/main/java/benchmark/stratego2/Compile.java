@@ -1,3 +1,5 @@
+package benchmark.stratego2;
+
 import api.stratego2.Stratego2Program;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
