@@ -91,6 +91,7 @@ end>
   MatchOrder.Sequential = <sequential>
 
   MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
+  // TODO Use `when' instead of `where' - to clearly show different semantics.
   MatchCase.ScopedGuardedMatchCase = <case <{ID ", "}*> | <Term> where <Strategy>: <Strategy>>
 
 context-free sorts DTree
