@@ -1,4 +1,4 @@
-FROM spoofax/stratego2-bench:latest
+FROM spoofax/spoofax2-bench:latest
 
 USER root
 
