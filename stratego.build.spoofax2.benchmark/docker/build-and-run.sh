@@ -10,4 +10,4 @@ CONTAINER_VERSION=$(git rev-parse --short HEAD)
 CONTAINER=${CONTAINER_NAME}:${CONTAINER_VERSION}
 
 docker build -t ${CONTAINER} .
-docker run --rm -d -v ~/stratego2evaluation:/app/data -e TARGET=${TARGET} ${CONTAINER}
+docker run --rm -d -v ~/stratego2evaluation:/home/myuser/data -e TARGET=${TARGET:-} --env-file .env ${CONTAINER}
