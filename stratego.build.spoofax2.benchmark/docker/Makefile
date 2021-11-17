@@ -52,25 +52,21 @@ $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
 	cd $(BENCHMARK_DIR) && \
 	mvn -q package
 
-.SILENT: $(RESULTS_DIR)
 $(RESULTS_DIR):
-	echo "Result dir: $(RESULTS_DIR)"
-	-mkdir -p $(RESULTS_DIR)
+	@echo "Result dir: $(RESULTS_DIR)"
+	@-mkdir -p $(RESULTS_DIR)
 
-.SILENT: $(CHOCOPY_REPO_DIR)
 $(CHOCOPY_REPO_DIR):
-	echo "Cloning ChocoPy repo"
-	git clone -q --recursive --branch $(CHOCOPY_BRANCH) $(CHOCOPY_REPO_URL) $(CHOCOPY_REPO_DIR)
+	@echo "Cloning ChocoPy repo"
+	@git clone -q --recursive --branch $(CHOCOPY_BRANCH) $(CHOCOPY_REPO_URL) $(CHOCOPY_REPO_DIR)
 
-.SILENT: $(STRATEGO_REPO_DIR)
 $(STRATEGO_REPO_DIR):
-	echo "Cloning Stratego repo"
-	git clone -q  $(BENCHMARK_REPO_URL) $(STRATEGO_REPO_DIR)
+	@echo "Cloning Stratego repo"
+	@git clone -q  $(BENCHMARK_REPO_URL) $(STRATEGO_REPO_DIR)
 
 .PHONY: fetch-chocopy
-.SILENT: fetch-chocopy
 pull-chocopy: $(CHOCOPY_REPO_DIR)
-	cd $(CHOCOPY_REPO_DIR) && \
+	@cd $(CHOCOPY_REPO_DIR) && \
 	git fetch -qap && \
 	git checkout -qf $(CHOCOPY_BRANCH) && \
 	git pull -q
@@ -85,13 +81,12 @@ $(RISCV_METABORG_FILE): $(CHOCOPY_REPO)
 %/_metaborg.yaml: %/metaborg.yaml
 	mv $*/metaborg.yaml $*/_metaborg.yaml
 
-.SILENT: $(CHOCOPY_LANGUAGE).O%
 $(CHOCOPY_LANGUAGE).O%: $(CHOCOPY_REPO) | $(CHOCOPY_METABORG_TEMPLATE_FILE) $(RISCV_METABORG_TEMPLATE_FILE)
-	echo "Building ChocoPy with -O $*"
-	yq e '.language.stratego.args += ["-O", $*]' $(CHOCOPY_METABORG_TEMPLATE_FILE) > $(CHOCOPY_METABORG_FILE)
-	yq e '.language.stratego.args += ["-O", $*]' $(RISCV_METABORG_TEMPLATE_FILE) > $(RISCV_METABORG_FILE)
-	$(MAKE) $(CHOCOPY_LANGUAGE)
-	mv $(CHOCOPY_LANGUAGE) $(CHOCOPY_LANGUAGE).O$*
+	@echo "Building ChocoPy with -O $*"
+	@yq e '.language.stratego.args += ["-O", $*]' $(CHOCOPY_METABORG_TEMPLATE_FILE) > $(CHOCOPY_METABORG_FILE)
+	@yq e '.language.stratego.args += ["-O", $*]' $(RISCV_METABORG_TEMPLATE_FILE) > $(RISCV_METABORG_FILE)
+	@$(MAKE) $(CHOCOPY_LANGUAGE)
+	@mv $(CHOCOPY_LANGUAGE) $(CHOCOPY_LANGUAGE).O$*
 
 $(CHOCOPY_LANGUAGE): $(CHOCOPY_REPO)
 	cd $(CHOCOPY_POM_DIR) && \
