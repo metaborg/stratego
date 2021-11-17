@@ -3,11 +3,13 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-#git pull
+IMAGE_NAME=stratego2evaluation
+IMAGE_VERSION=$(git rev-parse --short HEAD)
+IMAGE=${IMAGE_NAME}:${IMAGE_VERSION}
 
-CONTAINER_NAME=stratego2evaluation
-CONTAINER_VERSION=$(git rev-parse --short HEAD)
-CONTAINER=${CONTAINER_NAME}:${CONTAINER_VERSION}
+CONTAINER=${IMAGE_NAME}_${IMAGE_VERSION}_${RANDOM}
 
-docker build -t ${CONTAINER} .
-docker run --rm -d -v ~/stratego2evaluation:/home/myuser/data -e TARGET=${TARGET:-} --env-file .env ${CONTAINER}
+docker build -t ${IMAGE} .
+docker run -d --name ${CONTAINER} -e TARGET=${TARGET:-} --env-file .env ${CONTAINER}
+docker container cp ${CONTAINER}:/home/myuser/data/benchmark_results/ ~/stratego2evaluation/.
+docker container rm ${CONTAINER}
