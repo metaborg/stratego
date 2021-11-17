@@ -76,6 +76,8 @@ strategies // core/signatures & sugar/signatures
 
   sort-check-Sort(|e) = ?RealT()
 
+  sort-check-Sort(|e) = ?BlobT()
+
   sort-check-Sort(|e): s@SortNoArgs(n) -> <id>
     with
       arity := 0
@@ -147,6 +149,8 @@ strategies // gradual-types/signatures
   sort-check-Type(|e) = ?IntT()
 
   sort-check-Type(|e) = ?RealT()
+
+  sort-check-Type(|e) = ?BlobT()
 
   sort-check-Type(|e) = sort-check-SortT(|e)
 

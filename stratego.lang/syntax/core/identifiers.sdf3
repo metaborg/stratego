@@ -30,6 +30,7 @@ lexical syntax
   BuiltInType = "string"
   BuiltInType = "int"
   BuiltInType = "real"
+  BuiltInType = "blob"
 
 lexical restrictions
   Id   -/- [a-zA-Z0-9\'\_\*]
