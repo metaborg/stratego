@@ -23,8 +23,7 @@ RESULTS_DIR=$(DATA_DIR)/benchmark_results
 BENCHMARK_ARGS?=-e failing -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` `echo $(TARGET) | tr -d '()|.'`.csv" $(TARGET)
 
 # DERIVATIVES - DO NOT CHANGE
-MAVEN_HOME?=$(HOME)/.m2
-MAVEN_REPO=$(MAVEN_HOME)/repository
+MAVEN_REPO=$(HOME)/.m2/repository
 
 BENCHMARK_DIR=$(STRATEGO_REPO_DIR)/$(BENCHMARK_PROJECT)
 BENCHMARK_JAR=$(BENCHMARK_DIR)/target/benchmarks.jar
