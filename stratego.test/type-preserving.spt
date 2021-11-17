@@ -11,6 +11,7 @@ fixture [[
       Option(*)
       PolyType(a)
       Tuple(*, *)
+      Tuple()
     constructors
       One : a -> PolyType(a)
       Cons : a * List(a) -> List(a)
@@ -43,3 +44,32 @@ test Type preserving generic traversal with Rec construct [[
 ]] 0 errors
    0 warnings
    has origin locations
+
+test Simple type preserving tracking [[
+  at-depth(Tuple() -> int, TP) :: TP
+  at-depth(depth, s) =
+      !(<depth> (), <id>)
+    ; ?(_, <id>)
+
+  topdown(TP) :: TP
+  topdown(s) = fail
+]] 0 errors
+   0 warnings
+   has origin locations
+
+//test Complicated type preserving tracking [[
+//  at-depth(Tuple() -> int, TP) :: TP
+//  at-depth(depth, s) =
+//      !(<depth> (), <id>)
+//    ; topdown(
+//        {d :
+//           ?(0, <s> )
+//        <+ ?(d, <id>); all(!(<dec> d, <id>))
+//        }
+//      )
+//
+//  topdown(TP) :: TP
+//  topdown(s) = fail
+//]] 0 errors
+//   0 warnings
+//   has origin locations
