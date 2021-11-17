@@ -38,4 +38,4 @@ RUN git config --global user.name "Stratego2 Evaluation" && \
 
 COPY Makefile .
 
-ENTRYPOINT make -n all; make all
+ENTRYPOINT ["make", "all"]

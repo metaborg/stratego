@@ -49,7 +49,8 @@ clean:
 benchmark-jar: $(BENCHMARK_JAR)
 
 $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
-	cd $(BENCHMARK_DIR) && \
+	@echo "Buidling benchmark jar"
+	@cd $(BENCHMARK_DIR) && \
 	mvn -q package
 
 $(RESULTS_DIR):
@@ -77,9 +78,8 @@ $(CHOCOPY_METABORG_FILE): $(CHOCOPY_REPO)
 $(RISCV_METABORG_FILE): $(CHOCOPY_REPO)
 
 .INTERMEDIATE: %/_metaborg.yaml
-.SILENT: %/_metaborg.yaml
 %/_metaborg.yaml: %/metaborg.yaml
-	mv $*/metaborg.yaml $*/_metaborg.yaml
+	@mv $*/metaborg.yaml $*/_metaborg.yaml
 
 $(CHOCOPY_LANGUAGE).O%: $(CHOCOPY_REPO) | $(CHOCOPY_METABORG_TEMPLATE_FILE) $(RISCV_METABORG_TEMPLATE_FILE)
 	@echo "Building ChocoPy with -O $*"
