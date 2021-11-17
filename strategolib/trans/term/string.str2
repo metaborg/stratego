@@ -130,6 +130,7 @@ strategies
    * Generates a unique new string of the form 'c_d',
    * where c is one char and d is a positive integer.
    */
+  new :: ? -> string
   new = prim("SSL_new")
 
   /**

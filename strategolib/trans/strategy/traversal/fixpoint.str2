@@ -23,32 +23,47 @@ strategies
       repeat(red)
     end
 
+  outermost(TP) :: TP
   outermost(s) =
     repeat(oncetd(s))
 
+  innermost'(TP) :: TP
   innermost'(s) =
     repeat(oncebu(s))
 
+  innermost(TP) :: TP
   innermost(s)  =
     bottomup(try(s; innermost(s)))
 
+  innermost-old(TP) :: TP
   innermost-old(s) =
-    rec x(all(x); (s; x <+ id))
+    all(innermost-old(s)); (s; innermost-old(s) <+ id)
 
+  pseudo-innermost3(TP) :: TP
   pseudo-innermost3(s) =
-    rec x(all(x); rec y(try(s; all(all(all(y); y); y); y)))
+    let y :: TP
+        y = try(s; all(all(all(y); y); y); y)
+    in
+      all(pseudo-innermost3(s))
+    ; y
+    end
 
+  // memo needs a type before this can be (TP) TP. But then we need to support types for dynamic rules
+  innermost-memo(? -> ?) :: ? -> ?
   innermost-memo(s) =
-    rec x(memo(all(x); (s; x <+ id)))
+    memo(all(innermost-memo(s)); (s; innermost-memo(s) <+ id))
 
  /**
   * innermost-tagged(s) reduces the subject term by applying s to
   * innermost redices first. Terms in normal form are tagged (using
   * attributes) to prevent renormalization.
   */
+  innermost-tagged(TP) :: TP
   innermost-tagged(s : a -> a) = // : a -> a
     where(new => tag);
-    rec x(?_{tag} <+ (all(x); (s; x <+ !<id>{tag})));
+    let x :: TP
+        x = ?_{tag} <+ (all(x); (s; x <+ !<id>{tag}))
+    in x end;
     bottomup(?<id>{tag})
 
 

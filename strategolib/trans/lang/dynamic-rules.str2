@@ -574,7 +574,7 @@ strategies // change sets
   dr-new-change-set =
     !ChangeSet(<new-iset>, <new-iset>, <new-hashtable>)
 
-  dr-start-change-set :: ? -> List(RuleScope)
+  dr-start-change-set :: List(RuleScope) -> List(RuleScope)
   dr-start-change-set =
     ![<dr-new-change-set> | <id>]
 
@@ -928,7 +928,8 @@ strategies // setting a rule
            | label, key, value) =
     ?[ChangeSet(labelset, rmset, tbl1) | rs]
     ; where(
-        let set2(|scpid, tbl2, key, value) =
+        let set2(|HashtableImplBlob, Hashtable, ?, ?) :: ? -> ?
+            set2(|scpid, tbl2, key, value) =
               set1(|scpid, tbl2, key, value)
               <+ <dr-lookup-rule-in-scope(|key, scpid)> rs => value
                  ; <hashtable-remove(|(scpid, key))> tbl1
@@ -1079,7 +1080,7 @@ strategies // extending a rule
                  ; \ values -> <hashtable-put(|(scpid, key), [value | values])> tbl1 \
 
          in if <iset-contains(|label)> labelset then
-               <fetch-elem(?RuleScope(_, tbl@Hashtable(hptr)))> rs
+               <fetch-elem(?RuleScope(_, tbl@Hashtable(hptr)))> rs // TODO: rs is a list tail, so shouldn't need a cast here
                ; add2(|hptr, tbl, key, value)
             else
                <dr-add-to-rule-set(add2 | label, key, value)> rs
@@ -1233,6 +1234,7 @@ strategies // intersection and union of rule-sets
    *
    * No longer used.
    */
+  dr-fix-change-set :: RuleScope * List(RuleScope) * List(RuleScope) -> RuleScope
   dr-fix-change-set =
     ?(cs@ChangeSet(_, rmset, tbl), rsgood, rsbad)
     ; <filter(?RuleScope(_, Hashtable(<id>)))>rsgood => scpidsgood_
@@ -1292,6 +1294,7 @@ strategies // intersection and union of rule-sets
          ; <hashtable-intersect-wempty(|tbl2, [])> tbl1}
     )
 
+  apply-rm-set(|IndexedSet) :: Hashtable -> ?
   apply-rm-set(|rmset) = ?tbl
     ; where(
         <iset-elements> rmset

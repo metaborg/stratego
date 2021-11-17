@@ -26,6 +26,7 @@
  */
 module strategy/collect
 imports
+  collection/tuple/cons
   collection/list/common
   collection/list/cons
   collection/list/zip
@@ -47,6 +48,7 @@ strategies
    * This strategy returns a *set* of subterms. The result
    * will therefore not contain duplicates.
    */
+  collect-all(? -> a) :: ? -> List(a)
   collect-all(s) =
     collect-all(s, union)
 
@@ -55,6 +57,7 @@ strategies
    *
    * The un argument must take two lists and produce a single one.
    */
+  collect-all(? -> a, List(a) * List(a) -> List(a)) :: ? -> List(a)
   collect-all(s,un) =
     rec x(
       ![<s> | <crush(![],un,x)>]
@@ -92,6 +95,7 @@ strategies
    *
    * @since  0.9.6
    */
+  collect-all(? -> a, List(a) * List(a) -> List(a), ? -> ?) :: ? -> List(a)
   collect-all(s, un, reduce) =
     rec x(
        ![<s> | <crush(![],un,x)>]
@@ -110,12 +114,14 @@ strategies
    * This strategy returns a *set* of subterms. The result
    * will therefore not contain duplicates.
    */
+  collect-om(? -> a) :: ? -> List(a)
   collect-om(s) =
     collect-om(s, union)
 
   /**
    * Synonym of collect-om.
    */
+  collect(? -> a) :: ? -> List(a)
   collect(s) =
     collect-om(s)
 
@@ -124,6 +130,7 @@ strategies
    *
    * The un argument must take two lists and produce a single one.
    */
+  collect-om(? -> a, List(a) * List(a) -> List(a)) :: ? -> List(a)
   collect-om(s, op) =
     ![<s>]
     <+ crush(![], op, collect-om(s, op))
@@ -136,6 +143,7 @@ strategies
    *
    * @since  0.9.6
    */
+  collect-om(? -> a, List(a) * List(a) -> List(a), ? -> ?) :: ? -> List(a)
   collect-om(s, un, skip) =
     rec x(
        ![<s>]
@@ -151,15 +159,18 @@ strategies
   * Reduces terms with f and extracts information with g resulting in a
   * pair (t, xs) of a reduced term and the list of extracted subterms.
   */
+  collect-split(? -> ?, ? -> List(?)) :: ? -> ? * List(?)
   collect-split(f, g) =
     rec x(CollectSplit(x, !(<try(f)>, <g <+ ![]>)))
 
+  collect-split(? -> ? * List(?)) :: ? -> ? * List(?)
   collect-split(splitter) =
     rec x(CollectSplit(x, splitter <+ !(<id>,[])))
 
   /**
    * Helper of collect-split. Don't use.
    */
+  CollectSplit(? -> ? * List(?), ? -> ? * List(?)) :: ? -> ? * List(?)
   CollectSplit(s, splitter) :
     c#(as){annos*} -> (t, <union> (ys, <unions> xs))
       where <unzip(s)> as => (bs, xs);
@@ -168,30 +179,35 @@ strategies
   /**
    * Helper of collect-split. Don't use.
    */
+  CollectSplit(? -> ? * List(?), ? -> ?, ? -> List(?)) :: ? -> ? * List(?)
   CollectSplit(s, f, g) =
     CollectSplit(s, !(<try(f)>, <g <+ ![]>))
 
-
+  collect-split'(? -> ? * List(?)) :: ? -> ? * List(?)
   collect-split'(splitter) =
     rec x((is-string + is-int); splitter
           <+ CollectSplit(x, splitter))
 
 strategies
 
+  postorder-collect(? -> a) :: ? -> List(a)
   postorder-collect(s) =
     postorder-collect(s, ![])
 
+  postorder-collect(? -> a, ? -> List(a)) :: ? -> List(a)
   postorder-collect(s, acc) =
     where((![<s> | <acc>] <+ acc) => ys);
     crush(!ys, \ (x, xs) -> <postorder-collect(s, !xs)> x \ )
 
 strategies
 
+  collect(? -> a, (? -> List(?), ? -> List(a)) ? -> ?) :: ? -> List(?)
   collect(s, skip: (a -> a) * (a -> a) * a -> a) =
     ![<s>]
     <+ skip(collect(s,skip), ![]); crush(![],union,id)
     <+ crush(![],union,collect(s,skip))
 
+  collect-exc(? -> List(a), (? -> List(a)) ? -> List(a)) :: ? -> List(a)
   collect-exc(base, special : (a -> b) * a -> b) =
     rec coll(
       (base
@@ -199,6 +215,7 @@ strategies
       <+ crush(![], union, coll)
     )
 
+  bu-collect(? -> ?) :: ? -> List(?)
   bu-collect(s) =
     rec x(some(x); crush(![],union,[s|id] <+ ![])
           <+ ![<s>] )
@@ -209,11 +226,13 @@ strategies
   /**
    * collect a single, outermost value from a tree.
    */
+  collect-one(? -> a) :: ? -> a
   collect-one(s) =
     oncetd(where(s; ?t)); !t
 
 strategies // TODO: where should we put this?
 
+  twicetd(? -> ?) :: ? -> ?
   twicetd(s) =
     oncetd(
       explode-term
@@ -221,5 +240,6 @@ strategies // TODO: where should we put this?
     ; mkterm
     )
 
+  atmostonce(? -> ?) :: a -> a
   atmostonce(s) =
     not(twicetd(s))

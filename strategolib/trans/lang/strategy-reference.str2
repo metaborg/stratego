@@ -5,6 +5,10 @@
  */
 module lang/strategy-reference
 
+signature
+  sorts
+    StrategyRef
+
 strategies
 
   /**
@@ -12,15 +16,12 @@ strategies
   *
   * @note The resulting reference term cannot be pretty-printed or matched against (at least not realiably). The reference
   * to the strategy is only valid within the instance of the interpreter which produced it
-  *
-  * @param a -?> b
-  * @type _ -> ___StrategyRef___()
   */
+  to-sref(? -> ?) :: ? -> StrategyRef
   to-sref(s) = prim("SSL_EXT_to_sref", s|)
 
   /**
   * Apply the strategy referenced by the term. The referenced strategy is applied to the input term.
-  *
-  * @type a -> <t> a
   */
+  apply-sref(|StrategyRef) :: ? -> ?
   apply-sref(|t) = prim("SSL_EXT_apply_sref",|t)

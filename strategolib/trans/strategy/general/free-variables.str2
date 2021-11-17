@@ -8,6 +8,7 @@ module strategy/general/free-variables
 imports
   collection/list/-
   collection/tuple/common
+  collection/tuple/cons
   term/common
 
 /*
@@ -44,11 +45,14 @@ imports
 
 */
 strategies
-
+  free-vars(? -> List(v), ? -> List(v)) :: ? -> List(v)
   free-vars(getvars, boundvars) =
     rec x(getvars
           <+ split(crush(![],union,x), boundvars <+ ![]); diff)
 
+  // Types note: free-vars with boundin arg would be able to return List(v) if the boundin argument did the crush itself
+  free-vars(? -> List(v), ? -> List(v)
+           , (? -> List(v), ? -> List(v), ? -> List(v)) ? -> ?) :: ? -> List(?)
   free-vars(getvars, boundvars
            , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term) =
     rec x(getvars
@@ -57,15 +61,9 @@ strategies
              crush(![],union,id)
           <+ crush(![],union,x))
 
-/* // if we had strategy abstraction /\(x1,...,xn) -> s
-
-  free-vars(getvars, boundvars, boundin) =
-    collect(getvars
-           ,/\ (x,nil) ->
-            {vs: where(boundvars => vs);
-                 boundin(split(x, !vs); diff, x, nil)})
-*/
-
+  free-vars(? -> List(v), ? -> List(v)
+           , (? -> List(v), ? -> List(v), ? -> List(v)) ? -> ?
+           , v * v -> ?) :: ? -> List(?)
   free-vars(getvars, boundvars
            , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term
            , eq)
@@ -85,12 +83,14 @@ strategies
 
 */
 strategies
-
+  free-vars2(? -> List(v), ? -> List(v)) :: ? -> List(v)
   free-vars2(getvars, boundvars) =
     rec x(split(getvars <+ ![],
             split(crush(![],union,x), boundvars <+ ![]); diff);
           union)
 
+  free-vars2(? -> List(?), ? -> List(v)
+           , (? -> List(v), ? -> List(?), ? -> List(v)) ? -> ?) :: ? -> List(?)
   free-vars2(getvars, boundvars
             , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term) =
     rec x(split(getvars <+ ![],
@@ -100,6 +100,9 @@ strategies
                  <+ crush(![],union,x)));
           union)
 
+  free-vars2(? -> List(?), ? -> List(v)
+           , (? -> List(v), ? -> List(?), ? -> List(v)) ? -> ?
+           , v * v -> ?) :: ? -> List(?)
   free-vars2(getvars, boundvars
             , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term
             , eq)

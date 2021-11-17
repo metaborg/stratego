@@ -24,6 +24,7 @@ strategies
   *
   * E.g. <mkterm> (f, [t1,...,tn])  builds the constructor application f(t1,...,tn).
   */
+  mkterm :: ? * List(?) -> ?
   mkterm       = ?(c,ts); prim("SSL_mkterm",c,ts)
 
  /**
@@ -40,6 +41,7 @@ strategies
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
+  explode-term :: ? -> ? * List(?)
   explode-term = ?t; prim("SSL_explode_term",t)
 
  /**
@@ -47,6 +49,7 @@ strategies
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
+  get-constructor :: ? -> ?
   get-constructor = ?t; prim("SSL_get_constructor", t)
 
  /**
@@ -54,11 +57,13 @@ strategies
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
+  get-arguments :: ? -> List(?)
   get-arguments = ?t; prim("SSL_get_arguments", t)
 
   /**
    * Get the arguments of a term application.
    */
+  get-appl-arguments :: ? -> List(?)
   get-appl-arguments =
     get-appl-arguments(id)
 
@@ -68,6 +73,7 @@ strategies
    * @param a -> b
    * @type f(a1 ... an) -> [b1 ... bn]
    */
+  get-appl-arguments(? -> a) :: ? -> List(a)
   get-appl-arguments(s) =
     ?t; prim("SSL_get_appl_arguments_map", s | t)
 
@@ -79,6 +85,7 @@ strategies
   * Note that this relation is valid in one session (but what happens after
   * rehashing), but not necessarily between two sessions.
   */
+  address-lt :: ? * ? -> ?
   address-lt =
     ?(t1,t2); prim("SSL_address_lt",t1,t2)
 
@@ -86,6 +93,7 @@ strategies
    * Compare the address of two terms and succeeds if the address of the current
    * term is smaller than the address of the argument.
    */
+  term-address-lt(|?) :: ? -> ?
   term-address-lt(|t2) =
     ?t1; prim("SSL_address_lt",t1,t2)
 
@@ -97,12 +105,14 @@ strategies
   *
   * @type t -> String
   */
+  address :: ? -> int
   address =
     ?t; prim("SSL_address",t)
 
  /**
   * Give checksum of a term. Similar to atsum from aterm package.
   */
+  checksum :: ? -> string
   checksum = ?t ; prim("SSL_checksum",t)
 
 strategies
@@ -117,14 +127,18 @@ strategies
 
 strategies
 
+  node-size :: ? -> int
   node-size =
     crush(!0, add, !1)
 
+  term-size :: ? -> int
   term-size =
     crush(!1, add, term-size)
 
 strategies
 
+//  at-depth(Tuple() -> int, TP) :: TP
+  at-depth(Tuple() -> int, ? -> ?) :: ? -> ?
   at-depth(depth, s) =
       !(<depth> (), <id>)
     ; topdown(
@@ -139,9 +153,11 @@ strategies
  */
 strategies
 
+  om-occurrences(? -> ?) :: ? -> int
   om-occurrences(s) =
     if s then !1 else crush(!0, add, om-occurrences(s)) end
 
+  occurrences(? -> ?) :: ? -> int
   occurrences(s) =
-    <add> (<if s then !1 else !0 end>, <crush(!0, add, occurrences(s))>)
+    <addi> (<if s then !1 else !0 end>, <crush(!0, add, occurrences(s))>)
 

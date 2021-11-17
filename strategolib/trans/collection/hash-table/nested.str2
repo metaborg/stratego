@@ -15,19 +15,20 @@ signature
     NewTable    : TableKey
 strategies
 
-  nestedtable-put(|List(?), Hashtable) :: ? -> Hashtable
+  nestedtable-put(|List(?), Hashtable) :: TableKey -> Hashtable
   nestedtable-put(|keys, value) =
     let
+      forward :: TableKey -> TableValue * TableValue
       forward = ?NewTable(); !NestedTable(<new-hashtable>); !(<id>,<id>)
     in
-      nestedtable-put(try(forward), id | keys, value)
+      nestedtable-put(try(forward;is(?)), id | keys, value)
     end
 
-  nestedtable-put(TableKey -> ?|List(?), Hashtable) :: ? -> Hashtable
+  nestedtable-put(TableKey -> ?|List(?), Hashtable) :: TableKey -> Hashtable
   nestedtable-put(forward | keys, value) =
     nestedtable-put(forward, id | keys, value)
 
-  nestedtable-put(TableKey -> ?, TableValue -> ?|List(?), Hashtable) :: ? -> Hashtable
+  nestedtable-put(TableKey -> ?, TableValue -> ?|List(?), Hashtable) :: TableKey -> Hashtable
   nestedtable-put(forward, changed | keys, value) =
     debug(!"nestedtable-put: ");
     forward

@@ -31,22 +31,26 @@
  */
 module strategy/general/parenthesize
 imports collection/list/common
+imports collection/list/cons
+imports collection/tuple/cons
 imports strategy/traversal/simple
 imports strategy/conditional
 imports strategy/iteration
 imports strategy/general/option
 
 strategies
-
+  parenthesize(? -> ?, ? -> List(Option(string) * List(string))) :: ? -> ?
   parenthesize(paren, prios) =
     where(prios; init-parenthesation-rules)
     ; bottomup(try(Disambiguate(paren)))
 
   // assumes parenthesation rules are already generated
 
+  parenthesize(? -> ?) :: ? -> ?
   parenthesize(paren) =
     bottomup(try(Disambiguate(paren)))
 
+  Disambiguate(? -> ?) :: ? -> ?
   Disambiguate(paren) :
     e@op#([l | args]) -> (op#([l' | <conc>(mid', [r'])]))
     where <split-init-last> args => (mid, r)
@@ -62,42 +66,49 @@ strategies
  * Generation of the parenthesation rules.
  */
 strategies
-
+  init-parenthesation-rules :: List(Option(string) * List(string)) -> List(string) * List(Option(string) * List(string))
   init-parenthesation-rules =
     !([], <id>)
     ; repeat(gen-left + gen-right + gen-non-assoc + gen-none)
 
+  gen-left :: List(string) * List(Option(string) * List(string)) -> List(string) * List(Option(string) * List(string))
   gen-left :
     (greater, [(Some("left"), ops) | rest]) -> (<conc>(ops, greater), rest)
     where <for-each-pair(GenLeftAssoc)> (ops, ops)
         ; <for-each-pair(GenGreaterThan; GenLeftAssoc; GenRightAssoc)> (greater, ops)
 
+  gen-right :: List(string) * List(Option(string) * List(string)) -> List(string) * List(Option(string) * List(string))
   gen-right :
     (greater, [(Some("right"), ops) | rest]) -> (<conc>(ops, greater), rest)
     where <for-each-pair(GenRightAssoc)> (ops, ops)
         ; <for-each-pair(GenGreaterThan; GenLeftAssoc; GenRightAssoc)> (greater, ops)
 
+  gen-non-assoc :: List(string) * List(Option(string) * List(string)) -> List(string) * List(Option(string) * List(string))
   gen-non-assoc :
     (greater, [(Some("non-assoc"), ops) | rest]) -> (<conc>(ops, greater), rest)
     where <for-each-pair(GenLeftAssoc; GenRightAssoc)> (ops, ops)
         ; <for-each-pair(GenGreaterThan; GenLeftAssoc; GenRightAssoc)> (greater, ops)
 
+  gen-none :: List(string) * List(Option(string) * List(string)) -> List(string) * List(Option(string) * List(string))
   gen-none :
     (greater, [(None(), ops) | rest]) -> (<conc>(ops, greater), rest)
     where <for-each-pair(GenGreaterThan; GenLeftAssoc; GenRightAssoc)> (greater, ops)
 
+  GenLeftAssoc :: string * string -> string * string
   GenLeftAssoc =
     ?(op1, op2)
     ; rules(
         LeftAssoc : (op1#(_), op2#(_)) -> ()
       )
 
+  GenRightAssoc :: string * string -> string * string
   GenRightAssoc =
     ?(op1, op2)
     ; rules(
         RightAssoc : (op1#(_), op2#(_)) -> ()
       )
 
+  GenGreaterThan :: string * string -> string * string
   GenGreaterThan =
     ?(op1, op2)
     ; rules(

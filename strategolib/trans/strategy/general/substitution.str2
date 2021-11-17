@@ -60,6 +60,7 @@ module strategy/general/substitution
 imports
   strategy/traversal/simple
   collection/tuple/common
+  collection/tuple/cons
   collection/list/-
   strategy/general/rename
   strategy/traversal/environment
@@ -70,36 +71,45 @@ strategies
   // 1) a pair of a substitution (is list of pairs) and a term
   // 2) a triple of a list of variables, a list of terms that should
   //    replace them, and a term
-
+  subs-args :: ? -> List(? * ?) * ?
   subs-args =
-    ?(sbs, t) <+ \ (xs, ys, t) -> (<zip(id)> (xs, ys), t) \
+    is(List(? * ?) * ?) <+ is(List(?) * List(?) * ?);\ (xs, ys, t) -> (<zip(id)> (xs, ys), t) \
+
+
 
 rules
 
   // replacing a variable with its value in the substitution
-
+  SubsVar(? -> k, ? -> List(k * v)) :: ? -> v
   SubsVar(isvar, mksbs) :
     t -> <lookup> (x, sbs)
     where <isvar> t => x; mksbs => sbs
+
 
 strategies
 
   // substitute variables, no regard for variable bindings, and
   // rename bound variables in substituted terms
-
+  substitute(? -> ?, ? -> ?) :: ? -> ?
   substitute(isvar, ren) =
     subs-args => (sbs,t); !t;
     alltd(SubsVar(isvar, !sbs); ren)
 
   // substitute variables, no regard for variable bindings
-
+  substitute(? -> ?) :: ? -> ?
   substitute(isvar) =
     substitute(isvar, id)
 
   // substitute all variables, rename bound variables on the way down,
   // and rename the bound variables in the terms that are substituted
   // for variables using the renaming strategy ren
-
+  substitute( ? -> ?
+            , (? -> ?) ? -> ?
+            , ? -> ?
+            , (? -> ?, ? -> ?, ? -> ?) ? -> ?
+            , (? -> ?) ? -> ?
+            , ? -> ?
+            ) :: ? -> ?
   substitute(isvar
             , varshape: (name -> env) * name -> term
             , bndvars
@@ -115,7 +125,12 @@ strategies
   // substitute variables and rename bound variables encountered
   // on the way to prevent variable capture, don't rename
   // substituted terms
-
+  substitute( ? -> ?
+            , (? -> ?) ? -> ?
+            , ? -> ?
+            , (? -> ?, ? -> ?, ? -> ?) ? -> ?
+            , (? -> ?) ? -> ?
+            ) :: ? -> ?
   substitute(isvar
             , varshape: (name -> env) * name -> term
             , bndvars

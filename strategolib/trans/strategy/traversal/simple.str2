@@ -1,3 +1,4 @@
+
 /**
  * This module contains generic one-pass traversals over terms.
  *
@@ -18,6 +19,7 @@ module strategy/traversal/simple
 imports
   strategy/conditional
   term/properties
+  collection/tuple/cons
 
 /**
  * Traverse a term everywhere.
@@ -38,6 +40,7 @@ strategies
    * @param s - the strategy to apply
    * @type Term -> Term
    */
+  topdown(TP) :: TP
   topdown(s) =
     s; all(topdown(s))
 
@@ -47,6 +50,7 @@ strategies
    * @param s - the strategy to apply
    * @type Term -> Term
    */
+  bottomup(TP) :: TP
   bottomup(s) =
     all(bottomup(s)); s
 
@@ -60,6 +64,7 @@ strategies
    * @param s - the strategy to apply
    * @type Term -> Term
    */
+  downup(TP) :: TP
   downup(s) =
     s; all(downup(s)); s
 
@@ -76,9 +81,11 @@ strategies
    * @type Term -> Term
    * @see downup
    */
+  downup(TP, TP) :: TP
   downup(s1, s2) =
     s1; all(downup(s1, s2)); s2
 
+  downup2(TP, TP) :: TP
   downup2(s1, s2) =
     s1; all(downup2(s1, s2)); s2
 
@@ -101,6 +108,7 @@ strategies
    * @type Term -> Term
    * @see topdown
    */
+  topdownS(TP, (TP) TP) :: TP
   topdownS(s, stop: (a -> a) * a -> a) =
     s
     ; (stop(topdownS(s,stop)) <+ all(topdownS(s,stop)))
@@ -113,6 +121,7 @@ strategies
    * @type Term -> Term
    * @see bottomup
    */
+  bottomupS(TP, (TP) TP) :: TP
   bottomupS(s, stop: (a -> a) * a -> a) =
     (stop(bottomupS(s, stop)) <+ all(bottomupS(s, stop)))
     ; s
@@ -125,6 +134,7 @@ strategies
    * @type Term -> Term
    * @see downup
    */
+  downupS(TP, (TP) TP) :: TP
   downupS(s, stop: (a -> a) * a -> a) =
     s
     ; (stop(downupS(s, stop)) <+ all(downupS(s, stop))); s
@@ -138,6 +148,7 @@ strategies
    * @type  Term -> Term
    * @see downup
    */
+  downupS(TP, TP, (TP) TP) :: TP
   downupS(s1, s2, stop: (a -> a) * a -> a) =
     s1
     ; (stop(downupS(s1, s2, stop)) <+ all(downupS(s1, s2, stop)))
@@ -153,6 +164,7 @@ strategies
    * @see bottomupS
    * @see downupS
    */
+  don't-stop(?) :: TP
   don't-stop(s) =
     fail
 
@@ -161,6 +173,7 @@ strategies
    * original term as well as the term in which the direct subterms
    * have been transformed. (also known as a paramorphism?)
    */
+  bottomup-para(? * ? -> ?) :: ? -> ?
   bottomup-para(s) =
     !(<id>, <all(bottomup-para(s))>)
     ; s
@@ -203,9 +216,11 @@ strategies
   spinebu(s) =
     try(one(spinebu(s))); s
 
+  spinetd'(TP) :: TP
   spinetd'(s) =
     s; (one(spinetd'(s)) + all(fail))
 
+  spinebu'(TP) :: TP
   spinebu'(s) =
     (one(spinebu'(s)) + all(fail)); s
 
@@ -251,8 +266,9 @@ strategies
    *
    * @see collect-one
    */
+  oncetd(TP) :: TP
   oncetd(s) =
-    rec x(s <+ one(x))
+    rec x(s <+ one(oncetd(s)))
 
   /** Apply s at one position inside a term, in bottom up order. Once
    * s has succeeded, the traversal stops. If s never succeeds, this
@@ -261,11 +277,13 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  oncebu(TP) :: TP
   oncebu(s) =
-    rec x(one(x) <+ s)
+    one(oncebu(s)) <+ s
 
+  oncetd-skip(TP, (TP) TP) :: TP
   oncetd-skip(s, skip: (a -> a) * a -> a) =
-    rec x(s <+ skip(x) <+ one(x))
+    s <+ skip(oncetd-skip(s, skip)) <+ one(oncetd-skip(s, skip))
 
 /**
  * Apply s at some positions, but at least one.
@@ -283,8 +301,9 @@ strategies
    * @type  Term -> Term
    * @see oncetd
    */
+  sometd(TP) :: TP
   sometd(s) =
-    rec x(s <+ some(x))
+    s <+ some(sometd(s))
 
   /** Apply s at some positions inside a term, at least once, in bottom
    * up order. Once s succeeds, the traversal stopped.
@@ -293,8 +312,9 @@ strategies
    * @type  Term -> Term
    * @see oncetd
    */
+  somebu(TP) :: TP
   somebu(s) =
-    rec x(some(x) <+ s)
+    some(somebu(s)) <+ s
 
 /**
  * Frontier
@@ -308,25 +328,29 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  alltd(TP) :: TP
   alltd(s) =
-    rec x(s <+ all(x))
+    rec x(s <+ all(alltd(s)))
 
+  alldownup2(TP, TP) :: TP
   alldownup2(s1, s2) =
-    rec x((s1 <+ all(x)); s2)
+    (s1 <+ all(alldownup2(s1, s2))); s2
 
+  alltd-fold(TP, TP) :: TP
   alltd-fold(s1, s2) =
-    rec x(s1 <+ all(x); s2)
+    s1 <+ all(alltd-fold(s1, s2)); s2
 
 /**
  * Leaves
  */
 strategies
-
+  leaves(TP, TP, (TP) TP) :: TP
   leaves(s, is-leaf, skip: (a -> a) * a -> a) =
-    rec x((is-leaf; s) <+ skip(x) <+ all(x))
+    (is-leaf; s) <+ skip(leaves(s, is-leaf, skip)) <+ all(leaves(s, is-leaf, skip))
 
+  leaves(TP, TP) :: TP
   leaves(s, is-leaf) =
-    rec x((is-leaf; s) <+ all(x))
+    (is-leaf; s) <+ all(leaves(s, is-leaf))
 
 /**
  * Find as many applications as possible, but at least one.
@@ -339,8 +363,9 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  manybu(TP) :: TP
   manybu(s) =
-    rec x(some(x); try(s) <+ s)
+    some(manybu(s)); try(s) <+ s
 
   /** Apply s as many times as possible, but at least once, in top down
    * order.
@@ -348,18 +373,20 @@ strategies
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  manytd(TP) :: TP
   manytd(s) =
-    rec x(s; all(try(x)) <+ some(x))
+    s; all(try(manytd(s))) <+ some(manytd(s))
 
 strategies
-
+  somedownup(TP) :: TP
   somedownup(s) =
-    rec x(s; all(x); try(s) <+ some(x); try(s))
+    rec x(s; all(somedownup(s)); try(s) <+ some(somedownup(s)); try(s))
 
   /** Apply s to a term in breadth first order.
    *
    * @param s          Term -> Term
    * @type  Term -> Term
    */
+  breadthfirst(TP) :: TP
   breadthfirst(s) =
-    rec x(all(s); all(x))
+    all(s); all(breadthfirst(s))
