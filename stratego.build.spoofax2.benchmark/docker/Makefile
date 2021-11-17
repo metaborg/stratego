@@ -55,7 +55,7 @@ $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
 
 $(RESULTS_DIR):
 	@echo "Result dir: $(RESULTS_DIR)"
-	@-mkdir -p $(RESULTS_DIR)
+	@mkdir -p $(RESULTS_DIR)
 
 $(CHOCOPY_REPO_DIR):
 	@echo "Cloning ChocoPy repo"
