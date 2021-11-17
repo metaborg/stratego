@@ -21,11 +21,15 @@ colorer Extension
 
   strategydefs = 0 64 128 bold
 
-  RuleDef     : strategydefs
-  RuleDec     : strategydefs
-  StrategyDef : strategydefs
-  SDefT       : strategydefs
-  Overlay     : strategydefs
+  RuleDef            : strategydefs
+  RuleDec            : strategydefs
+  StrategyDef        : strategydefs
+  SDefT              : strategydefs
+  RDefT              : strategydefs
+  Overlay            : strategydefs
+  _.DefHasTypeNoArgs : strategydefs
+  _.DefHasType       : strategydefs
+  _.DefHasTType      : strategydefs
 
   strategycalls = 0 64 128
 
