@@ -99,8 +99,8 @@ chocopy-variants: $(CHOCOPY_LANGUAGE).O2 $(CHOCOPY_LANGUAGE).O3 $(CHOCOPY_LANGUA
 run-benchmark: chocopy-variants $(BENCHMARK_JAR) | $(RESULTS_DIR)
 	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) $(BENCHMARK_ARGS)
-	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished%3A%0A`echo ${TARGET} | tr -d ' .'`"
+	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20finished&c=Benchmark%20finished%3A%0A${CONTAINER}%20`echo ${TARGET} | tr -d ' .'`"
 
 .PHONY: prepare-benchmark
 prepare-benchmark: chocopy-variants $(BENCHMARK_JAR) | $(RESULTS_DIR)
-	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20prepared&c=Benchmark%20prepared"
+	@-curl "http://xdroid.net/api/message?k=k-9f63903546c4&t=Benchmark%20prepared&c=Benchmark%20prepared%20${CONTAINER}"

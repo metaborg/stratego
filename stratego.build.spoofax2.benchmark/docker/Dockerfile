@@ -9,7 +9,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.14.2/yq_linux_amd64.tar.gz -O - |\
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN mkdir bin && \
+    cd bin && \
+    wget -q https://github.com/mikefarah/yq/releases/download/v4.14.2/yq_linux_amd64.tar.gz -O - |\
     tar xz && mv yq_linux_amd64 /usr/bin/yq
 
 # Set the locale to UTF-8 (http://jaredmarkell.com/docker-and-locales/)
@@ -25,9 +29,6 @@ WORKDIR ${WORKDIR}
 # Directories
 ENV DATA_DIR=${WORKDIR}/data
 RUN mkdir ${DATA_DIR}
-
-ENV BIN_DIR=${WORKDIR}/bin
-RUN mkdir ${BIN_DIR}
 
 ENV BUILD_DIR=${WORKDIR}/build
 RUN mkdir ${BUILD_DIR}
