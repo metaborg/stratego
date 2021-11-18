@@ -23,6 +23,7 @@ signature
      * Represents a reference to a Set
      */
     ImmutableSet : ImmutableSetImplBlob -> ImmutableSet(k)
+    : blob -> ImmutableSetImplBlob
 
 /**
  * Immutable set construction and deconstruction

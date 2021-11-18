@@ -25,6 +25,7 @@ signature
      * Represents a reference to a Set
      */
     ImmutableMap : ImmutableMapImplBlob -> ImmutableMap(k, v)
+    : blob -> ImmutableMapImplBlob
 
 /**
  * Immutable map construction and deconstruction

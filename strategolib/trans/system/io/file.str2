@@ -20,6 +20,7 @@ signature
     FileLoc
   constructors
     Stream    : StreamImplBlob -> Stream
+    : int -> StreamImplBlob
 
     Path      : string -> FileLoc
 
