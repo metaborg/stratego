@@ -11,6 +11,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.transform.TransformConfig;
 import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalysisService;
 import org.metaborg.spoofax.core.analysis.ISpoofaxAnalyzeResult;
@@ -96,7 +97,8 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
             compiledProgram = spoofax.transformService.transform(
                     Objects.requireNonNull(analyzeUnit),
                     context,
-                    new EndNamedGoal("Generate RV32IM AST (.rv32im.aterm file)")
+                    new EndNamedGoal("Generate RV32IM AST (.rv32im.aterm file)"),
+                    new TransformConfig(true)
             );
             riscvProgram = compiledProgram.iterator().next();
         }
