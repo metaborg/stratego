@@ -11,6 +11,8 @@ module strategy/traversal/list
 imports
   strategy/conditional
   strategy/traversal/simple
+  collection/list/cons
+  collection/tuple/cons
 strategies
 /*
 
@@ -26,22 +28,26 @@ strategies
     to all nodes of a term.
 
 */
-
+  all-l(? -> ?) :: ? -> ?
   all-l(s) = ?[_|_] < [s | s] + all(s)
 
-
+  topdown-l(? -> ?) :: ? -> ?
   topdown-l(s) =
     rec x(s; all-l(x))
 
+  bottomup-l(? -> ?) :: ? -> ?
   bottomup-l(s) =
     rec x(all-l(x); s)
 
+  downup-l(? -> ?) :: ? -> ?
   downup-l(s) =
     rec x(s; all-l(x); s)
 
+  downup-l(? -> ?, ? -> ?) :: ? -> ?
   downup-l(s1, s2) =
     rec x(s1; all-l(x); s2)
 
+  downup2-l(? -> ?, ? -> ?) :: ? -> ?
   downup2-l(s1, s2) =
     rec x(s1; all-l(x); s2)
 
@@ -54,15 +60,19 @@ strategies
 
 */
 
+  topdownS-l(? -> ?, (? -> ?) ? -> ?) :: ? -> ?
   topdownS-l(s, stop: (a -> a) * a -> a) =
     rec x(s; (stop(x) <+ all-l(x)))
 
+  bottomupS-l(? -> ?, (? -> ?) ? -> ?) :: ? -> ?
   bottomupS-l(s, stop: (a -> a) * a -> a) =
     rec x((stop(x) <+ all-l(x)); s)
 
+  downupS-l(? -> ?, (? -> ?) ? -> ?) :: ? -> ?
   downupS-l(s, stop: (a -> a) * a -> a) =
     rec x(s; (stop(x) <+ all-l(x)); s)
 
+  downupS-l(? -> ?, ? -> ?, (? -> ?) ? -> ?) :: ? -> ?
   downupS-l(s1, s2, stop: (a -> a) * a -> a) =
     rec x(s1; (stop(x) <+ all-l(x)); s2)
 
@@ -74,6 +84,7 @@ strategies
 
 */
 
+  bottomup-para-l(? * ? -> ?) :: ? -> ?
   bottomup-para-l(s) =
     rec x(!(<id>, <all-l(x)>); s)
 
@@ -84,13 +95,15 @@ strategies
     Find all topmost applications of \verb|s|;
 
 */
-
+  alltd-l(? -> ?) :: ? -> ?
   alltd-l(s) =
     rec x(s <+ all-l(x))
 
+  alldownup2-l(? -> ?, ? -> ?) :: ? -> ?
   alldownup2-l(s1, s2) =
     rec x((s1 <+ all-l(x)); s2)
 
+  alltd-fold-l(? -> ?, ? -> ?) :: ? -> ?
   alltd-fold-l(s1, s2) =
     rec x(s1 <+ all-l(x); s2)
 

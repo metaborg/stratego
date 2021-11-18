@@ -4,6 +4,7 @@
 module strategy/general/unification
 imports
   collection/list/-
+  collection/tuple/cons
   term/common
   term/properties
   strategy/general/substitution
@@ -32,6 +33,7 @@ strategies
 
 rules
 
+  UfShift :: List(?) * List(?) -> List(?) * List(?)
   UfShift :
     (ps1, [p | ps2]) -> ([p | ps1], ps2)
 
@@ -43,7 +45,7 @@ strategies
        ,(UfIdem, id) <+ MatchVar(isvar) + (UfDecompose, id))
 
 rules
-
+  MatchVar(? -> ?) :: List(?) * List(?) -> List(?) * List(?)
   MatchVar(isvar) :
     ([(x,y) | ps], sbs) -> (ps, [(x, y) | sbs])
     where <isvar> x; <not(fetch({z: ?(x,z); <not(eq)> (y, z)}))> sbs

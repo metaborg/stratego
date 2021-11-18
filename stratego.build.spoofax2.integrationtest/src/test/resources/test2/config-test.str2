@@ -1,0 +1,7 @@
+module config-test
+imports strategolib
+
+strategies
+
+  main = <set-config> ("a", 1); <get-config> "a"; ?1
+

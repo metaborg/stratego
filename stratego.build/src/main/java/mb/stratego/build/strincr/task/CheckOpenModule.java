@@ -48,7 +48,7 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
-        final InsertCastsOutput output = checkModule.insertCasts(insertCastsInput, projectPath);
+        final InsertCastsOutput output = checkModule.insertCasts(insertCastsInput, projectPath, context.logger());
 
         final ArrayList<Message> messages =
             new ArrayList<>(moduleData.messages.size() + output.messages.size());

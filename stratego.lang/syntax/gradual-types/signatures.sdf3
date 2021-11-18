@@ -12,6 +12,7 @@ context-free syntax
   Type.StringT     = "string"
   Type.IntT        = "int"
   Type.RealT       = "real"
+  Type.BlobT       = "blob"
   Type             = [([Type])] {bracket}
   Type             = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]

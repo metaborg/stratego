@@ -26,6 +26,7 @@ imports
   term/string
   term/integer
   strategy/conditional
+  collection/list/cons
   collection/list/common
 strategies
 
@@ -293,6 +294,7 @@ strategies
    * @param exit
    *          The exit strategy to use, e.g., xtc-exit.
    */
+  report-failure(int -> a) :: List(string) -> a
   report-failure(exit) =
       ?stacktrace
     ; report-run-time
@@ -300,9 +302,11 @@ strategies
     ; <reverse ; map(<fprintnl> (stderr(), ["\t", <id>]))> stacktrace
     ; <exit> 1
 
+  report-failure :: List(string) -> a
   report-failure =
     report-failure(exit)
 
+  report-failure(|?, t) :: List(string) -> a
   report-failure(|message, term) =
     report-failure(
       log(|Critical(), message, term)

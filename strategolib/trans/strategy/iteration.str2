@@ -44,7 +44,7 @@ strategies
    * strategy is that of the nth application of s.
    */
   repeat(s | n) =
-    if <eq>(n, 0)
+    if <leq>(n, 0)
     then
       id
     else

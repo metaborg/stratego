@@ -56,7 +56,7 @@ stratego2-insert-casts:
   |}
 
 /**
- * Some strange "backward compatibility" rules in the grammar give these rule alternatives.
+ * Some strange "backward compatibility" rules in the grammar of Stratego 1 give these rule alternatives.
  * This strategy normalized those.
  */
 fix-old-grammar = bottomup(try(otf(
@@ -234,6 +234,16 @@ can-coerce-stype(|injection-closure):
   ; (ttpairs, st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
   ; (tt3*, tt4*) := <unzip> ttpairs
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
+
+can-coerce-stype(|injection-closure):
+  ((FunTType(st1*, tt1*, TP()), FunTType(st2*, tt2*, TP())), st1) ->
+    ((FunTType(st3*, tt3*, TP()), FunTType(st4*, tt4*, TP())), st3)
+  where
+    (stpairs, st2) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st1)
+  ; (st3*, st4*) := <unzip> stpairs
+  ; (ttpairs, st3) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st2)
+  ; (tt3*, tt4*) := <unzip> ttpairs
+// TODO: more TP related stuff?
 
 itv: st1 -> <current-type(itv(|st1))> st1
 

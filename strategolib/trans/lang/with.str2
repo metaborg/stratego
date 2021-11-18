@@ -10,6 +10,8 @@ imports
   util/log
   strategy/conditional
   util/config/options
+  collection/tuple/cons
+  collection/list/cons
 
 strategies
 
@@ -19,6 +21,7 @@ strategies
    * @note In future revisions, a facility may be provided to "catch"
    *       failures raised by with clauses and uses of this strategy.
    */
+  with(a -> ? | List(string)) :: a -> a
   with(s|message) =
     where(s <+ ?term; prim("SSL_stacktrace_get_all_frame_names"); report-failure(|message, term))
 
@@ -35,11 +38,13 @@ strategies
   * @param (String, a, List(String)) -> c
   * @type a -> b | c
   */
+  catch-with(a -> b, string * a * List(string) -> b) :: a -> b
   catch-with(s1, s2) = prim("SSL_EXT_catch_with", s1, s2|)
 
   /**
   * @internal
   */
+  report-with-failure(|string) :: List(string) -> a
   report-with-failure(|strategyname) =
     report-failure(|["Internal error: with clause failed unexpectedly in ", strategyname ], <id>)
 

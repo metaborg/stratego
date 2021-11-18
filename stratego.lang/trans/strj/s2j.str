@@ -1101,6 +1101,9 @@ strategies
     RealT() -> |[ RealT.INSTANCE ]|
 
   translate-Type:
+    BlobT() -> |[ BlobT.INSTANCE ]|
+
+  translate-Type:
     Sort(str, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|
   with
     e_ty* := <map(translate-Type)> args

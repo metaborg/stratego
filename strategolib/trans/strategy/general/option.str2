@@ -7,4 +7,7 @@ signature
     Some : a -> Option(a)
 strategies
 
-  option(s) = None + Some(s)
+  option(a -> b) :: Option(a) -> Option(b)
+  option(s): None(){a*} -> None(){a*}
+  option(s): Some(t){a*} -> Some(<s> t){a*}
+//  option(s) = None + Some(s)

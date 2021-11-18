@@ -20,6 +20,7 @@ signature
     IndexedSetImplBlob
   constructors
     IndexedSet : IndexedSetImplBlob -> IndexedSet
+    : blob -> IndexedSetImplBlob
 
 /**
  * IndexedSet construction and deconstruction
