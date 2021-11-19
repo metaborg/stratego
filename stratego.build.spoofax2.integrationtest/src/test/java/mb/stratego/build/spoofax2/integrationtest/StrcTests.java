@@ -65,9 +65,10 @@ public class StrcTests {
             new HashSet<>(Arrays.asList("list-cons.str2", "config-test.str2"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test2", "*.str2", disableFilter,
-            new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
-//            ,compileAndRun("test2", "config-test.str2", p -> true, new ArrayList<>(0)));
+        return Stream.concat(
+            compileAndRun("test2", "*.str2", disableFilter,
+                new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib))),
+            compileAndRun("test2", "config-test.str2", p -> true, new ArrayList<>(0)));
     }
 
     @TestFactory
