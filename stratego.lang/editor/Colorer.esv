@@ -6,51 +6,39 @@ imports
   libspoofax/color/default
   completion/colorer/StrategoLang-cc-esv
 
-//colorer Extension
-//
-//  var: 139 69 19 italic
-//  
-//  // White background for variables and escapes
-////  environment _.StringEscape1 : _ 255 255 255
-////  environment _.StringEscape2 : _ 255 255 255
-////  environment _.StringEscape3 : _ 255 255 255
-////  environment _.StringEscape4 : _ 255 255 255
-////  _.Wld     : _ 255 255 255
-//
-//  _.StringEscape1 : gray  
-//  _.StringEscape2 : gray  
-//  _.StringEscape3 : gray  
-//  _.StringEscape4 : gray
-//  
-//  _.Str     : blue
-//  _.StrCong : blue
-//  _.QStr    : blue
-//  _.QDollar : blue
-//  _.QBr     : gray
-//  
-//  RuleDef     : 0 64 128 bold
-//  RuleDec     : 0 64 128 bold
-//  StrategyDef : 0 64 128 bold
-//  Overlay     : 0 64 128 bold
-//  
-//  strategycalls = 0 64 128
-//  //vars          = 0 0 0
-//  //sdefault      = 0 0 0
-//  
-//  _.RootApp : strategycalls
-//  _.App     : strategycalls
-//  
-//  SVar      : strategycalls
-//  TypedId   : strategycalls
-//  //Term      : terms
-//  //PreTerm   : terms
-//  //Var       : vars
-//  //_.Var     : vars
-//  //_.ListVar : vars
-//  //_.Assign  : sdefault
-//  //_.AM      : sdefault
-//
-//  QuotedBracket1 : blue
-//  QuotedBracket2 : blue
-//  QuotedBracket3 : blue
-//  QuotedBracket4 : blue
+colorer Extension
+
+  _.StringEscape1 : gray
+  _.StringEscape2 : gray
+  _.StringEscape3 : gray
+  _.StringEscape4 : gray
+
+  _.Str     : blue
+  _.StrCong : blue
+  _.QStr    : blue
+  _.QDollar : blue
+  _.QBr     : gray
+
+  strategydefs = 0 64 128 bold
+
+  RuleDef            : strategydefs
+  RuleDec            : strategydefs
+  StrategyDef        : strategydefs
+  SDefT              : strategydefs
+  RDefT              : strategydefs
+  Overlay            : strategydefs
+  _.DefHasTypeNoArgs : strategydefs
+  _.DefHasType       : strategydefs
+  _.DefHasTType      : strategydefs
+
+  strategycalls = 0 64 128
+
+  _.RootApp : strategycalls
+  _.App     : strategycalls
+  SVar      : strategycalls
+  TypedId   : strategycalls
+
+  QuotedBracket1 : blue
+  QuotedBracket2 : blue
+  QuotedBracket3 : blue
+  QuotedBracket4 : blue
