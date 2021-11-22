@@ -2,7 +2,6 @@ package benchmark.chocopy;
 
 import api.chocopy.ChocoPyProgram;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.util.cmd.Arguments;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,16 +22,25 @@ class Compile {
     public static void main(String... args) throws Exception {
         String filename = args[0];
 
+        long start, elapsed;
+
         Compile c = new Compile(filename);
         System.out.println("Loading program...");
         c.loadProgram();
 
-        System.out.println("Compiling Stratego...");
-        c.program.compileChocoPy();
+        for (int i = 0; i < 5; i++) {
+            System.out.print("Compiling ChocoPy...");
+            c.program.compiler.setupBuild();
+            start = System.currentTimeMillis();
+            c.program.compileChocoPy();
+            elapsed = System.currentTimeMillis() - start;
+            c.program.compiler.cleanup();
+            System.out.printf(" (%f s)%n", elapsed / 1000.f);
+        }
 
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         String res = c.program.run();
-        long elapsed = System.currentTimeMillis() - start;
+        elapsed = System.currentTimeMillis() - start;
 
         System.out.println(res);
         System.out.printf("Time elapsed: %f s%n", elapsed / 1000.f);

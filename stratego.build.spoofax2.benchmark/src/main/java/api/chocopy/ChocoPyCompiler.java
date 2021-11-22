@@ -39,9 +39,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
     private final ISimpleProjectService projectService = spoofax.injector.getInstance(ISimpleProjectService.class);
 
     private final ILanguageImpl chocoPy;
-//    private final ILanguageImpl riscV;
     private IContext context;
-    private IClosableLock lock;
 
     private final ISpoofaxParseUnit parseUnit;
     private File projectFolder;
@@ -54,21 +52,16 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
 
         // Languages
         chocoPy = spoofax.languageDiscoveryService.languageFromArchive(spoofax.resolve(getChocoPyPath(optimisationLevel).toFile()));
-//        riscV = spoofax.languageDiscoveryService.languageFromArchive(spoofax.resolve(getRiscVPath(optimisationLevel).toFile()));
 
         // Get source file contents
         FileObject sourceFile = spoofax.resolve(sourcePath.toFile());
         String fileContents = sourceTextService.text(sourceFile);
         ISpoofaxInputUnit inputUnit = unitService.inputUnit(sourceFile, fileContents, chocoPy, null);
         parseUnit = syntaxService.parse(inputUnit);
-
-        setupBuild();
     }
 
     @Override
     public void setupBuild() throws MetaborgException {
-        System.out.println("Setting up build");
-
         try {
             projectFolder = Files.createTempDirectory("chocopybenchmark").toFile();
             FileUtils.forceDeleteOnExit(projectFolder);
@@ -88,6 +81,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
     @Override
     public void cleanup() {
         try {
+            project.location().delete();
             context.reset();
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,7 +104,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
 
 //    @Override
     public String prettyPrint() throws MetaborgException {
-        try (IClosableLock lock = context.read()) {
+        try (IClosableLock ignored = context.read()) {
             IStrategoTerm result = spoofax.strategoCommon.invoke(chocoPy, context, riscvProgram.ast(), "pp-RV32IM-string");
             return Objects.requireNonNull(result).toString(8);
         }
@@ -120,6 +114,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
         return localRepository.resolve(Paths.get("org", "example", "chocopy.backend", "0.1.0-SNAPSHOT", String.format("chocopy.backend-0.1.0-SNAPSHOT.spoofax-language.O%d", optimisationLevel)));
     }
 
+    @SuppressWarnings({"unused"})
     private static Path getRiscVPath(int optimisationLevel) {
         return localRepository.resolve(Paths.get("org", "metaborg", "RV32IM", "0.1.0-SNAPSHOT", String.format("RV32IM-0.1.0-SNAPSHOT.spoofax-language.O%d", optimisationLevel)));
     }
