@@ -68,7 +68,7 @@ strategies
 
 desugar-SType = otf(\t@TP() -> FunTType([], [], t)\)
 desugar-SType = otf(\st@FunNoArgsType(i, o) -> FunTType([], [], <desugar-SSimpleFunType> st)\)
-desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-Type> t)\)
+desugar-SType = otf(\FunType(sargs, t) -> FunTType(<map(try(desugar-SType))> sargs, [], <desugar-SSimpleFunType> t)\)
 desugar-SType = otf(?a;FunTType(map(try(desugar-SType)), map(desugar-Type), desugar-SSimpleFunType);not(?a))
 
 desugar-SSimpleFunType = ?TP()
