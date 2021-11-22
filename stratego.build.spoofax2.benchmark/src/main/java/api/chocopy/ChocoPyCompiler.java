@@ -44,7 +44,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
     private IClosableLock lock;
 
     private final ISpoofaxParseUnit parseUnit;
-    private final File projectFolder;
+    private File projectFolder;
     private ISpoofaxAnalyzeUnit analyzeUnit;
     private IProject project;
     private ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit> riscvProgram;
@@ -56,17 +56,11 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
         chocoPy = spoofax.languageDiscoveryService.languageFromArchive(spoofax.resolve(getChocoPyPath(optimisationLevel).toFile()));
 //        riscV = spoofax.languageDiscoveryService.languageFromArchive(spoofax.resolve(getRiscVPath(optimisationLevel).toFile()));
 
-        projectFolder = Files.createTempDirectory("chocopybenchmark").toFile();
-        FileUtils.forceDeleteOnExit(projectFolder);
-
         // Get source file contents
         FileObject sourceFile = spoofax.resolve(sourcePath.toFile());
         String fileContents = sourceTextService.text(sourceFile);
         ISpoofaxInputUnit inputUnit = unitService.inputUnit(sourceFile, fileContents, chocoPy, null);
         parseUnit = syntaxService.parse(inputUnit);
-
-        project = projectService.create(spoofax.resolve(projectFolder));
-        context = contextService.get(parseUnit.source(), project, parseUnit.input().langImpl());
 
         setupBuild();
     }
@@ -74,8 +68,17 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
     @Override
     public void setupBuild() throws MetaborgException {
         System.out.println("Setting up build");
+
+        try {
+            projectFolder = Files.createTempDirectory("chocopybenchmark").toFile();
+            FileUtils.forceDeleteOnExit(projectFolder);
+        } catch (IOException ignored) {}
+
+        project = projectService.create(spoofax.resolve(projectFolder));
+        context = contextService.get(parseUnit.source(), project, parseUnit.input().langImpl());
+
         ISpoofaxAnalyzeResult analyzeResult;
-        try (IClosableLock lock = context.write()) {
+        try (IClosableLock ignored = context.write()) {
             analyzeResult = analysisService.analyze(parseUnit, context);
         }
 
@@ -93,7 +96,7 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
 
     @Override
     public Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> compileProgram() throws MetaborgException {
-        try (IClosableLock lock = context.read()) {
+        try (IClosableLock ignored = context.read()) {
             compiledProgram = spoofax.transformService.transform(
                     Objects.requireNonNull(analyzeUnit),
                     context,
