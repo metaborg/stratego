@@ -65,15 +65,12 @@ $(STRATEGO_REPO_DIR):
 	@echo "Cloning Stratego repo"
 	@git clone -q  $(BENCHMARK_REPO_URL) $(STRATEGO_REPO_DIR)
 
-.PHONY: fetch-chocopy
-pull-chocopy: $(CHOCOPY_REPO_DIR)
+$(CHOCOPY_REPO): $(CHOCOPY_REPO_DIR)
 	@echo "Updating existing ChocoPy repo"
 	@cd $(CHOCOPY_REPO_DIR) && \
 	git fetch -qap && \
 	git checkout -qf $(CHOCOPY_BRANCH) && \
 	git pull -q
-
-$(CHOCOPY_REPO): | pull-chocopy
 
 $(CHOCOPY_METABORG_FILE): $(CHOCOPY_REPO)
 $(RISCV_METABORG_FILE): $(CHOCOPY_REPO)
