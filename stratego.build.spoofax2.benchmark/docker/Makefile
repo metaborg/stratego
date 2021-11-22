@@ -67,6 +67,7 @@ $(STRATEGO_REPO_DIR):
 
 .PHONY: fetch-chocopy
 pull-chocopy: $(CHOCOPY_REPO_DIR)
+	@echo "Updating existing ChocoPy repo"
 	@cd $(CHOCOPY_REPO_DIR) && \
 	git fetch -qap && \
 	git checkout -qf $(CHOCOPY_BRANCH) && \
