@@ -11,7 +11,7 @@ public abstract class ChocoPyBenchmark extends OptimisationBenchmark<ChocoPyProg
 
     private static final String LANGUAGE_SUBFOLDER = "chocopy";
 
-    @Param({/*"", "elseif", "nested-switch",*/ "hash-switch"})
+    @Param({"", /*"elseif", "nested-switch",*/ "hash-switch"})
     public String switchImplementation = "";
 
 //    @Param({"", /*"name-arity",*/ "arity-name"})
