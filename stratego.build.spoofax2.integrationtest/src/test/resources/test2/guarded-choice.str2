@@ -1,6 +1,6 @@
 module guarded-choice
 
-imports libstratego-lib
+imports strategolib
 
 strategies
 

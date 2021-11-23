@@ -4,7 +4,7 @@
  * Authors: Eelco Visser & Jory van Zessen
  */
 module occan
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts Exp String Var Alt List(a)

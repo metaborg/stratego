@@ -1,5 +1,5 @@
 module innermost-pure
-imports libstratego-lib
+imports strategolib
 signature
   sorts Nat
   constructors

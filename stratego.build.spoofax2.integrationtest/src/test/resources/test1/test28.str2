@@ -1,5 +1,5 @@
 module test28
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts Exp Type String

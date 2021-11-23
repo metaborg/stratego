@@ -43,7 +43,7 @@ strategies
   env-topdown(s) =
     rec x(s; all-dist(x))
 
-//  env-topdown(? * e -> ? * e, (? * e -> ?) ? * e -> ?) :: ? * e -> ?
+  env-topdown(? * e -> ? * e, (? * e -> ?) ? * e -> ?) :: ? * e -> ?
   env-topdown(s, skip: (term -> term) * term -> term) =
     s; (skip(env-topdown(s, skip)) <+ all-dist(env-topdown(s, skip)))
 

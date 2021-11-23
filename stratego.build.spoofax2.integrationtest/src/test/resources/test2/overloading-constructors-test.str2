@@ -1,5 +1,5 @@
 module overloading-constructors-test
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     Exp String Stat

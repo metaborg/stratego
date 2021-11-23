@@ -1,5 +1,5 @@
 module number-syntax-test
-imports libstratego-lib
+imports strategolib
 rules
 
   bla : 1 -> 2

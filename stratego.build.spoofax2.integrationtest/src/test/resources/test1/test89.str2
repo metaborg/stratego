@@ -1,5 +1,5 @@
 module test89
-imports libstratego-lib
+imports strategolib
 strategies
 
   main =

@@ -1,5 +1,5 @@
 module as-pattern
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

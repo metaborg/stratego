@@ -1,5 +1,5 @@
 module mkterm
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     Term

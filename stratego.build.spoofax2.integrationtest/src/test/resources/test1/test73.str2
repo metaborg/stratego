@@ -1,5 +1,5 @@
 module test73
-imports libstratego-lib
+imports strategolib
 strategies
   
     test1 = ( rules( a : _ -> 1 ) /~["a"]\ rules( a : _ -> 0 ) ) ; a 

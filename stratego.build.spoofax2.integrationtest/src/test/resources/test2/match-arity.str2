@@ -1,5 +1,5 @@
 module match-arity
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

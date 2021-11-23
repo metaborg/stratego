@@ -1,5 +1,5 @@
 module prop
-imports libstratego-lib
+imports strategolib
 strategies
 
   main = 

@@ -10,8 +10,10 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -39,7 +41,6 @@ import mb.stratego.build.strincr.task.output.CompileOutput;
 
 public class StrcTests {
     public static final String packageName = "mb.stratego2integrationtest";
-    public static final String packageDirName = packageName.replace('.', '/');
     public static final ResourceService resourceService =
         new DefaultResourceService(new FSResourceRegistry());
     // TODO: turn shell scripts from test-strc into tests here
@@ -49,37 +50,29 @@ public class StrcTests {
         //   This is currently not easy to support with post-processing, and we don't want to add
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
+        // tests 92 and 105 test something with externals, while not compiling against a library
+        //   that contains that external.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Arrays.asList("test113.str", "test113.str2"));
+            new HashSet<>(Arrays.asList("test113.str2", "test94.str2", "test105.str2"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return compileAndRun("test1", "{test??.str2,test???.str2}", disableFilter, new ArrayList<>(
-            Arrays.asList(BuiltinLibraryIdentifier.StrategoLib,
-                BuiltinLibraryIdentifier.StrategoSdf)));
+        return compileAndRun("test1", "{test??.str2,test???.str2}", disableFilter,
+            new ArrayList<>(Collections.singletonList(BuiltinLibraryIdentifier.StrategoSdf)));
     }
 
     @TestFactory
     Stream<DynamicTest> test2() throws URISyntaxException, IOException {
         // list-cons is not a test file, it is imported by other test files.
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Arrays.asList("list-cons.str2", "config-test.str2"));
+            new HashSet<>(Collections.singletonList("list-cons.str2"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return Stream.concat(
-            compileAndRun("test2", "*.str2", disableFilter,
-                new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib))),
-            compileAndRun("test2", "config-test.str2", p -> true, new ArrayList<>(0)));
+        return compileAndRun("test2", "*.str2", disableFilter, new ArrayList<>(0));
     }
 
     @TestFactory
     Stream<DynamicTest> testNeg() throws URISyntaxException, IOException {
-        // test05 exposes problem where overlap check on dyn rule lhs is done too late in the process of the compiler
-        HashSet<String> disabledTestFiles =
-            new HashSet<>();//Arrays.asList("test05.str"));
-        final Predicate<Path> disableFilter =
-            p -> !disabledTestFiles.contains(p.getFileName().toString());
-        return failToCompile("testneg", "test*.str2", disableFilter,
-            new ArrayList<>(Arrays.asList(BuiltinLibraryIdentifier.StrategoLib)));
+        return failToCompile("testneg", "test*.str2", new ArrayList<>(0));
     }
 
     protected Stream<DynamicTest> compileAndRun(String subdir, String glob,
@@ -117,6 +110,13 @@ public class StrcTests {
                     "Running java expected to succeed (" + baseName + ")");
             });
         });
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected Stream<DynamicTest> failToCompile(String subdir, String glob,
+        ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
+        throws URISyntaxException, IOException {
+        return failToCompile(subdir, glob, path -> true, linkedLibraries);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -192,7 +192,7 @@ public class StrcTests {
     }
 
     protected Path getResourcePathRoot() throws URISyntaxException {
-        return Paths.get(this.getClass().getResource("/").toURI());
+        return Paths.get(Objects.requireNonNull(this.getClass().getResource("/")).toURI());
     }
 
     private static Iterable<? extends File> javaFiles(CompileOutput.Success str2CompileOutput) {
@@ -208,7 +208,8 @@ public class StrcTests {
         return sourceFiles;
     }
 
-    @SuppressWarnings("unused") protected static Iterable<? extends File> javaFiles(Path packageDir) throws IOException {
+    @SuppressWarnings("unused")
+    protected static Iterable<? extends File> javaFiles(Path packageDir) throws IOException {
         final List<File> result = new ArrayList<>();
         try(DirectoryStream<Path> javaPaths = Files.newDirectoryStream(packageDir,
             p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".java"))) {

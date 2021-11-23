@@ -1,5 +1,5 @@
 module test34
-imports libstratego-lib
+imports strategolib
 
 strategies
 

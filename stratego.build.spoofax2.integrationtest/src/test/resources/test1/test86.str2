@@ -1,7 +1,7 @@
 // pattern match compilation test
 
 module test86
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     E

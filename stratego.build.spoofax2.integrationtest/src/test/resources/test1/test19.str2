@@ -1,6 +1,6 @@
 module test19
 imports
-   libstratego-lib
+   strategolib
 
 signature
 constructors
