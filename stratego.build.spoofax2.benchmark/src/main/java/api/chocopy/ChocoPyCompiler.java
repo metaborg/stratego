@@ -58,6 +58,8 @@ public final class ChocoPyCompiler extends Compiler<Collection<ISpoofaxTransform
         String fileContents = sourceTextService.text(sourceFile);
         ISpoofaxInputUnit inputUnit = unitService.inputUnit(sourceFile, fileContents, chocoPy, null);
         parseUnit = syntaxService.parse(inputUnit);
+
+        setupBuild();
     }
 
     @Override
