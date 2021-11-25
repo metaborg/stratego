@@ -9,16 +9,20 @@ module strategy/pack/graph
 imports
   term/string
   collection/list/-
+  collection/tuple/-
   strategy/iteration
 
 rules
-
+  GnInit :: r * g * n -> List(r) * List(r) * g * n * List(empty)
   GnInit :
     (root, graph, nodes) -> ([root], [root], graph, nodes, [])
 
+  GnInitRoots :: r * g * n -> r * r * g * n * List(empty)
   GnInitRoots :
     (roots, graph, nodes) -> (roots, roots, graph, nodes, [])
 
+  GnNext(nm * g -> nd, nd -> List(nm), nm * nd * nds -> nds) ::
+    List(nm) * List(nm) * g * nds * ud -> List(nm) * List(nm) * g * nds * ud
   GnNext(get-node, out-edges, add-node) :
     ([name | todo], done, graph, nodes, undef) ->
     (<conc> (todo', todo), <conc> (todo', done),
@@ -27,6 +31,8 @@ rules
           <out-edges> node => names;
       <diff> (names, done) => todo'
 
+  GnNextChangeGraph(nm * g -> nd * g, nd -> List(nm), nm * nd * nds -> nds) ::
+    List(nm) * List(nm) * g * nds * ud -> List(nm) * List(nm) * g * nds * ud
   GnNextChangeGraph(get-node, out-edges, add-node) :
     ([name | todo], done, graph, nodes, undef) ->
     (<conc> (todo', todo), <conc> (todo', done),
@@ -35,27 +41,33 @@ rules
           <out-edges> node => names;
       <diff> (names, done) => todo'
 
+  GnUndefined :: List(nm) * List(nm) * g * nds * List(nm) -> List(nm) * List(nm) * g * nds * List(nm)
   GnUndefined :
     ([name | todo], done, graph, nodes, undef) ->
     (todo, done, graph, nodes, [name | undef])
 
+  GnExit :: List(empty) * d * g * n * u -> n * u
   GnExit :
     ([], done, graph, nodes, undef) -> (nodes, undef)
 
 strategies
 
+  graph-nodes-undef-roots(nm * g -> nd, nd -> List(nm), nm * nd * nds -> nds) :: List(nm) * g * nds -> nds * List(nm)
   graph-nodes-undef-roots(get-node, out-edges, add-node) =
     for(GnInitRoots, GnExit, GnNext(get-node, out-edges, add-node)
                              <+ GnUndefined)
 
+  graph-nodes-undef(nm * g -> nd, nd -> List(nm), nm * nd * nds -> nds) :: nm * g * nds -> nds * List(nm)
   graph-nodes-undef(get-node, out-edges, add-node) =
     for(GnInit, GnExit, GnNext(get-node, out-edges, add-node)
                         <+ GnUndefined)
 
+  graph-nodes-undef-roots-chgr(nm * g -> nd * g, nd -> List(nm), nm * nd * nds -> nds) :: List(nm) * g * nds -> nds * List(nm)
   graph-nodes-undef-roots-chgr(get-node, out-edges, add-node) =
     for(GnInitRoots, GnExit, GnNextChangeGraph(get-node, out-edges, add-node)
                         <+ GnUndefined)
 
+  graph-nodes-undef-chgr(nm * g -> nd * g, nd -> List(nm), nm * nd * nds -> nds) :: nm * g * nds -> nds * List(nm)
   graph-nodes-undef-chgr(get-node, out-edges, add-node) =
     for(GnInit, GnExit, GnNextChangeGraph(get-node, out-edges, add-node)
                         <+ GnUndefined)
@@ -73,10 +85,12 @@ strategies
   *    out-edges :: node -> List(name)
   *    add-node  :: name * node * nodes -> nodes
   */
- graph-nodes(get-node, out-edges, add-node) =
+  graph-nodes(nm * g -> nd, nd -> List(nm), nm * nd * nds -> nds) :: nm * g * nds -> nds
+  graph-nodes(get-node, out-edges, add-node) =
     graph-nodes-undef(get-node, out-edges, add-node);
     \ (nodes, undef) -> nodes \
 
+  graph-nodes-roots(nm * g -> nd, nd -> List(nm), nm * nd * nds -> nds) :: List(nm) * g * nds -> nds
   graph-nodes-roots(get-node, out-edges, add-node) =
     graph-nodes-undef-roots(get-node, out-edges, add-node);
     \ (nodes, undef) -> nodes \

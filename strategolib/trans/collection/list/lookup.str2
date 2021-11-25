@@ -37,7 +37,8 @@ strategies
    * @type  k * List(k * v) -> v
    */
   lookup :: k * List(k * v) -> v
-  lookup = Look1 <+ Look2 ; lookup
+  lookup: (x, xs) -> <getfirst({y: ?(x, y); !y})> xs
+  // slower-lookup = Look1 <+ Look2; slower-lookup
 
   /**
    * Find first element of a list to which s applies.
@@ -50,25 +51,23 @@ strategies
   getfirst(s) = Hd; s <+ Tl; getfirst(s)
 
   /**
-   * Faster version of lookup.
-   *
-   * The advantage over lookup is that lookup' does not construct
-   * intermediate pairs.
+   * Used to be a faster version of lookup. Now lookup itself uses the fast implementation.
    *
    * @type  k * List(k * v) -> v
    * @internal
    */
   lookup' :: k * List(k * v) -> v
-  lookup' = {x, xs: ?(x, xs) ; <getfirst({y: ?(x, y); !y})> xs}
+  lookup' = lookup
 
   /**
    * Looks up the first value associated with a particular key
-   * in an associative list, using keyeq to do key comparisons.
+   * in a list, using keyeq to do key comparisons.
    *
    * @type k * List(k * v) -> v
    */
-  lookup(k * k -> ?) :: k * List(k * v) -> v
-  lookup(keyeq) = Look1'(keyeq) <+ Look2; lookup(keyeq)
+  lookup(k1 * k2 -> ?) :: k1 * List(k2 * v) -> v
+  lookup(keyeq): (k1, xs) -> <getfirst(\(k2, v) -> v where <keyeq> (k1, k2)\)> xs
+  // slower-lookup(keyeq) = Look1'(keyeq) <+ Look2; lookup(keyeq)
 
 rules
 
