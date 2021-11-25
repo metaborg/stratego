@@ -1,5 +1,5 @@
 module dynamic-rules-test
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

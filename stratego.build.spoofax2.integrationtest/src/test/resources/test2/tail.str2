@@ -1,5 +1,5 @@
 module tail
-imports libstratego-lib
+imports strategolib
 rules
 
   RA : [x, y | z] -> [x, y, x | z]

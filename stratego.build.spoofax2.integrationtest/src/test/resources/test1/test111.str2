@@ -2,7 +2,7 @@
  * Test for STR-626
  */
 module test111
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

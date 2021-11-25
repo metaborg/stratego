@@ -1,5 +1,5 @@
 module test78
-imports libstratego-lib
+imports strategolib
 
 strategies
 

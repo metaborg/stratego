@@ -170,7 +170,7 @@ public class DesugarType {
                     for(IStrategoTerm sarg : sargs) {
                         sargs2.add(tryDesugarSType(tf, sarg));
                     }
-                    final IStrategoTerm t = tryDesugarType(tf, term.getSubterm(1));
+                    final IStrategoTerm t = desugarSSimpleFunType(tf, term.getSubterm(1));
                     result = tf.makeAppl("FunTType", sargs2.build(), tf.makeList(), t);
                     break;
                 }

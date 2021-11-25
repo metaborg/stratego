@@ -1,6 +1,6 @@
 module pattern-matching-term-parameters
 
-imports libstratego-lib
+imports strategolib
 
 rules
 	

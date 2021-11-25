@@ -1,5 +1,5 @@
 module test22
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     String Fnord

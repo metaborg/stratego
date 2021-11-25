@@ -1,5 +1,5 @@
 module match-automaton-test
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

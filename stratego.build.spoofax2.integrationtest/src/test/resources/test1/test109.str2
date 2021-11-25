@@ -1,6 +1,6 @@
 module test109
 
-imports libstratego-lib
+imports strategolib
 
 strategies
 

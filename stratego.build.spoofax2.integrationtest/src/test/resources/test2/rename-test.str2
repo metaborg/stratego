@@ -1,5 +1,5 @@
 module rename-test
-imports libstratego-lib
+imports strategolib
 strategies
 
   main = 

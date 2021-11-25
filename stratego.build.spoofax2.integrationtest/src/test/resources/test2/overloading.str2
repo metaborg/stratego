@@ -1,5 +1,5 @@
 module overloading
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     Term

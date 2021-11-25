@@ -1,6 +1,6 @@
 // test for issue STR-260
 module test75
-imports  libstratego-lib
+imports  strategolib
 signature
   sorts
     String Foo

@@ -4,7 +4,7 @@
  * this test is ironically very badly formatted.
  */
 module test112
-imports libstratego-lib
+imports strategolib
 
 strategies
   

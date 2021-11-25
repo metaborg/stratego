@@ -1,5 +1,5 @@
 module test95
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     String Expr List(a)

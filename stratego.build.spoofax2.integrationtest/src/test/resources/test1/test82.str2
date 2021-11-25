@@ -1,5 +1,5 @@
 module test82
-imports libstratego-lib
+imports strategolib
 strategies
 
   main =

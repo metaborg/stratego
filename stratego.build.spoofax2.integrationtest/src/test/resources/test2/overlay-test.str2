@@ -1,5 +1,5 @@
 module overlay-test
-imports libstratego-lib
+imports strategolib
 signature
   sorts AsFixTerm Sort String Attr Prod List(a)
   constructors

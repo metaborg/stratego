@@ -2,7 +2,7 @@
  * Test for issue STR-577: support import of an ATerm from a file
  */
 module test104
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

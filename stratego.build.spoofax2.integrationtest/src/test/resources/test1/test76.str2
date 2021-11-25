@@ -1,5 +1,5 @@
 module test76
-imports libstratego-lib
+imports strategolib
 strategies
 
   main =

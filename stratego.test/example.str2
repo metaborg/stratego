@@ -4,18 +4,247 @@ signature
   sorts
     List(*)
     Tuple(*, *)
+    Hashtable(*, *)
+    HashtableImpl
+    RProgram RLine RLabel RStatement RPseudodirective RInstruction RArg RType COMPLETION-INSERTION
   constructors
+    RProgram               : List(RLine) -> RProgram
+                           : RStatement -> RLine
+                           : RLabel -> RLine
+    RLabel                 : RLBL -> RLabel
+    RLabelC                : RLBL * RComment -> RLabel
+    D                      : RPseudodirective * RComment -> RStatement
+    I                      : RInstruction * RComment -> RStatement
+                           : RPseudodirective -> RStatement
+                           : RInstruction -> RStatement
+    RProgram-Plhdr         : RProgram
+    RLine-Plhdr            : RLine
+    RLabel-Plhdr           : RLabel
+    RLBL-Plhdr             : RLBL
+    RComment-Plhdr         : RComment
+    RPseudodirective-Plhdr : RPseudodirective
+    RStatement-Plhdr       : RStatement
+    RInstruction-Plhdr     : RInstruction
+    RProgram-Plhdr         : COMPLETION-INSERTION -> RProgram
+    RLine-Plhdr            : COMPLETION-INSERTION -> RLine
+    RLabel-Plhdr           : COMPLETION-INSERTION -> RLabel
+    RLBL-Plhdr             : COMPLETION-INSERTION -> RLBL
+    RComment-Plhdr         : COMPLETION-INSERTION -> RComment
+    RPseudodirective-Plhdr : COMPLETION-INSERTION -> RPseudodirective
+    RStatement-Plhdr       : COMPLETION-INSERTION -> RStatement
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RLine-Opt-Plhdr        : RLine
+    RInt                   : RINT -> RArg
+    RVar                   : RID -> RArg
+    RLbl                   : RLBL -> RArg
+    RReg                   : RID -> RArg
+    RMem                   : RINT * RID -> RArg
+    RLocal                 : RArg * RType -> RInstruction
+    RIntT                  : RType
+    RLBL-Plhdr             : RLBL
+    RINT-Plhdr             : RINT
+//    RID-Plhdr              : RID
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RType-Plhdr            : RType
+    RLBL-Plhdr             : COMPLETION-INSERTION -> RLBL
+    RINT-Plhdr             : COMPLETION-INSERTION -> RINT
+//    RID-Plhdr              : COMPLETION-INSERTION -> RID
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RType-Plhdr            : COMPLETION-INSERTION -> RType
+    RPSData                : RPseudodirective
+    RPSText                : RPseudodirective
+    RPSByte                : List(RINT) -> RPseudodirective
+    RPSString              : RSTRING -> RPseudodirective
+    RPSAsciiz              : RSTRING -> RPseudodirective
+    RPSWord                : List(RArg) -> RPseudodirective
+    RPSSpace               : RINT -> RPseudodirective
+    RPSGlobl               : RArg -> RPseudodirective
+    RPSAlign               : RINT -> RPseudodirective
+    RPSEquiv               : RArg * RArg -> RPseudodirective
+    RPSEqu                 : RArg * RArg -> RPseudodirective
+    RPSSet                 : RArg * RArg -> RPseudodirective
+    RSTRING-Plhdr          : RSTRING
+    RINT-Plhdr             : RINT
+    RPseudodirective-Plhdr : RPseudodirective
+    RArg-Plhdr             : RArg
+    RSTRING-Plhdr          : COMPLETION-INSERTION -> RSTRING
+    RINT-Plhdr             : COMPLETION-INSERTION -> RINT
+    RPseudodirective-Plhdr : COMPLETION-INSERTION -> RPseudodirective
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RINT-Opt-Plhdr         : RINT
+    RArg-Opt-Plhdr         : RArg
+    RAdd                   : RArg * RArg * RArg -> RInstruction
+    RAddi                  : RArg * RArg * RArg -> RInstruction
+    RAnd                   : RArg * RArg * RArg -> RInstruction
+    RAndi                  : RArg * RArg * RArg -> RInstruction
+    ROr                    : RArg * RArg * RArg -> RInstruction
+    ROri                   : RArg * RArg * RArg -> RInstruction
+    RXor                   : RArg * RArg * RArg -> RInstruction
+    RXori                  : RArg * RArg * RArg -> RInstruction
+    RSub                   : RArg * RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RBeq                   : RArg * RArg * RArg -> RInstruction
+    RBne                   : RArg * RArg * RArg -> RInstruction
+    RBlt                   : RArg * RArg * RArg -> RInstruction
+    RBge                   : RArg * RArg * RArg -> RInstruction
+    RBltu                  : RArg * RArg * RArg -> RInstruction
+    RBgeu                  : RArg * RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    REcall                 : RInstruction
+    RLui                   : RArg * RArg -> RInstruction
+    RAuipc                 : RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RJal                   : RArg * RArg -> RInstruction
+    RJalr                  : RArg * RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RLb                    : RArg * RArg * RArg -> RInstruction
+    RLw                    : RArg * RArg * RArg -> RInstruction
+    RLw                    : RArg * RArg -> RInstruction
+    RLh                    : RArg * RArg * RArg -> RInstruction
+    RLbu                   : RArg * RArg * RArg -> RInstruction
+    RLhu                   : RArg * RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RSb                    : RArg * RArg * RArg -> RInstruction
+    RSh                    : RArg * RArg * RArg -> RInstruction
+    RSw                    : RArg * RArg * RArg -> RInstruction
+    RSw2                   : RArg * RArg * RArg -> RInstruction
+    RSlt                   : RArg * RArg * RArg -> RInstruction
+    RSltu                  : RArg * RArg * RArg -> RInstruction
+    RSlti                  : RArg * RArg * RArg -> RInstruction
+    RSltiu                 : RArg * RArg * RArg -> RInstruction
+    RSll                   : RArg * RArg * RArg -> RInstruction
+    RSrl                   : RArg * RArg * RArg -> RInstruction
+    RSra                   : RArg * RArg * RArg -> RInstruction
+    RSlli                  : RArg * RArg * RArg -> RInstruction
+    RSrli                  : RArg * RArg * RArg -> RInstruction
+    RSrai                  : RArg * RArg * RArg -> RInstruction
+    RMul                   : RArg * RArg * RArg -> RInstruction
+    RMulh                  : RArg * RArg * RArg -> RInstruction
+    RMulhsu                : RArg * RArg * RArg -> RInstruction
+    RMulhu                 : RArg * RArg * RArg -> RInstruction
+    RRem                   : RArg * RArg * RArg -> RInstruction
+    RRemu                  : RArg * RArg * RArg -> RInstruction
+    RDiv                   : RArg * RArg * RArg -> RInstruction
+    RDivu                  : RArg * RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+    RBeqz                  : RArg * RArg -> RInstruction
+    RBgez                  : RArg * RArg -> RInstruction
+    RBgtz                  : RArg * RArg -> RInstruction
+    RBltz                  : RArg * RArg -> RInstruction
+    RBnez                  : RArg * RArg -> RInstruction
+    RBgt                   : RArg * RArg * RArg -> RInstruction
+    RBgtu                  : RArg * RArg * RArg -> RInstruction
+    RBle                   : RArg * RArg * RArg -> RInstruction
+    RBleu                  : RArg * RArg * RArg -> RInstruction
+    RBlez                  : RArg * RArg * RArg -> RInstruction
+    RCall                  : RArg -> RInstruction
+    RJ                     : RArg -> RInstruction
+    RJal                   : RArg -> RInstruction
+    RJalr                  : RArg -> RInstruction
+    RJr                    : RArg -> RInstruction
+    RRet                   : RInstruction
+    RLa                    : RArg * RArg -> RInstruction
+    RLi                    : RArg * RArg -> RInstruction
+    RMv                    : RArg * RArg -> RInstruction
+    RNeg                   : RArg * RArg -> RInstruction
+    RNot                   : RArg * RArg -> RInstruction
+    RNop                   : RInstruction
+    RTail                  : RArg -> RInstruction
+    RSeqz                  : RArg * RArg -> RInstruction
+    RSgtz                  : RArg * RArg -> RInstruction
+    RSltz                  : RArg * RArg -> RInstruction
+    RSnez                  : RArg * RArg -> RInstruction
+    RInstruction-Plhdr     : RInstruction
+    RArg-Plhdr             : RArg
+    RInstruction-Plhdr     : COMPLETION-INSERTION -> RInstruction
+    RArg-Plhdr             : COMPLETION-INSERTION -> RArg
+  sorts
+    RID RINT RSTRING RStringChar RBackSlashChar RNewLineEOF REOF RLBL RComment
+
+  constructors
+     : string -> RLBL
+     : string -> RID
+     : string -> RINT
+     : string -> RSTRING
+     : string -> RStringChar
+     : string -> RBackSlashChar
+     : string -> RComment
+     : string -> RNewLineEOF
+     : string -> REOF
+    
     Cons : a * List(a) -> List(a)
     Nil  : List(a)
+    Hashtable : HashtableImpl -> Hashtable(k, v)
+  sorts
+    TableValue
+    TableKey
+  constructors
+    NestedTable : Hashtable(k, v) -> TableValue
+    Tables      : TableKey
+    NewTable    : TableKey
 
 
 rules
-  spinetd(TP) :: TP
-  spinetd(s) =
-    s; try(one(spinetd(s)))
+  banana :: ? -> List(?)
+  banana: [h|t] -> t
 
-  try(a -> a) :: a -> a
-  try(s) = s <+ id
+  assign-homes :: RProgram -> RProgram
+  assign-homes =  
+    alltd-TP(assign-home-TP)
+
+  assign-home-TP :: TP
+  assign-home-TP = is(RLine); assign-home
+  assign-home-TP = is(RArg); assign-home-rid
+
+  assign-home :: RLine -> RLine
+  assign-home :
+    RLocal(RVar(x), t) -> I(RNop(), $[[x] : [<pp-type>t] at [<int-to-string>offset]])
+    with stack-inc(| -4) => offset 
+    with var-offset-set(|RVar(x), offset)
+    with <var-offset-get>x; debug(!" offset =>")
+
+
+  assign-home-rid :: RArg -> RArg  
+  assign-home-rid :
+    RVar(x) -> RMem(offset, "fp")
+    with <var-offset-get; int-to-string> RVar(x) => offset
+
+  stack-inc(|int) :: ? -> int
+  stack-inc(|t) = fail
+  var-offset-set(|RArg,int) :: ? -> ?
+  var-offset-set(|t1,t2) = fail
+  var-offset-get :: ? -> int
+  var-offset-get = fail
+  debug(s) = fail
+  int-to-string :: int -> string
+  int-to-string = fail
+  
+  alltd-TP(TP) :: TP
+  alltd-TP(s) = fail
+  
+  pp-type :: ? -> string
+  pp-type = fail
+
 
 /* libstratego-lib
 signature

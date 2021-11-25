@@ -4,7 +4,7 @@
 module test92
 
 imports
-  libstratego-lib
+  strategolib
   Stratego
 
 strategies

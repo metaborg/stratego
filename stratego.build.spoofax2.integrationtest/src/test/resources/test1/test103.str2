@@ -2,7 +2,7 @@
  * Test for STR-626
  */
 module test103
-imports libstratego-lib
+imports strategolib
 strategies
 
   main =

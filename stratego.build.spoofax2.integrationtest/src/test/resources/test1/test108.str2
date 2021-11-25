@@ -2,7 +2,7 @@
  * Test for rules ( := ) syntax
  */
 module test108
-imports libstratego-lib
+imports strategolib
 
 strategies
 

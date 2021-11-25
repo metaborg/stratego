@@ -782,13 +782,13 @@ strategies
   copy(s) =
     let
       Copy1 :: int * a -> int * a * List(b)
-      Copy1: (n,t) -> (n,t,[])
+      Copy1 = \(n,t) -> (n,t,[])\
 
       Copy2 :: int * a * List(b) -> List(b)
-      Copy2: (0,t,ts) -> ts
+      Copy2 = \(0,t,ts) -> ts\
 
       Copy3 :: int * a * List(b) -> int * a * List(b)
-      Copy3: (n,t,ts) -> (<subti>(n,1), t, [<s> t|ts]) where <geq>(n,1)
+      Copy3 = \(n,t,ts) -> (<subti>(n,1), t, [<s> t|ts]) where <geq>(n,1)\
     in
       for(Copy1, Copy2, Copy3)
     end

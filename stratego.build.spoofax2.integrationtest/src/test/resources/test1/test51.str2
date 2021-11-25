@@ -1,5 +1,5 @@
 module test51
-imports libstratego-lib
+imports strategolib
 strategies
 
   main =

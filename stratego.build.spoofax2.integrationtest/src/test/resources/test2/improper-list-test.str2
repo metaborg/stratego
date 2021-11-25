@@ -1,5 +1,5 @@
 module improper-list-test
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts

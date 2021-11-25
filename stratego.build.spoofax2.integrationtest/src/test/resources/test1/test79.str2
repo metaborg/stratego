@@ -1,6 +1,6 @@
 module test79
 imports 
-  libstratego-lib
+  strategolib
 
 signature
   sorts Exp Type String

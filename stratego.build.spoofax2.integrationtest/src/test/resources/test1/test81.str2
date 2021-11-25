@@ -1,5 +1,5 @@
 module test81
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     Int Foo

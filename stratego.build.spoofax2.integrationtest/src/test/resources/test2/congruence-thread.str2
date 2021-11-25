@@ -1,5 +1,5 @@
 module congruence-thread
-imports libstratego-lib
+imports strategolib
 
 strategies
 

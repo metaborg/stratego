@@ -1,5 +1,5 @@
 module twice
-imports libstratego-lib
+imports strategolib
 signature
   sorts
     Term

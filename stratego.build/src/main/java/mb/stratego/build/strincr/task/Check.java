@@ -58,7 +58,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
 
         messages.addAll(moduleIndentifiersAndMessages.messages);
 
-        return new CheckOutput(dynamicRuleIndex, messages);
+        return new CheckOutput(dynamicRuleIndex, moduleIndentifiersAndMessages.allModuleIdentifiers, messages);
     }
 
     @Override public String getId() {
