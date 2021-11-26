@@ -29,7 +29,7 @@ rules
      graph, <add-node> (name, node, nodes), undef)
     where <get-node> (name, graph) => node;
           <out-edges> node => names;
-      <diff> (names, done) => todo'
+          <diff> (names, done) => todo'
 
   GnNextChangeGraph(nm * g -> nd * g, nd -> List(nm), nm * nd * nds -> nds) ::
     List(nm) * List(nm) * g * nds * ud -> List(nm) * List(nm) * g * nds * ud
@@ -39,7 +39,7 @@ rules
      graph', <add-node> (name, node, nodes), undef)
     where <get-node> (name, graph) => (node,graph');
           <out-edges> node => names;
-      <diff> (names, done) => todo'
+          <diff> (names, done) => todo'
 
   GnUndefined :: List(nm) * List(nm) * g * nds * List(nm) -> List(nm) * List(nm) * g * nds * List(nm)
   GnUndefined :
