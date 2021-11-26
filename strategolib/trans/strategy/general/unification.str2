@@ -13,7 +13,7 @@ imports
 
 strategies
 
-  equal =
+  uf-equal =
     for(id ,[], UfIdem <+ UfDecompose
                 //<+ debug(!"not equal: "); FAIL
     )
@@ -28,7 +28,7 @@ rules
 
 strategies
 
-  diff =
+  uf-diff =
     for(\ ps -> ([],ps) \ , (id,[]), (id, UfIdem <+ UfDecompose) <+ UfShift)
 
 rules
@@ -81,7 +81,7 @@ rules
 
 strategies
 
-  equal(fltr) =
+  uf-equal(fltr) =
     for(id ,[], UfIdem
                 <+ try([(fltr,fltr)|id]); UfDecompose
                 //<+ debug(!"not equal: "); FAIL
@@ -95,7 +95,7 @@ strategies
   * The filter applies to the entire pair and can change something
   * in one term based on the other term.
   */
-  equal(fltr1, fltr2) =
+  uf-equal(fltr1, fltr2) =
     for(id ,[], UfIdem
                 <+ [(try(fltr1),try(fltr1)); try(fltr2)|id]; UfDecompose
                 //<+ debug(!"not equal: "); FAIL
