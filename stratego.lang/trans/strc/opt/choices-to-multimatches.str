@@ -224,14 +224,12 @@ strategies
                     case zs | r when s3: s4
                   end: s
   ->
-   case xs | q where s1: s2; s
-   case ys | r where s3: s4; s
+   case xs | q when s1; s2: s
+   case ys | r when s3; s4: s
   */
   lift-default:
-    ScopedGuardedMatchCase(xs, p, MM(c*), s) ->
-    <map(ScopedGuardedMatchCase(<conc> (xs, <id>), id, id, <sequence-strategies> (<id>, s)))> c*
-  where
-    <is-wld + is-wld-core> p
+    ScopedGuardedMatchCase(xs, NoAnnoMatch(Wld()), MM(c*), s) ->
+    <map(ScopedGuardedMatchCase(<conc> (xs, <id>), id, <sequence-strategies> (<id>, s), id))> c*
 
   // This is only valid for the very last case.
   // TODO Verify validity.

@@ -40,14 +40,15 @@ public class ParameterisedStratego2Tests {
     final List<Arguments> argParams = Lists.newArrayList(
             ArgumentsFactory("-O", "2"),
 //            ArgumentsFactory("-O", "4", "--pmc:switchv", "elseif"),
-            ArgumentsFactory("-O", "4", "--pmc:switchv", "hash-switch")
+            ArgumentsFactory("-O", "4")
     );
 
     @TestFactory
     DynamicNode parameterisedTests() throws URISyntaxException, IOException {
         return DynamicContainer.dynamicContainer("Parameterised tests", Arrays.asList(
-//                DynamicContainer.dynamicContainer("Failing tests", failingTests())
-                DynamicContainer.dynamicContainer("test1", test1())
+                DynamicContainer.dynamicContainer("Failing tests", failingTests())
+                , DynamicContainer.dynamicContainer("MultiMatch tests", testPMC())
+                , DynamicContainer.dynamicContainer("test1", test1())
                 , DynamicContainer.dynamicContainer("test2", test2())
         ));
     }
@@ -111,6 +112,26 @@ public class ParameterisedStratego2Tests {
                         && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
         final Path dirWithTestFiles = getResourcePathRoot().resolve("test2");
         return streamStrategoFiles(dirWithTestFiles, "*.str", disableFilter)
+                .sorted(new NaturalOrderComparator<>())
+                .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
+                        .stream()
+                        .map(args -> compileAndRun(p, Collections.singletonList(BuiltinLibraryIdentifier.StrategoLib), args))));
+    }
+
+    @TestFactory
+    private Stream<DynamicNode> testPMC() throws URISyntaxException, IOException {
+        // test113 tests that tabs are considered 4 spaces wide by string quotations.
+        //   This is currently not easy to support with post-processing, and we don't want to add
+        //   a hack specific to the Stratego grammar in there. The post-processing method therefore
+        //   works best when using spaces as indentation in Stratego files.
+        // list-cons is not a test file, it is imported by other test files.
+        HashSet<String> disabledTestFiles =
+                new HashSet<>(Collections.emptySet());
+        final Predicate<Path> disableFilter =
+                p -> !disabledTestFiles.contains(p.getFileName().toString())
+                        && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
+        final Path dirWithTestFiles = getResourcePathRoot().resolve("test-pmc");
+        return streamStrategoFiles(dirWithTestFiles, "*.str2", disableFilter)
                 .sorted(new NaturalOrderComparator<>())
                 .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
