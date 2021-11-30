@@ -1,0 +1,48 @@
+module multimatch2
+imports libstratego-lib
+
+strategies
+  unbound1(s) =
+    where(
+    if s then
+      ?x
+    end)
+  ; match sequential
+      case x | []: !x
+      case x | x@[]: !x
+    end
+
+  unbound2(s): [] -> x
+  where
+    if s then
+      ?x
+    end
+  unbound2(s): x@[] -> x
+
+  fail1 =
+    match sequential
+      case | _ if fail: id
+      case | _: id
+    end
+
+  fail2: _ -> <fail>
+  fail2: _ -> <id>
+
+  rand-s = <geq> (100, <next-random>)
+
+  main =
+    test-suite(!"MultiMatch equivalence",
+      apply-test(fail1
+      | "case doesn't fail"
+      , ()
+      );
+      apply-test(fail2
+      | "rule doesn't fail"
+      , ()
+      );
+      apply-test(unbound1(rand-s)
+      | "(un)bound var in build"
+      , ()
+      , <unbound2(rand-s)> ()
+      )
+    )

@@ -10,7 +10,7 @@ strategies
   foo(s) = match sequential
              case | Nil(): !()
              case x, xs | [x | xs]: !x
-             case | _ where not(is-list): fail
+             case | _ if not(is-list): fail
            end
 
   bar = match specificity

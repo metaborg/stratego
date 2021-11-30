@@ -14,15 +14,15 @@ strategies
       case foo | foo#([1, "x"]): !6
       case x, xs | x#(xs): !7
       case x, xs | [x#(xs), x#(xs) | _]: !8
-//      case x, xs | [p1, p2 | _] where where(x#(xs) := p1); where(x#(xs) := p2): id
-//      case x, xs | [_, _ | _] where where(p1 := current.head); where(p2 := current.tail.head); where(x#(xs) := p1); where(x#(xs) := p2): id
+//      case x, xs | [p1, p2 | _] if where(x#(xs) := p1); where(x#(xs) := p2): id
+//      case x, xs | [_, _ | _] if where(p1 := current.head); where(p2 := current.tail.head); where(x#(xs) := p1); where(x#(xs) := p2): id
       
-//      case x | x where !x: ?x // TODO Add as test.
-//      case x | _ where <s> x; where(x := current): id
+//      case x | x if !x: ?x // TODO Add as test.
+//      case x | _ if <s> x; where(x := current): id
       
       case | []#([1, 2, 3]): !9
       case | "Nil"#([]): !10
       case | "Cons"#([1, 2, 3]): !11
       case | "Nil"#(["not", "a", "list"]): !12
-      case foo | _ where ?foo#([1, "x"]): !13
+      case foo | _ if ?foo#([1, "x"]): !13
     end
