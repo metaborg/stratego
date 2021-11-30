@@ -267,28 +267,58 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy-(|e1, st1): // TODO Check
   mm@MultiMatch(o, c*) -> (MultiMatch(o, c'*), st2)
   with
-    (c'*, st2) := <map-LUB(insertCasts-MatchCase(|e1, st1)|mm)> (c*, st1)
+    (c'*, st2) := <map-LUB(insertCasts-MatchCase(|e1)|mm)> (c*, st1)
 
 insertCasts-Strategy-(|e1, st1): // TODO Check
   mm@MultiMatchTerm(o, trm1, c*) -> (MultiMatchTerm(o, trm2, c'*), st3)
   with
     (trm2, st2) := <insertCasts-BuildTerm(|e1, st1)> trm1
-  ; (c'*, st3) := <map-LUB(insertCasts-MatchCase(|e1, st1)|mm)> (c*, st2)
+  ; (c'*, st3) := <map-LUB(insertCasts-MatchCase(|e1)|mm)> (c*, st2)
 
-insertCasts-MatchCase(|e1, st1) = otf12(insertCasts-MatchCase-(|e1, st1))
-//insertCasts-MatchCase-(|e1, st1):
-//  MatchCase(t1, s1) -> (MatchCase(t2, s2), st5)
-//  with
-//    // TODO: support type annotations on local variables
-//    x* := <tvars> t1 // TODO Check if this works at this stage.
-//  ; new := <map-pair-right(|DynT()); immap-from-list> x*
-//  ; orig := <term-env; immap-intersect(keep-left|new)> st1
-//  ; st2 := <term-merge-env(keep-right)> (st1, new)
-//  ; (t2, st3) := <insertCasts-MatchTerm(|e1, st2)> t1
-//  ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1
-//  ; st5 := <term-env(immap-subtract(|new); immap-union(fail|orig))> st4
+insertCasts-MatchCase(|e1) = otf12(insertCasts-MatchCase-(|e1))
 
-insertCasts-MatchCase-(|e1, st1) = !(<id>, st1) // TODO All variants of MatchCase
+insertCasts-MatchCase-(|e1):
+  (ScopedMatchCase(x*, trm1, s1), st1) -> (ScopedGuardedMatchCase(x*, trm2, s_guard, s2), st5)
+  with
+    // TODO: support type annotations on local variables
+    new := <map-pair-right(|DynT()); immap-from-list> x* // Scope
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1 // Scope
+  ; st2 := <term-merge-env(keep-right)> (st1, new) // Scope
+  ; (trm2, (st2', s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1 // Match
+  where
+    <not(?[])> s*
+  with
+    s_guard' := Where(<seqs> s*) // Match
+  ; (s_guard, st3) := <insertCasts-Strategy(|e1, st2')> s_guard' // Scope
+  ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1 // Scope
+  ; st5 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st4 // Scope
+
+insertCasts-MatchCase-(|e1):
+  (ScopedMatchCase(x*, trm1, s1), st1) -> (ScopedMatchCase(x*, trm2, s2), st5)
+  with
+    // TODO: support type annotations on local variables
+    new := <map-pair-right(|DynT()); immap-from-list> x* // Scope
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1 // Scope
+  ; st2 := <term-merge-env(keep-right)> (st1, new) // Scope
+  ; (trm2, (st2', s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1 // Match
+  where
+    <?[]> s*
+  with
+    (s2, st4) := <insertCasts-Strategy(|e1, st2')> s1 // Scope
+  ; st5 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st4 // Scope
+
+insertCasts-MatchCase-(|e1):
+  (ScopedGuardedMatchCase(x*, trm1, s_guard1, s1), st1) -> (ScopedGuardedMatchCase(x*, trm2, s_guard2, s2), st5)
+  with
+    // TODO: support type annotations on local variables
+    new := <map-pair-right(|DynT()); immap-from-list> x* // Scope
+  ; orig := <term-env;immap-intersect(keep-left|new)> st1 // Scope
+  ; st2 := <term-merge-env(keep-right)> (st1, new) // Scope
+  ; (trm2, (st2', s*)) := <insertCasts-MatchTerm(|e1, st2)> trm1 // Match
+  ; s_guard' := <concat; seqs> [<?[] <+ ![Where(<seqs> s*)]> s*, [s_guard1]] // Match
+  ; (s_guard2, st3) := <insertCasts-Strategy(|e1, st2')> s_guard' // Scope
+  ; (s2, st4) := <insertCasts-Strategy(|e1, st3)> s1 // Scope
+  ; st5 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st4 // Scope
 
 insertCasts-Sarg(|e1):
   (b, st1) -> <insertCasts-Sarg(|e1, st1)> b

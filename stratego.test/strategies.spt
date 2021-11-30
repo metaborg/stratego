@@ -152,4 +152,16 @@ override foobar = proceed
    0 warnings
    has origin locations
 
+test multimatch equal typed arms [[
+length :: List(a) -> int
+length =
+  match sequential
+    case       | []: !0
+    case x, xs | [x | xs]: <addi> (1, <length> xs)
+    case       | _ when not(is-list): !-1
+  end
 
+external addi(|)
+external is-list(|)
+]] 0 errors
+   0 warnings
