@@ -245,10 +245,8 @@ strategies
    case ys | r when s; s3: s4
   */
   lift-default:
-    ScopedGuardedMatchCase([], p, s, MM(c*)) ->
+    ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s, MM(c*)) ->
     <map(ScopedGuardedMatchCase(id, id, <sequence-strategies> (s, <id>), id))> c*
-  where
-    <is-wld + is-wld-core> p
 
 strategies
 
@@ -273,9 +271,9 @@ strategies
     )
   + ?Match(Var(_){"unbound"})
   + Seq(always-succeeds, always-succeeds)
-  + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(always-succeeds, always-succeeds, id)
-                                , GuardedLChoice(always-fails, id, always-succeeds)
-                                , GuardedLChoice(id, always-succeeds, always-succeeds))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(always-succeeds, always-succeeds, id)
+                              + GuardedLChoice(always-fails, id, always-succeeds)
+                              + GuardedLChoice(id, always-succeeds, always-succeeds))
   + Scope(id, always-succeeds)
 
   /**
@@ -285,11 +283,12 @@ strategies
     ?Fail()
   + Build(oncetd(
       ?Var(_){"unbound"}
+      // TODO Add list build with non-list tail
     ))
   + ?Seq(_, _) < or(Seq(always-fails, id), Seq(id, always-fails))
-  + ?GuardedLChoice(_, _, _) < or(GuardedLChoice(id, always-fails, always-fails)
-                                , GuardedLChoice(always-succeeds, always-fails, id)
-                                , GuardedLChoice(always-fails, id, always-succeeds))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(id, always-fails, always-fails)
+                              + GuardedLChoice(always-succeeds, always-fails, id)
+                              + GuardedLChoice(always-fails, id, always-fails))
   + Scope(id, always-fails)
 
 // helpers
