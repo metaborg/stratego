@@ -78,6 +78,14 @@ rules
             ; double-quote-chars
             )> x => y
 
+  EnsugarOnce :
+    StrC(x) -> StrC(y)
+      where <string-as-chars(
+              not(is-double-quoted-chars)
+            ; escape-chars
+            ; double-quote-chars
+            )> x => y
+
 strategies
 
   EnsugarOnce =
