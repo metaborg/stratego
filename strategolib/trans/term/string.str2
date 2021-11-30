@@ -15,6 +15,7 @@ imports
   collection/list/cons
   collection/list/sort
   collection/tuple/common
+  collection/tuple/cons
   strategy/conditional
   strategy/iteration
   system/io/file
@@ -24,6 +25,12 @@ imports
   util/config/common
   util/config/options
 
+signature
+  sorts
+    Char // TODO: use this to point out characters
+  constructors
+    : int -> Char
+
 /**
  * Primitives
  */
@@ -32,6 +39,7 @@ strategies
   /**
    * Scopes local-newname and local-new, which work by dynamic rule.
    */
+  scope-local-new(a -> b) :: a -> b
   scope-local-new(s) = {| LocalNew, LocalNewAlpha : rules(LocalNewAlpha := 0);  s |}
 
   /**
@@ -61,6 +69,7 @@ strategies
    *   ; <local-newname; debug> "a_1"      // produces "a_1_0"
    *   )
    */
+  local-newname :: string -> string
   local-newname = local-newname(|())
 
   /**
@@ -69,6 +78,7 @@ strategies
    * locally unique names are generated, but with a different context term the counter for the
    * prefix resets. The default context used by `local-newname`/0 is `()`.
    */
+  local-newname(|?) :: string -> string
   local-newname(|context): prefix -> $[[prefix]_[number]]
       where key := (context, <lower-case> prefix)
           ; number := <LocalNew <+ !0> key
@@ -102,6 +112,7 @@ strategies
    * information with local-newname so the two don't generate
    * overlapping names within the same scope-local-new call.
    */
+  local-new :: ? -> string
   local-new = local-new(|())
 
   /**
@@ -110,6 +121,7 @@ strategies
    * names are generated, but with a different context term the counter resets. The default context
    * used by `local-new`/0 is `()`.
    */
+  local-new(|?) :: ? -> string
   local-new(|context) =
     // use LocalNewAlpha to shift from ASCII character a to some letter in the alphabet
     ![<int-add(|<LocalNewAlpha>)> 'a']
@@ -160,6 +172,7 @@ strategies
    *   ; <newname; debug> "a_"       // produces "a_0"
    *   ; <newname; debug> "a_1"      // produces "a_10"
    */
+  newname :: string -> string
   newname = ?prefix; prim("SSL_newname", prefix)
 
   /**
@@ -169,6 +182,7 @@ strategies
    *
    * @since 0.18
    */
+  newterm :: ? -> ?
   newterm =
     if-c-platform(prim("SSL_new"));
     if-java-platform(SRTS-EXT-newint)
@@ -180,6 +194,7 @@ strategies
    *
    * @type String -> String
    */
+  is-string :: ? -> string
   is-string     = ?x; prim("SSL_is_string", x)
 
   /**
@@ -187,6 +202,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-char :: ? -> Char
   is-char = is-int ; is-ascii
 
   /**
@@ -194,6 +210,7 @@ strategies
    *
    * @type List(Char) -> String
    */
+  implode-string :: List(Char) -> string
   implode-string = ?x; prim("SSL_implode_string", x)
 
   /**
@@ -201,7 +218,7 @@ strategies
    *
    * @type String -> List(Char)
    */
-  explode-string :: string -> List(int)
+  explode-string :: string -> List(Char)
   explode-string = ?x; prim("SSL_explode_string", x)
 
   /**
@@ -210,6 +227,7 @@ strategies
    * @param List(Char) -> List(Char)
    * @type  String -> String
    */
+  string-as-chars(List(Char) -> List(Char)) :: string -> string
   string-as-chars(s) =
       explode-string
     ; s
@@ -222,6 +240,7 @@ strategies
    *
    * @type String * String -> String
    */
+  conc-strings :: ? -> string
   conc-strings =
      ?(_,_)   ; strcat
   <+ ?""#(xs) ; <concat-strings>xs
@@ -236,6 +255,7 @@ strategies
    * @inc      strcat-3
    * @inc      strcat-4
    */
+  strcat :: string * string -> string
   strcat =
     ?(str1, str2); prim("SSL_strcat", str1, str2)
 
@@ -248,6 +268,7 @@ strategies
    * @inc      concat-strings-3
    * @inc      concat-strings-4
    */
+  concat-strings :: List(string) -> string
   concat-strings =
     ?strings; prim("SSL_concat_strings", strings)
 
@@ -258,6 +279,7 @@ strategies
    *
    * @type String -> Int
    */
+  string-length :: string -> int
   string-length =
     strlen
 
@@ -269,6 +291,7 @@ strategies
    * @inc      strlen-2
    * @inc      strlen-3
    */
+  strlen :: string -> int
   strlen =
     ?str; prim("SSL_strlen", str)
 
@@ -280,6 +303,7 @@ strategies
    * @type String -> String
    * @inc  escape-test1
    */
+  escape :: string -> string
   escape = string-as-chars(escape-chars)
 
   /**
@@ -287,10 +311,12 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  escape-chars :: List(Char) -> List(Char)
   escape-chars =
     escape-chars(Escape)
 
   /** @internal */
+  escape-chars(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   escape-chars(s) =
     rec x(
        (s; [id, id | x])
@@ -307,6 +333,7 @@ strategies
    * @inc unescape-test3
    * @inc unescape-test4
    */
+  unescape :: string -> string
   unescape = string-as-chars(unescape-chars)
 
   /**
@@ -315,6 +342,7 @@ strategies
    * @param List(Char) -> List(Char)
    * @type  List(Char) -> List(Char)
    */
+  unescape-chars(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   unescape-chars(s) =
     rec x(
       try(s)
@@ -326,12 +354,14 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  unescape-chars :: List(Char) -> List(Char)
   unescape-chars =
     unescape-chars(UnEscape)
 
   /**
    * @type List(Char) -> List(Char)
    */
+  Escape :: List(Char) -> List(Char)
   Escape =
       Escape-double-quote
     + Escape-backslash
@@ -341,29 +371,37 @@ strategies
     + Escape-form-feed
 
   /** @internal */
+  Escape-double-quote :: List(Char) -> List(Char)
   Escape-double-quote    : ['\"'  | cs ] -> ['\\', '\"'  | cs ]
 
   /** @internal */
+  Escape-single-quote :: List(Char) -> List(Char)
   Escape-single-quote    : ['\'' | cs ] -> ['\\', '\'' | cs ]
 
   /** @internal */
+  Escape-backslash :: List(Char) -> List(Char)
   Escape-backslash       : ['\\'  | cs ] -> ['\\', '\\'  | cs ]
 
   /** @internal */
+  Escape-linefeed :: List(Char) -> List(Char)
   Escape-linefeed        : ['\n' | cs ] -> ['\\', 'n'  | cs ]
 
   /** @internal */
+  Escape-carriage-return :: List(Char) -> List(Char)
   Escape-carriage-return : ['\r' | cs ] -> ['\\', 'r'  | cs ]
 
   /** @internal */
+  Escape-backspace :: List(Char) -> List(Char)
   Escape-backspace       : ['\b' | cs ] -> ['\\', 'b'  | cs ]
 
   /** @internal */
+  Escape-form-feed :: List(Char) -> List(Char)
   Escape-form-feed       : ['\f' | cs ] -> ['\\', 'f'  | cs ]
 
   /**
    * @type List(Char) -> List(Char)
    */
+  UnEscape :: List(Char) -> List(Char)
   UnEscape =
       UnEscape-double-quote
     + UnEscape-backslash
@@ -375,36 +413,46 @@ strategies
     + UnEscape-form-feed
 
   /** @internal */
+  UnEscape-double-quote :: List(Char) -> List(Char)
   UnEscape-double-quote    : ['\\', '\"'  | cs ] -> ['\"'  | cs ]
 
   /** @internal */
+  UnEscape-single-quote :: List(Char) -> List(Char)
   UnEscape-single-quote    : ['\\', '\'' | cs ] -> ['\'' | cs ]
 
   /** @internal */
+  UnEscape-backslash :: List(Char) -> List(Char)
   UnEscape-backslash       : ['\\', '\\'  | cs ] -> ['\\'  | cs ]
 
   /** @internal */
+  UnEscape-carriage-return :: List(Char) -> List(Char)
   UnEscape-carriage-return : ['\\', 'r'  | cs ] -> ['\r' | cs ]
 
   /** @internal */
+  UnEscape-linefeed :: List(Char) -> List(Char)
   UnEscape-linefeed        : ['\\', 'n'  | cs ] -> ['\n' | cs ]
 
   /** @internal */
+  UnEscape-tab :: List(Char) -> List(Char)
   UnEscape-tab             : ['\\', 't'  | cs ] -> ['\t' | cs ]
 
   /** @internal */
+  UnEscape-backspace :: List(Char) -> List(Char)
   UnEscape-backspace       : ['\\', 'b'  | cs ] -> ['\b' | cs ]
 
   /** @internal */
+  UnEscape-form-feed :: List(Char) -> List(Char)
   UnEscape-form-feed       : ['\\', 'f'  | cs ] -> ['\f' | cs ]
 
   /** @internal */
+  UnEscape(|Char) :: List(Char) -> List(Char)
   UnEscape(|c) :
     ['\\', c | cs ] -> [c  | cs ]
 
 strategies
 
   /** @internal */
+  escape((List(Char) -> List(Char)) List(Char) -> List(Char)) :: string -> string
   escape(esc : (List(String) -> List(String)) * List(String) -> List(String) ) =
     explode-string;
     rec x(esc(x) <+ [id | x] <+ []);
@@ -413,17 +461,21 @@ strategies
   /**
    * @inc escape-test2
    */
+  cify :: string -> string
   cify = escape(Cify)
 
   /** @internal */
+  uncify :: string -> string
   uncify = escape(UnCify)
 
   /** @internal */
+  UnCify(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   UnCify(x) = UnCify1(x) <+ UnCify2(x) <+ UnCify3(x)
 
 rules
 
   /** @internal */
+  Cify(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   Cify(x) : ['\'' | cs] -> ['_', 'p', '_' | <x>cs]
 
   /** @internal */
@@ -439,6 +491,7 @@ rules
   Cify(x) : ['\\'  | cs] -> ['_', 'b', '_' | <x>cs]
 
   /** @internal */
+  UnCify1(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   UnCify1(x) : ['_', 'b', '_' | cs] -> ['\\'  | <x>cs]
 
   /** @internal */
@@ -448,9 +501,11 @@ rules
   UnCify1(x) : ['_', 'p', '_' | cs] -> ['\'' | <x>cs]
 
   /** @internal */
+  UnCify2(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   UnCify2(x) : ['_', '_'      | cs] -> ['_'  | <x>cs]
 
   /** @internal */
+  UnCify3(List(Char) -> List(Char)) :: List(Char) -> List(Char)
   UnCify3(x) : ['_'           | cs] -> ['-'  | <x>cs]
 
 /**
@@ -462,17 +517,20 @@ strategies
    * param  () -> Char
    * @type  String -> String
    */
+  quote(Tuple() -> Char) :: string -> string
   quote(c) = string-as-chars(quote-chars(c))
 
   /**
    * param  () -> Char
    * @type  List(Char) -> List(Char)
    */
+  quote-chars(Tuple() -> Char) :: List(Char) -> List(Char)
   quote-chars(c) = <quote-chars> (<c> (), <id>)
 
   /**
    * @type Char * List(Char) -> List(Char)
    */
+  quote-chars :: Char * List(Char) -> List(Char)
   quote-chars:
     (c, chars) -> <conc> ([c | chars], [c])
 
@@ -482,6 +540,7 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  single-quote-chars :: List(Char) -> List(Char)
   single-quote-chars = <quote-chars> ('\'', <id>)
 
   /**
@@ -490,11 +549,13 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  double-quote-chars :: List(Char) -> List(Char)
   double-quote-chars = <quote-chars> ('\"' , <id>)
 
   /**
    * @inc single-quote-test
    */
+  single-quote :: string -> string
   single-quote = string-as-chars(single-quote-chars)
 
   /**
@@ -503,6 +564,7 @@ strategies
    *
    * @type String -> String
    */
+  double-quote :: string -> string
   double-quote = string-as-chars(double-quote-chars)
 
 /**
@@ -517,6 +579,7 @@ strategies
    * @param Char ->? _
    * @type  String -> String
    */
+  unquote(Char -> ?) :: string -> string
   unquote(s) =
     string-as-chars(unquote-chars(s))
 
@@ -529,6 +592,7 @@ strategies
    * @param  Char ->? _
    * @type   String -> String
    */
+  unquote(Char -> ?, Char -> ?) :: string -> string
   unquote(s1, s2) =
     string-as-chars(unquote-chars(s1, s2))
 
@@ -539,6 +603,7 @@ strategies
    * @param  Char ->? _
    * @type   List(Char) -> List(Char)
    */
+  unquote-chars(Char -> ?) :: List(Char) -> List(Char)
   unquote-chars(s) =
     unquote-chars(s, s)
 
@@ -551,6 +616,7 @@ strategies
    * @param  Char ->? _
    * @type   List(Char) -> List(Char)
    */
+  unquote-chars(Char -> ?, Char -> ?) :: List(Char) -> List(Char)
   unquote-chars(s1, s2) =
       where(Hd;   s1)
     ; where(last; s2)
@@ -564,6 +630,7 @@ strategies
    *
    * @type  List(Char) -> List(Char)
    */
+  un-single-quote-chars :: List(Char) -> List(Char)
   un-single-quote-chars = unquote-chars(?'\'')
 
   /**
@@ -573,6 +640,7 @@ strategies
    *
    * @type  List(Char) -> List(Char)
    */
+  un-double-quote-chars :: List(Char) -> List(Char)
   un-double-quote-chars = unquote-chars(?'\"' )
 
   /**
@@ -581,6 +649,7 @@ strategies
    *
    * @type  String -> String
    */
+  un-single-quote :: string -> string
   un-single-quote = string-as-chars(un-single-quote-chars)
 
   /**
@@ -589,6 +658,7 @@ strategies
    *
    * @type  String -> String
    */
+  un-double-quote :: string -> string
   un-double-quote = string-as-chars(un-double-quote-chars)
 
 strategies
@@ -605,6 +675,7 @@ strategies
   *
   * @type   String -> String
   */
+  is-double-quoted :: string -> string
   is-double-quoted =
     is-quoted(|'\"')
 
@@ -613,6 +684,7 @@ strategies
    *
    * @type  String -> String
    */
+  is-single-quoted :: string -> string
   is-single-quoted =
     is-quoted(|'\'')
 
@@ -622,6 +694,7 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  is-double-quoted-chars :: List(Char) -> List(Char)
   is-double-quoted-chars =
     is-quoted-chars(|'\"')
 
@@ -631,6 +704,7 @@ strategies
    *
    * @type List(Char) -> List(Char)
    */
+  is-single-quoted-chars :: List(Char) -> List(Char)
   is-single-quoted-chars =
     is-quoted-chars(|'\'')
 
@@ -642,6 +716,7 @@ strategies
    * @param Char
    * @type  String -> String
    */
+  is-quoted(|Char) :: string -> string
   is-quoted(|c) =
     where(
       explode-string
@@ -656,6 +731,7 @@ strategies
    * @param Char
    * @type List(Char) -> List(Char)
    */
+  is-quoted-chars(|Char) :: List(Char) -> List(Char)
   is-quoted-chars(|c) =
     where(?[c | <last>]; ?c)
 
@@ -664,6 +740,7 @@ strategies
   /**
    * @obsolete use string-to-int
    */
+  string-to-num :: string -> int
   string-to-num =
     obsolete(!"string-to-num; use string-to-int")
     ; string-to-int
@@ -675,6 +752,7 @@ strategies
   *
   * @type  String -> String
   */
+  lower-case :: string -> string
   lower-case = string-as-chars(lower-case-chars)
 
  /**
@@ -682,6 +760,7 @@ strategies
   *
   * @inc upper-case-test
   */
+  upper-case :: string -> string
   upper-case = string-as-chars(upper-case-chars)
 
   /**
@@ -691,6 +770,7 @@ strategies
    *
    * @type  List(Char) -> List(Char)
    */
+  lower-case-chars :: List(Char) -> List(Char)
   lower-case-chars = map(to-lower)
 
   /**
@@ -700,6 +780,7 @@ strategies
    *
    * @type  List(Char) -> List(Char)
    */
+  upper-case-chars :: List(Char) -> List(Char)
   upper-case-chars = map(to-upper)
 
 strategies
@@ -714,10 +795,12 @@ strategies
    * @param List of separate characters
    * @type  String -> List(String)
    */
+  string-tokenize(|List(Char)) :: string -> List(string)
   string-tokenize(|sepchars) =
     string-tokenize({c: ?c; <fetch(?c)> sepchars})
 
   /** @internal */
+  string-tokenize(Char -> ?) :: string -> List(string)
   string-tokenize(sep) =
       explode-string
     ; list-tokenize(sep)
@@ -732,6 +815,7 @@ strategies
    *
    * @type  (List(Char), String) -> List(String)
    */
+  string-tokenize :: List(Char) * string -> List(string)
   string-tokenize =
       ?(sepchars, <id>)
     ; string-tokenize(|sepchars)
@@ -743,6 +827,7 @@ strategies
   * @type String * Int -> String
   * @inc  padd-with-test
   */
+  padd-with(Tuple() -> Char) :: string * int -> string
   padd-with(s) =
     <align-right> (<s> (), <Fst>, <Snd>)
 
@@ -752,6 +837,7 @@ strategies
    * @internal
    * @since 0.18
    */
+  remove-padding :: string -> string
   remove-padding =
     string-as-chars(
       split-at-newlines
@@ -762,6 +848,7 @@ strategies
     ; concat
     )
 
+//  internal remove-padding(|int, int) :: List(Char) -> List(Char)
   internal remove-padding(|max, n) =
     where(<leq> (n, 0))
   ; [id | remove-padding(|max, max)]
@@ -780,6 +867,7 @@ strategies
   /**
    * @type Char * String * Int -> String
    */
+  align-right :: Char * string * int -> string
   align-right :
     (c, s, n) -> <conc-strings> (add, s)
       where <align-helper(|c, n)> s => add
@@ -787,6 +875,7 @@ strategies
   /**
    * @type Char * String * Int -> String
    */
+  align-left :: Char * string * int -> string
   align-left :
     (c, s, n) -> <conc-strings> (s, add)
       where <align-helper(|c, n)> s => add
@@ -794,44 +883,50 @@ strategies
   /**
    * @type Char * String * Int -> String
    */
+  align-center :: Char * string * int -> string
   align-center :
     (c, s, n) -> <concat-strings> [add-before, s, add-after]
       where <string-length> s => l
-          ; <subt> (n, l) => whitespace
+          ; <subti> (n, l) => whitespace
           ; <   even
               < div2; Dupl
-              + dec; div2; Dupl; (inc, id)
+              + int-dec; div2; Dupl; (int-inc, id)
             > whitespace => (before, after)
-          ; <align-helper(|c, <add> (l, before))> s => add-before
-          ; <align-helper(|c, <add> (l, after ))> s => add-after
+          ; <align-helper(|c, <addi> (l, before))> s => add-before
+          ; <align-helper(|c, <addi> (l, after ))> s => add-after
 
-      /**
-       * @param c  Char
-       * @param n  Int
-       * @type String -> String
-       */
-      align-helper(|c, n) =
-        string-length
-        ; <subt> (n, <id>)
-        ; if pos then
-            <copy-char> (<id>, c)
-          else
-            !""
-          end
+  /**
+   * @param c  Char
+   * @param n  Int
+   * @type String -> String
+   */
+  align-helper(|Char, int) :: string -> string
+  align-helper(|c, n) =
+    string-length
+    ; <subti> (n, <id>)
+    ; if pos then
+        <copy-char> (<id>, c)
+      else
+        !""
+      end
 
-      div2 = <div> (<id>, 2)
+  div2 :: int -> int
+  div2 = <divi> (<id>, 2)
 
 rules
 
   /** @internal */
+  SplitInit :: a -> List(empty) * List(empty) * a
   SplitInit : x -> ([], [], x)
 
   /** @internal */
+  SplitExit :: List(string) * List(Char) * List(empty) -> List(string)
   SplitExit :
     (xs, cs, []) ->
     <reverse> [<reverse; implode-string> cs|xs]
 
   /** @internal */
+  SplitNext :: List(string) * List(Char) * List(Char) -> List(string) * List(Char) * List(Char)
   SplitNext :
     (xs, cs, [32|ys]) ->
     ([<reverse; implode-string> cs | xs], [], ys)
@@ -853,14 +948,21 @@ strategies
    *
    * @type String -> List(String)
    */
+  split-at-space :: string -> List(string)
   split-at-space =
-    explode-string;
-    SplitInit;
-    rec x(SplitExit <+ SplitNext; x)
+    let
+      x :: List(string) * List(Char) * List(Char) -> List(string)
+      x = SplitExit <+ SplitNext; x
+    in
+      explode-string;
+      SplitInit;
+      x
+    end
 
- /**
-  * @inc split-at-dot-test
-  */
+  /**
+   * @inc split-at-dot-test
+   */
+  split-at-dot :: string -> string * string
   split-at-dot =
       split(![],explode-string)
     ; rec r(   \(int,[46|frac]) -> (int,frac)\
@@ -869,9 +971,10 @@ strategies
     ; (implode-string,implode-string)
 
   // fails if sub isn't in l
- /**
-  * @inc split-before-test
-  */
+  /**
+   * @inc split-before-test
+   */
+  split-before :: string * string -> string * string
   split-before = ?(l,sub);
         <explode-string>sub => sub';
         <explode-string>l;
@@ -881,9 +984,10 @@ strategies
     (implode-string,implode-string)
 
   // results in (l,"") if sub isn't in l
- /**
-  * @inc split-after-test
-  */
+  /**
+   * @inc split-after-test
+   */
+  split-after :: string * string -> string * string
   split-after = ?(l,sub);
         <explode-string>sub => sub';
         <explode-string>l;
@@ -901,6 +1005,7 @@ strategies
    * @param _ -> String
    * @type String -> _
    */
+  is-substring(? -> string) :: string -> ?
   is-substring(s) =
     explode-string;?long;
     s;explode-string => sub;
@@ -912,9 +1017,10 @@ strategies
     })>long)
 
   // <copy-char> (3, 32) -> "   "
- /**
-  * @inc copy-char-test
-  */
+  /**
+   * @inc copy-char-test
+   */
+  copy-char :: int * Char -> string
   copy-char =
     copy; implode-string
 
@@ -927,6 +1033,7 @@ strategies
    *
    * @type List(String) -> List(String)
    */
+  string-sort :: List(string) -> List(string)
   string-sort =
       map(explode-string)
     ; qsort(string-lt)
@@ -937,6 +1044,7 @@ strategies
    *
    * @type List(String) -> List(String)
    */
+  string-sort-desc :: List(string) -> List(string)
   string-sort-desc =
       map(explode-string)
     ; qsort(string-gt)
@@ -951,6 +1059,7 @@ strategies
    * @type  (List(Char), List(Char)) -> 1
    * @type  (String, String)         -> 1
    */
+  string-gt :: ? * ? -> int
   string-gt =
     try((explode-string, explode-string));
     strcasecmp; ?1
@@ -962,6 +1071,7 @@ strategies
    * @type  (List(Char), List(Char)) -> 1
    * @type  (String, String)         -> 1
    */
+  string-lt :: ? * ? -> int
   string-lt =
     try((explode-string, explode-string));
     strcasecmp; ?-1
@@ -975,6 +1085,7 @@ strategies
    *
    * @type  String -> String
    */
+  string-starts-with(|string) :: string -> string
   string-starts-with(|start) =
     where(<left-match> (<explode-string>, <explode-string> start))
 
@@ -987,6 +1098,7 @@ strategies
    *
    * @type  String -> String
    */
+  string-ends-with(|string) :: string -> string
   string-ends-with(|'end) =
     where(<right-match> (<explode-string>, <explode-string> 'end))
 
@@ -998,12 +1110,16 @@ strategies
    *
    * @type  (List(a), List(a)) -> List(a)
    */
+  left-match :: List(a) * List(a) -> List(a)
   left-match =
-      rec r(
-         \ ([l|ls],[l|rs]) -> <r> (ls,rs) \
-      <+ (id,[])
-      )
-    ; Fst
+      let
+        r :: List(a) * List(a) -> List(a) * List(a)
+        r = \ ([l|ls],[l|rs]) -> <r> (ls,rs) \
+         <+ (id,[])
+      in
+        r
+      ; Fst
+      end
 
   /**
    * Succeeds if the first list of terms ends with the second list of terms.
@@ -1012,6 +1128,7 @@ strategies
    *
    * @type  (List(a), List(a)) -> List(a)
    */
+  right-match :: List(a) * List(a) -> List(a)
   right-match =
       (reverse, reverse)
     ; left-match
@@ -1020,16 +1137,16 @@ strategies
  /**
   * @inc strcmp
   */
-  strcmp = rec r(
-       \([x|xs],[x|ys]) -> <r>(xs,ys)\
-      <+ \([],[]) -> 0\
-      <+ \([x|_],[y|_]) -> -1 where <lt>(x,y)\
-      <+ \([],[_|_]) -> -1\
-      // these last two cases are handled faster by just !1
-      //    <+ \([_|_],[]) -> 1\
-      //    <+ \([x|_],[y|_]) -> 1\
-      <+ !1
-      )
+  strcmp :: List(Char) * List(Char) -> int
+  strcmp =
+       \([x|xs],[x|ys]) -> <strcmp>(xs,ys)\
+    <+ \([],[]) -> 0\
+    <+ \([x|_],[y|_]) -> -1 where <int-lt>(x,y)\
+    <+ \([],[_|_]) -> -1\
+    // these last two cases are handled faster by just !1
+    //    <+ \([_|_],[]) -> 1\
+    //    <+ \([x|_],[y|_]) -> 1\
+    <+ !1
 
   /**
    * Compares the n first characters of two character lists, n
@@ -1038,14 +1155,14 @@ strategies
    *
    * @type List(Char) * List(Char) * Int -> Int
    */
-  strncmp = rec r
-    (  \(_,_,0) -> 0\
-    <+ \([x|xs],[x|ys],i) -> <r>(xs,ys,<subt>(i,1))\
+  strncmp :: List(Char) * List(Char) * int -> int
+  strncmp =
+       \(_,_,0) -> 0\
+    <+ \([x|xs],[x|ys],i) -> <strncmp>(xs,ys,<subti>(i,1))\
     <+ \([],[],_) -> 0\
-    <+ \([x|_],[y|_],_) -> -1 where <lt>(x,y)\
+    <+ \([x|_],[y|_],_) -> -1 where <int-lt>(x,y)\
     <+ \([],[_|_],_) -> -1\
     <+ !1
-    )
 
   /**
    * Compares two lists of characters lexicographically, ignoring case.
@@ -1057,13 +1174,13 @@ strategies
    *
    * @type (List(Char), List(Char)) -> -1, 0,1 or -1.
    */
-  strcasecmp = rec r
-    (  \([x|xs],[y|ys]) -> <r>(xs,ys) where <case-char(eq)>(x,y)\
+  strcasecmp :: List(Char) * List(Char) -> int
+  strcasecmp =
+       \([x|xs],[y|ys]) -> <strcasecmp>(xs,ys) where <case-char(eq)>(x,y)\
     <+ \([],[]) -> 0\
-    <+ \([x|_],[y|_]) -> -1 where <case-char(lt)>(x,y)\
+    <+ \([x|_],[y|_]) -> -1 where <case-char(int-lt)>(x,y)\
     <+ \([],[_|_]) -> -1\
     <+ !1
-    )
 
 strategies
 
@@ -1081,12 +1198,18 @@ strategies
    * @type    string -> [string]
    * @since 0.9.5
    */
+  string-tokenize-keep-empty(|List(Char)) :: string -> List(string)
   string-tokenize-keep-empty(|sepChars) =
-    explode-string
-    ; rec x( ( split-fetch(<elem> (<id>, sepChars))
-             ; \ (tchars, cs) -> [tchars|<x> cs] \ )
-          <+ ![<id>])
-    ; map(implode-string)
+    let
+      x :: List(Char) -> List(List(Char))
+      x = ( split-fetch(<elem> (<id>, sepChars))
+               ; \ (tchars, cs) -> [tchars|<x> cs] \ )
+          <+ ![<id>]
+    in
+      explode-string
+      ; x
+      ; map(implode-string)
+    end
 
 
   /**
@@ -1102,12 +1225,18 @@ strategies
    * @type    string -> [string]
    * @since 0.9.5
    */
+  string-tokenize-keep-all(|List(Char)) :: string -> List(string)
   string-tokenize-keep-all(|sepChars) =
-    explode-string
-    ; rec x( ( split-fetch-keep(where(<elem> (<id>, sepChars)))
-             ; \ (tchars, s, cs) -> [tchars|[[s]|<x> cs]] \ )
-          <+ ![<id>])
-    ; map(implode-string)
+    let
+      x :: List(Char) -> List(List(Char))
+      x = ( split-fetch-keep(where(<elem> (<id>, sepChars)))
+              ; \ (tchars, s, cs) -> [tchars|[[s]|<x> cs]] \ )
+          <+ ![<id>]
+    in
+      explode-string
+      ; x
+      ; map(implode-string)
+    end
 
   /**
    * Gets all newline(\n, \r\n or \r)-separated lines in a string.
@@ -1117,11 +1246,13 @@ strategies
    * @type string -> [string]
    * @since 0.9.4
    */
+  get-lines :: string -> List(string)
   get-lines =
     explode-string
     ; split-at-newlines
     ; map(implode-string)
 
+//  split-at-newlines :: List(Char) -> List(List(Char))
   internal split-at-newlines =
     at-suffix(
        (['\n'       | tl] -> [])
@@ -1147,6 +1278,7 @@ strategies
    * @type   string -> string
    * @since 0.9.4
    */
+  all-lines(string -> string) :: string -> string
   all-lines(s) =
     is-string
   ; string-tokenize-keep-empty(|['\n'])
@@ -1164,6 +1296,7 @@ strategies
    *
    * @since 0.9.4
    */
+  lines :: List(string) -> string
   lines =
     separate-by(!"\n")
   ; <conc> (<id>, ["\n"])
@@ -1177,6 +1310,7 @@ strategies
    * @type string -> string
    * @since 0.9.4
    */
+  indent-text(|int) :: string -> string
   indent-text(|n) =
     where(<copy-char> (n, ' ') => prefix)
   ; prefix-lines(|prefix)
@@ -1189,6 +1323,7 @@ strategies
    * @type   string -> string
    * @since 0.9.4
    */
+  prefix-lines(|string) :: string -> string
   prefix-lines(|p) =
     all-lines(<conc-strings> (p, <id>))
 
@@ -1207,6 +1342,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  ltrim-chars(Char -> ?) :: string -> string
   ltrim-chars(s) = string-as-chars(ltrim(s))
 
   /**
@@ -1221,6 +1357,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  rtrim-chars(Char -> ?) :: string -> string
   rtrim-chars(s) = string-as-chars(rtrim(s))
 
   /**
@@ -1236,6 +1373,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  trim-chars(Char -> ?) :: string -> string
   trim-chars(s)  = string-as-chars(trim(s))
 
   /**
@@ -1246,6 +1384,7 @@ strategies
    * @type Char -> Char
    * @since 0.9.5
    */
+  is-whitespace :: Char -> Char
   is-whitespace = where('\t' + ' ')
 
   /**
@@ -1254,6 +1393,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  trim-trailing-whitespace :: string -> string
   trim-trailing-whitespace =
     rtrim-chars(is-whitespace)
 
@@ -1263,6 +1403,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  trim-leading-whitespace :: string -> string
   trim-leading-whitespace =
     ltrim-chars(is-whitespace)
 
@@ -1272,6 +1413,7 @@ strategies
    * @type String -> String
    * @since 0.9.5
    */
+  trim-whitespace :: string -> string
   trim-whitespace =
     trim-chars(is-whitespace)
 
@@ -1281,13 +1423,20 @@ strategies
    * Some shuffling strategies
    * @internal
    */
+  shuffle-forced :: List(a) -> List(a)
   shuffle-forced =
-      where(length; <gt> (<id>, 1))
-    ; where(at-suffix(?[x,y|xs]; where(not(<eq> (x, y)))))
-    ; rec x({orig: ?orig; shuffle; (where(<eq> (orig, <id>)) < x + id)})
+    let
+      x :: List(a) -> List(a)
+      x = {orig: ?orig; shuffle; (where(<eq> (orig, <id>)) < x + id)}
+    in
+        where(length; <gt> (<id>, 1))
+      ; where(at-suffix(?[x,y|xs]; where(not(<eq> (x, y)))))
+      ; x
+    end
     <+ id
 
   /** @internal */
+  shuffle :: List(a) -> List(a)
   shuffle =
       where(is-list)
     ; map(!(<next-random> (), <id>))
@@ -1295,12 +1444,14 @@ strategies
     ; map(Snd)
 
   /** @internal */
+  shuffle-word-mids :: string -> string
   shuffle-word-mids =
       string-tokenize-keep-all(|[' ', '.', ','])
     ; map(shuffle-word-mid)
     ; concat-strings
 
   /** @internal */
+  shuffle-word-mid :: string -> string
   shuffle-word-mid =
      where(is-string)
    ; (where(strlen; <lt> (<id>, 3))
@@ -1316,6 +1467,7 @@ strategies
   /**
    * @inc is-alphanum-test
    */
+  is-alphanum :: Char -> Char
   is-alphanum = is-num + is-alpha
 
   /**
@@ -1324,6 +1476,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-alpha :: Char -> Char
   is-alpha = is-upper + is-lower
 
   /**
@@ -1333,6 +1486,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-hexnum :: Char -> Char
   is-hexnum =
       is-char
     ; (
@@ -1345,6 +1499,7 @@ strategies
    * @inc is-num-test
    * @inc is-not-num-test
    */
+  is-num :: Char -> Char
   is-num =
     where(<leq-leq> ('0', <id>, '9'))
 
@@ -1353,6 +1508,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-upper :: Char -> Char
   is-upper =
     where(<leq-leq> ('A', <id>, 'Z'))
 
@@ -1361,6 +1517,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-lower :: Char -> Char
   is-lower =
     where(<leq-leq> ('a', <id>, 'z'))
 
@@ -1372,6 +1529,7 @@ strategies
    *
    * @type Char -> Char
    */
+  is-ascii :: Char -> Char
   is-ascii =
     where(<leq-leq> ( 32, <id>, 127))
 
@@ -1383,6 +1541,7 @@ strategies
    * @param (Char, Char) -> a
    * @type  (Char, Char) -> a
    */
+  case-char(Char * Char -> a) :: Char * Char -> a
   case-char(s) = (to-upper, to-upper); s
 
   /**
@@ -1393,8 +1552,9 @@ strategies
    *
    * @type Char -> Char
    */
+  to-upper :: Char -> Char
   to-upper =
-    is-lower < <subt> (<id>, 32) + id
+    is-lower < <subti> (<id>, 32) + id
 
   /**
    * Ensures that a character is lower-case.
@@ -1404,7 +1564,8 @@ strategies
    *
    * @type Char -> Char
    */
-  to-lower = is-upper < <add>  (<id>, 32) + id
+  to-lower :: Char -> Char
+  to-lower = is-upper < <addi>  (<id>, 32) + id
 
   /**
    * Replaces one substring with another in a string.
@@ -1417,6 +1578,7 @@ strategies
    *
    * @author Karl Trygve Kalleberg <karltk@stratego.org>
    */
+  string-replace(|string, string) :: string -> string
   string-replace(|old, new) =
       !([], <explode-string>, <explode-string> old)
     ; internal-string-replace(|<explode-string> old, <explode-string ; reverse> new)
@@ -1426,6 +1588,7 @@ strategies
 strategies
 
   /** @internal */
+  internal-string-replace(|List(Char), List(Char)) :: List(Char) * List(Char) * List(Char) -> List(Char)
   internal-string-replace(|old, new) =
     ?(pre, [ hd | tl ], cur)
     ; (
@@ -1443,6 +1606,7 @@ strategies
     (pre, [], _) -> pre
 
   /** @internal */
+  internal-string-replace-found(|List(Char), List(Char)) :: List(Char) * List(Char) * List(Char) -> List(Char) * List(Char) * List(Char)
   internal-string-replace-found(|old, new) =
     ?(pre, [ hd | tl ], cur)
     ; !cur => [ hd | ctl ]
@@ -1457,11 +1621,12 @@ strategies
   * @internal
   * Used by desugaring of string interpolation $[... [x] ...]
   */
+  internal-ensure-as-string :: ? -> string
   internal-ensure-as-string =
-      concat-strings(|)
+      is(List(string));concat-strings(|)
       <+ is-string(|)
-      <+ int-to-string(|)
-      <+ real-to-string(|)
+      <+ is(int);int-to-string(|)
+      <+ is(real);real-to-string(|)
       <+ { x, y :
           ?x
           ; prim("SSL_stacktrace_get_all_frame_names",|); ?[ _ | y]
@@ -1473,6 +1638,7 @@ strategies
   * @internal
   * Used by desugaring of string interpolation $[... [x] ...]
   */
+  internal-string-interpolation(|?, string) :: ? -> string
   internal-string-interpolation(|t, padded_s) = <internal-ensure-as-string; string-replace(|"\n", padded_s)> t
 
 

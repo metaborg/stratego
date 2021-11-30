@@ -51,6 +51,7 @@ strategies
    *
    * @type Real -> String
    */
+  real-to-string :: real -> string
   real-to-string        = ?x; prim("SSL_real_to_string",x)
 
   /** Convert a real to a string with given precision.
