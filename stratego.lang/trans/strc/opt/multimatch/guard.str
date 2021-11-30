@@ -2,6 +2,7 @@ module multimatch/guard
 
 imports
   strc/opt/multimatch/matrix
+  strc/opt/stratego-laws
 
   signatures/core/strategies-sig
   signatures/sugar/strategies-sig
@@ -22,7 +23,7 @@ strategies
     <sequence-strategies> (Where(Assign(t1, Path(p))), s1) => s
 
 strategies
-  sequence-strategies = !Seq(<Fst>, <Snd>)
+  sequence-strategies = !Seq(<Fst>, <Snd>); simplify
 
 strategies
   is-id-guard = ?Id()
