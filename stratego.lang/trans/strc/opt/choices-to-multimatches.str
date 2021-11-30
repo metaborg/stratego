@@ -56,28 +56,24 @@ strategies
     GuardedLChoice(MM(c1*), Id(), MM(c2*)) ->
     MM([c1*, c2*])
 
-  /* TODO Check. Not correct?
+  /* VERIFIED
     bar = match sequential
-            case ...
-            case x | p where s1: s2 
+            case x* | p when s1: s2
+            case y* | q when s1': s2'
           end < s3 + s4
 
     bar' = match sequential
-            case ...
-            case x | p where s1: s2; s3
-            case   | _ where s4: id
+            case x* | p when s1: s2; s3
+            case y* | q when s1': s2'; s3
+            case   | _ when s4: id
           end
   */
-//  choice-to-multimatch:
-//    GuardedLChoice(MM(c*), s3, s4) ->
-//    MM(c'*)
-//  where
-//    <split-init-last> c* => (init*, last)
-//  ; ScopedGuardedMatchCase(x*, p, s1, s2) := last
-//  with
-//    c1 := ScopedGuardedMatchCase(x*, p, s1, Seq(s2, s3))
-//  ; c2 := ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())
-//  ; <at-last(![c1, c2])> init* => c'*
+  choice-to-multimatch:
+    GuardedLChoice(MM(c*), s3, s4) ->
+    MM(c''*)
+  with
+    c'* := <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s3)))> c*
+  ; c''* := <at-end(![ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())])> c'*
 
   /* VERIFIED
     foo0 = s1 < s2 + s3
