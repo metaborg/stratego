@@ -23,11 +23,12 @@ strategies
 //  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
   ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 1)
   ; log-timed(
-    topdown(repeat(choice-to-multimatch
-                <+ extract-matches
-                <+ extract-righthandsides))
-    | "  2. Translating choices", 1)
-  ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
+    downup(
+      try(repeat(choice-to-multimatch, extract-matches))
+    ; try(extract-righthandsides)
+    , try(lift-defaults))
+    | "  2. Translating choices & lifting defaults", 1)
+//  ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
   ; log-timed(strip-annos|"  4. Stripping annos", 1)
   ; log-timed(simplify|"  5. Simplifying", 1)
   | "Optimisation: choices to multimatches", 1)
@@ -86,7 +87,6 @@ strategies
               case | _ when s3: id
             end
   */
-  // TODO: This transformation is only useful if we can extract matches afterwards.
   choice-to-multimatch:
     GuardedLChoice(s1, s2, s3) ->
     MM([
