@@ -51,6 +51,10 @@ rules
       <+ \ (elems, last)         -> ListTail(elems, last) \
       ) 
 
+  Ensugar:
+    ScopedGuardedMatchCase(x*, p, Id(), s) ->
+    ScopedMatchCase(x*, p, s)
+
   implode-cons =
     \ Op("Cons",[e, tail]) -> [e | <implode-cons> tail] \
     <+ ![<id>]
