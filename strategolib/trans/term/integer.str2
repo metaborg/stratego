@@ -14,6 +14,7 @@ imports
 
 strategies
 
+  is-int :: ? -> int
   is-int =
     ?i; prim("SSL_is_int", i)
 
@@ -22,6 +23,7 @@ strategies
   /**
    * Adds two numbers (integer or real)
    */
+  add :: ? * ? -> ?
   add  = ?(x,y); (prim("SSL_addi",x,y) <+ prim("SSL_addr",x,y))
 
   /**
@@ -80,6 +82,7 @@ strategies
   /**
    * Subtracts two numbers (integer or real)
    */
+  subt :: ? * ? -> ?
   subt  = ?(x,y); (prim("SSL_subti",x,y) <+ prim("SSL_subtr",x,y))
 
   /**
@@ -106,6 +109,7 @@ strategies
   /**
    * Multiplies two numbers (integer or real)
    */
+  mul :: ? * ? -> ?
   mul   = ?(x,y); (prim("SSL_muli",x,y) <+ prim("SSL_mulr",x,y))
 
   /**
@@ -125,6 +129,7 @@ strategies
   /**
    * Divides two numbers (integer or real)
    */
+  div :: ? * ? -> ?
   div = ?(x,y); (prim("SSL_divi",x,y) <+ prim("SSL_divr",x,y))
 
   /**
@@ -144,8 +149,8 @@ strategies
   /**
    * Returns the modulo (remainder after division) of two integers or reals.
    */
-  mod =
-    modi <+ modr
+  mod :: ? * ? -> ?
+  mod = ?(x,y); (prim("SSL_modi",x,y) <+ prim("SSL_modr",x,y))
 
   /**
    * Returns the modulo (remainder after division) of two integers
@@ -163,6 +168,7 @@ strategies
 
 strategies
 
+  gt :: ? * ? -> ? * ?
   gt    = ?(x,y); where(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
 
   gti :: int * int -> int * int
@@ -171,12 +177,22 @@ strategies
   gtr :: real * real -> real * real
   gtr    = ?(x,y); where(prim("SSL_gtr",x,y))
 
+  geq :: ? * ? -> ? * ?
   geq = ?(x,x) <+ gt
+
+  lt :: ? * ? -> ? * ?
   lt  = not(geq)
+
+  leq :: ? * ? -> ? * ?
   leq = not(gt)
 
+  int-geq :: int * int -> int * int
   int-geq = ?(x,x) <+ gti
+
+  int-lt :: int * int -> int * int
   int-lt = not(int-geq)
+
+  int-leq :: int * int -> int * int
   int-leq = not(gti)
 
 strategies
@@ -205,9 +221,16 @@ strategies
 strategies
 
   // :: Int * Int * Int -> fail?
+  leq-leq :: ? * ? * ? -> ? * ? * ?
   leq-leq = comp-comp(leq, leq)
+
+  leq-lt :: ? * ? * ? -> ? * ? * ?
   leq-lt  = comp-comp(leq, lt)
+
+   lt-leq :: ? * ? * ? -> ? * ? * ?
    lt-leq = comp-comp(lt,  leq)
+
+   lt-lt :: ? * ? * ? -> ? * ? * ?
    lt-lt  = comp-comp(lt,  lt)
 
   // Int * Int -> fail?, Int * Int -> fail? :: Int * Int * Int -> fail?
@@ -221,24 +244,32 @@ strategies
   /**
    * @type  Int -> fail?
    */
-  even = where(<mod> (<id>, 2) => 0)
+  even :: int -> int
+  even = where(<modi> (<id>, 2) => 0)
 
   /**
    * @type (Int, Int) -> Int
    */
+  max :: ? * ? -> ?
   max = gt < Fst + Snd
+
+  min :: ? * ? -> ?
   min = gt < Snd + Fst
 
   int-max :: int * int -> int
   int-max = gti < Fst + Snd
+
   int-min :: int * int -> int
   int-min = gti < Snd + Fst
 
   /**
    * @type  Int -> Int
    */
-  pos = where(<geq> (<id>, 0))
-  neg = where(<lt>  (<id>, 0))
+  pos :: int -> int
+  pos = where(<int-geq> (<id>, 0))
+
+  neg :: int -> int
+  neg = where(<int-lt>  (<id>, 0))
 
   int :: ? -> int
   int   = ?x; prim("SSL_int",x)
@@ -253,6 +284,7 @@ strategies
    * @since  0.9.4
    * @type   Int -> ()
    */
+  set-random-seed :: int -> ?
   set-random-seed = ?seed; prim("SSL_srand", seed)
 
   /**
@@ -261,6 +293,7 @@ strategies
    *
    * @type _ -> Int()
    */
+  get-random-max :: ? -> int
   get-random-max = prim("SSL_RAND_MAX")
 
   /**
@@ -274,6 +307,7 @@ strategies
    * @since  0.9.4
    * @type   _ -> Int
    */
+  next-random :: ? -> int
   next-random = prim("SSL_rand")
 
 strategies
@@ -284,22 +318,35 @@ strategies
 
   addS :: string * string -> string
   addS  = apply-int-to-str-tuple(add)
+
   subtS :: string * string -> string
   subtS = apply-int-to-str-tuple(subt)
+
   mulS :: string * string -> string
   mulS  = apply-int-to-str-tuple(mul)
+
   divS :: string * string -> string
   divS  = apply-int-to-str-tuple(div)
+
   modS :: string * string -> string
   modS  = apply-int-to-str-tuple(mod)
+
   maxS :: string * string -> string
   maxS  = apply-int-to-str-tuple(max)
+
   minS :: string * string -> string
   minS  = apply-int-to-str-tuple(min)
 
+  gtS :: string * string -> string * string
   gtS   = where((string-to-int, string-to-int); gt)
+
+  geqS :: string * string -> string * string
   geqS  = where((string-to-int, string-to-int); geq)
+
+  ltS :: string * string -> string * string
   ltS   = where((string-to-int, string-to-int); lt)
+
+  leqS :: string * string -> string * string
   leqS  = where((string-to-int, string-to-int); leq)
 
   /**
@@ -307,6 +354,7 @@ strategies
    *
    * @type Int -> Int
    */
+  inc :: ? -> ?
   inc = <add>  (<id>, 1)
 
   /**
@@ -323,6 +371,7 @@ strategies
    *
    * @type Int -> Int
    */
+  dec :: ? -> ?
   dec = <subt> (<id>, 1)
 
   /**
@@ -344,17 +393,21 @@ strategies
 
 strategies
 
+  gcd :: int * int -> int
   gcd =
     (abs,abs)
-  ; let gcd' = \ (x,0) -> x \ + \ (x,y) -> <gcd'>(y,<mod>(x,y)) \
+  ; let
+      gcd' :: int * int -> int
+      gcd' = \ (x,0) -> x \ + \ (x,y) -> <gcd'>(y,<modi>(x,y)) \
     in
       gcd'
     end
 
+  abs :: int -> int
   abs =
     (is-int + is-real)
     ; if neg then
-        <subt> (0, <id>)
+        <subti> (0, <id>)
       end
 
 signature

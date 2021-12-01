@@ -65,7 +65,7 @@ public class StrcTests {
         // list-cons is not a test file, it is imported by other test files.
         // flatten-test shouldn't fail but currently does, so temporarily disabled to allow local spoofax build
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Arrays.asList("list-cons.str2", "flatten-test.str2"));
+            new HashSet<>(Arrays.asList("list-cons.str2")); //, "flatten-test.str2"
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
         return compileAndRun("test2", "*.str2", disableFilter, new ArrayList<>(0));

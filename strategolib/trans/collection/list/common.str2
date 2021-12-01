@@ -517,7 +517,7 @@ strategies
    * Separates the elements of the list by the specified separator.
    * The separate-by variant that uses a term argument is prefered.
    */
-  separate-by :: ? * List(?) -> List(?)
+  separate-by :: a * List(a) -> List(a)
   separate-by =
     ?(sep, <id>)
     ; separate-by(|sep)
@@ -528,7 +528,7 @@ strategies
    *
    * @param Strategy that results in a separator.
    */
-  separate-by(? -> ?) :: List(?) -> List(?)
+  separate-by(Tuple() -> a) :: List(a) -> List(a)
   separate-by(sep) =
     separate-by(|<sep> ())
 
@@ -537,7 +537,7 @@ strategies
    *
    * @param Separator term
    */
-  separate-by(|?) :: List(?) -> List(?)
+  separate-by(|a) :: List(a) -> List(a)
   separate-by(|sep) =
     []
     + [id |

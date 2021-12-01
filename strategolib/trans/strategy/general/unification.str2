@@ -13,22 +13,26 @@ imports
 
 strategies
 
-  equal =
+  uf-equal :: List(? * ?) -> List(empty)
+  uf-equal =
     for(id ,[], UfIdem <+ UfDecompose
                 //<+ debug(!"not equal: "); FAIL
     )
 
 rules
 
+  UfIdem :: List(? * ?) -> List(? * ?)
   UfIdem :
     [(x,x) | ps] -> ps
 
+  UfDecompose :: List(? * ?) -> List(? * ?)
   UfDecompose :
     [(f#(xs), f#(ys)) | ps] -> <conc>(<zip(id)>(xs, ys), ps)
 
 strategies
 
-  diff =
+  uf-diff :: List(? * ?) -> List(? * ?) * List(empty)
+  uf-diff =
     for(\ ps -> ([],ps) \ , (id,[]), (id, UfIdem <+ UfDecompose) <+ UfShift)
 
 rules
@@ -39,13 +43,14 @@ rules
 
 strategies
 
+  pattern-match(? -> ?) :: List(? * ?) -> List(? * ?)
   pattern-match(isvar) =
     for(\ pairs -> (pairs, []) \
        ,\ ([], sbs) -> sbs \
        ,(UfIdem, id) <+ MatchVar(isvar) + (UfDecompose, id))
 
 rules
-  MatchVar(? -> ?) :: List(?) * List(?) -> List(?) * List(?)
+  MatchVar(? -> ?) :: List(? * ?) * List(? * ?) -> List(? * ?) * List(? * ?)
   MatchVar(isvar) :
     ([(x,y) | ps], sbs) -> (ps, [(x, y) | sbs])
     where <isvar> x; <not(fetch({z: ?(x,z); <not(eq)> (y, z)}))> sbs
@@ -63,25 +68,28 @@ strategies
   *
   * E.g. <unify(isvar)> [(t1,t2),(t3,t4),...] => [(x1,p1),(x2,p2),...]
   */
+  unify(? -> ?) :: List(? * ?) -> List(? * ?)
   unify(isvar) =
     for(\ pairs -> (pairs, []) \
        ,\ ([], sbs) -> sbs \
        ,(UfIdem, id) <+ UfVar(isvar) + UfSwap(isvar) <+ (UfDecompose, id))
 
 rules
-
+  UfVar(? -> ?) :: List(? * ?) * List(? * ?) -> List(? * ?) * List(? * ?)
   UfVar(isvar) :
     ([(x,y) | ps], sbs) -> (ps', [(x, y) | sbs''])
     where <isvar> x; <not(is-subterm)>(x,y);
               <substitute(isvar)> ([(x,y)], (sbs, ps)) => (sbs'', ps')
 
+  UfSwap(? -> ?) :: List(? * ?) * a -> List(? * ?) * a
   UfSwap(isvar) :
     ([(x,y) | ps], sbs) -> ([(y,x) | ps], sbs)
     where <not(isvar)> x; <isvar> y
 
 strategies
 
-  equal(fltr) =
+  uf-equal(? -> ?) :: List(? * ?) -> List(empty)
+  uf-equal(fltr) =
     for(id ,[], UfIdem
                 <+ try([(fltr,fltr)|id]); UfDecompose
                 //<+ debug(!"not equal: "); FAIL
@@ -95,7 +103,8 @@ strategies
   * The filter applies to the entire pair and can change something
   * in one term based on the other term.
   */
-  equal(fltr1, fltr2) =
+  uf-equal(? -> ?, ? * ? -> ? * ?) :: List(? * ?) -> List(empty)
+  uf-equal(fltr1, fltr2) =
     for(id ,[], UfIdem
                 <+ [(try(fltr1),try(fltr1)); try(fltr2)|id]; UfDecompose
                 //<+ debug(!"not equal: "); FAIL
