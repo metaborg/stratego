@@ -6,6 +6,7 @@ imports
   strc/lib/stratlib
 
   signatures/core/terms-sig
+  signatures/core/strategies-sig
   signatures/sugar/strategies-sig
 
   libstratego-lib
@@ -30,7 +31,7 @@ strategies
   with
     x := <tnewvar> "expl_"
   ; t2 := Var(x) // TODO Needs (offset/frames/escapes) annotations?
-  ; s := Assign(t1, t2)
+  ; s := Where(Assign(t1, t2))
 
   Explode2Guard' =
     (is-primitive, id)

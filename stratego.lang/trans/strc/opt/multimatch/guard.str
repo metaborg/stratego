@@ -17,10 +17,10 @@ strategies
     <map(repeat(alias-to-guard(|p)))> row* => row'*
 
   alias-to-guard(|p):
-    Row([As(t1, t2) | t*], s1, s2, s3) ->
-    Row([t2 | t*], s, s2, s3)
+    Row([As(t1, t2) | t*], s_g, s2) ->
+    Row([t2 | t*], s_g', s2)
   with
-    <sequence-strategies> (Where(Assign(t1, Path(p))), s1) => s
+    <sequence-strategies> (Where(Assign(t1, Path(p))), s_g) => s_g'
 
 strategies
   sequence-strategies = !Seq(<Fst>, <Snd>); simplify

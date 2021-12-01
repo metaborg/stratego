@@ -23,14 +23,15 @@ strategies
   ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]
 
   MatchCase2Row:
-    ScopedMatchCase(_, t1, s) -> Row([t2], s_a, Id(), s)
+    ScopedMatchCase(_, t1, s) -> Row([t2], s_g, s)
   with
-    <preprocess> t1 => (t2, s_a)
+    <preprocess> t1 => (t2, s_g)
 
   MatchCase2Row:
-    ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], s_a, s1, s2)
+    ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], s_g, s2)
   with
     <preprocess> t1 => (t2, s_a)
+  ; <sequence-strategies> (s_a, s1) => s_g
 
   MatchCase2Vars = ?ScopedMatchCase(<id>, _, _)
   MatchCase2Vars = ?ScopedGuardedMatchCase(<id>, _, _, _)

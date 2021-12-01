@@ -63,7 +63,7 @@ strategies
    * In a subsequent traversal, this guard can be pushed up to the switch arm.
    */
   WildcardsFirstRow:
-    m@Matrix(_, row*@[Row(<all-wildcards>, _, _, _) | _]) ->
+    m@Matrix(_, row*@[Row(<all-wildcards>, _, _) | _]) ->
     GuardedLeafs(guard*)
 //  where
 //    <debug(!"WildcardsFirstRow ")> m
@@ -72,7 +72,7 @@ strategies
   ; <Matrix(id, drop-while(row-all-wildcards))> m => m'
     // Split rows at first row not having only wildcard patterns
   ; let
-      row2guard = \ Row(_, s_a, s_g, s_rhs) -> Guard(<sequence-strategies> (Where(s_a), s_g), s_rhs) \
+      row2guard = \ Row(_, s_g, s_rhs) -> Guard(s_g, s_rhs) \
     in
       guard* := <map(row2guard); at-end(![Guard(Id(), <CC> m')])> match_row*
     end
