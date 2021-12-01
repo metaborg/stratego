@@ -58,22 +58,26 @@ strategies
 
   /* VERIFIED
     bar = match sequential
-            case x* | p when s1: s2
-            case y* | q when s1': s2'
-          end < s3 + s4
+            case x* | p when sg: sr
+            case y* | q when sg': sr'
+          end < s2 + s3
 
     bar' = match sequential
-            case x* | p when s1: s2; s3
-            case y* | q when s1': s2'; s3
-            case   | _ when s4: id
+            case x* | p when sg: sr; s2
+            case y* | q when sg': sr'; s2
+            case    | _ when s3: id
           end
   */
+  // TODO NOTE: Duplicates s2. Not valid if s2 is not a pure operation.
   choice-to-multimatch:
-    GuardedLChoice(MM(c*), s3, s4) ->
-    MM(c''*)
+    GuardedLChoice(MM(c1*), s2, s3) ->
+    MM([c1'*, c2'*])
   with
-    c'* := <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s3)))> c*
-  ; c''* := <at-end(![ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s4, Id())])> c'*
+    c1'* := <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s2)))> c1*
+  ; if <?MM(c2*)> s3
+    then c2'* := c2*
+    else c2'* := [ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())]
+    end
 
   /* VERIFIED
     foo0 = s1 < s2 + s3
@@ -89,29 +93,6 @@ strategies
       ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s1, s2)
     , ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())
     ])
-
-  /* TODO Check. Not correct?
-    qux = match sequential
-            case ...
-            case | p when s1 < s2 + s3: s
-          end
-
-    qux' = match sequential
-            case ...
-            case | p when s1: s2; s
-            case | p when s3: s
-          end
-  */
-//  choice-to-multimatch:
-//    MM(c*) ->
-//    MM(c'*)
-//  where
-//    <split-init-last> c* => (init*, last)
-//  ; !last => ScopedGuardedMatchCase([], p@<is-wld>, GuardedLChoice(s1, s2, s3), s)
-//  with
-//    c1 := ScopedGuardedMatchCase([], p, s1, <sequence-strategies> (s2, s))
-//  ; c2 := ScopedGuardedMatchCase([], p, s3, s)
-//  ; c'* := <at-last(![c1, c2])> init*
 
 strategies
 
