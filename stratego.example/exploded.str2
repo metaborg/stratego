@@ -24,5 +24,5 @@ strategies
       case | "Nil"#([]): !10
       case | "Cons"#([1, 2, 3]): !11
       case | "Nil"#(["not", "a", "list"]): !12
-      case foo | _ if ?foo#([1, "x"]): !13
+      case foo | _ when ?foo#([1, "x"]): !13
     end
