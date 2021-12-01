@@ -2,8 +2,6 @@ module multimatch/matrix2dfa
 
 imports
   strc/strc/strc
-  strc/opt/scope-laws
-  strc/opt/stratego-laws
 
   strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
@@ -18,19 +16,12 @@ imports
 strategies
   /*======== Construct DFA from matrices =================*/ 
   matrix2dfa =
-    Scope(id,
-        compile-dfa
-      ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
-    )
+      log-timed(CC | "DFA - Compilation", 1)
+    ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
     ; simplify
-    ; enhance-dfa
-
-  compile-dfa = log-timed(CC | "DFA - Compilation", 1)
-
-  enhance-dfa =
-    if not(<get-config> "--no-dfa-optimise")
-    then log-timed(optimise-dfa | "DFA - Optimisation", 1)
-    end
+    ; if not(<get-config> "--no-dfa-optimise")
+      then log-timed(optimise-dfa | "DFA - Optimisation", 1)
+      end
 
   /*
    * Compilation scheme from Maranget (2008).

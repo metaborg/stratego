@@ -4,5 +4,9 @@ imports
   strc/opt/multimatch/multimatch2matrix
   strc/opt/multimatch/matrix2dfa
 
+  strc/opt/stratego-laws
+
+  signatures/core/strategies-sig
+
 strategies
-  multimatch2dfa = multimatch2matrix; matrix2dfa
+  multimatch2dfa = multimatch2matrix; Scope(id, matrix2dfa); simplify
