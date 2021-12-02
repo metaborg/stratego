@@ -56,6 +56,13 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>strategolib</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.meta.lang.stratego</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
@@ -73,6 +80,7 @@
             <strategoxt-jar>${settings.localRepository}/org/metaborg/strategoxt-jar/${metaborg-version}/strategoxt-jar-${metaborg-version}.jar</strategoxt-jar>
             <stratego-lang>${settings.localRepository}/org/metaborg/stratego.lang/${metaborg-version}/stratego.lang-${metaborg-version}.spoofax-language</stratego-lang>
             <omml-stratego>${settings.localRepository}/org/metaborg/org.metaborg.meta.lang.stratego/${metaborg-version}/org.metaborg.meta.lang.stratego-${metaborg-version}.spoofax-language</omml-stratego>
+            <strategolib>${settings.localRepository}/org/metaborg/strategolib/${metaborg-version}/strategolib-${metaborg-version}.spoofax-language</strategolib>
           </systemPropertyVariables>
         </configuration>
       </plugin>

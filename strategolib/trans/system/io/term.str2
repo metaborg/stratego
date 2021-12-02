@@ -193,6 +193,7 @@ strategies
    *
    * @type  a -> a
    */
+  debug :: a -> a
   debug =
     where(<fprintnl> (stderr(), [<id>]))
 
@@ -201,6 +202,7 @@ strategies
    *
    * @type  a -> a
    */
+  debug(? -> ?) :: a -> a
   debug(msg) =
     where(<fprintnl> (stderr(), [<msg>,<id>]))
 

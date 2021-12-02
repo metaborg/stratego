@@ -446,18 +446,21 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; if ListT(t) := <pushDyn> t1
       then t1* := <map(!t)> trm1*
          ; st2 := st1
+         ; tailt := ListT(t)
       else if SortVar(tv) := t1
         then
           ttv := SortVar(tv{<newname> "listtv"})
         ; t1* := <copy> (<length> trm1*, ttv)
-        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT(ttv))
+        ; tailt := ListT(ttv)
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, tailt)
         else
           t1* := <map(!DynT())> trm1*
-        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT())
+        ; tailt := ListT()
+        ; (_, st2) := <computeCoercion(|trm, st1)> (t1, tailt)
         end
     end
   ; (trm2*, t2*, st3) := <thread-map-Type(insertCasts-StMatchTerm-Type(|e1))> (<zip> (trm1*, t1*), st2)
-  ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|t1)> st3)> trm1
+  ; (trm2, st4) := <insertCasts-StMatchTerm(|e1, <current-type(|tailt)> st3)> trm1
   ; t2 := <current-type> st4
   ; (_, st5) := <computeCoercion(|trm, st4)> (t2, ListT())
   ; (t3, st6) := <foldr1-thread(lub)> ([t2*, <otf(!EmptyT())> t2], st5)
@@ -700,16 +703,20 @@ insertCasts-StMatchTerm-(|e1, st1):
   ; t3 := <current-type> st1
   ; (trm2, st2) := <insertCasts-StMatchTerm(|e1, <current-type(|t2)> st1)> trm1
   ; if EmptyT() := <current-type> st2
-    then trm3 := trm2; st3 := st2
-    else
-      (c, st3) := <computeCoercion(|ta, st2)> (t3, t2)
-    ; if Id() := c
-        then trm3 := trm2; st4 := st3
-        else
-          taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
-        ; trm3 := <otf(!As(taVar, trm2))> ta
-        ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
-      end
+      then
+        trm3 := trm2
+      ; st4 := st2
+      else
+        (c, st3) := <computeCoercion(|ta, st2)> (t3, t2)
+      ; if Id() := c
+          then
+            trm3 := trm2
+          ; st4 := st3
+          else
+            taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
+          ; trm3 := <otf(!As(taVar, trm2))> ta
+          ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
+        end
     end
 
 insertCasts-StBuildTerm-(|e1, st1):

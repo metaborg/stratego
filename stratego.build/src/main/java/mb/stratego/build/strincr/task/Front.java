@@ -114,6 +114,12 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
         final LastModified<IStrategoTerm> ast;
         try {
+            if(input.moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier
+                && ((mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path.getLeafFileExtension()
+                    .equals("str")) {
+                context.logger().warn("Using str file, no str2 file found for: "
+                    + ((mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path);
+            }
             ast = getModuleAst(context, input);
         } catch(ExecException e) {
             throw e;

@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.StringJoiner;
 
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -26,8 +28,14 @@ public class Java {
             fileManager.setLocation(StandardLocation.CLASS_OUTPUT,
                 Collections.singletonList(dest.toFile()));
             fileManager.setLocation(StandardLocation.CLASS_PATH, classPath);
-            final javax.tools.JavaCompiler.CompilationTask task =
-                compiler.getTask(null, fileManager, null, null, null, compilationUnits);
+            final StringJoiner classPathJoiner = new StringJoiner(":");
+            for(File file : classPath) {
+                classPathJoiner.add(file.toString());
+            }
+            final javax.tools.JavaCompiler.CompilationTask task = compiler
+                .getTask(null, fileManager, null,
+                    Arrays.asList("-classpath", classPathJoiner.toString()), null,
+                    compilationUnits);
             return task.call();
         }
     }

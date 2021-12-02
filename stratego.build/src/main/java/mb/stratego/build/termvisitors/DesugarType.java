@@ -40,6 +40,7 @@ public class DesugarType {
         // desugar-Type- = otf(\SortVar("string") -> StringT()\)
         // desugar-Type- = otf(\SortVar("int") -> IntT()\)
         // desugar-Type- = otf(\SortVar("real") -> RealT()\)
+        // desugar-Type- = otf(\SortVar("blob") -> BlobT()\)
         if(TermUtils.isAppl(term, "SortVar", 1)) {
             switch(TermUtils.toJavaStringAt(term, 0)) {
                 case "string":
@@ -50,6 +51,9 @@ public class DesugarType {
                     break;
                 case "real":
                     result = tf.makeAppl("RealT");
+                    break;
+                case "blob":
+                    result = tf.makeAppl("BlobT");
                     break;
                 default:
                     result = term;
@@ -166,7 +170,7 @@ public class DesugarType {
                     for(IStrategoTerm sarg : sargs) {
                         sargs2.add(tryDesugarSType(tf, sarg));
                     }
-                    final IStrategoTerm t = tryDesugarType(tf, term.getSubterm(1));
+                    final IStrategoTerm t = desugarSSimpleFunType(tf, term.getSubterm(1));
                     result = tf.makeAppl("FunTType", sargs2.build(), tf.makeList(), t);
                     break;
                 }

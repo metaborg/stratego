@@ -307,6 +307,7 @@ rules
 
        public static Context init(Context context) {
          synchronized (x_name.class) {
+           initTypeInfo(context);
            if (isIniting) return null;
            try {
              isIniting = true;
@@ -346,6 +347,13 @@ rules
            // ~*cnst-inits
          }
        ]|
+       
+       ~*<java-split-method> |[
+         public static void initTypeInfo(Context compiledContext) {
+           bstm3*
+           compiledContext.typeInfo.finishRegistration();
+         }
+       ]|
 
        ~*constant-defs
 
@@ -361,6 +369,7 @@ rules
     ; x_name'       := <ApplicationName>
     ; pkgname       := <!package-dec? |[ package ~x:<get-config> "-p"; ]| <+ !None()>
     ; main          := <java-main-methods>
+    ; bstm3*        := <filter(java-register-signature)> ops
     ; register      := <java-interop-registerers> (defs, ops)
     ; switch <get-config> "--stacktrace"
         case 0: e_traces := |[ false ]|
@@ -491,8 +500,6 @@ rules
             compiledContext.registerComponent("~x_name");
             x_name.init(compiledContext);
             bstm1*
-            bstm3*
-            compiledContext.typeInfo.finishRegistration();
           }
         ]|
 
@@ -501,8 +508,6 @@ rules
             compiledContext.registerComponent("~x_name");
             x_name.init(compiledContext);
             bstm2*
-            bstm3*
-            compiledContext.typeInfo.finishRegistration();
           }
         ]|
       }
@@ -511,7 +516,6 @@ rules
       // HACK: non-lazy defs are used only to trick javac to compile everything atm
       bstm1* := <filter(java-register-strategy)> defs
     ; bstm2* := <filter(java-register-strategy-lazy)> defs
-    ; bstm3* := <filter(java-register-signature)> sigs
     ; x_name := <ApplicationName>
 
   java-register-strategy :
@@ -1106,6 +1110,9 @@ strategies
 
   translate-Type:
     RealT() -> |[ RealT.INSTANCE ]|
+
+  translate-Type:
+    BlobT() -> |[ BlobT.INSTANCE ]|
 
   translate-Type:
     Sort(str, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|

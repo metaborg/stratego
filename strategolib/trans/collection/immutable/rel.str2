@@ -24,6 +24,7 @@ signature
      * Represents a reference to a Set
      */
     ImmutableRelation : ImmutableRelationImplBlob -> ImmutableRelation(k, v)
+    : blob -> ImmutableRelationImplBlob
 
 /**
  * Immutable relation construction and deconstruction

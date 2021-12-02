@@ -78,7 +78,7 @@ insertCasts-StrategyDef(|e1, st1) = otf12(insertCasts-StrategyDef-(|e1, st1))
 
 // insertCasts-StrategyDef(|Environment, Store) :: Decl -> (Decl, Store)
 insertCasts-StrategyDef-(|e1, st1):
-  d@SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s2), st5)
+  d@SDefT(x, s1*, t1*, s1) -> (SDefT(x, s1*, t1*, s3), st5)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -97,6 +97,10 @@ insertCasts-StrategyDef-(|e1, st1):
       <+ <?EmptyT()> t2
       then id
       else <report-Err> (x, MatchNotSpecificEnoughForTP(t2))
+    end
+  ; if <eq> (t2, <type-var-lookup(|tv1)> st4)
+      then s3 := Seq(TypeTest(<itv(|st4)> t2), s2)
+      else s3 := s2
     end
   ; st5 := <type-var-elim(id|[tv1, tv2])> st4
 
@@ -134,7 +138,11 @@ insertCasts-StrategyDef-(|e1, st1):
       then id
       else <report-Err> (x, MatchNotSpecificEnoughForTP(t2))
     end
-  ; s3 := <StrategyDef-after-match> (s*, s2)
+  ; if <eq> (t2, <type-var-lookup(|tv1)> st4)
+      then s'* := [ TypeTest(<itv(|st4)> t2), s* ]
+      else s'* := s*
+    end
+  ; s3 := <StrategyDef-after-match> (s'*, s2)
   ; st5 := <type-var-elim(id|[tv1, tv2])> st4
 
 insertCasts-StrategyDef-(|e1, st1):

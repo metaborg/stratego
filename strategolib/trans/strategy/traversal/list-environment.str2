@@ -5,23 +5,28 @@ module strategy/traversal/list-environment
 imports
   strategy/traversal/environment
   strategy/traversal/list
+  collection/tuple/cons
   collection/tuple/common
 rules
-
+  all-l-dist(? * e -> ?) :: ? * e -> ?
   all-l-dist(s) :
     (t, env) -> <all-l(\x -> <s>(x,env)\)> t
 
 strategies
 
+  env-alltd-l(? * e -> ?) :: ? * e -> ?
   env-alltd-l(s) =
-    rec x(s <+ all-l-dist(x))
+    s <+ all-l-dist(env-alltd-l(s))
 
+  env-topdown-l(? * e -> ? * e) :: ? * e -> ?
   env-topdown-l(s) =
-    rec x(s; all-l-dist(x))
+    s; all-l-dist(env-topdown-l(s))
 
+//  env-topdown-l(? * e -> ? * e, (? * e -> ?) ? * e -> ?) :: ? * e -> ?
   env-topdown-l(s, skip: (term -> term) * term -> term) =
-    rec x(s; (skip(x) <+ all-l-dist(x)))
+    s; (skip(env-topdown-l(s, skip)) <+ all-l-dist(env-topdown-l(s, skip)))
 
+  env-bottomup-l(? * e -> ?) :: ? * e -> ?
   env-bottomup-l(s) =
-    rec x(split(all-l-dist(x), Snd); s)
+    split(all-l-dist(env-bottomup-l(s)), Snd); s
 

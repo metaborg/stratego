@@ -20,6 +20,7 @@ signature
     FileLoc
   constructors
     Stream    : StreamImplBlob -> Stream
+    : int -> StreamImplBlob
 
     Path      : string -> FileLoc
 
@@ -162,7 +163,7 @@ strategies
   dirname =
     string-as-chars(
       /* (0) Convert backslashes to forward slashes */
-      all(try(\'\\' -> '/'\))
+      map(try(\'\\' -> '/'\))
     ; /* (1) Strip trailing slashes */
       try(split-init-last; ?(<id>, '/'))
     ; /* (2) If string consists entirely of slash characters, string shall be

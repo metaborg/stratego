@@ -1,0 +1,37 @@
+module unification-test
+imports strategolib
+strategies
+
+  main =
+    test-suite(!"unification-test",
+	test0;
+	test1
+    )
+
+signature
+  sorts
+    Exp Type String
+  constructors
+    Typed  : Exp * Type -> Exp
+    Var    : String -> Exp
+    Forall : String * Type -> Type
+    TVar   : String -> Type
+
+strategies
+
+  test0 = 
+    apply-test(!"test0"
+	,uf-equal
+	,![(Typed(Var("a"),Forall("b",TVar("b")))
+           ,Typed(Var("a"),Forall("b",TVar("b"))))]
+	,![]
+	)
+
+  test1 = 
+    apply-test(!"test1"
+	,uf-equal( \ Typed(x,y) -> x \ )
+	,![(Typed(Var("a"),Forall("b",TVar("b")))
+	   ,Typed(Var("a"),Forall("c",TVar("c"))))]
+	,![]
+	)
+

@@ -29,20 +29,24 @@
 module strategy/general/rename
 imports
   strategy/traversal/simple
+  collection/tuple/cons
   collection/tuple/common
   collection/list/-
   strategy/traversal/environment
   term/string
 rules
 
+  RnVar((k -> v) i -> o) :: i * List(k * v) -> o
   RnVar(isvar : (name -> env) * name -> term) :
     (t, env) -> <isvar(split(id, !env); lookup)> t
 
+  RnBinding(i -> List(k)) :: i * List(k * string) -> i * List(k * string) * List(k * string)
   RnBinding(bndvrs) :
     (t, env1) -> (t, env1, env2)
     where <bndvrs> t => xs; map(new) => ys;
           <conc>(<zip(id)>(xs,ys), env1) => env2
 
+  DistBinding(? * e2 -> ?) :: ? * ? * e2 -> ?
   DistBinding(s) :
     (t, env1, env2) -> <all( \x -> <s>(x, env2)\ )> t
 
@@ -54,6 +58,7 @@ strategies
   * variable declarations in binding constructs are assumed to
   * have the same shape as variable uses
   */
+  rename((? -> ?) ? -> ?, ? -> List(?)) :: ? -> ?
   rename(isvar : (name -> env) * name -> term
         , bndvars) =
     \ t -> (t, []) \ ;
@@ -62,7 +67,7 @@ strategies
                        DistBinding(x)))
 
 rules
-
+  DistBinding(? * e -> ?, (? -> ?, ? -> ?, ? -> ?) a -> b) :: a * e * e -> b
   DistBinding(s, boundin : (term -> term) * (term -> term) * (term -> term) * term -> term):
     (t, env1, env2) -> <boundin(\x -> <s>(x, env2)\
                                ,\x -> <s>(x, env1)\
@@ -85,6 +90,10 @@ strategies
   * variables at binding sites are assumed to have
   * the same shape as other variable occurences
   */
+  rename((? -> ?) ? -> ?
+        , ? -> List(?)
+        , (? -> ?, ? -> ?, ? -> ?) ? -> ?)
+        :: ? -> ?
   rename(isvar : (name -> env) * name -> term
         , bndvars
         , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term) =
@@ -94,7 +103,7 @@ strategies
                        DistBinding(x, boundin)))
 
 rules
-
+  RnBinding(i -> List(k), (? -> List(string)) i -> o) :: i * List(k * string) -> o * List(k * string) * List(k * string)
   RnBinding(bndvrs, paste : (term -> vars) * term -> term) :
     (t, env1) -> (<paste(!ys)> t, env1, env2)
     where <bndvrs> t => xs; map(new) => ys;
@@ -102,7 +111,11 @@ rules
 
 
 strategies
-
+  rename((? -> ?) ? -> ?
+        , ? -> List(?)
+        , (? -> ?, ? -> ?, ? -> ?) ? -> ?
+        , (? -> ?) ? -> ?)
+        :: ? -> ?
   rename(isvar : (name -> env) * name -> term
         , bndvars
         , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term
@@ -114,14 +127,19 @@ strategies
                        DistBinding(x, boundin)))
 
 rules
-
+  RnBinding(i -> List(k), (? -> List(v)) i -> o, k -> v) :: i * List(k * v) -> o * List(k * v) * List(k * v)
   RnBinding(bndvrs, paste : (term -> vars) * term -> term, newvar : term -> term) :
     (t, env1) -> (<paste(!ys)> t, env1, env2)
     where <bndvrs> t => xs; map(newvar) => ys;
           <conc>(<zip(id)>(xs,ys), env1) => env2
 
 strategies
-
+  rename((? -> ?) ? -> ?
+        , ? -> List(?)
+        , (? -> ?, ? -> ?, ? -> ?) ? -> ?
+        , (? -> ?) ? -> ?
+        , ? -> ?)
+        :: ? -> ?
   rename(isvar : (name -> env) * name -> term
         , bndvars
         , boundin : (term -> term) * (term -> term) * (term -> term) * term -> term

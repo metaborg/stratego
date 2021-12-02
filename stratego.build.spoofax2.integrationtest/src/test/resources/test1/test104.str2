@@ -1,0 +1,30 @@
+/**
+ * Test for issue STR-577: support import of an ATerm from a file
+ */
+module test104
+imports strategolib
+
+signature
+  sorts
+    A
+    B
+    C
+    D
+    String
+    List(a)
+    Tuple(a, b)
+  constructors
+    Foo : A * () * Tuple(B, C) -> D
+    Bar : List(String) -> A
+    Baz : B
+    Aap : C
+
+strategies
+
+  main =
+    test1
+    ; debug(!"the term: ")
+    ; ?Foo(Bar(["a","b"]), None(), (Baz(),Aap()))
+
+  test1 =
+    import-term(./test104.trm)

@@ -185,11 +185,12 @@ strategies
    * @param padding            _ -> d
    * @type     List(a) * List(b) -> List(c)
    */
-//  zipPad(a * b -> c, ? -> c) :: List(a) * List(b) -> List(c)
+  zipPad(a * a -> b, Tuple() -> a) :: List(a) * List(a) -> List(b)
   zipPad(s, padding) =
-    Zip1 + Zip2; (s, zipPad(s, padding)); Zip3 +
-          ([], [id|id]); (![<padding>()|[]], id); zipPad(s, padding) +
-          ([id|id], []); (id, ![<padding>()|[]]); zipPad(s, padding)
+    Zip1
+  + Zip2; (s, zipPad(s, padding)); Zip3
+  + ([], [id|id]); (![<padding>()|[]], id); zipPad(s, padding)
+  + ([id|id], []); (id, ![<padding>()|[]]); zipPad(s, padding)
 
   zip-tail :: List(a) * List(b) -> List(b)
   zip-tail =
@@ -201,9 +202,10 @@ strategies
   zipr-tail-match(s) =
     Zip1c' + Zip2; (s, id); Snd; zipr-tail-match(s)
 
-//  zip-skip(? -> ?, a * b -> a) :: List(a) * List(b) -> List(a)
+  zip-skip(? -> ?, a * b -> a) :: List(a) * List(b) -> List(a)
   zip-skip(pred, s) =
-    Zip1 + (Skip(pred); (id, zip-skip(pred, s)) <+ Zip2; (s, zip-skip(pred, s))); Zip3
+    Zip1
+  + (Skip(pred); (id, zip-skip(pred, s)) <+ Zip2; (s, zip-skip(pred, s))); Zip3
 
 //Skip(a -> b) :: List(c) * d -> c * (List(c) * d)
 

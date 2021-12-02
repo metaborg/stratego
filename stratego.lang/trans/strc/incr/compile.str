@@ -63,7 +63,8 @@ strategies
       ; m-transform-overlays(id*/
 //// commented: Nullary constructors feature, off in separate compilation
 ////          ; m-variables-to-constructors-in-def; pre-desugar
-          ; not(def-use-def)
+// commented: [DONE IN TYPESYSTEM]
+//          ; not(def-use-def)
           ; not(check-where-with)
           ; raise-annotations
 //          ; GenerateCheckRule
@@ -99,8 +100,8 @@ strategies
           map(id
             ; stratego-desugar
             ; raise-annotations
-            ; not(def-use-def)
 // commented: [DONE IN TYPESYSTEM]
+//            ; not(def-use-def)
 //            ; not(check-constructors)
             ; expand-overlays-in-def
             ; rules-to-sdefs-def

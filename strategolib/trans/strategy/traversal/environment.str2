@@ -4,41 +4,50 @@
 module strategy/traversal/environment
 
 imports
+  collection/list/cons
   collection/list/common
   collection/list/zip
+  collection/tuple/cons
   collection/tuple/common
   strategy/conditional
   term/integer
 
 rules
-
+  all-dist(? * e -> ?) :: ? * e -> ?
   all-dist(s) :
     (t, env) -> <all(\x -> <s>(x,env)\)> t
 
+  one-dist(? * e -> ?) :: ? * e -> ?
   one-dist(s) :
     (t, env) -> <one(\x -> <s>(x,env)\)> t
 
+  d(a -> b) :: a * ? -> b
   d(s) :
     (t, env) -> <s> t
 
+  t(a -> b) :: a * e -> b * e
   t(s) :
     (t, env) -> (<s>t, env)
 
+  coll(? -> ? * z) :: ? -> ? * List(z)
   coll(s) :
     f#(xs) -> (f#(ys), zs)
     where <unzip(s)> xs => (ys, zs)
 
 strategies
-
+  env-alltd(? * e -> ?) :: ? * e -> ?
   env-alltd(s) =
     rec x(s <+ all-dist(x))
 
+  env-topdown(? * e -> ? * e) :: ? * e -> ?
   env-topdown(s) =
     rec x(s; all-dist(x))
 
+  env-topdown(? * e -> ? * e, (? * e -> ?) ? * e -> ?) :: ? * e -> ?
   env-topdown(s, skip: (term -> term) * term -> term) =
-    rec x(s; (skip(x) <+ all-dist(x)))
+    s; (skip(env-topdown(s, skip)) <+ all-dist(env-topdown(s, skip)))
 
+  env-bottomup(? * e -> ?) :: ? * e -> ?
   env-bottomup(s) =
     rec x(split(all-dist(x), Snd); s)
 
@@ -47,20 +56,24 @@ strategies
     (c#(ts), x) -> (c#(ts'), y)
     where <thread-map(s)> (ts, x) => (ts', y)
 */
-
+  thread-replacement(? * st -> ? * st) :: ? * st -> ? * st
   thread-replacement(s) :
     (c#(ts), x) -> (c#(ts'), y)
     where <thread-map(s)> (ts, x) => (ts', y)
 
+  thread-alltd(? * st -> ? * st) :: ? * st -> ? * st
   thread-alltd(s) =
     rec x(s <+ thread-replacement(x))
 
+  thread-bottomup(? * st -> ? * st) :: ? * st -> ? * st
   thread-bottomup(s) =
     rec x(thread-replacement(x); s)
 
+  count-bottomup(? -> ?) :: ? -> ? * int
   count-bottomup(s) =
     !(<id>,0); thread-bottomup(try((s, inc)))
 
+  env-oncetd(? * e -> ?) :: ? * e -> ?
   env-oncetd(s) =
     rec x(s <+ one-dist(x))
 

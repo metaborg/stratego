@@ -91,15 +91,18 @@ insertCasts-CallT(|e1, st1):
 insertCasts-CallT-(|e1, st1):
   (c1@CallT(v, s1*, t1*), FunTType(st*, tt*, TP())) -> (CallT(v, s3*, t3*), st5)
   with
-    s2* := <zip> (s1*, st*)
-  ; t2* := <zip> (t1*, tt*)
-  ; t3 := <current-type> st1
+    t3 := <current-type> st1
   ; if <oncetd(?DynT())> t3
-      then <report-Err> (c1, MatchNotSpecificEnoughForTP(t3))
+      then
+        s2* := <zip> (s1*, <alltd(\TP() -> FunNoArgsType(DynT(), DynT())\)> st*)
+      ; t2* := <zip> (t1*, tt*)
+      else
+        s2* := <zip> (s1*, st*)
+      ; t2* := <zip> (t1*, tt*)
     end
   ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
   ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st3)
-  ; st5 := <current-type-of(| st1)> st4
+  ; st5 := <current-type(|t3)> st4
 
 insertCasts-CallT-(|e1, st1):
   (c1@CallT(v, s1*, t1*), SDyn()) -> (CallT(v, s3*, t3*), st4)

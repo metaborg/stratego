@@ -9,7 +9,7 @@ imports
   lang/dynamic-rules
 
 strategies
-
+  memo-scope(a -> b) :: a -> b
   memo-scope(s) = {| Memo: s |}
 
  /**
@@ -17,6 +17,7 @@ strategies
   * present the association in the table is produced, else the result
   * of <s> t is computed and stored in the table.
   */
+//  memo(a -> b) :: a -> b
   memo(s) :
     t -> t'
     where ( <Memo> t => t' )

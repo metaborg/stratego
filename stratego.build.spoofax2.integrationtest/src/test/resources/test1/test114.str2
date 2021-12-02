@@ -1,0 +1,15 @@
+module test114a
+
+imports
+  strategolib
+  libstratego-sdf
+
+signature
+  sorts
+    Term
+  constructors
+  sort : Term -> Term
+
+strategies
+
+  main = !sort(1); sort(id)

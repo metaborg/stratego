@@ -193,13 +193,7 @@ public class ModuleImportService implements IModuleImportService {
                         context.getResourceService().getHierarchicalResource(searchDirectory);
                     if(searchDir.exists()) {
                         // N.B. deliberate choice not to resolve to str2lib files here, those should be imported by name.
-                        final List<HierarchicalResource> moduleFiles;
-                        try(Stream<? extends HierarchicalResource> filesStream = searchDir.list(
-                            new PathResourceMatcher(
-                                new ExtensionsPathMatcher("rtree", "str2", "str")))) {
-                            moduleFiles = filesStream.collect(Collectors.toList());
-                        }
-                        for(HierarchicalResource moduleFile : moduleFiles) {
+                        searchDir.listForEach(new PathResourceMatcher(new ExtensionsPathMatcher("rtree", "str2", "str")), moduleFile -> {
                             @Nullable final String filename = moduleFile.getLeaf();
                             @Nullable final String ext = moduleFile.getLeafExtension();
                             assert filename != null : "HierarchicalResource::list returned some resources without a path leaf?!";
@@ -230,12 +224,12 @@ public class ModuleImportService implements IModuleImportService {
                                     break;
                                 default:
                                     assert false : "HierarchicalResource::list returned some resources an extension that it shouldn't search for?!";
-                                    continue;
+                                    return;
                             }
                             Relation.getOrInitialize(foundModules, moduleString, () -> new TreeSet<>(new Import.Comparator()))
                                 .add(new Import(somethingToImport, legacyStratego, isLibrary,
                                     moduleString, moduleFile.getPath()));
-                        }
+                        });
                     }
                 }
                 if(foundModules.isEmpty()) {
