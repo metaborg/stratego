@@ -326,7 +326,7 @@ insertCasts-Sarg(|e1, st1):
 insertCasts-Sarg(|e1, st1):
   (s1, t1@FunTType(st*, tt*, TP())) -> (s2, st2)
   with
-    tv := <newname> "tp"
+    tv := <local-newname> "tp"
   ; t2 := Sort(TP(), []){tv}
   ; (s2, st2) := <insertCasts-Strategy(|e1, <current-type(|t2)> st1)> s1
   ; if not([] := st*; [] := tt*)
@@ -545,8 +545,8 @@ insertCasts-Strategy-(|e1, st1):
   s@Rec(x, s1) -> (Rec(x, s2), st3)
   with
     t1 := <current-type> st1
-  ; tv1 := <newname> "rectv"
-  ; (t2, tv*) := <collect-split({(EmptyT() -> (SortVar(tv), [tv]) where tv := <newname> "rectv")})> t1
+  ; tv1 := <local-newname> "rectv"
+  ; (t2, tv*) := <collect-split({(EmptyT() -> (SortVar(tv), [tv]) where tv := <local-newname> "rectv")})> t1
   ; e2 := <strat-merge-env(keep-right)> (e1, <immap-from-list> [((x{}, 0, 0), (FunTType(t2, SortVar(tv1))){LocalDef()})])
   ; (s2, st2) := <insertCasts-Strategy(|e2, st1)> s1
   ; st3 := <type-var-elim(id|[tv1, tv*])> st2
@@ -645,7 +645,7 @@ insertCasts-Strategy-(|e1, st1):
   with
     t1 := <current-type> st1
   ; t1* := <tupleTypes(|<length;inc> s1*)> t1
-  ; tvs := <map(<newname> "tuplecongtv")> t1*
+  ; tvs := <map(<local-newname> "tuplecongtv")> t1*
   ; [funt1 | funt1*] := <zip(\(t, tv) -> FunTType(t, SortVar(tv))\)> (t1*, tvs)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, funt1)
   ; (s2*, st3) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
@@ -658,7 +658,7 @@ insertCasts-Strategy-(|e1, st1):
   ; t2 := <listType> t1
   // Give a warning when it's guaranteed to fail based on type.
   ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
-  ; tv := <newname> "listcongtv"
+  ; tv := <local-newname> "listcongtv"
   ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
   ; st4 := <current-type(|ListT(SortVar(tv)));type-var-elim(id|tv)> st3
 
@@ -672,11 +672,11 @@ insertCasts-Strategy-(|e1, st1):
   ; if ListT(_) := <pushDyn> t1
     then t3 := <pushDyn> t1
     else if SortVar(tv1) := t1
-        then t3 := ListT(SortVar(tv1{<newname> "listcongtv"}))
+        then t3 := ListT(SortVar(tv1{<local-newname> "listcongtv"}))
         else t3 := ListT()
       end
     end
-  ; tv2 := <newname> "listcongtv"
+  ; tv2 := <local-newname> "listcongtv"
   ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv2))))> (s1*, st2)
   ; (s3, st4) := <insertCasts-Sarg(|e1, <current-type-of(|st2)> st3)> (s2, FunTType(t3, ListT(SortVar(tv2))))
   ; st6 := <current-type(|ListT(SortVar(tv2)));type-var-elim(id|tv2)> st4
