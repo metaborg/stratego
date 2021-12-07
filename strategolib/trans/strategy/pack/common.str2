@@ -51,9 +51,9 @@ strategies
 
 rules
 
-  WriteMod(mod -> string, string * mod -> output, Tuple() -> string) :: mod -> output
+  WriteMod(mod -> string, FileLoc * mod -> output, Tuple() -> string) :: mod -> output
   WriteMod(getname, write, ext) :
-    mod -> <write>(<add-extension>(<getname>mod, <ext>()), mod)
+    mod -> <write>(Path(<add-extension>(<getname>mod, <ext>())), mod)
 
 strategies
 

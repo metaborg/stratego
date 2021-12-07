@@ -35,13 +35,16 @@ imports
   term/string
   term/integer
   collection/list/common
+  collection/list/cons
   collection/tuple/common
+  collection/tuple/cons
 
 strategies
 
   /**
    * @type List(String) * ComponentTime -> String
    */
+  date-format :: List(string) * ComponentTime -> string
   date-format:
     (ps, t) -> <map(<date-pattern-to-string <+ Fst> (<id>, t)); concat-strings> ps
 
@@ -50,6 +53,7 @@ strategies
   /**
    * @type String * ComponentTime -> String
    */
+  date-pattern-to-string :: string * ComponentTime -> string
   date-pattern-to-string =
       ?(p, _)
     ; date-pattern-to-int
@@ -62,18 +66,20 @@ rules
    */
 
   /* year */
+  date-pattern-to-int :: string * ComponentTime -> int
   date-pattern-to-int : ("yyyy", ComponentTime(Date(y, _, _), _, _)) -> y
-  date-pattern-to-int : ("yy",   ComponentTime(Date(y, _, _), _, _)) -> <<mod> (<id>, 100)> y
+  date-pattern-to-int : ("yy",   ComponentTime(Date(y, _, _), _, _)) -> <<modi> (<id>, 100)> y
 
   /* month */
-  date-pattern-to-int    : ("M",    ComponentTime(Date(_, m, _), _, _)) -> <month2index; inc> m
-  date-pattern-to-int    : ("MM",   ComponentTime(Date(_, m, _), _, _)) -> <month2index; inc> m
+  date-pattern-to-int    : ("M",    ComponentTime(Date(_, m, _), _, _)) -> <month2index; int-inc> m
+  date-pattern-to-int    : ("MM",   ComponentTime(Date(_, m, _), _, _)) -> <month2index; int-inc> m
 
   /**
    * @type String * ComponentTime -> String
    */
 
   /* month */
+  date-pattern-to-string :: string * ComponentTime -> string
   date-pattern-to-string : ("MMM",  ComponentTime(Date(_, m, _), _, _)) -> <month2abbr> m
   date-pattern-to-string : ("MMMM", ComponentTime(Date(_, m, _), _, _)) -> <month2text> m
 
@@ -105,18 +111,18 @@ rules
    */
   /* hour */
   date-pattern-to-int : ("HH", ComponentTime(_, DayTime(h, _, _), _)) -> h
-  date-pattern-to-int : ("kk", ComponentTime(_, DayTime(h, _, _), _)) -> <inc> h
+  date-pattern-to-int : ("kk", ComponentTime(_, DayTime(h, _, _), _)) -> <int-inc> h
   date-pattern-to-int : ("hh", ComponentTime(_, DayTime(0, _, _), _)) -> 12
   date-pattern-to-int : ("hh", ComponentTime(_, DayTime(h, _, _), _)) -> h
       where <leq-leq> (1, h, 12)
 
-  date-pattern-to-int : ("hh", ComponentTime(_, DayTime(h, _, _), _)) -> <subt> (h, 12)
+  date-pattern-to-int : ("hh", ComponentTime(_, DayTime(h, _, _), _)) -> <subti> (h, 12)
       where <leq-leq> (12, h, 23)
 
   date-pattern-to-int : ("KK", ComponentTime(_, DayTime(h, _, _), _)) -> h
       where <leq-lt> (0, h, 12)
 
-  date-pattern-to-int : ("KK", ComponentTime(_, DayTime(h, _, _), _)) -> <subt> (h, 12)
+  date-pattern-to-int : ("KK", ComponentTime(_, DayTime(h, _, _), _)) -> <subti> (h, 12)
       where <leq-leq> (12, h, 23)
 
   /* minutes */
@@ -133,6 +139,7 @@ rules
  * @type DayOfWeek -> String
  */
 rules
+  day-of-week2abbr :: DayOfWeek -> string
   day-of-week2abbr : Sunday()    -> "Sun"
   day-of-week2abbr : Monday()    -> "Mon"
   day-of-week2abbr : Tuesday()   -> "Tue"
@@ -149,6 +156,7 @@ rules
  * @type DayOfWeek -> String
  */
 rules
+  day-of-week2text :: DayOfWeek -> string
   day-of-week2text : Sunday()    -> "Sunday"
   day-of-week2text : Monday()    -> "Monday"
   day-of-week2text : Tuesday()   -> "Tuesday"
@@ -166,6 +174,7 @@ rules
  * @type Month -> String
  */
 rules
+  month2abbr :: Month -> string
   month2abbr : January()     -> "Jan"
   month2abbr : February()    -> "Feb"
   month2abbr : March()       -> "Mar"
@@ -188,6 +197,7 @@ rules
  * @type Month -> String
  */
 rules
+  month2text :: Month -> string
   month2text : January()     -> "January"
   month2text : February()    -> "February"
   month2text : March()       -> "March"

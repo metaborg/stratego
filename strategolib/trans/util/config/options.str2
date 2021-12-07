@@ -28,6 +28,7 @@ imports
   strategy/conditional
   collection/list/cons
   collection/list/common
+  collection/tuple/cons
 strategies
 
   /**
@@ -35,6 +36,7 @@ strategies
    *
    * @param  strategy to apply on the input term
    */
+  io-wrap(? -> b) :: List(?) -> c
   io-wrap(s) =
     io-wrap(fail, s)
 
@@ -45,6 +47,7 @@ strategies
    *          use fail if you have no additional options.
    * @param   strategy to apply on the input term
    */
+  io-wrap(? -> ?, ? -> b) :: List(?) -> c
   io-wrap(extra-opts, s) =
     io-wrap(extra-opts, system-usage, system-about, s)
 
@@ -55,18 +58,23 @@ strategies
    *
    * @param   strategy to apply on the input term
    */
+  io-wrap(? -> ?, ? -> ?, ? -> ?, ? -> b) :: List(?) -> c
   io-wrap(extra-opts, usage, about, s) =
     option-wrap(extra-opts <+ io-options,  usage, about, id, io(s))
 
+  output-wrap(? -> b) :: List(?) -> c
   output-wrap(s) =
     output-wrap(fail, s)
 
+  output-wrap(? -> ?, ? -> b) :: List(?) -> c
   output-wrap(extra-opts, s) =
     option-wrap(extra-opts <+ output-options,  output(s))
 
+  input-wrap(? -> b) :: List(?) -> c
   input-wrap(s) =
     input-wrap(fail, s)
 
+  input-wrap(? -> ?, ? -> b) :: List(?) -> c
   input-wrap(extra-opts, s) =
     option-wrap(extra-opts <+ input-options,  input(s))
 
@@ -80,6 +88,7 @@ strategies
    *
    * @param   strategy to apply on the input term
    */
+  io(? -> b) :: a -> b
   io(s) =
     input(output(s))
 
@@ -88,16 +97,21 @@ strategies
   *
   * Writes to a file specified by the -o option (or stdout).
   */
+  output(a -> b) :: a -> b
   output(s) =
       s
-    ; !(<<get-config> "-o" <+ !stdout()>, <id>)
-    ; ( where(<get-config> "-b") < WriteToBinaryFile + WriteToTextFile )
+    ; !(<(<get-config> "-o" <+ !stdout());is(FileLoc)>, <id>)
+    ; if <get-config> "-b"
+        then WriteToBinaryFile
+        else WriteToTextFile
+      end
 
  /**
   * Wraps a strategy into a strategy that handles input options.
   *
   * Reads a term from the file specified by the -i option (or stdin).
   */
+  input(? -> b) :: a -> b
   input(s) =
       ( <get-config> "-i" <+ !stdin() )
     ; ReadFromFile
@@ -114,43 +128,51 @@ strategies
    *
    * @param (Stream, Stream) -> _
    */
+  io-stream-wrap(Stream * Stream -> a) :: List(?) -> b
   io-stream-wrap(s) =
     io-stream-wrap(fail, s)
 
+  io-stream-wrap(? -> ?, Stream * Stream -> a) :: List(?) -> b
   io-stream-wrap(extra-opts, s) =
     io-stream-wrap(extra-opts, system-usage, system-about, s)
 
+  io-stream-wrap(? -> ?, ? -> ?, ? -> ?, Stream * Stream -> a) :: List(?) -> b
   io-stream-wrap(extra-opts, usage, about, s) =
     option-wrap(extra-opts <+ io-options,  usage, about, id, io-stream(s))
 
+  io-stream(Stream * Stream -> a) :: b -> c
   io-stream(s) =
-    let open =
-          open-stream <+ ?(<id>, _); perror; <exit> 1
+    let open :: ? * string -> Stream
+        open =
+          is(FileLoc * string); open-stream <+ ?(<id>, _); perror; <exit> 1
 
      in fin  := <get-config < <open> (<id>, "r") + stdin-stream> "-i"
       ; fout := <get-config < <open> (<id>, "w") + stdout-stream> "-o"
       ; if <s> (fin, fout) then
-          try(<fclose> fout); try(<fclose> fin)
+          try(<fclose;is(?)> fout); try(<fclose;is(?)> fin)
           ; report-success
         else
             prim("SSL_stacktrace_get_all_frame_names") => trace
           ; try(<fclose> fout); try(<fclose> fin)
-          ; try(<get-config> "-o"; remove-file)
+          ; try(<get-config> "-o"; remove-file; is(?))
           ; <report-failure> trace
         end
     end
 
 strategies
 
+  option-wrap(? -> ?, List(?) -> b) :: List(?) -> c
   option-wrap(opts, s) =
     option-wrap(opts, system-usage, id, s)
 
+  option-wrap(? -> ?, ? -> ?, List(?) -> a, a -> b) :: List(?) -> c
   option-wrap(opts, usage, announce, s) =
     option-wrap(opts, usage, system-about, announce, s)
 
   /**
    * Read options, display help, report success or failure, call strategy
    */
+  option-wrap(? -> ?, ? -> ?, ? -> ?, List(?) -> a, a -> b) :: List(?) -> c
   option-wrap(opts, usage, about, announce, s) =
     parse-options(opts, usage, about)
     ; announce
@@ -161,28 +183,33 @@ strategies
   /**
    * Handles all common options for a transformation tool.
    */
+  io-options :: ? -> List(?)
   io-options =
       input-option
     + aterm-output-option
     + general-options
 
+  input-options :: ? -> List(?)
   input-options =
       input-option
     + general-options
 
+  output-options :: ? -> List(?)
   output-options =
       aterm-output-option
     + general-options
 
+  general-options :: ? -> List(?)
   general-options =
       verbose-option
     + keep-option
     + statistics-option
     + aterm-lib-options
 
- /**
-  * Allow all flag starting with -at-* (these are ATerm library flags)
-  */
+  /**
+   * Allow all flag starting with -at-* (these are ATerm library flags)
+   */
+  aterm-lib-options :: ? -> List(?)
   aterm-lib-options =
     Option(
       string-starts-with(|"-at-")
@@ -193,19 +220,21 @@ strategies
 
 
   /**
-   * Option specifcation for level of keeping intermediate results.
+   * Option specification for level of keeping intermediate results.
    */
+  keep-option :: ? -> List(?)
   keep-option =
-    ArgOption("-k" + "--keep"
+    ArgOption(?"-k" + ?"--keep"
     , where(<set-config> ("--keep", <string-to-int>))
     , !"-k i | --keep i  Keep intermediates (default 0)"
     )
 
   /**
-   * Option specifcation for level of statistics printing
+   * Option specification for level of statistics printing
    */
+  statistics-option :: ? -> List(?)
   statistics-option =
-    ArgOption("--statistics"
+    ArgOption(?"--statistics"
     , where(<set-config> ("--statistics", <string-to-int>))
     , !"--statistics i   Print statistics (default 0 = none)"
     )
@@ -215,8 +244,9 @@ strategies
    *
    * Defines -i.
    */
+  input-option :: ? -> List(?)
   input-option =
-    ArgOption("-i" + "--input"
+    ArgOption(?"-i" + ?"--input"
     , where(<set-config> ("-i",<id>))
     , !"-i f|--input f   Read input from f"
     )
@@ -226,8 +256,9 @@ strategies
    *
    * Defines -o.
    */
+  output-option :: ? -> List(?)
   output-option =
-    ArgOption("-o" + "--output"
+    ArgOption(?"-o" + ?"--output"
     , where(<set-config> ("-o",<id>))
     , !"-o f|--output f  Write output to f"
     )
@@ -237,9 +268,10 @@ strategies
    *
    * Defines -b option for binary output.
    */
+  aterm-output-option :: ? -> List(?)
   aterm-output-option =
       output-option
-    + Option("-b"
+    + Option(?"-b"
       , where(<set-config> ("-b",()))
       , !"-b               Write binary output"
       )
@@ -249,12 +281,13 @@ strategies
    *
    * Defines -S, --silent, --verbose and -s.
    */
+  verbose-option :: ? -> List(?)
   verbose-option =
-      Option("-S"+"--silent"
+      Option(?"-S" + ?"--silent"
       , where(<set-verbosity> 0)
       , !"-S|--silent      Silent execution (same as --verbose 0)"
       )
-    + ArgOption("--verbose"
+    + ArgOption(?"--verbose"
       , where(verbose-to-int; set-verbosity)
       , !$[--verbose i      Verbosity level i (default 1)
                                ( i as a number or as a verbosity descriptor:
@@ -265,20 +298,24 @@ strategies
 strategies
 
   // extended in another module, either posix/time or c99/fallback-posix
+  report-run-time :: ? -> ?
   report-run-time = fail
 
+  verbose-to-int :: string -> int
   verbose-to-int =
-      string-to-level
-        <+
-      string-to-int
+     string-to-level
+  <+ string-to-int
 
+  need-help(? -> ?) :: ? -> ?
   need-help(u) =
     <get-config> "--help"
     ; u
 
+  if-not-silent(a -> a) :: a -> a
   if-not-silent(s) =
     where(verbosity => 0) <+ s
 
+  report-success :: ? -> b
   report-success =
       report-run-time
     ; <exit> 0
@@ -319,12 +356,15 @@ strategies
    * @see report-failure
    * @see fatal-err(|msg)
    */
+  report-failure-no-trace :: ? -> b
   report-failure-no-trace =
     report-failure-no-trace(exit)
 
+  report-failure-no-trace(int -> b) :: ? -> b
   report-failure-no-trace(exit) =
       <fprintnl> (stderr(), [<log-src> (), ": rewriting failed"])
     ; <exit> 1
 
+  whoami :: ? -> string
   whoami =
-    <get-config> "program"
+    <get-config> "program"; is(string)

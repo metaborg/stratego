@@ -9,24 +9,28 @@
  * @author Karl Trygve Kalleberg <karltk@strategoxt.org> - documentation
  */
 module term/real
+imports collection/tuple/cons
 strategies
 
   /** Predicate to check if the current term is a real number.
    *
    * @type Real -> Real
    */
+  is-real :: ? -> real
   is-real = ?x; prim("SSL_is_real",x)
 
   /** Compute cosine of a real number.
    *
    * @type Real -> Real
    */
+  cos :: real -> real
   cos   = ?x; prim("SSL_cos",x)
 
   /** Compute sine of a real number.
    *
    * @type Real -> Real
    */
+  sin :: real -> real
   sin   = ?x; prim("SSL_sin",x)
 
   /** Compute square of a real number.
@@ -36,6 +40,7 @@ strategies
    *
    * @type Real -> Real
    */
+  sqrt :: real -> real
   sqrt  = ?x; prim("SSL_sqrt",x)
 
   /** Compute arc tangent of a par of real numbers. The result, when applied to
@@ -45,6 +50,7 @@ strategies
    *
    * @type Real -> Real
    */
+  atan2 :: real * real -> real
   atan2 = ?(x,y); prim("SSL_atan2",x,y)
 
   /** Convert a real to a string with default (maximal) precision.
@@ -64,6 +70,7 @@ strategies
    * @type prec Int
    * @type Real -> String
    */
+  real-to-string(|int) :: real -> string
   real-to-string(|prec) = ?x; prim("SSL_real_to_string_precision",x,prec)
 
   /** Construct a real from a string.
@@ -72,10 +79,12 @@ strategies
    *
    * @type String -> Real
    */
+  string-to-real :: string -> real
   string-to-real = ?x; prim("SSL_string_to_real",x)
 
   /** Construct a real from an int.
    *
    * @type Int -> Real
    */
+  real :: int -> real
   real = ?x; prim("SSL_real",x)

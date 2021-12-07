@@ -1,6 +1,7 @@
 module util/config/keep
 imports util/config/common
   term/integer
+  collection/list/cons
 strategies
 
 /**
@@ -8,14 +9,20 @@ strategies
   *
   * E.g. <set-keep>4 sets the keep level to 4.
   */
+  set-keep :: int -> ?
   set-keep =
     <set-config> ("--keep", <id>)
 
  /**
   * Give the current 'keep' level. Default is 0.
   */
+  get-keep :: ? -> int
   get-keep =
-    <get-config> "--keep" <+ !0
+    get-keep(|0)
+
+  get-keep(|int) :: ? -> int
+  get-keep(|default) =
+    <get-config;is(int)> "--keep" <+ !default
 
  /**
   * Builds command-line parameter for 'keep' levels for calling XT tools.
@@ -23,8 +30,9 @@ strategies
   * E.g. xtc-transform(!"abox2text", pass-keep ) passes the 'keep' level
   * to abox2text.
   */
+  pass-keep :: ? -> List(string)
   pass-keep =
-    !["--keep", <subt; int-to-string>(<get-config <+ !1> "--keep", 1)]
+    !["--keep", <subti; int-to-string>(<get-keep(|1)> (), 1)]
 
 /**
  * Apply the supplied strategy if the 'keep' level is set to a value greater
@@ -36,6 +44,7 @@ strategies
  */
 strategies
 
+  if-keep(a -> b | int) :: a -> b
   if-keep(s|t) =
     if <geq> (<get-keep> (), t) then
       s
@@ -62,8 +71,10 @@ strategies
  /**
   * @obsolete
   */
+  if-less-keep1(a -> b | int) :: a -> b
   if-less-keep1(s|t) = if-less-keep(s|t)
 
+  if-less-keep(a -> b | int) :: a -> b
   if-less-keep(s|t) =
     if <leq> (<get-keep> (), t) then
       s

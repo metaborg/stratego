@@ -25,6 +25,7 @@ strategies
    *
    * @type  (a, b) -> (a, b)
    */
+  is-subterm :: a * b -> a * b
   is-subterm =
     ?(x, y); where(<oncetd(?x)> y)
 
@@ -33,8 +34,9 @@ strategies
    *
    * @type  (a, b) -> (a, b)
    */
+  is-proper-subterm :: a * b -> a * b
   is-proper-subterm =
-    ?(x, y); not(eq); is-subterm
+    ?(x, y); not(is(?);eq); is-subterm
 
 strategies
 
@@ -43,6 +45,7 @@ strategies
    *
    * @type  (a, b) -> (a, b)
    */
+  is-superterm :: a * b -> a * b
   is-superterm =
     ?(x, y); where(<oncetd(?y)> x)
 
@@ -51,8 +54,9 @@ strategies
    *
    * @type  (a, b) -> (a, b)
    */
+  is-proper-superterm :: a * b -> a * b
   is-proper-superterm =
-    ?(x, y); not(eq); is-superterm
+    ?(x, y); not(is(?);eq); is-superterm
 
 strategies
 
@@ -72,6 +76,7 @@ strategies
    *
    * @type  a -> a
    */
+  is-leaf :: a -> a
   is-leaf =
     all(fail)
 
@@ -80,5 +85,6 @@ strategies
    *
    * @type  a -> a
    */
+  is-inner-node :: a -> a
   is-inner-node =
     one(id)
