@@ -104,7 +104,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         // N.B. this call is potentially a lot of work:
         final BackInput.CTreeBuildResult buildResult =
             input.buildCTree(context, this, compiledStrategies);
-        // if ctree is null, this was a task that should no longer be active, like a
+        // if generatingTask is not null, this was a task that should no longer be active, like a
         //     BackInput.Normal task where one of the strategy contributions gained a dynamic rule
         //     definition.
         final @Nullable STask<BackOutput> generatingTask = buildResult.generatingTask();
