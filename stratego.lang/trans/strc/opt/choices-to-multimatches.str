@@ -23,16 +23,21 @@ overlays
 strategies
   choices-to-multimatches = log-timed(id
 //  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
-  ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 1)
+  ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 10)
   ; log-timed(
     downup(
-      try(repeat(choice-to-multimatch, extract-matches))
-    ; try(extract-righthandsides)
+    // Down
+      try(choice-to-multimatch)
+    ; let m = extract-matches <+ has-matches
+      in Let(id, m) + m
+      end
+    < try(extract-righthandsides)
+    + id
+    // Up
     , try(lift-defaults))
-    | "  2. Translating choices & lifting defaults", 1)
-//  ; log-timed(bottomup(try(lift-defaults))|"  3. Lifting defaults", 1)
-  ; log-timed(strip-annos|"  4. Stripping annos", 1)
-  ; log-timed(simplify|"  5. Simplifying", 1)
+    | "  2. Translating choices & lifting defaults", 10)
+  ; log-timed(strip-annos|"  3. Stripping annos", 10)
+  ; log-timed(simplify|"  4. Simplifying", 10)
   | "Optimisation: choices to multimatches", 1)
 
 strategies
@@ -112,6 +117,9 @@ strategies
             end
   */
   extract-matches = MM(list-some(extract-match))
+
+  has-matches =
+    MM(where(remove-all(?ScopedGuardedMatchCase(_, NoAnnoMatch(Wld()), _, _)); not(?[])))
 
   /*
     case   | _ when {y*: ?q; s1}: s2
