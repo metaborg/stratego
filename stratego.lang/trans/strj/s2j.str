@@ -1969,6 +1969,12 @@ strategies
   translate-DFA = translate-SwitchT
 
   translate-SwitchT:
+    SwitchT(TypeP(CurP()), [], default) ->
+    bstm* |[
+      ~<translate-Default> default
+    ]|
+
+  translate-SwitchT:
     SwitchT(p, [], default) ->
     bstm* |[
       e_occ; // Necessary to ensure that failure in `p` is not lost.
@@ -2029,14 +2035,20 @@ strategies
   translate-AltT(|e_trm):
     AltT(tp, switchv) ->
     switch-group |[
-      case e: {
+      case x_type: {
         bstm_asgn
         bstm_switch*
         break;
       }
     ]|
   with
-    <pat-type-to-enum> tp => e
+    (x_type, bstm_asgn, bstm_switch*) := <translate-AltT-helper(|e_trm)>
+
+  translate-AltT-helper(|e_trm):
+    AltT(tp, switchv) ->
+    (x_type, bstm_asgn, bstm_switch*)
+  with
+    <pat-type-to-enum> tp => x_type
   ; <?SwitchV(<id>, _, _) + ?SwitchVNoDefault(<id>, _)> switchv => t_path
   ; <translate-PathVF> t_path => e_path
   ; <cast-path(|tp)> e_trm => e_cast
@@ -2044,16 +2056,16 @@ strategies
   ; <alltd((e_cast -> e |[ x_asgn ]|))> e_path => e_path'
   ; <translate-SwitchV(|tp, e_path')> switchv => bstm_switch*
 
-  pat-type-to-enum: ApplT()   -> e |[ APPL ]|
-  pat-type-to-enum: LisT()    -> e |[ LIST ]|
-  pat-type-to-enum: IntT()    -> e |[ INT ]|
-  pat-type-to-enum: RealT()   -> e |[ REAL ]|
-  pat-type-to-enum: StringT() -> e |[ STRING ]|
-  pat-type-to-enum: CtorT()   -> e |[ CTOR ]|
-  pat-type-to-enum: TupleT()  -> e |[ TUPLE ]|
-  pat-type-to-enum: RefT()    -> e |[ REF ]|
-  pat-type-to-enum: BlobT()   -> e |[ BLOB ]|
-  pat-type-to-enum: PlaceT()  -> e |[ PLACEHOLDER ]|
+  pat-type-to-enum: ApplT()   -> "APPL"
+  pat-type-to-enum: LisT()    -> "LIST"
+  pat-type-to-enum: IntT()    -> "INT"
+  pat-type-to-enum: RealT()   -> "REAL"
+  pat-type-to-enum: StringT() -> "STRING"
+  pat-type-to-enum: CtorT()   -> "CTOR"
+  pat-type-to-enum: TupleT()  -> "TUPLE"
+  pat-type-to-enum: RefT()    -> "REF"
+  pat-type-to-enum: BlobT()   -> "BLOB"
+  pat-type-to-enum: PlaceT()  -> "PLACEHOLDER"
 
   translate-SwitchV(|tp, e_path):
     SwitchV(_, alt*, default) ->
@@ -2122,11 +2134,17 @@ strategies
       }
     ]|
   with
+    (x_cons, groups) := <AltV-as-hash-switch-helper>
+  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
+
+  AltV-as-hash-switch-helper:
+    (e_path, alt*, stm_def) ->
+    (x_cons, groups)
+  with
     x_cons := <newname> "cons"
   ; pairs := <map(split(AltHash, id))> alt*
   ; hash_set := <map(Fst); make-set> pairs
   ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
-  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
 
   AltHash:
     alt@(_#([FunC(x, a), _])) ->
@@ -2144,6 +2162,12 @@ strategies
         break;
       }
     ]|
+  with
+    (e_hash, bstm_alts*) := <HashGroup-helper(|e_occ, stm_def)>
+
+  HashGroup-helper(|e_occ, stm_def):
+    (hash, alt*) ->
+    (e_hash, bstm_alts*)
   with
     e_hash := <java-mk-int-const> hash
   ; bstm_alts* := <foldr(!stm_def, translate-AltV-if(|e_occ))> alt*
