@@ -42,7 +42,7 @@ strategies
     apply-to-bodies(match-to-dfa)
 
   compile-match =
-    choices-to-multimatches
+    choices-to-multimatches; bottomup(?MultiMatch(_, _) < multimatch2dfa + id)
 
   bound-unbound-var = 
     mark-bound-unbound-vars
