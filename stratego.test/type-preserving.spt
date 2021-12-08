@@ -37,10 +37,27 @@ test Type preserving generic traversal with explicit recursion [[
 test Type preserving generic traversal with Rec construct [[
   somespinetd(TP) :: TP
   somespinetd(s) =
-    rec x(s; try(some(x)))
+    rec x(s; try(some([[x]])))
 
   try(a -> a) :: a -> a
   try(s) = s <+ id
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test A forall a. a -> a strategy can be used in sarg position which expected a TP strategy [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+
+  debug :: a -> a
+  debug = fail
+
+  main :: TP
+  main = spinetd(debug)
 ]] 0 errors
    0 warnings
    has origin locations
@@ -57,19 +74,19 @@ test Simple type preserving tracking [[
    0 warnings
    has origin locations
 
-//test Complicated type preserving tracking [[
-//  at-depth(Tuple() -> int, TP) :: TP
-//  at-depth(depth, s) =
-//      !(<depth> (), <id>)
-//    ; topdown(
-//        {d :
-//           ?(0, <s> )
-//        <+ ?(d, <id>); all(!(<dec> d, <id>))
-//        }
-//      )
-//
-//  topdown(TP) :: TP
-//  topdown(s) = fail
-//]] 0 errors
-//   0 warnings
-//   has origin locations
+test Complicated type preserving tracking is not supported [[
+  at-depth(Tuple() -> int, TP) :: TP
+  at-depth(depth, s) =
+      !(<depth> (), <id>)
+    ; topdown(
+        {d :
+           ?(0, <s> )
+        <+ ?(d, <id>); all(!(<dec> d, <id>))
+        }
+      )
+
+  topdown(TP) :: TP
+  topdown(s) = fail
+]] >0 errors
+   0 warnings
+   has origin locations
