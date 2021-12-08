@@ -5,6 +5,7 @@ imports
 
   strc/opt/multimatch/decompose
   strc/opt/multimatch/guard
+  strc/opt/multimatch/heuristics
   strc/opt/multimatch/matrix
   strc/opt/multimatch/postprocess
 
@@ -16,11 +17,11 @@ imports
 strategies
   /*======== Construct DFA from matrices =================*/ 
   matrix2dfa =
-      log-timed(CC | "DFA - Compilation", 1)
-    ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
+      log-timed(CC | "DFA - Compilation", 10)
+    ; log-timed(desugar-dfa | "DFA - Desugaring", 10)
     ; simplify
     ; if not(<get-config> "--no-dfa-optimise")
-      then log-timed(optimise-dfa | "DFA - Optimisation", 1)
+      then log-timed(optimise-dfa | "DFA - Optimisation", 10)
       end
 
   /*
@@ -74,25 +75,23 @@ strategies
    * column of which at least one pattern is not a wildcard. Select
    * one such column i.
    */
-  SelectColumn:
-    m@Matrix([p | _], [_ | _]) ->
-    T
-//  where
-//    <debug(!"SelectColumn ")> m
-  with
-    i := <find-first-col-index(not(all-wildcards))> m
-//  ; <debug(!"  with i=")> i
-  ; if <gti> (i, 1) then
-    /*
-     * If i > 1 then swap columns 1 and i in both o and P,
-     * and run the algorithm on the resulting matrix.
-     */
-      <swap-cols(|1, i); CC> m
-    else
-      <aliases-to-guards> m => m'
-    ; <col(|i); constructors-om> m' => cons*
+  SelectColumn =
+    where(j := <find-first-col-index(not(all-wildcards))>)
+  ; m := <aliases-to-guards> // TODO Move this to preprocessing if possible.
+//  ; <debug(!"SelectColumn ")> m
+  ; switch <get-config> "--pmc:heur" <+ !"fba"
+      case ?"fba":
+        (i, col) := <SelectHeuristically(FirstRow, SmallBranchingFactor, Arity)> m
+        // If i > 1 then swap columns 1 and i in both o and P,
+        // and run the algorithm on the resulting matrix.
+      ; m' := <make-head-col(|i)> m
+      case ?"firstcol":
+        col := <col(|j)> m
+      ; m' := <swap-cols(|1, j)> m
+      otherwise: <fatal-error> ["Not a valid value for '--pmc:heur'", <id>]
+    end
+    ; <col-head-constructors> col => cons*
     ; <?(_, [(AnnoC(), _)]) < unwrap-annos + tswitch> (m', cons*)
-    end => T
 
   unwrap-annos:
     (m, cons*) -> <specialize(|hc); CC> m
@@ -110,9 +109,10 @@ strategies
   ; talt*   := <map(talt(|m, p, s_def))> arm*
 
   talt(|m, p, s_def):
-    (t, c*) -> AltT(t, SwitchV(p', <map(valt(|m))> c*, Default(s_def)))
+    (t, c*) -> AltT(t, SwitchV(p', alt*, Default(s_def)))
   with
     p' := <extend-path-by-type(|t)> p
+  ; alt* := <map(valt(|m))> c*
 
   valt(|m) =
     !AltV(<is-switchable; ?c>, <specialize(|c); CC> m)

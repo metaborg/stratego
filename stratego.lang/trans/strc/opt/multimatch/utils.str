@@ -1,7 +1,14 @@
 module multimatch/utils
 
 imports
+  strc/opt/stratego-laws
+
+  signatures/core/strategies-sig
+
   libstratego-lib
+
+overlays
+  NoAnnoMatch(t) = Anno(t, Wld())
 
 strategies
 
@@ -11,10 +18,23 @@ strategies
    */
   zipn = zipn(id)
   zipn(s) = genzip(ZipN1, ZipN2, ZipN3, s)
-  
-  ZipN1 = tmap(?[]); ![]
-  ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
-  ZipN3 = Zip3
+
+  internal ZipN1 = tmap(?[]); ![]
+  internal ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
+  internal ZipN3 = Zip3
+
+  unzip(|n) = unzipn(id|n)
+  unzipn(s|n) = genzip(UnZipN1(|n), UnZipN3, UnZipN2, s)
+
+  internal UnZipN1(|n): [] -> <repeat(![[] | <id>]|n); ListToTuple> []
+    
+  internal UnZipN2: t@(theads, ttails) -> tlists
+  where
+    tlists := <tzip(MkCons); ListToTuple> t
+
+  internal UnZipN3 = UnZip3
+
+  averager = split(sum; real, length; real); div
 
   /*
    * Takes elements from the start of the list, including the first element at
@@ -62,4 +82,10 @@ strategies
   cons-arity = ?TupleC(<string-to-int>)
   cons-arity = is-literal-cons; !0
 
+  is-literal-cons = ?StrC(_) + ?IntC(_) + ?RealC(_)
   
+  is-wld = is-wld-sugar + is-wld-core
+  is-wld-sugar = ?Wld()
+  is-wld-core = ?NoAnnoMatch(Wld())
+
+  sequence-strategies = !Seq(<Fst>, <Snd>); simplify

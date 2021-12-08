@@ -41,10 +41,11 @@ strategies
    *
    * Maranget (2008), sec 4, step 3a.
    */
-  constructors-om = id
-  ; ?Col(<id>, _, _)
-  ; remove-all(where(is-wld + ?As(_, <is-wld>)))
-  ; foldr(![], union, ![<constructor>])
+  col-head-constructors = ?Col(_, <head-constructors>, _, _)
+
+  head-constructors = id
+  ; remove-all(is-wld)
+  ; foldr(![], union, ![<constructor <+ fatal-err(|"unable to determine constructor: ")>])
 
   tswitch-arms = id
   ; ?p*
@@ -230,11 +231,6 @@ strategies
 
 
 strategies
-
-  is-literal-cons = ?StrC(_) + ?IntC(_) + ?RealC(_)
-
-  is-wld = ?Wld()
-
   // Helpers
   internal arity = ?Op(_, <length>)
 //  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> 0

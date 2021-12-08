@@ -4,34 +4,42 @@ imports
   strc/opt/multimatch/guard
   strc/opt/multimatch/matrix
   strc/opt/multimatch/preprocess
+  strc/opt/multimatch/utils
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
 strategies
   /*======== Construct clause and action matrices ========*/
-  multimatch2matrix: MultiMatch(Sequential(), cases) -> Scope(vars, Matrix([CurP()], rows))
+  multimatch2matrix: MultiMatch(Sequential(), case*) -> Scope(x*, m)
   with
-    <map(MatchCase2Row)> cases => rows
-  ; <mapconcat(MatchCase2Vars)> cases => vars
+    <map(PreprocessCase)> case* => case_prep*
+  ; <map(MatchCase2Row)> case_prep* => row*
+  ; <mapconcat(MatchCase2Ids)> case_prep* => x*
+  ; m := Matrix([CurP()], row*)
   // Vars should have unique names for each case
-  ; if <split(make-set, id); tmap(length); not(eq)> vars then
+  ; if <split(make-set, id); tmap(length); not(eq)> x* then
       <fatal-error> ["Vars in MatchCases not unique!"]
     end
 
   multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
   ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]
 
-  MatchCase2Row:
-    ScopedMatchCase(_, t1, s) -> Row([t2], s_g, s)
+  PreprocessCase:
+    ScopedMatchCase(x*, t1, sa) ->
+    ScopedGuardedMatchCase([x*, y*], t2, sg, sa)
   with
-    <preprocess> t1 => (t2, s_g)
+    <preprocess> t1 => (t2, y*, sg)
 
-  MatchCase2Row:
-    ScopedGuardedMatchCase(_, t1, s1, s2) -> Row([t2], s_g, s2)
+  PreprocessCase:
+    ScopedGuardedMatchCase(x*, t1, sg1, sa) ->
+    ScopedGuardedMatchCase([x*, y*], t2, sg3, sa)
   with
-    <preprocess> t1 => (t2, s_a)
-  ; <sequence-strategies> (s_a, s1) => s_g
+    <preprocess> t1 => (t2, y*, sg2)
+  ; <sequence-strategies> (sg2, sg1) => sg3
 
-  MatchCase2Vars = ?ScopedMatchCase(<id>, _, _)
-  MatchCase2Vars = ?ScopedGuardedMatchCase(<id>, _, _, _)
+  MatchCase2Row: ScopedMatchCase(_, t, s) -> Row([t], Id(), s)
+  MatchCase2Row: ScopedGuardedMatchCase(_, t, s1, s2) -> Row([t], s1, s2)
+
+  MatchCase2Ids = ?ScopedMatchCase(<id>, _, _)
+  MatchCase2Ids = ?ScopedGuardedMatchCase(<id>, _, _, _)

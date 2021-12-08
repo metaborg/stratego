@@ -111,3 +111,7 @@ strategies
     GuardedDefault(drop-after(?Guard(<is-id-guard>, _)))
   drop-unreachable-guards =
     GuardedAltV(id, drop-after(?Guard(<is-id-guard>, _)))
+
+strategies
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()

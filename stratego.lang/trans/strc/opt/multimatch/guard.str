@@ -2,29 +2,35 @@ module multimatch/guard
 
 imports
   strc/opt/multimatch/matrix
-  strc/opt/stratego-laws
+  strc/opt/multimatch/utils
 
   signatures/core/strategies-sig
   signatures/sugar/strategies-sig
   signatures/core/terms-sig
-  signatures/sugar/terms-sig
+
+  libstratego-lib
 
 strategies
   aliases-to-guards:
-    Matrix(p*@[p | _], row*) ->
+    Matrix(p*, row*) ->
     Matrix(p*, row'*)
   with
-    <map(repeat(alias-to-guard(|p)))> row* => row'*
+    <map(alias-to-guard(|p*))> row* => row'*
 
-  alias-to-guard(|p):
-    Row([As(t1, t2) | t*], s_g, s2) ->
-    Row([t2 | t*], s_g', s2)
+  internal alias-to-guard(|p*):
+    Row(t*, sg, sa) ->
+    Row(t'*, sg', sa)
   with
-    <sequence-strategies> (Where(Assign(t1, Path(p))), s_g) => s_g'
+    <thread-map(repeat(AliasToGuard, \ ((p, t), s*) -> (t, s*) \))> (<zip> (p*, t*), []) => (t'*, s*)
+  ; s' := <sequence-list> s*
+  ; sg' := <sequence-strategies> (s', sg)
 
-strategies
-  sequence-strategies = !Seq(<Fst>, <Snd>); simplify
+  internal AliasToGuard:
+    ((p, As(t1, t2)), s*) ->
+    ((p, t2), [s | s*])
+  with
+    s := Where(Assign(t1, Path(p)))
 
-strategies
-  is-id-guard = ?Id()
-  is-fail-guard = ?Fail()
+  internal sequence-list =
+    ?[<id>]
+  + foldr(!Id(), sequence-strategies)

@@ -7,10 +7,12 @@ menus
     action: "Show optimised (-O2) program" = debug-show-core-optimized-O2
     action: "Show optimised (-O3) program" = debug-show-core-optimized-O3
     action: "Show optimised (-O4) program" = debug-show-core-optimized-O4
-    action: "Show optimised, analysed (-O4) program" = debug-show-core-optimized-O4-analysed
-    action: "Show optimised, backend simplified (-O4) program" = debug-show-core-optimized-O4-backend-simplify
-    action: "Show optimised (-O4, unoptimised DFA) program" = debug-show-core-optimized-O4-unopt-DFA
+//    action: "Show optimised, analysed (-O4) program" = debug-show-core-optimized-O4-analysed
+//    action: "Show optimised, backend simplified (-O4) program" = debug-show-core-optimized-O4-backend-simplify
+//    action: "Show optimised (-O4, unoptimised DFA) program" = debug-show-core-optimized-O4-unopt-DFA
     action: "Show optimised (-O4, optimised DFA) program" = debug-show-core-optimized-O4-opt-DFA
+    action: "Show optimised (-O4, 'fba' heuristic) program" = debug-show-core-optimized-O4-heur-fba
+    action: "Show optimised (-O4, 'firstcol' heuristic) program" = debug-show-core-optimized-O4-heur-firstcol
     action: "Show optimised (-O5) program" = debug-show-core-optimized-O5
 //    action: "Show optimised (-O6) program" = debug-show-core-optimized-O6
 

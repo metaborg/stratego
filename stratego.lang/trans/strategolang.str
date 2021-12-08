@@ -153,6 +153,8 @@ strategies
   debug-show-core-optimized-O4-backend-simplify = debug-show-core-optimized(strj-preinit-options(|["org.strategoxt.stratego_lib"]); backend-simplify|4)
   debug-show-core-optimized-O4-unopt-DFA = where(<set-config> ("--no-dfa-optimise", ())); debug-show-core-optimized(translate-MMs|4)
   debug-show-core-optimized-O4-opt-DFA = debug-show-core-optimized(translate-MMs|4)
+  debug-show-core-optimized-O4-heur-fba = where(<set-config> ("--pmc:heur", "fba")); debug-show-core-optimized(translate-MMs|4)
+  debug-show-core-optimized-O4-heur-firstcol = where(<set-config> ("--pmc:heur", "firstcol")); debug-show-core-optimized(translate-MMs|4)
   debug-show-core-optimized-O5 = debug-show-core-optimized(|5)
   debug-show-core-optimized-O6 = debug-show-core-optimized(|6)
 
