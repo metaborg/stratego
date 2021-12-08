@@ -85,7 +85,7 @@ strategies
   * Note that this relation is valid in one session (but what happens after
   * rehashing), but not necessarily between two sessions.
   */
-  address-lt :: ? * ? -> ?
+  address-lt :: a * b -> a * b
   address-lt =
     ?(t1,t2); prim("SSL_address_lt",t1,t2)
 
@@ -93,7 +93,7 @@ strategies
    * Compare the address of two terms and succeeds if the address of the current
    * term is smaller than the address of the argument.
    */
-  term-address-lt(|?) :: ? -> ?
+  term-address-lt(|b) :: a -> a
   term-address-lt(|t2) =
     ?t1; prim("SSL_address_lt",t1,t2)
 

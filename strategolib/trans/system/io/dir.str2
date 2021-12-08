@@ -7,6 +7,7 @@ strategies
   /**
    * Removes a file from a directory.
    */
+  remove-file :: string -> string
   remove-file =
     ?name; prim("SSL_remove", name)
 
@@ -15,10 +16,11 @@ strategies
   * string that matches the string pointed to  by  name.   The
   * strings are of the form name = value.
   */
+  getenv :: string -> string
   getenv =
     ?name; prim("SSL_getenv", name)
 
 strategies
-
+  home-dir :: string -> string
   home-dir =
     <getenv> "HOME"

@@ -4,6 +4,20 @@ imports
   system/posix/file-abstractions
   system/io/file
   term/string
+  collection/tuple/cons
+  collection/list/cons
+
+signature
+  sorts
+    AccessPermission
+    FileDescriptor
+  constructors
+    F_OK: AccessPermission
+    R_OK: AccessPermission
+    W_OK: AccessPermission
+    X_OK: AccessPermission
+
+    : int -> FileDescriptor
 
 /**
  * Standard file descriptors
@@ -11,14 +25,17 @@ imports
 strategies
 
   // Standard input, equal to <fileno> stdin
+  STDIN_FILENO :: a -> FileDescriptor
   STDIN_FILENO =
     prim("SSL_STDIN_FILENO")
 
   // Standard output, equal to <fileno> stdout
+  STDOUT_FILENO :: a -> FileDescriptor
   STDOUT_FILENO =
     prim("SSL_STDOUT_FILENO")
 
   // Standard error output, equal to <fileno> stderr
+  STDERR_FILENO :: a -> FileDescriptor
   STDERR_FILENO =
     prim("SSL_STDERR_FILENO")
 
@@ -30,6 +47,7 @@ strategies
   /**
    * Succeeds if file descriptor refers to a terminal device.
    */
+  isatty :: FileDescriptor -> int
   isatty =
     ?filedes; prim("SSL_isatty", filedes) => 1
 
@@ -47,6 +65,7 @@ strategies
    *
    * @type String -> Int
    */
+  modification-time :: string -> int
   modification-time =
     ?file; prim("SSL_modification_time", file)
 
@@ -58,6 +77,7 @@ strategies
  /**
   * link-file creats a hard link from file 'new' to file 'old'.
   */
+  link-file :: ? * ? -> ?
   link-file =
     ?(old, new); prim("SSL_link", old, new)
 
@@ -72,12 +92,14 @@ strategies
   *
   * @type String -> List(String)
   */
+  readdir :: string -> List(string)
   readdir =
     ?dir; prim("SSL_readdir", dir)
 
   /**
    * Returns the current working directory.
    */
+  getcwd :: ? -> string
   getcwd =
     prim("SSL_getcwd")
 
@@ -86,6 +108,7 @@ strategies
    *
    * @type String -> String
    */
+  chdir :: string -> int
   chdir =
     ?pathname; prim("SSL_chdir", pathname) => 0
 
@@ -94,11 +117,13 @@ strategies
    *
    * @type String -> Int
    */
+  mkdir(|List(AccessPermission)) :: string -> string
   mkdir(|mode) =
     where(
       ?pathname; prim("SSL_mkdir", pathname, mode) => 0
     )
 
+  mkdir :: string -> string
   mkdir =
     mkdir(|[Read(), Write(), Execute()])
 
@@ -107,6 +132,7 @@ strategies
    *
    * @type String -> Int
    */
+  rmdir :: string -> int
   rmdir =
     ?pathname; prim("SSL_rmdir", pathname) => 0
 
@@ -120,10 +146,12 @@ strategies
    */
 
   // create a file and return a file descriptor
+  creat :: string -> FileDescriptor
   creat =
     ?pathname; prim("SSL_creat", pathname)
 
   // open a file and return a file descriptor
+  open :: string -> FileDescriptor
   open =
     ?pathname; prim("SSL_open", pathname)
 
@@ -132,15 +160,18 @@ strategies
    *
    * Deallocates a file descriptor
    */
+  close :: FileDescriptor -> FileDescriptor
   close =
     ?fd; prim("SSL_close", fd)
 
   /**
    * Duplicating a file descriptor
    */
+  dup :: FileDescriptor -> FileDescriptor
   dup =
     ?fd; prim("SSL_dup", fd)
 
+  dup2 :: FileDescriptor * FileDescriptor -> ?
   dup2 =
     ?(fd1, fd2); prim("SSL_dup2", fd1, fd2)
 
@@ -153,17 +184,9 @@ strategies
    *
    * @inc access
    */
+  access :: string * List(AccessPermission) -> string
   access =
     ?(path, permissions); prim("SSL_access", path, permissions)
-
-signature
-  sorts
-    AccessPermission
-  constructors
-    F_OK: AccessPermission
-    R_OK: AccessPermission
-    W_OK: AccessPermission
-    X_OK: AccessPermission
 
 /**
  * Connecting high and low level file operations
@@ -179,6 +202,7 @@ strategies
    *
    * @type (FileDescr, String) -> Stream
    */
+  fdopen :: FileDescriptor * string -> Stream
   fdopen =
     ?(fd, mode); prim("SSL_fdopen", fd, mode); !Stream(<id>)
 
@@ -189,6 +213,7 @@ strategies
    * @type Stream -> FileDescr
    * @inc fileno
    */
+  fileno :: Stream -> FileDescriptor
   fileno =
     ?Stream(stream); prim("SSL_fileno", stream)
 
@@ -196,12 +221,14 @@ strategies
    * Mode of a file
    * @type String -> FileMode
    */
+  filemode :: string -> ? // TODO: check SSL_filemode
   filemode =
     ?pathname; prim("SSL_filemode", pathname); ?(<id>, 0)
 
   /**
    * @type File -> FileMode
    */
+  isreg :: ? -> ?
   isreg =
     ?mode; prim("SSL_S_ISREG", mode)
 
@@ -212,42 +239,54 @@ strategies
    *
    * @type File -> FileMode
    */
+  isdir :: ? -> ?
   isdir =
     ?mode; prim("SSL_S_ISDIR", mode)
 
   /**
    * @type File -> FileMode
    */
+  ischr :: ? -> ?
   ischr =
     ?mode; prim("SSL_S_ISCHR", mode)
 
   /**
    * @type File -> FileMode
    */
+  isblk :: ? -> ?
   isblk =
     ?mode; prim("SSL_S_ISBLK", mode)
 
   /**
    * @type File -> FileMode
    */
+  isfifo :: ? -> ?
   isfifo =
     ?mode; prim("SSL_S_ISFIFO", mode)
 
   /**
    * @type File -> FileMode
    */
+  islnk :: ? -> ?
   islnk =
     ?mode; prim("SSL_S_ISLNK", mode)
 
   /**
    * @type File -> FileMode
    */
+  issock :: ? -> ?
   issock =
     ?mode; prim("SSL_S_ISSOCK", mode)
 
 /**
  * Pipes (and FIFOs)
  */
+signature
+  sorts
+    Pipe
+  constructors
+    Pipe       : int * int -> Pipe
+
 strategies
 
   /**
@@ -257,11 +296,6 @@ strategies
    *
    * @type _ -> Pipe
    */
+  pipe :: ? -> Pipe
   pipe =
     prim("SSL_pipe")
-
-signature
-  sorts
-    Pipe
-  constructors
-    Pipe       : int * int -> Pipe

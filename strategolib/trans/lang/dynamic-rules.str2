@@ -2248,6 +2248,7 @@ strategies // debugging
                   ; map(<fprintnl>(stderr(), ["    ", <id>]))
                  )
          )
+    ; is(?)
     ; try(
         <DR_BREAK>IgnoreB(csid) => blabel
         ; <fprintnl>(stderr(), ["Change set is marked as ignored (due to break) up to label ", blabel, "."])
@@ -2350,6 +2351,7 @@ strategies // friendlier debugging (numbers instead of ugly strings for hashtabl
                 ; map(<fprintnl>(stderr(), ["    ", <id>]))
               )
           )
+        ; is(?)
         ; try(
             <DR_BREAK>IgnoreB(csid) => blabel
             ; <fprintnl>(stderr(), ["Change set is marked as ignored (due to break) up to label ", blabel, "."])

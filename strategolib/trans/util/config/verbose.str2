@@ -4,6 +4,7 @@
 module util/config/verbose
 imports util/config/common
 imports term/integer
+imports collection/list/cons
 strategies
 
  /**
@@ -13,6 +14,7 @@ strategies
   *
   * @type Int -> _
   */
+  set-verbosity :: int -> ?
   set-verbosity =
     <set-config> ("--verbose", <id>)
 
@@ -21,8 +23,9 @@ strategies
   *
   * @type _ -> Int
   */
+  verbosity :: ? -> int
   verbosity =
-    <get-config> "--verbose" <+ !1
+    <get-config;is(int)> "--verbose" <+ !1
 
  /**
   * Builds command-line parameter for verbosity levels for calling XT tools.
@@ -32,6 +35,7 @@ strategies
   *
   * @type _ -> List(String)
   */
+  pass-verbose :: ? -> List(string)
   pass-verbose =
     !["--verbose", <verbosity; int-to-string> ()]
 
@@ -45,6 +49,7 @@ strategies
  */
 strategies
 
+  if-verbose(a -> b | int) :: a -> b
   if-verbose(s|t) =
     if <geq> (<verbosity> (), t) then
       s
@@ -68,7 +73,8 @@ strategies
  */
 strategies
 
- if-less-verbose(s|t) =
+  if-less-verbose(a -> b | int) :: a -> b
+  if-less-verbose(s|t) =
     if <leq> (<verbosity> (), t) then
       s
     end

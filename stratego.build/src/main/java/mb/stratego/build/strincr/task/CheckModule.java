@@ -350,10 +350,14 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         //     the module itself
         registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, sorts, injections);
 
+        final LinkedHashSet<StrategySignature> moduleDefinitions = new LinkedHashSet<>();
+        moduleDefinitions.addAll(moduleData.normalStrategyData.keySet());
+        // TODO: is this necessary? I don't think multiple internal strategy definitions are allowed anyway
+        moduleDefinitions.addAll(moduleData.internalStrategyData.keySet());
         // Get the relevant strategy and constructor types and all sorts and injections, that are visible
         //     through the import, not following them transitively!
         final ToTypesLookup toTypesLookup =
-            new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
+            new ToTypesLookup(moduleDefinitions, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
                 moduleData.usedConstructors);
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(frontInput.moduleIdentifier);

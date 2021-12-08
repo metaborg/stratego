@@ -24,6 +24,7 @@ imports
   term/integer
   util/config/common
   util/config/options
+  lang/stacktrace
 
 signature
   sorts
@@ -840,27 +841,28 @@ strategies
   remove-padding :: string -> string
   remove-padding =
     string-as-chars(
-      split-at-newlines
+      internal-split-at-newlines
     ; where(padding := <length> <Hd>)
-    ; remove-padding(|padding, padding)
-    ; at-last(rtrim(' ' + '\t'))
+    ; internal-remove-padding(|padding, padding)
+    ; at-last([rtrim(?' ' + ?'\t')])
     ; separate-by(|['\n'])
     ; concat
     )
 
-//  internal remove-padding(|int, int) :: List(Char) -> List(Char)
-  internal remove-padding(|max, n) =
+  // called internal- because it's also defined in the strc library
+  internal-remove-padding(|int, int) :: List(List(Char)) -> List(List(Char))
+  internal-remove-padding(|max, n) =
     where(<leq> (n, 0))
-  ; [id | remove-padding(|max, max)]
+  ; [id | internal-remove-padding(|max, max)]
   <+
     [?[' '  | <id>] | id]
-  ; remove-padding(|max, <dec> n)
+  ; internal-remove-padding(|max, <int-dec> n)
   <+
     [?['\t' | <id>] | id]
-  ; remove-padding(|max, <subt> (n, 4))
+  ; internal-remove-padding(|max, <subti> (n, 4))
   <+
-    where(max' := <subt> (max, n))
-  ; [id | remove-padding(|max', max')]
+    where(max' := <subti> (max, n))
+  ; [id | internal-remove-padding(|max', max')]
   <+
     []
 
@@ -1249,17 +1251,18 @@ strategies
   get-lines :: string -> List(string)
   get-lines =
     explode-string
-    ; split-at-newlines
+    ; internal-split-at-newlines
     ; map(implode-string)
 
-//  split-at-newlines :: List(Char) -> List(List(Char))
-  internal split-at-newlines =
+  // called internal- because it's also defined in the strc library
+  internal-split-at-newlines :: List(Char) -> List(List(Char))
+  internal-split-at-newlines =
     at-suffix(
        (['\n'       | tl] -> [])
     <+ (['\r', '\n' | tl] -> [])
     <+ (['\r'       | tl] -> [])
     )
-    ; ![<id> | <split-at-newlines> tl]
+    ; ![<id> | <internal-split-at-newlines> tl]
     <+ ![<id>]
 
   /**
@@ -1629,7 +1632,7 @@ strategies
       <+ is(real);real-to-string(|)
       <+ { x, y :
           ?x
-          ; prim("SSL_stacktrace_get_all_frame_names",|); ?[ _ | y]
+          ; stacktrace-get-all-frame-names; ?[ _ | y]
           ; !y
           ; report-failure(|"Internal error: escaped term in string quotation is not a string", x)
       }

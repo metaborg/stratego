@@ -675,7 +675,7 @@ strategies
  /**
   * Creates a table with a given name, which can be any term.
   */
-  table-create :: ? -> ?
+  table-create :: a -> a
   table-create =
     ?name
   ; where(new-hashtable => htbl)
@@ -684,7 +684,7 @@ strategies
   /**
    * Destroy a table with a given name, which can be any term.
    */
-  table-destroy :: ? -> ?
+  table-destroy :: a -> a
   table-destroy =
     ?name
   ; where(table-hashtable
@@ -698,7 +698,7 @@ strategies
   *
   * E.g. <table-put> (t1, key, value) associates value with key in the t1 table.
   */
-  table-put :: ? * ? * ? -> ? * ? * ?
+  table-put :: a * b * c -> a * b * c
   table-put =
   where(
     ?(name,key,value)
@@ -722,7 +722,7 @@ strategies
   *
   * E.g. <table-remove> (t1, key) removes the entry for key from table t1.
   */
-  table-remove :: ? * ? -> ? * ?
+  table-remove :: a * b -> a * b
   table-remove =
   where(
     ?(name,key)
@@ -779,7 +779,7 @@ strategies
   table-putlist(s) = ?(name, list);
     <map({x,y: ?(x, y); <s> (name, x, y)})> list
 
-  table-copy :: ? * ? -> ? * ?
+  table-copy :: a * b -> a * b
   table-copy = ?(name1, name2);
     where(<table-putlist>(name2, <table-getlist> name1))
 
@@ -793,15 +793,15 @@ strategies
 
 strategies
 
-  table-push :: ? * ? * ? -> ? * ? * ?
+  table-push :: a * b * c -> a * b * c
   table-push = ?(dis, key, val);
-    where(<table-put>(dis, key, [val | <table-get <+ ![]>(dis, key)]))
+    where(<table-put>(dis, key, [val :: ? | <table-get <+ ![]>(dis, key)]))
 
-  table-pop :: ? * ? -> ? * ?
+  table-pop :: a * b -> a * b
   table-pop = ?(dis, key);
     where(<table-put>(dis, key, <table-get; Tl <+ ![]>(dis, key)))
 
-  table-pop-rm :: ? * ? -> ? * ?
+  table-pop-rm :: a * b -> a * b
   table-pop-rm = ?(dis, key);
     where(
       <table-get>(dis, key) => [_|xs]
@@ -819,20 +819,20 @@ strategies
   table-lookup = ?(dis, key);
     <table-get>(dis, key); Hd
 
-  table-replace :: ? * ? * ? -> ? * ? * ?
+  table-replace :: a * b * c -> a * b * c
   table-replace = ?(dis, key, value);
     where(<table-get>(dis, key) => [_|values]
          ; <table-put>(dis, key, [value|values])
          )
 
-  table-union :: ? * ? * List(?) -> ? * ? * ?
+  table-union :: a * b * List(c) -> a * b * List(c)
   table-union = ?(table, key, val);
-    where(<table-put> (table, key, <union> (val, <table-get <+ ![]> (table, key))))
+    where(<table-put> (table, key, <union> (val :: List(?), <table-get <+ ![]> (table, key))))
 
-  table-diff :: ? * ? * List(?) -> ? * ? * ?
+  table-diff :: a * b * List(c) -> a * b * List(c)
   table-diff = ?(table, key, val);
     where(<table-put> (table, key, <diff> (<table-get <+ ![]> (table, key), val)))
 
-  table-append :: ? * ? * List(?) -> ? * ? * ?
+  table-append :: a * b * List(c) -> a * b * List(c)
   table-append = ?(table, key, val);
     where(<table-put> (table, key, <union> (<table-get <+ ![]> (table, key), val)))

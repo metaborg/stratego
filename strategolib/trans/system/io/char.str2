@@ -7,6 +7,8 @@ imports
   term/string
   strategy/iteration
   collection/list/common
+  collection/list/cons
+  collection/tuple/cons
 
 strategies
 
@@ -15,6 +17,7 @@ strategies
    *
    * @type String -> String
    */
+  read-text-file :: string -> string
   read-text-file =
     ?file
     ; <fopen> (file,"r") => stream
@@ -27,9 +30,10 @@ strategies
    *
    * @type Stream -> String
    */
+  read-text-from-stream :: Stream -> string
   read-text-from-stream =
       ?stream
-    ; rec x(![<fgetc> stream | <x> ()] <+ ![])
+    ; rec x(![<fgetc> stream | <x> NoStream()] <+ ![])
     ; implode-string
 
   /**
@@ -38,9 +42,10 @@ strategies
    *
    * @type Stream -> String
    */
+  read-text-line :: Stream -> string
   read-text-line =
     ?stream
-    ; rec x(![<fgetc; not('\n')> stream | <x> ()] <+ ![])
+    ; rec x(![<fgetc; not('\n')> stream | <x> NoStream()] <+ ![])
     ; implode-string
 
 strategies
@@ -54,17 +59,20 @@ strategies
    * 'more' transforms current chunck after adding next character
    *        should always succeed
    *
-   * Note that the charachters in a chunk are in reverse order.
+   * Note that the characters in a chunk are in reverse order.
    *
    * @type (String, String) -> String
    */
+  filter-text-file(List(Char) -> List(Char), List(Char) -> List(Char)) :: string * string -> string
   filter-text-file(more, done) :
     (filein, fileout) -> fileout
     where <fopen>(filein, "r") => streamin
         ; <fopen>(fileout, "w") => streamout
         ; repeat(
-            for(![<fgetc> streamin]; more, done, ![<fgetc> streamin | <id>]; more)
+            where(
+              for(![<fgetc> streamin]; more, done, ![<fgetc> streamin | <id>]; more)
             ; reverse-map(<fputc> (<id>, streamout))
+            )
           )
         ; <fclose> streamin
         ; <fclose> streamout

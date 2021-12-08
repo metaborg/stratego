@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -31,8 +32,8 @@ import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.DynamicCallsDefined;
 import mb.stratego.build.strincr.function.GetConstrData;
-import mb.stratego.build.strincr.function.GetDynamicRuleAnalysisData;
 import mb.stratego.build.strincr.function.GetOverlayData;
+import mb.stratego.build.strincr.function.GetStrategiesUsingDynamicRule;
 import mb.stratego.build.strincr.function.GetStrategyAnalysisData;
 import mb.stratego.build.strincr.function.ModulesDefiningDynamicRule;
 import mb.stratego.build.strincr.function.ModulesDefiningOverlays;
@@ -367,29 +368,47 @@ public abstract class BackInput implements Serializable {
             HashSet<ConstructorSignature> usedConstructors) {
             final Queue<StrategySignature> workList = new ArrayDeque<>();
             workList.add(strategySignature);
-            final TreeSet<StrategySignature> seen = new TreeSet<>();
+            final HashSet<StrategySignature> seen = new HashSet<>();
             seen.add(strategySignature);
+            final TreeSet<StrategySignature> seenDynamicRules = new TreeSet<>();
+            seenDynamicRules.add(strategySignature);
             while(!workList.isEmpty()) {
-                StrategySignature strategySignature = workList.remove();
-                final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy =
+                StrategySignature dynamicRuleSignature = workList.remove();
+                final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule =
                     PieUtils.requirePartial(context, backTask.check, checkInput,
-                        new ModulesDefiningDynamicRule(strategySignature));
+                        new ModulesDefiningDynamicRule(dynamicRuleSignature));
 
-                for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningStrategy) {
-                    if(moduleIdentifier.isLibrary()) {
+                for(IModuleImportService.ModuleIdentifier moduleDefiningDynamicRule : modulesDefiningDynamicRule) {
+                    if(moduleDefiningDynamicRule.isLibrary()) {
                         continue;
                     }
-                    final HashSet<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                    final HashSet<StrategySignature> strategiesUsingDynamicRule = PieUtils
                         .requirePartial(context, strategyAnalysisDataTask,
-                            checkInput.checkModuleInput(moduleIdentifier),
-                            new GetDynamicRuleAnalysisData(strategySignature));
-                    for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
-                        strategyContributions.add(strategyAnalysisDatum.analyzedAst);
-                        new UsedConstrs(usedConstructors).visit(strategyAnalysisDatum.analyzedAst);
-                        for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
-                            if(!seen.contains(definedDynamicRule)) {
-                                workList.add(definedDynamicRule);
-                                seen.add(definedDynamicRule);
+                            checkInput.checkModuleInput(moduleDefiningDynamicRule),
+                            new GetStrategiesUsingDynamicRule(dynamicRuleSignature));
+                    for(StrategySignature strategyUsingDynamicRule : strategiesUsingDynamicRule) {
+                        if(!seen.contains(strategyUsingDynamicRule)) {
+                            seen.add(strategyUsingDynamicRule);
+                            final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningStrategy = PieUtils
+                                .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
+                                    new ModulesDefiningStrategy(strategyUsingDynamicRule));
+
+                            for(IModuleImportService.ModuleIdentifier moduleDefiningStrategy : modulesDefiningStrategy) {
+                                final Set<StrategyAnalysisData> strategyAnalysisData = PieUtils
+                                    .requirePartial(context, strategyAnalysisDataTask,
+                                        checkInput.checkModuleInput(moduleDefiningStrategy),
+                                        new GetStrategyAnalysisData(strategyUsingDynamicRule));
+                                for(StrategyAnalysisData strategyAnalysisDatum : strategyAnalysisData) {
+                                    for(StrategySignature definedDynamicRule : strategyAnalysisDatum.definedDynamicRules) {
+                                        if(!seen.contains(definedDynamicRule)) {
+                                            seen.add(definedDynamicRule);
+                                            seenDynamicRules.add(definedDynamicRule);
+                                            workList.add(definedDynamicRule);
+                                        }
+                                    }
+                                    strategyContributions.add(strategyAnalysisDatum.analyzedAst);
+                                    new UsedConstrs(usedConstructors).visit(strategyAnalysisDatum.analyzedAst);
+                                }
                             }
                         }
                     }
@@ -398,9 +417,9 @@ public abstract class BackInput implements Serializable {
             // Important test: only the BackInput.DynamicRule task with the "smallest" signature is
             // allowed to compile the set of strategies found through the above process. The Compile
             // tasks is smart and starts with the smallest signature for a dynamic rule, but there
-            // maybe be BackInput.DynamicRule tasks from previous runs around that are no longer
+            // may be BackInput.DynamicRule tasks from previous runs around that are no longer
             // valid.
-            final StrategySignature firstSig = seen.first();
+            final StrategySignature firstSig = seenDynamicRules.first();
             final boolean taskIsStillRelevant = firstSig.equals(strategySignature);
             if(taskIsStillRelevant) {
                 return null;
@@ -414,7 +433,8 @@ public abstract class BackInput implements Serializable {
         public Set<String> getStrategySignatures(
             Map<StrategySignature, ? extends Set<StrategySignature>> dynamicRules) {
             final Set<String> strategySignatures = new HashSet<>();
-            for(StrategySignature iStrategoTerms : dynamicRules.get(strategySignature)) {
+            final @Nullable Set<StrategySignature> dynamicRulesOrDefault = dynamicRules.get(strategySignature);
+            for(StrategySignature iStrategoTerms : dynamicRulesOrDefault != null ? dynamicRulesOrDefault : Collections.<StrategySignature>emptySet()) {
                 String name = iStrategoTerms.cifiedName();
                 strategySignatures.add(name);
             }
