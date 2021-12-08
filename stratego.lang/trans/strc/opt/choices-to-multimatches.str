@@ -69,22 +69,51 @@ strategies
             case y* | q when sg': sr'
           end < s2 + s3
 
-    bar' = match sequential
-            case x* | p when sg: sr; s2
-            case y* | q when sg': sr'; s2
-            case    | _ when s3: id
-          end
+    bar' =
+      let
+        s = s2
+      in
+        match sequential
+          case x* | p when sg: sr; s
+          case y* | q when sg': sr'; s
+          case    | _ when s3: id
+        end
+      end
   */
-  // TODO NOTE: Duplicates s2. Not valid if s2 is not a pure operation.
   choice-to-multimatch:
     GuardedLChoice(MM(c1*), s2, s3) ->
-    MM([c1'*, c2'*])
+    |[
+      let x_rhs = s2
+      in ~MM([c1'*, c2'*])
+      end
+    ]|
+  where
+    GuardedLChoice(get-constructor, get-constructor, get-constructor)
+//  ; debug(|"Shallow 2: ")
+//  where
+//    debug(|" Full: ")
   with
-    c1'* := <map(ScopedGuardedMatchCase(id, id, id, <sequence-strategies> (<id>, s2)))> c1*
-  ; if <?MM(c2*)> s3
-    then c2'* := c2*
-    else c2'* := [ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())]
+    x_rhs := <newname> "s_rhs"
+  ; c2'* := <Strat2MatchCases> s3
+  ; x'* := <mapconcat(?ScopedGuardedMatchCase(<id>, _, _, _))> c1*
+  where
+    // TODO Isn't this condition always satisfied, because of how scoping constructs are handled?
+    <isect> (x'*, <tvars> s2) => []
+  with
+    let
+      make-tvars-unique(|x*) =
+        if <isect; not(?[])> (x*, <tvars> s2)
+        then trename
+        end
+    in
+      // TODO Make sure that the behaviour of s_rhs is not changed by the scope of the matchcases
+      c1'* := <map({x*: ScopedGuardedMatchCase(?x*, id, id, <sequence-strategies> (<id>, Strat|[ x_rhs ]|))})> c1*
     end
+
+  internal Strat2MatchCases = ?MM(<id>)
+  internal Strat2MatchCases:
+    s -> [ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s, Id())]
+    where <not(?MM(_))> s
 
   /* VERIFIED
     foo0 = s1 < s2 + s3
@@ -179,7 +208,7 @@ strategies
     ScopedGuardedMatchCase(x*, p, s1, s2) ->
     ScopedGuardedMatchCase(x*, p, Id(), s3)
   where
-    <not(?Id()); always-succeeds> s1
+    <not(?Id()); always-succeeds(|[1, 2, 3, 4, 5])> s1
   with
     s3 := <sequence-strategies> (s1, s2)
 
@@ -221,11 +250,11 @@ strategies
   /**
    * Determines whether a strategy always succeeds (without side effects).
    */
-  always-succeeds =
+  always-succeeds(|[_ | depth]) =
     ?Id()
   + ?Build(_) < Build(
       ?Path(CurP())
-    + not(oncetd(fail
+    + not(oncebu(fail
         // No (potentially) unbound vars in build
         + ?Var(_){"unbound"}
         + ?Var(_){"(un)bound"}
@@ -237,25 +266,25 @@ strategies
         + ?Explode(_, _)
       ))
     )
-  + ?Match(Var(_){"unbound"})
-  + Seq(always-succeeds, always-succeeds)
-  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(always-succeeds, always-succeeds, id)
-                              + GuardedLChoice(always-fails, id, always-succeeds)
-                              + GuardedLChoice(id, always-succeeds, always-succeeds))
-  + Scope(id, always-succeeds)
+  + ?Match(_) < Match(?Wld() + ?Var(_){"unbound"})
+  + ?Seq(_, _) < Seq(always-succeeds(|depth), always-succeeds(|depth))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(always-succeeds(|depth), always-succeeds(|depth), id)
+                              + GuardedLChoice(always-fails(|depth), id, always-succeeds(|depth))
+                              + GuardedLChoice(id, always-succeeds(|depth), always-succeeds(|depth)))
+  + Scope(id, always-succeeds(|depth))
 
   /**
    * Determines whether a strategy always fails (without side effects).
    */
-  always-fails =
+  always-fails(|[_ | depth]) =
     ?Fail()
   + ?Build(_)
-    < where(oncetd(
+    < where(oncebu(
       ?Var(_){"unbound"}
       // TODO Add list build with non-list tail
     ))
-  + ?Seq(_, _) < or(Seq(always-fails, id), Seq(id, always-fails))
-  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(id, always-fails, always-fails)
-                              + GuardedLChoice(always-succeeds, always-fails, id)
-                              + GuardedLChoice(always-fails, id, always-fails))
-  + Scope(id, always-fails)
+  + ?Seq(_, _) < or(Seq(always-fails(|depth), id), Seq(id, always-fails(|depth)))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(id, always-fails(|depth), always-fails(|depth))
+                              + GuardedLChoice(always-succeeds(|depth), always-fails(|depth), id)
+                              + GuardedLChoice(always-fails(|depth), id, always-fails(|depth)))
+  + Scope(id, always-fails(|depth))
