@@ -30,6 +30,7 @@ import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.ToModuleIndex;
+import mb.stratego.build.strincr.function.ToTypesLookup;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.message.CyclicOverlay;
 import mb.stratego.build.strincr.message.Message;
@@ -115,7 +116,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             for(StrategyFrontData sfd : index.strategies) {
                 Relation.getOrInitialize(strategyIndex, sfd.signature, LinkedHashSet::new)
                     .add(moduleIdentifier);
-                strategyTypes.put(sfd.signature, sfd.type);
+                ToTypesLookup.registerStrategyType(strategyTypes, sfd.signature,
+                    sfd);
             }
             for(StrategySignature signature : index.internalStrategies) {
                 Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
