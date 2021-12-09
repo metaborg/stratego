@@ -18,6 +18,7 @@ strategies
    * @type    _ -> Error
    * @since   0.9.4
    */
+  get-last-error :: ? -> Error
   get-last-error =
     !ErrorNumber(<get-errno>)
 
@@ -26,6 +27,7 @@ strategies
    * @type    _ -> Int
    * @since   0.9.4
    */
+  get-errno :: ? -> int
   get-errno =
     prim("SSL_get_errno")
 
@@ -36,6 +38,7 @@ strategies
    * @type   String -> String
    * @since  0.9.4
    */
+  perror :: a -> string
   perror =
     ?s; prim("SSL_perror", s)
 
@@ -46,9 +49,10 @@ strategies
    * @type   Int -> String
    * @since  0.9.4
    */
+  strerror :: int -> string
   strerror =
     ?s; prim("SSL_strerror", s)
 
 strategies
-
+  EXDEV :: a -> a
   EXDEV = prim("SSL_EXDEV")

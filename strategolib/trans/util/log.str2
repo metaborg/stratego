@@ -33,35 +33,39 @@ signature
     Vomit     : Severity
 
 strategies
-
+  debug-area(a -> b | string) :: a -> b
   debug-area(s|msg) =
       log(|Debug(), <conc-strings> ("entering area ", msg))
     ; s
     ; log(|Debug(), <conc-strings> ("leaving area ",  msg))
 
+  risky(a -> b | ?) :: a -> b
   risky(s|msg) =
     risky(s|Error(), msg)
 
+  risky(a -> b | Severity, ?) :: a -> b
   risky(s|severity, msg) =
     restore(s, log(|severity, msg, <id>))
 
 strategies
 
+  log(|Severity, ?, ?) :: a -> a
   log(|severity : Severity, msg, term) =
     if-log-severity(
       log(|severity, msg)
       ; where(
-          <copy-char; log-puts> (<add> (<severity-string; string-length> severity, 3), ' ')
+          <copy-char; log-puts> (<addi> (<severity-string; string-length> severity, 3), ' ')
         ; <write-in-text-to-stream> (<log-stream>, term)
         ; <log-puts> "\n"
         )
     | severity
     )
 
+  log(|Severity, ?) :: a -> a
   log(|severity : Severity, msg) =
     if-log-severity(
       where(
-        <try(not(is-list) ; ![<id>])>msg
+        <is-list <+ ![<id>]> msg
       ; map(is-string <+ write-to-string)
       ; <concat-strings ; log-puts> ["[ ", <log-src>, " | ",  <severity-string> severity, " ] " | <id> ]
       ; <log-puts> "\n"
@@ -69,29 +73,37 @@ strategies
     | severity
     )
 
+  if-log-severity(a -> a | Severity) :: a -> a
   if-log-severity(s | severity) =
     if-verbose(s | <verbose-level> severity)
 
 strategies
 
+  log-stream :: ? -> Stream
   log-stream =
     <get-config> "log-stream"
-    <+ <getenv> "STRATEGO_LOG"
-       ; <fopen> (<id>, "a")
-    <+ <stderr-stream> ()
+  log-stream =
+      <getenv> "STRATEGO_LOG"
+    ; <fopen> (<id>, "a")
+  log-stream =
+    <stderr-stream> ()
 
+  set-log-stream :: Stream -> ?
   set-log-stream =
     <set-config> ("log-stream", <id>)
 
+  log-puts :: string -> Stream
   log-puts =
     <fputs> (<id>, <log-stream> ())
 
+  log-src :: ? -> string
   log-src =
     whoami; base-filename
     <+ !"identity crisis"
 
 rules
 
+  verbose-level :: Severity -> int
   verbose-level : Emergency() -> -10
   verbose-level : Alert()     -> -5
   verbose-level : Critical()  -> -2
@@ -102,6 +114,7 @@ rules
   verbose-level : Debug()     -> 4
   verbose-level : Vomit()     -> 10
 
+  severity-string :: Severity -> string
   severity-string : Emergency() -> "emergency"
   severity-string : Alert()     -> "alert"
   severity-string : Critical()  -> "critical"
@@ -112,6 +125,7 @@ rules
   severity-string : Debug()     -> "debug"
   severity-string : Vomit()     -> "vomit"
 
+  string-to-level :: string -> int
   string-to-level : "emergency" -> level
     where <verbose-level> Emergency() => level
 
@@ -147,6 +161,7 @@ strategies
    *
    * @type a -> _
    */
+  fatal-err(|string) :: a -> b
   fatal-err(|msg : String) =
     log(|Critical(), msg, <id>); <exit> 1
 
@@ -155,6 +170,7 @@ strategies
    *
    * @type a -> a
    */
+  err(|string) :: a -> a
   err(|msg : String) =
     log(|Error(), msg, <id>)
 
@@ -163,6 +179,7 @@ strategies
    *
    * @type a -> a
    */
+  warn(|string) :: a -> a
   warn(|msg : String) =
     log(|Warning(), msg, <id>)
 
@@ -171,6 +188,7 @@ strategies
    *
    * @type a -> a
    */
+  notice(|string) :: a -> a
   notice(|msg : String) =
     log(|Notice(), msg, <id>)
 
@@ -179,6 +197,7 @@ strategies
    *
    * @type a -> a
    */
+  dbg(|string) :: a -> a
   dbg(|msg : String) =
     log(|Debug(), msg, <id>)
 
@@ -190,6 +209,7 @@ strategies
    *
    * @type a -> _
    */
+  fatal-err-msg(|string) :: a -> b
   fatal-err-msg(|msg : String) =
     log(|Critical(), msg); <exit> 1
 
@@ -198,6 +218,7 @@ strategies
    *
    * @type a -> a
    */
+  err-msg(|string) :: a -> a
   err-msg(|msg : String) =
     log(|Error(), msg)
 
@@ -206,6 +227,7 @@ strategies
    *
    * @type a -> a
    */
+  warn-msg(|string) :: a -> a
   warn-msg(|msg : String) =
     log(|Warning(), msg)
 
@@ -214,5 +236,6 @@ strategies
    *
    * @type a -> a
    */
+  notice-msg(|string) :: a -> a
   notice-msg(|msg : String) =
     log(|Notice(), msg)

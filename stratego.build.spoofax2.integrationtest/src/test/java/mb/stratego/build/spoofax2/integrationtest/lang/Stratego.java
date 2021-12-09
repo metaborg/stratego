@@ -91,9 +91,16 @@ public class Stratego {
     }
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
+                                     Path outputDir, boolean library,
+                                     ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
+                                     LanguageIdentifier languageIdentifier) throws MetaborgException, IOException {
+        return str2(input, baseName, packageName, outputDir, library, linkedLibraries, autoImportStd, languageIdentifier, new Arguments());
+    }
+
+    public static CompileOutput str2(Path input, String baseName, String packageName,
         Path outputDir, boolean library,
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
-        LanguageIdentifier languageIdentifier)
+        LanguageIdentifier languageIdentifier, Arguments args)
         throws MetaborgException, IOException {
         final Path temporaryDirectoryPath =
             Files.createTempDirectory("mb.stratego.build.spoofax2.integrationtest")
@@ -169,7 +176,6 @@ public class Stratego {
             final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
             strjIncludeDirs.add(projectPath);
 
-            final Arguments newArgs = new Arguments();
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
             final ArrayList<String> constants = new ArrayList<>(0);
@@ -178,7 +184,7 @@ public class Stratego {
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, outputDir1,
                     outputDir1, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
-                    constants, strjIncludeDirs, linkedLibraries, newArgs,
+                    constants, strjIncludeDirs, linkedLibraries, args,
                     sdfTasks, library, autoImportStd, languageIdentifier.id, str2libraries);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);

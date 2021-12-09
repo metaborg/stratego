@@ -405,10 +405,9 @@ strategies
 
   abs :: int -> int
   abs =
-    (is-int + is-real)
-    ; if neg then
-        <subti> (0, <id>)
-      end
+    if neg then
+      <subti> (0, <id>)
+    end
 
 signature
   sorts
@@ -419,30 +418,37 @@ signature
 
 rules
 
+  add-inf :: IntI * IntI -> IntI
   add-inf =
-    let add-inf1: (Infinite(), _) -> Infinite()
-        add-inf2: (_, Infinite()) -> Infinite()
-     in (add-inf1 + add-inf2) <+ add
-    end
+    ( \(Infinite(), _) -> Infinite()\
+    + \(_, Infinite()) -> Infinite()\)
+   <+ (is-int, is-int); addi
 
-  lt-inf = ?(<is-int>, Infinite()) <+ (is-int, is-int); lt
+  lt-inf :: IntI * IntI -> IntI * IntI
+  lt-inf =
+       (is-int, ?Infinite())
+    <+ (is-int, is-int); int-lt
 
 strategies
-
+  new-counter :: ? -> string
   new-counter =
     new; reset-counter
 
+  reset-counter :: a -> a
   reset-counter = ?c;
     where(<set-counter> (c, 0))
 
+  set-counter :: ? * b -> ? * b
   set-counter =
     ?(c,n); rules( Counter : c -> n )
 
+  get-counter :: ? -> int
   get-counter =
-    Counter <+ <set-counter> (<id>, 0); !0
+    Counter;is-int <+ <set-counter> (<id>, 0); !0
 
+  next-counter :: string -> int
   next-counter =
-    ?c; get-counter; inc; where(<set-counter> (c, <id>))
+    ?c; get-counter; int-inc; where(<set-counter> (c, <id>))
 
 strategies
 
