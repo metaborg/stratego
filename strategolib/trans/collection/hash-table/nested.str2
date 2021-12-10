@@ -15,7 +15,7 @@ signature
     NewTable    : TableKey
 strategies
 
-  nestedtable-put(|List(?), Hashtable) :: TableKey -> Hashtable
+  nestedtable-put(|List(?), ?) :: TableKey -> Hashtable
   nestedtable-put(|keys, value) =
     let
       forward :: TableKey -> TableValue * TableValue
@@ -24,11 +24,11 @@ strategies
       nestedtable-put(try(forward;is(?)), id | keys, value)
     end
 
-  nestedtable-put(TableKey -> ?|List(?), Hashtable) :: TableKey -> Hashtable
+  nestedtable-put(TableKey -> ?|List(?), ?) :: TableKey -> Hashtable
   nestedtable-put(forward | keys, value) =
     nestedtable-put(forward, id | keys, value)
 
-  nestedtable-put(TableKey -> ?, TableValue -> ?|List(?), Hashtable) :: TableKey -> Hashtable
+  nestedtable-put(TableKey -> ?, TableValue -> ?|List(?), ?) :: TableKey -> Hashtable
   nestedtable-put(forward, changed | keys, value) =
     debug(!"nestedtable-put: ");
     forward
@@ -71,7 +71,7 @@ strategies // hidden
 
 strategies // hidden
 
-  nestedtable-put-aux(TableKey -> ?, TableValue -> ?|Hashtable, Hashtable) :: List(?) -> Hashtable
+  nestedtable-put-aux(TableKey -> ?, TableValue -> ?|Hashtable, ?) :: List(?) -> Hashtable
   nestedtable-put-aux(forward, changed | tbl, value) :
     [] -> tbl
     where debug(!"nestedtable-put-aux: "); fail
