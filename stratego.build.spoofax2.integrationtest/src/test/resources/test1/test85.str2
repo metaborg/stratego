@@ -76,7 +76,7 @@ strategies
   ; !100
   ; switch !x
       case is-int : <add> (<id>, 1) <+ !-1
-      case is-string : <strcat> (<id>, "should fail") <+ !"string case failed"
+      case is-string : <strcat> (<is(?);is(string)>, "should fail") <+ !"string case failed"
     end
 
   switch-wow =
@@ -84,7 +84,7 @@ strategies
   ; !100
   ; switch !x
       case is-int : <add> (<id>, 1) <+ !-1
-      case is-string : <strcat> (<id>, "should fail") <+ !"string case failed"
+      case is-string : <strcat> (<is(?);is(string)>, "should fail") <+ !"string case failed"
       otherwise : !"otherwise case"
     end
 
@@ -93,13 +93,14 @@ strategies
   ; !100
   ; switch !x
       case is-int : fail
-      case is-string : <strcat> (<id>, "should fail") <+ !"string case failed"
+      case is-string : <strcat> (<is(?);is(string)>, "should fail") <+ !"string case failed"
       otherwise : !"otherwise case"
     end
 
   switch-nested =
     ?x
   ; !100
+  ; is(?)
   ; switch !x
       case
         switch !"foo"
