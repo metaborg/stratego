@@ -159,9 +159,8 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final Str2LibInfo str2LibInfo = PieUtils
                 .requirePartial(context, resolve, boilerplateInput.checkInput.resolveInput(),
                     GetStr2LibInfo.INSTANCE);
-            final IStrategoTerm str2Lib = GenerateStratego
-                .packStr2Library(tf, boilerplateInput.libraryName, str2LibInfo.sorts,
-                    str2LibInfo.constructors, str2LibInfo.strategyFrontData, input.packageName);
+            final IStrategoTerm str2Lib = GenerateStratego.packStr2Library(tf, boilerplateInput.libraryName,
+                str2LibInfo.sorts, str2LibInfo.constructors, str2LibInfo.injections, str2LibInfo.strategyFrontData, input.packageName);
 
             // Output str2lib file
             final HierarchicalResource str2LibResource = context.getResourceService()

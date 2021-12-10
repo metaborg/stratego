@@ -10,7 +10,7 @@ public class GetStr2LibInfo implements SerializableFunction<GlobalData, Str2LibI
 
     @Override public Str2LibInfo apply(GlobalData globalData) {
         return new Str2LibInfo(globalData.nonExternalSorts, globalData.nonExternalConstructors,
-            globalData.strategyTypes);
+            globalData.nonExternalInjections, globalData.strategyTypes);
     }
 
     @Override public boolean equals(Object other) {
