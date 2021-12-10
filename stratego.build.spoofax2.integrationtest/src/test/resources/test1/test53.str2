@@ -54,6 +54,7 @@ strategies
    test5 = 
      !["test53", "a", "b", "c"]
      ; debug(!"test5")
+     ; is(?) // TODO: hack to work around issue with dynamic rules that can't have casts, but the cast shouldn't even be inserted, but we have to because we're not tracking local variable boundedness (yet)
      ; ?[prog | xs]
      ; rules(Arguments5 :- prog )
      ; <bagof-Arguments5> prog

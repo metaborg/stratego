@@ -2,6 +2,6 @@ module test21
 imports strategolib
 strategies
 
-   main = try(<ReadFromFile> "NonExistentFile")
+   main = try(<ReadFromFile> Path("NonExistentFile"))
 
 

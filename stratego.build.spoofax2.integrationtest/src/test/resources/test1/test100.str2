@@ -9,4 +9,4 @@ strategies
     end
 
   main =
-    where(try(mynestedtable-put(|"", "")))
+    where(!Tables(); try(mynestedtable-put(|[""], "")))

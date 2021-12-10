@@ -3,10 +3,10 @@ imports strategolib
 
 signature
   sorts
-    Id DeclId String
+    Id DeclId
   constructors
     DeclId : Id -> DeclId
-    Id : String -> Id
+    Id : string -> Id
 
 strategies
 
@@ -25,8 +25,10 @@ strategies
      , DeclId(Id("c"{2}){3})
      , DeclId(Id("d"))
      )
+    ; is(?)
     ; topdown(
         {t,t2,x:
+         is(?);
          test(!"c" ; ?t);
          if DeclId(Id(test(?t))) /* works with O3 */ then
            debug(!"1st bang method matched ok:")

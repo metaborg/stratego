@@ -33,7 +33,7 @@ strategies
   ReadFromFile :: FileLoc -> ?
   ReadFromFile =
       ( <open-stream> (<id>, "r")
-      <+ <conc-strings; perror; fail> ("SSL/ReadFromFile ", <id>))
+      <+ <conc-strings; perror; fail> ("SSL/ReadFromFile ", <write-to-string>))
     ; where(read-from-stream => trm)
     ; fclose
     ; !trm
