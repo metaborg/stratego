@@ -394,7 +394,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     => st4
 
 insertCasts-StMatchTerm(|e1, st1):
-  Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
+  Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, CharT())>
 
 insertCasts-StMatchTerm-(|e1, st1):
   Tuple([trm1]) -> <insertCasts-StMatchTerm-(|e1, st1)> trm1

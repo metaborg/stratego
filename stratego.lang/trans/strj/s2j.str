@@ -1124,6 +1124,12 @@ strategies
   translate-Type:
     EmptyT() -> |[ BottomT.INSTANCE ]|
 
+  translate-Type:
+    IllFormedTermT(constr, args) -> |[ new IllFormedTermT(e_str, Arrays.asList(e_ty*)) ]|
+  with
+    e_ty* := <map(translate-Type)> args
+  ; e_str := Lit(String([Chars(constr)]))
+
   translate-SCoercion:
     SId() -> |[ FunTCoercion.ID ]|
 
