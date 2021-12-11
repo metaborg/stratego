@@ -66,6 +66,7 @@ import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.FindErrT;
+import mb.stratego.build.termvisitors.FindSortTP;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
@@ -195,12 +196,18 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             messages.add(Message.from(noteTerm, MessageSeverity.NOTE, lastModified));
         }
 
-        // sanity check
+        // sanity checks
+        final List<StrategySignature> defsWithSortTP = FindSortTP.findSortTP(astWithCasts);
+        if(!defsWithSortTP.isEmpty()) {
+            messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast),
+                "type system did not give error message on checking TP but did not prove it was TP either", defsWithSortTP,
+                MessageSeverity.ERROR, lastModified));
+        }
         if(errors.isEmpty()) {
             final List<StrategySignature> defsWithErrT = FindErrT.findErrT(astWithCasts);
-            if(defsWithErrT.size() > 0) {
-                // TODO: turn back on, turned off temporarily (locally) to build strategolib and therefore Spoofax
-                messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast), defsWithErrT,
+            if(!defsWithErrT.isEmpty()) {
+                messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast),
+                    "type system did not give errors but did insert cast to error type in", defsWithErrT,
                     MessageSeverity.ERROR, lastModified));
             }
         }
