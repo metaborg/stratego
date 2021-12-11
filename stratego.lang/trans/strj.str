@@ -51,15 +51,19 @@ strategies
   strj2 =
     try(mark-always-needed(|<get-config> "-m", 0, 0))
   ; Specification(
-      map(try(Strategies(![<joindefs>])))
-    ; partition(not(?Strategies(_)),?Strategies(<id>))
-    ; (id, ![Strategies(<concat>)])
+      partition(not(?Strategies(_)),?Strategies(<id>))
+    ; (id, ![Strategies(<concat;guarded-joindefs>)])
     ; conc
     )
   ; strc-optimize
   ; s2j
   ; with(clean-output-dir)
   ; log-timed(list-loop(output-java) | "Pretty printing succeeded", 1)
+
+  guarded-joindefs: sdefs1 -> sdefs2
+  with
+    names := <map(?SDefT(<id>, _, _, _));make-set> sdefs1
+  ; sdefs2 := <map(\name -> <filter(?SDefT(name, _, _, _));joindefs> sdefs1\)> names
 
   main-strj =
     strj-parse-options(|["org.strategoxt.stratego_lib"])
