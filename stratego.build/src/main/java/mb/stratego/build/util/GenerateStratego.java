@@ -144,14 +144,9 @@ public class GenerateStratego {
     }
 
     public IStrategoTerm packStrategies(Collection<? extends IStrategoAppl> strategies) {
-        final IStrategoAppl term;
-        final IStrategoList.Builder b = tf.arrayListBuilder(strategies.size());
-        b.add(tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))));
-        for(IStrategoAppl strategy : strategies) {
-            b.add(tf.makeAppl("Strategies", tf.makeList(strategy)));
-        }
-        term = tf.makeAppl("Specification", tf.makeList(b));
-        return term;
+        return tf.makeAppl("Specification", tf.makeList(
+            tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))),
+            tf.makeAppl("Strategies", tf.makeList(strategies))));
     }
 
     public List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {
