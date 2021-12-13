@@ -93,7 +93,7 @@ strategies
 //  where
 //    debug(|" Full: ")
   with
-    x_rhs := <newname> "s_rhs"
+    x_rhs := <snewvar> "s_rhs"
   ; c2'* := <Strat2MatchCases> s3
   ; x'* := <mapconcat(?ScopedGuardedMatchCase(<id>, _, _, _))> c1*
   where

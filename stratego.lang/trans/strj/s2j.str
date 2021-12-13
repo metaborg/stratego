@@ -2141,7 +2141,7 @@ strategies
     (e_path, alt*, stm_def) ->
     (x_cons, groups)
   with
-    x_cons := <newname> "cons"
+    x_cons := <local-newname> "cons"
   ; pairs := <map(split(AltHash, id))> alt*
   ; hash_set := <map(Fst); make-set> pairs
   ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
@@ -2195,7 +2195,7 @@ strategies
       }
     ]|
   with
-    x_cons := <newname> "cons"
+    x_cons := <local-newname> "cons"
   ; pairs := <map(split(id, Alt2Arity; try(int-to-string)))> alt*
   ; group_labels := <map(Snd); make-set> pairs
   ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
@@ -2278,7 +2278,7 @@ strategies
       }
     ]|
    with
-     x_termcopy := <newname> "term"
+     x_termcopy := <local-newname> "term"
    ; stm_s1     := <translate-strategy> s1
 
   /** @type Guard -> Block */  
@@ -2302,7 +2302,7 @@ strategies
   where
     <not(?Id())> s2
   with
-    x_termcopy := <newname> "term"
+    x_termcopy := <local-newname> "term"
   ; stm_s1     := <translate-strategy> s1
   ; stm_s2     := <translate-strategy> s2
 
@@ -2311,37 +2311,37 @@ strategies
     e_trm ->
     (bstm |[ IStrategoList x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "list"
+    x_asgn := <local-newname> "list"
 
   typed-assign(|ApplT()):
     e_trm ->
     (bstm |[ IStrategoAppl x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "appl"
+    x_asgn := <local-newname> "appl"
 
   typed-assign(|TupleT()):
     e_trm ->
     (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "tuple"
+    x_asgn := <local-newname> "tuple"
 
   typed-assign(|StringT()):
     e_trm ->
     (bstm |[ IStrategoString x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "str"
+    x_asgn := <local-newname> "str"
 
   typed-assign(|IntT()):
     e_trm ->
     (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "int"
+    x_asgn := <local-newname> "int"
 
   typed-assign(|RealT()):
     e_trm ->
     (bstm |[ IStrategoReal x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <newname> "real"
+    x_asgn := <local-newname> "real"
 
 
   java-Pat-to-Condition:
