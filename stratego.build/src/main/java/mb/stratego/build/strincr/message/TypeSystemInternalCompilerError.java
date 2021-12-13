@@ -7,15 +7,17 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class TypeSystemInternalCompilerError extends Message {
+    public final String message;
     public final List<StrategySignature> defsWithErrT;
 
-    public TypeSystemInternalCompilerError(IStrategoTerm name, List<StrategySignature> defsWithErrT, MessageSeverity severity,
+    public TypeSystemInternalCompilerError(IStrategoTerm name, String message, List<StrategySignature> defsWithErrT, MessageSeverity severity,
         long lastModified) {
         super(name, severity, lastModified);
+        this.message = message;
         this.defsWithErrT = defsWithErrT;
     }
 
     @Override public String getMessage() {
-        return "Internal compiler error: type system did not give errors but did insert cast to error type in: " + defsWithErrT + ". ";
+        return "Internal compiler error: " + message + ": " + defsWithErrT + ". ";
     }
 }

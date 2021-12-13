@@ -296,3 +296,45 @@ test between explode congruence and BA [[
         BA(CallNoArgs(SVar("a")),NoAnnoList(Explode(Var("c"),NoAnnoList(Str("\"hi\""))))))
     ])
   ])
+
+test priority between guarded left choice [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) < !"match" + Nil() < fail + fail
+]] parse to [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) < !"match" + (Nil() < fail + fail)
+]]
+
+test priority between choice [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) + Nil() + fail
+]] parse to [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) + (Nil() + fail)
+]]
+
+test priority between guarded left choice and choice [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) < !"match" + Nil() + fail
+]] parse to [[
+  specification
+  
+  strategies
+  
+  s = ?Cons(_,_) < !"match" + (Nil() + fail)
+]]

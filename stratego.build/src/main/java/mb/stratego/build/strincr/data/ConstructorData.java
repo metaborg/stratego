@@ -29,6 +29,10 @@ public class ConstructorData implements Serializable {
         return tf.makeAppl("OpDecl", tf.makeString(signature.name), type.toOpType(tf));
     }
 
+    public IStrategoTerm toExtTerm(IStrategoTermBuilder tf) {
+        return tf.makeAppl("ExtOpDecl", tf.makeString(signature.name), type.toOpType(tf));
+    }
+
     @Override public boolean equals(@Nullable Object o) {
         if(this == o)
             return true;

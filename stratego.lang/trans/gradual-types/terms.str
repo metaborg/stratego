@@ -394,7 +394,7 @@ insertCasts-StMatchTerm-(|e1, st1):
     => st4
 
 insertCasts-StMatchTerm(|e1, st1):
-  Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, IntT())>
+  Char(_) -> <insertCasts-StMatchTerm-Lit(|e1, st1, CharT())>
 
 insertCasts-StMatchTerm-(|e1, st1):
   Tuple([trm1]) -> <insertCasts-StMatchTerm-(|e1, st1)> trm1
@@ -408,7 +408,7 @@ insertCasts-StMatchTerm-(|e1, st1):
          ; st2 := st1
       else if SortVar(tv) := t1
         then
-          t2* := <map(!SortVar(tv{<newname> "tupletv"}))> trm1*
+          t2* := <map(!SortVar(tv{<local-newname> "tupletv"}))> trm1*
         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
         else
           t2* := <map(!DynT())> trm1*
@@ -427,7 +427,7 @@ insertCasts-StMatchTerm-(|e1, st1):
          ; st2 := st1
       else if SortVar(tv) := t1
         then
-          ttv := SortVar(tv{<newname> "listtv"})
+          ttv := SortVar(tv{<local-newname> "listtv"})
         ; t1* := <copy> (<length> trm1*, ttv)
         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, ListT(ttv))
         else
@@ -449,7 +449,7 @@ insertCasts-StMatchTerm-(|e1, st1):
          ; tailt := ListT(t)
       else if SortVar(tv) := t1
         then
-          ttv := SortVar(tv{<newname> "listtv"})
+          ttv := SortVar(tv{<local-newname> "listtv"})
         ; t1* := <copy> (<length> trm1*, ttv)
         ; tailt := ListT(ttv)
         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, tailt)
@@ -713,7 +713,7 @@ insertCasts-StMatchTerm-(|e1, st1):
             trm3 := trm2
           ; st4 := st3
           else
-            taVar := <otf(!Var(<otf(<newname> "typeAscribed")> ta))> ta
+            taVar := <otf(!Var(<otf(<local-newname> "typeAscribed")> ta))> ta
           ; trm3 := <otf(!As(taVar, trm2))> ta
           ; st4 := <after-match(|<otf(!BA(<otf(!Cast(c{}))> ta, taVar))> ta)> st3
         end

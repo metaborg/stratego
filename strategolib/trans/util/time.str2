@@ -6,6 +6,7 @@
 module util/time
 imports
   system/io/file
+  collection/tuple/cons
   util/log
 
 signature
@@ -20,8 +21,8 @@ signature
 
     ComponentTime : Date * DayTime * ComponentTimeDupl -> ComponentTime
     DayTime       : int * int * int -> DayTime // Hours, Minutes, Seconds
-    Date          : int * Month * int -> Date    // Year, DayOfMonth
-    Dupl          : int * int -> ComponentTimeDupl // DayOfWeek, DayOfYear
+    Date          : int * Month * int -> Date    // Year, _, DayOfMonth
+    Dupl          : DayOfWeek * int -> ComponentTimeDupl // _, DayOfYear
 
   sorts
     Month
@@ -56,40 +57,43 @@ strategies
   * Strategy time returns the time since the Epoch (00:00:00 UTC, January 1, 1970),
   * measured in seconds. It is an alias of now-epoch-time.
   */
+  time :: ? -> int
   time =
     prim("SSL_time")
 
-  // :: _ -> EpochTime
+  now-epoch-time :: ? -> EpochTime
   now-epoch-time =
     prim("SSL_now_epoch_time"); !EpochTime(<id>)
 
-  // :: _ -> ComponentTime
+  now-local-time :: ? -> ComponentTime
   now-local-time =
       now-epoch-time; epoch2local-time
 
-  // :: _ -> ComponentTime
+  now-UTC :: ? -> ComponentTime
   now-UTC =
       now-epoch-time; epoch2UTC
 
-  // :: EpochTime -> ComponentTime
+  epoch2local-time :: EpochTime -> ComponentTime
   epoch2local-time =
     ?EpochTime(t); prim("SSL_epoch2localtime", t); prim-tuple-to-ComponentTime
 
-  // :: EpochTime -> ComponentTime
+  epoch2utc :: EpochTime -> ComponentTime
   epoch2utc =
     ?EpochTime(t); prim("SSL_epoch2UTC", t); prim-tuple-to-ComponentTime
 
+  epoch2UTC :: EpochTime -> ComponentTime
   epoch2UTC =
     ?EpochTime(t); prim("SSL_epoch2UTC", t); prim-tuple-to-ComponentTime
 
-  // :: ComponentTime -> DayTime
+  just-day-time :: ComponentTime -> DayTime
   just-day-time =
     ?ComponentTime(_, <id>, _)
 
-  // :: ComponentTime -> Date
+  just-date :: ComponentTime -> Date
   just-date =
     ?ComponentTime(<id>, _, _)
 
+  prim-tuple-to-ComponentTime :: int * int * int * int * int * int * int * int -> ComponentTime
   prim-tuple-to-ComponentTime:
     (s, mi, h, dm, mo, y, dw, dy)
       ->
@@ -105,7 +109,7 @@ strategies
  * <index2day-of-week>6 => Saturday()
  */
 rules
-  // :: Int -> DayOfWeek
+  index2day-of-week :: int -> DayOfWeek
   index2day-of-week : 0 -> Sunday()
   index2day-of-week : 1 -> Monday()
   index2day-of-week : 2 -> Tuesday()
@@ -123,7 +127,7 @@ rules
  * <day-of-week2index>Wednesday() => 3
  */
 rules
-  // :: DayOfWeek -> Int
+  day-of-week2index :: DayOfWeek -> int
   day-of-week2index : Sunday()    -> 0
   day-of-week2index : Monday()    -> 1
   day-of-week2index : Tuesday()   -> 2
@@ -141,7 +145,7 @@ rules
  * <month2index>September() => 8
  */
 rules
-  // :: Month -> Int
+  month2index :: Month -> int
   month2index : January()     ->  0
   month2index : February()    ->  1
   month2index : March()       ->  2
@@ -164,7 +168,7 @@ rules
  * <index2month>10 => November()
  */
 rules
-  // :: Int -> Month
+  index2month :: int -> Month
   index2month : 0  -> January()
   index2month : 1  -> February()
   index2month : 2  -> March()
@@ -181,9 +185,10 @@ rules
 strategies
 
   // RELATIVE TIME ; TIME OF PROCESS
-
- clock-to-seconds =
+  clock-to-seconds :: ? -> ?
+  clock-to-seconds =
     ?c; prim("SSL_ClockToSeconds", c)
 
+  clock :: ? -> ?
   clock =
     prim("SSL_clock")

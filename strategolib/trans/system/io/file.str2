@@ -6,6 +6,7 @@ imports
   system/io/-
   collection/list/-
   term/string
+  collection/tuple/cons
   collection/tuple/common
   strategy/conditional
   strategy/iteration
@@ -21,6 +22,7 @@ signature
   constructors
     Stream    : StreamImplBlob -> Stream
     : int -> StreamImplBlob
+    NoStream  : Stream
 
     Path      : string -> FileLoc
 
@@ -38,6 +40,7 @@ strategies
    *
    * @type (FileLoc, String) -> Stream
    */
+  open-stream :: FileLoc * string -> Stream
   open-stream = ?(_, _);
     (  Fst; stdio-stream
     <+ (?Path(<id>), id); fopen
@@ -47,6 +50,7 @@ strategies
   /**
    * @type FileLoc -> Stream
    */
+  stdio-stream :: FileLoc -> Stream
   stdio-stream = ?stdin() ; stdin-stream
   stdio-stream = ?stdout(); stdout-stream
   stdio-stream = ?stderr(); stderr-stream
@@ -56,8 +60,11 @@ strategies
    *
    * @type _ -> Stream
    */
+  stdin-stream :: ? -> Stream
   stdin-stream  = prim("SSL_stdin_stream") ; !Stream(<id>)
+  stdout-stream :: ? -> Stream
   stdout-stream = prim("SSL_stdout_stream"); !Stream(<id>)
+  stderr-stream :: ? -> Stream
   stderr-stream = prim("SSL_stderr_stream"); !Stream(<id>)
 
 /**
@@ -75,6 +82,7 @@ strategies
    *
    * @type String * String -> Stream
    */
+  fopen :: string * string -> Stream
   fopen =
     ?(pathname, mode); prim("SSL_fopen", pathname, mode); !Stream(<id>)
 
@@ -85,6 +93,7 @@ strategies
    *
    * @type Stream -> ()
    */
+  fclose :: Stream -> Tuple()
   fclose =
     ?Stream(stream); prim("SSL_fclose", stream)
       <+ ?stream-old; prim("SSL_fclose", stream-old) // legacy
@@ -94,6 +103,7 @@ strategies
    *
    * @type Stream -> Stream
    */
+  fflush :: Stream -> Stream
   fflush =
     ?Stream(stream); prim("SSL_fflush", stream); !Stream(<id>)
     <+ ?stream-old; prim("SSL_fflush", stream-old); !Stream(<id>) // legacy
@@ -107,6 +117,7 @@ strategies
    * Writes a String to a Stream
    * @type (String, Stream) -> Stream
    */
+  fputs :: string * Stream -> Stream
   fputs =
     ?(str, Stream(stream)); prim("SSL_fputs", str, stream); !Stream(<id>)
 
@@ -115,6 +126,7 @@ strategies
    *
    * @type String -> Stream
    */
+  puts :: string -> Stream
   puts =
     ?str; prim("SSL_puts", str); !Stream(<id>)
 
@@ -123,6 +135,7 @@ strategies
    *
    * @type (Char, Stream) -> Stream
    */
+  fputc :: Char * Stream -> Stream
   fputc =
     ?(c, Stream(stream)); prim("SSL_fputc", c, stream); !Stream(<id>)
 
@@ -137,6 +150,7 @@ strategies
    *
    * @type Stream -> Char
    */
+  fgetc :: Stream -> Char
   fgetc =
     ?Stream(stream); prim("SSL_fgetc", stream)
 
@@ -160,6 +174,7 @@ strategies
    * @inc   dirname
    * @type  String -> String
    */
+  dirname :: string -> string
   dirname =
     string-as-chars(
       /* (0) Convert backslashes to forward slashes */
@@ -199,6 +214,7 @@ strategies
    * @since 0.9.4
    * @inc   is-abs-path
    */
+  is-abspath :: string -> string
   is-abspath =
     where(explode-string; ([?'/' + ?'\\' | id] + [is-alpha, ?':', ?'/' + ?'\\' | id]))
 
@@ -210,6 +226,7 @@ strategies
    * @type  String -> String
    * @since 0.9.4
    */
+  is-relpath :: string -> string
   is-relpath =
     not(is-abspath)
 
@@ -219,6 +236,7 @@ strategies
    * @type  String -> String
    * @inc   base-filename-test
    */
+  base-filename :: string -> string
   base-filename =
       <string-tokenize> (['/','\\'], <id>)
     ; last
@@ -235,6 +253,7 @@ strategies
    * @since  0.15
    * @inc    guarantee-extension
    */
+  guarantee-extension(|string) :: string -> string
   guarantee-extension(|ext) =
     remove-extension
     ; <add-extension> (<id>, ext)
@@ -247,6 +266,7 @@ strategies
    * @since  0.15
    * @inc    has-extension
    */
+  has-extension(|string) :: string -> string
   has-extension(|ext) =
     test-extension(?ext)
 
@@ -257,6 +277,7 @@ strategies
    * @since  0.15
    * @inc    test-extension
    */
+  test-extension(string -> string) :: string -> string
   test-extension(ext) =
     where(
       get-extension
@@ -268,6 +289,7 @@ strategies
    *
    * @type (String, String) -> String
    */
+  add-extension :: string * string -> string
   add-extension :
     (name, ext) -> <concat-strings> [name, ".", ext]
 
@@ -278,6 +300,7 @@ strategies
    * @inc  remove-extension
    * @type String -> String
    */
+  remove-extension :: string -> string
   remove-extension =
     if get-extension; explode-string; !['.' | <id>] => ext then
       explode-string
@@ -290,6 +313,7 @@ strategies
    *
    * @type   String -> String
    */
+  get-extension :: string -> string
   get-extension =
     explode-string
     ; list-tokenize(|['.'])

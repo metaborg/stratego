@@ -47,13 +47,13 @@ strategies // entry-points from Java
 stratego2-insert-casts:
   (strats, constrs, srts, injection-closure, lub-map, aliases, ast) ->
     (asts', errs, warns, notes)
-  with {| CanCoerce, CanCoerceSType, LUB:
+  with scope-local-new({| CanCoerce, CanCoerceSType, LUB:
     asts' := <insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map)> ast
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
-  |}
+  |})
 
 /**
  * Some strange "backward compatibility" rules in the grammar of Stratego 1 give these rule alternatives.
@@ -254,13 +254,13 @@ itv-err(|st1, subj) = instantiate-type-vars(\SortVar(tv) -> <report-Err;!EmptyT(
 instantiate-type-vars(s|tve): t1 -> t2
   with t2 := <bottomup({x,t: ?t@SortVar(x) < type-var-lookup(|x, tve) <+ <s> t + id})> t1
 
-fresh-type-vars(newvars) = fresh-type-vars(newname, newvars)
+fresh-type-vars(newvars) = fresh-type-vars(local-newname, newvars)
 
-fresh-type-vars(new, newvars): t1{LocalDef()} -> t1 with <newvars> []
+fresh-type-vars(newname, newvars): t1{LocalDef()} -> t1 with <newvars> []
 
-fresh-type-vars(new, newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
+fresh-type-vars(newname, newvars): t1 -> <alltd(SortVar(\x -> <lookup> (x, tvmap)\))> t1
   with
-    tvmap := <collect(?SortVar(<id>));map(!(<id>, <new>))> t1
+    tvmap := <collect(?SortVar(<id>));map(!(<id>, <newname>))> t1
   ; <unzip;Snd;newvars> tvmap
 
 strategies

@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -26,12 +25,15 @@ import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Relation;
 
 public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLookup> {
-    public final Set<StrategySignature> usedStrategies;
-    public final Set<String> usedAmbiguousStrategies;
-    public final Set<ConstructorSignature> usedConstructors;
+    public final LinkedHashSet<StrategySignature> definedStrategies;
+    public final LinkedHashSet<StrategySignature> usedStrategies;
+    public final LinkedHashSet<String> usedAmbiguousStrategies;
+    public final LinkedHashSet<ConstructorSignature> usedConstructors;
 
-    public ToTypesLookup(Set<StrategySignature> usedStrategies, Set<String> usedAmbiguousStrategies,
-        Set<ConstructorSignature> usedConstructors) {
+    public ToTypesLookup(LinkedHashSet<StrategySignature> definedStrategies,
+        LinkedHashSet<StrategySignature> usedStrategies, LinkedHashSet<String> usedAmbiguousStrategies,
+        LinkedHashSet<ConstructorSignature> usedConstructors) {
+        this.definedStrategies = definedStrategies;
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.usedConstructors = usedConstructors;
@@ -43,6 +45,16 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
             new LinkedHashMap<>();
         final HashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex =
             moduleData.ambStrategyIndex();
+        for(StrategySignature usedStrategy : definedStrategies) {
+            for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
+            }
+            for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
+                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
+            }
+        }
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
                 .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {

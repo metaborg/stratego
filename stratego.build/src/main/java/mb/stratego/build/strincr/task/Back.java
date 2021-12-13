@@ -104,7 +104,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         // N.B. this call is potentially a lot of work:
         final BackInput.CTreeBuildResult buildResult =
             input.buildCTree(context, this, compiledStrategies);
-        // if ctree is null, this was a task that should no longer be active, like a
+        // if generatingTask is not null, this was a task that should no longer be active, like a
         //     BackInput.Normal task where one of the strategy contributions gained a dynamic rule
         //     definition.
         final @Nullable STask<BackOutput> generatingTask = buildResult.generatingTask();
@@ -159,9 +159,8 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             final Str2LibInfo str2LibInfo = PieUtils
                 .requirePartial(context, resolve, boilerplateInput.checkInput.resolveInput(),
                     GetStr2LibInfo.INSTANCE);
-            final IStrategoTerm str2Lib = GenerateStratego
-                .packStr2Library(tf, boilerplateInput.libraryName, str2LibInfo.sorts,
-                    str2LibInfo.constructors, str2LibInfo.strategyFrontData, input.packageName);
+            final IStrategoTerm str2Lib = GenerateStratego.packStr2Library(tf, boilerplateInput.libraryName,
+                str2LibInfo.sorts, str2LibInfo.constructors, str2LibInfo.injections, str2LibInfo.strategyFrontData, input.packageName);
 
             // Output str2lib file
             final HierarchicalResource str2LibResource = context.getResourceService()

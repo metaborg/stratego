@@ -133,3 +133,13 @@ context-free priorities
 
   Strategy.ExplodeCong <0>
   .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM }
+
+// Normal priorities work on operator priority semantics using the outer recursive positions. 
+//   Strategy.GuardedLChoice and Strategy.Choice have a larger overlap, therefore we need to
+//   disambiguate that we want `a < b + (c + d)` not `a < (b + c) + d` when there are no
+//   parentheses. Therefore we disallow Strategy.Choice as the second argument to
+//   Stratego.GuardedLChoice. This _should_ be under index <1>, but works as we want it under <2>,
+//   which is probably a bug in SDF3 or JSGLR2?
+context-free priorities
+  Strategy.GuardedLChoice <2>
+  .> Strategy.Choice

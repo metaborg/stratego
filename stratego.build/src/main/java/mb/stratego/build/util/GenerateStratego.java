@@ -3,6 +3,7 @@ package mb.stratego.build.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
+import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -68,26 +70,34 @@ public class GenerateStratego {
 
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
         Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         Map<StrategySignature, StrategyType> strategyFrontData, String packageName) {
         return tf.makeAppl("Str2Lib", tf.makeString(libraryName),
             tf.makeList(tf.makeAppl("Package", tf.makeString(packageName))),
-            tf.makeList(packStr2Spec(tf, sorts, constructors, strategyFrontData)));
+            tf.makeList(packStr2Spec(tf, sorts, constructors, injections, strategyFrontData)));
     }
 
-    public static IStrategoTerm packStr2Spec(IStrategoTermBuilder tf,
-        Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
+    public static IStrategoTerm packStr2Spec(IStrategoTermBuilder tf, Collection<SortSignature> sorts,
+        Collection<ConstructorData> constructors, LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         Map<StrategySignature, StrategyType> strategyFrontData) {
         return tf.makeAppl("Specification", tf.makeList(tf.makeAppl("Signature",
             tf.makeList(tf.makeAppl("Sorts", packStr2Sorts(tf, sorts)),
-                tf.makeAppl("Constructors", packStr2Constructors(tf, constructors)))),
+                tf.makeAppl("Constructors", packStr2ConstructorsInjections(tf, constructors, injections)))),
             tf.makeAppl("Strategies", packStr2Strategies(tf, strategyFrontData))));
     }
 
-    private static IStrategoList packStr2Constructors(IStrategoTermBuilder tf,
-        Collection<ConstructorData> constructors) {
+    private static IStrategoList packStr2ConstructorsInjections(IStrategoTermBuilder tf,
+        Collection<ConstructorData> constructors, LinkedHashMap<IStrategoTerm,ArrayList<IStrategoTerm>> injections) {
         final IStrategoList.Builder cons = tf.arrayListBuilder(constructors.size());
         for(ConstructorData d : constructors) {
-            cons.add(d.toTerm(tf));
+            cons.add(d.toExtTerm(tf));
+        }
+        for(Map.Entry<IStrategoTerm,ArrayList<IStrategoTerm>> injection : injections.entrySet()) {
+            final IStrategoTerm from = ConstructorType.typeToConstType(tf, injection.getKey());
+            for(IStrategoTerm to : injection.getValue()) {
+                cons.add(tf.makeAppl("ExtOpDeclInj",
+                    tf.makeAppl("FunType", tf.makeList(from), ConstructorType.typeToConstType(tf, to))));
+            }
         }
         return tf.makeList(cons);
     }
@@ -134,14 +144,9 @@ public class GenerateStratego {
     }
 
     public IStrategoTerm packStrategies(Collection<? extends IStrategoAppl> strategies) {
-        final IStrategoAppl term;
-        final IStrategoList.Builder b = tf.arrayListBuilder(strategies.size());
-        b.add(tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))));
-        for(IStrategoAppl strategy : strategies) {
-            b.add(tf.makeAppl("Strategies", tf.makeList(strategy)));
-        }
-        term = tf.makeAppl("Specification", tf.makeList(b));
-        return term;
+        return tf.makeAppl("Specification", tf.makeList(
+            tf.makeAppl("Signature", tf.makeList(tf.makeAppl("Constructors", tf.makeList()))),
+            tf.makeAppl("Strategies", tf.makeList(strategies))));
     }
 
     public List<IStrategoAppl> declStubs(Collection<StrategySignature> strategySignatures) {

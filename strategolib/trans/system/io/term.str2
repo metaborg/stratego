@@ -13,6 +13,8 @@ imports
   term/integer
   term/string
   collection/list/common
+  collection/list/cons
+  collection/tuple/cons
   strategy/conditional
   util/config/options
   util/log
@@ -28,9 +30,10 @@ strategies
    *
    * @type File -> a
    */
+  ReadFromFile :: FileLoc -> ?
   ReadFromFile =
       ( <open-stream> (<id>, "r")
-      <+ <conc-strings; perror; fail> ("SSL/ReadFromFile ", <id>))
+      <+ <conc-strings; perror; fail> ("SSL/ReadFromFile ", <write-to-string>))
     ; where(read-from-stream => trm)
     ; fclose
     ; !trm
@@ -40,6 +43,7 @@ strategies
    *
    * @type File * a -> a
    */
+  WriteToBinaryFile :: FileLoc * a -> a
   WriteToBinaryFile =
     WriteToFile(write-in-baf-to-stream)
 
@@ -48,6 +52,7 @@ strategies
    *
    * @type File * a -> a
    */
+  WriteToTextFile :: FileLoc * a -> a
   WriteToTextFile =
     WriteToFile(write-in-text-to-stream; <fputc> ('\n', <id>))
 
@@ -56,6 +61,7 @@ strategies
    *
    * @type (Stream * a -> Stream) * File * a -> a
    */
+  WriteToFile(Stream * a -> Stream) :: FileLoc * a -> a
   WriteToFile(writer) =
       ?(<id>, trm)
     ; <open-stream> (<id>, "w")
@@ -63,9 +69,11 @@ strategies
     ; fclose
     ; !trm
 
+  open(a -> FileLoc) :: a -> ?
   open(file) =
     file; ReadFromFile
 
+  save(a -> FileLoc) :: a -> a
   save(file) =
     <WriteToTextFile> (<file>, <id>)
 
@@ -81,15 +89,19 @@ strategies
    *
    * @type Stream * _ -> Stream
    */
+  write-to-stream :: Stream * a -> Stream
   write-to-stream =
     write-in-baf-to-stream
 
+  write-in-baf-to-stream :: Stream * a -> Stream
   write-in-baf-to-stream =
     ?(Stream(stream), term); prim("SSL_write_term_to_stream_baf", stream, term); !Stream(<id>)
 
+  write-in-taf-to-stream :: Stream * a -> Stream
   write-in-taf-to-stream =
     ?(Stream(stream), term); prim("SSL_write_term_to_stream_taf", stream, term); !Stream(<id>)
 
+  write-in-text-to-stream :: Stream * a -> Stream
   write-in-text-to-stream =
     ?(Stream(stream), term); prim("SSL_write_term_to_stream_text", stream, term); !Stream(<id>)
 
@@ -98,6 +110,7 @@ strategies
    *
    * @type Stream -> _
    */
+  read-from-stream :: Stream -> ?
   read-from-stream =
     ?Stream(stream); prim("SSL_read_term_from_stream", stream)
 
@@ -106,6 +119,7 @@ strategies
    *
    * @type String -> _
    */
+  read-from-string :: string -> ?
   read-from-string =
     ?s; prim("SSL_read_term_from_string", s)
 
@@ -114,6 +128,7 @@ strategies
    *
    * @type a -> String
    */
+  write-to-string :: a -> string
   write-to-string =
     ?t; prim("SSL_write_term_to_string", t)
 
@@ -122,6 +137,7 @@ strategies
    *
    * @type a -> List(Char)
    */
+  write-to-binary-string :: ? -> List(Char)
   write-to-binary-string =
     ?t; prim("SSL_write_term_to_binary_string", t)
 
@@ -130,6 +146,7 @@ strategies
    *
    * @type a -> List(Char)
    */
+  write-to-shared-string :: ? -> List(Char)
   write-to-shared-string =
     ?t; prim("SSL_write_term_to_shared_string", t)
 
@@ -141,9 +158,10 @@ strategies
    *
    * @type Stream * [a] -> Stream
    */
+  fprint :: ? * List(?) -> Stream
   fprint =
     (?Stream(_) <+ stdio-stream, id)
-    ; ?(stream, <id>)
+    ; ?(stream :: Stream, <id>)
     ; map(
         where(
           is-string
@@ -158,8 +176,9 @@ strategies
    *
    * @type Stream * [a] -> Stream
    */
+  fprintnl :: ? * List(?) -> Stream
   fprintnl =
-    fprint; <fputc> ('\n', <?Stream(_) <+ stdio-stream>)
+    fprint; <fputc> ('\n', <id>)
 
  /**
   * Prints terms to a file. If \verb|ti| is a string it is printed without
@@ -171,6 +190,7 @@ strategies
   *
   * @obsolete use fprint
   */
+  print :: Stream * List(?) -> Stream
   print =
     ?(stream, strs)
     ; obsolete(!"print: use fprint")
@@ -181,6 +201,7 @@ strategies
   *
   * @obsolete use fprintnl
   */
+  printnl :: Stream * List(?) -> Stream * List(?)
   printnl =
     ?(stream, strs)
     ; obsolete(!"printnl: use fprintnl")
@@ -202,18 +223,21 @@ strategies
    *
    * @type  a -> a
    */
-  debug(? -> ?) :: a -> a
+  debug(a -> ?) :: a -> a
   debug(msg) =
     where(<fprintnl> (stderr(), [<msg>,<id>]))
 
 strategies
 
+  debug-depth :: a -> a
   debug-depth =
     debug-depth(!4, !"")
 
+  debug-depth(Tuple() -> int) :: a -> a
   debug-depth(depth) =
     debug-depth(depth, !"")
 
+  debug-depth(Tuple() -> int, ? -> ?) :: a -> a
   debug-depth(depth, s) =
     where(
       at-depth(depth, !"...")
@@ -228,9 +252,11 @@ strategies
    * @param  term to print to stderr
    * @type   a -> a
    */
+  say(a -> ?) :: a -> a
   say(msg) =
     where(msg; debug)
 
+  trace(a -> ?, a -> a) :: a -> a
   trace(msg,s) =
     debug(msg); (s; debug(!"succeeded: ") <+ debug(!"failed: "))
 
@@ -239,6 +265,7 @@ strategies
    *
    * @type List(a) -> List(a)
    */
+  error :: List(a) -> List(a)
   error =
     where(<fprintnl> (stderr(), <id>))
 
@@ -247,6 +274,7 @@ strategies
    *
    * @type List(a) -> List(a)
    */
+  fatal-error :: List(a) -> List(a)
   fatal-error =
     where(error; <exit> 1)
 
@@ -255,6 +283,7 @@ strategies
    *
    * @type _ -> _
    */
+  giving-up :: a -> List(string)
   giving-up =
     <fatal-error>["giving-up"]
 
@@ -264,6 +293,7 @@ strategies
    * @param Strategy that produces a string message.
    * @type  a -> a
    */
+  obsolete(Tuple() -> string) :: a -> a
   obsolete(msg) =
     log(|Warning(), <conc-strings> ("program uses obsolete strategy ", <msg> ()))
 
@@ -276,6 +306,7 @@ strategies
    * @param Strategy to apply
    * @type  a -> a
    */
+  risky(a -> ?, a -> a) :: a -> a
   risky(msg, s) =
     restore(s, debug(msg))
 
@@ -283,12 +314,14 @@ strategies
  * Print to the stdout. You usually don't want this.
  */
 strategies
-
+  echo :: a -> a
   echo =
     where(<fprintnl> (stdout(), <is-list <+ ![<id>]>))
 
+  echo(a -> ?) :: a -> a
   echo(msg) =
     where(<fprintnl> (stdout(), [<msg>,<id>]))
 
+  printstring :: string -> string
   printstring =
     where(<fprint> (stdout(), [<id>]))
