@@ -47,7 +47,7 @@ strategies
     t -> (t'', size')
     with
     {| SwitchTPath, SwitchVPath, AltTPat, AltVPath :
-      DefineContext
+      try(DefineContext)
     ; t'-and-sizes := <all(bottomup-at-large-terms'(s))>
     ; t'           := <all(Fst)> t'-and-sizes
     ; size         := <crush(!1, add, Snd)> t'-and-sizes
