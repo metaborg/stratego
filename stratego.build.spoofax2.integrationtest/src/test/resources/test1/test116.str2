@@ -1,0 +1,21 @@
+module eq-term-args
+
+imports strategolib
+
+strategies
+  s(|x, x) = !"equal"
+  s(|x, y) = !"not equal"
+
+  main =
+    test-suite(!"term args"
+    , apply-test(s(|1, 1)
+    | "equal args"
+    , ()
+    , "equal"
+    )
+    ; apply-test(s(|1, 2)
+    | "unequal args"
+    , ()
+    , "not equal"
+    )
+  )
