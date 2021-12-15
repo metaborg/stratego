@@ -88,7 +88,7 @@ $(CHOCOPY_LANGUAGE).O%: $(CHOCOPY_REPO) | $(CHOCOPY_METABORG_TEMPLATE_FILE) $(RI
 
 $(CHOCOPY_LANGUAGE): $(CHOCOPY_REPO)
 	cd $(CHOCOPY_POM_DIR) && \
-	mvn -q clean install
+	mvn -q -o clean install
 
 .PHONY: chocopy-variants
 chocopy-variants: $(CHOCOPY_LANGUAGE).O2 $(CHOCOPY_LANGUAGE).O3 $(CHOCOPY_LANGUAGE).O4
