@@ -68,12 +68,6 @@ strategies
   ; xs' := <set-index> (<dec> m, elN, xs)
   ; xs'' := <set-index> (<dec> n, elM, xs')
 
-  /*
-   * Left-to-right `make-set`.
-   */
-  // TODO Rewrite with left fold
-  make-set-lr = reverse; make-set; reverse
-
   or(s1, s2, s3) = or(or(s1, s2), s3)
 
 strategies
@@ -88,4 +82,4 @@ strategies
   is-wld-sugar = ?Wld()
   is-wld-core = ?NoAnnoMatch(Wld())
 
-  sequence-strategies = !Seq(<Fst>, <Snd>); simplify
+  sequence-strategies = !Seq(<Fst>, <Snd>)

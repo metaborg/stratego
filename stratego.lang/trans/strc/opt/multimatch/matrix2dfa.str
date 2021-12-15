@@ -19,7 +19,6 @@ strategies
   matrix2dfa =
       log-timed(CC | "DFA - Compilation", 10)
     ; log-timed(desugar-dfa | "DFA - Desugaring", 10)
-    ; simplify
     ; if not(<get-config> "--no-dfa-optimise")
       then log-timed(optimise-dfa | "DFA - Optimisation", 10)
       end

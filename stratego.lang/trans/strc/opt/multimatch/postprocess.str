@@ -21,7 +21,9 @@ strategies
     )
   ; topdown(try(wrap-guarded-leaves); try(eliminate-default))
 
-  optimise-dfa = bottomup(
+  optimise-dfa =
+    simplify
+  ; bottomup(
     try(drop-unreachable-guards; try(eliminate-guard))
   ; try(eliminate-default)
   )

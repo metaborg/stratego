@@ -29,7 +29,8 @@ strategies
     ((p, As(t1, t2)), s*) ->
     ((p, t2), [s | s*])
   with
-    s := Where(Assign(t1, Path(p)))
+    t3 := Path(p)
+  ; s := Where(|[ !t3; ?t1 ]|)
 
   internal sequence-list =
     ?[<id>]
