@@ -1,5 +1,5 @@
 module map_multi
-imports libstratego-lib
+imports strategolib
 
 strategies
   main = id

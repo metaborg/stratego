@@ -1,5 +1,5 @@
 module multimatch1
-imports libstratego-lib
+imports strategolib
 
 signature
   sorts Color

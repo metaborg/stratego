@@ -60,17 +60,16 @@ public class ParameterisedStratego2Tests {
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
         HashSet<String> disabledTestFiles =
-                new HashSet<>(Arrays.asList("test113.str"));
+                new HashSet<>(Arrays.asList("test113.str2", "test94.str2", "test105.str2"));
         final Predicate<Path> disableFilter =
                 p -> !disabledTestFiles.contains(p.getFileName().toString())
                         && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
         final Path dirWithTestFiles = getResourcePathRoot().resolve("test1");
-        return streamStrategoFiles(dirWithTestFiles, "{test??.str,test???.str}", disableFilter)
+        return streamStrategoFiles(dirWithTestFiles, "{test??.str2,test???.str2}", disableFilter)
                 .sorted(new NaturalOrderComparator<>())
                 .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoLib,
-                                BuiltinLibraryIdentifier.StrategoSdf), args))));
+                        .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoSdf), args))));
     }
 
     @TestFactory
@@ -89,12 +88,12 @@ public class ParameterisedStratego2Tests {
 
         return Stream
                 .concat(
-                        test2Names.stream().map(s -> test2.resolve(s + ".str")),
-                        test1Names.stream().map(s -> test1.resolve(s + ".str"))
+                        test2Names.stream().map(s -> test2.resolve(s + ".str2")),
+                        test1Names.stream().map(s -> test1.resolve(s + ".str2"))
                 ).map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(),
                         argParams
                             .stream()
-                            .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoLib, BuiltinLibraryIdentifier.StrategoSdf), args)))
+                            .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoSdf), args)))
                 );
     }
 
@@ -106,16 +105,19 @@ public class ParameterisedStratego2Tests {
         //   works best when using spaces as indentation in Stratego files.
         // list-cons is not a test file, it is imported by other test files.
         HashSet<String> disabledTestFiles =
-                new HashSet<>(Collections.singletonList("list-cons.str"));
+                new HashSet<>(Collections.singletonList("list-cons.str2"));
         final Predicate<Path> disableFilter =
                 p -> !disabledTestFiles.contains(p.getFileName().toString())
                         && !(p.getFileName().toString().contains(".core") || p.getFileName().toString().contains(".opt"));
         final Path dirWithTestFiles = getResourcePathRoot().resolve("test2");
-        return streamStrategoFiles(dirWithTestFiles, "*.str", disableFilter)
+        return streamStrategoFiles(dirWithTestFiles, "*.str2", disableFilter)
                 .sorted(new NaturalOrderComparator<>())
-                .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
+                .map(p -> {
+                    System.out.println(p);
+                    return DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Collections.singletonList(BuiltinLibraryIdentifier.StrategoLib), args))));
+                        .map(args -> compileAndRun(p, Collections.EMPTY_LIST, args)));
+                });
     }
 
     @TestFactory
@@ -135,7 +137,7 @@ public class ParameterisedStratego2Tests {
                 .sorted(new NaturalOrderComparator<>())
                 .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Collections.singletonList(BuiltinLibraryIdentifier.StrategoLib), args))));
+                        .map(args -> compileAndRun(p, Collections.EMPTY_LIST, args))));
     }
 
     private static Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob, Predicate<Path> disabled)
@@ -152,25 +154,25 @@ public class ParameterisedStratego2Tests {
         final Path strategoxtJarPath = Stratego.getStrategoxtJarPath();
         final String fileName = filepath.getFileName().toString();
         final String baseName = FilenameUtils.removeExtension(fileName);
-        final Path testGenDir = filepath.resolveSibling(baseName + "/test-gen");
-        final Path packageDir = testGenDir.resolve(packageDirName);
+        final Path outputDir = filepath.resolveSibling(baseName + "/test-gen");
+//        final Path packageDir = testGenDir.resolve(packageDirName);
         final LanguageIdentifier languageIdentifier =
                 new LanguageIdentifier("mb.stratego", "compnrun_" + baseName,
                         new LanguageVersion(1));
         return DynamicTest.dynamicTest(String.format("Compile & run %s (%s)", baseName, args), () -> {
-            FileUtils.deleteDirectory(testGenDir.toFile());
-            Files.createDirectories(packageDir);
-            final CompileOutput str2CompileOutput = Stratego.str2(filepath, baseName, packageName, packageDir, false, new ArrayList<>(linkedLibraries), false, languageIdentifier, args);
-            Assumptions.assumeTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
+            FileUtils.deleteDirectory(outputDir.toFile());
+            Files.createDirectories(outputDir);
+            final CompileOutput str2CompileOutput = Stratego.str2(filepath, baseName, packageName, outputDir, false, new ArrayList<>(linkedLibraries), false, languageIdentifier, args);
+            Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                             + getErrorMessagesString(str2CompileOutput));
             Iterable<? extends File> sourceFiles = javaFiles((CompileOutput.Success) str2CompileOutput);
-            Assumptions.assumeTrue(Java.compile(testGenDir, sourceFiles,
-                    Collections.singletonList(strategoxtJarPath.toFile())),
+            Assertions.assertTrue(Java.compile(outputDir, sourceFiles,
+                    Arrays.asList(outputDir.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed");
             Assertions.assertTrue(
-                    Java.execute(testGenDir + ":" + strategoxtJarPath, packageName + ".Main"),
-                    "Running java expected to succeed");
+                    Java.execute(outputDir + ":" + strategoxtJarPath, packageName + ".Main"),
+                    "Running java expected to succeed (" + baseName + ")");
         });
     }
 

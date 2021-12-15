@@ -1,5 +1,5 @@
 module nested2
-imports libstratego-lib
+imports strategolib
 
 strategies
   s1 = match sequential

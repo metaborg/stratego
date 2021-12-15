@@ -1,6 +1,6 @@
 module multimatch4
 
-imports libstratego-lib
+imports strategolib
 
 strategies
   s(s1) =

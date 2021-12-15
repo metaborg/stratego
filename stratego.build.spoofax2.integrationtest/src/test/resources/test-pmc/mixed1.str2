@@ -1,5 +1,5 @@
 module mixed1
-imports libstratego-lib
+imports strategolib
 
 signature
   constructors
