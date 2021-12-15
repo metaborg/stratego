@@ -1,5 +1,5 @@
 module alias1
-imports libstratego-lib
+imports strategolib
 
 strategies
   s =
