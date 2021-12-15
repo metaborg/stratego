@@ -163,11 +163,11 @@ public class ParameterisedStratego2Tests {
             FileUtils.deleteDirectory(outputDir.toFile());
             Files.createDirectories(outputDir);
             final CompileOutput str2CompileOutput = Stratego.str2(filepath, baseName, packageName, outputDir, false, new ArrayList<>(linkedLibraries), false, languageIdentifier, args);
-            Assertions.assertTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
+            Assumptions.assumeTrue(str2CompileOutput instanceof CompileOutput.Success, () ->
                     "Compilation with stratego.lang compiler expected to succeed, but gave errors:\n"
                             + getErrorMessagesString(str2CompileOutput));
             Iterable<? extends File> sourceFiles = javaFiles((CompileOutput.Success) str2CompileOutput);
-            Assertions.assertTrue(Java.compile(outputDir, sourceFiles,
+            Assumptions.assumeTrue(Java.compile(outputDir, sourceFiles,
                     Arrays.asList(outputDir.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed");
             Assertions.assertTrue(
