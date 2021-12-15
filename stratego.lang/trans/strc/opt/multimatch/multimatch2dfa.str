@@ -9,4 +9,4 @@ imports
   signatures/core/strategies-sig
 
 strategies
-  multimatch2dfa = multimatch2matrix; Scope(id, matrix2dfa); EmptyScope
+  multimatch2dfa = multimatch2matrix; Scope(id, matrix2dfa); simplify0; simplify

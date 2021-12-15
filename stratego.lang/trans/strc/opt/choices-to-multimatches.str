@@ -37,7 +37,7 @@ strategies
     , try(lift-defaults))
     | "  2. Translating choices & lifting defaults", 10)
   ; log-timed(strip-annos|"  3. Stripping annos", 10)
-  ; log-timed(simplify|"  4. Simplifying", 10)
+  ; log-timed(simplify0; simplify|"  4. Simplifying", 10)
   | "Optimisation: choices to multimatches", 1)
 
 strategies

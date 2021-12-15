@@ -11,7 +11,7 @@ imports
 
 strategies
   desugar-dfa = id
-  ; simplify
+  ; simplify0; simplify
   ; repeat(
       oncebu(
         eliminate-guard
@@ -22,7 +22,7 @@ strategies
   ; topdown(try(wrap-guarded-leaves); try(eliminate-default))
 
   optimise-dfa =
-    simplify
+    simplify0; simplify
   ; bottomup(
     try(drop-unreachable-guards; try(eliminate-guard))
   ; try(eliminate-default)
