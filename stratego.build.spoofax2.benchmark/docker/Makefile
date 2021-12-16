@@ -87,9 +87,15 @@ $(CHOCOPY_LANGUAGE).O%: $(CHOCOPY_REPO) | $(CHOCOPY_METABORG_TEMPLATE_FILE) $(RI
 	@mv $(CHOCOPY_LANGUAGE) $(CHOCOPY_LANGUAGE).O$*
 
 $(CHOCOPY_LANGUAGE): $(CHOCOPY_REPO)
-	cd $(CHOCOPY_POM_DIR) && mvn -q -fn dependency:go-offline -DoverWriteIfNewer=false
+	cd $(CHOCOPY_POM_DIR) && \
+	mvn -q -fn dependency:go-offline -DoverWriteIfNewer=false
 	cd $(CHOCOPY_POM_DIR) && \
 	mvn -q -o clean install
+
+.PHONY: chocopy.O2 chocopy.O3 chocopy.O4
+chocopy.O2: $(CHOCOPY_LANGUAGE).O2
+chocopy.O3: $(CHOCOPY_LANGUAGE).O3
+chocopy.O4: $(CHOCOPY_LANGUAGE).O4
 
 .PHONY: chocopy-variants
 chocopy-variants: $(CHOCOPY_LANGUAGE).O2 $(CHOCOPY_LANGUAGE).O3 $(CHOCOPY_LANGUAGE).O4
