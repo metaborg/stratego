@@ -34,7 +34,7 @@ strategies
   with
     x := <tnewvar> "expl"
   ; t2 := Var(x) // TODO Needs (offset/frames/escapes) annotations?
-  ; s := Where(|[ !t1; ?t2 ]|)
+  ; s := Where(|[ !t2; ?t1 ]|)
 
   internal Explode2Guard':
     (t1@Explode(_, _), (x*, s*)) ->
@@ -42,7 +42,7 @@ strategies
   with
     x := <tnewvar> "expl"
   ; t2 := Var(x)
-  ; s := Where(|[ !t1; ?t2 ]|)
+  ; s := Where(|[ !t2; ?t1 ]|)
 
   internal Explode2Guard' =
     (is-primitive, id)
