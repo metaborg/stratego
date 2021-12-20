@@ -146,7 +146,7 @@ rigidTV: Sort(x, _) -> <get-annotation(?SortVar(_))> x
 strategies
 
 computeCoercion(|subj, st1): (from1 ,to1) -> (c, st3)
-  with ((from2, to2), st2) :=  <try(CanCoerce)> ((from1, to1), st1)
+  with ((from2, to2), st2) :=  <itv(|st1);try(CanCoerce)> ((from1, to1), st1)
   where
     (c, st3) := <computeCoercion-(|subj, st2)> (from2, to2)
 
@@ -178,11 +178,11 @@ computeCoercion-(|subj, st1): (EmptyT(), to) -> (<otf(!Id(){to})> subj, st1)
 
 computeCoercion-(|subj, st1): (DynT(Dyn()), to) -> (<otf(!RuntimeCheck(to2){to2})> subj, st1)
   where
-      <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to
+      <not(itv(|st1);oncetd(rigidTV + ?SortVar(_) + ?Sort(TP(), [])))> to
     ; to2 := <alltd(\EmptyT() -> DynT()\)> to
 
 computeCoercion-(|subj, st1): (DynT(from), to1) -> (<otf(!RuntimeCheck(to2){to2})> subj, st2)
-  where <not(itv(|st1);oncetd(rigidTV + ?SortVar(_)))> to1
+  where <not(itv(|st1);oncetd(rigidTV + ?SortVar(_) + ?Sort(TP(), [])))> to1
   where
     ((_, to2), st2) := <CanCoerce> ((from, to1), st1)
     <+
