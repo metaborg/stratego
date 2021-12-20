@@ -84,7 +84,7 @@ test build an option [[
 
 test build an option with wrong type [[
     MkSome :: a -> Option(b)
-    MkSome: c -> [[Some]](c)
+    MkSome: c -> Some([[c]])
 ]] 1 error at #1
    0 warnings
    has origin locations
@@ -183,8 +183,8 @@ test Rec tail call stays unconstrained type var [[
 
   foldl(a * b -> b) :: List(a) * b -> b
   foldl(s) =
-    rec x(\ ([], y) -> y \ + FoldL(s); x)
-]] 0 errors
+    [[rec x(\ ([], y) -> y \ + FoldL(s); x)]]
+]] 1 error at #1
    0 warnings
    has origin locations
 
