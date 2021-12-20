@@ -67,6 +67,7 @@ context-free syntax
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
   ErrorDesc.CastInserted = [Converting from [Type] to [Type] with a cast.]
+  ErrorDesc.SCastInserted = [Converting from [SType] to [SType] with a cast.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
   ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]

@@ -499,7 +499,7 @@ insertCasts-Sarg-CallNoArgs-(|st1):
             (sc*, st3) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st2)
           ; (tc*, st4) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st3)
           ; result := <rm-redundant-proxy> ProxyT(sc*, tc*, Id(), Id(), v)
-          else
+          else // TODO: shouldn't this be something different?
             (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
           ; (tc*, st4) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
           ; result := <rm-redundant-proxy> ProxyT(sc*, tc*, Id(), Id(), v)
@@ -523,7 +523,15 @@ insertCasts-Sarg-CallNoArgs-(|st1):
 rm-redundant-proxy =
      ?Proxy(Id(){^_}, Id(){^_}, <!CallNoArgs(<id>)>)
   <+ ProxyT(map(?SId(){^_}), map(?Id(){^_}), ?Id(){^_}, ?Id(){^_}, ?v);!CallNoArgs(v)
-  <+ id
+  <+ where(
+      (  ?Proxy(c1, c2, v); sc* := []; c* := []
+      <+ ?ProxyT(sc*, c*, c1, c2, v) )
+      // TODO: actually get from-type for these messages
+    ; if RuntimeCheck(c1to) := c1 then <report-Note> (v, CastInserted(DynT(), c1to)) end
+    ; if RuntimeCheck(c2to) := c2 then <report-Note> (v, CastInserted(DynT(), c2to)) end
+    ; <filter(\RuntimeCheck(cto) -> <report-Note> (v, CastInserted(DynT(), cto))\)> c*
+    ; <filter(\SRuntimeCheck(scto) -> <report-Note> (v, SCastInserted(SDyn(), scto))\)> sc*
+    )
 
 // t0 = current type, supplied to App and RootApp in the term
 // t1 = the expected result type of the term
