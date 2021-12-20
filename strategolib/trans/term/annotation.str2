@@ -76,7 +76,7 @@ strategies
   if-annotation(s1, s2) =
     has-annotation < s1 + s2
 
-//  strip-annos :: a -> a
+  strip-annos :: a -> a
   strip-annos =
     bottomup(rm-annotations)
 

@@ -126,17 +126,13 @@ strategies
   * @type      List(a) -> (List(b), List(c))
   */
   partition(a -> b, a -> c) :: List(a) -> List(b) * List(c)
-  partition(s1, s2) = rec part(
-    \ [] -> ([],[]) \
-    + \ [z | zs] -> <!([<s1> z | xs], ys) <+ !(xs, [<s2> z | ys])>
-        where <part> zs => (xs, ys) \
-  )
+  partition(s1, s2): [] -> ([],[])
+  partition(s1, s2): [z | zs] -> <!([<s1> z | xs], ys) <+ !(xs, [<s2> z | ys])>
+    where <partition(s1, s2)> zs => (xs, ys)
 
   /** @internal */
   partition'(a -> b) :: List(a) -> List(b) * List(a)
-  partition'(s) = rec part(
-    \ [] -> ([],[]) \
-    + \ [z | zs] -> <!([<s> z | xs], ys) <+ !(xs, [z | ys])>
-        where <part> zs => (xs, ys) \
-  )
+  partition'(s): [] -> ([],[])
+  partition'(s): [z | zs] -> <!([<s> z | xs], ys) <+ !(xs, [z | ys])>
+    where <partition'(s)> zs => (xs, ys)
 

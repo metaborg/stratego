@@ -369,9 +369,11 @@ strategies
    * @todo : with a proper partial evaluator for Stratego this strategy can be
    *         used to create appropriately specialized algorithms.
    */
-  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
-  hashtable-merge(symm, iterate1, iterate2, remove, merge
-                 , default, change1, change2, lookup1, lookup2) :
+  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?,
+      ? -> ?, ? -> ?, ? -> ?, ? -> ?)
+    :: Hashtable * Hashtable -> Hashtable
+  hashtable-merge(symm, iterate1, iterate2, remove, merge, default,
+      change1, change2, lookup1, lookup2) :
     (tbl1, tbl2) -> tbl1
     where if iterate1 then
             <hashtable-keys> tbl1
@@ -464,7 +466,8 @@ strategies
   /**
    * Version without change arguments for backward compatibility
    */
-  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
+  hashtable-merge(? -> ?, ? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?)
+    :: Hashtable * Hashtable -> Hashtable
   hashtable-merge(symm, iterate1, iterate2, remove, merge, default, lookup1, lookup2) =
     hashtable-merge(symm, iterate1, iterate2, remove, merge, default,
                     change1-yes, change2-yes, lookup1, lookup2)
@@ -472,7 +475,8 @@ strategies
   /**
    * Merge hashtables creating a new one.
    */
-  hashtable-merge-func(? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?) :: Hashtable * Hashtable -> Hashtable
+  hashtable-merge-func(? -> ?, ? -> ?, ? -> ?, ? * ? -> ?, ? -> ?, ? -> ?, ? -> ?)
+    :: Hashtable * Hashtable -> Hashtable
   hashtable-merge-func(iterate1, iterate2, remove, merge, default, lookup1, lookup2) :
     (tbl1, tbl2) -> tbl3
     where <hashtable-copy> tbl1 => tbl3

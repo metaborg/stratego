@@ -205,7 +205,7 @@ insertCasts-RuleDef(|e1, st1) =
 ; (otf(\RDefT(x, s1*, [], s1) -> RDef(x, s1*, s1)\), id)
 
 insertCasts-RuleDef-(|e1, st1):
-  d@RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), st7)
+  d@RDefT(x, s1*, t1*, r1@Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, r2), st7)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -226,9 +226,10 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
   ; st7 := <type-var-elim(id|[tv1, tv2])> st6
+  ; r2 := <otf(!Rule(trm3, trm4, cs3))> r1
 
 insertCasts-RuleDef-(|e1, st1):
-  d@RDefT(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, Rule(trm3, trm4, cs3)), <current-type-of(|st5)> st7)
+  d@RDefT(x, s1*, t1*, r1@Rule(trm1, trm2, cs1)) -> (RDefT(x, s1*, t1*, r2), <current-type-of(|st5)> st7)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -243,9 +244,10 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
   ; st7 := <type-var-elim(id|tv)> st6
+  ; r2 := <otf(!Rule(trm3, trm4, cs3))> r1
 
 insertCasts-RuleDef-(|e1, st1):
-  d@RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t2*, Rule(trm3, trm4, cs3)), st7)
+  d@RDefP(x, s1*, t1*, r1@Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t2*, r2), st7)
   where
     (FunTType(st*, tt*, TP()), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -265,9 +267,10 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t3)> trm2
   ; st7 := <type-var-elim(id|[tv1, tv2])> st6
+  ; r2 := <otf(!Rule(trm3, trm4, cs3))> r1
 
 insertCasts-RuleDef-(|e1, st1):
-  d@RDefP(x, s1*, t1*, Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, Rule(trm3, trm4, cs3)), st7)
+  d@RDefP(x, s1*, t1*, r1@Rule(trm1, trm2, cs1)) -> (RDefP(x, s1*, t1*, r2), st7)
   where
     (FunTType(st*, tt*, t1, t2), st2) := <strat-lookup-def(|x{}, <length> s1*, <length> t1*, st1)> e1
   with
@@ -281,6 +284,7 @@ insertCasts-RuleDef-(|e1, st1):
   ; cs3 := <RuleDef-after-match> ([s1*, s2*], cs2)
   ; (trm4, st6) := <insertCasts-BuildTerm(|e2, st5, t2)> trm2
   ; st7 := <type-var-elim(id|tv)> st6
+  ; r2 := <otf(!Rule(trm3, trm4, cs3))> r1
 
 RuleDef-after-match: ([], cs) -> cs
 RuleDef-after-match: (s*, cs) -> [<otf(!WhereClause(s))> s | cs] where s := <seqs> s*

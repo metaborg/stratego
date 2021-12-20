@@ -189,7 +189,8 @@ can-coerce(|injection-closure, aliases):
 can-coerce(|injection-closure, aliases):
   ((DynT(), b@Sort(x, t1*)), st1) -> ((DynT(), b'), st2)
   where
-    (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> t1*, st1)
+    not(Sort(TP(), []) := b)
+  ; (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
   ; b' := <otf(!Sort(x, t4*))> b
 
@@ -276,6 +277,7 @@ lub(|tve, lub-map): (DynT(), _) -> (DynT(), tve)
 lub(|tve, lub-map): (_, DynT()) -> (DynT(), tve)
 lub(|tve, lub-map): (IllFormedTermT(_, _), IllFormedTermT(_, _)) -> (DynT(), tve)
 lub(|tve, lub-map): (SortVar(tv), t@SortVar(_)) -> (t, <immap-put(|tv, t)> tve)
+// computing a proper LUB of a variable and a type is not as simple as you might think, so let's not for now
 lub(|tve, lub-map): (SortVar(tv), t) -> (t2, <immap-put(|tv, t2)> tve) where t2 := DynT()
 lub(|tve, lub-map): (t, SortVar(tv)) -> (t2, <immap-put(|tv, t2)> tve) where t2 := DynT()
 // pointwise lift LUB over type parameters
