@@ -1,0 +1,38 @@
+module box/literals
+
+lexical sorts
+  BoxLiteral
+
+  AlphaNumericalEscChar
+  DecimalEscChar
+  EscChar
+  L-Char
+  QLiteral
+  UQLiteral
+  Literal
+
+lexical syntax
+  AlphaNumericalEscChar = "\\" ~[] {avoid}
+  DecimalEscChar = "\\" [01] [0-9] [0-9]
+  DecimalEscChar = "\\" "2" [0-4] [0-9]
+  DecimalEscChar = "\\" "2" "5" [0-5]
+
+  EscChar = AlphaNumericalEscChar
+  EscChar = DecimalEscChar
+
+  L-Char = ~[\0-\31\"\\] \/ [\t\n]
+  L-Char = EscChar
+
+  QLiteral = "\"" L-Char* "\""
+  UQLiteral = [A-Za-z\-\_] [A-Za-z0-9\-\_]*
+
+  Literal = QLiteral
+  Literal = UQLiteral
+
+  BoxLiteral = QLiteral
+
+lexical sorts
+  NatCon
+
+lexical syntax
+  NatCon = [0-9]+

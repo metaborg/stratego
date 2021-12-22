@@ -1,0 +1,22 @@
+module test/utils
+
+imports
+  strategolib
+  gpp/main
+  tools/parse-box
+
+strategies
+  abox2text-test(|width) =
+    box-desugar; box2text-string(|width)
+
+  abox2text-test80 =
+    abox2text-test(|80)
+
+  abox2text-test3 =
+    abox2text-test(|3)
+
+  abox2text-test5 =
+    abox2text-test(|5)
+
+  abox2text-test7 =
+    abox2text-test(|7)

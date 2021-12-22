@@ -1,0 +1,9 @@
+module table/placeholder
+
+imports
+  box/base
+  box/literals
+
+context-free syntax
+  Box.Arg = "_" NatCon
+  Box.Arg2 = "_" NatCon "." NatCon

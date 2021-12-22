@@ -1,0 +1,9 @@
+---
+id: org.metaborg:gpp.test:${metaborgVersion}
+name: gpp
+dependencies:
+  compile:
+  - org.metaborg:gpp:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
+build:
+  useBuildSystemSpec: true
