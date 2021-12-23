@@ -25,6 +25,7 @@ public class CompileInput implements Serializable {
     public final Arguments extraArgs;
     public final boolean library;
     public final boolean usingLegacyStrategoStdLib;
+    public final boolean createShadowJar;
     public final String libraryName;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
@@ -33,7 +34,8 @@ public class CompileInput implements Serializable {
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
-        boolean autoImportStd, String libraryName, ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
+        boolean autoImportStd, boolean createShadowJar, String libraryName,
+        ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
         this.javaClassDir = javaClassDir;
         this.libraryName = libraryName;
         this.checkInput =
@@ -45,6 +47,7 @@ public class CompileInput implements Serializable {
         this.constants = constants;
         this.extraArgs = extraArgs;
         this.library = library;
+        this.createShadowJar = createShadowJar;
         this.usingLegacyStrategoStdLib =
             linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
     }

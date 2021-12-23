@@ -70,8 +70,10 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final Arguments extraArgs = new Arguments(input.extraArgs);
         final ResourcePath outputDirWithPackage =
             input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.', '/'));
-        for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
-            context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.javaClassDir));
+        if(input.createShadowJar) {
+            for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
+                context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.javaClassDir));
+            }
         }
         for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
             extraArgs.add("-la", importedStr2LibPackageName);
