@@ -13,7 +13,7 @@ imports
 
 rules // Debugging
 
-  debug-show-aterm :: ? * ? * ? * string * string -> string * ?
-  debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
+//internal  debug-show-aterm :: ? * ? * ? * string * string -> string * ?
+internal  debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
     with filename := <guarantee-extension(|"aterm")> path
        ; result   := selected
