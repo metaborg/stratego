@@ -12,6 +12,7 @@ dependencies:
   - org.metaborg:meta.lib.spoofax:${metaborgVersion}
   - org.metaborg:statix.runtime:${metaborgVersion}
   - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:gpp:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
 pardonedLanguages:
 - EditorService
@@ -30,8 +31,6 @@ language:
     args:
     - -la
     - stratego-sglr
-    - -la
-    - stratego-gpp
     - -la
     - stratego-xtc
     - -la

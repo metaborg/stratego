@@ -9,3 +9,6 @@
 /.factorypath
 
 /.polyglot.metaborg.yaml
+
+*.tbl
+*.bin
