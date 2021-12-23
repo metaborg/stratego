@@ -22,19 +22,24 @@ test Simple H box with hs [[
 
 test Simple V box with vs [[
   V vs=0 ["a" "b"]
-]] run abox2text-test80 to "a\nb"
+]] run abox2text-test80 to "a
+b"
 
 test Simple V box with vs [[
   V vs=1 ["a" "b"]
-]] run abox2text-test80 to "a\n\nb"
+]] run abox2text-test80 to "a
+
+b"
 
 test Simple V box without vs [[
   V ["a" "b"]
-]] run abox2text-test80 to "a\nb"
+]] run abox2text-test80 to "a
+b"
 
 test Simple V box with is [[
   V is=2 ["a" "b"]
-]] run abox2text-test80 to "a\n  b"
+]] run abox2text-test80 to "a
+  b"
 
 test Simple V box in one H box [[
   H ["pre" V ["a" "b" "c"] "post"]
