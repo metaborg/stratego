@@ -28,6 +28,7 @@ language:
   stratego:
     enabled: true
     format: jar
+    shadow-jar: false
     args:
     - -la
     - stratego-sglr
