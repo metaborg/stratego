@@ -115,12 +115,17 @@ public class ModuleImportService implements IModuleImportService {
         final IStrategoAppl appl = (IStrategoAppl) anImport;
         switch(appl.getName()) {
             case "Import": {
-                final String moduleString = TermUtils.toJavaStringAt(appl, 0);
+                String moduleString = TermUtils.toJavaStringAt(appl, 0);
                 final @Nullable BuiltinLibraryIdentifier builtinLibraryIdentifier =
                     BuiltinLibraryIdentifier.fromString(moduleString);
                 if(builtinLibraryIdentifier != null) {
                     if(!importResolutionInfo.linkedLibraries.contains(builtinLibraryIdentifier)) {
-                        return UnresolvedImport.INSTANCE;
+                        // HACK: work around bootstrapping issues with meta-languages
+                        if(builtinLibraryIdentifier.equals(BuiltinLibraryIdentifier.StrategoGpp)) {
+                            moduleString = "gpp";
+                        } else {
+                            return UnresolvedImport.INSTANCE;
+                        }
                     }
                     return new ResolvedImport(Collections.singleton(builtinLibraryIdentifier));
                 }
