@@ -18,7 +18,7 @@ import mb.stratego.build.strincr.Stratego2LibInfo;
 public class CompileInput implements Serializable {
     public final CheckInput checkInput;
     public final ResourcePath outputDir;
-    public final ResourcePath javaClassDir;
+    public final ResourcePath str2libReplicateDir;
     public final String packageName;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
@@ -29,14 +29,14 @@ public class CompileInput implements Serializable {
     public final String libraryName;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, ResourcePath outputDir, ResourcePath javaClassDir, String packageName,
+        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
         ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
-        this.javaClassDir = javaClassDir;
+        this.str2libReplicateDir = str2libReplicateDir;
         this.libraryName = libraryName;
         this.checkInput =
             new CheckInput(mainModuleIdentifier, projectPath, new IModuleImportService.ImportResolutionInfo(strFileGeneratingTasks, includeDirs,
@@ -64,7 +64,7 @@ public class CompileInput implements Serializable {
             return false;
         if(!outputDir.equals(that.outputDir))
             return false;
-        if(!javaClassDir.equals(that.javaClassDir))
+        if(!str2libReplicateDir.equals(that.str2libReplicateDir))
             return false;
         if(!packageName.equals(that.packageName))
             return false;
@@ -82,7 +82,7 @@ public class CompileInput implements Serializable {
     @Override public int hashCode() {
         int result = checkInput.hashCode();
         result = 31 * result + outputDir.hashCode();
-        result = 31 * result + javaClassDir.hashCode();
+        result = 31 * result + str2libReplicateDir.hashCode();
         result = 31 * result + packageName.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();

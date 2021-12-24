@@ -35,3 +35,5 @@ language:
 exports:
 - language: StrategoLang
   file: src-gen/java/gpp/trans/gpp.str2lib
+build:
+  useBuildSystemSpec: true

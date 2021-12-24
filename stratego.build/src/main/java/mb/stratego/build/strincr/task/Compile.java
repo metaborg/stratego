@@ -72,7 +72,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.', '/'));
         if(input.createShadowJar) {
             for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
-                context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.javaClassDir));
+                context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.str2libReplicateDir));
             }
         }
         for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
