@@ -1,0 +1,8 @@
+module box/atoms
+
+imports
+  box/base
+  box/literals
+
+context-free syntax
+  Box.S = BoxLiteral

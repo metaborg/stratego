@@ -1,44 +1,39 @@
 ---
-id: org.example:stratego.statixintegrationtest:2.6.0-SNAPSHOT
-name: strategostatix-integrationtest
+id: org.metaborg:gpp:2.6.0-SNAPSHOT
+name: gpp
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
-  - org.metaborg:statix.lang:${metaborgVersion}
-  - org.metaborg:sdf3.ext.statix:${metaborgVersion}
   - org.metaborg:stratego.lang:${metaborgVersion}
   source:
-  - org.metaborg:meta.lib.spoofax:${metaborgVersion}
-  - org.metaborg:statix.runtime:${metaborgVersion}
   - org.metaborg:strategolib:${metaborgVersion}
-  - org.metaborg:gpp:${metaborgVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar
+- StrategoLang
 - SDF
 language:
   sdf:
     enabled: true
-    pretty-print: strategostatix-integrationtest
+    version: sdf3
+    pretty-print: gpp
     sdf2table: java
+    sdf-meta:
+    - stratego-box
     placeholder:
       prefix: "$"
   stratego:
     enabled: true
     format: jar
+    shadow-jar: false
     args:
     - -la
     - stratego-sglr
-    - -la
-    - stratego-xtc
-    - -la
-    - stratego-aterm
-    - -la
-    - stratego-sdf
-    - -la
-    - strc
 exports:
-- language: ATerm
-  directory: src-gen/statix
+- language: StrategoLang
+  file: src-gen/java/gpp/trans/gpp.str2lib
+build:
+  useBuildSystemSpec: true

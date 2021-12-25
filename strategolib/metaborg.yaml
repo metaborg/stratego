@@ -16,3 +16,5 @@ language:
 exports:
 - language: StrategoLang
   file: src-gen/java/strategolib/trans/strategolib.str2lib
+build:
+  useBuildSystemSpec: true

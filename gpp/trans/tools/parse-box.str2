@@ -1,0 +1,29 @@
+module parse-box
+imports
+  strategolib
+  //libstratego-xtc strategoxt-xtc-tools
+  signatures/box/base-sig
+  signatures/box/atoms-sig
+
+strategies
+  
+//  io-parse-box =
+//    xtc-io-wrap(
+//      xtc-sglr(!"Box.tbl")
+//    ; xtc-implode-asfix
+//    ; xtc-io-transform(box-desugar)
+//    )
+
+  box-desugar =
+    topdown(
+      try(
+        S(un-double-quote)
+      )
+    )
+
+  box-ensugar =
+    topdown(
+      try(
+        S(double-quote)
+      )
+    )

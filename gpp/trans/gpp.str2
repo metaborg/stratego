@@ -1,0 +1,19 @@
+module gpp
+
+imports
+  strategolib
+
+imports
+
+//  completion/completion
+  pp
+  outline
+  gpp/main
+  test/utils
+
+rules // Debugging
+
+//internal  debug-show-aterm :: ? * ? * ? * string * string -> string * ?
+internal  debug-show-aterm: (selected, _, _, path, project-path) -> (filename, result)
+    with filename := <guarantee-extension(|"aterm")> path
+       ; result   := selected

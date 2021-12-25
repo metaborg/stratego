@@ -1,0 +1,41 @@
+module parse
+
+language gpp
+
+start symbol Box
+
+test parse [[
+
+]] parse fails
+
+test H [[
+  H[]
+]] parse to H([], [])
+
+test V [[
+  V[]
+]] parse to V([], [])
+
+test S [[
+  "if"
+]] parse to S("\"if\"")
+
+test FBOX [[
+  KW["if"]
+]] parse to FBOX(KW(), S("\"if\""))
+
+test HV [[
+  HV[]
+]] parse to HV([], [])
+
+test hs [[
+  H hs=0 []
+]] parse to H([SOpt(HS(), "0")], [])
+
+test vs [[
+  V vs=0 []
+]] parse to V([SOpt(VS(), "0")], [])
+
+test is vs [[
+  V is=0 vs=0 []
+]] parse to V([SOpt(IS(), "0"), SOpt(VS(), "0")], [])

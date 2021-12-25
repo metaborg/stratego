@@ -25,10 +25,12 @@ import org.spoofax.terms.util.TermUtils;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
+import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolution;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;
+import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -42,6 +44,7 @@ import mb.stratego.build.strincr.message.FailedToGetModuleAst;
 import mb.stratego.build.strincr.message.InvalidASTMessage;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.UnresolvedImport;
+import mb.stratego.build.strincr.message.UsingStratego1File;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
@@ -73,14 +76,17 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     protected final ITermFactory tf;
     protected final GenerateStratego generateStratego;
     protected final StrategoLanguage strategoLanguage;
+    protected final ResourcePathConverter resourcePathConverter;
 
     @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
-        GenerateStratego generateStratego, StrategoLanguage strategoLanguage) {
+        GenerateStratego generateStratego, StrategoLanguage strategoLanguage,
+        ResourcePathConverter resourcePathConverter) {
         this.strContext = strContext;
         this.tf = strContext.getFactory();
         this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
         this.strategoLanguage = strategoLanguage;
+        this.resourcePathConverter = resourcePathConverter;
     }
 
     @Override public ModuleData exec(ExecContext context, FrontInput input) throws Exception {
@@ -114,13 +120,14 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
         final LastModified<IStrategoTerm> ast;
         try {
+            ast = getModuleAst(context, input);
             if(input.moduleIdentifier instanceof mb.stratego.build.strincr.ModuleIdentifier
                 && ((mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path.getLeafFileExtension()
                     .equals("str")) {
-                context.logger().warn("Using str file, no str2 file found for: "
-                    + ((mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path);
+                messages.add(new UsingStratego1File(resourcePathToTerm((
+                        (mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path),
+                    ast.lastModified));
             }
-            ast = getModuleAst(context, input);
         } catch(ExecException e) {
             throw e;
         } catch(Exception e) {
@@ -201,6 +208,13 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             externalInjections, strategyData, internalStrategyData, externalStrategyData,
             dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
             usedAmbiguousStrategies, messages, ast.lastModified);
+    }
+
+    private IStrategoString resourcePathToTerm(ResourcePath resourcePath) {
+        final String filename = resourcePathConverter.toString(resourcePath);
+        final IStrategoString filenameTerm = tf.makeString(filename);
+        filenameTerm.putAttachment(ImploderAttachment.createCompactPositionAttachment("file://" + filename, 0, 0, 0, 0));
+        return filenameTerm;
     }
 
     public static HashSet<IModuleImportService.ModuleIdentifier> expandImports(ExecContext context,

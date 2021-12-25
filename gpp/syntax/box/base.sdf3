@@ -1,0 +1,4 @@
+module box/base
+
+context-free sorts
+  Box

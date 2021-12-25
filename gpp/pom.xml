@@ -5,7 +5,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>strategolib</artifactId>
+  <artifactId>gpp</artifactId>
   <packaging>spoofax-language</packaging>
 
   <parent>
@@ -19,7 +19,14 @@
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.meta.lang.esv</artifactId>
-      <version>${metaborg-baseline-version}</version>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.lang.template</artifactId>
+      <version>${metaborg-version}</version>
       <type>spoofax-language</type>
       <scope>provided</scope>
     </dependency>
@@ -28,6 +35,29 @@
       <artifactId>stratego.lang</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
+    <!-- source deps -->
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.meta.lang.stratego</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategolib</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
+    <!-- str2lib deps -->
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategolib</artifactId>
+      <version>${metaborg-version}</version>
+      <type>jar</type>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -46,7 +76,7 @@
             <configuration>
               <file>${project.build.directory}/metaborg/stratego.jar</file>
               <groupId>org.metaborg</groupId>
-              <artifactId>strategolib</artifactId>
+              <artifactId>gpp</artifactId>
               <version>${metaborg-version}</version>
               <packaging>jar</packaging>
             </configuration>
@@ -55,7 +85,7 @@
       </plugin>
     </plugins>
   </build>
- 
+
   <repositories>
     <repository>
       <id>metaborg-release-repo</id>
