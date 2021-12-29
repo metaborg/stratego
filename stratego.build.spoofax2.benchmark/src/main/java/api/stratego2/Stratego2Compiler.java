@@ -198,7 +198,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                        new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
+                        new ArrayList<>(0), library, autoImportStd, true, languageIdentifier.id, new ArrayList<>());
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         debugPrint("Creating compile task...");
