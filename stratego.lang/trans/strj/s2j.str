@@ -2352,11 +2352,11 @@ strategies
 
   java-Pat-to-Condition:
     (FunC("Nil", "0"), e_occ) ->
-    e |[ ((IStrategoList) e_occ).isEmpty() ]|
+    e |[ e_occ == true ]|
 
   java-Pat-to-Condition:
     (FunC("Cons", "2"), e_occ) ->
-    e |[ !((IStrategoList) e_occ).isEmpty() ]|
+    e |[ e_occ == false ]|
 
   java-Pat-to-Condition:
     (op@FunC(c, x), e_occ) ->
@@ -2503,5 +2503,11 @@ strategies
   translate-PathFld:
     StrP(p) ->
     e |[ ((IStrategoString) e).stringValue() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    EmptyP(p) ->
+    e |[ ((IStrategoList) e).isEmpty() ]|
   with
     e := <translate-PathTrm> p

@@ -123,7 +123,7 @@ strategies
                 + is-literal-cons
 
   extend-path-by-type(|ApplT()) = !ConP(<id>)
-  extend-path-by-type(|LisT()) = id
+  extend-path-by-type(|LisT()) = !EmptyP(<id>)
   extend-path-by-type(|IntT()) = !IntP(<id>)
   extend-path-by-type(|RealT()) = !RealP(<id>)
   extend-path-by-type(|StringT()) = !StrP(<id>)

@@ -175,6 +175,7 @@ context-free syntax
   PathFld.IntP  = <<PathTrm>.int>
   PathFld.RealP = <<PathTrm>.real>
   PathFld.StrP  = <<PathTrm>.str>
+  PathFld.EmptyP= <<PathTrm>.empty>
 
 context-free sorts PatV
 context-free syntax
