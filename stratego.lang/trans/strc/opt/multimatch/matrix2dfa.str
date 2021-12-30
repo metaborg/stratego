@@ -8,6 +8,7 @@ imports
   strc/opt/multimatch/heuristics
   strc/opt/multimatch/matrix
   strc/opt/multimatch/postprocess
+  strc/opt/multimatch/utils
 
   signatures/core/strategies-sig
   signatures/core/terms-sig
