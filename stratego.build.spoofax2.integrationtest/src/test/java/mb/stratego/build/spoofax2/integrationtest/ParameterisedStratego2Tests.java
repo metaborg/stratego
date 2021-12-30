@@ -81,7 +81,7 @@ public class ParameterisedStratego2Tests {
         Path test1 = getResourcePathRoot().resolve("test1");
         Path test2 = getResourcePathRoot().resolve("test2");
 
-        List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test37", "test53", "test76", "test77", "test78", "test87", "test90", "test92", "test93", "test98", "test112");
+        List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test37", "test53", "test76", "test77", "test78", "test87", "test90", "test92", "test93", "test98");
         List<String> test2Names = Arrays.asList("occan", "traversal-test");
 //        List<String> test1Names = Collections.EMPTY_LIST;
 //        List<String> test2Names = Collections.EMPTY_LIST;
