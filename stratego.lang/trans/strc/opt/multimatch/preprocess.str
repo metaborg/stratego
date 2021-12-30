@@ -15,7 +15,7 @@ imports
 strategies
   preprocess =
     Explode2Guard
-  ; (CheckNoExplode, id, id)
+  ; (CheckNoExplode, id, id) // TODO Remove in production
   ; (Var2AsWld, id, sequence-list)
 
 strategies
@@ -61,7 +61,7 @@ strategies
 strategies
   Var2AsWld = rec s(
     As(id, s)
- <+ Explode(id, s)
+ <+ Explode(id, id)
  <+ \ Var(x) -> As(Var(x), Wld()) \
  <+ all(try(s))
  )
