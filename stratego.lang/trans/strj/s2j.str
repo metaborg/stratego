@@ -2086,11 +2086,11 @@ strategies
     stm_def := <translate-Fail> Fail()
 
   translate-SwitchV-helper(|tp) =
-    if tp := ApplT() then // TODO This criterion could be less strict.
+    if <?ApplT() + ?TupleT() + ?StringT() + ?IntT()> tp then // TODO This criterion could be less strict.
       switch <get-config> "--pmc:switchv" <+ !"hash-switch"
         case ?"elseif": AltVs-as-ifs
         case ?"nested-switch": AltVs-as-nested-switches
-        case ?"hash-switch": AltV-as-hash-switch
+        case ?"hash-switch": AltV-as-hash-switch(|tp)
         otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv'", <id>]
       end
     else
@@ -2126,12 +2126,12 @@ strategies
     e_match := <java-Pat-to-Condition> (t, e_occ)
   ; bstm_guards := <translate-Guards> guards
 
-  AltV-as-hash-switch:
+  AltV-as-hash-switch(|tp@ApplT()):
     (e_path, alt*, stm_def) ->
     bstm* |[
-      IStrategoConstructor x_cons = e_path;
+      bstm_fld
 
-      switch (x_cons.hashCode()) {
+      switch (x_fld.hashCode()) {
         ~switch-group*:cases
         default: {
           stm_def
@@ -2140,45 +2140,85 @@ strategies
       }
     ]|
   with
-    (x_cons, groups) := <AltV-as-hash-switch-helper>
-  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
+    (x_fld, bstm_fld, groups) := <AltV-as-hash-switch-helper(|tp)>
+  ; cases := <map(HashGroup(|tp, e|[x_fld]|, stm_def))> groups
 
-  AltV-as-hash-switch-helper:
+  AltV-as-hash-switch(|tp):
     (e_path, alt*, stm_def) ->
-    (x_cons, groups)
+    bstm* |[
+      bstm_fld
+
+      switch (x_fld) {
+        ~switch-group*:cases
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  where
+    <not(?ApplT())> tp
   with
-    x_cons := <local-newname> "cons"
-  ; pairs := <map(split(AltHash, id))> alt*
+    (x_fld, bstm_fld, groups) := <AltV-as-hash-switch-helper(|tp)>
+  ; cases := <map(HashGroup(|tp, e|[x_fld]|, stm_def))> groups
+
+  AltV-as-hash-switch-helper(|tp):
+    (e_path, alt*, stm_def) ->
+    (x_fld, bstm_fld, groups)
+  with
+    (bstm_fld, x_fld) := <typed-fld-assign(|tp)> e_path
+  ; pairs := <map(split(AltHash(|tp), id))> alt*
   ; hash_set := <map(Fst); make-set> pairs
   ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
 
-  AltHash:
+  internal is-alt = ?AltV(_, _) + ?GuardedAltV(_, _)
+
+  internal constructor-checksum = prim("SSL_constructor_hash", <id>)
+
+  AltHash(|ApplT()):
     alt@(_#([FunC(x, a), _])) ->
     <constructor-checksum> appl
-  where
-    <?AltV(_, _) + ?GuardedAltV(_, _)> alt
+  with is-alt
   with
     appl := x#(<range> (0, <string-to-int> a))
 
-  HashGroup(|e_occ, stm_def):
+  AltHash(|TupleT()):
+    alt@(_#([TupleC(a), _])) ->
+    a
+  with is-alt
+
+  AltHash(|StringT()):
+    alt@(_#([StrC(s), _])) ->
+    s
+  with is-alt
+
+  AltHash(|IntT()):
+    alt@(_#([IntC(i), _])) ->
+    i
+  with is-alt
+
+  HashGroup(|tp, e_occ, stm_def):
     (hash, alt*) ->
     switch-group |[
       case e_hash: {
-        bstm_alts*
+        bstm_alt
         break;
       }
     ]|
   with
-    (e_hash, bstm_alts*) := <HashGroup-helper(|e_occ, stm_def)>
+    (e_hash, bstm_alt) := <HashGroup-helper(|tp, e_occ, stm_def)>
 
-  HashGroup-helper(|e_occ, stm_def):
-    (hash, alt*) ->
-    (e_hash, bstm_alts*)
-  with
-    e_hash := <java-mk-int-const> hash
-  ; bstm_alts* := <foldr(!stm_def, translate-AltV-if(|e_occ))> alt*
+  HashGroup-helper(|ApplT(), e_occ, stm_def) =
+    (java-mk-int-const, foldr(!stm_def, translate-AltV-if(|e_occ))) // uses ifs because collisions might occur
 
-  constructor-checksum = prim("SSL_constructor_hash", <id>)
+  HashGroup-helper(|TupleT(), e_occ, stm_def) =
+    (java-mk-int-const, ?[<translate-AltV-case>])
+
+  HashGroup-helper(|StringT(), e_occ, stm_def) =
+    (java-mk-string-const, ?[<translate-AltV-case>])
+
+  HashGroup-helper(|IntT(), _, stm_def) =
+    (java-mk-int-const, ?[<translate-AltV-case>])
 
   AltVs-as-nested-switches =
     switch <get-config> "--pmc:switchv-order" <+ !"arity-name"
@@ -2325,11 +2365,23 @@ strategies
   with
     x_asgn := <local-newname> "appl"
 
+  typed-fld-assign(|ApplT()):
+    e_trm ->
+    (bstm |[ IStrategoConstructor x_fld = e_trm; ]|, x_fld)
+  with
+    x_fld := <local-newname> "cons"
+
   typed-assign(|TupleT()):
     e_trm ->
     (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
   with
     x_asgn := <local-newname> "tuple"
+
+  typed-fld-assign(|TupleT()):
+    e_trm ->
+    (bstm |[ int x_fld = e_trm; ]|, x_fld)
+  with
+    x_fld := <local-newname> "size"
 
   typed-assign(|StringT()):
     e_trm ->
@@ -2337,11 +2389,23 @@ strategies
   with
     x_asgn := <local-newname> "str"
 
+  typed-fld-assign(|StringT()):
+    e_trm ->
+    (bstm |[ String x_fld = e_trm; ]|, x_fld)
+  with
+    x_fld := <local-newname> "str"
+
   typed-assign(|IntT()):
     e_trm ->
     (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
   with
     x_asgn := <local-newname> "int"
+
+  typed-fld-assign(|IntT()):
+    e_trm ->
+    (bstm |[ int x_fld = e_trm; ]|, x_fld)
+  with
+    x_fld := <local-newname> "int"
 
   typed-assign(|RealT()):
     e_trm ->
