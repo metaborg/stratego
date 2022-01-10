@@ -1,0 +1,39 @@
+---
+id: org.metaborg:gpp:2.6.0-SNAPSHOT
+name: gpp
+dependencies:
+  compile:
+  - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.template:${metaborgVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
+  source:
+  - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:stratego.lang:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
+pardonedLanguages:
+- EditorService
+- Stratego-Sugar
+- StrategoLang
+- SDF
+language:
+  sdf:
+    enabled: true
+    version: sdf3
+    pretty-print: gpp
+    sdf2table: java
+    sdf-meta:
+    - stratego-box
+    placeholder:
+      prefix: "$"
+  stratego:
+    enabled: true
+    format: jar
+    shadow-jar: false
+    args:
+    - -la
+    - stratego-sglr
+exports:
+- language: StrategoLang
+  file: src-gen/java/gpp/trans/gpp.str2lib
+build:
+  useBuildSystemSpec: true

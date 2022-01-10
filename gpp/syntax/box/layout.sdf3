@@ -1,0 +1,11 @@
+module box/layout
+
+lexical syntax
+  LAYOUT = [\ \t\n\r]
+
+  LAYOUT = "%%" ~[\n]* "\n"
+
+context-free restrictions
+  LAYOUT? -/- [\ \t\n\13]
+
+  LAYOUT? -/- [\ \t\n\%]

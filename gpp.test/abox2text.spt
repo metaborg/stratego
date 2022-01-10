@@ -1,0 +1,158 @@
+module aabox2text
+
+language gpp
+
+start symbol Box
+
+test Simple H box with hs [[
+  H hs=0 ["a" "b"]
+]] run abox2text-test80 to "ab"
+
+test Simple H box without hs [[
+  H ["a" "b"]
+]] run abox2text-test80 to "a b"
+
+test Simple H box with hs [[
+  H hs=1 ["a" "b"]
+]] run abox2text-test80 to "a b"
+
+test Simple H box with hs [[
+  H hs=2 ["a" "b"]
+]] run abox2text-test80 to "a  b"
+
+test Simple V box with vs [[
+  V vs=0 ["a" "b"]
+]] run abox2text-test80 to "a
+b"
+
+test Simple V box with vs [[
+  V vs=1 ["a" "b"]
+]] run abox2text-test80 to "a
+
+b"
+
+test Simple V box without vs [[
+  V ["a" "b"]
+]] run abox2text-test80 to "a
+b"
+
+test Simple V box with is [[
+  V is=2 ["a" "b"]
+]] run abox2text-test80 to "a
+  b"
+
+test Simple V box in one H box [[
+  H ["pre" V ["a" "b" "c"] "post"]
+]] run abox2text-test80 to "pre a
+    b
+    c post"
+
+test Two V boxes in one H box [[[[
+  H hs=0 [V ["aa" "bb" "c"] V["dd" "ee" "ff"]]
+]]]] run abox2text-test80 to "aa
+bb
+cdd
+ ee
+ ff"
+
+test Simple font box [[
+  NUM ["0"]
+]] run abox2text-test80 to "0"
+
+test Simple Z box without is [[
+  H ["pre" Z ["a" "b" "c"] "post"]
+]] run abox2text-test80 to "pre a
+b
+c post"
+
+test Simple Z box with is [[
+  H ["pre" Z is=2 ["a" "b" "c"] "post"]
+]] run abox2text-test80 to "pre a
+  b
+  c post"
+
+test Simple Z box with is [[[[
+  H ["pre" Z is=3 ["a" HV["b" "c"]] "post"]
+]]]] run abox2text-test5 to "pre a
+   b
+   c post"
+
+test Simple I box without is [[
+  I ["foo"]
+]] run abox2text-test80 to "foo"
+
+test Simple I box with is [[
+  I is=2 ["foo"]
+]] run abox2text-test80 to "  foo"
+
+// NOTE: Using H to indent, because V is=2 does not indent the first line
+// NOTE: Start with a dot, because string quotations eat leading whitespace
+test Simple Z box in an I box [[[[
+  H hs=0 [". " I [H ["pre" Z ["a" "b" "c"] "post"]]]
+]]]] run abox2text-test80 to ". pre a
+  b
+  c post"
+
+test Symmetry? [[[[
+  H hs=0 [V["aa" "bb" "cc"] Z is=1 ["d" "ee" "ff"]]
+]]]] run abox2text-test80 to "aa
+bb
+ccd
+ ee
+ ff"
+
+test Simple HV box in an H box [[
+  H ["pre" HV ["a" "b" "c"] "post"]
+]] run abox2text-test7 to "pre a b
+    c post"
+
+test Simple HV box with is [[
+  HV is=2 ["a" "b" "c" "d"]
+]] run abox2text-test3 to "a b
+  c
+  d"
+
+test Simple HV box with vs [[
+  HV vs=1 ["a" "b" "c" "d"]
+]] run abox2text-test3 to "a b
+
+c d"
+
+test Simple HZ box in an H box [[
+  H ["pre" HZ ["a" "b" "c"] "post"]
+]] run abox2text-test7 to "pre a b
+c post"
+
+test Simple HZ box with is in an H box [[
+  H ["pre" HZ is=2 ["a" "b" "c" "d"] "post"]
+]] run abox2text-test5 to "pre a
+  b c
+  d post"
+
+test Simple HZ box with vs in an H box [[
+  H ["pre" HZ vs=1 ["a" "b" "c" "d"] "post"]
+]] run abox2text-test5 to "pre a
+
+b c d post"
+
+test If else [[[[
+  V [
+      H hs=0 ["if (a) " Z ["{" "}"]]
+      H hs=0 ["else " Z ["{" "}"]]
+    ]
+]]]] run abox2text-test80 to "if (a) {
+}
+else {
+}"
+
+test If else if [[[[
+  V [
+      H hs=0 ["if (a) " Z ["{" "}"]]
+      H hs=0 ["else " Z[
+        H hs=0 ["if (b) " Z ["{" "}"]]
+      ]]
+    ]
+]]]] run abox2text-test80 to "if (a) {
+}
+else if (b) {
+}"
