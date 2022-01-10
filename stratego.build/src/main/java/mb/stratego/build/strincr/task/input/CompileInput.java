@@ -93,6 +93,19 @@ public class CompileInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Compile.Input(" + checkInput.mainModuleIdentifier + ")";
+        //@formatter:off
+        return "CompileInput@" + System.identityHashCode(this) + '{'
+            + "checkInput=" + checkInput
+            + ", outputDir=" + outputDir
+            + ", javaClassDir=" + javaClassDir
+            + ", packageName='" + packageName + '\''
+            + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+            + ", constants=" + constants
+            + ", extraArgs='" + extraArgs + '\''
+            + ", library=" + library
+            + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+            + ", libraryName='" + libraryName + '\''
+            + '}';
+        //@formatter:on
     }
 }

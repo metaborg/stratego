@@ -55,6 +55,13 @@ public class BackOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Back.Output(" + resultFiles + ")";
+        //@formatter:off
+        return "BackOutput@" + System.identityHashCode(this) + '{'
+            + "resultFiles=" + resultFiles.size()
+            + ", unreportedResultFiles=" + unreportedResultFiles.size()
+            + ", compiledStrategies=" + compiledStrategies.size()
+            + ", depTasksHaveErrorMessages=" + depTasksHaveErrorMessages
+            + '}';
+        //@formatter:on
     }
 }

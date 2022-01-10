@@ -35,6 +35,11 @@ public class CLCFInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CLCFInput(" + stratego2LibInfoSupplier + ", " + outputDir + ')';
+        //@formatter:off
+        return "CLCFInput@" + System.identityHashCode(this) + '{'
+            + "stratego2LibInfoSupplier=" + stratego2LibInfoSupplier
+            + ", outputDir=" + outputDir
+            + '}';
+        //@formatter:on
     }
 }

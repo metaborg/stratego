@@ -28,6 +28,10 @@ public class CLCFOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CLCFOutput(" + writtenClassFiles + ')';
+        //@formatter:off
+        return "CLCFOutput@" + System.identityHashCode(this) + '{'
+            + "writtenClassFiles=" + writtenClassFiles.size()
+            + '}';
+        //@formatter:on
     }
 }
