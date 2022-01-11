@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -349,10 +350,18 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             }
 
             // collect-om(dyn-rule-sig)
+            final TreeSet<StrategySignature> auxSignatures = new TreeSet<>();
+            auxRuleSigs(strategyDef, auxSignatures, projectPath);
             for(StrategySignature dynRuleSig : CollectDynRuleSigs.collect(strategyDef)) {
                 final TreeSet<StrategySignature> strategySignatures =
                     new TreeSet<>(dynRuleSig.dynamicRuleSignatures(tf).keySet());
-                auxRuleSigs(strategyDef, strategySignatures, projectPath);
+                for(Iterator<StrategySignature> iterator = auxSignatures.iterator(); iterator.hasNext(); ) {
+                    StrategySignature auxSignature = iterator.next();
+                    if(auxSignature.name.startsWith("aux-" + dynRuleSig.name)) {
+                        strategySignatures.add(auxSignature);
+                        iterator.remove();
+                    }
+                }
                 for(StrategySignature signature : strategySignatures) {
                     Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new).add(
                         new StrategyFrontData(signature, signature.standardType(tf),

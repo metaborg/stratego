@@ -98,6 +98,33 @@ public class ModuleData implements Serializable, WithLastModified {
         this.lastModified = lastModified;
     }
 
+    public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
+        if(ambStrategyIndex == null) {
+            ambStrategyIndex = new LinkedHashMap<>();
+            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : internalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : externalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : dynamicRuleData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+        }
+        return ambStrategyIndex;
+    }
+
     @Override public boolean equals(Object o) {
         if(this == o)
             return true;
@@ -131,34 +158,32 @@ public class ModuleData implements Serializable, WithLastModified {
     }
 
     @Override public String toString() {
-        return "ModuleData(" + moduleIdentifier + ')';
-    }
-
-    public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
-        if(ambStrategyIndex == null) {
-            ambStrategyIndex = new LinkedHashMap<>();
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : internalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : externalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : dynamicRuleData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-        }
-        return ambStrategyIndex;
+        //@formatter:off
+        return "ModuleData@" + System.identityHashCode(this) + '{'
+            + "moduleIdentifier=" + moduleIdentifier
+            + (str2LibPackageName == null ? "" : ", str2LibPackageName='" + str2LibPackageName + '\'')
+            + ", ast=" + ast.toString(4)
+            + ", imports=" + imports
+            + ", sortData=" + sortData.size()
+            + ", externalSortData=" + externalSortData.size()
+            + ", constrData=" + constrData.size()
+            + ", externalConstrData=" + externalConstrData.size()
+            + ", injections=" + injections.size()
+            + ", externalInjections=" + externalInjections.size()
+            + ", normalStrategyData=" + normalStrategyData.size()
+            + ", internalStrategyData=" + internalStrategyData.size()
+            + ", externalStrategyData=" + externalStrategyData.size()
+            + ", dynamicRuleData=" + dynamicRuleData.size()
+            + ", overlayData=" + overlayData.size()
+            + ", usedConstructors=" + usedConstructors.size()
+            + ", usedStrategies=" + usedStrategies.size()
+            + ", dynamicRules=" + dynamicRules.size()
+            + ", usedAmbiguousStrategies=" + usedAmbiguousStrategies.size()
+            + ", messages=" + messages.size()
+            + ", lastModified=" + lastModified
+            + (ambStrategyIndex == null ? "" : ", ambStrategyIndex=" + ambStrategyIndex.size())
+            + '}';
+        //@formatter:on
     }
 
     @Override public long lastModified() {

@@ -47,7 +47,13 @@ public class CheckModuleOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckModule.Output(" + messages.size() + ")";
+        //@formatter:off
+        return "CheckModuleOutput@" + System.identityHashCode(this) + '{'
+            + "strategyDataWithCasts=" + strategyDataWithCasts.size()
+            + ", dynamicRules=" + dynamicRules.size()
+            + ", messages=" + messages.size()
+            + '}';
+        //@formatter:on
     }
 
 }

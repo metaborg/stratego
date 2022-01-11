@@ -161,11 +161,20 @@ public abstract class BackInput implements Serializable {
 
         @Override public String toString() {
             if(anythingElse == null) {
-                return "BackInput." + aClass.getSimpleName() + "(" + outputDir + ")";
-            } else {
-                return "BackInput." + aClass.getSimpleName() + "(" + outputDir + ", " + anythingElse
-                    + ")";
+                //@formatter:off
+                return "BackInput.Key@" + System.identityHashCode(this) + '{'
+                    + "aClass=" + aClass
+                    + ", outputDir=" + outputDir
+                    + '}';
+                //@formatter:on
             }
+            //@formatter:off
+            return "BackInput.Key@" + System.identityHashCode(this) + '{'
+                + "aClass=" + aClass
+                + ", outputDir=" + outputDir
+                + ", anythingElse=" + anythingElse
+                + '}';
+            //@formatter:on
         }
     }
 
@@ -280,7 +289,7 @@ public abstract class BackInput implements Serializable {
 
         /**
          * @return null if the contributions and used constructors were added to the parameters, or
-         *      the task that actually generates the files for this strategy.
+         * the task that actually generates the files for this strategy.
          */
         public @Nullable STask<BackOutput> getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
@@ -341,7 +350,19 @@ public abstract class BackInput implements Serializable {
         }
 
         @Override public String toString() {
-            return "Back.NormalInput(" + strategySignature.cifiedName() + ")";
+            //@formatter:off
+            return "BackInput.Normal@" + System.identityHashCode(this) + '{'
+                + "strategySignature=" + strategySignature
+                + ", strategyAnalysisDataTask=" + strategyAnalysisDataTask
+                + "; outputDir=" + outputDir
+                + ", packageName='" + packageName + '\''
+                + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+                + ", constants=" + constants
+                + ", extraArgs=" + extraArgs
+                + ", checkInput=" + checkInput
+                + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+                + '}';
+            //@formatter:on
         }
 
         @Override public Key key() {
@@ -361,7 +382,7 @@ public abstract class BackInput implements Serializable {
 
         /**
          * @return null if the contributions and used constructors were added to the parameters, or
-         *      the task that actually generates the outputs.
+         * the task that actually generates the outputs.
          */
         @Override public @Nullable STask<BackOutput> getStrategyContributions(ExecContext context, Back backTask,
             ArrayList<IStrategoAppl> strategyContributions,
@@ -442,7 +463,19 @@ public abstract class BackInput implements Serializable {
         }
 
         @Override public String toString() {
-            return "Back.DynamicRuleInput(" + strategySignature.cifiedName() + ")";
+            //@formatter:off
+            return "BackInput.DynamicRule@" + System.identityHashCode(this) + '{'
+                + "strategySignature=" + strategySignature
+                + ", strategyAnalysisDataTask=" + strategyAnalysisDataTask
+                + "; outputDir=" + outputDir
+                + ", packageName='" + packageName + '\''
+                + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+                + ", constants=" + constants
+                + ", extraArgs=" + extraArgs
+                + ", checkInput=" + checkInput
+                + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+                + '}';
+            //@formatter:on
         }
     }
 
@@ -528,7 +561,18 @@ public abstract class BackInput implements Serializable {
         }
 
         @Override public String toString() {
-            return "Back.CongruenceInput";
+            //@formatter:off
+            return "BackInput.Congruence@" + System.identityHashCode(this) + '{'
+                + "compileDR=" + compileDR
+                + "; outputDir=" + outputDir
+                + ", packageName='" + packageName + '\''
+                + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+                + ", constants=" + constants
+                + ", extraArgs=" + extraArgs
+                + ", checkInput=" + checkInput
+                + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+                + '}';
+            //@formatter:on
         }
     }
 
@@ -629,7 +673,20 @@ public abstract class BackInput implements Serializable {
         }
 
         @Override public String toString() {
-            return "Back.BoilerplateInput";
+            //@formatter:off
+            return "BackInput.Boilerplate@" + System.identityHashCode(this) + '{'
+                + "library=" + library
+                + ", libraryName='" + libraryName + '\''
+                + ", compileDR=" + compileDR
+                + "; outputDir=" + outputDir
+                + ", packageName='" + packageName + '\''
+                + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+                + ", constants=" + constants
+                + ", extraArgs=" + extraArgs
+                + ", checkInput=" + checkInput
+                + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+                + '}';
+            //@formatter:on
         }
     }
 }
