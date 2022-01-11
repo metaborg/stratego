@@ -58,8 +58,14 @@ public class CompileInput implements Serializable {
         if(o == null || getClass() != o.getClass())
             return false;
 
-        CompileInput that = (CompileInput) o;
+        CompileInput that = (CompileInput)o;
 
+        if(library != that.library)
+            return false;
+        if(usingLegacyStrategoStdLib != that.usingLegacyStrategoStdLib)
+            return false;
+        if(createShadowJar != that.createShadowJar)
+            return false;
         if(!checkInput.equals(that.checkInput))
             return false;
         if(!outputDir.equals(that.outputDir))
@@ -74,9 +80,7 @@ public class CompileInput implements Serializable {
             return false;
         if(!extraArgs.equals(that.extraArgs))
             return false;
-        if(library != that.library)
-            return false;
-        return usingLegacyStrategoStdLib == that.usingLegacyStrategoStdLib;
+        return libraryName.equals(that.libraryName);
     }
 
     @Override public int hashCode() {
@@ -89,6 +93,8 @@ public class CompileInput implements Serializable {
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + (library ? 1 : 0);
         result = 31 * result + (usingLegacyStrategoStdLib ? 1 : 0);
+        result = 31 * result + (createShadowJar ? 1 : 0);
+        result = 31 * result + libraryName.hashCode();
         return result;
     }
 
@@ -97,13 +103,14 @@ public class CompileInput implements Serializable {
         return "CompileInput@" + System.identityHashCode(this) + '{'
             + "checkInput=" + checkInput
             + ", outputDir=" + outputDir
-            + ", javaClassDir=" + javaClassDir
+            + ", str2libReplicateDir=" + str2libReplicateDir
             + ", packageName='" + packageName + '\''
             + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
             + ", constants=" + constants
             + ", extraArgs='" + extraArgs + '\''
             + ", library=" + library
             + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+            + ", createShadowJar=" + createShadowJar
             + ", libraryName='" + libraryName + '\''
             + '}';
         //@formatter:on
