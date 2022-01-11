@@ -105,7 +105,7 @@ strategies
 
   wrap-guarded-leaves:
     GuardedLeafs(guard*) ->
-    SwitchT(TypeP(CurP()), [], GuardedDefault(guard*))
+    <foldr(!Fail(), \ (Guard(x*, s_g, s_a), s_rest) -> |[ {x*: s_g < s_a + s_rest} ]| \)> guard*
 
   /*
    * Remove any guarded arms *after* an `id`-guarded arm.
