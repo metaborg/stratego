@@ -12,6 +12,8 @@ strategies
              case | Car2(_): Cons(!2, Nil())
              case | "abc" when ?"something": !"cba"
              case | "abc" when ?"somethingelse": !"abc"
+             case | a: !"a"
+             case | b: !"b"
              case | _: !"string?"
              case | 8: !54
              case | 5.4: !8

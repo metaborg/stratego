@@ -1,0 +1,95 @@
+module gen/classes
+
+imports
+	injections/-
+	signatures/-
+	signatures/RV32IM-sig
+	
+	gen/types
+	gen/stmts
+	gen/functions
+	gen/literals
+
+rules
+
+	class-to-prototype(|a,ht,typeTag,fieldTable,parents): ClassDef(name, parent, _) -> out
+	with
+		fields := <find-unique-members(|fieldTable,parents)> name;
+		nextTypeTag := <next-counter> typeTag;
+		size := <add> (3, <length> fields);
+		aOut := [
+			PSGlobl($[$[name]$prototype]),
+			Label($[$[name]$prototype]),
+			PSWord(<int-to-string> nextTypeTag),
+			PSWord(<int-to-string> size),
+			PSWord($[$[name]$dispatchTable])
+		];
+		out := <concat> [aOut, <mapconcat(\ (_, a) -> a \)> fields, [PSAlign("2")]]
+		
+	class-to-dispatchTable(|ht,members,parents): ClassDef(name, parent, _) -> out
+	with
+		aOut := [
+			PSGlobl($[$[name]$dispatchTable]),
+			Label($[$[name]$dispatchTable])
+		];
+		methods := <find-unique-members(|members,parents)> name;
+		out := <concat> [aOut, <mapconcat(method-reference)> methods]
+		
+	class-function-to-rv32im(|a,ht,name,binds,classInfo): f -> <func-defs-to-rv32im(|a,ht, $[[name].], binds,1,classInfo,0)> f
+
+	get-member-index(|members,parents,class): name -> out
+	where
+		methods := <find-unique-members(|members,parents)> class;
+		out := <get--member-index(|name,0)> methods
+	get--member-index(|name,startNo): [(name2, _)|_] -> startNo where <equal> (<strip-annos> name, <strip-annos> name2)
+	get--member-index(|name,startNo): [(_, _)|t] -> <get--member-index(|name,<inc> startNo)> t
+	find-unique-members(|members,parents): name -> <find-members(|members,parents); merge-members> name
+	
+	merge-members: [] -> []
+	merge-members: l@[(name, src)|t] -> [(name, <get-last-member-src(|name)> l) | <filter(other-member-name(|name)); merge-members> t]
+	other-member-name(|name): a@(oName,_) -> a where not(<equal> (<strip-annos> name, <strip-annos> oName))
+	get-last-member-src(|name): list -> <lookup> (name, <reverse> list)	
+	
+	find-members(|members,parents): aname -> out
+	with
+		name := <strip-annos> aname;
+		myMembers := <hashtable-get(|name) <+ ![]> members;
+		parentMembers := <find-parent-members(|members,parents) <+ ![]> name;
+		out := <concat> [parentMembers, myMembers]
+		
+	find-parent-members(|members,parents): name -> parentMethods
+	where
+		parent := <hashtable-get(|name)> parents;
+		parentMethods := <find-members(|members,parents)> parent
+		
+	method-reference: (funcName,name) -> [PSWord($[$[name].[funcName]])]
+		
+	class-members(|a,ht): definition@_ -> (table, fields, parents)
+	with
+		table := <new-hashtable>;
+		fields := <new-hashtable>;
+		parents := <new-hashtable>;
+		<hashtable-put(|"object", [("__init__", "object")])> table;
+		<mapconcat(class-members-iterate(|table, fields, parents, a, ht) <+ ![])> definition
+	
+	class-members-iterate(|table, fieldTable, parents, a, ht): ClassDef(name, parent, Pass()) -> []
+	with 
+		<hashtable-put(|<strip-annos> name, [])> table;
+		<hashtable-put(|<strip-annos> name, [])> fieldTable;
+		<hashtable-put(|<strip-annos> name, <strip-annos> parent)> parents
+	
+	class-members-iterate(|table, fieldTable, parents, a, ht): ClassDef(name, parent, content) -> []
+	with
+		list := <mapconcat(class-members-funcName(|name) <+ ![])> content;
+		fields := <mapconcat(class-fields-fieldName(|a,ht) <+ ![])> content;
+		<hashtable-put(|<strip-annos> name, list)> table;
+		<hashtable-put(|<strip-annos> name, fields)> fieldTable;
+		<hashtable-put(|<strip-annos> name, <strip-annos> parent)> parents
+		
+			
+	class-members-funcName(|class): FuncDef(funcName, _, _, _) -> [(<strip-annos> funcName, <strip-annos> class)]
+	class-fields-fieldName(|a,ht): var@VarDef(TypedVar(fieldName, _), _) -> [(<strip-annos> fieldName, <attribute-initial-value(|a,ht)> var)]
+	
+	attribute-initial-value(|a,ht): v@VarDef(TypedVar(_, _), val) -> <literal-to-rv32im(|ht,t)> val
+	with
+		t := <get-type(|a)> v
