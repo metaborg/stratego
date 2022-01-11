@@ -58,6 +58,13 @@ public class CheckInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Check.Input(" + mainModuleIdentifier + ")";
+        //@formatter:off
+        return "CheckInput@" + System.identityHashCode(this) + '{'
+            + "mainModuleIdentifier=" + mainModuleIdentifier
+            + ", projectPath=" + projectPath
+            + ", importResolutionInfo=" + importResolutionInfo
+            + ", autoImportStd=" + autoImportStd
+            + '}';
+        //@formatter:on
     }
 }

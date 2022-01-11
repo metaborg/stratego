@@ -149,9 +149,14 @@ public interface IModuleImportService {
         }
 
         @Override public String toString() {
-            return "ImportResolutionInfo{" + "strFileGeneratingTasks=" + strFileGeneratingTasks
-                + ", includeDirs=" + includeDirs + ", linkedLibraries=" + linkedLibraries
-                + ", str2libraries=" + str2libraries + '}';
+            //@formatter:off
+            return "ImportResolutionInfo@" + System.identityHashCode(this) + '{'
+                + "strFileGeneratingTasks=" + strFileGeneratingTasks
+                + ", includeDirs=" + includeDirs
+                + ", linkedLibraries=" + linkedLibraries
+                + ", str2libraries=" + str2libraries
+                + '}';
+            //@formatter:on
         }
     }
 

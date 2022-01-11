@@ -57,7 +57,14 @@ public class CheckOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Check.Output(" + messages.size() + ", " + containsErrors + ")";
+        //@formatter:off
+        return "CheckOutput@" + System.identityHashCode(this) + '{'
+            + "dynamicRuleIndex=" + dynamicRuleIndex.size()
+            + ", allModuleIdentifiers=" + allModuleIdentifiers.size()
+            + ", messages=" + messages.size()
+            + ", containsErrors=" + containsErrors
+            + '}';
+        //@formatter:on
     }
 
 }

@@ -54,6 +54,13 @@ public class ResolveInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Resolve.Input(" + mainModuleIdentifier + ")";
+        //@formatter:off
+        return "ResolveInput@" + System.identityHashCode(this) + '{'
+            + "mainModuleIdentifier=" + mainModuleIdentifier
+            + ", importResolutionInfo=" + importResolutionInfo
+            + (fileOpenInEditor == null ? "" : ", fileOpenInEditor=" + fileOpenInEditor)
+            + ", autoImportStd=" + autoImportStd
+            + '}';
+        //@formatter:on
     }
 }

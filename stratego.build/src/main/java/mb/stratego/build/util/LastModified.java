@@ -1,6 +1,7 @@
 package mb.stratego.build.util;
 
 import java.io.Serializable;
+import java.util.function.Function;
 
 public class LastModified<T> implements Serializable, WithLastModified {
     public final T wrapped;
@@ -36,5 +37,23 @@ public class LastModified<T> implements Serializable, WithLastModified {
         int result = wrapped.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
+    }
+
+    @Override public String toString() {
+        //@formatter:off
+        return "LastModified{"
+            + "wrapped=" + wrapped
+            + ", lastModified=" + lastModified
+            + '}';
+        //@formatter:on
+    }
+
+    public String toString(Function<T, String> toString) {
+        //@formatter:off
+        return "LastModified{"
+            + "wrapped=" + toString.apply(wrapped)
+            + ", lastModified=" + lastModified
+            + '}';
+        //@formatter:on
     }
 }

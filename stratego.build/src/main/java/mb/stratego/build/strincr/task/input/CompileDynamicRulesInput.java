@@ -76,6 +76,17 @@ public class CompileDynamicRulesInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Compile.Input(" + checkInput.mainModuleIdentifier + ")";
+        //@formatter:off
+        return "CompileDynamicRulesInput@" + System.identityHashCode(this) + '{'
+            + "checkInput=" + checkInput
+            + ", outputDirWithPackage=" + outputDirWithPackage
+            + ", packageName='" + packageName + '\''
+            + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
+            + ", constants=" + constants
+            + ", extraArgs=" + extraArgs
+            + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
+            + ", strategyAnalysisDataTask=" + strategyAnalysisDataTask
+            + '}';
+        //@formatter:on
     }
 }

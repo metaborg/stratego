@@ -53,6 +53,12 @@ public class CheckModuleInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckModuleInput(" + frontInput + ", " + mainModuleIdentifier + ')';
+        //@formatter:off
+        return "CheckModuleInput@" + System.identityHashCode(this) + '{'
+            + "frontInput=" + frontInput
+            + ", mainModuleIdentifier=" + mainModuleIdentifier
+            + ", projectPath=" + projectPath
+            + '}';
+        //@formatter:on
     }
 }

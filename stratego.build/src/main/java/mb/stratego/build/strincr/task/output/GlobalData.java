@@ -173,6 +173,28 @@ public class GlobalData implements Serializable {
     }
 
     @Override public String toString() {
-        return "GlobalData(" + allModuleIdentifiers + ")";
+        //@formatter:off
+        return "GlobalData@" + System.identityHashCode(this) + '{'
+            + "allModuleIdentifiers=" + allModuleIdentifiers.size()
+            + ", importedStr2LibPackageNames=" + importedStr2LibPackageNames.size()
+            + ", nonExternalInjections=" + nonExternalInjections.size()
+            + ", strategyIndex=" + strategyIndex.size()
+            + ", overlayIndex=" + overlayIndex.size()
+            + ", strategyTypes=" + strategyTypes.size()
+            + ", nonExternalSorts=" + nonExternalSorts.size()
+            + ", externalSorts=" + externalSorts.size()
+            + ", nonExternalConstructors=" + nonExternalConstructors.size()
+            + ", externalConstructors=" + externalConstructors.size()
+            + ", internalStrategies=" + internalStrategies.size()
+            + ", externalStrategies=" + externalStrategies.size()
+            + ", dynamicRules=" + dynamicRules.size()
+            + ", overlayData=" + overlayData.size()
+            + ", messages=" + messages.size()
+            + ", lastModified=" + lastModified
+            + (compileGlobalIndex == null ? "" : ", compileGlobalIndex=" + compileGlobalIndex)
+            + (congruenceGlobalIndex == null ? "" : ", congruenceGlobalIndex=" + congruenceGlobalIndex)
+            + (globalConsInj == null ? "" : ", globalConsInj=" + globalConsInj)
+            + '}';
+        //@formatter:on
     }
 }

@@ -41,7 +41,15 @@ public class CheckOpenModuleOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckOpenModule.Output(" + messages.size() + ")";
+        if(astWithCasts == null) {
+            assert messages.isEmpty();
+            return "CheckOpenModuleOutput@" + System.identityHashCode(this) + "{inputIsALibrary=true}";
+        }
+        //@formatter:off
+        return "CheckOpenModuleOutput@" + System.identityHashCode(this) + '{'
+            + "astWithCasts=" + astWithCasts.toString(4)
+            + ", messages=" + messages.size()
+            + '}';
+        //@formatter:on
     }
-
 }

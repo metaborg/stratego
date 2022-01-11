@@ -44,14 +44,22 @@ public abstract class FrontInput implements Serializable {
         return result;
     }
 
-    @Override public String toString() {
-        return "FrontInput." + this.getClass().getSimpleName() + "(" + moduleIdentifier + ")";
-    }
+    @Override public abstract String toString();
 
     public static class Normal extends FrontInput {
         public Normal(IModuleImportService.ModuleIdentifier moduleIdentifier,
             ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
             super(moduleIdentifier, importResolutionInfo, autoImportStd);
+        }
+
+        @Override public String toString() {
+            //@formatter:off
+            return "FrontInput.Normal@" + System.identityHashCode(this) + '{'
+                + "moduleIdentifier=" + moduleIdentifier
+                + ", importResolutionInfo=" + importResolutionInfo
+                + ", autoImportStd=" + autoImportStd
+                + '}';
+            //@formatter:on
         }
     }
 
@@ -82,6 +90,17 @@ public abstract class FrontInput implements Serializable {
             int result = super.hashCode();
             result = 31 * result + ast.hashCode();
             return result;
+        }
+
+        @Override public String toString() {
+            //@formatter:off
+            return "FrontInput.FileOpenInEditor@" + System.identityHashCode(this) + '{'
+                + "moduleIdentifier=" + moduleIdentifier
+                + ", importResolutionInfo=" + importResolutionInfo
+                + ", autoImportStd=" + autoImportStd
+                + ", ast=" + ast
+                + '}';
+            //@formatter:on
         }
     }
 }

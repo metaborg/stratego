@@ -56,6 +56,12 @@ public class CompileDynamicRulesOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CompileDynamicRulesOutput(" + newGenerated + ", " + undefineGenerated + ")";
+        //@formatter:off
+        return "CompileDynamicRulesOutput@" + System.identityHashCode(this) + '{'
+            + "newGenerated=" + newGenerated.size()
+            + ", undefineGenerated=" + undefineGenerated.size()
+            + ", resultFiles=" + resultFiles.size()
+            + '}';
+        //@formatter:on
     }
 }
