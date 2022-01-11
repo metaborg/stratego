@@ -2309,8 +2309,10 @@ strategies
     foldr(<translate-strategy> failure, translate-Guard)
 
   translate-Guard:
-    (Guard(s1, Id()), stm_s2) ->
+    (Guard(vars, s1, Id()), stm_s2) ->
     bstm* |[
+      bstm_decl*
+
       // (this pattern is matched optimized in java-postprocess)
       IStrategoTerm x_termcopy = term;
       Success: {
@@ -2323,14 +2325,17 @@ strategies
         stm_s2
       }
     ]|
-   with
-     x_termcopy := <local-newname> "term"
-   ; stm_s1     := <translate-strategy> s1
+  with
+    x_termcopy := <local-newname> "term"
+  ; stm_s1     := <translate-strategy> s1
+  ; bstm_decl* := <map(to-java-vardecl)> vars
 
   /** @type Guard -> Block */  
   translate-Guard:
-    (Guard(s1, s2), stm_s3) ->
+    (Guard(vars, s1, s2), stm_s3) ->
     bstm* |[
+      bstm_decl*
+
       IStrategoTerm x_termcopy = term;
       Success: {
         Fail: {
@@ -2351,6 +2356,7 @@ strategies
     x_termcopy := <local-newname> "term"
   ; stm_s1     := <translate-strategy> s1
   ; stm_s2     := <translate-strategy> s2
+  ; bstm_decl* := <map(to-java-vardecl)> vars
 
 
   typed-assign(|LisT()):

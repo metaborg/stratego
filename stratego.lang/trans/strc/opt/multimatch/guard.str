@@ -18,8 +18,8 @@ strategies
     <map(alias-to-guard(|p*))> row* => row'*
 
   internal alias-to-guard(|p*):
-    Row(t*, sg, sa) ->
-    Row(t'*, sg', sa)
+    Row(t*, x*, sg, sa) ->
+    Row(t'*, x*, sg', sa)
   with
     <thread-map(repeat(AliasToGuard, \ ((p, t), s*) -> (t, s*) \))> (<zip> (p*, t*), []) => (t'*, s*)
   ; s' := <sequence-list> s*

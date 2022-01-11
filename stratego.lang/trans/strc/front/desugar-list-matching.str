@@ -59,6 +59,9 @@ rules
     ScopedGuardedMatchCase(xs, t, s1, s2) -> ScopedGuardedMatchCase(ys, t, s1, s2)
     where <map(try(?ListVar(<id>)))> xs => ys
 
+  ListVarScope =
+    Guard(map(try(?ListVar(<id>))), id, id)
+
   ListVarScope :
     SDefT(f, as1, as2, s) -> SDefT(f, as1, as2', s)
     where <map(try(DefaultVarDec(?ListVar(<id>)) + VarDec(?ListVar(<id>),id)))> as2 => as2'

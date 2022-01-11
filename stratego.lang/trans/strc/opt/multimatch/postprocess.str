@@ -9,6 +9,8 @@ imports
 
   signatures/core/strategies-sig
 
+  libstratego-lib
+
 strategies
   desugar-dfa = id
   ; simplify0; simplify
@@ -53,24 +55,24 @@ strategies
   + EliminateEmpty
 
   EliminateId:
-    GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) ->
-    AltV(t, a)
+    GuardedAltV(t, [Guard(x*, <is-id-guard>, a) | _]) ->
+    AltV(t, Scope(x*, a))
 
   EliminateId:
-    GuardedDefault([Guard(<is-id-guard>, a) | _]) ->
-    Default(a)
+    GuardedDefault([Guard(x*, <is-id-guard>, a) | _]) ->
+    Default(Scope(x*, a))
 
   EliminateId =
-    GuardedAltV(id, at-last(\ [Guard(Id(), Fail())] -> [] \))
+    GuardedAltV(id, at-last(\ [Guard(_, Id(), Fail())] -> [] \))
 
   EliminateId =
-    GuardedDefault(at-last(\ [Guard(Id(), Fail())] -> [] \))
+    GuardedDefault(at-last(\ [Guard(_, Id(), Fail())] -> [] \))
 
   EliminateFail:
     GuardedDefault(guard*) ->
     Default(Fail())
   where
-    <foldr(![], union, ![<?Guard(<id>, _)>])> guard* => [<is-fail-guard>]
+    <foldr(![], union, ![<?Guard(_, <id>, _)>])> guard* => [<is-fail-guard>]
 
   EliminateEmpty:
     GuardedAltV(t, []) ->
@@ -95,10 +97,11 @@ strategies
    *
    * Desugar IR.
    */
-  lift-guard: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
-              Guard(s3, s)
+  lift-guard: Guard(x1*, s1, GuardedLeafs([Guard(x2*, s2, s)])) ->
+              Guard(x3*, s3, s)
   with
     <sequence-strategies> (s1, s2) => s3
+  ; <union> (x1*, x2*) => x3*
 
   wrap-guarded-leaves:
     GuardedLeafs(guard*) ->
@@ -110,9 +113,9 @@ strategies
    * Reduce code size.
    */
   drop-unreachable-guards =
-    GuardedDefault(drop-after(?Guard(<is-id-guard>, _)))
+    GuardedDefault(drop-after(?Guard(_, <is-id-guard>, _)))
   drop-unreachable-guards =
-    GuardedAltV(id, drop-after(?Guard(<is-id-guard>, _)))
+    GuardedAltV(id, drop-after(?Guard(_, <is-id-guard>, _)))
 
 strategies
   is-id-guard = ?Id()

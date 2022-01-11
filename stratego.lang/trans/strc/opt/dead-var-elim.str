@@ -23,7 +23,6 @@ strategies
     <+ elim-choice(dve)
     <+ elim-lchoice(dve)
     <+ elim-guardedlchoice(dve)
-    <+ elim-scopedmatchcase
     <+ EliminateFromMatch
     <+ all-rl(dve)
   )
@@ -44,14 +43,21 @@ strategies
            ; EliminateFromScope
       |}
 
-  elim-scopedmatchcase(x) =
+  elim-scope(x) =
+    ?Guard(_, _, _)
+  ; {| ElimVar
+     : Guard(map(DeclareDead), x, x)
+     ; EliminateFromScope
+    |}
+
+  elim-scope(x) =
     ?ScopedMatchCase(_, _, _)
     ; {| ElimVar :
            ScopedMatchCase(map(DeclareDead), x, x)
          ; EliminateFromScope
       |}
 
-  elim-scopedmatchcase(x) =
+  elim-scope(x) =
     ?ScopedGuardedMatchCase(_, _, _, _)
     ; {| ElimVar :
            ScopedGuardedMatchCase(map(DeclareDead), x, x, x)
@@ -69,6 +75,9 @@ strategies
   
   EliminateFromScope =
     ScopedGuardedMatchCase(filter(not(!Var(<id>); ElimVar)), id, id, id)
+
+  EliminateFromScope =
+    Guard(filter(not(!Var(<id>); ElimVar)), id, id)
 
   DeclareAlive =
     ?x; rules(ElimVar+x : Var(x))

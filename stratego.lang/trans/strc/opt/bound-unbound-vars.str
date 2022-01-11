@@ -135,10 +135,11 @@ strategies
     GuardedDefault(foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-guard)> c | acc] \))
 
   mark-guard:
-    Guard(s1, s2) -> Guard(s1', s2')
+    Guard(x*, s1, s2) -> Guard(x*, s1', s2')
   where
     {| MarkVar :
-      s1' := <mark-buv> s1
+      <map(DeclareUnbound)> x*
+    ; s1' := <mark-buv> s1
     ; s2' := <mark-buv> s2
     |}
 

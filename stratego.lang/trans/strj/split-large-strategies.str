@@ -21,6 +21,8 @@ overlays
    */
   LARGE_STRATEGY_SIZE = 2500
 
+  IdGuard(s) = Guard([], Id(), s)
+
 strategies
 
   split-large-strategies =
@@ -35,7 +37,7 @@ strategies
     bottomup-at-large-terms(
       (?Seq(_, _) + ?GuardedLChoice(_, _, _)) < split-large-strategy-apply(|x)
     + AltV(id, split-large-strategy-apply(|x))
-    + Guard(id, split-large-strategy-apply(|x))
+    + Guard(id, id, split-large-strategy-apply(|x))
     + Default(split-large-strategy-apply(|x))
     + split-large-alt-list-apply(|x); bottomup-at-large-terms(split-large-alt-list-apply(|x)) // Recursively apply until all lists are small enough
     )
@@ -130,7 +132,7 @@ internal halve-list =
     (guard1*, guard2*) := <halve-list> guard*
   ; ss := <GenSwitchT> (<SwitchVPath>, [GuardedAltV(pat, guard2*)])
   ; s' := <split-large-strategy-apply(|x)> ss
-  ; guard'* := <at-end(![Guard(Id(), s')])> guard1*
+  ; guard'* := <at-end(![IdGuard(s')])> guard1*
 
   split-large-alt-list-apply(|x):
     GuardedDefault(guard*) ->
@@ -139,7 +141,7 @@ internal halve-list =
     (guard1*, guard2*) := <halve-list> guard*
   ; ss := <GenSwitchT> (<SwitchVPath>, [], GuardedDefault(guard2*))
   ; s' := <split-large-strategy-apply(|x)> ss
-  ; guard'* := <at-end(![Guard(Id(), s')])> guard1*
+  ; guard'* := <at-end(![IdGuard(s')])> guard1*
 
   // No SwitchT default required; we are inside another identical SwitchT/AltT at this point, so the type switch will succeed for exactly that type.
   internal GenSwitchT: (p, alt*) -> SwitchTNoDefault(<SwitchTPath>, [AltT(<AltTPat>, <GenSwitchV> (p, alt*))])

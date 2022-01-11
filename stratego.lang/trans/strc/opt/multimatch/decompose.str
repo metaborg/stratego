@@ -25,9 +25,9 @@ strategies
    * Maranget (2008), fig. 1.
    */
   default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, fatal-err(|"ERROR - no default: "))))
-  default-row: Row([<is-wld> | ps], s_g, s_rhs) -> Row(ps, s_g, s_rhs)
+  default-row: Row([<is-wld> | ps], x*, s_g, s_rhs) -> Row(ps, x*, s_g, s_rhs)
 
-  non-default-row = ?Row([<non-default-head> | _], _, _) // by definition
+  non-default-row = ?Row([<non-default-head> | _], _, _, _) // by definition
   non-default-head =
     ?Op(_, _)
   + ?Int(_)
@@ -65,7 +65,7 @@ strategies
     Matrix(specialize-occs(|c), filter(specialize-row(|c)))
 
   internal specialize-row(|c) =
-    Row(specialize-pats(|c), id, id)
+    RowPattern(specialize-pats(|c))
 
   internal specialize-occs(|c): occs@[o | os*] -> [o*, os*]
     with o* := <specialize-occ(|c)> o

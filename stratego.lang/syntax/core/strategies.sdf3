@@ -149,7 +149,7 @@ context-free syntax
 context-free sorts Guard
 context-free syntax
   Guard.Guard =
-<where <Strategy>:
+<where <{ID ", "}*> | <Strategy>:
   <Strategy>>
 
 context-free sorts Path PathTrm PathTp PathFld PathVF
