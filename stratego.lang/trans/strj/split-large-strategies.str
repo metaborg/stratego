@@ -23,6 +23,12 @@ overlays
 
   IdGuard(s) = Guard([], Id(), s)
 
+signature
+  sorts SwitchKind
+  constructors
+    V : SwitchKind
+    T : SwitchKind
+
 strategies
 
   split-large-strategies =
@@ -48,7 +54,7 @@ strategies
   bottomup-at-large-terms'(s) :
     t -> (t'', size')
     with
-    {| SwitchTPath, SwitchVPath, AltTPat, AltVPath :
+    {| SwitchKind, SwitchTPath, SwitchVPath, AltTPat, AltVPath :
       try(DefineContext)
     ; t'-and-sizes := <all(bottomup-at-large-terms'(s))>
     ; t'           := <all(Fst)> t'-and-sizes
@@ -67,13 +73,21 @@ strategies
     )
     |}
 
-  DefineContext = ?SwitchT(p, _, _); rules( SwitchTPath := p )
-  DefineContext = ?SwitchTNoDefault(p, _); rules( SwitchTPath := p )
-  DefineContext = ?SwitchV(p, _, _); rules( SwitchVPath := p )
-  DefineContext = ?SwitchVNoDefault(p, _); rules( SwitchVPath := p )
+  DefineContext = ?SwitchT(p, _, _)
+                ; rules( SwitchKind := T()
+                         SwitchTPath := p )
+  DefineContext = ?SwitchTNoDefault(p, _)
+                ; rules( SwitchKind := T()
+                         SwitchTPath := p )
+  DefineContext = ?SwitchV(p, _, _)
+                ; rules( SwitchKind := V()
+                         SwitchVPath := p )
+  DefineContext = ?SwitchVNoDefault(p, _)
+                ; rules( SwitchKind := V()
+                         SwitchVPath := p )
   DefineContext = ?AltT(tp, _); rules( AltTPat := tp )
-  DefineContext = ?AltV(vp, _); rules ( AltVPath := vp )
-  DefineContext = ?GuardedAltV(vp, _); rules ( AltVPath := vp )
+  DefineContext = ?AltV(vp, _); rules( AltVPath := vp )
+  DefineContext = ?GuardedAltV(vp, _); rules( AltVPath := vp )
 
   split-large-strategy-apply(|x) :
     |[ s ]| ->
@@ -140,6 +154,17 @@ internal halve-list =
   with
     (guard1*, guard2*) := <halve-list> guard*
   ; ss := <GenSwitchT> (<SwitchVPath>, [], GuardedDefault(guard2*))
+  ; s' := <split-large-strategy-apply(|x)> ss
+  ; guard'* := <at-end(![IdGuard(s')])> guard1*
+
+  split-large-alt-list-apply(|x):
+    GuardedDefault(guard*) ->
+    GuardedDefault(guard'*)
+  where T() := <SwitchKind>
+  with <length; debug(|"halving guarded defaults (T) ")> guard*
+  with
+    (guard1*, guard2*) := <halve-list> guard*
+  ; ss := SwitchT(<SwitchTPath>, [], GuardedDefault(guard2*))
   ; s' := <split-large-strategy-apply(|x)> ss
   ; guard'* := <at-end(![IdGuard(s')])> guard1*
 
