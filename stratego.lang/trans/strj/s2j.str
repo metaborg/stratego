@@ -2241,7 +2241,7 @@ strategies
       }
     ]|
   with
-    x_cons := <local-newname> "cons"
+    x_cons := <newname> "cons"
   ; pairs := <map(split(id, Alt2Arity; try(int-to-string)))> alt*
   ; group_labels := <map(Snd); make-set> pairs
   ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
@@ -2326,7 +2326,7 @@ strategies
       }
     ]|
   with
-    x_termcopy := <local-newname> "term"
+    x_termcopy := <newname> "term"
   ; stm_s1     := <translate-strategy> s1
   ; bstm_decl* := <map(to-java-vardecl)> vars
 
@@ -2353,7 +2353,7 @@ strategies
   where
     <not(?Id())> s2
   with
-    x_termcopy := <local-newname> "term"
+    x_termcopy := <newname> "term"
   ; stm_s1     := <translate-strategy> s1
   ; stm_s2     := <translate-strategy> s2
   ; bstm_decl* := <map(to-java-vardecl)> vars
@@ -2363,61 +2363,61 @@ strategies
     e_trm ->
     (bstm |[ IStrategoList x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "list"
+    x_asgn := <newname> "list"
 
   typed-assign(|ApplT()):
     e_trm ->
     (bstm |[ IStrategoAppl x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "appl"
+    x_asgn := <newname> "appl"
 
   typed-fld-assign(|ApplT()):
     e_trm ->
     (bstm |[ IStrategoConstructor x_fld = e_trm; ]|, x_fld)
   with
-    x_fld := <local-newname> "cons"
+    x_fld := <newname> "cons"
 
   typed-assign(|TupleT()):
     e_trm ->
     (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "tuple"
+    x_asgn := <newname> "tuple"
 
   typed-fld-assign(|TupleT()):
     e_trm ->
     (bstm |[ int x_fld = e_trm; ]|, x_fld)
   with
-    x_fld := <local-newname> "size"
+    x_fld := <newname> "size"
 
   typed-assign(|StringT()):
     e_trm ->
     (bstm |[ IStrategoString x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "str"
+    x_asgn := <newname> "str"
 
   typed-fld-assign(|StringT()):
     e_trm ->
     (bstm |[ String x_fld = e_trm; ]|, x_fld)
   with
-    x_fld := <local-newname> "str"
+    x_fld := <newname> "str"
 
   typed-assign(|IntT()):
     e_trm ->
     (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "int"
+    x_asgn := <newname> "int"
 
   typed-fld-assign(|IntT()):
     e_trm ->
     (bstm |[ int x_fld = e_trm; ]|, x_fld)
   with
-    x_fld := <local-newname> "int"
+    x_fld := <newname> "int"
 
   typed-assign(|RealT()):
     e_trm ->
     (bstm |[ IStrategoReal x_asgn = e_trm; ]|, x_asgn)
   with
-    x_asgn := <local-newname> "real"
+    x_asgn := <newname> "real"
 
 
   java-Pat-to-Condition:

@@ -42,7 +42,12 @@ strategies
     apply-to-bodies(match-to-dfa)
 
   compile-match =
-    choices-to-multimatches; bottomup(?MultiMatch(_, _) < multimatch2dfa + id)
+    choices-to-multimatches
+  ; let
+      convert     = bottomup(?MultiMatch(_, _) < multimatch2dfa + id)
+    in // HACK
+      Specification(map(try(Strategies(map({| DFALocalDefName : try(oncetd(where(?SDefT(<rules( DFALocalDefName := <debug(|"f: "); id>)>, _, _, _)); convert)) |})))))
+    end
 
   bound-unbound-var = 
     mark-bound-unbound-vars

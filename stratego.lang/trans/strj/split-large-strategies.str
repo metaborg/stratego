@@ -101,7 +101,7 @@ strategies
     ]|
     with
       // TODO Preferably use snewvar here. But that doesn't accept '$' in the input.
-      x_split  := <conc-strings; local-newname> (x, "_fragment_")
+      x_split  := <conc-strings; newname> (x, "_fragment_")
     ; x_unused := <tnewvar> "unused"
 
 internal halve-list =

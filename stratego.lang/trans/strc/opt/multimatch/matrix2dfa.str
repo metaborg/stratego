@@ -102,19 +102,16 @@ strategies
   tswitch:
     (m@Matrix([p | _], [_ | _]), cons*) ->
     |[
-      {x_unused:
-        let
-          x_def(|) = ?x_unused; ~<default; CC> m
-        in
-          ~SwitchT(TypeP(p), talt*, Default(s_def))
-        end
-      }
+      let
+        x_def(|) = ~<default; CC> m
+      in
+        ~SwitchT(TypeP(p), talt*, Default(s_def))
+      end
     ]|
   where
     <not(fetch(?(AnnoC(), _)))> cons*
   with
-    x_def   := <def-local-newname> "dfa"
-  ; x_unused := <local-newname> "unused"
+    x_def   := <scope-def-local-newname(snewvar|<DFALocalDefName>)> "dfa"
   ; s_def   := |[ x_def(|) ]|
   with
     talt*   := <tswitch-arms; map(talt(|m, p, s_def))> cons*
