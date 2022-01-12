@@ -100,13 +100,24 @@ strategies
 //  ; debug(!"unwrapping annos... ")
 
   tswitch:
-    (m@Matrix([p | _], [_ | _]), cons*) -> SwitchT(TypeP(p), talt*, Default(s_def))
+    (m@Matrix([p | _], [_ | _]), cons*) ->
+    |[
+      {x_unused:
+        let
+          x_def(|) = ?x_unused; ~<default; CC> m
+        in
+          ~SwitchT(TypeP(p), talt*, Default(s_def))
+        end
+      }
+    ]|
   where
     <not(fetch(?(AnnoC(), _)))> cons*
   with
-    arm*    := <tswitch-arms> cons*
-  ; s_def   := <default; CC> m
-  ; talt*   := <map(talt(|m, p, s_def))> arm*
+    x_def   := <def-local-newname> "dfa"
+  ; x_unused := <local-newname> "unused"
+  ; s_def   := |[ x_def(|) ]|
+  with
+    talt*   := <tswitch-arms; map(talt(|m, p, s_def))> cons*
 
   talt(|m, p, s_def):
     (t, c*) -> AltT(t, SwitchV(p', alt*, Default(s_def)))
