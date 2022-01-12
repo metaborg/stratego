@@ -111,7 +111,7 @@ strategies
   where
     <not(fetch(?(AnnoC(), _)))> cons*
   with
-    x_def   := <scope-def-local-newname(snewvar|<DFALocalDefName>)> "dfa"
+    x_def   := <scope-def-local-newname(snewvar|<DFALocalDefName <+ <conc-strings> ("dfa", <next-random; int-to-string; cify>)>)> "dfa"
   ; s_def   := |[ x_def(|) ]|
   with
     talt*   := <tswitch-arms; map(talt(|m, p, s_def))> cons*
