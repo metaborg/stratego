@@ -19,6 +19,9 @@ strategies
   SelectHeuristically(h1, h2, h3) =
     WithSHeuristics(S(h1); S(h2); S(h3))
 
+  SelectHeuristically(h1, h2, h3, h4) =
+    WithSHeuristics(S(h1); S(h2); S(h3); S(h4))
+
   internal WithSHeuristics(s) = WithSHeuristics'(s, R)
 
   internal WithSHeuristics'(h, ph) = id
@@ -26,8 +29,8 @@ strategies
   ; h // list(Col) -> list(Col)
   ; ph // list(Col) -> Col
 
-  internal S(s) = SelectHeuristically'(s)
-  internal PS(s) = SelectPseudoHeuristically'(s)
+  internal S(s)  = [id] <+ Select'(s, ?Col(_, <id>, _, _))
+  internal PS(s) = [id] <+ Select'(s, ?Col(<id>, _, _, _))
 
   // TODO Identify columns by unique path instead of integer
   internal Matrix2IdxColList = cols; add-indices
@@ -36,22 +39,12 @@ strategies
   internal select'(|score): ((idx, col), (max, col*)) -> (max, [(idx, col) | col*]) where <eq> (score, max)
   internal select'(|score): ((idx, col), (max, col*)) -> (score, [(idx, col)])      where <gt> (score, max)
 
-  internal SelectHeuristically'(heuristic) =
-    [id]
-  <+
+  internal Select'(heuristic, mapcol) =
     let
-      select = {score: where(?((_, Col(_, <heuristic>, _, _)), _) => score); debug(|$[score [score]: ]); select'(|score)}
+      score-col = mapcol; heuristic
+      select    = {score: where(?((_, <score-col>), _) => score); select'(|score)}
     in
-      foldr1(Hd; \ (i, col@Col(_, p*, _, _)) -> (<heuristic> p*, [(i, col)]) \, select); Snd
-    end
-
-  internal SelectPseudoHeuristically'(pseudoheuristic) =
-    [id]
-  <+
-    let
-      select = {score: where(?((_, Col(<pseudoheuristic>, _, _, _)), _) => score); select'(|score)}
-    in
-      foldr1(Hd; \ (i, col@Col(o, _, _, _)) -> (<pseudoheuristic> o, [(i, col)]) \, select); Snd
+      foldr1(Hd; \ (i, col) -> (<score-col> col, [(i, col)]) \, select); Snd
     end
 
 strategies // heuristics
@@ -76,7 +69,7 @@ strategies // heuristics
 
   Rows = fail
 
-strategies // pseudo-heuristics (that examine paths instead of patterns)
+strategies // pseudo-heuristics (that examine paths/indices instead of patterns)
   N = Hd // Left-most ordering
 
   L = PS(PathLength; negate); Hd // BFS (left-bias)
