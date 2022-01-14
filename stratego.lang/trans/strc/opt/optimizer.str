@@ -46,7 +46,7 @@ strategies
   ; let
       convert     = bottomup(?MultiMatch(_, _) < multimatch2dfa + id)
     in // HACK
-      Specification(map(try(Strategies(map({| DFALocalDefName : try(oncetd(where(?SDefT(<rules( DFALocalDefName := <debug(|"f: "); id>)>, _, _, _)); convert)) |})))))
+      Specification(map(try(Strategies(map({| DFALocalDefName : try(oncetd(where(?SDefT(<rules( DFALocalDefName := <id>)>, _, _, _)); convert)) |})))))
     end
 
   bound-unbound-var = 
