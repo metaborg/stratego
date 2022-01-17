@@ -10,6 +10,9 @@ imports
   strc/opt/multimatch/postprocess
   strc/opt/multimatch/utils
 
+  strc/opt/optimizer
+  strc/lib/stratlib
+
   signatures/core/strategies-sig
   signatures/core/terms-sig
 
@@ -18,11 +21,8 @@ imports
 strategies
   /*======== Construct DFA from matrices =================*/ 
   matrix2dfa =
-      log-timed(CC | "DFA - Compilation", 10)
-    ; log-timed(desugar-dfa | "DFA - Desugaring", 10)
-    ; if not(<get-config> "--no-dfa-optimise")
-      then log-timed(optimise-dfa | "DFA - Optimisation", 10)
-      end
+      log-timed(CC | "DFA - Compilation", 1)
+    ; log-timed(desugar-dfa | "DFA - Desugaring", 1)
 
   /*
    * Compilation scheme from Maranget (2008).
@@ -102,7 +102,7 @@ strategies
   tswitch:
     (m@Matrix([p | _], [_ | _]), cons*) ->
     |[
-      let
+      let // TODO Re-use existing definitions, instead of duplicating them
         x_def(|) = ~<default; CC> m
       in
         ~SwitchT(TypeP(p), talt*, Default(s_def))

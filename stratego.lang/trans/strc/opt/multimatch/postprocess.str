@@ -14,21 +14,14 @@ imports
 strategies
   desugar-dfa = id
   ; simplify0; simplify
-  ; repeat(
-      oncebu(
-        eliminate-guard
-      <+ simplify-switch
-      <+ lift-guard
-      )
+  ; innermost(
+      eliminate-guard
+    + simplify-switch
+    + lift-guard
+    + eliminate-default
     )
-  ; topdown(try(wrap-guarded-leaves); try(eliminate-default))
-
-  optimise-dfa =
-    simplify0; simplify
-  ; bottomup(
-    try(drop-unreachable-guards; try(eliminate-guard))
-  ; try(eliminate-default)
-  )
+  ; bottomup(drop-unreachable-guards < try(eliminate-guard) + id)
+  ; topdown(try(wrap-guarded-leaves))
 
 strategies
   /*
@@ -56,11 +49,11 @@ strategies
 
   EliminateId:
     GuardedAltV(t, [Guard(x*, <is-id-guard>, a) | _]) ->
-    AltV(t, Scope(x*, a))
+    AltV(t, <try(EmptyScope + FuseScope)> Scope(x*, a))
 
   EliminateId:
     GuardedDefault([Guard(x*, <is-id-guard>, a) | _]) ->
-    Default(Scope(x*, a))
+    Default(<try(EmptyScope + FuseScope)> Scope(x*, a))
 
   EliminateId =
     GuardedAltV(id, at-last(\ [Guard(_, Id(), Fail())] -> [] \))
@@ -91,17 +84,6 @@ strategies
               GuardedAltV(t, g*)
   lift-guard: Default(GuardedLeafs(g*)) ->
               GuardedDefault(g*)
-
-  /*
-   * Merge guard from guarded leaf with surrounding guard.
-   *
-   * Desugar IR.
-   */
-  lift-guard: Guard(x1*, s1, GuardedLeafs([Guard(x2*, s2, s)])) ->
-              Guard(x3*, s3, s)
-  with
-    <sequence-strategies> (s1, s2) => s3
-  ; <union> (x1*, x2*) => x3*
 
   wrap-guarded-leaves:
     GuardedLeafs(guard*) ->
