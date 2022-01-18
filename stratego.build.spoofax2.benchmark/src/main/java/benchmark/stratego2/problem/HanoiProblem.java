@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface HanoiProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "hanoi%d.str2";
+    default String problemFileName() {
+        return "hanoi.str2";
     }
 }

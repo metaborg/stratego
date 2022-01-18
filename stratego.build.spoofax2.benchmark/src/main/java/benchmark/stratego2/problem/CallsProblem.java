@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface CallsProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
+    default String problemFileName() {
         return "calls.str2";
     }
 }

@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface BenchexprProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "benchexpr%d.str2";
+    default String problemFileName() {
+        return "benchexpr.str2";
     }
 }

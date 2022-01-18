@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface FactorialProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "factorial%d.str2";
+    default String problemFileName() {
+        return "factorial.str2";
     }
 }

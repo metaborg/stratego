@@ -4,7 +4,7 @@ import benchmark.generic.Problem;
 
 public interface CallMutualProblem extends Problem {
     @Override
-    default String problemFileNamePattern() {
+    default String problemFileName() {
         return "call_mutual.py";
     }
 }

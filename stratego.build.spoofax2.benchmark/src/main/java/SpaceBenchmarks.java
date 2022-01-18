@@ -51,21 +51,15 @@ final class SpaceBenchmarks {
                 Sieve.class));
 
         for (Class<? extends StrategoCompilationBenchmark> problemClass : problems) {
-            for (int problemSize : Arrays.stream(
-                            FieldUtils.getField(problemClass, "problemSize", true)
-                                    .getAnnotation(Param.class)
-                                    .value())
-                    .mapToInt(Integer::valueOf).toArray()) {
                 for (int optimisationLevel : optimisationLevels) {
                     for (String switchImplementation : switchImplementations) {
 //                        for (String switchImplementationOrder : switchImplementationOrders){
-                            System.out.printf("%s (%d); -O %d; switch: %s%n", problemClass.getSimpleName(), problemSize, optimisationLevel, switchImplementation);
+                            System.out.printf("%s (%d); -O %d; switch: %s%n", problemClass.getSimpleName(), optimisationLevel, switchImplementation);
 
                             StrategoCompilationBenchmark benchmark = problemClass.newInstance();
                             try {
                                 benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
                                 benchmark.setOptimisationLevel(optimisationLevel);
-                                benchmark.setProblemSize(problemSize);
                                 benchmark.setSharedConstructors("on");
                                 benchmark.setSwitchImplementation(switchImplementation);
 //                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
@@ -80,7 +74,7 @@ final class SpaceBenchmarks {
                                     fileWriter.write(problemClass.getName() + "." + bm.getKey());
 
                                     fileWriter.write(delim);
-                                    fileWriter.write(Integer.toString(problemSize));
+                                    fileWriter.write("");
 
                                     fileWriter.write(delim);
                                     fileWriter.write(Integer.toString(optimisationLevel));
@@ -107,7 +101,6 @@ final class SpaceBenchmarks {
                     }
 //                }
             }
-        }
 
         fileWriter.close();
     }

@@ -4,7 +4,7 @@ import benchmark.generic.Problem;
 
 public interface PrimeProblem extends Problem {
     @Override
-    default String problemFileNamePattern() {
+    default String problemFileName() {
         return "prime.py";
     }
 }

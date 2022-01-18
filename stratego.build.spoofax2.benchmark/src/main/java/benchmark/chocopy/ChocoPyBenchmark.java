@@ -23,4 +23,9 @@ public abstract class ChocoPyBenchmark extends OptimisationBenchmark<ChocoPyProg
     protected String languageSubFolder() {
         return LANGUAGE_SUBFOLDER;
     }
+
+    @Override
+    protected final String sourceFileName() {
+        return problemFileName();
+    }
 }

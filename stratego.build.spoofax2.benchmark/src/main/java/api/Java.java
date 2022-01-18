@@ -47,9 +47,9 @@ public final class Java {
         }
     }
 
-    public static BufferedReader execute(String classPath, String mainClass) throws IOException, InterruptedException {
+    public static BufferedReader execute(String classPath, String mainClass, String arg) throws IOException, InterruptedException {
         Path java = Paths.get(System.getProperty("java.home")).resolve(Paths.get("bin", "java"));
-        ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, "-ss16M", "-ms2G", "-mx2G", mainClass);
+        ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, "-ss16M", "-ms2G", "-mx2G", mainClass, arg);
         Process process = processBuilder.start();
 
         BufferedReader r = new BufferedReader(new InputStreamReader(process.getErrorStream()));

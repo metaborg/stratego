@@ -2,7 +2,6 @@ package benchmark.generic;
 
 import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
-import org.apache.commons.lang3.NotImplementedException;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
 import org.openjdk.jmh.annotations.*;
@@ -41,10 +40,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     @Param({"on"})
     public String sharedConstructors;
 
-    @Param({"-1"})
-    public int problemSize;
-
-//    @Param({"on", "off"})
+    //    @Param({"on", "off"})
 //    public String fusion;
 
     public final void setMetaborgVersion(String metaborgVersion) {
@@ -66,10 +62,6 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
 //    public void setSwitchImplementationOrder(String switchImplementationOrder) {
 //        this.switchImplementationOrder = switchImplementationOrder;
 //    }
-
-    public final void setProblemSize(int problemSize) {
-        this.problemSize = problemSize;
-    }
 
     /**
      * @throws SkipException
@@ -138,9 +130,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
         return program;
     }
 
-    protected final String sourceFileName() {
-        return String.format(problemFileNamePattern(), problemSize);
-    }
+    protected abstract String sourceFileName();
 
     protected abstract String languageSubFolder();
 

@@ -52,8 +52,8 @@ public class Stratego2Program extends Program<Stratego2Compiler> {
         return compiler.compileJava();
     }
 
-    public String run() throws IOException, InterruptedException {
-        return compiler.run();
+    public String run(String input) throws IOException, InterruptedException {
+        return compiler.run(input);
     }
 
     public boolean compileStrj() throws IOException {

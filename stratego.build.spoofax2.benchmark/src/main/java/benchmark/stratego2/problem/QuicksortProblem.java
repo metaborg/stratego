@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface QuicksortProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "quicksort%d.str2";
+    default String problemFileName() {
+        return "quicksort.str2";
     }
 }

@@ -5,8 +5,8 @@ import benchmark.generic.Problem;
 public interface MergesortProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "mergesort%d.str2";
+    default String problemFileName() {
+        return "mergesort.str2";
     }
 
 }

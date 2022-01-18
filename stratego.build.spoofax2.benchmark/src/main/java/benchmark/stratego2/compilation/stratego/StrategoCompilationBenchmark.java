@@ -57,4 +57,8 @@ public abstract class StrategoCompilationBenchmark extends StrategoBenchmark {
             p.cleanup();
     }
 
+    @Override
+    protected final String sourceFileName() {
+        return problemFileName();
+    }
 }

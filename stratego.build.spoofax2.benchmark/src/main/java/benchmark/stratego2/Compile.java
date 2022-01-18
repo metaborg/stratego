@@ -38,7 +38,7 @@ class Compile {
         c.program.compileJava();
 
         long start = System.currentTimeMillis();
-        String res = c.program.run();
+        String res = c.program.run("");
         long elapsed = System.currentTimeMillis() - start;
 
         System.out.println(res);

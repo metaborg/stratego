@@ -4,7 +4,7 @@ import benchmark.generic.Problem;
 
 public interface ExpProblem extends Problem {
     @Override
-    default String problemFileNamePattern() {
+    default String problemFileName() {
         return "exp.py";
     }
 }

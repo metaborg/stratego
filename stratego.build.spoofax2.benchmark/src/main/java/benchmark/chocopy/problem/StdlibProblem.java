@@ -4,7 +4,7 @@ import benchmark.generic.Problem;
 
 public interface StdlibProblem extends Problem {
     @Override
-    default String problemFileNamePattern() {
+    default String problemFileName() {
         return "stdlib.py";
     }
 }

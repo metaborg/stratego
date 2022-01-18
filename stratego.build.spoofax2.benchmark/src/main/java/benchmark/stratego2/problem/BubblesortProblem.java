@@ -5,7 +5,7 @@ import benchmark.generic.Problem;
 public interface BubblesortProblem extends Problem {
 
     @Override
-    default String problemFileNamePattern() {
-        return "bubblesort%d.str2";
+    default String problemFileName() {
+        return "bubblesort.str2";
     }
 }

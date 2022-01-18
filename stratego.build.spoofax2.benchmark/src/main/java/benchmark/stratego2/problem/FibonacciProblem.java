@@ -4,7 +4,7 @@ import benchmark.generic.Problem;
 
 public interface FibonacciProblem extends Problem {
     @Override
-    default String problemFileNamePattern() {
-        return "fibonacci%d.str2";
+    default String problemFileName() {
+        return "fibonacci.str2";
     }
 }
