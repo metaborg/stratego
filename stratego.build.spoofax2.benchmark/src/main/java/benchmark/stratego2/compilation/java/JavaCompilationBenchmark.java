@@ -40,9 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
-@Timeout(time = 10, timeUnit = TimeUnit.SECONDS)
+@Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public abstract class JavaCompilationBenchmark extends StrategoBenchmark {
 
     @Setup(Level.Iteration)

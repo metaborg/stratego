@@ -10,8 +10,6 @@ import org.openjdk.jmh.annotations.*;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public abstract class ChocoPyCompilationBenchmark extends ChocoPyBenchmark {
 

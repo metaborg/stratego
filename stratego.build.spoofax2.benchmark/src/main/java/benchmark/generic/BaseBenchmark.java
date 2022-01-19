@@ -17,7 +17,9 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Thread)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Fork(value = 3, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@Warmup(iterations = 5)
+@Measurement(iterations = 5)
+@Fork(value = 2, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
 
     protected Path sourcePath;

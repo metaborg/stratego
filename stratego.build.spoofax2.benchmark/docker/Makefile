@@ -20,7 +20,7 @@ CHOCOPY_LANGUAGE_PROJECT=$(CHOCOPY_POM_DIR)/chocopy.backend
 RISCV_LANGUAGE_PROJECT=$(CHOCOPY_POM_DIR)/risc-v/RV32IM
 RESULTS_DIR=$(DATA_DIR)/benchmark_results
 
-BENCHMARK_ARGS?=-e failing -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` `echo $(TARGET) | tr -d '()|.'`.csv" $(TARGET)
+BENCHMARK_ARGS?=-e failing -rf json -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` `echo $(TARGET) | tr -d '()|.'`.json" $(TARGET)
 
 # DERIVATIVES - DO NOT CHANGE
 MAVEN_REPO=$(HOME)/.m2/repository

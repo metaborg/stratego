@@ -39,9 +39,7 @@ import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
-@Timeout(time = 10, timeUnit = TimeUnit.SECONDS)
+@Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public abstract class StrategoCompilationBenchmark extends StrategoBenchmark {
 
     @Benchmark

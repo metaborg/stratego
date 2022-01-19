@@ -11,8 +11,6 @@ import org.spoofax.terms.TermFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
 public abstract class StrategoExecutionBenchmark extends StrategoBenchmark {
 
