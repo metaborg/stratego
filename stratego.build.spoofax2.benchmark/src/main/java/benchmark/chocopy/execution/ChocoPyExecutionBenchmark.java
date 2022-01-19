@@ -3,13 +3,9 @@ package benchmark.chocopy.execution;
 import api.chocopy.ChocoPyProgram;
 import benchmark.chocopy.ChocoPyBenchmark;
 import benchmark.exception.SkipException;
-import benchmark.generic.Program;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
-import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.openjdk.jmh.annotations.*;
 
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
@@ -25,7 +21,7 @@ public abstract class ChocoPyExecutionBenchmark extends ChocoPyBenchmark {
     }
 
     @Benchmark
-    public final String prettyPrint() throws MetaborgException {
+    public final String runPrettyPrintRISCV() throws MetaborgException {
         return getProgram().run();
     }
 

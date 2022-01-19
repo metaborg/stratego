@@ -19,7 +19,7 @@ public abstract class ChocoPyCompilationBenchmark extends ChocoPyBenchmark {
     }
 
     @Benchmark
-    public final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> compileChocoPy() throws MetaborgException {
+    public final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> runChocoPyCompiler() throws MetaborgException {
         return getProgram().compileChocoPy();
     }
 
