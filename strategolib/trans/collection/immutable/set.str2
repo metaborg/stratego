@@ -257,7 +257,7 @@ strategies
  */
 imset-intersect(k * k -> ?|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-intersect(eq|r) = where(ImmutableSet(other) := r);
-  ?ImmutableSet(_); prim("SSL_immutable_set_intersect_eq", eq | other)
+  ImmutableSet(prim("SSL_immutable_set_intersect_eq", eq | other))
 
 /**
  * Intersect two immutable sets.
