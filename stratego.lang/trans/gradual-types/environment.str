@@ -150,6 +150,13 @@ current-type(s) = StMatchTerm(current-type(s), id, id)
 current-type(s) = StBuildTerm(current-type(s), id)
 current-type-of(|st) = current-type(|<current-type> st)
 
+// alias of current-type for StBuildTerm, this more accurately describes the role of current-type
+// when passing down a type during type-checking of a BuildTerm
+expected-type = ?StBuildTerm(<current-type>, _)
+expected-type(|t) = StBuildTerm(current-type(|t), id)
+expected-type(s) = StBuildTerm(current-type(s), id)
+expected-type-of(|st) = expected-type(|<expected-type> st)
+
 type-var-env = ?St(_, _, <id>)
 type-var-env = ?StMatchTerm(<type-var-env>, _, _)
 type-var-env = ?StBuildTerm(<type-var-env>, _)

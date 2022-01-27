@@ -8,6 +8,7 @@ signatures/gradual-types/modules-sig
 signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 signatures/gradual-types/strategies-sig
+signatures/gradual-types/terms-sig
 signatures/sugar/signatures-sig
 signatures/sugar/strategies-sig
 signatures/sugar/dynamic-rules-sig
@@ -480,6 +481,23 @@ extract-inj:
   OpDeclInj(ConstType(t1)) -> (TupleT([]), t2)
   with
     t2 := <desugar-Type> t1
+
+strategies
+
+isNilTerm: Op("Nil", []) -> <id>
+isNilTerm: t@TypeAscription(<isNilTerm>, _) -> t
+isNilTerm: t@Anno(<isNilTerm>, _) -> t
+isNilTerm: t@As(_, <isNilTerm>) -> t
+isNilTerm: t@AnnoList(<isNilTerm>, _) -> t
+isNilTerm: t@NoAnnoList(<isNilTerm>) -> t
+
+isListVarTerm: Var(ListVar(_)) -> <id>
+isListVarTerm: t@TypeAscription(<isListVarTerm>, _) -> t
+isListVarTerm: t@Anno(<isListVarTerm>, _) -> t
+isListVarTerm: t@As(<isListVarTerm>, _) -> t
+isListVarTerm: t@As(_, <isListVarTerm>) -> t
+isListVarTerm: t@AnnoList(<isListVarTerm>, _) -> t
+isListVarTerm: t@NoAnnoList(<isListVarTerm>) -> t
 
 strategies
 

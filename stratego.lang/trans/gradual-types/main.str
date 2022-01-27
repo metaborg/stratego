@@ -47,7 +47,7 @@ strategies // entry-points from Java
 stratego2-insert-casts:
   (strats, constrs, srts, injection-closure, lub-map, aliases, ast) ->
     (asts', errs, warns, notes)
-  with scope-local-new({| CanCoerce, CanCoerceSType, LUB:
+  with scope-local-new({| CanCoerce, CanCoerceSType, CanReinterpret, LUB:
     asts' := <insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map)> ast
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
@@ -87,6 +87,7 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   with id
   ; rules(CanCoerce: p -> <can-coerce(|injection-closure, aliases)> p)
   ; rules(CanCoerceSType: p -> <can-coerce-stype(|injection-closure)> p)
+  ; rules(CanReinterpret: (p, env) -> <can-reinterpret(|injection-closure, aliases, <constr-env> env)> p)
   ; rules(LUB: (pair, tve) -> <lub(|tve, lub-map)> pair)
 
   ; e := <new-env> (strats, constrs, srts)
@@ -108,6 +109,58 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
 
 
 strategies
+
+can-reinterpret(|injection-closure, aliases, constr-env): (from, from) -> <id>
+
+can-reinterpret(|injection-closure, aliases, constr-env): (DynT(), _) -> <id>
+
+can-reinterpret(|injection-closure, aliases, constr-env): (_, DynT()) -> <id>
+
+can-reinterpret(|injection-closure, aliases, constr-env): (EmptyT(), _) -> <id>
+
+can-reinterpret(|injection-closure, aliases, constr-env): (_, EmptyT()) -> <id>
+
+can-reinterpret(|injection-closure, aliases, constr-env): (from@Sort(c, fa*), to@Sort(c, ta*)) -> (from, to)
+  where
+    <zip(can-reinterpret(|injection-closure, aliases, constr-env))> (fa*, ta*)
+
+can-reinterpret(|injection-closure, aliases, constr-env): (from@Sort(fc, fa*), to@Sort(tc, ta*)) -> (from, to)
+  where
+    froms1 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset;imset-insert(|from)> injection-closure
+  ; froms2 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset> aliases
+  ; tos1 := <imrel-filter(can-reinterpret-filter(|to));imrel-keys-imset;imset-insert(|to)> injection-closure
+  ; tos2 := <imrel-filter(can-reinterpret-filter(|to));imrel-keys-imset> aliases
+  ; cfrom := <can-reinterpret-constr(|froms1, froms2)> constr-env
+  ; cto := <can-reinterpret-constr(|tos1, tos2)> constr-env
+  ; <imrel-intersect-values(\(ConstrType(args1, _), ConstrType(args2, _)) ->
+      <zip(can-reinterpret(|injection-closure, aliases, constr-env))> (args1, args2)\)
+    ;not(imrel-empty)> (cfrom, cto)
+
+imrel-intersect-values(eq): (l, r) ->
+  <imrel-filter(\i@(k, v) -> <imrel-get(|k);imset-filter(!(v, <id>);eq);not(imset-empty);!i> r\)> l
+
+can-reinterpret-filter(|from): (inj-from, inj-to) -> (<apply-subst(|subst)> inj-from, subst)
+  where
+    subst := <match-abstract-concrete-type> (inj-to, from)
+
+can-reinterpret-constr-filter(|froms1, froms2): ((name, _), ConstrType(args1, sort)) -> (name, <imset-to-list> result)
+  where
+    result := <imset-filter({subst:\concr -> (concr, <apply-subst(|subst)> args1) where subst := <match-abstract-concrete-type> (sort, concr)\})> froms1
+  ; <not(imset-empty)> result
+
+can-reinterpret-constr(|froms1, froms2) =
+  imrel-filter(can-reinterpret-constr-filter(|froms1, froms2))
+; imrel-pairs
+; mapconcat(\(name, set) -> <map(\(s, a*) -> ((name, <length> a*), ConstrType(a*, s))\)> set\)
+; imrel-from-list
+
+match-abstract-concrete-type: (abstrt@Sort(c, aa*), concrt@Sort(c, ca*)) -> subst
+  where
+    arg* := <zip> (aa*, ca*)
+  with
+    subst := <immap-from-list> arg*
+
+apply-subst(|subst) = bottomup(try(immap-get(|subst)))
 
 can-coerce(|injection-closure, aliases): ((from, to), _) -> <id>
   where
