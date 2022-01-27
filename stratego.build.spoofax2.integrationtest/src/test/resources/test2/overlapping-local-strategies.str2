@@ -1,0 +1,22 @@
+module overlapping-local-strategies
+
+imports
+
+  strategolib
+
+strategies
+
+  indirect-fail = fail
+
+  foo = ?a;
+    let AAA = where(try(?a;indirect-fail;AAA))
+    in map(AAA)
+    end
+
+  bar = ?a;
+    let AAA = where(try(?a;indirect-fail;AAA))
+    in filter(AAA)
+    end
+
+  main =
+    ![]; foo; bar; ?[]
