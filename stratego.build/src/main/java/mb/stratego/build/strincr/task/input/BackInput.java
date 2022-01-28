@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -264,27 +265,16 @@ public abstract class BackInput implements Serializable {
                 backTask.resourcePathConverter.toString(checkInput.projectPath);
             final IStrategoTerm result =
                 backTask.strategoLanguage.desugar(desugaringInput, projectPath);
+            final IStrategoTerm desugaredAst = result.getSubterm(0);
+            final IStrategoTerm strategySigTerms = result.getSubterm(1);
 
-            final Set<StrategySignature> cifiedStrategySignatures =
-                CheckModule.extractStrategyDefs(null, result, null).keySet();
-            for(StrategySignature cified : cifiedStrategySignatures) {
-                final @Nullable StrategySignature uncified =
-                    StrategySignature.fromCified(cified.name);
-                if(uncified != null) {
-                    // Hack to work around lossy property of cified names where both "--" and "_"
-                    //   are translated to "__", and the reverse always translates to "_".
-                    // TODO: adapt desugar stratego code to explicitly give back compiled strategies
-                    //   names are cified.
-                    if(uncified.name.contains("_")) {
-                        compiledStrategies.add(
-                            new StrategySignature(uncified.name.replace("_", "--"),
-                                uncified.noStrategyArgs, uncified.noTermArgs));
-                    }
-                    compiledStrategies.add(uncified);
-                }
+            for(IStrategoTerm strategySigTerm : strategySigTerms) {
+                final @Nullable StrategySignature signature = StrategySignature.fromTuple(strategySigTerm);
+                assert signature != null : "";
+                compiledStrategies.add(signature);
             }
 
-            return CTreeBuildResult.withResult(result);
+            return CTreeBuildResult.withResult(desugaredAst);
         }
 
         /**

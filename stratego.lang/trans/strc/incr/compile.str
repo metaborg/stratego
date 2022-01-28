@@ -19,7 +19,7 @@ strategies
 
 strategies
 
-  frontend-sep-comp =
+  frontend-sep-comp = {| IncrUncifiedName:
     m-transform-no-overlays(id
 
 // commented: [DONE IN JAVA]
@@ -119,7 +119,7 @@ strategies
           ; rename-sdef2
           ; ![<id>]
             end
-        | <?[<m-def-signature;strategy-sig-to-string>|_]>))
+        | <?[<m-def-signature;{?sig;rules(IncrUncifiedName :+ () -> sig)};strategy-sig-to-string>|_]>))
 
 // commented: [DONE IN TYPESYSTEM]
       ; m-transform-external-defs(id
@@ -143,5 +143,7 @@ strategies
 // commented: Can't tell if unused without global information
 //      ; if-lib(remove-unused-external-defs, remove-unused-defs)
     )
+  ; !(<id>, <bagof-IncrUncifiedName> ())
+  |}
 // commented: based on command line flags that we don't use/set, does some kind of checks and prints intermediate results to files, so not really useful
 //    ; tfc1(|"Stratego-Core", "fe-cong")

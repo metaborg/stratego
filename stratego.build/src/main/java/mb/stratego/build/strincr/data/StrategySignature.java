@@ -201,6 +201,15 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         return new StrategySignature(name, sArity, tArity);
     }
 
+    public static @Nullable StrategySignature fromTuple(IStrategoTerm tuple) {
+        if(!(TermUtils.isTuple(tuple, 3) && TermUtils.isStringAt(tuple, 0) && TermUtils.isIntAt(
+            tuple, 1) && TermUtils.isIntAt(tuple, 2))) {
+            return null;
+        }
+        return new StrategySignature(TermUtils.toStringAt(tuple, 0),
+            TermUtils.toJavaIntAt(tuple, 1), TermUtils.toJavaIntAt(tuple, 2));
+    }
+
     @Override public int compareTo(StrategySignature o) {
         final int nameComparison = this.name.compareTo(o.name);
         if(nameComparison != 0) {

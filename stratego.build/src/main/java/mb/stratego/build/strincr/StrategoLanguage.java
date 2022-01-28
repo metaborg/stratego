@@ -80,7 +80,7 @@ public interface StrategoLanguage {
      *
      * @param ast the ast to desugar
      * @param projectPath The path of the project the module resides in (to be removed at some point)
-     * @return The desugared AST
+     * @return A 2-tuple of the desugared AST and a list of strategy signatures (as 3-tuples) of uncified names (desugaredAst, strategySig*)
      * @throws ExecException On failing to load the Stratego language, internal error inside the desugarer
      */
     IStrategoTerm desugar(IStrategoTerm ast, String projectPath) throws ExecException;
