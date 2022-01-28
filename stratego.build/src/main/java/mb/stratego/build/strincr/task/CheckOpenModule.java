@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -10,6 +11,7 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.data.GTEnvironment;
+import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.output.CheckOpenModuleOutput;
@@ -43,8 +45,10 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
         final IModuleImportService.ModuleIdentifier moduleIdentifier =
             input.frontInput.moduleIdentifier;
 
+        final LinkedHashSet<StrategySignature> moduleDefinitions = new LinkedHashSet<>();
         final GTEnvironment environment =
-            checkModule.prepareGTEnvironment(context, moduleData, input.frontInput);
+            checkModule.prepareGTEnvironment(context, moduleData, input.frontInput,
+                moduleDefinitions);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);

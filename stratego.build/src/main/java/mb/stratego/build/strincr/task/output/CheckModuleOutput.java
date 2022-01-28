@@ -13,14 +13,16 @@ public class CheckModuleOutput implements Serializable {
     public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>>
         strategyDataWithCasts;
     public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules;
+    public final LinkedHashSet<StrategySignature> strategiesDefinedByModule;
     public final ArrayList<Message> messages;
 
     public CheckModuleOutput(
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategyAnalysisData>> strategyDataWithCasts,
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules,
-        ArrayList<Message> messages) {
+        LinkedHashSet<StrategySignature> strategiesDefinedByModule, ArrayList<Message> messages) {
         this.strategyDataWithCasts = strategyDataWithCasts;
         this.dynamicRules = dynamicRules;
+        this.strategiesDefinedByModule = strategiesDefinedByModule;
         this.messages = messages;
     }
 
@@ -36,12 +38,15 @@ public class CheckModuleOutput implements Serializable {
             return false;
         if(!dynamicRules.equals(output.dynamicRules))
             return false;
+        if(!strategiesDefinedByModule.equals(output.strategiesDefinedByModule))
+            return false;
         return messages.equals(output.messages);
     }
 
     @Override public int hashCode() {
         int result = strategyDataWithCasts.hashCode();
         result = 31 * result + dynamicRules.hashCode();
+        result = 31 * result + strategiesDefinedByModule.hashCode();
         result = 31 * result + messages.hashCode();
         return result;
     }
@@ -51,6 +56,7 @@ public class CheckModuleOutput implements Serializable {
         return "CheckModuleOutput@" + System.identityHashCode(this) + '{'
             + "strategyDataWithCasts=" + strategyDataWithCasts.size()
             + ", dynamicRules=" + dynamicRules.size()
+            + ", strategiesDefinedByModule=" + strategiesDefinedByModule.size()
             + ", messages=" + messages.size()
             + '}';
         //@formatter:on

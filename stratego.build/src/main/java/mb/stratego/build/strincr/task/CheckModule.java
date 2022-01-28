@@ -30,6 +30,7 @@ import io.usethesource.capsule.Set;
 import mb.log.api.Logger;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
+import mb.pie.api.StatelessSerializableFunction;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
@@ -44,6 +45,7 @@ import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.function.GetAllModuleIdentifiers;
 import mb.stratego.build.strincr.function.GetDynamicRuleDefinitions;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToAnnoDefs;
@@ -57,12 +59,14 @@ import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategyOverlapsWithDynamicRuleHelper;
 import mb.stratego.build.strincr.message.TypeSystemInternalCompilerError;
+import mb.stratego.build.strincr.message.UnreachableModule;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
+import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.FindErrT;
@@ -70,7 +74,6 @@ import mb.stratego.build.termvisitors.FindSortTP;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
-import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 
@@ -102,7 +105,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
         if(input.frontInput.moduleIdentifier.isLibrary()) {
-            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0), new ArrayList<>(0));
+            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
+                new LinkedHashSet<>(0), new ArrayList<>(0));
         }
 
         final @Nullable ModuleData moduleData = context.require(front, input.frontInput);
@@ -111,12 +115,14 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final IModuleImportService.ModuleIdentifier moduleIdentifier =
             input.frontInput.moduleIdentifier;
 
+        final LinkedHashSet<StrategySignature> strategiesDefinedByModule = new LinkedHashSet<>();
         final GTEnvironment environment =
-            prepareGTEnvironment(context, moduleData, input.frontInput);
+            prepareGTEnvironment(context, moduleData, input.frontInput, strategiesDefinedByModule);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
-        final InsertCastsOutput output = insertCasts(insertCastsInput, projectPath, context.logger());
+        final InsertCastsOutput output =
+            insertCasts(insertCastsInput, projectPath, context.logger());
 
         final LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -129,35 +135,57 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         otherChecks(context, input.resolveInput(), moduleData, messages, projectPath);
 
-        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
+        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, strategiesDefinedByModule,
+            messages);
     }
 
     void otherChecks(ExecContext context, ResolveInput input, ModuleData moduleData,
         ArrayList<Message> messages, String projectPath) throws ExecException {
         checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
-        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(), moduleData.lastModified,
-            messages, projectPath);
+        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(),
+            moduleData.lastModified, messages, projectPath);
+        checkUnreachableModule(context, input, moduleData, messages);
+    }
+
+    private void checkUnreachableModule(ExecContext context, ResolveInput input,
+        ModuleData moduleData, ArrayList<Message> messages) {
+        LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
+            context.requireMapping(resolve, input, GetAllModuleIdentifiers.INSTANCE);
+        if(!allModuleIdentifiers.contains(moduleData.moduleIdentifier)) {
+            messages.add(new UnreachableModule(tryGetModuleName(moduleData.ast), moduleData.moduleIdentifier, moduleData.lastModified));
+        }
+    }
+
+    private static IStrategoTerm tryGetModuleName(IStrategoTerm ast) {
+        if(TermUtils.isAppl(ast, "Module", 2)) {
+            return ast.getSubterm(0);
+        }
+        return ast;
     }
 
     private void checkDynamicRuleOverlap(ExecContext context, ResolveInput input,
-        Collection<StrategySignature> dynamicRules, long lastModified,
-        ArrayList<Message> messages, String projectPath) throws ExecException {
-        final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule = new HashSet<>();
+        Collection<StrategySignature> dynamicRules, long lastModified, ArrayList<Message> messages,
+        String projectPath) throws ExecException {
+        final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule =
+            new HashSet<>();
         for(StrategySignature dynamicRule : dynamicRules) {
-            modulesDefiningDynamicRule.addAll(PieUtils.requirePartial(context, resolve, input, new ModulesDefiningStrategy(dynamicRule)));
+            modulesDefiningDynamicRule.addAll(
+                context.requireMapping(resolve, input, new ModulesDefiningStrategy(dynamicRule)));
         }
         final ArrayList<IStrategoTerm> containsDynRuleDefs = new ArrayList<>();
         for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningDynamicRule) {
-            containsDynRuleDefs.addAll(PieUtils
-                .requirePartial(context, front, Resolve.getFrontInput(input, moduleIdentifier),
+            containsDynRuleDefs.addAll(
+                context.requireMapping(front, Resolve.getFrontInput(input, moduleIdentifier),
                     GetDynamicRuleDefinitions.INSTANCE));
         }
         final IStrategoTerm overlapMessages =
             strategoLanguage.overlapCheck(tf.makeList(containsDynRuleDefs), projectPath);
         for(IStrategoTerm messageTerm : TermUtils.toList(overlapMessages)) {
-            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(messageTerm.getSubterm(0))) == null) {
-                context.logger().warn("MessageTerm in checkDynamicRuleOverlap missing origin: " + messageTerm);
+            if(ImploderAttachment.get(OriginAttachment.tryGetOrigin(messageTerm.getSubterm(0)))
+                == null) {
+                context.logger()
+                    .warn("MessageTerm in checkDynamicRuleOverlap missing origin: " + messageTerm);
             }
             messages.add(Message.from(messageTerm, MessageSeverity.ERROR, lastModified));
         }
@@ -232,7 +260,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             new HashSet<>(normalStrategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs =
-            PieUtils.requirePartial(context, resolve, resolveInput, new ToAnnoDefs(strategyFilter));
+            context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));
 
         for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
@@ -343,13 +371,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
-        FrontInput frontInput) {
+        FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
-        final Set.Transient<SortSignature> sorts =
-            Set.Transient.of();
+        final Set.Transient<SortSignature> sorts = Set.Transient.of();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 
@@ -357,15 +384,14 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         //     the module itself
         registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, sorts, injections);
 
-        final LinkedHashSet<StrategySignature> moduleDefinitions = new LinkedHashSet<>();
         moduleDefinitions.addAll(moduleData.normalStrategyData.keySet());
         // TODO: is this necessary? I don't think multiple internal strategy definitions are allowed anyway
         moduleDefinitions.addAll(moduleData.internalStrategyData.keySet());
         // Get the relevant strategy and constructor types and all sorts and injections, that are visible
         //     through the import, not following them transitively!
         final ToTypesLookup toTypesLookup =
-            new ToTypesLookup(moduleDefinitions, moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
-                moduleData.usedConstructors);
+            new ToTypesLookup(new LinkedHashSet<>(moduleDefinitions), moduleData.usedStrategies,
+                moduleData.usedAmbiguousStrategies, moduleData.usedConstructors);
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(frontInput.moduleIdentifier);
         seen.addAll(moduleData.imports);
@@ -376,10 +402,12 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 new FrontInput.Normal(moduleIdentifier, frontInput.importResolutionInfo,
                     frontInput.autoImportStd);
             final TypesLookup typesLookup =
-                PieUtils.requirePartial(context, front, moduleInput, toTypesLookup);
+                context.requireMapping(front, moduleInput, toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
-                ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());
+                final StrategySignature signature = e.getKey();
+                ToTypesLookup.registerStrategyType(strategyTypes, signature, e.getValue());
+                moduleDefinitions.remove(signature);
             }
             for(Map.Entry<ConstructorSignature, HashSet<ConstructorType>> e : typesLookup.constructorTypes
                 .entrySet()) {
@@ -394,6 +422,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__insert(e.getKey(), to);
                 }
             }
+            // if unless it's a Stratego 1 module, we have to follow the transitive imports...
             if(frontInput.moduleIdentifier.legacyStratego()) {
                 for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
                     if(!seen.contains(anImport)) {
