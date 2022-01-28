@@ -10,7 +10,9 @@ import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
@@ -20,6 +22,9 @@ import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.task.Front;
+import mb.stratego.build.termvisitors.HasDynamicRuleDefinitions;
+import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.WithLastModified;
 
@@ -56,6 +61,7 @@ public class ModuleData implements Serializable, WithLastModified {
     public final long lastModified;
     private transient @Nullable LinkedHashMap<String, LinkedHashSet<StrategyFrontData>>
         ambStrategyIndex = null;
+    private transient @Nullable ArrayList<IStrategoTerm> dynamicRuleDefinitions = null;
 
     public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
         @Nullable String str2LibPackageName, IStrategoTerm ast,
@@ -123,6 +129,30 @@ public class ModuleData implements Serializable, WithLastModified {
             }
         }
         return ambStrategyIndex;
+    }
+
+    public ArrayList<IStrategoTerm> dynamicRuleDefinitions() {
+        if(dynamicRuleDefinitions == null) {
+            dynamicRuleDefinitions = new ArrayList<>();
+            final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
+            for(IStrategoTerm def : defs) {
+                if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
+                    throw new InvalidASTException(moduleIdentifier, def);
+                }
+                switch(TermUtils.toAppl(def).getName()) {
+                    case "Rules":
+                        // fall-through
+                    case "Strategies":
+                        for(IStrategoTerm strategyDef : def.getSubterm(0)) {
+                            if(HasDynamicRuleDefinitions.visit(strategyDef)) {
+                                dynamicRuleDefinitions.add(strategyDef);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+        return dynamicRuleDefinitions;
     }
 
     @Override public boolean equals(Object o) {
