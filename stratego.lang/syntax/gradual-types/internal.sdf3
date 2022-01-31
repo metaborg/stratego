@@ -97,3 +97,4 @@ context-free syntax
   ErrorDesc.DynRuleOverlapError = [Overlapping left-hand-sides for dynamic rule '[Id]': [String] in [String] overlaps with [String] in [String]. ]
   ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast [Type] to type [Type], its type is not known at run-time in this position. ]
   ErrorDesc.WithClauseInDynRule = [Cannot use with clauses in dynamic rules. ]
+  ErrorDesc.ConstantCongruence = [Simple matching congruence: prefix with '?'. Or with '!' if you meant to build. ]

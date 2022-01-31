@@ -49,11 +49,16 @@ stratego2-insert-casts:
     (asts', errs, warns, notes)
   with scope-local-new({| CanCoerce, CanCoerceSType, CanReinterpret, LUB:
     asts' := <insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map)> ast
+    ; <alltd(report-const-congruence)> asts'
     ; msg* := <bagof-Message>
     ; errs := <filter(?(MTError(), <id>))> msg*
     ; warns := <filter(?(MTWarning(), <id>))> msg*
     ; notes := <filter(?(MTNote(), <id>))> msg*
   |})
+
+report-const-congruence =
+    test-n-remove-const-cong
+  ; where(\cong -> <report-Warn> (cong, ConstantCongruence())\)
 
 /**
  * Some strange "backward compatibility" rules in the grammar of Stratego 1 give these rule alternatives.

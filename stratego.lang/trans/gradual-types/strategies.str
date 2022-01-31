@@ -608,12 +608,16 @@ insertCasts-Strategy-(|e1, st1):
   ; st3 := <current-type(|EmptyT())> st2
 
 
+test-n-remove-const-cong =
+    where(get-annotation(?ConstantCongruence()))
+  ; remove-annotations(?ConstantCongruence())
+
 litCongruence(|st1, t1) = otf12(litCongruence-(|st1, t1))
 
 // Note how we don't add a cast here. Literal congruences are allow to fail based on wrong type, we
 //  don't want them to crash instead.
 litCongruence-(|st1, t1):
-  s -> (s, st2)
+  s{a*} -> (s{ConstantCongruence(), a*}, st2)
   with
     t2 := <current-type> st1
   // Give a warning when it's guaranteed to fail based on type.
@@ -632,7 +636,7 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy(|e1, st1):
   s@CharCong(_) -> <litCongruence(|st1, IntT())> s
 
-insertCasts-Strategy-(|e1, st1):
+insertCasts-Strategy(|e1, st1):
   s1@CongQ(x, s1*) -> (s2, st6)
   with
     t1 := <current-type> st1
@@ -647,7 +651,12 @@ insertCasts-Strategy-(|e1, st1):
       ; (s2*, st4) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, t2*), st3)
       // We cannot assume correct output as congruences can be extended arbitrarily by users
       ; st5 := <current-type(|DynT())> st4
-      ; (s2, st6) := <insertCastBefore(|c, t1, t2)> (<otf(!CongQ(x, s2*))> s1, st5)
+      ; if s3* := <map(test-n-remove-const-cong)> s2*
+          then
+            (s2, st6) := <insertCastBefore(|c, t1, t2)> (<otf(!CongQ(x, s3*){ConstantCongruence()})> s1, st5)
+          else
+            (s2, st6) := <insertCastBefore(|c, t1, t2)> (<otf(!CongQ(x, s2*))> s1, st5)
+        end
     else
         if [] := t*
           then <report-Err> (x, UnresolvedConstructor(<length> s1*, t1))
@@ -657,14 +666,14 @@ insertCasts-Strategy-(|e1, st1):
              ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, DynT()))> (s1*, st1)
              ; st6 := <current-type(|DynT())> st1
         end
-      ; s2 := CongQ(x, s1*)
+      ; s2 := s1
     end
 
 insertCasts-Strategy(|e1, st1):
   s@EmptyTupleCong() -> <litCongruence(|st1, TupleT([]))> s
 
 insertCasts-Strategy-(|e1, st1):
-  s0@TupleCong(s1, s1*) -> (TupleCong(s2, s2*), st4)
+  s0@TupleCong(s1, s1*) -> (s0', st4)
   with
     t1 := <current-type> st1
   ; t1* := <tupleTypes(|<length;inc> s1*)> t1
@@ -673,9 +682,15 @@ insertCasts-Strategy-(|e1, st1):
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, funt1)
   ; (s2*, st3) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
   ; st4 := <current-type(|TupleT(<map(!SortVar(<id>))> tvs));type-var-elim(id|tvs)> st3
+  ; if s3* := <map(test-n-remove-const-cong)> s2*
+      then
+        s0' := TupleCong(s2, s3*){ConstantCongruence()}
+      else
+        s0' := TupleCong(s2, s2*)
+    end
 
 insertCasts-Strategy-(|e1, st1):
-  s1@ListCongNoTail(s1*) -> (ListCongNoTail(s2*), st4)
+  s1@ListCongNoTail(s1*) -> (s1', st4)
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
@@ -684,9 +699,15 @@ insertCasts-Strategy-(|e1, st1):
   ; tv := <local-newname> "listcongtv"
   ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
   ; st4 := <current-type(|ListT(SortVar(tv)));type-var-elim(id|tv)> st3
+  ; if s3* := <map(test-n-remove-const-cong)> s2*
+      then
+        s1' := ListCongNoTail(s3*){ConstantCongruence()}
+      else
+        s1' := ListCongNoTail(s2*)
+    end
 
 insertCasts-Strategy-(|e1, st1):
-  s1@ListCong(s1*, s2) -> (ListCong(s2*, s3), st6)
+  s1@ListCong(s1*, s2) -> (s1', st6)
   with
     t1 := <current-type> st1
   ; t2 := <listType> t1
@@ -703,14 +724,26 @@ insertCasts-Strategy-(|e1, st1):
   ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv2))))> (s1*, st2)
   ; (s3, st4) := <insertCasts-Sarg(|e1, <current-type-of(|st2)> st3)> (s2, FunTType(t3, ListT(SortVar(tv2))))
   ; st6 := <current-type(|ListT(SortVar(tv2)));type-var-elim(id|tv2)> st4
+  ; if s3* := <map(test-n-remove-const-cong)> s2*
+      then
+        s1' := ListCong(s3*, s3){ConstantCongruence()}
+      else
+        s1' := ListCong(s2*, s3)
+    end
 
 insertCasts-Strategy-(|e1, st1):
-  ExplodeCong(s1, s2) -> (ExplodeCong(s3, s4), st4)
+  ExplodeCong(s1, s2) -> (s0', st4)
   with
     // Note that constructors can be strings (in case of applications and tuples) or the empty list (in case of a list)
     (s3, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
   ; (s4, st3) := <insertCasts-Sarg(|e1, st2)> (s2, FunTType(ListT()))
   ; st4 := <current-type(|DynT())> st3
+  ; if s3' := <test-n-remove-const-cong> s3; s4' := <test-n-remove-const-cong> s4
+      then
+        s0' := ExplodeCong(s3', s4'){ConstantCongruence()}
+      else
+        s0' := ExplodeCong(s3, s4)
+    end
 
 insertCasts-Strategy(|e1, st1):
   s@AM(s1, trm1) -> (<seqs> [<otf(!AM(s2, trm2))> s | s*], st3)

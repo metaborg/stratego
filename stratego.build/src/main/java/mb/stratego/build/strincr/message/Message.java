@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.message;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -131,6 +132,8 @@ public abstract class Message implements WithLastModified, Serializable {
                     TermUtils.toJavaStringAt(messageTerm, 2),
                     TermUtils.toJavaStringAt(messageTerm, 3),
                     TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
+            case "ConstantCongruence":
+                return new ConstantCongruence(locationTerm, lastModified);
             case "WithClauseInDynRule":
                 return new WithClauseInDynRule(locationTerm, lastModified);
             default:
@@ -170,10 +173,9 @@ public abstract class Message implements WithLastModified, Serializable {
             return false;
         if(!locationTermString.equals(message.locationTermString))
             return false;
-        if(sourceRegion != null ? !sourceRegion.equals(message.sourceRegion) :
-            message.sourceRegion != null)
+        if(!Objects.equals(sourceRegion, message.sourceRegion))
             return false;
-        if(filename != null ? !filename.equals(message.filename) : message.filename != null)
+        if(!Objects.equals(filename, message.filename))
             return false;
         return severity == message.severity;
     }
