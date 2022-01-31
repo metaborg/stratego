@@ -736,13 +736,13 @@ insertCasts-Strategy(|e1, st1) =
     otf(\CallNoArgs(svar) -> CallT(svar, [], [])\)
   ; insertCasts-Strategy(|e1, st1)
 
-insertCasts-Rule(|e1, st1) = otf12(insertCasts-Rule-(|e1, st1))
+insertCasts-Rule(s|e1, st1) = otf12(insertCasts-Rule-(s|e1, st1))
 
-insertCasts-Rule-(|e1, st1):
+insertCasts-Rule-(s|e1, st1):
   Rule(trm1, trm2, cs1) -> (Rule(trm3, trm4, cs3), st4)
   with
     (trm3, (st2, s*)) := <insertCasts-MatchTerm(|e1, st1)> trm1
-  ; (cs2, st3)  := <thread-map(insertCasts-RuleCond(|e1))> (cs1, st2)
+  ; (cs2, st3)  := <thread-map(s(|e1))> (cs1, st2)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st4) := <insertCasts-BuildTerm(|e1, st3)> trm2
 
@@ -752,13 +752,13 @@ insertCasts-Strategy-(|e1, st1):
     new := <collect-all(?Var(<id>));map-pair-right(|DynT());immap-from-list> trm
   ; orig := <term-env;immap-intersect(keep-left|new)> st1
   ; st2 := <term-merge-env(keep-right)> (st1, new)
-  ; (r2, st3) := <insertCasts-Rule(|e1, st2)> r1
+  ; (r2, st3) := <insertCasts-Rule(insertCasts-RuleCond|e1, st2)> r1
   ; st4 := <term-env(immap-subtract(|new);immap-union(fail|orig))> st3
 
 insertCasts-Strategy-(|e1, st1):
   SRule(r1) -> (SRule(r2), st2)
   with
-    (r2, st2) := <insertCasts-Rule(|e1, st1)> r1
+    (r2, st2) := <insertCasts-Rule(insertCasts-RuleCond|e1, st1)> r1
 
 insertCasts-Strategy-(|e1, st1):
   s0@Choice(s1, s2) -> (Choice(s3, s4), st4)

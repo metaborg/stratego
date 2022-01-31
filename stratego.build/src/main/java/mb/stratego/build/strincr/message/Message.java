@@ -131,6 +131,8 @@ public abstract class Message implements WithLastModified, Serializable {
                     TermUtils.toJavaStringAt(messageTerm, 2),
                     TermUtils.toJavaStringAt(messageTerm, 3),
                     TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
+            case "WithClauseInDynRule":
+                return new WithClauseInDynRule(locationTerm, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

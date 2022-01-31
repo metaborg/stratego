@@ -65,7 +65,8 @@ strategies
 ////          ; m-variables-to-constructors-in-def; pre-desugar
 // commented: [DONE IN TYPESYSTEM]
 //          ; not(def-use-def)
-          ; not(check-where-with)
+// commented: [DONE IN TYPESYSTEM]
+//          ; not(check-where-with)
           ; raise-annotations
 //          ; GenerateCheckRule
           ; DeclareExpandOverlay
