@@ -15,6 +15,8 @@ signature
 
     WrappedROEFLBLID
     WrappedRLBL2
+    
+    Literal
 
   constructors
     RLBL : string -> RLBL
@@ -37,6 +39,8 @@ signature
     Wrapped : ROEFLBLID -> WrappedROEFLBLID
     
     Wrapped : RLBL2 -> WrappedRLBL2
+    
+    : string -> Literal
 
 rules
   [[...]]
@@ -75,5 +79,17 @@ test type test nested overlapping constructors [[
 test type test nested partly overlapping constructors [[
   try-convert :: WrappedROEFLBLID -> WrappedRLBL2
   try-convert = [[is(WrappedRLBL2)]]
+]] analysis succeeds
+   has origin locations
+
+test type test primitive type [[
+  try-convert :: Literal -> string
+  try-convert = [[is(string)]]
+]] analysis succeeds
+   has origin locations
+
+test type test sortvar [[
+  try-convert :: TP
+  try-convert = [[is(RLBL)]]
 ]] analysis succeeds
    has origin locations

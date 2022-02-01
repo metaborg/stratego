@@ -129,7 +129,7 @@ can-reinterpret(|injection-closure, aliases, constr-env): (from@Sort(c, fa*), to
   where
     <zip(can-reinterpret(|injection-closure, aliases, constr-env))> (fa*, ta*)
 
-can-reinterpret(|injection-closure, aliases, constr-env): (from@Sort(fc, fa*), to@Sort(tc, ta*)) -> (from, to)
+can-reinterpret(|injection-closure, aliases, constr-env): (from, to) -> (from, to)
   where
     froms1 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset;imset-insert(|from)> injection-closure
   ; froms2 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset> aliases

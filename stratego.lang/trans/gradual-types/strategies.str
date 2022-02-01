@@ -906,7 +906,7 @@ insertCasts-Strategy(|e1, st1):
     end
 
 insertCasts-Strategy(|e1, st1):
-  s1@TypeTest(t) -> (s2, st2)
+  s1@TypeTest(t) -> (s2, st3)
   with
     t1 := <current-type> st1
   ; t2 := <desugar-Type;sort-check-Type(|e1)> t
@@ -914,13 +914,17 @@ insertCasts-Strategy(|e1, st1):
   ; if Sort(TP(), []) := t1; <oncetd(?DynT())> t2
       then <report-Err> (t, MatchNotSpecificEnoughForTP(t2))
     end
-  ; if not(<CanReinterpret> ((t3, t2), e1))
-      then <report-Err> (s1, NoInjectionBetween(t3, t2))
+  ; if <CanReinterpret> ((t3, t2), e1)
+      then st2 := st1
+      else
+        (_, st2) := <CanCoerce> ((t3, t2), st1) // deal with sortvars
+        <+ <report-Err> (s1, NoInjectionBetween(t3, t2))
+         ; st2 := st1
     end
   ; if <oncetd(?SortVar(_))> t2
       then <report-Err> (t, CannotCastToRigidTypeVar(t3, t2))
     end
-  ; st2 := <current-type(|t2)> st1
+  ; st3 := <current-type(|t2)> st2
   ; if DynT() := t2
       then s2 := <otf(!Id())> s1
       else s2 := <otf(!TypeTest(t2))> s1
