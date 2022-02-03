@@ -45,13 +45,13 @@ public class ModuleData implements Serializable, WithLastModified {
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         normalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         internalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         externalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData;
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
     public final LinkedHashSet<StrategySignature> usedStrategies;
@@ -71,10 +71,10 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> normalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
@@ -107,22 +107,22 @@ public class ModuleData implements Serializable, WithLastModified {
     public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
         if(ambStrategyIndex == null) {
             ambStrategyIndex = new LinkedHashMap<>();
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : normalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : internalStrategyData
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : internalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : externalStrategyData
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : externalStrategyData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
                     .addAll(e.getValue());
             }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : dynamicRuleData
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : dynamicRuleData
                 .entrySet()) {
                 Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
                     .addAll(e.getValue());

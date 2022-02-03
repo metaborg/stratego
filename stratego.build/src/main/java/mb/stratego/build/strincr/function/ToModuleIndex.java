@@ -17,7 +17,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
 
     @Override public ModuleIndex apply(ModuleData moduleData) {
         final LinkedHashSet<StrategyFrontData> strategies = new LinkedHashSet<>();
-        for(LinkedHashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             strategies.addAll(strategyFrontData);
         }
         final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();

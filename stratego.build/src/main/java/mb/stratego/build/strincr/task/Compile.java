@@ -16,7 +16,7 @@ import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.GetMessages;
+import mb.stratego.build.strincr.function.GetCheckMessages;
 import mb.stratego.build.strincr.function.ToCompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
@@ -29,7 +29,6 @@ import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileDynamicRulesOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.PieUtils;
 
 /**
  * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
@@ -56,15 +55,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
         final CheckOutputMessages checkOutput =
-            PieUtils.requirePartial(context, check, input.checkInput, GetMessages.INSTANCE);
+            context.requireMapping(check, input.checkInput, GetCheckMessages.INSTANCE);
         if(checkOutput.containsErrors) {
             return new CompileOutput.Failure(checkOutput.messages);
         }
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
 
-        final CompileGlobalIndex compileGlobalIndex = PieUtils
-            .requirePartial(context, resolve, input.checkInput.resolveInput(),
+        final CompileGlobalIndex compileGlobalIndex = context.requireMapping(resolve, input.checkInput.resolveInput(),
                 ToCompileGlobalIndex.INSTANCE);
 
         final Arguments extraArgs = new Arguments(input.extraArgs);

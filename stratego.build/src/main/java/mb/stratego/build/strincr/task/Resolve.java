@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -30,16 +31,15 @@ import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.ToModuleIndex;
-import mb.stratego.build.strincr.function.ToTypesLookup;
 import mb.stratego.build.strincr.function.output.ModuleIndex;
 import mb.stratego.build.strincr.message.CyclicOverlay;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.Algorithms;
-import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 
 /**
@@ -98,7 +98,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
 
             final FrontInput frontInput = getFrontInput(input, moduleIdentifier);
             final ModuleIndex index =
-                PieUtils.requirePartial(context, front, frontInput, ToModuleIndex.INSTANCE);
+                context.requireMapping(front, frontInput, ToModuleIndex.INSTANCE);
 
             lastModified = Long.max(lastModified, index.lastModified);
             if(index.str2LibPackageName != null) {
@@ -116,8 +116,17 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
             for(StrategyFrontData sfd : index.strategies) {
                 Relation.getOrInitialize(strategyIndex, sfd.signature, LinkedHashSet::new)
                     .add(moduleIdentifier);
-                ToTypesLookup.registerStrategyType(strategyTypes, sfd.signature,
-                    sfd);
+                final @Nullable StrategyType current = strategyTypes.get(sfd.signature);
+                if(current == null || current instanceof StrategyType.Standard
+                    && sfd.kind.equals(StrategyFrontData.Kind.TypeDefinition)) {
+                    strategyTypes.put(sfd.signature, sfd.type);
+                    continue;
+                }
+                if(!(current instanceof StrategyType.Standard)
+                    && sfd.kind.equals(StrategyFrontData.Kind.TypeDefinition)) {
+                    messages.add(new DuplicateTypeDefinition(current, lastModified));
+                    messages.add(new DuplicateTypeDefinition(sfd.signature.getSubterm(0), lastModified));
+                }
             }
             for(StrategySignature signature : index.internalStrategies) {
                 Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)

@@ -61,7 +61,7 @@ public abstract class Message implements WithLastModified, Serializable {
             case "StrategyVariableTypedWithTermType":
                 return new StrategyVariableTypedWithTermType(locationTerm, severity, lastModified);
             case "DuplicateTypeDefinition":
-                return new DuplicateTypeDefinition(locationTerm, severity, lastModified);
+                return new DuplicateTypeDefinition(locationTerm, lastModified);
             case "MissingDefinitionForTypeDefinition":
                 return new MissingDefinitionForTypeDefinition(locationTerm, severity, lastModified);
             case "ProceedWrongNumberOfArguments":

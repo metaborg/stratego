@@ -4,10 +4,10 @@ import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.task.output.CheckOutput;
 
-public class GetMessages implements SerializableFunction<CheckOutput, CheckOutputMessages> {
-    public static final GetMessages INSTANCE = new GetMessages();
+public class GetCheckMessages implements SerializableFunction<CheckOutput, CheckOutputMessages> {
+    public static final GetCheckMessages INSTANCE = new GetCheckMessages();
 
-    private GetMessages() {
+    private GetCheckMessages() {
     }
 
     @Override public CheckOutputMessages apply(CheckOutput output) {

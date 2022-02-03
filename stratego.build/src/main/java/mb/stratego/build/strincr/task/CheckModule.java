@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,7 +31,6 @@ import io.usethesource.capsule.Set;
 import mb.log.api.Logger;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
-import mb.pie.api.StatelessSerializableFunction;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
@@ -47,6 +47,7 @@ import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
 import mb.stratego.build.strincr.function.GetAllModuleIdentifiers;
 import mb.stratego.build.strincr.function.GetDynamicRuleDefinitions;
+import mb.stratego.build.strincr.function.GetStrategyType;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToAnnoDefs;
 import mb.stratego.build.strincr.function.ToTypesLookup;
@@ -58,15 +59,16 @@ import mb.stratego.build.strincr.message.InternalStrategyOverlap;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategyOverlapsWithDynamicRuleHelper;
-import mb.stratego.build.strincr.message.TypeSystemInternalCompilerError;
 import mb.stratego.build.strincr.message.UnreachableModule;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.type.MissingStrategyTypeImport;
+import mb.stratego.build.strincr.message.type.MissingTypeDefinition;
+import mb.stratego.build.strincr.message.type.TypeSystemInternalCompilerError;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
-import mb.stratego.build.strincr.task.output.GlobalData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
 import mb.stratego.build.termvisitors.FindErrT;
@@ -114,10 +116,13 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         final IModuleImportService.ModuleIdentifier moduleIdentifier =
             input.frontInput.moduleIdentifier;
+        final ArrayList<Message> messages = new ArrayList<>();
 
         final LinkedHashSet<StrategySignature> strategiesDefinedByModule = new LinkedHashSet<>();
+        final ResolveInput resolveInput = input.resolveInput();
         final GTEnvironment environment =
-            prepareGTEnvironment(context, moduleData, input.frontInput, strategiesDefinedByModule);
+            prepareGTEnvironment(context, moduleData, input.frontInput, strategiesDefinedByModule,
+                resolveInput, messages);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
@@ -130,10 +135,9 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             strategyDataWithCasts =
             extractStrategyDefs(moduleIdentifier, output.astWithCasts, dynamicRules);
 
-        final ArrayList<Message> messages = new ArrayList<>(output.messages.size());
         messages.addAll(output.messages);
 
-        otherChecks(context, input.resolveInput(), moduleData, messages, projectPath);
+        otherChecks(context, resolveInput, moduleData, messages, projectPath);
 
         return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, strategiesDefinedByModule,
             messages);
@@ -253,7 +257,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context,
-        Map<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
+        Map<StrategySignature, ArrayList<StrategyFrontData>> normalStrategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages, ResolveInput resolveInput) {
         final HashSet<StrategySignature> strategyFilter =
@@ -262,7 +266,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final AnnoDefs annoDefs =
             context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));
 
-        for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
+        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : normalStrategyData
             .entrySet()) {
             final StrategySignature strategySignature = e.getKey();
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
@@ -271,27 +275,27 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(StrategyFrontData strategyFrontData : e.getValue()) {
                 if(strategyFrontData.kind == StrategyFrontData.Kind.TypeDefinition && kinds
                     .contains(strategyFrontData.kind)) {
-                    messages
-                        .add(new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
-                            MessageSeverity.ERROR, lastModified));
+                    messages.add(
+                        new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
+                            lastModified));
                 }
                 kinds.add(strategyFrontData.kind);
             }
             if(kinds.contains(StrategyFrontData.Kind.Override) || kinds
                 .contains(StrategyFrontData.Kind.Extend)) {
                 if(!annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages.add(
-                        ExternalStrategyNotFound.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(ExternalStrategyNotFound.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
             }
             if(kinds.contains(StrategyFrontData.Kind.Normal)) {
                 if(annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages
-                        .add(ExternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(ExternalStrategyOverlap.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
                 if(annoDefs.internalStrategySigs.contains(strategySignature)) {
-                    messages
-                        .add(InternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(InternalStrategyOverlap.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
                 if(dynamicRuleGenerated.contains(strategySignature)) {
                     messages.add(new StrategyOverlapsWithDynamicRuleHelper(signatureNameTerm,
@@ -371,7 +375,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
-        FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions) {
+        FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions,
+        ResolveInput resolveInput, ArrayList<Message> messages) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
@@ -392,6 +397,20 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         final ToTypesLookup toTypesLookup =
             new ToTypesLookup(new LinkedHashSet<>(moduleDefinitions), moduleData.usedStrategies,
                 moduleData.usedAmbiguousStrategies, moduleData.usedConstructors);
+        final HashMap<StrategySignature, IStrategoTerm> strategyDefsWithType = new HashMap<>();
+        final HashSet<StrategySignature> strategyDefsWithoutType = new HashSet<>();
+        normalStrategyDataLoop:
+        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : moduleData.normalStrategyData
+            .entrySet()) {
+            StrategySignature sig = e.getKey();
+            for(StrategyFrontData sfd : e.getValue()) {
+                if(sfd.kind.equals(StrategyFrontData.Kind.TypeDefinition)) {
+                    strategyDefsWithType.put(sig, sfd.signature.getSubterm(0));
+                    continue normalStrategyDataLoop;
+                }
+            }
+            strategyDefsWithoutType.add(sig);
+        }
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(frontInput.moduleIdentifier);
         seen.addAll(moduleData.imports);
@@ -406,8 +425,21 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
                 final StrategySignature signature = e.getKey();
-                ToTypesLookup.registerStrategyType(strategyTypes, signature, e.getValue());
+                final StrategyType strategyType = e.getValue();
+
+                final @Nullable StrategyType current = strategyTypes.get(signature);
+                if(current == null || !(strategyType instanceof StrategyType.Standard)) {
+                    if(current == null || current instanceof StrategyType.Standard) {
+                        strategyTypes.__put(signature, strategyType);
+                    } else if(!(current instanceof StrategyType.Standard) && !(strategyType instanceof StrategyType.Standard)) {
+                        // Problem found and reported already in Resolve
+                    }
+                }
+
                 moduleDefinitions.remove(signature);
+                if(!(strategyType instanceof StrategyType.Standard)) {
+                    strategyDefsWithoutType.remove(signature);
+                }
             }
             for(Map.Entry<ConstructorSignature, HashSet<ConstructorType>> e : typesLookup.constructorTypes
                 .entrySet()) {
@@ -435,36 +467,46 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         final StrategoImmutableMap strategyEnvironment =
             new StrategoImmutableMap(strategyTypes.freeze());
-        return GTEnvironment
-            .from(strategyEnvironment, constructorTypes.freeze(), sorts.freeze(), injections.freeze(),
-                moduleData.ast, tf, moduleData.lastModified);
+        for(StrategySignature strategyDefWithoutType : strategyDefsWithoutType) {
+            final GetStrategyType getStrategyType = new GetStrategyType(strategyDefWithoutType);
+            final StrategyType strategyType =
+                context.requireMapping(resolve, resolveInput, getStrategyType);
+            if(!(strategyType instanceof StrategyType.Standard)) {
+                messages.add(new MissingStrategyTypeImport(strategyDefWithoutType.getSubterm(0),
+                    moduleData.lastModified));
+            } else {
+                messages.add(new MissingTypeDefinition(strategyDefWithoutType.getSubterm(0), moduleData.lastModified));
+            }
+        }
+        return GTEnvironment.from(strategyEnvironment, constructorTypes.freeze(), sorts.freeze(),
+            injections.freeze(), moduleData.ast, tf, moduleData.lastModified);
     }
 
     private void registerModuleDefinitions(ModuleData moduleData,
         io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes,
         BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes,
         Set.Transient<SortSignature> sorts, BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);

@@ -47,29 +47,29 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
             moduleData.ambStrategyIndex();
         for(StrategySignature usedStrategy : definedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
         }
         for(StrategySignature usedStrategy : usedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.externalStrategyData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.dynamicRuleData
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
         }

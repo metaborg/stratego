@@ -1,12 +1,13 @@
-package mb.stratego.build.strincr.message;
+package mb.stratego.build.strincr.message.type;
 
 import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.message.MessageSeverity;
 
-public class TypeSystemInternalCompilerError extends Message {
+public class TypeSystemInternalCompilerError extends TypeMessage<IStrategoTerm> {
     public final String message;
     public final List<StrategySignature> defsWithErrT;
 

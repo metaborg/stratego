@@ -29,7 +29,7 @@ public class ToAnnoDefs implements SerializableFunction<GlobalData, AnnoDefs> {
                 externalStrategyData.add(strategySignature);
             }
         }
-        return new AnnoDefs(internalStrategyData, externalStrategyData);
+        return new AnnoDefs(internalStrategyData, externalStrategyData, globalData.lastModified);
     }
 
     @Override public boolean equals(Object o) {

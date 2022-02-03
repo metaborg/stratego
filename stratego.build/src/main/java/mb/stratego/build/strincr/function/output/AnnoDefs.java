@@ -8,11 +8,13 @@ import mb.stratego.build.strincr.data.StrategySignature;
 public class AnnoDefs implements Serializable {
     public final LinkedHashSet<StrategySignature> internalStrategySigs;
     public final LinkedHashSet<StrategySignature> externalStrategySigs;
+    public final long lastModified;
 
     public AnnoDefs(LinkedHashSet<StrategySignature> internalStrategySigs,
-        LinkedHashSet<StrategySignature> externalStrategySigs) {
+        LinkedHashSet<StrategySignature> externalStrategySigs, long lastModified) {
         this.internalStrategySigs = internalStrategySigs;
         this.externalStrategySigs = externalStrategySigs;
+        this.lastModified = lastModified;
     }
 
     @Override public boolean equals(Object o) {

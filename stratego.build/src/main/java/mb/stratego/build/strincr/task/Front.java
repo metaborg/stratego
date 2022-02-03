@@ -100,13 +100,13 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData =
             new LinkedHashMap<>();
-        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> strategyData =
+        final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData =
             new LinkedHashMap<>();
-        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+        final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
             internalStrategyData = new LinkedHashMap<>();
-        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+        final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
             externalStrategyData = new LinkedHashMap<>();
-        final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData =
+        final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData =
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new LinkedHashMap<>();
         final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
@@ -266,10 +266,10 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> strategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, IStrategoTerm strategyDefs,
         String projectPath) throws ExecException {
         /*
@@ -290,7 +290,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
          */
         for(IStrategoTerm strategyDef : strategyDefs) {
             StrategyFrontData.Kind kind = Normal;
-            HashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dataMap = strategyData;
+            HashMap<StrategySignature, ArrayList<StrategyFrontData>> dataMap = strategyData;
             switch(TermUtils.toAppl(strategyDef).getName()) {
                 case "DefHasTType":
                 case "DefHasType":
@@ -301,7 +301,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                     final StrategySignature strategySignature =
                         strategyType.withName(TermUtils.toStringAt(strategyDef, 0));
-                    Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new)
+                    Relation.getOrInitialize(strategyData, strategySignature, ArrayList::new)
                         .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
                     break;
                 }
@@ -313,9 +313,9 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                     final StrategySignature strategySignature =
                         strategyType.withName(TermUtils.toStringAt(strategyDef, 0));
-                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, ArrayList::new)
                         .add(new StrategyFrontData(strategySignature, strategyType, TypeDefinition));
-                    Relation.getOrInitialize(externalStrategyData, strategySignature, LinkedHashSet::new)
+                    Relation.getOrInitialize(externalStrategyData, strategySignature, ArrayList::new)
                         .add(new StrategyFrontData(strategySignature, strategyType, External));
                     break;
                 }
@@ -343,7 +343,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     if(strategySignature == null) {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
-                    Relation.getOrInitialize(dataMap, strategySignature, LinkedHashSet::new).add(
+                    Relation.getOrInitialize(dataMap, strategySignature, ArrayList::new).add(
                         new StrategyFrontData(strategySignature, strategySignature.standardType(tf),
                             kind));
                     break;
@@ -363,7 +363,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                 }
                 for(StrategySignature signature : strategySignatures) {
-                    Relation.getOrInitialize(dynamicRuleData, signature, LinkedHashSet::new).add(
+                    Relation.getOrInitialize(dynamicRuleData, signature, ArrayList::new).add(
                         new StrategyFrontData(signature, signature.standardType(tf),
                             DynRuleGenerated));
                 }
