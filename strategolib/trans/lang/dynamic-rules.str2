@@ -788,7 +788,7 @@ strategies // looking up
     + (?[RuleScope(_, _) | rs]                      // else recurse
        ; <dr-lookup-rule-in-scope(|key, scpid)>rs)
 
-  dr-lookup-rule-in-scope-rs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
+  dr-lookup-rule-in-scope-cs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
   dr-lookup-rule-in-scope-cs(|key, scpid) =
     ?[ChangeSet(_, rmset, tbl) | rs]
     ; (<iset-contains(|(scpid, key))>rmset
