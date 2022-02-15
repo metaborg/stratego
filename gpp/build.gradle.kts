@@ -12,6 +12,8 @@ val spoofax2Version: String by ext
 spoofaxLanguageSpecification {
   addCompileDependenciesFromMetaborgYaml.set(false)
   addSourceDependenciesFromMetaborgYaml.set(false)
+  // Ignore trans/stratego-box.tbl, as an input, as it is created by the build.
+  spoofaxBuildApproximateAdditionalInputExcludePatterns.add("**/stratego-box.tbl")
 }
 dependencies {
   compileLanguage(compositeBuild("org.metaborg.meta.lang.esv"))
