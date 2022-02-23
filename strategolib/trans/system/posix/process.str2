@@ -10,31 +10,37 @@ imports
   system/io/term
   system/error
 
+  collection/tuple/cons
+
   term/string
   util/config/verbose
 
 strategies
 
- /**
-  * The  setenv() function adds the variable name to the
-  * environment with the value value, if  name  does  not  already
-  * exist.   If  name  does exist in the environment, then its
-  * value is changed to value if  overwrite  is  non-zero;  if
-  * overwrite  is zero, then the value of name is not changed.
-  */
+  /**
+   * The  setenv() function adds the variable name to the
+   * environment with the value value, if  name  does  not  already
+   * exist.   If  name  does exist in the environment, then its
+   * value is changed to value if  overwrite  is  non-zero;  if
+   * overwrite  is zero, then the value of name is not changed.
+   *
+   * Warning: not implemented
+   */
+  setenv :: string * string * int -> string * string * int
   setenv =
     ?(name, value, overwrite)
-    ; where(prim("SSL_setenv", name, value, overwrite))
+    ; where(<internal-setenv(|value, overwrite)> name)
+
+  external internal-setenv :: (|string, int) string -> string
 
 strategies
 
   /**
    * Return process identifier of current process
    *
-   * @type _ -> Int
+   * Warning: not implemented
    */
-  get-pid =
-    prim("SSL_get_pid")
+  external get-pid :: (|) ? -> int
 
 /**
  * Process creation
@@ -54,33 +60,42 @@ strategies
    * thread  of execution, and a 0 is returned in the child's thread of exe-
    * cution.
    *
-   * @type fork :: a -> Int
+   * Warning: not implemented
    */
-  fork =
-    prim("SSL_fork")
+  external fork :: (|) ? -> int
 
   /**
    * Replaces the current process image with a new  process image.
    *
+   * Warning: not implemented
+   *
    * @see      man execvp
    * @warning  The first arugment is added in the runtime.
    */
+  execvp :: ? * ? -> ?
   execvp =
     ?(file, argv)
-    ; prim("SSL_execvp", file, argv)
+    ; <internal-execvp(|argv)> file
     ; where(<conc-strings; perror; fail> ("SSL/execvp: Cannot execute file ", file))
+
+  external internal-execvp :: (|?) ? -> ?
 
   /**
    * Replaces the current process image with a new  process image.
+   *
+   * Warning: not implemented
    *
    * @see      man execv
    * @warning  The first arugment is not added in the runtime.
    * @warning  If the
    */
+  execv :: ? * ? -> ?
   execv =
     ?(file, argv)
-    ; prim("SSL_execv", file, argv)
+    ; <internal-execv(|argv)> file
     ; where(<conc-strings; perror; fail> ("SSL/execv: Cannot execute file ", file))
+
+  external internal-execv :: (|?) ? -> ?
 
 /**
  * Process termination
@@ -88,10 +103,9 @@ strategies
 strategies
 
   /**
-   * @type Int -> WaitStatus
+   * Warning: not implemented
    */
-  waitpid =
-    ?pid; prim("SSL_waitpid", pid)
+  external waitpid :: (|) int -> WaitStatus
 
 signature
   sorts
@@ -114,11 +128,16 @@ strategies
   /**
    * Sends the specified signal to the specified process.
    *
+   * Warning: not implemented
+   *
    * @fail fails on failure of the kill invocation
    * @type Int * Signal -> Int * Signal
    */
+  kill :: int * Signal -> int * Signal
   kill =
     where(
       ?(pid, <number-from-signal; ?sig>)
-    ; prim("SSL_kill", pid, sig)
+    ; <internal-kill(|sig)> pid
     )
+
+  external internal-kill :: (|int) int -> int

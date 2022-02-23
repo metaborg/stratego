@@ -45,7 +45,7 @@ strategies
   read-text-line :: Stream -> string
   read-text-line =
     ?stream
-    ; rec x(![<fgetc; not('\n')> stream | <x> NoStream()] <+ ![])
+    ; rec x(![<fgetc; not(?'\n')> stream | <x> NoStream()] <+ ![])
     ; implode-string
 
 strategies

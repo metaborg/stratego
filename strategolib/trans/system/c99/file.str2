@@ -7,18 +7,23 @@
  * Warning: this file is currently also included in the POSIX library.
  */
 module system/c99/file
+
+imports
+  system/io/file
+  collection/tuple/cons
+
 strategies
 
   /**
    * Alternative to the POSIX+XSI copy-file
    */
-  copy-file =
-    ?(oldname, newname)
-    ; prim("SSL_copy", oldname, newname)
+  copy-file :: C99FileLoc * C99FileLoc -> C99FileLoc * C99FileLoc
+  copy-file: (newname, oldname) -> <id>
+    where <internal-copy-file(|newname)> oldname
 
   /**
    * Alternative to the POSIX+XSI rename-file
    */
-  rename-file =
-    ?(oldname, newname)
-    ; prim("SSL_rename", oldname, newname)
+  rename-file :: C99FileLoc * C99FileLoc -> C99FileLoc * C99FileLoc
+  rename-file: (newname, oldname) -> <id>
+    where <internal-rename-file(|newname)> oldname

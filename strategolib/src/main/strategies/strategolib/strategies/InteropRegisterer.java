@@ -5,6 +5,10 @@ import org.strategoxt.lang.Strategy;
 
 public class InteropRegisterer extends JavaInteropRegisterer {
     public InteropRegisterer() {
-        super(new Strategy[] { });
+        super(new Strategy[] {
+            // @formatter:off
+            list_loop_1_0.instance
+            // @formatter:on
+        });
     }
 }

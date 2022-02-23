@@ -7,6 +7,8 @@ imports
   system/io/file
 
   collection/list/common
+  collection/list/cons
+  collection/tuple/cons
   term/string
 
 strategies
@@ -14,6 +16,7 @@ strategies
 // connecting and/or disconnecting parts of a pipe
 
   // close both file descriptors constituting a pipe
+  close-pipe :: Pipe -> Pipe
   close-pipe =
   where(
     ?Pipe(fd1, fd2)
@@ -22,6 +25,7 @@ strategies
   )
 
   // connect the input side (fd1) of the pipe to stdin
+  stdin-from-pipe :: Pipe -> Pipe
   stdin-from-pipe =
   where(
     ?Pipe(fd1, fd2)
@@ -30,12 +34,14 @@ strategies
   )
 
   // create a file that is connected to input side (fd1) of the pipe
+  file-from-pipe :: Pipe -> Stream
   file-from-pipe :
     Pipe(fd1, fd2) -> file
     where <fdopen> (fd1, "r") => file
         ; <close> fd2
 
   // connect the output side (fd2) of the pipe to stdout
+  stdout-to-pipe :: Pipe -> Pipe
   stdout-to-pipe =
   where(
     ?Pipe(fd1, fd2)
@@ -44,11 +50,13 @@ strategies
   )
 
   // create a file that is connected to output side (fd2) of the pipe
+  file-to-pipe :: Pipe -> Stream
   file-to-pipe :
     Pipe(fd1, fd2) -> file
     where <fdopen> (fd2, "w") => file
         ; <close> fd1
 
+  write-term-to-text-pipe :: Pipe * a -> Pipe * a
   write-term-to-text-pipe =
   where(
     ?(p, t)
@@ -57,10 +65,11 @@ strategies
     ; <fclose> outfile
   )
 
+  read-term-from-pipe :: Pipe -> ?
   read-term-from-pipe :
     p -> t
     where <file-from-pipe> p => file
-        ; <ReadFromFile> file => t
+        ; <read-from-stream> file => t
         ; <fclose> file
 
 strategies
@@ -68,6 +77,7 @@ strategies
 // Programs that interact with pipes
 
   // execute prog and write the current term to its stdin
+  write-to-prog(Pipe -> ?, Pipe -> ?) :: ? -> ?
   write-to-prog(prog, args) =
   where(
     where(pipe => p)
@@ -79,6 +89,7 @@ strategies
     ; (exited + signaled + stopped)
   )
 
+  write-to-prog'(Pipe -> ?, Pipe -> ?) :: ? -> ?
   write-to-prog'(prog, args) =
   where(
     ?t
@@ -94,6 +105,7 @@ strategies
      )
 
   // execute prog and read the term on its stdout
+  read-from-prog(Pipe -> ?, Pipe -> ?) :: ? -> ?
   read-from-prog(prog, args) =
     where(pipe => p)
     ; fork(<stdout-to-pipe> p; <execvp> (<prog>, <args>))
@@ -102,6 +114,7 @@ strategies
     ; where(<waitpid> pid
             ; (exited + signaled + stopped))
 
+  read-from-prog'(Pipe -> ?, Pipe -> ?) :: ? -> ?
   read-from-prog'(prog, args) =
   where(
     pipe => p
@@ -118,11 +131,12 @@ strategies
 strategies
 
 // managing pipelines of filter programs
-
+  setup-filter-pipe :: ? -> Pipe * List(a) * Pipe
   setup-filter-pipe =
     pipe => p; !(p, [], p)
 
   // prog produces input for the pipe p
+  pipe-source(Pipe -> ?, Pipe -> ?) :: Pipe * a -> a
   pipe-source(prog, args) :
     (p, pids) -> pids
     where fork
@@ -130,19 +144,23 @@ strategies
            <+ ?pid)
 
   // prog consumes the output from pipe p
+  pipe-sink(Pipe -> ?, Pipe -> ?) :: a * List(int) * Pipe -> a * List(int)
   pipe-sink(prog, args) :
     (p0, pids, p1) -> (p0, [pid | pids])
     where fork(<stdin-from-pipe> p1; <execvp> (<prog>, <args>)) => (pid, _)
 
+  close-filter-pipe(c -> b) :: a * List(b) * c -> a * List(b)
   close-filter-pipe(s) :
     (p-in, pids, p-out) -> (p-in, [pid | pids])
     where <s> p-out => pid
 
+  exec-filter-pipe(a -> int) :: a * List(int) -> Tuple()
   exec-filter-pipe(s) :
     (p-in, pids) -> ()
     where <s> p-in => pid
         ; <map(waitpid; (exited + signaled + stopped))> [pid | pids]
 
+  spawn-filter-with-prog(? -> string, Pipe -> ?) :: a * List(int) * Pipe -> a * List(int) * Pipe
   spawn-filter-with-prog(prog, args) :
     (p0, pids, p-in) -> (p0, [pid | pids], p-out)
     where debug(<concat-strings> ["spawn-filter-with ", <prog>, ": "])

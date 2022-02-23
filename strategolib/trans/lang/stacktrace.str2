@@ -35,8 +35,7 @@ strategies
    * stack frame. The list might not be complete; refer to the module
    * documentation for lang/stacktrace for details.
    */
-  stacktrace-get-all-frame-names :: ? -> List(string)
-  stacktrace-get-all-frame-names = prim("SSL_stacktrace_get_all_frame_names")
+  external stacktrace-get-all-frame-names :: (|) ? -> List(string)
 
   /**
    * Return the name of the currently active stack frame. This
@@ -44,20 +43,18 @@ strategies
    * stacktrace-get-current-frame, with certain restrictions,
    * see the lang/stacktrace module documentation.
    */
-  stacktrace-get-current-frame-name :: ? -> string
-  stacktrace-get-current-frame-name = prim("SSL_stacktrace_get_current_frame_name")
+  external stacktrace-get-current-frame-name :: (|) ? -> string
 
   /**
    * Return the index (depth) of the current stack, including the call to this
    * strategy.
    */
-  stacktrace-get-current-frame-index :: ? -> int
-  stacktrace-get-current-frame-index = prim("SSL_stacktrace_get_current_frame_index")
+  external stacktrace-get-current-frame-index :: (|) ? -> int
 
   print-stacktrace :: a -> a
   print-stacktrace =
     where(
-      prim("SSL_stacktrace_get_all_frame_names")
+      stacktrace-get-all-frame-names
     ; try(?["print_stacktrace_0_0" | <id>])
     ; reverse
     ; list-loop(<fprintnl> (stderr(), ["\t", <id>]))

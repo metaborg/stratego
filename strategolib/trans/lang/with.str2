@@ -12,6 +12,7 @@ imports
   util/config/options
   collection/tuple/cons
   collection/list/cons
+  lang/stacktrace
 
 strategies
 
@@ -23,7 +24,7 @@ strategies
    */
   with(a -> ? | List(string)) :: a -> a
   with(s|message) =
-    where(s <+ ?term; prim("SSL_stacktrace_get_all_frame_names"); report-failure(|message, term))
+    where(s <+ ?term; stacktrace-get-all-frame-names; report-failure(|message, term))
 
   /**
   * Evaluate strategy s1 and catch with-failures that get thrown.
@@ -38,8 +39,7 @@ strategies
   * @param (String, a, List(String)) -> c
   * @type a -> b | c
   */
-  catch-with(a -> b, string * a * List(string) -> b) :: a -> b
-  catch-with(s1, s2) = prim("SSL_EXT_catch_with", s1, s2|)
+  external catch-with :: (a -> b, string * a * List(string) -> b|) a -> b
 
   /**
   * @internal

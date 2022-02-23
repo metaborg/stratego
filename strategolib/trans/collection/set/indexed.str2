@@ -45,7 +45,9 @@ strategies
    */
   new-iset(|int, int) :: ? -> IndexedSet
   new-iset(|initial_size, max_load) =
-    prim("SSL_indexedSet_create", initial_size, max_load); !IndexedSet(<id>)
+    !IndexedSet(<internal-indexed-set-create(|initial_size)> max_load)
+
+  external internal-indexed-set-create :: (|int) int -> IndexedSetImplBlob
 
   /**
    * Releases all memory occupied by the set.
@@ -55,7 +57,9 @@ strategies
    */
   iset-destroy :: IndexedSet -> IndexedSet
   iset-destroy =
-    ?IndexedSet(set); prim("SSL_indexedSet_destroy", set); !IndexedSet(<id>)
+    IndexedSet(internal-indexed-set-destroy)
+
+  external internal-indexed-set-destroy :: (|) IndexedSetImplBlob -> IndexedSetImplBlob
 
   /**
    * Removes all elements from the set.
@@ -64,7 +68,9 @@ strategies
    */
   iset-clear :: IndexedSet -> IndexedSet
   iset-clear =
-    ?IndexedSet(set); prim("SSL_indexedSet_reset", set); !IndexedSet(<id>)
+    IndexedSet(internal-indexed-set-reset)
+
+  external internal-indexed-set-reset :: (|) IndexedSetImplBlob -> IndexedSetImplBlob
 
 /**
  * IndexedSet operations
@@ -82,7 +88,9 @@ strategies
    */
   iset-add(int -> int|?) :: IndexedSet -> int
   iset-add(on_old|elem) =
-    ?IndexedSet(set); prim("SSL_indexedSet_put", on_old | set, elem)
+    ?IndexedSet(<internal-indexed-set-put(on_old|elem)>)
+
+  external internal-indexed-set-put :: (int -> int|?) IndexedSetImplBlob -> int
 
   /**
    * Ensures that elem is in the set.
@@ -120,7 +128,9 @@ strategies
    */
   iset-remove(|?) :: IndexedSet -> IndexedSet
   iset-remove(|elem) =
-    ?IndexedSet(set); prim("SSL_indexedSet_remove", set, elem); !IndexedSet(<id>)
+    IndexedSet(internal-indexed-set-remove(|elem))
+
+  external internal-indexed-set-remove :: (|?) IndexedSetImplBlob -> IndexedSetImplBlob
 
   /**
    * Returns all elements of the set.
@@ -129,8 +139,9 @@ strategies
    */
   iset-elements :: IndexedSet -> List(?)
   iset-elements =
-    ?IndexedSet(set); prim("SSL_indexedSet_elements", set)
+    ?IndexedSet(<internal-indexed-set-elements>)
 
+  external internal-indexed-set-elements :: (|) IndexedSetImplBlob -> List(?)
 
   /**
    * Unites a set with another.
@@ -218,7 +229,9 @@ strategies
    */
   iset-get-index(|?) :: IndexedSet -> int
   iset-get-index(|elem) =
-    ?IndexedSet(set); prim("SSL_indexedSet_getIndex", set, elem)
+    ?IndexedSet(<internal-indexed-set-get-index(|elem)>)
+
+  external internal-indexed-set-get-index :: (|?) IndexedSetImplBlob -> int
 
   /**
    * Gets the element at index in the set.
@@ -230,4 +243,6 @@ strategies
    */
   iset-get-elem(|int) :: IndexedSet -> ?
   iset-get-elem(|index) =
-    ?IndexedSet(set); prim("SSL_indexedSet_getElem", set, index)
+    ?IndexedSet(<internal-indexed-set-get-elem(|index)>)
+
+  external internal-indexed-set-get-elem :: (|int) IndexedSetImplBlob -> ?

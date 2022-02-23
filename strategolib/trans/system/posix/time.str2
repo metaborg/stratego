@@ -4,58 +4,77 @@ imports
   term/common
   term/integer
 
+  collection/tuple/cons
+  collection/tuple/common
+  collection/list/cons
+
   system/io/term
   system/io/file
   system/io/process
   util/config/common
   util/config/options
 
+signature
+  sorts
+    Clock
+  constructors
+    : int * int * int * int -> Clock
+//    : Clock -> int * int * int * int
+
 strategies
 
   /* The times() function stores the current process times in a quadruple
      (user time, system time, user time of children, system time of children)
      See man 2 times for more information */
-  times =
-    prim("SSL_times")
+  external times :: (|) ? -> int * int * int * int
 
-  ticks-to-seconds =
-    ?t; prim("SSL_TicksToSeconds", t)
+  external ticks-to-seconds :: (|) int -> real
 
+  diff-times :: (int * int * int * int) * (int * int * int * int) -> int * int * int * int
   diff-times :
-    ((a1, b1, c1, d1), (a2, b2, c2, d2)) ->
-    (<subt>(a1, a2), <subt>(b1, b2), <subt>(c1, c2), <subt>(d1, d2))
+    ((ut1, st1, cut1, cst1), (ut2, st2, cut2, cst2)) ->
+    (<subti>(ut1, ut2), <subti>(st1, st2), <subti>(cut1, cut2), <subti>(cst1, cst2))
 
+  add-times :: (int * int * int * int) * (int * int * int * int) -> int * int * int * int
   add-times :
-    ((a1, b1, c1, d1), (a2, b2, c2, d2)) ->
-    (<add>(a1, a2), <add>(b1, b2), <add>(c1, c2), <add>(d1, d2))
+    ((ut1, st1, cut1, cst1), (ut2, st2, cut2, cst2)) ->
+    (<addi>(ut1, ut2), <addi>(st1, st2), <addi>(cut1, cut2), <addi>(cst1, cst2))
 
+  times-to-seconds :: int * int * int * int -> real * real * real * real
   times-to-seconds :
-    (a, b, c, d) ->
-    (<ticks-to-seconds> a, <ticks-to-seconds> b, <ticks-to-seconds> c, <ticks-to-seconds> d)
+    (ut, st, cut, cst) ->
+    (<ticks-to-seconds> ut, <ticks-to-seconds> st, <ticks-to-seconds> cut, <ticks-to-seconds> cst)
 
+  user-time :: int * int * int * int -> int
   user-time :
-    (a, b, c, d) -> a
+    (ut, st, cut, cst) -> ut
 
+  system-time :: int * int * int * int -> int
   system-time :
-    (a, b, c, d) -> b
+    (ut, st, cut, cst) -> st
 
+  cuser-time :: int * int * int * int -> int
   cuser-time :
-    (a, b, c, d) -> c
+    (ut, st, cut, cst) -> cut
 
+  csystem-time :: int * int * int * int -> int
   csystem-time :
-    (a, b, c, d) -> d
+    (ut, st, cut, cst) -> cst
 
+  self-children-user-time :: int * int * int * int -> int
   self-children-user-time :
-    (a, b, c, d) -> <add>(a, c)
+    (ut, st, cut, cst) -> <addi> (ut, cut)
 
+  self-children-sys-time :: int * int * int * int -> int
   self-children-sys-time :
-    (a, b, c, d) -> <add>(b, d)
+    (ut, st, cut, cst) -> <addi> (st, cst)
 
- /**
-  * Total run-time so far.
-  */
+  /**
+   * Total run-time so far.
+   */
+  run-time :: ? -> real
   run-time =
-    times; crush(!0, add); ticks-to-seconds
+    times; tfoldr(!0, addi, is-int); ticks-to-seconds
 
   /**
    * Outputs the name of the program and the run time in seconds to
@@ -63,14 +82,16 @@ strategies
    */
   report-run-time =
     if <geq>(<get-config> "--statistics", 1) then
-      <fprintnl> (stderr(), [<whoami> (), " (", <run-time>, " secs)"])
+      where(<fprintnl> (stderr(), [<whoami> (), " (", <run-time>, " secs)"]))
     end
 
+  profile(a -> b) :: a -> b * int
   profile(s) =
     where(times => start)
     ; s
-    ; !(<id>, <<diff-times> (<times>, start); crush(!0, add)>)
+    ; !(<id>, <<diff-times> (<times>, start); tfoldr(!0, addi, is-int)>)
 
+  profile(int * int * int * int -> string, a -> b) :: a -> b
   profile(msg, s) =
     where(times => start)
     ; s
@@ -82,6 +103,7 @@ strategies
                  , "\n"])> (<times>, start)
       )
 
+  profile'(List(?) -> ?, a -> b) :: a -> b
   profile'(msg, s) =
     where(times => start)
     ; s
