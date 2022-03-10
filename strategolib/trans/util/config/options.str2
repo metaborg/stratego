@@ -346,12 +346,9 @@ strategies
   report-failure =
     report-failure(exit)
 
-  report-failure(|?, t) :: List(string) -> a
+  report-failure(|string, ?) :: List(string) -> a
   report-failure(|message, term) =
-    report-failure(
-      log(|Critical(), message, term)
-    ; <exit> 1
-    )
+    fatal-err(|message, <try(is(List(string));concat-strings)> term, <id>)
 
   /**
    * Report the failure of this program, without showing a stack trace.

@@ -275,10 +275,10 @@ strategies
    *
    * @type List(a) -> List(a)
    */
-  fatal-error :: List(a) -> b
+  fatal-error :: List(string) -> b
   fatal-error =
       error
-    ; <exit> 1
+    ; fatal-err(|<concat-strings>, ())
 
   /**
    * Prints giving-up to stderr and exits with code 1.

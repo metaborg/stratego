@@ -9,6 +9,7 @@ imports
   collection/list/set
   collection/tuple/cons
   term/integer
+  term/string
 
 strategies
 
@@ -82,15 +83,21 @@ strategies
   * Note that this relation is valid in one session (but what happens after
   * rehashing), but not necessarily between two sessions.
   */
+  // Overridden to not use term-address-lt but checksum comparison since the original
+  //   implementation was on maximally shared terms.
   address-lt :: a * b -> a * b
   address-lt =
-    where(?(<id>,t2); term-address-lt(|t2))
+    where((checksum, checksum) ; string-lt)
 
   /**
    * Compare the address of two terms and succeeds if the address of the current
    * term is smaller than the address of the argument.
    */
-  external term-address-lt :: (|b) a -> a
+  // Overridden to not use term-address-lt but checksum comparison since the original
+  //   implementation was on maximally shared terms.
+  term-address-lt(|b) :: a -> a
+  term-address-lt(|t2) =
+    where(?t1 ; <address-lt> (t1,t2))
 
  /**
   * Give the address of a term.
