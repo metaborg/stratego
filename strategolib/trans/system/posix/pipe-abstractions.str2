@@ -3,13 +3,17 @@ imports
   system/posix/file
   system/posix/process
   system/posix/process-abstractions
+  system/posix-xsi/file
   system/io/term
   system/io/file
+  system/io/dir
 
   collection/list/common
   collection/list/cons
   collection/tuple/cons
   term/string
+  term/integer
+  strategy/conditional
 
 strategies
 
@@ -105,14 +109,34 @@ strategies
      )
 
   // execute prog and read the term on its stdout
-  read-from-prog(Pipe -> ?, Pipe -> ?) :: ? -> ?
+  read-from-prog(? -> string, ? -> List(string)) :: ? -> ?
   read-from-prog(prog, args) =
-    where(pipe => p)
-    ; fork(<stdout-to-pipe> p; <execvp> (<prog>, <args>))
-    ; ?(pid, _)
-    ; <read-term-from-pipe> p => t
-    ; where(<waitpid> pid
-            ; (exited + signaled + stopped))
+//    where(pipe => p)
+//    ; fork(<stdout-to-pipe> p; <execvp> (<prog>, <args>))
+//    ; ?(pid, _)
+//    ; <read-term-from-pipe> p => t
+//    ; where(<waitpid> pid
+//            ; (exited + signaled + stopped))
+    // (Java extension)
+    (tempname, fd)    := <new-temp-file>;
+    outstream         := <fdopen> (fd, "w");
+    Stream(instream)  := <stdin-stream>;
+    Stream(errstream) := <stderr-stream>;
+    finally(
+      <call> (<prog>, <args>)
+    , <is-int; fclose> fd
+    );
+    <ReadFromFile> tempname;
+    where(<remove-file> tempname)
+
+  /* UNDONE: added a Java extension for calling a tool with a custom environment
+  <+
+    // (Java extension)
+    ?(program, env, args);
+
+    log(|Info(), ["Calling external tool ", program, " ", <try(separate-by(|" "); concat-strings)> args]);
+    prim("SSL_EXT_call", (program, env), args) => 0
+  */
 
   read-from-prog'(Pipe -> ?, Pipe -> ?) :: ? -> ?
   read-from-prog'(prog, args) =

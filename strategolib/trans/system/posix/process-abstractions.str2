@@ -3,8 +3,10 @@ imports
   system/posix/process
   system/posix/signal
   system/posix/file
+  system/posix/file-abstractions
   system/io/term
   system/io/process
+  system/io/file
 
   strategy/conditional
   strategy/general/option
@@ -14,6 +16,7 @@ imports
 
   collection/tuple/cons
   collection/list/cons
+  collection/list/common
 
 /**
  * Fork abstractions
@@ -47,7 +50,36 @@ strategies
    */
   call :: string * List(string) -> string * List(string)
   call =
-    call(id)
+//     call(id)
+    // (Java extension) // FIXME: properly detect that <call> isn't invoking a class
+    where( // Java call
+        ?(program, args);
+        <where(is-substring(!".")); not(is-substring(!"/") + is-substring(!"\\") + file-exists)> program;
+        if <is-list> args then
+          <internal-java-call(|[program | args], 0)> program
+        else
+          warn(|"Program arguments for <call> should be a list");
+          <internal-java-call(|args, 0)> program
+        end
+      <+ // External tool call
+        ?(program, args);
+    
+        Stream(instream)  := <stdin-stream>;
+        Stream(outstream) := <stdout-stream>;
+        Stream(errstream) := <stderr-stream>;
+        
+        log(|Info(), ["Calling external tool ", program, " ", <separate-by(|" "); concat-strings> args]);
+        <internal-call(|args, instream, outstream, errstream)> program => 0
+      /* // External tool call with custom in/out/err streams
+      <+
+        ?(program, args, instream, outstream, errstream);
+        
+        log(|Info(), ["Calling external tool ", program, " ", <separate-by(|" "); concat-strings> args]);
+        prim("SSL_EXT_call", program, args, instream, outstream, errstream) => 0 */
+    )
+
+  external internal-java-call :: (|List(string), int) string -> ?
+  external internal-call :: (|List(string), int, int, int) string -> int
 
   call(string * List(string) -> ?) :: string * List(string) -> string * List(string)
   call(init-child) =
