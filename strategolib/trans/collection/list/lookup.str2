@@ -48,7 +48,10 @@ strategies
    * @type     List(a) -> b
    */
   getfirst(a -> b) :: List(a) -> b
-  getfirst(s) = Hd; s <+ Tl; getfirst(s)
+  getfirst(s) =
+    // Hd; s <+ Tl; getfirst(s)
+    // performance tweak
+    ?[_ | _]; one(where(s; ?x)); !x
 
   /**
    * Used to be a faster version of lookup. Now lookup itself uses the fast implementation.

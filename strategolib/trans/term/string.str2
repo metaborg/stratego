@@ -1569,12 +1569,13 @@ strategies
    *
    * @author Karl Trygve Kalleberg <karltk@stratego.org>
    */
-  string-replace(|string, string) :: string -> string
-  string-replace(|old, new) =
-      !([], <explode-string>, <explode-string> old)
-    ; internal-string-replace(|<explode-string> old, <explode-string ; reverse> new)
-    ; reverse
-    ; implode-string
+  external string-replace :: (|string, string) string -> string
+
+//  string-replace(|old, new) =
+//      !([], <explode-string>, <explode-string> old)
+//    ; internal-string-replace(|<explode-string> old, <explode-string ; reverse> new)
+//    ; reverse
+//    ; implode-string
 
 strategies
 

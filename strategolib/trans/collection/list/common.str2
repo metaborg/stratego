@@ -6,6 +6,7 @@ module collection/list/common
 imports
   collection/list/cons
   collection/list/index
+  collection/list/lookup
   collection/list/zip
   collection/tuple/common
   collection/tuple/cons
@@ -87,7 +88,9 @@ strategies
    */
   map(a -> b) :: List(a) -> List(b)
   map(s) =
-    rec x([] + [s | x])
+//    rec x([] + [s | x])
+    // performance tweak
+      ?[_ | _] < all(s) + ?[]
 
   /** @internal */
   map1(a -> a) :: List(a) -> List(a)
@@ -104,7 +107,7 @@ strategies
     where
       t2 := <reverse-map(s)> t1
     ; h2 := <s> h1
-  reverse-map(s) = []
+  reverse-map(s) = ?[]
 
   /**
    * @inc map
@@ -158,7 +161,9 @@ strategies
    */
   fetch(a -> a) :: List(a) -> List(a)
   fetch(s) =
-    rec x([s | id] <+ [id | x])
+//    rec x([s | id] <+ [id | x])
+    // performance tweak
+    ?[_ | _]; one(s)
 
   /**
    * Return first list element for which s succeeds.
@@ -169,7 +174,9 @@ strategies
    */
   fetch-elem(a -> b) :: List(a) -> b
   fetch-elem(s) =
-    fetch(where(s => x)); !x
+//    fetch(where(s => x)); !x
+    // performance tweak
+    getfirst(s)
 
   /**
    * Splits a list in two parts at the first point where s succeeds.
@@ -253,9 +260,9 @@ strategies
    *
    * @param s   is applied to Nil ([])
    */
-  at-end(List(b) -> List(a)) :: List(a) -> List(a)
-  at-end(s) =
-    rec x([id | x] + []; s)
+  external at-end :: (List(b) -> List(a)|) List(a) -> List(a)
+//  at-end(s) =
+//    rec x([id | x] + ?[]; s)
 
   /**
    * Apply a strategy to some suffix of a list.
@@ -332,7 +339,7 @@ strategies
    */
   listbu(List(a) -> List(a)) :: List(a) -> List(a)
   listbu(s) =
-    rec x(([] + [id| x]); s)
+    rec x((?[] + [id| x]); s)
 
   /**
    * @inc listbu
@@ -362,7 +369,7 @@ strategies
    */
   listtd(List(a) -> List(a)) :: List(a) -> List(a)
   listtd(s) =
-    rec x(s; ([] + [id| x]))
+    rec x(s; (?[] + [id| x]))
 
   /**
    * Applies s in a top down then bottom up, i.e. down up, order. See
@@ -375,7 +382,7 @@ strategies
    */
   listdu(List(a) -> List(a)) :: List(a) -> List(a)
   listdu(s) =
-    rec x(s; ([] + [id| x]); s)
+    rec x(s; (?[] + [id| x]); s)
 
   /**
    * Applies s1 in a top down order then s2 in a bottom up order. See
@@ -389,7 +396,7 @@ strategies
    */
   listdu2(List(a) -> List(a), List(a) -> List(a)) :: List(a) -> List(a)
   listdu2(s1, s2) =
-    rec x(s1; ([] + [id| x]); s2)
+    rec x(s1; (?[] + [id| x]); s2)
 
   /** @internal */
   RevInit :: a -> a * List(b)
@@ -489,9 +496,9 @@ strategies
    *
    * @inc  concat-test
    */
-  concat :: List(List(a)) -> List(a)
-  concat =
-    rec x([] + \ [l | ls] -> <at-end(<x> ls)> l\ )
+  external concat :: (|) List(List(a)) -> List(a)
+//  concat =
+//    rec x(?[] + \ [l | ls] -> <at-end(<x> ls)> l\ )
 
   /**
    * Concats two elements if both elements are lists. Otherwise, constructs
@@ -533,10 +540,10 @@ strategies
    */
   separate-by(|a) :: List(a) -> List(a)
   separate-by(|sep) =
-    []
+    ?[]
     + [id |
         rec x(
-          []
+          ?[]
         + [id | x]
           ; ![sep | <id>]
         )]
@@ -606,7 +613,9 @@ strategies
    */
   foldr1(List(a) -> b, a * b -> b) :: List(a) -> b
   foldr1(s1, s2) =
-    rec x([id]; s1 <+ FoldR; (id, x); s2)
+//    rec x([id]; s1 <+ FoldR; (id, x); s2)
+    // performance tweak
+    ?[_ | _]; crush(s1, s2, id)
 
   /**
    * foldr, requires a list of length > 1.
@@ -621,7 +630,9 @@ strategies
    */
   foldr1(List(c) -> b, c * b -> b, a -> c) :: List(a) -> b
   foldr1(s1, s2, f) =
-    rec x([f]; s1 <+ FoldR; (f, x); s2)
+//    rec x([f]; s1 <+ FoldR; (f, x); s2)
+    // performance tweak
+    ?[_ | _]; crush(s1, s2, f)
 
   /**
    * foldr, requires a list of length > 1.
@@ -650,8 +661,10 @@ strategies
    */
   foldr(List(c) -> b, a * b -> b) :: List(a) -> b
   foldr(s1, s2) =
-    []; s1
-    + \ [y|ys] -> <s2>(y, <foldr(s1, s2)> ys) \
+    ?[]; s1
+//    + \ [y|ys] -> <s2>(y, <foldr(s1, s2)> ys) \
+    // performance tweak
+    + ?[_|_]; crush(s1, s2, id)
 
   /**
    * Right folds a list. That is, the strategy s2 is applied as a
@@ -672,8 +685,10 @@ strategies
    */
   foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
   foldr(s1, s2, f)  =
-    []; s1 +
-    \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
+    ?[]; s1
+//    + \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
+    // performance tweak
+    + ?[_|_]; crush(s1, s2, f)
 
   /**
    * Left folds a list. That is, the strategy s is applied as a
@@ -706,7 +721,7 @@ strategies
    */
   mapconcat(a -> List(b)) :: List(a) -> List(b)
   mapconcat(s) =
-    foldr([], conc, s)
+    foldr(?[], conc, s)
 
   /**
    * Returns the last element of a list.
@@ -729,7 +744,7 @@ strategies
    */
   first-last :: List(a) -> List(a)
   first-last =
-    [id | try(last; MkSingleton)] <+ []
+    [id | try(last; MkSingleton)] <+ ?[]
 
  /**
   * Returns a list of all elements of a list, except the last.
@@ -844,7 +859,7 @@ strategies
    */
   take-while(a -> b) :: List(a) -> List(a)
   take-while(s) =
-    at-suffix([] + ([not(s)|id];![]))
+    at-suffix(?[] + ([not(s)|id];![]))
 
   /**
    * Take elements from the start of a list until s succeeds.
@@ -861,7 +876,7 @@ strategies
    */
   take-until(a -> a) :: List(a) -> List(a)
   take-until(s) =
-    at-suffix([] + ([s|id];![]))
+    at-suffix(?[] + ([s|id];![]))
 
   /**
    * Take the first n elements of a list, given by isn. The
@@ -922,7 +937,7 @@ strategies
    */
   drop-while(a -> b) :: List(a) -> List(a)
   drop-while(s) =
-    at-suffix(([] + [not(s)|id]);?xs); !xs
+    at-suffix((?[] + [not(s)|id]);?xs); !xs
 
   /**
    * Drops elements from the start of a list until s succeeds. The
@@ -936,7 +951,7 @@ strategies
    */
   drop-until(a -> a) :: List(a) -> List(a)
   drop-until(s) =
-    at-suffix(([] + [s|id]);?xs); !xs
+    at-suffix((?[] + [s|id]);?xs); !xs
 
   /**
    * Drops the first n elements from a list. If the list has
@@ -1093,9 +1108,9 @@ strategies
    * @type List(rec x(a or List(x))) -> List(a)
    * @inc flatten-test
    */
-  flatten-list :: List(?) -> List(?)
-  flatten-list =
-    foldr(![], (is-list, id) < conc + MkCons, is-list < flatten-list + id)
+  external flatten-list :: (|) List(?) -> List(?)
+//  flatten-list =
+//    foldr(![], (is-list, id) < conc + MkCons, is-list < flatten-list + id)
 
   /**
    * Eliminates all elements at the end of the two lists that are equal.

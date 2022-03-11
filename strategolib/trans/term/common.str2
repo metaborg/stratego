@@ -114,13 +114,13 @@ strategies
 
 strategies
 
-  crush(List(c) -> b, ? * b -> b) :: ? -> b
-  crush(nul, sum) :
-    _#(xs) -> <foldr(nul,sum)> xs
+  crush(List(c) -> b, ? * b -> b|) :: ? -> b
+  crush(nul, sum) =
+    crush(nul, sum, id)
 
-  crush(List(d) -> b, c * b -> b, ? -> c) :: ? -> b
-  crush(nul, sum, s) :
-    _#(xs) -> <foldr(nul,sum, s)> xs
+  external crush :: (List(d) -> b, c * b -> b, ? -> c|) ? -> b
+//  crush(nul, sum, s) :
+//    _#(xs) -> <foldr(nul,sum, s)> xs
 
 strategies
 
