@@ -232,6 +232,13 @@ insertCasts-Strategy-(|e1, st1):
   ; st4 := <current-type(|EmptyT())> st3
 
 insertCasts-Strategy-(|e1, st1):
+  Some(s1) -> (Some(s2), st3)
+  where
+    <current-type;?ListT(t1)> st1
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType(t1, t1))
+  ; st3 := <current-type(!ListT(t1))> st2
+
+insertCasts-Strategy-(|e1, st1):
   Some(s1) -> (Some(s2), <current-type-of(| st1)> st2)
   where
     not(<current-type;oncetd(?DynT())> st1)
@@ -243,6 +250,13 @@ insertCasts-Strategy-(|e1, st1):
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
 
 insertCasts-Strategy-(|e1, st1):
+  One(s1) -> (One(s2), st3)
+  where
+    <current-type;?ListT(t1)> st1
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType(t1, t1))
+  ; st3 := <current-type(!ListT(t1))> st2
+
+insertCasts-Strategy-(|e1, st1):
   One(s1) -> (One(s2), <current-type-of(| st1)> st2)
   where
     not(<current-type;oncetd(?DynT())> st1)
@@ -252,6 +266,15 @@ insertCasts-Strategy-(|e1, st1):
   One(s1) -> (One(s2), <current-type(|DynT())> st2)
   with
     (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType())
+
+insertCasts-Strategy-(|e1, st1):
+  All(s1) -> (All(s2), st3)
+  where
+    <current-type;?ListT(t1)> st1
+  ; tv := <local-newname> "listsometv"
+  ; t2 := SortVar(tv)
+  ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, FunTType(t1, t2))
+  ; st3 := <current-type(!ListT(t2));type-var-elim(id|tv)> st2
 
 insertCasts-Strategy-(|e1, st1):
   All(s1) -> (All(s2), <current-type-of(| st1)> st2)
@@ -917,8 +940,8 @@ insertCasts-Strategy(|e1, st1):
   ; if <CanReinterpret> ((t3, t2), e1)
       then st2 := st1
       else
-        (_, st2) := <CanCoerce> ((t3, t2), st1) // deal with sortvars
-        <+ <report-Err> (s1, NoInjectionBetween(t3, t2))
+        (_, st2) := <CanCoerce> ((t2, t3), st1) // deal with sortvars
+        <+ <report-Err> (s1, NoInjectionBetween(t2, t3))
          ; st2 := st1
     end
   ; if <oncetd(?SortVar(_))> t2

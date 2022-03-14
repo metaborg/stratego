@@ -133,13 +133,17 @@ can-reinterpret(|injection-closure, aliases, constr-env): (from, to) -> (from, t
   where
     froms1 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset;imset-insert(|from)> injection-closure
   ; froms2 := <imrel-filter(can-reinterpret-filter(|from));imrel-keys-imset> aliases
+  ; froms := <imset-union> (froms1, froms2)
   ; tos1 := <imrel-filter(can-reinterpret-filter(|to));imrel-keys-imset;imset-insert(|to)> injection-closure
   ; tos2 := <imrel-filter(can-reinterpret-filter(|to));imrel-keys-imset> aliases
-  ; cfrom := <can-reinterpret-constr(|froms1, froms2)> constr-env
-  ; cto := <can-reinterpret-constr(|tos1, tos2)> constr-env
-  ; <imrel-intersect-values(\(ConstrType(args1, _), ConstrType(args2, _)) ->
-      <zip(can-reinterpret(|injection-closure, aliases, constr-env))> (args1, args2)\)
-    ;not(imrel-empty)> (cfrom, cto)
+  ; tos := <imset-union> (tos1, tos2)
+  ; (  <imset-intersect> (froms, tos)
+    <+ cfrom := <can-reinterpret-constr(|froms)> constr-env
+     ; cto := <can-reinterpret-constr(|tos)> constr-env
+     ; <imrel-intersect-values(\(ConstrType(args1, _), ConstrType(args2, _)) ->
+          <zip(can-reinterpret(|injection-closure, aliases, constr-env))> (args1, args2)\)
+        ;not(imrel-empty)> (cfrom, cto)
+    )
 
 imrel-intersect-values(eq): (l, r) ->
   <imrel-filter(\i@(k, v) -> <imrel-get(|k);imset-filter(!(v, <id>);eq);not(imset-empty);!i> r\)> l
@@ -148,13 +152,13 @@ can-reinterpret-filter(|from): (inj-from, inj-to) -> (<apply-subst(|subst)> inj-
   where
     subst := <match-abstract-concrete-type> (inj-to, from)
 
-can-reinterpret-constr-filter(|froms1, froms2): ((name, _), ConstrType(args1, sort)) -> (name, <imset-to-list> result)
+can-reinterpret-constr-filter(|froms): ((name, _), ConstrType(args1, sort)) -> (name, <imset-to-list> result)
   where
-    result := <imset-filter({subst:\concr -> (concr, <apply-subst(|subst)> args1) where subst := <match-abstract-concrete-type> (sort, concr)\})> froms1
+    result := <imset-filter({subst:\concr -> (concr, <apply-subst(|subst)> args1) where subst := <match-abstract-concrete-type> (sort, concr)\})> froms
   ; <not(imset-empty)> result
 
-can-reinterpret-constr(|froms1, froms2) =
-  imrel-filter(can-reinterpret-constr-filter(|froms1, froms2))
+can-reinterpret-constr(|froms) =
+  imrel-filter(can-reinterpret-constr-filter(|froms))
 ; imrel-pairs
 ; mapconcat(\(name, set) -> <map(\(s, a*) -> ((name, <length> a*), ConstrType(a*, s))\)> set\)
 ; imrel-from-list
