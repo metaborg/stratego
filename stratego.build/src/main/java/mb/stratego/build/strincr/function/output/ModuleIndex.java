@@ -34,7 +34,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategyFrontData> strategies;
     public final LinkedHashSet<StrategySignature> internalStrategies;
-    public final LinkedHashSet<StrategySignature> externalStrategies;
+    public final LinkedHashSet<StrategyFrontData> externalStrategies;
     public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
     public final ArrayList<Message> messages;
@@ -46,7 +46,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections, LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategyFrontData> strategies,
         LinkedHashSet<StrategySignature> internalStrategies,
-        LinkedHashSet<StrategySignature> externalStrategies,
+        LinkedHashSet<StrategyFrontData> externalStrategies,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         ArrayList<Message> messages, long lastModified) {

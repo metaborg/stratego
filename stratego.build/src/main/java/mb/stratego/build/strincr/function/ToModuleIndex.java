@@ -20,6 +20,10 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
         for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             strategies.addAll(strategyFrontData);
         }
+        final LinkedHashSet<StrategyFrontData> externalStrategyData = new LinkedHashSet<>();
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData.values()) {
+            externalStrategyData.addAll(strategyFrontData);
+        }
         final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();
         for(ArrayList<ConstructorData> data : moduleData.constrData.values()) {
             for(ConstructorData datum : data) {
@@ -32,7 +36,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
             moduleData.externalSortData, nonOverlayConstructors, moduleData.injections,
             new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
-            new LinkedHashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
+            externalStrategyData, moduleData.dynamicRules,
             moduleData.overlayData, moduleData.messages, moduleData.lastModified);
     }
 

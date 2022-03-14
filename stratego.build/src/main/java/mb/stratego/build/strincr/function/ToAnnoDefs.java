@@ -24,7 +24,7 @@ public class ToAnnoDefs implements SerializableFunction<GlobalData, AnnoDefs> {
             }
         }
         final LinkedHashSet<StrategySignature> externalStrategyData = new LinkedHashSet<>();
-        for(StrategySignature strategySignature : globalData.externalStrategies) {
+        for(StrategySignature strategySignature : globalData.externalStrategyTypes.keySet()) {
             if(filter.contains(strategySignature)) {
                 externalStrategyData.add(strategySignature);
             }

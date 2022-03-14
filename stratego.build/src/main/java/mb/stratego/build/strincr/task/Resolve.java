@@ -83,7 +83,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<SortSignature> externalSorts = new LinkedHashSet<>();
         final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>();
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
-        final LinkedHashSet<StrategySignature> externalStrategies = new LinkedHashSet<>();
+        final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes = new LinkedHashMap<>();
         final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new TreeMap<>();
         final LinkedHashSet<OverlayData> overlayData = new LinkedHashSet<>();
 
@@ -133,10 +133,15 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     .add(moduleIdentifier);
                 internalStrategies.add(signature);
             }
-            for(StrategySignature signature : index.externalStrategies) {
-                Relation.getOrInitialize(strategyIndex, signature, LinkedHashSet::new)
+            for(StrategyFrontData sfd : index.externalStrategies) {
+                Relation.getOrInitialize(strategyIndex, sfd.signature, LinkedHashSet::new)
                     .add(moduleIdentifier);
-                externalStrategies.add(signature);
+                final @Nullable StrategyType current = externalStrategyTypes.get(sfd.signature);
+                if(current == null || current instanceof StrategyType.Standard
+                    && sfd.kind.equals(StrategyFrontData.Kind.TypeDefinition)) {
+                    externalStrategyTypes.put(sfd.signature, sfd.type);
+                    continue;
+                }
             }
             for(Map.Entry<StrategySignature, TreeSet<StrategySignature>> e : index.dynamicRules.entrySet()) {
                 Relation.getOrInitialize(strategyIndex, e.getKey(), LinkedHashSet::new)
@@ -168,7 +173,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         checkCyclicOverlays(overlayUsesConstructors, messages, lastModified);
         return new GlobalData(allModuleIdentifiers, importedStr2LibPackageNames, overlayIndex,
             nonExternalInjections, strategyIndex, strategyTypes, nonExternalSorts, externalSorts,
-            nonExternalConstructors, externalConstructors, internalStrategies, externalStrategies,
+            nonExternalConstructors, externalConstructors, internalStrategies, externalStrategyTypes,
             dynamicRules, overlayData, messages, lastModified);
     }
 

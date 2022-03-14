@@ -471,11 +471,11 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             final GetStrategyType getStrategyType = new GetStrategyType(strategyDefWithoutType);
             final StrategyType strategyType =
                 context.requireMapping(resolve, resolveInput, getStrategyType);
-            if(!(strategyType instanceof StrategyType.Standard)) {
+            if(strategyType == null || strategyType instanceof StrategyType.Standard) {
+                messages.add(new MissingTypeDefinition(strategyDefWithoutType.getSubterm(0), moduleData.lastModified));
+            } else {
                 messages.add(new MissingStrategyTypeImport(strategyDefWithoutType.getSubterm(0),
                     moduleData.lastModified));
-            } else {
-                messages.add(new MissingTypeDefinition(strategyDefWithoutType.getSubterm(0), moduleData.lastModified));
             }
         }
         return GTEnvironment.from(strategyEnvironment, constructorTypes.freeze(), sorts.freeze(),
