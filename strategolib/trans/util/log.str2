@@ -229,8 +229,8 @@ strategies
 
 strategies
 
-  external fatal-err :: (|string, ?, List(string)) a -> b
+  external fatal-err :: (|?, ?, List(string)) a -> b
 
-  fatal-err(|string, ?) :: a -> b
+  fatal-err(|?, ?) :: a -> b
   fatal-err(|msg, term) =
     fatal-err(|msg, term, <stacktrace-get-all-frame-names; Tl; Tl>)

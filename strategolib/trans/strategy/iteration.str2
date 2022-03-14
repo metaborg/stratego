@@ -73,7 +73,7 @@ strategies
   /**
    * Apply s at least once and then repeat while c succeeds.
    */
-  do-while(a -> b, b -> a) :: a -> a
+  do-while(a -> a, a -> a) :: a -> a
   do-while(s, c) =
     s; while(c, s)
 

@@ -346,7 +346,7 @@ strategies
   report-failure =
     report-failure(exit)
 
-  report-failure(|string, ?) :: List(string) -> a
+  report-failure(|?, ?) :: List(string) -> a
   report-failure(|message, term) =
     fatal-err(|message, <try(is(List(string));concat-strings)> term, <id>)
 

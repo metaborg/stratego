@@ -15,7 +15,7 @@ public class internal_hashtable_keys_fold_1_1 extends Strategy {
         final StrategoHashMap hashtable = (StrategoHashMap) current;
 
         for(IStrategoTerm key : hashtable.keySet()) {
-            acc = s.invoke(context, key);
+            acc = s.invoke(context, acc, key);
             if(acc == null) {
                 return null;
             }

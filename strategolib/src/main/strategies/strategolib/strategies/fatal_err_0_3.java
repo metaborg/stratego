@@ -14,7 +14,7 @@ public class fatal_err_0_3 extends Strategy {
     /**
      * SRTS-EXT-fatal-err(|_, _, _)
      *
-     * Stratego 2 type: {@code fatal-err :: (|string, ?, List(string)) a -> b}
+     * Stratego 2 type: {@code fatal-err :: (|?, ?, List(string)) a -> b}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm message,
         IStrategoTerm term, IStrategoTerm trace) {

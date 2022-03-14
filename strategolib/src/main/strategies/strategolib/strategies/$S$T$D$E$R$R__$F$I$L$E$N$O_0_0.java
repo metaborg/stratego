@@ -5,8 +5,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-public class $S$T$D$E$R$R_$F$I$L$E$N$O_0_0 extends Strategy {
-    public static $S$T$D$E$R$R_$F$I$L$E$N$O_0_0 instance = new $S$T$D$E$R$R_$F$I$L$E$N$O_0_0();
+public class $S$T$D$E$R$R__$F$I$L$E$N$O_0_0 extends Strategy {
+    public static $S$T$D$E$R$R__$F$I$L$E$N$O_0_0 instance = new $S$T$D$E$R$R__$F$I$L$E$N$O_0_0();
 
     /**
      * Stratego 2 type: {@code STDERR_FILENO :: (|) a -> FileDescriptor}

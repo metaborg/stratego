@@ -19,7 +19,7 @@ public class internal_hashtable_fold_1_1 extends Strategy {
         final ITermFactory factory = context.getFactory();
 
         for(Map.Entry<IStrategoTerm, IStrategoTerm> e : hashtable.entrySet()) {
-            acc = s.invoke(context, factory.makeTuple(e.getKey(), e.getValue()));
+            acc = s.invoke(context, acc, factory.makeTuple(e.getKey(), e.getValue()));
             if(acc == null) {
                 return null;
             }

@@ -9,9 +9,9 @@ public class InteropRegisterer extends JavaInteropRegisterer {
             // @formatter:off
             $E$X$D$E$V_0_0.instance,
             $P__tmpdir_0_0.instance,
-            $S$T$D$E$R$R_$F$I$L$E$N$O_0_0.instance,
-            $S$T$D$I$N_$F$I$L$E$N$O_0_0.instance,
-            $S$T$D$O$U$T_$F$I$L$E$N$O_0_0.instance,
+            $S$T$D$E$R$R__$F$I$L$E$N$O_0_0.instance,
+            $S$T$D$I$N__$F$I$L$E$N$O_0_0.instance,
+            $S$T$D$O$U$T__$F$I$L$E$N$O_0_0.instance,
             access_0_1.instance,
             address_0_0.instance,
             apply_sref_0_1.instance,

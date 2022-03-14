@@ -11,6 +11,7 @@ imports
   collection/tuple/common
   collection/tuple/cons
   term/integer
+  term/common
   strategy/conditional
   strategy/iteration
 
@@ -480,8 +481,8 @@ strategies
    */
   conct :: ? -> List(?)
   conct =
-    \ (l1, l2) -> <at-end(!l2)> l1 \
-    <+ \ "" # (xs) -> <concat> xs \
+    is(List(?) * List(?)); \ (l1, l2) -> <at-end(!l2)> l1 \
+    <+ \ "" # (xs) -> <is(List(List(?))); concat> xs \
 
   /**
    * Concatenates all lists of a pair.
@@ -615,7 +616,7 @@ strategies
   foldr1(s1, s2) =
 //    rec x([id]; s1 <+ FoldR; (id, x); s2)
     // performance tweak
-    ?[_ | _]; crush(s1, s2, id)
+    ?[_ | _]; foldr(s1, s2, id)
 
   /**
    * foldr, requires a list of length > 1.
@@ -632,7 +633,7 @@ strategies
   foldr1(s1, s2, f) =
 //    rec x([f]; s1 <+ FoldR; (f, x); s2)
     // performance tweak
-    ?[_ | _]; crush(s1, s2, f)
+    ?[_ | _]; foldr(s1, s2, f)
 
   /**
    * foldr, requires a list of length > 1.
@@ -664,7 +665,7 @@ strategies
     ?[]; s1
 //    + \ [y|ys] -> <s2>(y, <foldr(s1, s2)> ys) \
     // performance tweak
-    + ?[_|_]; crush(s1, s2, id)
+    + ?[_|_]; foldr(s1, s2, id)
 
   /**
    * Right folds a list. That is, the strategy s2 is applied as a
@@ -683,12 +684,10 @@ strategies
    * @param a -> c
    * @type  List(a) -> b
    */
-  foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
-  foldr(s1, s2, f)  =
-    ?[]; s1
+  external foldr :: (List(d) -> b, c * b -> b, a -> c|) List(a) -> b
+//  foldr(s1, s2, f)  =
+//    ?[]; s1
 //    + \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
-    // performance tweak
-    + ?[_|_]; crush(s1, s2, f)
 
   /**
    * Left folds a list. That is, the strategy s is applied as a

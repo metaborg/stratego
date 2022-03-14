@@ -29,17 +29,17 @@ strategies
    * (only occur once) or that cannot be shared in this way (upto
    * the needs of an application).
    */
-  share(int -> int, ? -> ?, int * ? * ? -> ?) :: ? -> ?
+  share(string -> int, ? -> ?, int * ? * ? -> ?) :: ? -> ?
   share(mkvar, always, mklet) =
     graph(mkvar);
     inline-graph(always, mklet)
 
 strategies
 
-  edge(int -> a) :: ? -> a * ?
+  edge(string -> a) :: ? -> a * ?
   edge(mkvar)      = split(address; mkvar, \a -> <all(address; mkvar)> a\)
 
-  list-edge(int -> a) :: List(?) -> a * List(a)
+  list-edge(string -> a) :: List(?) -> a * List(a)
   list-edge(mkvar) = split(address; mkvar, map(address; mkvar))
 
  /**
@@ -68,7 +68,7 @@ strategies
   * let-bindings the, now empty, \verb|GraphLet| is discarded and
   * replaced by its body.
   */
-  graph(int -> a) :: ? -> List(a * ?)
+  graph(string -> a) :: ? -> List(a * ?)
   graph(mkvar) =
      is-list; split(list-edge(mkvar); (id, is(?)), map(graph(mkvar)); unions); MkCons
   graph(mkvar) = fail
