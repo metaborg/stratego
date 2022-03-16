@@ -120,7 +120,8 @@ public class StrategoIncrementalCompilationTest {
             new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
         final String libraryName = "incrCompTest";
-        final String packageName = "mb.stratego.build.spoofax2.test";
+        final ArrayList<String> packageNames = new ArrayList<>();
+        packageNames.add("mb.stratego.build.spoofax2.test");
         final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
         final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(1);
         {
@@ -167,7 +168,7 @@ public class StrategoIncrementalCompilationTest {
         }
         CompileInput compileInput =
             new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
-                packageName,
+                packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
                 libraryName, str2libraries);
@@ -182,7 +183,7 @@ public class StrategoIncrementalCompilationTest {
             // Ignore
         }
 
-        Path strategoJavaPackageOutputDir = depPath.resolve(packageName.replace('.','/'));
+        Path strategoJavaPackageOutputDir = depPath.resolve(packageNames.get(0).replace('.','/'));
         Assertions.assertTrue(Files.exists(strategoJavaPackageOutputDir));
         Assertions.assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
         final Path interopRegistererJavaFile = strategoJavaPackageOutputDir.resolve("InteropRegisterer.java");
@@ -229,7 +230,7 @@ public class StrategoIncrementalCompilationTest {
 
         compileInput =
             new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
-                packageName,
+                packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
                 libraryName, str2libraries);

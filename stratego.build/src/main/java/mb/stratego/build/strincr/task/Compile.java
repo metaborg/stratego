@@ -67,7 +67,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
         final Arguments extraArgs = new Arguments(input.extraArgs);
         final ResourcePath outputDirWithPackage =
-            input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.', '/'));
+            input.outputDir.appendOrReplaceWithPath(input.packageNames.get(0).replace('.', '/'));
         if(input.createShadowJar) {
             for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
                 context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.str2libReplicateDir));
@@ -81,7 +81,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             new STaskDef<>(CheckModule.id);
 
         final CompileDynamicRulesInput compileDRInput =
-            new CompileDynamicRulesInput(outputDirWithPackage, input.packageName, input.cacheDir,
+            new CompileDynamicRulesInput(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput,
                 strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
         final STask<CompileDynamicRulesOutput> compileDR =
@@ -90,7 +90,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
         for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
             final BackInput.Normal normalInput =
-                new BackInput.Normal(outputDirWithPackage, input.packageName, input.cacheDir,
+                new BackInput.Normal(outputDirWithPackage, input.packageNames, input.cacheDir,
                     input.constants, extraArgs, input.checkInput, strategySignature,
                     strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
@@ -98,7 +98,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             resultFiles.addAll(output.resultFiles);
         }
         final BackInput.Boilerplate boilerplateInput =
-            new BackInput.Boilerplate(outputDirWithPackage, input.packageName, input.cacheDir,
+            new BackInput.Boilerplate(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput, input.library,
                 input.usingLegacyStrategoStdLib, input.libraryName, compileDR);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
@@ -106,7 +106,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
-            new BackInput.Congruence(outputDirWithPackage, input.packageName, input.cacheDir,
+            new BackInput.Congruence(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput, input.usingLegacyStrategoStdLib, compileDR);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null && !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";

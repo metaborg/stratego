@@ -7,8 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
@@ -25,7 +23,7 @@ import mb.stratego.build.util.WithLastModified;
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
 public class ModuleIndex implements Serializable, WithLastModified {
-    public final @Nullable String str2LibPackageName;
+    public final ArrayList<String> str2LibPackageNames;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sorts;
     public final LinkedHashSet<SortSignature> externalSorts;
@@ -40,7 +38,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final ArrayList<Message> messages;
     public final long lastModified;
 
-    public ModuleIndex(@Nullable String str2LibPackageName, ArrayList<IModuleImportService.ModuleIdentifier> imports,
+    public ModuleIndex(ArrayList<String> str2LibPackageNames, ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<SortSignature> sorts, LinkedHashSet<SortSignature> externalSorts,
         LinkedHashSet<ConstructorData> nonOverlayConstructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections, LinkedHashSet<ConstructorSignature> externalConstructors,
@@ -50,7 +48,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
         ArrayList<Message> messages, long lastModified) {
-        this.str2LibPackageName = str2LibPackageName;
+        this.str2LibPackageNames = str2LibPackageNames;
         this.imports = imports;
         this.sorts = sorts;
         this.externalSorts = externalSorts;
@@ -76,7 +74,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
 
         if(lastModified != that.lastModified)
             return false;
-        if(!Objects.equals(str2LibPackageName, that.str2LibPackageName))
+        if(!Objects.equals(str2LibPackageNames, that.str2LibPackageNames))
             return false;
         if(!imports.equals(that.imports))
             return false;
@@ -104,7 +102,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public int hashCode() {
-        int result = str2LibPackageName != null ? str2LibPackageName.hashCode() : 0;
+        int result = str2LibPackageNames.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + sorts.hashCode();
         result = 31 * result + externalSorts.hashCode();

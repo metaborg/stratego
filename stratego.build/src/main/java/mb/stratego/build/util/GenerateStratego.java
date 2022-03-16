@@ -22,7 +22,6 @@ import org.spoofax.terms.StrategoString;
 import org.spoofax.terms.util.B;
 
 import mb.stratego.build.strincr.IModuleImportService;
-import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
@@ -71,9 +70,13 @@ public class GenerateStratego {
     public static IStrategoTerm packStr2Library(IStrategoTermBuilder tf, String libraryName,
         Collection<SortSignature> sorts, Collection<ConstructorData> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        Map<StrategySignature, StrategyType> strategyFrontData, String packageName) {
+        Map<StrategySignature, StrategyType> strategyFrontData, ArrayList<String> packageNames) {
+        final IStrategoList.Builder packages = tf.arrayListBuilder(packageNames.size());
+        for(String packageName : packageNames) {
+            packages.add(tf.makeAppl("Package", tf.makeString(packageName)));
+        }
         return tf.makeAppl("Str2Lib", tf.makeString(libraryName),
-            tf.makeList(tf.makeAppl("Package", tf.makeString(packageName))),
+            tf.makeList(packages),
             tf.makeList(packStr2Spec(tf, sorts, constructors, injections, strategyFrontData)));
     }
 

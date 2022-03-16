@@ -2,6 +2,7 @@ package mb.stratego.build.strincr;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.annotation.Nullable;
@@ -45,22 +46,22 @@ public interface StrategoLanguage {
     IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception;
 
     /**
-     * Extract the package name from the Str2Lib ast
+     * Extract the package names from the Str2Lib ast
      *
      * @param ast the ast to extract from
      * @return The package name in the str2lib or null is unavailable
      */
-    default @Nullable String extractPackageName(IStrategoTerm ast) {
-        @Nullable String packageName = null;
+    default ArrayList<String> extractPackageNames(IStrategoTerm ast) {
+        final ArrayList<String> packageNames = new ArrayList<>();
         if(TermUtils.isAppl(ast, "Str2Lib", 3)) {
             final IStrategoList components = TermUtils.toListAt(ast, 1);
             for(IStrategoTerm component : components) {
                 if(TermUtils.isAppl(component, "Package", 1)) {
-                    packageName = TermUtils.toJavaStringAt(component, 0);
+                    packageNames.add(TermUtils.toJavaStringAt(component, 0));
                 }
             }
         }
-        return packageName;
+        return packageNames;
     }
 
     /**

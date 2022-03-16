@@ -138,7 +138,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier, null,
+            return new ModuleData(input.moduleIdentifier, new ArrayList<>(0),
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
@@ -146,7 +146,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 usedAmbiguousStrategies, messages, 0L);
         }
 
-        final @Nullable String str2LibPackageName = strategoLanguage.extractPackageName(ast.wrapped);
+        final ArrayList<String> str2LibPackageNames = strategoLanguage.extractPackageNames(ast.wrapped);
 
         final IStrategoList defs = getDefs(input.moduleIdentifier, ast.wrapped);
         for(IStrategoTerm def : defs) {
@@ -204,7 +204,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         new UsedNamesFront(usedConstructors, usedStrategies, usedAmbiguousStrategies)
             .visit(ast.wrapped);
 
-        return new ModuleData(input.moduleIdentifier, str2LibPackageName, ast.wrapped, imports,
+        return new ModuleData(input.moduleIdentifier, str2LibPackageNames, ast.wrapped, imports,
             sortData, externalSortData, constrData, externalConstrData, injections,
             externalInjections, strategyData, internalStrategyData, externalStrategyData,
             dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,

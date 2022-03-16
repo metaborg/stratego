@@ -19,7 +19,7 @@ public class CompileInput implements Serializable {
     public final CheckInput checkInput;
     public final ResourcePath outputDir;
     public final ResourcePath str2libReplicateDir;
-    public final String packageName;
+    public final ArrayList<String> packageNames;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
@@ -29,7 +29,7 @@ public class CompileInput implements Serializable {
     public final String libraryName;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, String packageName,
+        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, ArrayList<String> packageNames,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         ArrayList<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
@@ -42,7 +42,7 @@ public class CompileInput implements Serializable {
             new CheckInput(mainModuleIdentifier, projectPath, new IModuleImportService.ImportResolutionInfo(strFileGeneratingTasks, includeDirs,
                 linkedLibraries, str2libraries), autoImportStd);
         this.outputDir = outputDir.getNormalized();
-        this.packageName = packageName;
+        this.packageNames = packageNames;
         this.cacheDir = cacheDir;
         this.constants = constants;
         this.extraArgs = extraArgs;
@@ -72,7 +72,7 @@ public class CompileInput implements Serializable {
             return false;
         if(!str2libReplicateDir.equals(that.str2libReplicateDir))
             return false;
-        if(!packageName.equals(that.packageName))
+        if(!packageNames.equals(that.packageNames))
             return false;
         if(!Objects.equals(cacheDir, that.cacheDir))
             return false;
@@ -87,7 +87,7 @@ public class CompileInput implements Serializable {
         int result = checkInput.hashCode();
         result = 31 * result + outputDir.hashCode();
         result = 31 * result + str2libReplicateDir.hashCode();
-        result = 31 * result + packageName.hashCode();
+        result = 31 * result + packageNames.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
         result = 31 * result + extraArgs.hashCode();
@@ -104,7 +104,7 @@ public class CompileInput implements Serializable {
             + "checkInput=" + checkInput
             + ", outputDir=" + outputDir
             + ", str2libReplicateDir=" + str2libReplicateDir
-            + ", packageName='" + packageName + '\''
+            + ", packageName='" + packageNames + '\''
             + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
             + ", constants=" + constants
             + ", extraArgs='" + extraArgs + '\''

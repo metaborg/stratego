@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
@@ -44,7 +43,6 @@ import mb.stratego.build.strincr.function.ToGlobalConsInj;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
 import mb.stratego.build.strincr.task.Back;
-import mb.stratego.build.strincr.task.CheckModule;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileDynamicRulesOutput;
@@ -53,18 +51,18 @@ import mb.stratego.build.util.PieUtils;
 
 public abstract class BackInput implements Serializable {
     public final ResourcePath outputDir;
-    public final String packageName;
+    public final ArrayList<String> packageNames;
     public final @Nullable ResourcePath cacheDir;
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
     public final CheckInput checkInput;
     public final boolean usingLegacyStrategoStdLib;
 
-    public BackInput(ResourcePath outputDir, String packageName,
+    public BackInput(ResourcePath outputDir, ArrayList<String> packageNames,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
         CheckInput checkInput, boolean usingLegacyStrategoStdLib) {
         this.outputDir = outputDir;
-        this.packageName = packageName;
+        this.packageNames = packageNames;
         this.cacheDir = cacheDir;
         this.constants = constants;
         this.extraArgs = extraArgs;
@@ -85,7 +83,7 @@ public abstract class BackInput implements Serializable {
 
         if(!outputDir.equals(input.outputDir))
             return false;
-        if(!packageName.equals(input.packageName))
+        if(!packageNames.equals(input.packageNames))
             return false;
         if(!Objects.equals(cacheDir, input.cacheDir))
             return false;
@@ -100,7 +98,7 @@ public abstract class BackInput implements Serializable {
 
     @Override public int hashCode() {
         int result = outputDir.hashCode();
-        result = 31 * result + packageName.hashCode();
+        result = 31 * result + packageNames.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);
         result = 31 * result + constants.hashCode();
         result = 31 * result + extraArgs.hashCode();
@@ -209,12 +207,12 @@ public abstract class BackInput implements Serializable {
         public final StrategySignature strategySignature;
         public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
 
-        public Normal(ResourcePath outputDir, String packageName,
+        public Normal(ResourcePath outputDir, ArrayList<String> packageNames,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask,
             boolean legacyStrategoStdLib) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+            super(outputDir, packageNames, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.strategySignature = strategySignature;
             this.strategyAnalysisDataTask = strategyAnalysisDataTask;
@@ -313,7 +311,7 @@ public abstract class BackInput implements Serializable {
         }
 
         protected DynamicRule dynamicRuleInput(StrategySignature firstSig) {
-            return new DynamicRule(outputDir, packageName, cacheDir, constants, extraArgs,
+            return new DynamicRule(outputDir, packageNames, cacheDir, constants, extraArgs,
                 checkInput, firstSig, strategyAnalysisDataTask, usingLegacyStrategoStdLib);
         }
 
@@ -345,7 +343,7 @@ public abstract class BackInput implements Serializable {
                 + "strategySignature=" + strategySignature
                 + ", strategyAnalysisDataTask=" + strategyAnalysisDataTask
                 + "; outputDir=" + outputDir
-                + ", packageName='" + packageName + '\''
+                + ", packageName='" + packageNames + '\''
                 + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
                 + ", constants=" + constants
                 + ", extraArgs=" + extraArgs
@@ -361,12 +359,12 @@ public abstract class BackInput implements Serializable {
     }
 
     public static class DynamicRule extends Normal {
-        public DynamicRule(ResourcePath outputDir, String packageName,
+        public DynamicRule(ResourcePath outputDir, ArrayList<String> packageNames,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, StrategySignature strategySignature,
             STaskDef<CheckModuleInput, CheckModuleOutput> strFileGeneratingTasks,
             boolean legacyStrategoStdLib) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+            super(outputDir, packageNames, cacheDir, constants, extraArgs, checkInput,
                 strategySignature, strFileGeneratingTasks, legacyStrategoStdLib);
         }
 
@@ -458,7 +456,7 @@ public abstract class BackInput implements Serializable {
                 + "strategySignature=" + strategySignature
                 + ", strategyAnalysisDataTask=" + strategyAnalysisDataTask
                 + "; outputDir=" + outputDir
-                + ", packageName='" + packageName + '\''
+                + ", packageName='" + packageNames + '\''
                 + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
                 + ", constants=" + constants
                 + ", extraArgs=" + extraArgs
@@ -472,11 +470,11 @@ public abstract class BackInput implements Serializable {
     public static class Congruence extends BackInput {
         private final STask<CompileDynamicRulesOutput> compileDR;
 
-        public Congruence(ResourcePath outputDir, String packageName,
+        public Congruence(ResourcePath outputDir, ArrayList<String> packageNames,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, boolean legacyStrategoStdLib,
             STask<CompileDynamicRulesOutput> compileDR) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+            super(outputDir, packageNames, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.compileDR = compileDR;
         }
@@ -555,7 +553,7 @@ public abstract class BackInput implements Serializable {
             return "BackInput.Congruence@" + System.identityHashCode(this) + '{'
                 + "compileDR=" + compileDR
                 + "; outputDir=" + outputDir
-                + ", packageName='" + packageName + '\''
+                + ", packageName='" + packageNames + '\''
                 + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
                 + ", constants=" + constants
                 + ", extraArgs=" + extraArgs
@@ -571,11 +569,11 @@ public abstract class BackInput implements Serializable {
         public final String libraryName;
         public final STask<CompileDynamicRulesOutput> compileDR;
 
-        public Boilerplate(ResourcePath outputDir, String packageName,
+        public Boilerplate(ResourcePath outputDir, ArrayList<String> packageNames,
             @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
             CheckInput checkInput, boolean library, boolean legacyStrategoStdLib,
             String libraryName, STask<CompileDynamicRulesOutput> compileDR) {
-            super(outputDir, packageName, cacheDir, constants, extraArgs, checkInput,
+            super(outputDir, packageNames, cacheDir, constants, extraArgs, checkInput,
                 legacyStrategoStdLib);
             this.library = library;
             this.libraryName = libraryName;
@@ -669,7 +667,7 @@ public abstract class BackInput implements Serializable {
                 + ", libraryName='" + libraryName + '\''
                 + ", compileDR=" + compileDR
                 + "; outputDir=" + outputDir
-                + ", packageName='" + packageName + '\''
+                + ", packageName='" + packageNames + '\''
                 + (cacheDir == null ? "" : ", cacheDir=" + cacheDir)
                 + ", constants=" + constants
                 + ", extraArgs=" + extraArgs

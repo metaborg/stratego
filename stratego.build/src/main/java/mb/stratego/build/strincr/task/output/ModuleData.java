@@ -36,7 +36,7 @@ import mb.stratego.build.util.WithLastModified;
  */
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
-    public final @Nullable String str2LibPackageName;
+    public final ArrayList<String> str2LibPackageNames;
     public final IStrategoTerm ast;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
     public final LinkedHashSet<SortSignature> sortData;
@@ -64,7 +64,7 @@ public class ModuleData implements Serializable, WithLastModified {
     private transient @Nullable ArrayList<IStrategoTerm> dynamicRuleDefinitions = null;
 
     public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        @Nullable String str2LibPackageName, IStrategoTerm ast,
+        ArrayList<String> str2LibPackageName, IStrategoTerm ast,
         ArrayList<IModuleImportService.ModuleIdentifier> imports,
         LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
@@ -82,7 +82,7 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
-        this.str2LibPackageName = str2LibPackageName;
+        this.str2LibPackageNames = str2LibPackageName;
         this.ast = ast;
         this.imports = imports;
         this.sortData = sortData;
@@ -167,7 +167,7 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
-        if(!Objects.equals(str2LibPackageName, that.str2LibPackageName)) {
+        if(!Objects.equals(str2LibPackageNames, that.str2LibPackageNames)) {
             return false;
         }
         if(!ast.equals(that.ast))
@@ -179,7 +179,7 @@ public class ModuleData implements Serializable, WithLastModified {
 
     @Override public int hashCode() {
         int result = moduleIdentifier.hashCode();
-        result = 31 * result + (str2LibPackageName != null ? str2LibPackageName.hashCode() : 0);
+        result = 31 * result + str2LibPackageNames.hashCode();
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + messages.hashCode();
@@ -191,7 +191,7 @@ public class ModuleData implements Serializable, WithLastModified {
         //@formatter:off
         return "ModuleData@" + System.identityHashCode(this) + '{'
             + "moduleIdentifier=" + moduleIdentifier
-            + (str2LibPackageName == null ? "" : ", str2LibPackageName='" + str2LibPackageName + '\'')
+            + ", str2LibPackageName='" + str2LibPackageNames + '\''
             + ", ast=" + ast.toString(4)
             + ", imports=" + imports
             + ", sortData=" + sortData.size()

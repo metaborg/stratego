@@ -101,8 +101,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 context.requireMapping(front, frontInput, ToModuleIndex.INSTANCE);
 
             lastModified = Long.max(lastModified, index.lastModified);
-            if(index.str2LibPackageName != null) {
-                importedStr2LibPackageNames.add(index.str2LibPackageName);
+            if(index.str2LibPackageNames != null) {
+                importedStr2LibPackageNames.addAll(index.str2LibPackageNames);
             }
             nonExternalSorts.addAll(index.sorts);
             externalSorts.addAll(index.externalSorts);

@@ -175,6 +175,8 @@ public class Stratego {
             }
             final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
             strjIncludeDirs.add(projectPath);
+            final ArrayList<String> packageNames = new ArrayList<>(1);
+            packageNames.add(packageName);
 
             final ModuleIdentifier mainModuleIdentifier =
                 new ModuleIdentifier(input.getFileName().toString().endsWith(".str"), false, baseName, new FSPath(input));
@@ -184,7 +186,7 @@ public class Stratego {
             final boolean createShadowJar = true;
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, outputDir1,
-                    outputDir1, packageName, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
+                    outputDir1, packageNames, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
                     constants, strjIncludeDirs, linkedLibraries, args,
                     sdfTasks, library, autoImportStd, createShadowJar, languageIdentifier.id, str2libraries);
             Task<CompileOutput> compileTask =

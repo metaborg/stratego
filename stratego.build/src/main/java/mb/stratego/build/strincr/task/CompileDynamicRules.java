@@ -39,7 +39,7 @@ public class CompileDynamicRules implements TaskDef<CompileDynamicRulesInput, Co
         final TreeSet<StrategySignature> compiledThroughDynamicRule = new TreeSet<>();
         for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules.keySet()) {
             final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(input.outputDirWithPackage, input.packageName, input.cacheDir,
+                new BackInput.DynamicRule(input.outputDirWithPackage, input.packageNames, input.cacheDir,
                     input.constants, input.extraArgs, input.checkInput, dynamicRule,
                     input.strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, dynamicRuleInput);
