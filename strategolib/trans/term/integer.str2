@@ -219,8 +219,11 @@ strategies
   gt :: ? * ? -> ? * ?
   gt =
     where(
-       {(is-int, is-int;?y); is-int; int-gt(|y); is(?)}
-    <+ {(is-real, is-real;?y); is-real; real-gt(|y); is(?)})
+      ?(<id>, y)
+    ; (  is-int;   int-gt(|<is-int> y)
+      <+ is-real; real-gt(|<is-real> y); is(?)
+      )
+    )
 
   gti :: int * int -> int * int
   gti = where(?(<id>, y); int-gt(|y))
