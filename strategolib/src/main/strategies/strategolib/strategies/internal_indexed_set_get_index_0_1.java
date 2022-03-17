@@ -13,6 +13,10 @@ public class internal_indexed_set_get_index_0_1 extends Strategy {
      * Stratego 2 type: {@code internal-indexed-set-getIndex :: (|?) IndexedSetImplBlob -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm key) {
-        return context.getFactory().makeInt(((StrategoSet) current).getIndex(key));
+        final int index = ((StrategoSet) current).getIndex(key);
+        if(index == -1) {
+            return null;
+        }
+        return context.getFactory().makeInt(index);
     }
 }
