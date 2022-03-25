@@ -165,12 +165,13 @@ public class Back implements TaskDef<BackInput, BackOutput> {
             // Output str2lib file
             final HierarchicalResource str2LibResource = context.getResourceService()
                 .getHierarchicalResource(boilerplateInput.str2LibFile());
-            context.provide(str2LibResource);
+            str2LibResource.createParents();
             try(final OutputStream os = str2LibResource.openWrite()) {
                 Writer out = new BufferedWriter(new OutputStreamWriter(os));
                 str2Lib.writeAsString(out, Integer.MAX_VALUE);
                 out.flush();
             }
+            context.provide(str2LibResource);
         } else {
             arguments.add("--single-strategy");
             arguments.add("--library");
