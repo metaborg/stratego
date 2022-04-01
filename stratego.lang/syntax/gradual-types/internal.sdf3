@@ -79,6 +79,7 @@ context-free syntax
   ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
   ErrorDesc.LiteralCastFail = [Cannot compile literal failing cast]
   ErrorDesc.MissingParsingInfoOnStringQuotation = [String quotation does not have parser information required to figure out indentation.]
+  ErrorDesc.StrategyCongruenceOverlap = [Strategy overlaps with congruence for constructor of same name.]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]

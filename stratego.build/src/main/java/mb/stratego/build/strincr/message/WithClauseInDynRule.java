@@ -4,7 +4,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class WithClauseInDynRule extends Message {
     public WithClauseInDynRule(IStrategoTerm locationTerm, long lastModified) {
-        super(locationTerm, MessageSeverity.ERROR, lastModified);
+        this(locationTerm, MessageSeverity.ERROR, lastModified);
+    }
+
+    public WithClauseInDynRule(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
+        super(locationTerm, severity, lastModified);
     }
 
     @Override public String getMessage() {

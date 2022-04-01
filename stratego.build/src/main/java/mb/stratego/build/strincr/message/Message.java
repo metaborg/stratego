@@ -133,9 +133,11 @@ public abstract class Message implements WithLastModified, Serializable {
                     TermUtils.toJavaStringAt(messageTerm, 3),
                     TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
             case "ConstantCongruence":
-                return new ConstantCongruence(locationTerm, lastModified);
+                return new ConstantCongruence(locationTerm, severity, lastModified);
             case "WithClauseInDynRule":
-                return new WithClauseInDynRule(locationTerm, lastModified);
+                return new WithClauseInDynRule(locationTerm, severity, lastModified);
+            case "StrategyCongruenceOverlap":
+                return new StrategyCongruenceOverlap(locationTerm, severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

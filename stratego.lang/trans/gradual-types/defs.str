@@ -70,7 +70,16 @@ prepare-strategy-def(|st1):
   ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
   ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, Sort(tv{SortVar(tv)}, []))> st\)> (tvs, st1)
 
-strat-lookup-def(|x, sn, tn, st1) = strat-lookup(|x, sn, tn, DynT()); prepare-strategy-def(|st1)
+strat-lookup-def(|x, sn, tn, st1) =
+    ?env
+  ; ( strat-lookup(|x, sn, tn)
+    < where(try(
+        <congr-lookup(|x, sn, tn, DynT())> env
+      ; <report-Err> (x, StrategyCongruenceOverlap())
+      ))
+    + congr-lookup(|x, sn, tn, DynT())
+    )
+  ; prepare-strategy-def(|st1)
 
 strategies // StrategyDef
 

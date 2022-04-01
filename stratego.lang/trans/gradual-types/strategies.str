@@ -30,7 +30,8 @@ gradual-types/terms
 strategies
 
 strat-lookup-call(register-fresh|x, sn, tn, t) =
-  strat-lookup(|x, sn, tn, t);fresh-type-vars(register-fresh)
+    (strat-lookup(|x, sn, tn) <+ congr-lookup(|x, sn, tn, t))
+  ; fresh-type-vars(register-fresh)
 
 strat-lookup-call(|x) =
     ?e1

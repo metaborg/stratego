@@ -45,14 +45,32 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
             new LinkedHashMap<>();
         final HashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex =
             moduleData.ambStrategyIndex();
-        for(StrategySignature usedStrategy : definedStrategies) {
+        for(StrategySignature definedStrategy : definedStrategies) {
             for(StrategyFrontData strategyFrontData : moduleData.normalStrategyData
-                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
+                .getOrDefault(definedStrategy, new ArrayList<>(0))) {
+                registerStrategyType(strategyTypes, definedStrategy, strategyFrontData);
             }
             for(StrategyFrontData strategyFrontData : moduleData.internalStrategyData
-                .getOrDefault(usedStrategy, new ArrayList<>(0))) {
-                registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
+                .getOrDefault(definedStrategy, new ArrayList<>(0))) {
+                registerStrategyType(strategyTypes, definedStrategy, strategyFrontData);
+            }
+            final @Nullable ConstructorSignature usedConstructor = definedStrategy.toConstructorSignature();
+            if(usedConstructor != null) {
+                for(ConstructorData constructorData : moduleData.constrData
+                    .getOrDefault(usedConstructor, new ArrayList<>(0))) {
+                    Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
+                        .add(constructorData.type);
+                }
+                for(ConstructorData constructorData : moduleData.externalConstrData
+                    .getOrDefault(usedConstructor, new ArrayList<>(0))) {
+                    Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
+                        .add(constructorData.type);
+                }
+                for(OverlayData overlayData : moduleData.overlayData
+                    .getOrDefault(usedConstructor, new ArrayList<>(0))) {
+                    Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
+                        .add(overlayData.type);
+                }
             }
         }
         for(StrategySignature usedStrategy : usedStrategies) {
@@ -73,9 +91,9 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
                 registerStrategyType(strategyTypes, usedStrategy, strategyFrontData);
             }
         }
-        for(String usedStrategy : usedAmbiguousStrategies) {
+        for(String usedAmbiguousStrategy : usedAmbiguousStrategies) {
             for(StrategyFrontData strategyFrontData : ambStrategyIndex
-                .getOrDefault(usedStrategy, new LinkedHashSet<>(0))) {
+                .getOrDefault(usedAmbiguousStrategy, new LinkedHashSet<>(0))) {
                 registerStrategyType(strategyTypes, strategyFrontData.signature, strategyFrontData);
             }
         }
