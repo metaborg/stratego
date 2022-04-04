@@ -15,6 +15,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
+import mb.stratego.build.strincr.message.type.GadtSort;
 import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
 import mb.stratego.build.strincr.message.type.NoInjectionBetween;
@@ -61,7 +62,7 @@ public abstract class Message implements WithLastModified, Serializable {
             case "StrategyVariableTypedWithTermType":
                 return new StrategyVariableTypedWithTermType(locationTerm, severity, lastModified);
             case "DuplicateTypeDefinition":
-                return new DuplicateTypeDefinition(locationTerm, lastModified);
+                return new DuplicateTypeDefinition(locationTerm, severity, lastModified);
             case "MissingDefinitionForTypeDefinition":
                 return new MissingDefinitionForTypeDefinition(locationTerm, severity, lastModified);
             case "ProceedWrongNumberOfArguments":
@@ -94,6 +95,8 @@ public abstract class Message implements WithLastModified, Serializable {
             case "UnresolvedSort": // Int -> ErrorDesc
                 return new UnresolvedSort(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
                     severity, lastModified);
+            case "UnresolvedSortVar":
+                return new UnresolvedSortVar(locationTerm, severity, lastModified);
             case "UnresolvedStrategy":
                 return new UnresolvedStrategy(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
                     TermUtils.toJavaIntAt(messageTerm, 1), severity, lastModified);
@@ -138,6 +141,8 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new WithClauseInDynRule(locationTerm, severity, lastModified);
             case "StrategyCongruenceOverlap":
                 return new StrategyCongruenceOverlap(locationTerm, severity, lastModified);
+            case "GadtSort":
+                return new GadtSort(locationTerm, severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

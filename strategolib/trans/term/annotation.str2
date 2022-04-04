@@ -16,7 +16,7 @@ signature
   sorts
     Anno
   constructors
-    Anno : a * b -> Anno
+    Anno : ? * ? -> Anno
 
 strategies
 
