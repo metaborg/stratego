@@ -4,6 +4,7 @@ imports
   core/identifiers
   core/constants
   core/modules
+  core/strategies
   gradual-types/signatures
 
 context-free sorts Str2Lib
@@ -14,7 +15,7 @@ context-free syntax
     [{Module "\n\n"}+]
   ]
 
-  Str2LibComponent.Maven = [maven [groupId:Id]:[id:Id]:[MavenVersion]]
+  Str2LibComponent.Maven = [maven [groupId:JavaId]:[id:JavaId]:[MavenVersion]]
   Str2LibComponent.Package = [package [PackageName]]
 
 lexical sorts VersionNumber VersionQualifier MavenVersion
@@ -23,8 +24,8 @@ lexical syntax
   MavenVersion = VersionNumber "." VersionNumber "." VersionNumber VersionQualifier
   VersionNumber = [0-9]+
   VersionQualifier = "-" [A-Za-z0-9\-\.]+
-  PackageName = {Id "."}+
-  Id = [A-Za-z\_\$] [A-Za-z0-9\_\$]+
+  PackageName = {JavaId "."}+
+  JavaId = [A-Za-z\_\$] [A-Za-z0-9\_\$]+
 
 lexical restrictions
 
@@ -33,7 +34,7 @@ lexical restrictions
 context-free sorts Type ConstrType
 context-free syntax
 
-  Def.DefHasType = [[Id] :: [SFunType]]
+  Def.DefHasType = [[SId] :: [SFunType]]
 
   Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
   Type.EmptyT = [empty]
@@ -73,6 +74,7 @@ context-free syntax
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
   ErrorDesc.UnresolvedLocal = [Undefined local variable.]
   ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
+  ErrorDesc.UnresolvedSortVar = [Undefined sort variable.]
   ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
@@ -80,6 +82,7 @@ context-free syntax
   ErrorDesc.LiteralCastFail = [Cannot compile literal failing cast]
   ErrorDesc.MissingParsingInfoOnStringQuotation = [String quotation does not have parser information required to figure out indentation.]
   ErrorDesc.StrategyCongruenceOverlap = [Strategy overlaps with congruence for constructor of same name.]
+  ErrorDesc.GadtSort = [Must use all unique sort variables as sort arguments, GADTs are not supported.]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]

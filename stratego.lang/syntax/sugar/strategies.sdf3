@@ -15,17 +15,17 @@ template options
 context-free sorts SDefP
 context-free syntax
   StrategyDef.SDefNoArgs =
-<<Id> =
+<<SId> =
   <Strategy>>
 
   StrategyDef.SDef =
-<<Id>(<{Typedid ", "}*>) =
+<<SId>(<{Typedid ", "}*>) =
   <Strategy>>
 
   // Strategy definition with pattern matched term parameters
   StrategyDef = SDefP
   SDefP.SDefP =
-<<Id>(<{Typedid ", "}*>|<{Term ","}+>) =
+<<SId>(<{Typedid ", "}*>|<{Term ","}+>) =
   <Strategy>>
   SDefP = SDefT {reject}
 
@@ -42,7 +42,7 @@ context-free syntax
   Strategy.BA = [<[Strategy]> [Term]]
   Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
 
-  Strategy.Rec        = <rec <Id>( <Strategy> )>
+  Strategy.Rec        = <rec <SId>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
   Strategy = With

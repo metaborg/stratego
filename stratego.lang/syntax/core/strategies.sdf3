@@ -19,22 +19,25 @@ context-free syntax
   // indirection for SDefP in sugar/strategies
   StrategyDef = SDefT
   SDefT.SDefT =
-<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+<<SId>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
   <Strategy>>
 
   Def.AnnoDef = <<Anno+> <StrategyDef>>
 
   StrategyDef.ExtSDefInl =
-<external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+<external <SId>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
   <Strategy>>
 
   StrategyDef.ExtSDef =
-    <external <MaybeEmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+    <external <MaybeEmptySId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
-lexical sorts MaybeEmptyId
+lexical sorts SId MaybeEmptySId
 lexical syntax
-  MaybeEmptyId =
-  MaybeEmptyId = Id
+  // indirection for highlighting
+  SId = Id
+
+  MaybeEmptySId =
+  MaybeEmptySId = SId
 
 context-free sorts Anno
 context-free syntax
@@ -63,7 +66,7 @@ context-free syntax
   Strategy.One   = <one(<Strategy>)>
   Strategy.All   = <all(<Strategy>)>
 
-  SVar.SVar = Id
+  SVar.SVar = SId
 
   Strategy.Let =
 <let
