@@ -8,7 +8,7 @@ signature
     B : Term
     F : Term * Term -> Term
     g : Term
-    g: a -> Term
+    g : Term -> Term
 strategies
 
   main = 

@@ -1,9 +1,11 @@
 module test05
 imports collection/list/cons collection/tuple/cons
 signature
+  sorts
+    Term
   constructors
-    F     : a -> a
-    F     : a * a -> a 
+    F     : Term -> Term
+    F     : Term * Term -> Term
 
 strategies
  

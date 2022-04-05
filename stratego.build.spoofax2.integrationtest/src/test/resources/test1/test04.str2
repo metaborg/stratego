@@ -2,10 +2,11 @@ module test04
 signature
   sorts
     List(a)
+    Term
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)
-    F     : a -> a
+    F     : Term -> Term
 
 strategies
 
