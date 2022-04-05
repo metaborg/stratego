@@ -2,6 +2,7 @@ module gradual-types/signatures
 
 imports
   core/identifiers
+  core/signatures
 
 context-free sorts Type SortT Dyn ConstrType
 context-free syntax
@@ -19,6 +20,9 @@ context-free syntax
   SortT.SortNoArgs = UCID
   SortT            = "TP" {reject}
   SortT.SortVar    = SortVar
+
+  SortArg.TupleT      = [[Sort] * [{Sort " * "}+]]
+  SortArg.DynT        = Dyn
 
 context-free priorities
   Type.TupleT <0> .> Type.TupleT,

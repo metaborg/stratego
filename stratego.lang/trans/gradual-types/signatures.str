@@ -92,6 +92,8 @@ strategies // core/signatures & sugar/signatures
 
   sort-check-Sort(s|e) = ?BlobT()
 
+  sort-check-Sort(s|e) = ?DynT(Dyn()); where(not(s))
+
   sort-check-Sort(s|e): s@SortNoArgs(n) -> <id>
     with
       arity := 0
@@ -126,13 +128,13 @@ strategies // core/signatures & sugar/signatures
 
   gadt-check(s|s, sa*, e) =
     if s
-        then
-          if <not(map(?SortVar(<not(is-primitive-type)>)); where(length => l); uniq; length => l)> sa*
-            then <report-Err> (s, GadtSort())
-          end
-        else
-          <map(sort-check-Sort(fail|e))> sa*
-      end
+      then
+        if <not(map(?SortVar(<not(is-primitive-type)>)); where(length => l); uniq; length => l)> sa*
+          then <report-Err> (s, GadtSort())
+        end
+      else
+        <map(sort-check-Sort(fail|e))> sa*
+    end
 
 strategies // gradual-types/signatures
 
