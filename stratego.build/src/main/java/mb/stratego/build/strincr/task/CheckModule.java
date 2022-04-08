@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -145,7 +146,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     void otherChecks(ExecContext context, ResolveInput input, ModuleData moduleData,
         ArrayList<Message> messages, String projectPath) throws ExecException {
-        checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
+        final HashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData = new HashMap<>(moduleData.normalStrategyData);
+        Relation.putAll(strategyData, moduleData.internalStrategyData, ArrayList::new);
+        Relation.putAll(strategyData, moduleData.externalStrategyData, ArrayList::new);
+        checkExternalsInternalsOverlap(context, strategyData,
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
         checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(),
             moduleData.lastModified, messages, projectPath);
@@ -257,16 +261,16 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     private void checkExternalsInternalsOverlap(ExecContext context,
-        Map<StrategySignature, ArrayList<StrategyFrontData>> normalStrategyData,
+        Map<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages, ResolveInput resolveInput) {
         final HashSet<StrategySignature> strategyFilter =
-            new HashSet<>(normalStrategyData.keySet());
+            new HashSet<>(strategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs =
             context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));
 
-        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : normalStrategyData
+        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : strategyData
             .entrySet()) {
             final StrategySignature strategySignature = e.getKey();
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
