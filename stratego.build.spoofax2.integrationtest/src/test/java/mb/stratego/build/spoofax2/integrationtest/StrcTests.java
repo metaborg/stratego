@@ -43,7 +43,6 @@ public class StrcTests {
     public static final String packageName = "mb.stratego2integrationtest";
     public static final ResourceService resourceService =
         new DefaultResourceService(new FSResourceRegistry());
-    // TODO: turn shell scripts from test-strc into tests here
 
     @TestFactory Stream<DynamicTest> test1() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
