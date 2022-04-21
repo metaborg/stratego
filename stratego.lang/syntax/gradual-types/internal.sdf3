@@ -7,7 +7,7 @@ imports
   core/strategies
   gradual-types/signatures
 
-context-free sorts Str2Lib
+context-free sorts Str2Lib Str2LibComponent Anno
 context-free syntax
 
   Str2Lib.Str2Lib = [library [ModNamePart]
@@ -17,6 +17,8 @@ context-free syntax
 
   Str2LibComponent.Maven = [maven [groupId:JavaId]:[id:JavaId]:[MavenVersion]]
   Str2LibComponent.Package = [package [PackageName]]
+
+  Anno.Overlay = [overlay]
 
 lexical sorts VersionNumber VersionQualifier MavenVersion
 lexical syntax
@@ -102,3 +104,8 @@ context-free syntax
   ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast [Type] to type [Type], its type is not known at run-time in this position. ]
   ErrorDesc.WithClauseInDynRule = [Cannot use with clauses in dynamic rules. ]
   ErrorDesc.ConstantCongruence = [Simple matching congruence: prefix with '?'. Or with '!' if you meant to build. ]
+
+  ErrorDesc.WldInOverlay = [Wildcard not allowed in overlay, add a default value after the underscore. ]
+  ErrorDesc.AsInOverlay = [As pattern not allowed in overlay. ]
+  ErrorDesc.StringQuotationInOverlay = [The string quotation pattern may not be used in overlay. ]
+  ErrorDesc.MissingTypeDefinition = [Missing type definition. ]

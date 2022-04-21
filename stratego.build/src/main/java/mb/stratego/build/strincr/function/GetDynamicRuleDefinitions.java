@@ -2,15 +2,10 @@ package mb.stratego.build.strincr.function;
 
 import java.util.ArrayList;
 
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.util.TermUtils;
 
 import mb.pie.api.SerializableFunction;
-import mb.stratego.build.strincr.task.Front;
 import mb.stratego.build.strincr.task.output.ModuleData;
-import mb.stratego.build.termvisitors.HasDynamicRuleDefinitions;
-import mb.stratego.build.util.InvalidASTException;
 
 public class GetDynamicRuleDefinitions
     implements SerializableFunction<ModuleData, ArrayList<IStrategoTerm>> {

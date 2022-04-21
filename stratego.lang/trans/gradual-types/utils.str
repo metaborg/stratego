@@ -9,6 +9,7 @@ signatures/gradual-types/signatures-sig
 signatures/gradual-types/internal-sig
 signatures/gradual-types/strategies-sig
 signatures/gradual-types/terms-sig
+signatures/gradual-types/overlays-sig
 signatures/sugar/signatures-sig
 signatures/sugar/strategies-sig
 signatures/sugar/dynamic-rules-sig
@@ -19,6 +20,7 @@ signatures/sugar/overlays-sig
 signatures/core/modules-sig
 signatures/core/signatures-sig
 signatures/core/strategies-sig
+signatures/core/terms-sig
 gradual-types/signatures
 
 gradual-types/main
@@ -427,12 +429,16 @@ extract-constr:
     t2 := <desugar-Type> t1
   ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
-// TODO: allow type definition?
 extract-constr:
-  OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
+  OverlayDeclNoArgs(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))
+  with
+    t2 := <desugar-Type> t1
 
 extract-constr:
-  Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
+  OverlayDecl(c, t1*, ConstType(t1)) -> ((c, <length> t1*), ConstrType(t2*, t2))
+  with
+    t2 := <desugar-Type> t1
+  ; t2* := <map(?ConstType(<desugar-Type>) <+ ?DynT())> t1*
 
 extract-constr:
   ExtOpDecl(c, ConstType(t1)) -> ((c,0), ConstrType([], t2))

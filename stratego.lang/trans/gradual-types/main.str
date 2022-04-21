@@ -23,6 +23,7 @@ gradual-types/signatures
 gradual-types/strategies
 gradual-types/defs
 gradual-types/modules
+gradual-types/overlays
 
 strc/incr/fix-new-grammar
 
@@ -101,14 +102,15 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   ; let
       process-defs = map(fix-old-grammar;fix-new-grammar;insertCasts-Def(|e, st); Fst)
       process-constrs = map(sort-check-Opdecl(|e))
+      process-overlays = map(check-Overlay(|e, st))
       process-sections = map(origin-track-forced(
            Imports(id)
-        <+ Signature(map(Sorts(id) <+ Constructors(process-constrs)))
-        <+ Overlays(id)
-        <+ Strategies(process-defs)
-        <+ Rules(process-defs)
+        <+ ?Signature(_) < Signature(map(Sorts(id) <+ Constructors(process-constrs)))
+         + ?Overlays(_) < Overlays(process-overlays)
+         + ?Strategies(_) < Strategies(process-defs)
+         + ?Rules(_); Rules(process-defs)
         ))
-      process = origin-track-forced(Module(id, process-sections) <+ Specification(process-sections))
+      process = origin-track-forced(?Module(_, _) < Module(id, process-sections) + Specification(process-sections))
     in
       ast' := <process> ast
     end

@@ -1,33 +1,40 @@
 package mb.stratego.build.strincr.function;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import mb.pie.api.SerializableFunction;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.function.output.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;
 
-public class GetOverlayData implements SerializableFunction<ModuleData, ArrayList<OverlayData>> {
-    private final Set<ConstructorSignature> usedConstructors;
+public class GetOverlayData implements SerializableFunction<ModuleData, OverlayData> {
+    private final LinkedHashSet<ConstructorSignature> usedConstructors;
 
-    public GetOverlayData(Set<ConstructorSignature> usedConstructors) {
+    public GetOverlayData(LinkedHashSet<ConstructorSignature> usedConstructors) {
         this.usedConstructors = usedConstructors;
     }
 
-    @Override public ArrayList<OverlayData> apply(ModuleData moduleData) {
-        final ArrayList<OverlayData> result = new ArrayList<>();
+    @Override public OverlayData apply(ModuleData moduleData) {
+        final ArrayList<ConstructorData> overlayData = new ArrayList<>();
+        final LinkedHashSet<ConstructorSignature> usedConstrs = new LinkedHashSet<>();
         for(ConstructorSignature usedConstructor : usedConstructors) {
-            final @Nullable List<OverlayData> overlayData =
+            final @Nullable List<ConstructorData> data =
                 moduleData.overlayData.get(usedConstructor);
-            if(overlayData != null) {
-                result.addAll(overlayData);
+            if(data != null) {
+                overlayData.addAll(data);
+            }
+            final @Nullable LinkedHashSet<ConstructorSignature> constrs =
+                moduleData.overlayUsedConstrs.get(usedConstructor);
+            if(constrs != null) {
+                usedConstrs.addAll(constrs);
             }
         }
-        return result;
+        return new OverlayData(overlayData, usedConstrs);
     }
 
     @Override public boolean equals(Object o) {

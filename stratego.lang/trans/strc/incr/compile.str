@@ -56,7 +56,8 @@ strategies
       // desugar and check overlays
       ; m-transform-overlays(scope-def-local-newname(id
           ; pre-desugar
-          ; check-overlay
+// commented: [DONE IN TYPESYSTEM]
+//          ; check-overlay
 //          ; try(DeclareVarToConst)
         /*)
 

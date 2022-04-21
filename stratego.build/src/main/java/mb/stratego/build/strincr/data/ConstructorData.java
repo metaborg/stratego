@@ -12,17 +12,20 @@ public class ConstructorData implements Serializable {
     public final ConstructorSignature signature;
     public final IStrategoAppl astTerm;
     public final ConstructorType type;
+    public final boolean isOverlay;
 //    public final boolean isExternal; // is this useful?
 
     public ConstructorData(ConstructorSignature signature, IStrategoAppl astTerm,
         ConstructorType type) {
+        this(signature, astTerm, type, false);
+    }
+
+    public ConstructorData(ConstructorSignature signature, IStrategoAppl astTerm,
+        ConstructorType type, boolean isOverlay) {
         this.signature = signature;
         this.astTerm = astTerm;
         this.type = type;
-    }
-
-    public boolean isOverlay() {
-        return false;
+        this.isOverlay = isOverlay;
     }
 
     public IStrategoTerm toTerm(IStrategoTermBuilder tf) {

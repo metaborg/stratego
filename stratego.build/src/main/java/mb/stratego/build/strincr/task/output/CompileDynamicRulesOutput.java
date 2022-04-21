@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.TreeSet;

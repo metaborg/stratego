@@ -18,6 +18,7 @@ import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.GadtSort;
 import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.type.MissingTypeDefinition;
 import mb.stratego.build.strincr.message.type.NoInjectionBetween;
 import mb.stratego.build.strincr.message.type.STypeMismatch;
 import mb.stratego.build.strincr.message.type.StrategyVariableTypedWithTermType;
@@ -107,12 +108,18 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new AsInBuildTerm(locationTerm, severity, lastModified);
             case "WldInBuildTerm":
                 return new WldInBuildTerm(locationTerm, severity, lastModified);
+            case "AsInOverlay":
+                return new AsInOverlay(locationTerm, severity, lastModified);
+            case "WldInOverlay":
+                return new WldInOverlay(locationTerm, severity, lastModified);
             case "BuildDefaultInBuildTerm":
                 return new BuildDefaultInBuildTerm(locationTerm, severity, lastModified);
             case "BuildDefaultInMatchTerm":
                 return new BuildDefaultInMatchTerm(locationTerm, severity, lastModified);
             case "StringQuotationInMatchTerm":
                 return new StringQuotationInMatchTerm(locationTerm, severity, lastModified);
+            case "StringQuotationInOverlay":
+                return new StringQuotationInOverlay(locationTerm, severity, lastModified);
             case "NonStringOrListInExplodeConsPosition": // Type -> ErrorDesc
                 return new NonStringOrListInExplodeConsPosition(locationTerm,
                     messageTerm.getSubterm(0), severity, lastModified);
@@ -143,6 +150,8 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new StrategyCongruenceOverlap(locationTerm, severity, lastModified);
             case "GadtSort":
                 return new GadtSort(locationTerm, severity, lastModified);
+            case "MissingTypeDefinition":
+                return new MissingTypeDefinition(locationTerm, severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

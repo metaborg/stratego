@@ -5,3 +5,4 @@ imports
   gradual-types/signatures
   gradual-types/strategies
   gradual-types/terms
+  gradual-types/overlays

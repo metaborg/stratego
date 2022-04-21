@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -27,7 +28,6 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.DynamicCallsDefined;
@@ -42,6 +42,7 @@ import mb.stratego.build.strincr.function.ToCongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.ToGlobalConsInj;
 import mb.stratego.build.strincr.function.output.CongruenceGlobalIndex;
 import mb.stratego.build.strincr.function.output.GlobalConsInj;
+import mb.stratego.build.strincr.function.output.OverlayData;
 import mb.stratego.build.strincr.task.Back;
 import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
@@ -237,19 +238,18 @@ public abstract class BackInput implements Serializable {
                 final HashSet<ConstructorSignature> newlyFoundConstructors = new HashSet<>(usedConstructors);
                 // Overlays can use other overlays, so this loop is for finding those transitive uses
                 while(!newlyFoundConstructors.isEmpty()) {
-                    final ArrayList<OverlayData> overlayData = PieUtils
-                        .requirePartial(context, backTask.front,
-                            new FrontInput.Normal(moduleIdentifier, checkInput.importResolutionInfo,
-                                checkInput.autoImportStd),
-                            new GetOverlayData(newlyFoundConstructors));
+                    final OverlayData overlayData = PieUtils.requirePartial(
+                        context, backTask.front, new FrontInput.Normal(moduleIdentifier,
+                            checkInput.importResolutionInfo, checkInput.autoImportStd),
+                        new GetOverlayData(new LinkedHashSet<>(newlyFoundConstructors)));
                     usedConstructors.addAll(newlyFoundConstructors);
                     newlyFoundConstructors.clear();
-                    for(OverlayData overlayDatum : overlayData) {
+                    for(ConstructorData overlayDatum : overlayData.constrData) {
                         overlayContributions.add(overlayDatum.astTerm);
-                        for(ConstructorSignature usedConstructor : overlayDatum.usedConstructors) {
-                            if(!usedConstructors.contains(usedConstructor)) {
-                                newlyFoundConstructors.add(usedConstructor);
-                            }
+                    }
+                    for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
+                        if(!usedConstructors.contains(usedConstructor)) {
+                            newlyFoundConstructors.add(usedConstructor);
                         }
                     }
                 }
@@ -498,34 +498,35 @@ public abstract class BackInput implements Serializable {
 
             final ArrayList<IStrategoAppl> congruences = new ArrayList<>(constructors.size() + 2);
             for(ConstructorSignature constructor : constructors) {
+                // TODO: make sure commented out logger debug messages occur in static checking already
                 final StrategySignature congruenceSig = constructor.toCongruenceSig();
                 if(globalIndex.nonExternalStrategies.contains(congruenceSig)) {
-                    context.logger().debug(
-                        "Skipping congruence overlapping with existing strategy: " + constructor);
+//                    context.logger().debug(
+//                        "Skipping congruence overlapping with existing strategy: " + constructor);
                     continue;
                 }
                 if(globalIndex.externalConstructors.contains(constructor)) {
-                    context.logger().debug(
-                        "Skipping congruence of constructor overlapping with external constructor: "
-                            + constructor);
+//                    context.logger().debug(
+//                        "Skipping congruence of constructor overlapping with external constructor: "
+//                            + constructor);
                     continue;
                 }
                 compiledStrategies.add(congruenceSig);
                 congruences.add(backTask.strategoLanguage.toCongruenceAst(constructor, projectPath));
             }
             ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>(globalIndex.overlayData.size());
-            for(OverlayData overlayData : globalIndex.overlayData) {
+            for(ConstructorData overlayData : globalIndex.overlayData) {
                 final StrategySignature congruenceSig = overlayData.signature.toCongruenceSig();
                 if(globalIndex.nonExternalStrategies.contains(congruenceSig)) {
-                    context.logger().debug(
-                        "Skipping congruence overlapping with existing strategy: "
-                            + overlayData.signature);
+//                    context.logger().debug(
+//                        "Skipping congruence overlapping with existing strategy: "
+//                            + overlayData.signature);
                     continue;
                 }
                 if(globalIndex.externalConstructors.contains(overlayData.signature)) {
-                    context.logger().debug(
-                        "Skipping congruence of constructor overlapping with external constructor: "
-                            + overlayData.signature);
+//                    context.logger().debug(
+//                        "Skipping congruence of constructor overlapping with external constructor: "
+//                            + overlayData.signature);
                     continue;
                 }
                 compiledStrategies.add(congruenceSig);

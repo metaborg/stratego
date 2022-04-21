@@ -4,7 +4,7 @@ imports
   core/identifiers
   core/signatures
 
-context-free sorts Type SortT Dyn ConstrType
+context-free sorts Type SortT Dyn
 context-free syntax
   ConstType.DynT = Dyn
   Dyn.Dyn          = [?]

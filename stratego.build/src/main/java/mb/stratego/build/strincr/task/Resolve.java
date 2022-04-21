@@ -25,7 +25,6 @@ import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -85,7 +84,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>();
         final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes = new LinkedHashMap<>();
         final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new TreeMap<>();
-        final LinkedHashSet<OverlayData> overlayData = new LinkedHashSet<>();
+        final LinkedHashSet<ConstructorData> overlayData = new LinkedHashSet<>();
 
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
             overlayUsesConstructors = new LinkedHashMap<>();
@@ -148,17 +147,19 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                     .add(moduleIdentifier);
                 Relation.getOrInitialize(dynamicRules, e.getKey(), TreeSet::new).addAll(e.getValue());
             }
-            for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : index.overlayData
+            for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : index.overlayData
                 .entrySet()) {
                 Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
                     .add(moduleIdentifier);
+                for(ConstructorData overlayDatum : e.getValue()) {
+                    overlayData.add(overlayDatum);
+                }
+            }
+            for(Map.Entry<ConstructorSignature, LinkedHashSet<ConstructorSignature>> e : index.overlayUsedConstrs.entrySet()) {
                 final HashSet<ConstructorSignature> overlayUsesCons = Relation
                     .getOrInitialize(overlayUsesConstructors, e.getKey(),
                         LinkedHashSet::new);
-                for(OverlayData overlayDatum : e.getValue()) {
-                    overlayUsesCons.addAll(overlayDatum.usedConstructors);
-                    overlayData.add(overlayDatum);
-                }
+                overlayUsesCons.addAll(e.getValue());
             }
 
             messages.addAll(index.messages);

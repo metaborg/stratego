@@ -14,7 +14,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -39,7 +38,7 @@ public class GlobalData implements Serializable {
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes;
     public final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
-    public final LinkedHashSet<OverlayData> overlayData;
+    public final LinkedHashSet<ConstructorData> overlayData;
     public final ArrayList<Message> messages;
     public final long lastModified;
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
@@ -57,7 +56,7 @@ public class GlobalData implements Serializable {
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes,
-        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, LinkedHashSet<OverlayData> overlayData,
+        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, LinkedHashSet<ConstructorData> overlayData,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.importedStr2LibPackageNames = importedStr2LibPackageNames;

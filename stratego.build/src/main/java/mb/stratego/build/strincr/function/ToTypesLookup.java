@@ -15,7 +15,6 @@ import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -26,14 +25,16 @@ import mb.stratego.build.util.Relation;
 
 public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLookup> {
     public final LinkedHashSet<StrategySignature> definedStrategies;
+    public final LinkedHashSet<ConstructorSignature> definedOverlays;
     public final LinkedHashSet<StrategySignature> usedStrategies;
     public final LinkedHashSet<String> usedAmbiguousStrategies;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
 
     public ToTypesLookup(LinkedHashSet<StrategySignature> definedStrategies,
-        LinkedHashSet<StrategySignature> usedStrategies, LinkedHashSet<String> usedAmbiguousStrategies,
-        LinkedHashSet<ConstructorSignature> usedConstructors) {
+        LinkedHashSet<ConstructorSignature> definedOverlays, LinkedHashSet<StrategySignature> usedStrategies,
+        LinkedHashSet<String> usedAmbiguousStrategies, LinkedHashSet<ConstructorSignature> usedConstructors) {
         this.definedStrategies = definedStrategies;
+        this.definedOverlays = definedOverlays;
         this.usedStrategies = usedStrategies;
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.usedConstructors = usedConstructors;
@@ -66,7 +67,7 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
                     Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                         .add(constructorData.type);
                 }
-                for(OverlayData overlayData : moduleData.overlayData
+                for(ConstructorData overlayData : moduleData.overlayData
                     .getOrDefault(usedConstructor, new ArrayList<>(0))) {
                     Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
                         .add(overlayData.type);
@@ -97,6 +98,13 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
                 registerStrategyType(strategyTypes, strategyFrontData.signature, strategyFrontData);
             }
         }
+        for(ConstructorSignature usedConstructor : definedOverlays) {
+            for(ConstructorData constructorData : moduleData.overlayData
+                .getOrDefault(usedConstructor, new ArrayList<>(0))) {
+                Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
+                    .add(constructorData.type);
+            }
+        }
         for(ConstructorSignature usedConstructor : usedConstructors) {
             for(ConstructorData constructorData : moduleData.constrData
                 .getOrDefault(usedConstructor, new ArrayList<>(0))) {
@@ -108,7 +116,7 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
                 Relation.getOrInitialize(constructorTypes, constructorData.signature, HashSet::new)
                     .add(constructorData.type);
             }
-            for(OverlayData overlayData : moduleData.overlayData
+            for(ConstructorData overlayData : moduleData.overlayData
                 .getOrDefault(usedConstructor, new ArrayList<>(0))) {
                 Relation.getOrInitialize(constructorTypes, overlayData.signature, HashSet::new)
                     .add(overlayData.type);

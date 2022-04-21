@@ -27,7 +27,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
         final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();
         for(ArrayList<ConstructorData> data : moduleData.constrData.values()) {
             for(ConstructorData datum : data) {
-                if(!datum.isOverlay()) {
+                if(!datum.isOverlay) {
                     nonOverlayConstructors.add(datum);
                 }
             }
@@ -37,7 +37,7 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
             new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
             new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
             externalStrategyData, moduleData.dynamicRules,
-            moduleData.overlayData, moduleData.messages, moduleData.lastModified);
+            moduleData.overlayData, moduleData.overlayUsedConstrs, moduleData.messages, moduleData.lastModified);
     }
 
     @Override public boolean equals(Object other) {

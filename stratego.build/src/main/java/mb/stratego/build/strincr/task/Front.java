@@ -1,13 +1,20 @@
 package mb.stratego.build.strincr.task;
 
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.DynRuleGenerated;
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Extend;
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.External;
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Internal;
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Normal;
+import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.TypeDefinition;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,7 +43,6 @@ import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -57,13 +63,6 @@ import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
-
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.DynRuleGenerated;
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Extend;
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.External;
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Internal;
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.Normal;
-import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.TypeDefinition;
 
 /**
  * Task that takes a {@link IModuleImportService.ModuleIdentifier} and processes the corresponding AST. The AST is split
@@ -98,9 +97,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             new LinkedHashMap<>();
         final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData =
             new LinkedHashMap<>();
-        final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData =
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData =
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData =
+            new LinkedHashMap<>();
+        final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs =
             new LinkedHashMap<>();
         final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
             internalStrategyData = new LinkedHashMap<>();
@@ -142,7 +143,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
-                overlayData, usedConstructors, usedStrategies, dynamicRules,
+                overlayData, overlayUsedConstrs, usedConstructors, usedStrategies, dynamicRules,
                 usedAmbiguousStrategies, messages, 0L);
         }
 
@@ -182,7 +183,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                     break;
                 case "Overlays":
-                    addOverlayData(input.moduleIdentifier, overlayData, constrData,
+                    addOverlayData(input.moduleIdentifier, overlayUsedConstrs, overlayData, constrData,
                         def.getSubterm(0));
                     break;
                 case "Rules":
@@ -207,7 +208,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         return new ModuleData(input.moduleIdentifier, str2LibPackageNames, ast.wrapped, imports,
             sortData, externalSortData, constrData, externalConstrData, injections,
             externalInjections, strategyData, internalStrategyData, externalStrategyData,
-            dynamicRuleData, overlayData, usedConstructors, usedStrategies, dynamicRules,
+            dynamicRuleData, overlayData, overlayUsedConstrs, usedConstructors, usedStrategies, dynamicRules,
             usedAmbiguousStrategies, messages, ast.lastModified);
     }
 
@@ -384,46 +385,75 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     }
 
     protected void addOverlayData(IModuleImportService.ModuleIdentifier moduleIdentifier,
-        HashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
-        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
-        IStrategoTerm overlays) {
-        /*
-        extract-constr:
-          OverlayNoArgs(c, _) -> ((c,0), ConstrType([], DynT()))
-
-        extract-constr:
-          Overlay(c, t*, _) -> ((c, <length> t*), ConstrType(<map(!DynT())> t*, DynT()))
-         */
-        final IStrategoTerm dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+        HashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, IStrategoTerm overlays) {
         for(IStrategoTerm overlay : overlays) {
             final int arity;
-            final ConstructorType type;
-            final String name;
-            if(TermUtils.isStringAt(overlay, 0)) {
-                name = TermUtils.toJavaStringAt(overlay, 0);
-                if(TermUtils.isAppl(overlay, "OverlayNoArgs", 2)) {
-                    arity = 0;
-                    type = new ConstructorType(tf, new ArrayList<>(0), dynT);
-                } else if(TermUtils.isAppl(overlay, "Overlay", 3) && TermUtils
-                    .isListAt(overlay, 1)) {
-                    arity = TermUtils.toListAt(overlay, 1).size();
-                    type =
-                        new ConstructorType(tf, new ArrayList<>(Collections.nCopies(arity, dynT)),
-                            dynT);
-                } else {
-                    throw new InvalidASTException(moduleIdentifier, overlay);
-                }
-            } else {
+            if(!TermUtils.isStringAt(overlay, 0)) {
                 throw new InvalidASTException(moduleIdentifier, overlay);
             }
-            final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
-            new UsedConstrs(usedConstructors).visit(overlay);
-            final ConstructorSignature signature = new ConstructorSignature(name, arity);
-            final OverlayData data =
-                new OverlayData(signature, (IStrategoAppl) overlay, type, usedConstructors);
-            Relation.getOrInitialize(constrData, signature, ArrayList::new).add(data);
-            Relation.getOrInitialize(overlayData, signature, ArrayList::new).add(data);
+            final String name = TermUtils.toJavaStringAt(overlay, 0);
+            switch(TermUtils.toAppl(overlay).getName()) {
+                case "OverlayNoArgs": {
+                    if(overlay.getSubtermCount() != 2) {
+                        throw new InvalidASTException(moduleIdentifier, overlay);
+                    }
+                    arity = 0;
+                    addOverlayUsedConstrs(overlayUsedConstrs, overlay, arity, name);
+                    break;
+                }
+                case "Overlay": {
+                    if(overlay.getSubtermCount() != 3 || !TermUtils.isListAt(overlay, 1)) {
+                        throw new InvalidASTException(moduleIdentifier, overlay);
+                    }
+                    arity = TermUtils.toListAt(overlay, 1).size();
+                    addOverlayUsedConstrs(overlayUsedConstrs, overlay, arity, name);
+                    break;
+                }
+                case "OverlayDeclNoArgs": {
+                    if(overlay.getSubtermCount() != 2) {
+                        throw new InvalidASTException(moduleIdentifier, overlay);
+                    }
+                    arity = 0;
+                    addOverlayDeclData(moduleIdentifier, overlayData, constrData, overlay, arity, name);
+                    break;
+                }
+                case "OverlayDecl": {
+                    if(overlay.getSubtermCount() != 3 || !TermUtils.isListAt(overlay, 1)) {
+                        throw new InvalidASTException(moduleIdentifier, overlay);
+                    }
+                    arity = TermUtils.toListAt(overlay, 1).size();
+                    addOverlayDeclData(moduleIdentifier, overlayData, constrData, overlay, arity, name);
+                    break;
+                }
+                default:
+                    throw new InvalidASTException(moduleIdentifier, overlay);
+            }
         }
+    }
+
+    private void addOverlayDeclData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        HashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData, IStrategoTerm overlay, final int arity,
+        final String name) {
+        final ConstructorType type = ConstructorType.fromOverlayDecl(tf, overlay);
+        if(type == null) {
+            throw new InvalidASTException(moduleIdentifier, overlay);
+        }
+        final ConstructorSignature signature = new ConstructorSignature(name, arity);
+        final ConstructorData data =
+            new ConstructorData(signature, (IStrategoAppl) overlay, type, true);
+        Relation.getOrInitialize(constrData, signature, ArrayList::new).add(data);
+        Relation.getOrInitialize(overlayData, signature, ArrayList::new).add(data);
+    }
+
+    private void addOverlayUsedConstrs(HashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
+        IStrategoTerm overlay, final int arity, final String name) {
+        final LinkedHashSet<ConstructorSignature> usedConstructors = new LinkedHashSet<>();
+        new UsedConstrs(usedConstructors).visit(overlay);
+        final ConstructorSignature signature = new ConstructorSignature(name, arity);
+        Relation.getOrInitialize(overlayUsedConstrs, signature, LinkedHashSet::new).addAll(usedConstructors);
     }
 
     private void addSortData(ArrayList<Message> messages, long lastModified,
@@ -592,7 +622,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 }
 
                 final IStrategoTerm from;
-                final ArrayList<IStrategoTerm> froms = constrType.getFrom();
+                final List<IStrategoTerm> froms = constrType.getFrom();
                 if(froms.size() == 1) {
                     from = froms.get(0);
                 } else {

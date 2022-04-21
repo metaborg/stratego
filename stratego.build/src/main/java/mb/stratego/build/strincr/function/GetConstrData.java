@@ -15,7 +15,7 @@ public class GetConstrData
         final ArrayList<ConstructorData> constructorData = new ArrayList<>();
         for(List<ConstructorData> value : moduleData.constrData.values()) {
             for(ConstructorData data : value) {
-                if(!data.isOverlay()) {
+                if(!data.isOverlay) {
                     constructorData.add(data);
                 }
             }

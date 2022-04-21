@@ -30,7 +30,8 @@ strategies
 
   stratego2-mk-cong-defs =
     {| ExpandOverlayInMatch, ExpandOverlayInBuild:
-      map(  stratego2-mk-cong-def-overlay-generate
+      remove-all(ignore-overlaydecl)
+    ; map(  stratego2-mk-cong-def-overlay-generate
           ; stratego2-mk-cong-def-desugar )
     |}
   

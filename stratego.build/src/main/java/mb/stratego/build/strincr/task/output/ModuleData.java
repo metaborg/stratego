@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeSet;
 
 import javax.annotation.Nullable;
@@ -17,7 +16,6 @@ import org.spoofax.terms.util.TermUtils;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -52,7 +50,8 @@ public class ModuleData implements Serializable, WithLastModified {
     public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         externalStrategyData;
     public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData;
-    public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
     public final LinkedHashSet<StrategySignature> usedStrategies;
     public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
@@ -75,7 +74,8 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
@@ -96,6 +96,7 @@ public class ModuleData implements Serializable, WithLastModified {
         this.externalStrategyData = externalStrategyData;
         this.dynamicRuleData = dynamicRuleData;
         this.overlayData = overlayData;
+        this.overlayUsedConstrs = overlayUsedConstrs;
         this.usedConstructors = usedConstructors;
         this.usedStrategies = usedStrategies;
         this.dynamicRules = dynamicRules;
@@ -156,6 +157,7 @@ public class ModuleData implements Serializable, WithLastModified {
     }
 
     @Override public boolean equals(Object o) {
+        // N.B. since the whole AST is used in equals/hashcode, we don't need to check any of the fields derived from the AST
         if(this == o)
             return true;
         if(o == null || getClass() != o.getClass())
@@ -167,9 +169,6 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
             return false;
-        if(!Objects.equals(str2LibPackageNames, that.str2LibPackageNames)) {
-            return false;
-        }
         if(!ast.equals(that.ast))
             return false;
         if(!imports.equals(that.imports))
@@ -179,7 +178,6 @@ public class ModuleData implements Serializable, WithLastModified {
 
     @Override public int hashCode() {
         int result = moduleIdentifier.hashCode();
-        result = 31 * result + str2LibPackageNames.hashCode();
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + messages.hashCode();
@@ -205,6 +203,7 @@ public class ModuleData implements Serializable, WithLastModified {
             + ", externalStrategyData=" + externalStrategyData.size()
             + ", dynamicRuleData=" + dynamicRuleData.size()
             + ", overlayData=" + overlayData.size()
+            + ", overlayUsedConstrs=" + overlayUsedConstrs.size()
             + ", usedConstructors=" + usedConstructors.size()
             + ", usedStrategies=" + usedStrategies.size()
             + ", dynamicRules=" + dynamicRules.size()
