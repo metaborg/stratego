@@ -4,22 +4,24 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 
 public class OverlayData implements Serializable {
-    public final ArrayList<ConstructorData> constrData;
+    public final ArrayList<IStrategoTerm> constrAsts;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
 
-    public OverlayData(ArrayList<ConstructorData> overlayData, LinkedHashSet<ConstructorSignature> usedConstructors) {
-        this.constrData = overlayData;
+    public OverlayData(ArrayList<IStrategoTerm> constrAsts, LinkedHashSet<ConstructorSignature> usedConstructors) {
+        this.constrAsts = constrAsts;
         this.usedConstructors = usedConstructors;
     }
 
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + constrData.hashCode();
+        result = prime * result + constrAsts.hashCode();
         result = prime * result + usedConstructors.hashCode();
         return result;
     }
@@ -32,7 +34,7 @@ public class OverlayData implements Serializable {
         if(getClass() != obj.getClass())
             return false;
         OverlayData other = (OverlayData) obj;
-        if(!constrData.equals(other.constrData))
+        if(!constrAsts.equals(other.constrAsts))
             return false;
         if(!usedConstructors.equals(other.usedConstructors))
             return false;
@@ -41,7 +43,7 @@ public class OverlayData implements Serializable {
 
     @Override public String toString() {
         return "OverlayData("
-            + "overlayData=" + constrData
+            + "overlayData=" + constrAsts
             + ", usedConstructors=" + usedConstructors
             + ")";
     }

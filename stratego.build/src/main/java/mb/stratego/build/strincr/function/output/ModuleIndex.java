@@ -34,6 +34,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashSet<StrategyFrontData> externalStrategies;
     public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final ArrayList<Message> messages;
     public final long lastModified;
@@ -47,7 +48,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashSet<StrategyFrontData> externalStrategies,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
-        LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts, LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         ArrayList<Message> messages, long lastModified) {
         this.str2LibPackageNames = str2LibPackageNames;
         this.imports = imports;
@@ -61,6 +62,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
         this.overlayUsedConstrs = overlayUsedConstrs;
         this.messages = messages;
         this.lastModified = lastModified;

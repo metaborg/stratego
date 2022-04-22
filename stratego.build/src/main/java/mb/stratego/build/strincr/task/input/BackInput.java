@@ -233,7 +233,7 @@ public abstract class BackInput implements Serializable {
                 .requirePartial(context, backTask.resolve, checkInput.resolveInput(),
                     new ModulesDefiningOverlays(usedConstructors));
 
-            final ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>();
+            final ArrayList<IStrategoTerm> overlayContributions = new ArrayList<>();
             for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningOverlay) {
                 final HashSet<ConstructorSignature> newlyFoundConstructors = new HashSet<>(usedConstructors);
                 // Overlays can use other overlays, so this loop is for finding those transitive uses
@@ -244,9 +244,7 @@ public abstract class BackInput implements Serializable {
                         new GetOverlayData(new LinkedHashSet<>(newlyFoundConstructors)));
                     usedConstructors.addAll(newlyFoundConstructors);
                     newlyFoundConstructors.clear();
-                    for(ConstructorData overlayDatum : overlayData.constrData) {
-                        overlayContributions.add(overlayDatum.astTerm);
-                    }
+                    overlayContributions.addAll(overlayData.constrAsts);
                     for(ConstructorSignature usedConstructor : overlayData.usedConstructors) {
                         if(!usedConstructors.contains(usedConstructor)) {
                             newlyFoundConstructors.add(usedConstructor);
@@ -255,9 +253,8 @@ public abstract class BackInput implements Serializable {
                 }
             }
 
-            IStrategoTerm desugaringInput =
-                backTask.generateStratego
-                    .packStrategy(overlayContributions, strategyContributions);
+            final IStrategoTerm desugaringInput =
+                backTask.generateStratego.packStrategy(overlayContributions, strategyContributions);
 
             final String projectPath =
                 backTask.resourcePathConverter.toString(checkInput.projectPath);
@@ -514,25 +511,26 @@ public abstract class BackInput implements Serializable {
                 compiledStrategies.add(congruenceSig);
                 congruences.add(backTask.strategoLanguage.toCongruenceAst(constructor, projectPath));
             }
-            ArrayList<IStrategoAppl> overlayContributions = new ArrayList<>(globalIndex.overlayData.size());
-            for(ConstructorData overlayData : globalIndex.overlayData) {
-                final StrategySignature congruenceSig = overlayData.signature.toCongruenceSig();
+            ArrayList<IStrategoTerm> overlayContributions = new ArrayList<>(globalIndex.overlayData.size());
+            for(Map.Entry<ConstructorSignature, ArrayList<IStrategoTerm>> e : globalIndex.overlayData.entrySet()) {
+                final StrategySignature congruenceSig = e.getKey().toCongruenceSig();
                 if(globalIndex.nonExternalStrategies.contains(congruenceSig)) {
 //                    context.logger().debug(
 //                        "Skipping congruence overlapping with existing strategy: "
 //                            + overlayData.signature);
                     continue;
                 }
-                if(globalIndex.externalConstructors.contains(overlayData.signature)) {
+                if(globalIndex.externalConstructors.contains(e.getKey())) {
 //                    context.logger().debug(
 //                        "Skipping congruence of constructor overlapping with external constructor: "
 //                            + overlayData.signature);
                     continue;
                 }
                 compiledStrategies.add(congruenceSig);
-                overlayContributions.add(overlayData.astTerm);
+                overlayContributions.addAll(e.getValue());
             }
-            congruences.addAll(backTask.strategoLanguage.toCongruenceAsts(overlayContributions, projectPath));
+            congruences.addAll(
+                backTask.strategoLanguage.toCongruenceAsts(overlayContributions, projectPath));
             if(usingLegacyStrategoStdLib) {
                 congruences.add(backTask.generateStratego.anno_cong__ast);
                 compiledStrategies.add(new StrategySignature("Anno_Cong__", 2, 0));

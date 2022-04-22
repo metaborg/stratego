@@ -173,7 +173,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     }
 
     @Override public Collection<? extends IStrategoAppl> toCongruenceAsts(
-        Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException {
+        Collection<IStrategoTerm> asts, String projectPath) throws ExecException {
         final IStrategoList result = TermUtils.toList(callStrategy(termFactory.makeList(asts), projectPath, "stratego2-mk-cong-defs"));
         final ArrayList<IStrategoAppl> congruences = new ArrayList<>(result.size());
         for(IStrategoTerm t : result) {

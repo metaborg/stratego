@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
@@ -20,13 +22,13 @@ public class GetOverlayData implements SerializableFunction<ModuleData, OverlayD
     }
 
     @Override public OverlayData apply(ModuleData moduleData) {
-        final ArrayList<ConstructorData> overlayData = new ArrayList<>();
+        final ArrayList<IStrategoTerm> overlayAsts = new ArrayList<>();
         final LinkedHashSet<ConstructorSignature> usedConstrs = new LinkedHashSet<>();
         for(ConstructorSignature usedConstructor : usedConstructors) {
-            final @Nullable List<ConstructorData> data =
-                moduleData.overlayData.get(usedConstructor);
-            if(data != null) {
-                overlayData.addAll(data);
+            final @Nullable List<IStrategoTerm> asts =
+                moduleData.overlayAsts.get(usedConstructor);
+            if(asts != null) {
+                overlayAsts.addAll(asts);
             }
             final @Nullable LinkedHashSet<ConstructorSignature> constrs =
                 moduleData.overlayUsedConstrs.get(usedConstructor);
@@ -34,7 +36,7 @@ public class GetOverlayData implements SerializableFunction<ModuleData, OverlayD
                 usedConstrs.addAll(constrs);
             }
         }
-        return new OverlayData(overlayData, usedConstrs);
+        return new OverlayData(overlayAsts, usedConstrs);
     }
 
     @Override public boolean equals(Object o) {

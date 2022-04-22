@@ -32,12 +32,13 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
                 }
             }
         }
-        return new ModuleIndex(moduleData.str2LibPackageNames, moduleData.imports, moduleData.sortData,
-            moduleData.externalSortData, nonOverlayConstructors, moduleData.injections,
-            new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
-            new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
-            externalStrategyData, moduleData.dynamicRules,
-            moduleData.overlayData, moduleData.overlayUsedConstrs, moduleData.messages, moduleData.lastModified);
+        return new ModuleIndex(moduleData.str2LibPackageNames, moduleData.imports,
+            moduleData.sortData, moduleData.externalSortData, nonOverlayConstructors,
+            moduleData.injections, new LinkedHashSet<>(moduleData.externalConstrData.keySet()),
+            strategies, new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
+            externalStrategyData, moduleData.dynamicRules, moduleData.overlayData,
+            moduleData.overlayAsts, moduleData.overlayUsedConstrs, moduleData.messages,
+            moduleData.lastModified);
     }
 
     @Override public boolean equals(Object other) {

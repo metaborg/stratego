@@ -51,6 +51,7 @@ public class ModuleData implements Serializable, WithLastModified {
         externalStrategyData;
     public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
     public final LinkedHashSet<StrategySignature> usedStrategies;
@@ -75,7 +76,7 @@ public class ModuleData implements Serializable, WithLastModified {
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
-        LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts, LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
@@ -96,6 +97,7 @@ public class ModuleData implements Serializable, WithLastModified {
         this.externalStrategyData = externalStrategyData;
         this.dynamicRuleData = dynamicRuleData;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
         this.overlayUsedConstrs = overlayUsedConstrs;
         this.usedConstructors = usedConstructors;
         this.usedStrategies = usedStrategies;

@@ -117,7 +117,7 @@ public interface StrategoLanguage {
      * @return The list of ASTs of the strategy definitions for the congruences
      * @throws ExecException On failing to load the Stratego language, internal error inside the congruence construction code
      */
-    Collection<? extends IStrategoAppl> toCongruenceAsts(Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException;
+    Collection<? extends IStrategoAppl> toCongruenceAsts(Collection<IStrategoTerm> asts, String projectPath) throws ExecException;
 
     /**
      * Call to the aux rule signature construction code for Stratego, to transform an AST with

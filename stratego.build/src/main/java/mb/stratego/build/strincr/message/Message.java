@@ -152,6 +152,8 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new GadtSort(locationTerm, severity, lastModified);
             case "MissingTypeDefinition":
                 return new MissingTypeDefinition(locationTerm, severity, lastModified);
+            case "MissingParsingInfoOnStringQuotation":
+                return new MissingParsingInfoOnStringQuotation(locationTerm, severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }

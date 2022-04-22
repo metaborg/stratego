@@ -85,6 +85,8 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes = new LinkedHashMap<>();
         final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules = new TreeMap<>();
         final LinkedHashSet<ConstructorData> overlayData = new LinkedHashSet<>();
+        final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts =
+            new LinkedHashMap<>();
 
         final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>>
             overlayUsesConstructors = new LinkedHashMap<>();
@@ -151,9 +153,14 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
                 .entrySet()) {
                 Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
                     .add(moduleIdentifier);
-                for(ConstructorData overlayDatum : e.getValue()) {
-                    overlayData.add(overlayDatum);
-                }
+                overlayData.addAll(e.getValue());
+            }
+            for(Map.Entry<ConstructorSignature, ArrayList<IStrategoTerm>> e : index.overlayAsts
+                .entrySet()) {
+                Relation.getOrInitialize(overlayIndex, e.getKey(), LinkedHashSet::new)
+                    .add(moduleIdentifier);
+                Relation.getOrInitialize(overlayAsts, e.getKey(), ArrayList::new)
+                    .addAll(e.getValue());
             }
             for(Map.Entry<ConstructorSignature, LinkedHashSet<ConstructorSignature>> e : index.overlayUsedConstrs.entrySet()) {
                 final HashSet<ConstructorSignature> overlayUsesCons = Relation
@@ -175,7 +182,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
         return new GlobalData(allModuleIdentifiers, importedStr2LibPackageNames, overlayIndex,
             nonExternalInjections, strategyIndex, strategyTypes, nonExternalSorts, externalSorts,
             nonExternalConstructors, externalConstructors, internalStrategies, externalStrategyTypes,
-            dynamicRules, overlayData, messages, lastModified);
+            dynamicRules, overlayData, overlayAsts, messages, lastModified);
     }
 
     static FrontInput getFrontInput(ResolveInput input,

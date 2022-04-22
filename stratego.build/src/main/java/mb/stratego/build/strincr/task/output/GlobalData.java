@@ -39,6 +39,7 @@ public class GlobalData implements Serializable {
     public final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes;
     public final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashSet<ConstructorData> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final ArrayList<Message> messages;
     public final long lastModified;
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
@@ -46,8 +47,8 @@ public class GlobalData implements Serializable {
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        ArrayList<String> importedStr2LibPackageNames, LinkedHashMap<ConstructorSignature,
-        LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        ArrayList<String> importedStr2LibPackageNames,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
@@ -56,7 +57,9 @@ public class GlobalData implements Serializable {
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes,
-        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, LinkedHashSet<ConstructorData> overlayData,
+        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
+        LinkedHashSet<ConstructorData> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.importedStr2LibPackageNames = importedStr2LibPackageNames;
@@ -72,6 +75,7 @@ public class GlobalData implements Serializable {
         this.externalStrategyTypes = externalStrategyTypes;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
         this.messages = messages;
         this.lastModified = lastModified;
     }
@@ -97,7 +101,7 @@ public class GlobalData implements Serializable {
             }
             congruenceGlobalIndex =
                 new CongruenceGlobalIndex(nonExtCons, externalConstructors,
-                    nonExternalStrategies, overlayData);
+                    nonExternalStrategies, overlayAsts);
         }
         return congruenceGlobalIndex;
     }
