@@ -161,7 +161,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
       ; st3 := st1
       end
     end
-  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t3*), st3)
+  ; (trm2*, st4) := <thread-map-otf(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t3*), st3)
   ; st5 := <current-type(|t4);type-var-elim(|trm0,newvars);type-var-elim(id|unusedvars)> st4
 
 insertCasts-StMatchTerm-(overlayMode|e1, st1):
@@ -212,7 +212,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
       ; st3 := st1
       end
     end
-  ; (trm2*, st4) := <thread-map(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t3*), st3)
+  ; (trm2*, st4) := <thread-map-otf(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t3*), st3)
   ; st5 := <current-type(|t4);type-var-elim(|trm0,newvars);type-var-elim(id|unusedvars)> st4
 
 insertCasts-StMatchTerm(overlayMode|e1, st1) =
@@ -488,7 +488,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
       (trm2*, st5) := ([], st2)
     else
       (init1*, last1) := <split-init-last> trm1*
-    ; (init2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(overlayMode|e1, DynT()))> (init1*, st2)
+    ; (init2*, st3) := <thread-map-otf(insertCasts-StMatchTerm-Type(overlayMode|e1, DynT()))> (init1*, st2)
     ; (last2, st4) := <insertCasts-StMatchTerm-ListVar(overlayMode|e1, DynT())> (last1, st3)
     ; trm2* := [init2*, last2]
     ; st5 := <current-type-of(|st2)> st4
@@ -555,7 +555,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
         ; (_, st2) := <computeCoercion(|trm, st1)> (t1, TupleT(t2*))
         end
     end
-  ; (trm2*, st3) := <thread-map(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t2*), st2)
+  ; (trm2*, st3) := <thread-map-otf(insertCasts-StMatchTerm-Type(overlayMode|e1))> (<zip> (trm1*, t2*), st2)
   ; st4 := <current-type(|TupleT(t2*))> st3
 
 insertCasts-StMatchTerm-(overlayMode|e1, st1):
@@ -637,7 +637,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
   AnnoList(trm1, trm1*) -> (trm4, st4)
   with
     (trm2, st2) := <insertCasts-StBuildTerm(overlayMode|e1, st1)> trm1
-  ; (trm2*, st3) := <thread-map(insertCasts-StBuildTerm-Type(overlayMode|e1, DynT()))> (trm1*, st2)
+  ; (trm2*, st3) := <thread-map-otf(insertCasts-StBuildTerm-Type(overlayMode|e1, DynT()))> (trm1*, st2)
   ; st4 := <current-type-of(|st2)> st3
   ; if App(c@Cast(_), trm3) := trm2
       then trm4 := App(c, AnnoList(trm3, trm2*))
@@ -734,7 +734,7 @@ strategies // Terms in match position (string quotations)
 insertCasts-StMatchTerm-(overlayMode|e1, st1):
   trm@StringQuotation1(p, sqp1*) -> (StringQuotation1(p, sqp2*), st2)
   with
-    (sqp2*, st2) := <thread-map(insertCasts-Match-StringQuotedPart(overlayMode|e1))> (sqp1*, st1)
+    (sqp2*, st2) := <otf22(thread-map-otf(insertCasts-Match-StringQuotedPart(overlayMode|e1)))> (sqp1*, st1)
   ; if overlayMode
       then <report-Err> (trm, StringQuotationInOverlay())
       else <report-Err> (trm, StringQuotationInMatchTerm())
@@ -800,7 +800,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
     t1 := StringT()
   ; t2 := <expected-type> st1
   ; (_, st2) := <computeCoercion(|trm, st1)> (t1, t2)
-  ; (sqp2*, st3) := <thread-map(insertCasts-Build-StringQuotedPart(overlayMode|e1))> (sqp1*, <expected-type(|DynT(StringT()))> st2)
+  ; (sqp2*, st3) := <otf22(thread-map-otf(insertCasts-Build-StringQuotedPart(overlayMode|e1)))> (sqp1*, <expected-type(|DynT(StringT()))> st2)
   ; if overlayMode
       then <report-Err> (trm, StringQuotationInOverlay())
     end

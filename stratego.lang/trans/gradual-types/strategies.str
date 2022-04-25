@@ -59,7 +59,7 @@ insertCasts-Strategy-(|e1, st1):
   Let(d1*, s1) -> (Let(d2*, s2), st3)
   with
     e2 := <strat-merge-env(keep-right)> (e1, <getDefTypes;immap-map-values(\st -> st{LocalDef()}\)> d1*)
-  ; (d2*, st2) := <thread-map(insertCasts-Def(|e2))> (d1*, st1)
+  ; (d2*, st2) := <thread-map-otf(insertCasts-Def(|e2))> (d1*, st1)
   ; (s2, st3) := <insertCasts-Strategy(|e2, <current-type-of(| st1)> st2)> s1
 
 insertCasts-Strategy(|e1, st1):
@@ -84,8 +84,8 @@ insertCasts-CallT(|e1, st1):
   ; t2* := <zip> (t1*, tt*)
   ; t3 := <current-type> st1
   ; (c, st2) := <computeCoercion(|c1, st1)> (t3, t1)
-  ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st2)
-  ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st3)
+  ; (s3*, st3) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st2)
+  ; (t3*, st4) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st3)
   ; (c2, st5) := <insertCastBefore(|c, t3, t1)> (<otf(!CallT(v, s3*, t3*))> c1, st4)
   ; st6 := <current-type(|t2)> st5
 
@@ -101,8 +101,8 @@ insertCasts-CallT-(|e1, st1):
         s2* := <zip> (s1*, st*)
       ; t2* := <zip> (t1*, tt*)
     end
-  ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-  ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st3)
+  ; (s3*, st3) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
+  ; (t3*, st4) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st3)
   ; st5 := <current-type(|t3)> st4
 
 insertCasts-CallT-(|e1, st1):
@@ -111,8 +111,8 @@ insertCasts-CallT-(|e1, st1):
     s2* := <map-pair-right(|SDyn())> s1*
   ; t2* := <map-pair-right(|DynT())> t1*
   ; t3 := <current-type> st1
-  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-  ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st2)
+  ; (s3*, st2) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
+  ; (t3*, st3) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st2)
   ; st4 := <current-type(|DynT())> st3
 
 insertCasts-CallT-(|e1, st1):
@@ -121,8 +121,8 @@ insertCasts-CallT-(|e1, st1):
 //    s2* := <map-pair-right(|SDyn())> s1*
 //  ; t2* := <map-pair-right(|DynT())> t1*
 //  ; t3 := <current-type> st1
-//  ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-//  ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st2)
+//  ; (s3*, st2) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
+//  ; (t3*, st3) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st2)
 //  ; st4 := <current-type(|EmptyT())> st3
 
 insertCasts-Strategy-(|e1, st1):
@@ -134,8 +134,8 @@ insertCasts-Strategy-(|e1, st1):
   ; (trm3, st3) := <insertCastApp(|t1, StringT())> (trm2, st2)
   ; s2* := <map-pair-right(|SDyn())> s1*
   ; t2* := <map-pair-right(|DynT())> t1*
-  ; (s3*, st4) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st3)
-  ; (t3*, st5) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st4)
+  ; (s3*, st4) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st3)
+  ; (t3*, st5) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st4)
   ; st6 := <current-type(|EmptyT())> st5
   ; <report-Err> (c1, CallDynamicNotSupported())
 
@@ -154,8 +154,8 @@ insertCasts-Strategy-(|e1, st1):
       s2* := <zip> (s1*, st*)
     ; t2* := <zip> (t1*, tt*)
     ; (c, st2) := <computeCoercion(|p, st1)> (t3, t1)
-    ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st2)
-    ; (t3*, st4) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st3)
+    ; (s3*, st3) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st2)
+    ; (t3*, st4) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st3)
     ; st5 := <current-type(|t2)> st4
     ; ('call, st6) := <insertCastBefore(|c, t3, t1)> (<otf(!ProceedT(s3*, t3*))> p, st5)
     ; st7 := <type-var-elim(|p, freshvars)> st6
@@ -164,8 +164,8 @@ insertCasts-Strategy-(|e1, st1):
     ; s2* := <map-pair-right(|SDyn())> s1*
     ; t2* := <map-pair-right(|DynT())> t1*
     ; t3 := <current-type> st1
-    ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
-    ; (t3*, st3) := <thread-map(insertCasts-Targ(|e1, t3))> (t2*, st2)
+    ; (s3*, st2) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
+    ; (t3*, st3) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (t2*, st2)
     ; 'call := ProceedT(s3*, t3*)
     ; st7 := <current-type(|EmptyT())> st3
     end
@@ -228,8 +228,8 @@ insertCasts-Strategy-(|e1, st1):
   PrimT(x, s1*, t1*) -> (PrimT(x, s2*, t2*), st4)
   with
     t3 := <current-type> st1
-  ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
-  ; (t2*, st3) := <thread-map(insertCasts-Targ(|e1, t3))> (<map-pair-right(|DynT())> t1*, st2)
+  ; (s2*, st2) := <thread-map-otf(insertCasts-Sarg-Type(|e1, SDyn()))> (s1*, st1)
+  ; (t2*, st3) := <thread-map-otf(insertCasts-Targ(|e1, t3))> (<map-pair-right(|DynT())> t1*, st2)
   ; st4 := <current-type(|EmptyT())> st3
 
 insertCasts-Strategy-(|e1, st1):
@@ -458,8 +458,8 @@ insertCasts-Sarg-CallNoArgs-(|st1):
             a := AmbiguousStrategyResolution(<length> st1*, <length> tt1*)
           ; v' := <otf(SVar(add-annotation(|a)))> v
         end
-      ; (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
-      ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
+      ; (sc*, st2) := <thread-map-otf(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
+      ; (tc*, st3) := <thread-map-otf(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
       ; (c1, st4) := <computeCoercion(|v, st3)> (t2, t5)
       ; (c2, st5) := <computeCoercion(|v, st4)> (t6, t3)
       ; result := <rm-redundant-proxy(|FunTType(st2*, tt2*, <itv(|st5)> t2, t6))> ProxyT(sc*, tc*, c1, c2, v')
@@ -481,8 +481,8 @@ insertCasts-Sarg-CallNoArgs-(|st1):
             a := AmbiguousStrategyResolution(<length> st1*, <length> tt1*)
           ; v' := <otf(SVar(add-annotation(|a)))> v
         end
-      ; (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
-      ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
+      ; (sc*, st2) := <thread-map-otf(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
+      ; (tc*, st3) := <thread-map-otf(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
       ; result := <rm-redundant-proxy(|t4)> ProxyT(sc*, tc*, Id(), Id(), v')
     end
 
@@ -501,8 +501,8 @@ insertCasts-Sarg-CallNoArgs-(|st1):
         ; result := CallNoArgs(v)
         ; st3 := st1
         else
-          (sc*, st2) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
-        ; (tc*, st3) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
+          (sc*, st2) := <thread-map-otf(computeSCoercion(|v))> (<zip> (st1*, st2*), st1)
+        ; (tc*, st3) := <thread-map-otf(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st2)
         ; result := <rm-redundant-proxy(|t4)> ProxyT(sc*, tc*, Id(), Id(), v)
       end
     end
@@ -524,8 +524,8 @@ insertCasts-Sarg-CallNoArgs-(|st1):
           ; result := CallNoArgs(v)
           else
             (Id() := c + RuntimeCheck(_) := c)
-          ; (sc*, st3) := <thread-map(computeSCoercion(|v))> (<zip> (st1*, st2*), st2)
-          ; (tc*, st4) := <thread-map(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st3)
+          ; (sc*, st3) := <thread-map-otf(computeSCoercion(|v))> (<zip> (st1*, st2*), st2)
+          ; (tc*, st4) := <thread-map-otf(\(tp, st) -> <computeCoercion(|v, st)> tp\)> (<zip> (tt1*, tt2*), st3)
           ; result := <rm-redundant-proxy(|t4)> ProxyT(sc*, tc*, Id(), c, v)
         end
     end
@@ -630,7 +630,7 @@ insertCasts-Strategy(|e1, st1):
 insertCasts-Strategy-(|e1, st1):
   Prim(x, t1*) -> (Prim(x, t2*), st3)
   with
-    (t2*, st2) := <thread-map(insertCasts-Targ(|e1, <current-type> st1))> (<map-pair-right(|DynT())> t1*, st1)
+    (t2*, st2) := <thread-map-otf(insertCasts-Targ(|e1, <current-type> st1))> (<map-pair-right(|DynT())> t1*, st1)
   ; st3 := <current-type(|EmptyT())> st2
 
 
@@ -674,7 +674,7 @@ insertCasts-Strategy(|e1, st1):
           else t2* := <map(!FunType(<id>, <id>))> t1*
         end
       ; (c, st3) := <computeCoercion(|s1, st2)> (t1, t2)
-      ; (s2*, st4) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, t2*), st3)
+      ; (s2*, st4) := <thread-map-otf(insertCasts-Sarg(|e1))> (<zip> (s1*, t2*), st3)
       // We cannot assume correct output as congruences can be extended arbitrarily by users
       ; st5 := <current-type(|DynT())> st4
       ; if s3* := <map(test-n-remove-const-cong)> s2*
@@ -686,10 +686,10 @@ insertCasts-Strategy(|e1, st1):
     else
         if [] := t*
           then <report-Err> (x, UnresolvedConstructor(<length> s1*, t1))
-             ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, EmptyT()))> (s1*, st1)
+             ; (s2*, st2) := <thread-map-otf(insertCasts-Sarg-Type(|e1, EmptyT()))> (s1*, st1)
              ; st6 := <current-type(|EmptyT())> st1
           else <report-Warn> (x, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
-             ; (s2*, st2) := <thread-map(insertCasts-Sarg-Type(|e1, DynT()))> (s1*, st1)
+             ; (s2*, st2) := <thread-map-otf(insertCasts-Sarg-Type(|e1, DynT()))> (s1*, st1)
              ; st6 := <current-type(|DynT())> st1
         end
       ; s2 := s1
@@ -706,7 +706,7 @@ insertCasts-Strategy-(|e1, st1):
   ; tvs := <map(<local-newname> "tuplecongtv")> t1*
   ; [funt1 | funt1*] := <zip(\(t, tv) -> FunTType(t, SortVar(tv))\)> (t1*, tvs)
   ; (s2, st2) := <insertCasts-Sarg(|e1, st1)> (s1, funt1)
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
+  ; (s2*, st3) := <thread-map-otf(insertCasts-Sarg(|e1))> (<zip> (s1*, funt1*), st2)
   ; st4 := <current-type(|TupleT(<map(!SortVar(<id>))> tvs));type-var-elim(id|tvs)> st3
   ; if s3* := <map(test-n-remove-const-cong)> s2*
       then
@@ -723,7 +723,7 @@ insertCasts-Strategy-(|e1, st1):
   // Give a warning when it's guaranteed to fail based on type.
   ; (_, st2) := <computeCoercion(|s1, st1)> (t1, ListT())
   ; tv := <local-newname> "listcongtv"
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
+  ; (s2*, st3) := <thread-map-otf(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv))))> (s1*, st1)
   ; st4 := <current-type(|ListT(SortVar(tv)));type-var-elim(id|tv)> st3
   ; if s3* := <map(test-n-remove-const-cong)> s2*
       then
@@ -747,7 +747,7 @@ insertCasts-Strategy-(|e1, st1):
       end
     end
   ; tv2 := <local-newname> "listcongtv"
-  ; (s2*, st3) := <thread-map(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv2))))> (s1*, st2)
+  ; (s2*, st3) := <thread-map-otf(insertCasts-Sarg-Type(|e1, FunTType(t2, SortVar(tv2))))> (s1*, st2)
   ; (s3, st4) := <insertCasts-Sarg(|e1, <current-type-of(|st2)> st3)> (s2, FunTType(t3, ListT(SortVar(tv2))))
   ; st6 := <current-type(|ListT(SortVar(tv2)));type-var-elim(id|tv2)> st4
   ; if s3* := <map(test-n-remove-const-cong)> s2*
@@ -801,7 +801,7 @@ insertCasts-Rule-(s|e1, st1):
   Rule(trm1, trm2, cs1) -> (Rule(trm3, trm4, cs3), st4)
   with
     (trm3, (st2, s*)) := <insertCasts-MatchTerm(|e1, st1)> trm1
-  ; (cs2, st3)  := <thread-map(s(|e1))> (cs1, st2)
+  ; (cs2, st3)  := <thread-map-otf(s(|e1))> (cs1, st2)
   ; cs3 := <RuleDef-after-match> (s*, cs2)
   ; (trm4, st4) := <insertCasts-BuildTerm(|e1, st3)> trm2
 
@@ -843,20 +843,20 @@ insertCasts-Strategy-(|e1, st1):
       then
         s2* := <zip> (s1*, st*)
       ; (c, st2) := <computeCoercion(|p, st1)> (t3, t1)
-      ; (s3*, st3) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st2)
+      ; (s3*, st3) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st2)
       ; st4 := <current-type(|t2)> st3
       ; ('call, st5) := <insertCastBefore(|c, t3, t1)> (<otf(!Proceed(s3*))> p, st4)
       else
         <report-Err> (p, ProceedWrongNumberOfArguments(<length> st*, "0"))
       ; s2* := <map-pair-right(|SDyn())> s1*
-      ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+      ; (s3*, st2) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
       ; st5 := <current-type(|EmptyT())> st2
       ; 'call := Proceed(s3*)
       end
     else
         <report-Err> (p, ProceedInNonExtendStrategy())
       ; s2* := <map-pair-right(|SDyn())> s1*
-      ; (s3*, st2) := <thread-map(insertCasts-Sarg(|e1))> (s2*, st1)
+      ; (s3*, st2) := <thread-map-otf(insertCasts-Sarg(|e1))> (s2*, st1)
       ; st5 := <current-type(|EmptyT())> st2
       ; 'call := Proceed(s3*)
     end

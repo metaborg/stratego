@@ -61,6 +61,13 @@ otf22-sugar(desugar, s, resugar): t1st -> t4st
   ; t3st := <s> t2st
   ; t4st := <(otf(resugar), id)> t3st
 
+thread-map-otf(s): ([], s) -> <id>
+thread-map-otf(s) :
+  ([x | xs], t) -> (l, t'')
+  where <s> (x, t) => (y, t')
+  ; <thread-map-otf(s)> (xs, t') => (ys, t'')
+  ; l := <otf(![y | ys])> [x | xs]
+
 strategies
 
 foldr1-thread(s): ([t], st) -> (t, st)
@@ -200,7 +207,7 @@ computeCoercion-(|subj, st1):
     <eq> (<length> c1*, <length> c2*)
   ; zipped := <zip> (c1*, c2*)
   ; not(<map(eq)> zipped)
-  ; (coercions, st2) := <thread-map(\(pair, st) -> <computeCoercion-(|subj, st)> pair\)> (zipped, st1)
+  ; (coercions, st2) := <thread-map-otf(\(pair, st) -> <computeCoercion-(|subj, st)> pair\)> (zipped, st1)
   ; to2 := <otf(!Sort(x, <map(?_{<id>})> coercions))> to
   ; switch !coercions
       case getfirst(?Fail()): coercion := Fail(){to2}
@@ -367,10 +374,10 @@ desugar-DefHasType:
 
 strategies
 
-thread-map-Type(s): ([], st) -> ([], [], st)
+thread-map-Type(s): (l@[], st) -> (l, l, st)
 thread-map-Type(s): (trm1*@[_ | _], st1) -> (trm2*, <reverse> t*, st2)
   where
-    (trm2*, (st2, t*)) := <thread-map(thread-map-Type-threader(s))> (trm1*, (st1, []))
+    (trm2*, (st2, t*)) := <thread-map-otf(thread-map-Type-threader(s))> (trm1*, (st1, []))
 
 thread-map-Type-threader(s): (trm1, (st1, t1*)) -> (trm2, (st2, t2*))
   where
@@ -384,7 +391,7 @@ map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, <current-type(|t)> st3)
       \((t1, t2), st) -> (DynT(), st)
         where <report-Warn> (trm, NoLUBBetween(t1, t2))\
     in
-    (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
+    (b*, st2) := <thread-map-otf((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
   ; (trm2*, t*) := <unzip((id, current-type))> b*
   ; (t, st3) := <foldr1-thread(lub <+ lub-fail)> (t*, st2)
     end
@@ -392,7 +399,7 @@ map-LUB(s|trm): (trm1*@[_ | _], st1) -> (trm2*, <current-type(|t)> st3)
 map-st-LUB(s): ([], st) -> ([], [], st)
 map-st-LUB(s): (trm1*@[_ | _], st1) -> (trm2*, t*, st2)
   where
-    (b*, st2) := <thread-map((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
+    (b*, st2) := <thread-map-otf((id, current-type-of(|st1)); s; !(<id>, <Snd>))> (trm1*, st1)
   ; (trm2*, t*) := <unzip((id, current-type))> b*
 
 map-pair-left(|l) = map(split(!l, id))
