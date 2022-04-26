@@ -876,6 +876,14 @@ insertCasts-Strategy-(|e1, st1):
   ; (s4, st3) := <insertCasts-Strategy(|e1, <current-type-of(| st1)> st2)> s2
 
 insertCasts-Strategy-(|e1, st1):
+  s0@LTrySome(s1, s2) -> (LTrySome(s3, s4), st5)
+  with
+    (s3, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <st-lub-type(|st1, s0)> st2
+  ; (s4, st4) := <insertCasts-Strategy(|e1, st3)> s2
+  ; st5 := <st-lub-type(|st3, s0)> st4
+
+insertCasts-Strategy-(|e1, st1):
   s0@SwitchChoiceNoOtherwise(s1, sc1*) -> (SwitchChoiceNoOtherwise(s2, sc2*), st3)
   with
     (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
