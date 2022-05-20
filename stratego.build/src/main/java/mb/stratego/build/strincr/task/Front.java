@@ -129,7 +129,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                         (mb.stratego.build.strincr.ModuleIdentifier) input.moduleIdentifier).path),
                     ast.lastModified));
             }
-        } catch(ExecException e) {
+        } catch(ExecException | RuntimeException | InterruptedException e) {
             throw e;
         } catch(Exception e) {
             final IStrategoString module = tf.makeString(input.moduleIdentifier.moduleString());

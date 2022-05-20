@@ -304,8 +304,8 @@ public class ModuleImportService implements IModuleImportService {
                     try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
                         final long lastModified = resource.getLastModifiedTime().getEpochSecond();
                         return new LastModified<>(strategoLanguage
-                            .parse(inputStream, StandardCharsets.UTF_8,
-                                resourcePathConverter.toString(identifier.path)), lastModified);
+                            .parse(context, inputStream,
+                                StandardCharsets.UTF_8, resourcePathConverter.toString(identifier.path)), lastModified);
                     }
                 }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {

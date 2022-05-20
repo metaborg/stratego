@@ -7,6 +7,7 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
+import mb.pie.api.ExecContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,7 +26,7 @@ public interface StrategoLanguage {
      * @return an ATerm representation of the AST of the program
      * @throws Exception On failing to load the Stratego language, getting interrupted, IO problems, parsing problems etc.
      */
-    IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path) throws Exception;
+    IStrategoTerm parse(ExecContext context, InputStream inputStream, Charset charset, @Nullable String path) throws Exception;
 
     /**
      * Parses an inputstream of Stratego code in textual ATerm format or BAF representing an RTree AST
