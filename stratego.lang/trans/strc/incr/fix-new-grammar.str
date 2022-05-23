@@ -8,6 +8,7 @@ imports
 
 strategies
 
+  // Add padding for string quotation that used to come out of a parser hack
   fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation)))
 
   origin-column-from-list = origin-column <+ Hd; origin-column

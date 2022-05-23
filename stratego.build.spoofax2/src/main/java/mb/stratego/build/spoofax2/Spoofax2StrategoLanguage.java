@@ -122,6 +122,9 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
 
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
         ast = new DisambiguateAsAnno(strContext).visit(ast);
+        if(strategoDialect != null) {
+            ast = metaExplode(ast, null);
+        }
 
         return ast;
     }
@@ -192,6 +195,10 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         return callStrategy(ast, projectPath, "stratego2-dyn-rule-overlap-check");
     }
 
+    @Override public IStrategoTerm metaExplode(IStrategoTerm ast, String projectPath) throws ExecException {
+        return callStrategy(ast, projectPath, "MetaExplode");
+    }
+
     private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName)
         throws ExecException {
         return callStrategy(input, projectPath, strategyName, null);
@@ -210,7 +217,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
             throw new ExecException("Cannot load stratego language. ");
         }
 
-        final FileObject fileObject = resourceService.resolve(projectPath);
+        final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
         List<MetaborgException> exceptions = Lists.newArrayList();

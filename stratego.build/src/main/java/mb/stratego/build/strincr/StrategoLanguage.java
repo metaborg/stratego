@@ -141,4 +141,15 @@ public interface StrategoLanguage {
      * @throws ExecException On failing to load the Stratego language, internal error inside the code
      */
     IStrategoTerm overlapCheck(IStrategoTerm ast, String projectPath) throws ExecException;
+
+    /**
+     * Call to the concrete- to abstract-syntax translation of Stratego, transforming an AST with
+     * concrete syntax AST nodes into normal Stratego abstract syntax.
+     *
+     * @param ast         the AST with concrete syntax
+     * @param projectPath The path of the project the module resides in (to be removed at some point)
+     * @return The AST with abstract syntax
+     * @throws ExecException On failing to load the Stratego language, internal error inside the code
+     */
+    IStrategoTerm metaExplode(IStrategoTerm ast, String projectPath) throws ExecException;
 }

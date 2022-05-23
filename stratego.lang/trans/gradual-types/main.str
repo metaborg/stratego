@@ -100,7 +100,7 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   ; e := <new-env> (strats, constrs, srts)
   ; st := <new-st>
   ; let
-      process-defs = map(fix-old-grammar;fix-new-grammar;insertCasts-Def(|e, st); Fst)
+      process-defs = map(fix-old-grammar;fix-new-grammar;MetaExplode;insertCasts-Def(|e, st); Fst)
       process-constrs = map(sort-check-Opdecl(|e))
       process-overlays = map(check-Overlay(|e, st))
       process-sections = map(origin-track-forced(

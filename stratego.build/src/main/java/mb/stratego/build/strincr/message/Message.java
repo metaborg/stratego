@@ -164,6 +164,9 @@ public abstract class Message implements WithLastModified, Serializable {
     }
 
     public String locationString() {
+        if(filename == null) {
+            return "[missing origin info]";
+        }
         return filename + ":" + sourceRegion.startRow + ":" + sourceRegion.startColumn
             + " - " + sourceRegion.endRow + ":" + (sourceRegion.endColumn + 1);
     }
