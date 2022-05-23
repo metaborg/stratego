@@ -20,7 +20,7 @@ context-free syntax
 
   Anno.Overlay = [overlay]
 
-lexical sorts VersionNumber VersionQualifier MavenVersion
+lexical sorts VersionNumber VersionQualifier MavenVersion PackageName JavaId
 lexical syntax
 
   MavenVersion = VersionNumber "." VersionNumber "." VersionNumber VersionQualifier
@@ -33,7 +33,7 @@ lexical restrictions
 
   VersionQualifier -/- [A-Za-z0-9\-\.]
 
-context-free sorts Type ConstrType
+context-free sorts ConstrType
 context-free syntax
 
   Def.DefHasType = [[SId] :: [SFunType]]
