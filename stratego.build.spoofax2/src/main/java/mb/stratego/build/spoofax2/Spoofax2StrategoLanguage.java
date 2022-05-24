@@ -123,6 +123,9 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
 
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
         ast = new DisambiguateAsAnno(strContext).visit(ast);
+        if(strategoDialect != null) {
+            ast = metaExplode(ast, null);
+        }
 
         return ast;
     }
@@ -174,7 +177,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     }
 
     @Override public Collection<? extends IStrategoAppl> toCongruenceAsts(
-        Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException {
+        Collection<IStrategoTerm> asts, String projectPath) throws ExecException {
         final IStrategoList result = TermUtils.toList(callStrategy(termFactory.makeList(asts), projectPath, "stratego2-mk-cong-defs"));
         final ArrayList<IStrategoAppl> congruences = new ArrayList<>(result.size());
         for(IStrategoTerm t : result) {
@@ -191,6 +194,10 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     @Override public IStrategoTerm overlapCheck(IStrategoTerm ast, String projectPath)
         throws ExecException {
         return callStrategy(ast, projectPath, "stratego2-dyn-rule-overlap-check");
+    }
+
+    @Override public IStrategoTerm metaExplode(IStrategoTerm ast, String projectPath) throws ExecException {
+        return callStrategy(ast, projectPath, "MetaExplode");
     }
 
     private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName)
@@ -211,7 +218,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
             throw new ExecException("Cannot load stratego language. ");
         }
 
-        final FileObject fileObject = resourceService.resolve(projectPath);
+        final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
         List<MetaborgException> exceptions = Lists.newArrayList();

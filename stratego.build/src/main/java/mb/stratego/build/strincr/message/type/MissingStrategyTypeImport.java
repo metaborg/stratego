@@ -6,7 +6,11 @@ import mb.stratego.build.strincr.message.MessageSeverity;
 
 public class MissingStrategyTypeImport extends TypeMessage<IStrategoTerm> {
     public MissingStrategyTypeImport(IStrategoTerm subterm, long lastModified) {
-        super(subterm, MessageSeverity.ERROR, lastModified);
+        this(subterm, MessageSeverity.ERROR, lastModified);
+    }
+
+    public MissingStrategyTypeImport(IStrategoTerm subterm, MessageSeverity severity, long lastModified) {
+        super(subterm, severity, lastModified);
     }
 
     @Override public String getMessage() {

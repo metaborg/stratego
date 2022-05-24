@@ -1108,10 +1108,16 @@ strategies
     BlobT() -> |[ BlobT.INSTANCE ]|
 
   translate-Type:
-    Sort(str, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|
+    Sort(str{a*}, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|
+  where
+    not(<getfirst(?SortVar(_))> a*)
   with
     e_ty* := <map(translate-Type)> args
   ; e_str := Lit(String([Chars(str)]))
+
+  translate-Type:
+    Sort(str{a*}, args) -> <translate-Type> v
+  where <getfirst(?v@SortVar(_))> a*
 
   translate-Type:
     SortVar(str) -> |[ new SortVar(e_str) ]|

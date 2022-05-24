@@ -130,7 +130,7 @@ public class GenerateStratego {
             tf.makeAppl("Strategies", tf.makeList(strategyContributions))));
     }
 
-    public IStrategoTerm packStrategy(Collection<? extends IStrategoAppl> overlayContributions,
+    public IStrategoTerm packStrategy(Collection<IStrategoTerm> overlayContributions,
         Collection<? extends IStrategoAppl> strategyContributions) {
         final IStrategoAppl term;
         if(overlayContributions.isEmpty()) {

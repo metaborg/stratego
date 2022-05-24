@@ -203,6 +203,11 @@ signature
     Tables      : TableKey
     NewTable    : TableKey
 
+overlays
+
+  hello :: string
+  hello = $<1>
+
 
 rules
   banana :: ? -> List(?)

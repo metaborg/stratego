@@ -2,12 +2,14 @@ module test90
 imports strategolib
 
 signature
+  sorts
+    Term
   constructors
-    FieldDec : a * a * a -> a
-    ConstantDec : a * a * a -> a
-    ClassDec : a * a -> a
-    InterfaceDec : a * a -> a
-    ClassBody : a -> a
+    FieldDec : Term * Term * Term -> Term
+    ConstantDec : Term * Term * Term -> Term
+    ClassDec : Term * Term -> Term
+    InterfaceDec : Term * Term -> Term
+    ClassBody : Term -> Term
 
 strategies
 

@@ -38,8 +38,8 @@ context-free sorts TypedSVar TypedTVar
 context-free syntax
 
   StrategyDef.ExtTypedDef =
-    [external [MaybeEmptyId] :: [FunTType]]
+    [external [MaybeEmptySId] :: [FunTType]]
 
   StrategyDef.ExtTypedDefInl =
-    [external [MaybeEmptyId]([{ID ", "}*] | [{ID ", "}*]) :: [FunTType] =
+    [external [MaybeEmptySId]([{ID ", "}*] | [{ID ", "}*]) :: [FunTType] =
   [Strategy]]

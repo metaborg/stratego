@@ -15,8 +15,10 @@ import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
+import mb.stratego.build.strincr.message.type.GadtSort;
 import mb.stratego.build.strincr.message.type.MatchNotSpecificEnoughForTP;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.type.MissingTypeDefinition;
 import mb.stratego.build.strincr.message.type.NoInjectionBetween;
 import mb.stratego.build.strincr.message.type.STypeMismatch;
 import mb.stratego.build.strincr.message.type.StrategyVariableTypedWithTermType;
@@ -61,7 +63,7 @@ public abstract class Message implements WithLastModified, Serializable {
             case "StrategyVariableTypedWithTermType":
                 return new StrategyVariableTypedWithTermType(locationTerm, severity, lastModified);
             case "DuplicateTypeDefinition":
-                return new DuplicateTypeDefinition(locationTerm, lastModified);
+                return new DuplicateTypeDefinition(locationTerm, severity, lastModified);
             case "MissingDefinitionForTypeDefinition":
                 return new MissingDefinitionForTypeDefinition(locationTerm, severity, lastModified);
             case "ProceedWrongNumberOfArguments":
@@ -94,6 +96,8 @@ public abstract class Message implements WithLastModified, Serializable {
             case "UnresolvedSort": // Int -> ErrorDesc
                 return new UnresolvedSort(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
                     severity, lastModified);
+            case "UnresolvedSortVar":
+                return new UnresolvedSortVar(locationTerm, severity, lastModified);
             case "UnresolvedStrategy":
                 return new UnresolvedStrategy(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
                     TermUtils.toJavaIntAt(messageTerm, 1), severity, lastModified);
@@ -104,12 +108,18 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new AsInBuildTerm(locationTerm, severity, lastModified);
             case "WldInBuildTerm":
                 return new WldInBuildTerm(locationTerm, severity, lastModified);
+            case "AsInOverlay":
+                return new AsInOverlay(locationTerm, severity, lastModified);
+            case "WldInOverlay":
+                return new WldInOverlay(locationTerm, severity, lastModified);
             case "BuildDefaultInBuildTerm":
                 return new BuildDefaultInBuildTerm(locationTerm, severity, lastModified);
             case "BuildDefaultInMatchTerm":
                 return new BuildDefaultInMatchTerm(locationTerm, severity, lastModified);
             case "StringQuotationInMatchTerm":
                 return new StringQuotationInMatchTerm(locationTerm, severity, lastModified);
+            case "StringQuotationInOverlay":
+                return new StringQuotationInOverlay(locationTerm, severity, lastModified);
             case "NonStringOrListInExplodeConsPosition": // Type -> ErrorDesc
                 return new NonStringOrListInExplodeConsPosition(locationTerm,
                     messageTerm.getSubterm(0), severity, lastModified);
@@ -133,9 +143,17 @@ public abstract class Message implements WithLastModified, Serializable {
                     TermUtils.toJavaStringAt(messageTerm, 3),
                     TermUtils.toJavaStringAt(messageTerm, 4), severity, lastModified);
             case "ConstantCongruence":
-                return new ConstantCongruence(locationTerm, lastModified);
+                return new ConstantCongruence(locationTerm, severity, lastModified);
             case "WithClauseInDynRule":
-                return new WithClauseInDynRule(locationTerm, lastModified);
+                return new WithClauseInDynRule(locationTerm, severity, lastModified);
+            case "StrategyCongruenceOverlap":
+                return new StrategyCongruenceOverlap(locationTerm, severity, lastModified);
+            case "GadtSort":
+                return new GadtSort(locationTerm, severity, lastModified);
+            case "MissingTypeDefinition":
+                return new MissingTypeDefinition(locationTerm, severity, lastModified);
+            case "MissingParsingInfoOnStringQuotation":
+                return new MissingParsingInfoOnStringQuotation(locationTerm, severity, lastModified);
             default:
                 return new RawTermMessage(locationTerm, messageTerm, severity, lastModified);
         }
@@ -146,6 +164,9 @@ public abstract class Message implements WithLastModified, Serializable {
     }
 
     public String locationString() {
+        if(filename == null) {
+            return "[missing origin info]";
+        }
         return filename + ":" + sourceRegion.startRow + ":" + sourceRegion.startColumn
             + " - " + sourceRegion.endRow + ":" + (sourceRegion.endColumn + 1);
     }

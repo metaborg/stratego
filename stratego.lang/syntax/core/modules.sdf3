@@ -3,8 +3,8 @@ module core/modules
 imports
   core/identifiers
   core/layout
-  core/strategies
   core/signatures
+  core/strategies
 
 context-free sorts Module
 context-free syntax

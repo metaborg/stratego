@@ -221,4 +221,16 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         }
         return Integer.compare(this.noTermArgs, o.noTermArgs);
     }
+
+    /**
+     * Interpret strategy signature as congruence
+     *
+     * @return constructor signature corresponding with this strategy being it's congruence. Returns null if strategy has term arguments.
+     */
+    public @Nullable ConstructorSignature toConstructorSignature() {
+        if(noTermArgs != 0) {
+            return null;
+        }
+        return new ConstructorSignature(name, noStrategyArgs);
+    }
 }

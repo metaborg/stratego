@@ -3,10 +3,12 @@ imports
    strategolib
 
 signature
+sorts
+Term
 constructors
-f: a
-f : a -> a
-aap: a
+f: Term
+f : Term -> Term
+aap: Term
 
 strategies
    main = string-test

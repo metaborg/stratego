@@ -43,14 +43,13 @@ public class StrcTests {
     public static final String packageName = "mb.stratego2integrationtest";
     public static final ResourceService resourceService =
         new DefaultResourceService(new FSResourceRegistry());
-    // TODO: turn shell scripts from test-strc into tests here
 
     @TestFactory Stream<DynamicTest> test1() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
-        // tests 92 and 105 test something with externals, while not compiling against a library
+        // tests 94 and 105 test something with externals, while not compiling against a library
         //   that contains that external.
         HashSet<String> disabledTestFiles =
             new HashSet<>(Arrays.asList("test113.str2", "test94.str2", "test105.str2"));

@@ -12,7 +12,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -34,7 +33,9 @@ public class ModuleIndex implements Serializable, WithLastModified {
     public final LinkedHashSet<StrategySignature> internalStrategies;
     public final LinkedHashSet<StrategyFrontData> externalStrategies;
     public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
-    public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final ArrayList<Message> messages;
     public final long lastModified;
 
@@ -46,7 +47,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         LinkedHashSet<StrategySignature> internalStrategies,
         LinkedHashSet<StrategyFrontData> externalStrategies,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts, LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         ArrayList<Message> messages, long lastModified) {
         this.str2LibPackageNames = str2LibPackageNames;
         this.imports = imports;
@@ -60,6 +62,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
+        this.overlayUsedConstrs = overlayUsedConstrs;
         this.messages = messages;
         this.lastModified = lastModified;
     }

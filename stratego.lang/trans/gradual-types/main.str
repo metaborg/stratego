@@ -20,8 +20,10 @@ signatures/Stratego-Sugar
 gradual-types/utils
 gradual-types/environment
 gradual-types/signatures
+gradual-types/strategies
 gradual-types/defs
 gradual-types/modules
+gradual-types/overlays
 
 strc/incr/fix-new-grammar
 
@@ -98,16 +100,17 @@ insertCasts(|strats, constrs, srts, injection-closure, aliases, lub-map): ast ->
   ; e := <new-env> (strats, constrs, srts)
   ; st := <new-st>
   ; let
-      process-defs = map(fix-old-grammar;fix-new-grammar;insertCasts-Def(|e, st); Fst)
+      process-defs = map(fix-old-grammar;fix-new-grammar;MetaExplode;insertCasts-Def(|e, st); Fst)
       process-constrs = map(sort-check-Opdecl(|e))
+      process-overlays = map(check-Overlay(|e, st))
       process-sections = map(origin-track-forced(
            Imports(id)
-        <+ Signature(map(Sorts(id) <+ Constructors(process-constrs)))
-        <+ Overlays(id)
-        <+ Strategies(process-defs)
-        <+ Rules(process-defs)
+        <+ ?Signature(_) < Signature(map(Sorts(id) <+ Constructors(process-constrs)))
+         + ?Overlays(_) < Overlays(process-overlays)
+         + ?Strategies(_) < Strategies(process-defs)
+         + ?Rules(_); Rules(process-defs)
         ))
-      process = origin-track-forced(Module(id, process-sections) <+ Specification(process-sections))
+      process = origin-track-forced(?Module(_, _) < Module(id, process-sections) + Specification(process-sections))
     in
       ast' := <process> ast
     end
@@ -194,7 +197,7 @@ can-coerce(|injection-closure, aliases) = ?((DynT(), StringT()), _)
 // We assume co-variant type parameters
 can-coerce(|injection-closure, aliases): ((a@Sort(x, t1*), b@Sort(x, t2*)), st1) -> ((a', b'), st2)
   where
-    (pairs, st2) := <thread-map(CanCoerce)> (<zip> (t1*, t2*), st1)
+    (pairs, st2) := <thread-map-otf(CanCoerce)> (<zip> (t1*, t2*), st1)
   ; (t3*, t4*) := <unzip> pairs
   ; (a', b') := (<otf(!Sort(x, t3*))> a, <otf(!Sort(x, t4*))> b)
 
@@ -243,7 +246,7 @@ can-coerce(|injection-closure, aliases):
 can-coerce(|injection-closure, aliases):
   ((a@Sort(x, t1*), DynT()), st1) -> ((a', DynT()), st2)
   where
-    (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> t1*, st1)
+    (pairs, st2) := <thread-map-otf(CanCoerce)> (<map-pair-right(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
   ; a' := <otf(!Sort(x, t3*))> a
 
@@ -252,7 +255,7 @@ can-coerce(|injection-closure, aliases):
   ((DynT(), b@Sort(x, t1*)), st1) -> ((DynT(), b'), st2)
   where
     not(Sort(TP(), []) := b)
-  ; (pairs, st2) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> t1*, st1)
+  ; (pairs, st2) := <thread-map-otf(CanCoerce)> (<map-pair-left(|DynT())> t1*, st1)
   ; (t3*, t4*) := <unzip> pairs
   ; b' := <otf(!Sort(x, t4*))> b
 
@@ -270,9 +273,9 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st2*, tt2*, t3, t5), SDyn()), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((t1, DynT()), st1)
-  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
+  ; (stpairs, st3) := <thread-map-otf(can-coerce-stype(|injection-closure))> (<map-pair-right(|SDyn())> st1*, st2)
   ; (st2*, st3*) := <unzip> stpairs
-  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
+  ; (ttpairs, st4) := <thread-map-otf(CanCoerce)> (<map-pair-right(|DynT())> tt1*, st3)
   ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((t2, DynT()), st4)
 
@@ -281,9 +284,9 @@ can-coerce-stype(|injection-closure):
     ((SDyn(), FunTType(st3*, tt3*, t4, t6)), st5)
   where
     ((t3, t4), st2) := <CanCoerce> ((DynT(), t1), st1)
-  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
+  ; (stpairs, st3) := <thread-map-otf(can-coerce-stype(|injection-closure))> (<map-pair-left(|SDyn())> st1*, st2)
   ; (st2*, st3*) := <unzip> stpairs
-  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
+  ; (ttpairs, st4) := <thread-map-otf(CanCoerce)> (<map-pair-left(|DynT())> tt1*, st3)
   ; (tt2*, tt3*) := <unzip> ttpairs
   ; ((t5, t6), st5) := <CanCoerce> ((DynT(), t2), st4)
 
@@ -292,9 +295,9 @@ can-coerce-stype(|injection-closure):
     ((FunTType(st3*, tt3*, t5, t7), FunTType(st4*, tt4*, t6, t8)), st5)
   where
     ((t5, t6), st2) := <CanCoerce> ((t1, t3), st1)
-  ; (stpairs, st3) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
+  ; (stpairs, st3) := <thread-map-otf(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st2)
   ; (st3*, st4*) := <unzip> stpairs
-  ; (ttpairs, st4) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st3)
+  ; (ttpairs, st4) := <thread-map-otf(CanCoerce)> (<zip> (tt1*, tt2*), st3)
   ; (tt3*, tt4*) := <unzip> ttpairs
   ; ((t7, t8), st5) := <CanCoerce> ((t2,t4), st4)
 
@@ -302,9 +305,9 @@ can-coerce-stype(|injection-closure):
   ((FunTType(st1*, tt1*, TP()), FunTType(st2*, tt2*, TP())), st1) ->
     ((FunTType(st3*, tt3*, TP()), FunTType(st4*, tt4*, TP())), st3)
   where
-    (stpairs, st2) := <thread-map(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st1)
+    (stpairs, st2) := <thread-map-otf(can-coerce-stype(|injection-closure))> (<zip> (st1*, st2*), st1)
   ; (st3*, st4*) := <unzip> stpairs
-  ; (ttpairs, st3) := <thread-map(CanCoerce)> (<zip> (tt1*, tt2*), st2)
+  ; (ttpairs, st3) := <thread-map-otf(CanCoerce)> (<zip> (tt1*, tt2*), st2)
   ; (tt3*, tt4*) := <unzip> ttpairs
 // TODO: more TP related stuff?
 
@@ -345,7 +348,7 @@ lub(|tve, lub-map): (t, SortVar(tv)) -> (t2, <immap-put(|tv, t2)> tve) where t2 
 // pointwise lift LUB over type parameters
 lub(|tve1, lub-map): (Sort(x, t1*), Sort(x, t2*)) -> (<otf(!Sort(x, t3*))> x, tve2)
   where
-    (t3*, tve2) := <thread-map(\(p, tve) -> <itv-tve(|tve);lub(|tve, lub-map)> p\)> (<zip> (t1*, t2*), tve1)
+    (t3*, tve2) := <thread-map-otf(\(p, tve) -> <itv-tve(|tve);lub(|tve, lub-map)> p\)> (<zip> (t1*, t2*), tve1)
 lub(|tve, lub-map): pair -> (<immap-get(|pair) <+ immap-get(|<Swap> pair)> lub-map, tve)
 
 st-lub-type(|st0, trm): st1 -> st3

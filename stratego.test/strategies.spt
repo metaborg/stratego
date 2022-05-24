@@ -8,10 +8,13 @@ module test
 signature
   sorts
     Bar
+    Baz
     List(*)
     Tuple(*, *)
   constructors
     Foo : Bar
+    : Bar -> Baz
+    Baz : Baz
 
 strategies
   [[...]]
@@ -152,4 +155,33 @@ override foobar = proceed
    0 warnings
    has origin locations
 
+test untyped TryLSome [[
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
 
+test simple typed TryLSome [[
+simple(Bar -> Bar, Bar -> Bar) :: Bar -> Bar
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
+
+test generically typed TryLSome [[
+simple(a -> a, a -> a) :: a -> a
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
+
+test subtypes and TryLSome [[
+simple(Bar -> Baz, Baz -> Bar) :: Bar -> Baz
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations

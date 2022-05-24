@@ -15,17 +15,17 @@ template options
 context-free sorts SDefP
 context-free syntax
   StrategyDef.SDefNoArgs =
-<<Id> =
+<<SId> =
   <Strategy>>
 
   StrategyDef.SDef =
-<<Id>(<{Typedid ", "}*>) =
+<<SId>(<{Typedid ", "}*>) =
   <Strategy>>
 
   // Strategy definition with pattern matched term parameters
   StrategyDef = SDefP
   SDefP.SDefP =
-<<Id>(<{Typedid ", "}*>|<{Term ","}+>) =
+<<SId>(<{Typedid ", "}*>|<{Term ","}+>) =
   <Strategy>>
   SDefP = SDefT {reject}
 
@@ -42,7 +42,7 @@ context-free syntax
   Strategy.BA = [<[Strategy]> [Term]]
   Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
 
-  Strategy.Rec        = <rec <Id>( <Strategy> )>
+  Strategy.Rec        = <rec <SId>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
   Strategy = With
@@ -69,7 +69,7 @@ context-free syntax // congruence operators
 
   Strategy.AnnoCong       = <<Strategy>{<Strategy>}>
 
-%% Syntactic sugar sugar
+// Syntactic sugar sugar
 
 context-free syntax
 
@@ -77,10 +77,11 @@ context-free syntax
   Strategy.LRule      = <\\<Rule>\\>
   Strategy.SRule      = <(<Rule>)>
   Strategy.Choice     = <<Strategy> + <Strategy>> {right}
-  Strategy.RChoice    = [[Strategy] +> [Strategy]] {right}
+  Strategy.RChoice    = [[Strategy] +> [Strategy]] {right, deprecated("Flip your arguments and use <+")}
   Strategy.Proceed    = <proceed(<{Strategy ", "}+>)>
   Strategy.CondChoice = <if <Strategy> then <Strategy> else <Strategy> end>
   Strategy.IfThen     = <if <Strategy> then <Strategy> end>
+  Strategy.LTrySome   = [[Strategy] <* [Strategy]] {left}
 
 context-free sorts SwitchCase
 context-free syntax
@@ -105,6 +106,7 @@ context-free priorities
 > Strategy.BA
 > Strategy.AM
 > Strategy.Seq
+> Strategy.LTrySome
 > {right:
    Strategy.Choice
    Strategy.LChoice
