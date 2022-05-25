@@ -11,6 +11,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import mb.pie.api.ExecContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.AggregateMetaborgException;
@@ -73,7 +74,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         this.strContext = strContext;
     }
 
-    @Override public IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path)
+    @Override public IStrategoTerm parse(ExecContext context, InputStream inputStream, Charset charset, @Nullable String path)
         throws Exception {
         final @Nullable FileObject inputFile;
         if(path != null) {
