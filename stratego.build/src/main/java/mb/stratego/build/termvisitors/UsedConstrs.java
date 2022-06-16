@@ -54,6 +54,11 @@ public class UsedConstrs extends TermVisitor {
                 IStrategoInt noArgs = new StrategoInt(arity);
                 usedConstructors.add(new ConstructorSignature(nameAST, noArgs));
                 break;
+            case "List":
+            case "ListTail":
+                usedConstructors.add(new ConstructorSignature("Cons", 2));
+                usedConstructors.add(new ConstructorSignature("Nil", 0));
+                break;
         }
     }
 

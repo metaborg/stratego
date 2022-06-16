@@ -124,35 +124,14 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
         ast = new DisambiguateAsAnno(strContext).visit(ast);
         if(strategoDialect != null) {
-            ast = metaExplode(ast, null);
+            ast = metaExplode(ast);
         }
 
         return ast;
     }
 
-    @Override public IStrategoTerm parseRtree(InputStream inputStream) throws Exception {
-        final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
-        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Module") && ast.getSubtermCount() == 2)) {
-            if(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
-                    && ast.getSubtermCount() == 1) {
-                throw new IOException(
-                    "Custom library detected with Specification/1 term in RTree file. This is "
-                        + "currently not supported. ");
-            }
-            throw new ExecException(
-                "Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
-        }
-        return ast;
-    }
-
-    @Override public IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception {
-        final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
-        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Str2Lib")
-            && ast.getSubtermCount() == 3)) {
-            throw new ExecException(
-                "Did not find Str2Lib/3 in Str2Lib file. Found: \n" + ast.toString(2));
-        }
-        return ast;
+    @Override public TermReader newTermReader() {
+        return new TermReader(termFactory);
     }
 
     @Override public IStrategoTerm insertCasts(String moduleName, GTEnvironment environment,
@@ -161,51 +140,16 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
             " in module " + moduleName);
     }
 
-    @Override public IStrategoTerm desugar(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-compile-top-level-def");
+    @Override public IStrategoTerm makeList(Collection<IStrategoTerm> terms) {
+        return termFactory.makeList(terms);
     }
 
-    @Override public IStrategoTerm toJava(IStrategoList buildInput, String projectPath)
-        throws ExecException {
-        return callStrategy(buildInput, projectPath, "stratego2-strj-sep-comp");
-    }
-
-    @Override public IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return TermUtils.toAppl(callStrategy(ast, projectPath, "stratego2-mk-cong-def"));
-    }
-
-    @Override public Collection<? extends IStrategoAppl> toCongruenceAsts(
-        Collection<IStrategoTerm> asts, String projectPath) throws ExecException {
-        final IStrategoList result = TermUtils.toList(callStrategy(termFactory.makeList(asts), projectPath, "stratego2-mk-cong-defs"));
-        final ArrayList<IStrategoAppl> congruences = new ArrayList<>(result.size());
-        for(IStrategoTerm t : result) {
-            congruences.add(TermUtils.toAppl(t));
-        }
-        return congruences;
-    }
-
-    @Override public IStrategoTerm auxSignatures(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-aux-signatures");
-    }
-
-    @Override public IStrategoTerm overlapCheck(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-dyn-rule-overlap-check");
-    }
-
-    @Override public IStrategoTerm metaExplode(IStrategoTerm ast, String projectPath) throws ExecException {
-        return callStrategy(ast, projectPath, "MetaExplode");
-    }
-
-    private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName)
+    @Override public IStrategoTerm callStrategy(IStrategoTerm input, @Nullable String projectPath, String strategyName)
         throws ExecException {
         return callStrategy(input, projectPath, strategyName, null);
     }
 
-    private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName,
+    private IStrategoTerm callStrategy(IStrategoTerm input, @Nullable String projectPath, String strategyName,
         @Nullable String extra) throws ExecException {
         final @Nullable ILanguageImpl strategoLangImpl;
         final @Nullable ILanguage strategoLang = languageService.getLanguage("StrategoLang");

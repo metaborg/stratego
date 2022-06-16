@@ -652,7 +652,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
             return getModuleAst(context, (FrontInput.Normal) input);
         } else if(input instanceof FrontInput.FileOpenInEditor) {
             final LastModified<IStrategoTerm> editorAst = ((FrontInput.FileOpenInEditor) input).ast;
-            return LastModified.fromParent(strategoLanguage.metaExplode(editorAst.wrapped, null), editorAst);
+            return LastModified.fromParent(strategoLanguage.metaExplode(editorAst.wrapped), editorAst);
         } else {
             throw new RuntimeException("Unknown subclass of FrontInput: " + input.getClass());
         }
