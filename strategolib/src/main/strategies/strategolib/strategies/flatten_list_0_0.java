@@ -1,9 +1,12 @@
 package strategolib.strategies;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -52,5 +55,30 @@ public class flatten_list_0_0 extends Strategy {
         final IStrategoTerm tmp = array.get(i);
         array.set(i, array.get(j));
         array.set(j, tmp);
+    }
+
+    public IStrategoTerm alternative(Context context, IStrategoTerm current) {
+        final ITermFactory factory = context.getFactory();
+        final IStrategoList.Builder newList = factory.arrayListBuilder();
+        final Deque<IStrategoList> stack = new ArrayDeque<IStrategoList>();
+
+        stack.push((IStrategoList) current);
+
+        while (!stack.isEmpty()) {
+            IStrategoList item = stack.pop();
+
+            while(!item.isEmpty()) {
+                final IStrategoTerm head = item.head();
+                if(head instanceof IStrategoList) {
+                    stack.push(item.tail());
+                    item = (IStrategoList) head;
+                } else {
+                    newList.add(item);
+                    item = item.tail();
+                }
+            }
+        }
+
+        return factory.makeList(newList);
     }
 }
