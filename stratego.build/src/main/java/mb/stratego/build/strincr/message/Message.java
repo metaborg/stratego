@@ -46,8 +46,6 @@ public abstract class Message implements WithLastModified, Serializable {
         this.sourceRegion = location == null ? null :
             sourceRegionFromTokens(location.getLeftToken(), location.getRightToken());
         this.filename = location == null ? null : location.getLeftToken().getFilename();
-        assert sourceRegion != null : "The given term " + locationTerm + " did not contain a location";
-        assert filename != null : "The given term " + locationTerm + " did not contain a location";
         this.severity = severity;
         this.lastModified = lastModified;
     }

@@ -214,7 +214,7 @@ public class InteropRegisterer extends JavaInteropRegisterer {
             real_to_string_0_0.instance,
             real_to_string_0_1.instance,
             remove_file_0_0.instance,
-            repeat_1_0.instance,
+            repeat_2_0.instance,
             rmdir_0_0.instance,
             set_random_seed_0_0.instance,
             sin_0_0.instance,
