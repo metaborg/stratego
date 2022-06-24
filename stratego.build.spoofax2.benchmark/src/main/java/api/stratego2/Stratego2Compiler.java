@@ -4,6 +4,7 @@ import api.Compiler;
 import api.Java;
 import benchmark.exception.SkipException;
 import com.google.common.collect.Lists;
+import com.google.inject.Singleton;
 import mb.log.stream.StreamLoggerFactory;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
@@ -25,9 +26,16 @@ import org.apache.commons.io.file.PathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.editor.IEditorRegistry;
+import org.metaborg.core.editor.NullEditorRegistry;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.project.ISimpleProjectService;
+import org.metaborg.core.project.SimpleProjectService;
+import org.metaborg.core.testing.ITestReporterService;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.StrategoExit;
@@ -156,7 +164,8 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
 
     @Override
     protected void setupBuild() throws MetaborgException {
-        spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
+        spoofax = new Spoofax(new SimpleSpoofaxModule(), new StrIncrModule(),
+            new GuiceTaskDefsModule());
         // compile
 
         FSPath serializingStorePath =
@@ -325,5 +334,17 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
 
     private void debugPrintf(String format, Object... args) {
         if (output) System.out.printf(format, args);
+    }
+}
+
+class SimpleSpoofaxModule extends SpoofaxModule {
+    @Override protected void bindProject() {
+        bind(SimpleProjectService.class).in(Singleton.class);
+        bind(IProjectService.class).to(SimpleProjectService.class);
+        bind(ISimpleProjectService.class).to(SimpleProjectService.class);
+    }
+
+    @Override protected void bindEditor() {
+        bind(IEditorRegistry.class).to(NullEditorRegistry.class).in(Singleton.class);
     }
 }
