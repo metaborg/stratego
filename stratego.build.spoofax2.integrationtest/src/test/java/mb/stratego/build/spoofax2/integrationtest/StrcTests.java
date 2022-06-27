@@ -105,7 +105,7 @@ public class StrcTests {
                     Arrays.asList(outputDirFile, strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed (" + baseName + ")");
                 Assertions.assertTrue(
-                    Java.execute(outputDir + ":" + strategoxtJarPath, packageName + ".Main"),
+                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".stratego2integrationtest"),
                     "Running java expected to succeed (" + baseName + ")");
             });
         });
