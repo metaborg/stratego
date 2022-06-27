@@ -1,12 +1,18 @@
 package mb.stratego.build.spoofax2.integrationtest.lang;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.StringJoiner;
@@ -15,6 +21,9 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
+
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.lang.StrategoExit;
 
 public class Java {
     public static boolean compile(Path dest, Iterable<? extends File> sourceFiles,
@@ -40,20 +49,26 @@ public class Java {
         }
     }
 
-    public static boolean execute(String classPath, String mainClass) throws IOException, InterruptedException {
+    public static boolean execute(Collection<Path> classPaths, String mainClassName)
+        throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
+        IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         final Path java = Paths.get(System.getProperty("java.home")).resolve("bin/java");
-        final ProcessBuilder processBuilder = new ProcessBuilder(java.toString(), "-cp", classPath, mainClass);
-        //        processBuilder.redirectErrorStream(true);
-        final Process process = processBuilder.start();
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            String line;
-            while((line = br.readLine()) != null) {
-                System.err.println(line);
-            }
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
+        final URL[] urls = new URL[classPaths.size()];
+        int i = 0;
+        for(Path classPath : classPaths) {
+            urls[i] = classPath.toUri().toURL();
+            i++;
         }
-        final int result = process.waitFor();
-        return result == 0;
+        final ClassLoader classLoader = new URLClassLoader(urls);
+        final Class<?> mainClass = classLoader.loadClass(mainClassName);
+        final Object mainClassObj = mainClass.newInstance();
+        final Method mainNoExit = mainClass.getMethod("mainNoExit", String[].class);
+        final Object result;
+        try {
+            result = mainNoExit.invoke(mainClassObj, new Object[] { new String[0] });
+        } catch(InvocationTargetException e) {
+            return ((StrategoExit) e.getCause()).getValue() == 0;
+        }
+        return result != null;
     }
 }
