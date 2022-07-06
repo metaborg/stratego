@@ -1,24 +1,26 @@
 module let
 
-language strategoGT
+language StrategoLang
 
 test undefined strategy cannot be found [[
-specification
+module test
 rules
   hello = [[this-is-undefined]]
 ]] 1 error at #1
+   has origin locations
 
 test let defined strategy can be found [[
-specification
+module test
 rules
   hello =
     let local-strategy-is-defined = id
     in local-strategy-is-defined
     end
 ]] 0 errors
+   has origin locations
 
 test let defined strategy can have a type [[
-specification
+module test
 rules
   hello =
     let
@@ -27,9 +29,12 @@ rules
     in local-typed-strategy-is-defined
     end
 ]] 0 errors
+   has origin locations
 
+// PIE incrementality issue: when module in this test is called test, the origins of the analysed
+//     AST are those of the previous test with the same input...
 test let defined strategy type is used [[
-specification
+module test2
 rules
   hello =
     let
@@ -38,7 +43,7 @@ rules
     in local-typed-strategy-is-defined
     end
 ]] run test-analysis to [[
-specification
+module test2
 rules
   hello =
     let

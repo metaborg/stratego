@@ -1,10 +1,9 @@
 module sugar/overlays
 imports
   core/identifiers
-  sugar/terms
+  core/terms
 
-sorts Overlay
-
+context-free sorts Overlay
 context-free syntax
   Overlay.OverlayNoArgs = <<Id> = <Term>>
 

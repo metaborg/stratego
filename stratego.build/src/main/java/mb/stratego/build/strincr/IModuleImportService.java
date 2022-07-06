@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.STask;
+import mb.pie.api.Supplier;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.util.LastModified;
 
@@ -27,6 +28,8 @@ public interface IModuleImportService {
      * from include directories.
      */
     interface ModuleIdentifier extends Serializable {
+        boolean legacyStratego();
+
         boolean isLibrary();
 
         boolean equals(@Nullable Object other);
@@ -104,6 +107,59 @@ public interface IModuleImportService {
         }
     }
 
+    class ImportResolutionInfo implements Serializable {
+        public final Collection<STask<?>> strFileGeneratingTasks;
+        public final Collection<? extends ResourcePath> includeDirs;
+        public final Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
+        public final Collection<Supplier<Stratego2LibInfo>> str2libraries;
+
+        public ImportResolutionInfo(Collection<STask<?>> strFileGeneratingTasks,
+            Collection<? extends ResourcePath> includeDirs,
+            Collection<? extends ModuleIdentifier> linkedLibraries,
+            Collection<Supplier<Stratego2LibInfo>> str2libraries) {
+            this.strFileGeneratingTasks = strFileGeneratingTasks;
+            this.includeDirs = includeDirs;
+            this.linkedLibraries = linkedLibraries;
+            this.str2libraries = str2libraries;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o)
+                return true;
+            if(o == null || getClass() != o.getClass())
+                return false;
+
+            ImportResolutionInfo that = (ImportResolutionInfo) o;
+
+            if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
+                return false;
+            if(!includeDirs.equals(that.includeDirs))
+                return false;
+            if(!linkedLibraries.equals(that.linkedLibraries))
+                return false;
+            return str2libraries.equals(that.str2libraries);
+        }
+
+        @Override public int hashCode() {
+            int result = strFileGeneratingTasks.hashCode();
+            result = 31 * result + includeDirs.hashCode();
+            result = 31 * result + linkedLibraries.hashCode();
+            result = 31 * result + str2libraries.hashCode();
+            return result;
+        }
+
+        @Override public String toString() {
+            //@formatter:off
+            return "ImportResolutionInfo@" + System.identityHashCode(this) + '{'
+                + "strFileGeneratingTasks=" + strFileGeneratingTasks
+                + ", includeDirs=" + includeDirs
+                + ", linkedLibraries=" + linkedLibraries
+                + ", str2libraries=" + str2libraries
+                + '}';
+            //@formatter:on
+        }
+    }
+
     /**
      * @param anImport term of the module import from the Stratego AST
      * @return The resolution object that is either an unresolved import or a collection of unique
@@ -111,18 +167,17 @@ public interface IModuleImportService {
      * @throws IOException on IO exceptions while search the available paths for the module
      */
     ImportResolution resolveImport(ExecContext context, IStrategoTerm anImport,
-        Collection<STask<?>> strFileGeneratingTasks, Collection<? extends ResourcePath> includeDirs,
-        Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries)
-        throws IOException, ExecException;
+        ImportResolutionInfo importResolutionInfo) throws IOException, ExecException;
 
     /**
      * @param moduleIdentifier The unique identifier previously created by this service during
      *                         import resolution
+     * @param importResolutionInfo
      * @return The AST of the Stratego module
      * @throws IOException on IO exceptions during access to the file in which the module resides
      */
     LastModified<IStrategoTerm> getModuleAst(ExecContext context, ModuleIdentifier moduleIdentifier,
-        Collection<STask<?>> strFileGeneratingTasks)
+        ImportResolutionInfo importResolutionInfo)
         throws Exception;
 
     @Nullable String fileName(ModuleIdentifier moduleIdentifier);

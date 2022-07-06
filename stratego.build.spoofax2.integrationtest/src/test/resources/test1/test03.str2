@@ -1,0 +1,20 @@
+module test03
+
+imports collection/list/cons collection/tuple/cons
+
+signature
+  sorts
+    Call
+    Term
+  constructors
+    Call  : Term * List(Term) -> Call
+
+rules
+
+  split(f, g) : x -> (<f> x, <g> x)
+
+strategies
+
+  main = 
+    ?[prog | args];
+    split(!Call(prog, args), id)

@@ -1,13 +1,20 @@
 module strategies
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-specification
+module test
 
 signature
+  sorts
+    Bar
+    Baz
+    List(*)
+    Tuple(*, *)
   constructors
     Foo : Bar
+    : Bar -> Baz
+    Baz : Baz
 
 strategies
   [[...]]
@@ -24,6 +31,7 @@ bar-id :: Bar -> Bar
 bar-id = fail
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test fail strategy can be used as any typed strategy [[
 int-id(int -> int) :: ? -> ?
@@ -41,6 +49,19 @@ testing =
 ; bar-id(fail)
 ]] 0 errors
    0 warnings
+   has origin locations
+
+test insert cast to int after call [[
+  list-max :: List(int) -> int
+  list-max = list-accum(max)
+  
+  max = fail
+  
+  list-accum(a * a -> b) :: List(a) -> b
+  list-accum(s) = fail
+]] 0 errors
+   0 warnings
+   has origin locations
 
 test id strategy can be used in any typed strategy [[
 int-id :: int -> int
@@ -53,6 +74,7 @@ bar-id :: Bar -> Bar
 bar-id = id
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test id strategy can be used as any typed identity strategy [[
 int-id(int -> int) :: ? -> ?
@@ -70,39 +92,96 @@ testing =
 ; bar-id(id)
 ]] 0 errors
    0 warnings
+   has origin locations
+
+test insert cast to int [[
+return-int :: int -> int
+return-int: i -> <untyped> i
+
+untyped = id
+]] 0 errors
+   0 warnings
+   has origin locations
 
 test proceed may not be used in a non-extend strategy 1 [[
 foobar = [[proceed(|"a")]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed may not be used in a non-extend strategy 2 [[
 foobar = [[proceed]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
+
+test extend strategy should extend an external strategy [[
+extend [[foobar]] = proceed
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test override strategy should override an external strategy [[
+override [[foobar]] = proceed
+]] 1 error at #1
+   0 warnings
+   has origin locations
 
 test proceed should use the arity of the strategy it's in 1 [[
 external foobar(|)
 extend foobar = [[proceed(|"a")]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed should use the arity of the strategy it's in 2 [[
-external foobar(|)
+external foobar(|a)
 extend foobar(|a) = [[proceed]]
 ]] 1 error at #1
    0 warnings
+   has origin locations
 
 test proceed in extend [[
 external foobar(|)
 extend foobar = proceed
 ]] 0 errors
    0 warnings
+   has origin locations
 
 test proceed in override [[
 external foobar(|)
 override foobar = proceed
 ]] 0 errors
    0 warnings
+   has origin locations
 
+test untyped TryLSome [[
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
 
+test simple typed TryLSome [[
+simple(Bar -> Bar, Bar -> Bar) :: Bar -> Bar
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
+
+test generically typed TryLSome [[
+simple(a -> a, a -> a) :: a -> a
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations
+
+test subtypes and TryLSome [[
+simple(Bar -> Baz, Baz -> Bar) :: Bar -> Baz
+simple(a, b) = a <* b
+]] parse succeeds
+   0 errors
+   0 warnings
+   has origin locations

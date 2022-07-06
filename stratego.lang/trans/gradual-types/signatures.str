@@ -2,8 +2,13 @@ module gradual-types/signatures
 
 imports
 
-signatures/gradual-types/signatures-sig
-signatures/gradual-types/internal-sig
+  signatures/core/signatures-sig
+  signatures/sugar/signatures-sig
+  signatures/gradual-types/signatures-sig
+  signatures/gradual-types/internal-sig
+
+  gradual-types/environment
+  gradual-types/utils
 
 overlays
 
@@ -14,5 +19,186 @@ overlays
   ListT()            = Sort("List", [_DynT()])
   TupleT(elems)      = Sort("Tuple", elems)
   DynT()             = DynT(_Dyn())
+  CharT()            = Sort("Char", [])
 
   FunTType(sargs, targs, from, to) = FunTType(sargs, targs, FunNoArgsType(from, to))
+
+strategies
+
+  TupleT(|t) = TupleT(|t, t)
+  TupleT(|elems, t) = <otf(!Sort(<otf(!"Tuple")> t, elems))> t
+  ListT(|t) = <otf(\elem -> Sort(<otf(!"List")> elem, elem)\)> t
+
+  is-primitive-type = ?"string" + ?"int" + ?"real" + ?"blob"
+
+strategies // core/signatures & sugar/signatures
+
+  sort-check-Opdecl(|e): OpDecl(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): OpDeclQ(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): OpDeclInj(optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDecl(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDeclQ(_, optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+  sort-check-Opdecl(|e): ExtOpDeclInj(optype) -> <id>
+    with <sort-check-OpType(|e)> optype
+
+
+  sort-check-OpType(|e) = sort-check-ConstType(id|e)
+
+  sort-check-OpType(|e1): FunType(c*, c) -> <id>
+    with
+      vars := <collect-all(?SortVar(_))> c
+    ; e2 := <foldl(\(var, e) -> <sort-add(|var, 0)> e\)> (vars, e1)
+    ; <map(sort-check-ConstType(fail|e2))> c*
+    ; <sort-check-ConstType(id|e2)> c
+
+
+  sort-check-ConstType(s|e): ConstType(s) -> <id>
+    with <sort-check-Sort(s|e)> s
+
+  sort-check-ConstType(s|e): DynT(Dyn()) -> <id>
+
+
+  sort-check-Sort(s|e): s@Sort(n, sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end
+    ; gadt-check(s|s, sa*, e)
+
+  sort-check-Sort(s|e): s@SortVar(n) -> <id>
+    with
+      <is-primitive-type> n
+    <+
+      if <not(sort-exists(|s, 0))> e
+        then <report-Err> (s, UnresolvedSortVar())
+      end
+
+  sort-check-Sort(s|e) = ?StringT()
+
+  sort-check-Sort(s|e) = ?IntT()
+
+  sort-check-Sort(s|e) = ?RealT()
+
+  sort-check-Sort(s|e) = ?BlobT()
+
+  sort-check-Sort(s|e) = ?DynT(Dyn()); where(not(s))
+
+  sort-check-Sort(s|e): s@SortNoArgs(n) -> <id>
+    with
+      arity := 0
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end
+
+  sort-check-Sort(s|e): s@TupleT(s1, sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|"Tuple", <int-inc> arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end
+    ; gadt-check(s|s, [s1, sa*], e)
+
+  sort-check-Sort(s|e): SortList(s*) -> <id>
+    with
+      <map(sort-check-Sort(s|e))> s*
+
+  sort-check-Sort(s|e): SortListTl(s*, s) -> <id>
+    with
+      <sort-check-Sort(s|e)> s
+    ; <map(sort-check-Sort(s|e))> s*
+
+  sort-check-Sort(s|e): s@SortTuple(sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|"Tuple", arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end
+    ; gadt-check(s|s, sa*, e)
+
+  gadt-check(s|s, sa*, e) =
+    if s
+      then
+        if <not(map(?SortVar(<not(is-primitive-type)>)); where(length => l); uniq; length => l)> sa*
+          then <report-Err> (s, GadtSort())
+        end
+      else
+        <map(sort-check-Sort(fail|e))> sa*
+    end
+
+strategies // gradual-types/signatures
+
+  sort-check-SType(|e) = ?SDyn()
+
+  sort-check-SType(|e) = sort-check-SFunType(|e)
+
+
+  sort-check-SFunType(|e) = sort-check-SSimpleFunType(|e)
+
+  sort-check-SFunType(|e): FunType(stype*, ssimplefuntype) -> <id>
+    with
+      <map(sort-check-SType(|e))> stype*
+    ; <sort-check-SSimpleFunType(|e)> ssimplefuntype
+
+  sort-check-SFunType(|e) = sort-check-FunTType(|e)
+
+
+  sort-check-SSimpleFunType(|e) = ?TP()
+
+  sort-check-SSimpleFunType(|e): FunNoArgsType(type1, type2) -> <id>
+    with
+      <sort-check-Type(|e)> type1
+    ; <sort-check-Type(|e)> type2
+
+
+  sort-check-FunTType(|e): FunTType(stype*, type*, ssimplefuntype) -> <id>
+    with
+      <map(sort-check-SType(|e))> stype*
+    ; <map(sort-check-Type(|e))> type*
+    ; <sort-check-SSimpleFunType(|e)> ssimplefuntype
+
+
+  sort-check-Type(|e): TupleT(type, type*) -> <id>
+    with
+      <sort-check-Type(|e)> type
+    ; <map(sort-check-Type(|e))> type*
+
+  sort-check-Type(|e) = ?DynT(_)
+
+  sort-check-Type(|e) = ?StringT()
+
+  sort-check-Type(|e) = ?IntT()
+
+  sort-check-Type(|e) = ?RealT()
+
+  sort-check-Type(|e) = ?BlobT()
+
+  sort-check-Type(|e) = sort-check-SortT(|e)
+
+
+  sort-check-SortT(|e): s@Sort(n, sa*) -> <id>
+    with
+      arity := <length> sa*
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end
+    ; <map(sort-check-Type(|e))> sa*
+
+  sort-check-SortT(|e): SortVar(n) -> <id>
+
+  sort-check-SortT(|e): s@SortNoArgs(n) -> <id>
+    with
+      arity := 0
+    ; if <not(sort-exists(|n, arity))> e
+        then <report-Warn> (s, UnresolvedSort(arity))
+      end

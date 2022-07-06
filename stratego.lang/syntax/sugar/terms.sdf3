@@ -23,7 +23,7 @@ context-free syntax
   PreTerm.RootApp   = [<[Strategy]>]
   PreTerm.Tuple     = <(<{Term ", "}*>)>
   PreTerm.List      = <[<{Term ", "}*>]>
-  PreTerm.ListTail  = <[<{Term ", "}*> | <Term>]>
+  PreTerm.ListTail  = <[<{Term ", "}+> | <Term>]>
 
   PreTerm.BuildDefaultPT = <_<PreTerm>>
 
@@ -45,3 +45,4 @@ context-free priorities
     PreTerm.App
   }
 , Term.Anno > PreTerm.App
+, PreTerm.Explode > { Term.App PreTerm.App Term.BuildDefault PreTerm.BuildDefaultPT }

@@ -7,61 +7,50 @@ imports
   core/identifiers
 
 template options
-  Id = keyword {reject}
   keyword -/- [a-zA-Z0-9\'\-\_]
   tokenize: ")(|"
 
-sorts Def
+context-free sorts Def
 context-free syntax
   Def = StrategyDef
 
-  SVar.SVar = Id
-
-  Strategy.Let =
-<let
-  <{Def "\n"}*>
-in
-  <Strategy>
-end>
-
-  Strategy.CallT =
-    <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
-
-  Strategy.CallDynamic =
-    <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)> {deprecated("Dynamic calls are not supported")}
-
-sorts StrategyDef
+context-free sorts StrategyDef SDefT
 context-free syntax
-  StrategyDef.SDefT =
-<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+  // indirection for SDefP in sugar/strategies
+  StrategyDef = SDefT
+  SDefT.SDefT =
+<<SId>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
   <Strategy>>
 
   Def.AnnoDef = <<Anno+> <StrategyDef>>
 
   StrategyDef.ExtSDefInl =
-<external <Id>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
+<external <SId>(<{Typedid ", "}*> | <{Typedid ", "}*>) =
   <Strategy>>
 
   StrategyDef.ExtSDef =
-    <external <MaybeEmptyId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+    <external <MaybeEmptySId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
-sorts MaybeEmptyId
+lexical sorts SId MaybeEmptySId
 lexical syntax
-  MaybeEmptyId =
-  MaybeEmptyId = Id
+  // indirection for highlighting
+  SId = Id
 
-sorts Anno
+  MaybeEmptySId =
+  MaybeEmptySId = SId
+
+context-free sorts Anno
 context-free syntax
   Anno.Extend = <extend>
   Anno.Override = <override>
   Anno.Internal = <internal>
 
-sorts Typedid
+context-free sorts Typedid
 context-free syntax
   Typedid.VarDec = <<ID> : <OldType>>
 
 
-sorts Strategy SVar StrategyMid
+context-free sorts Strategy SVar
 context-free syntax
   Strategy.Fail  = <fail>
   Strategy.Id    = <id>
@@ -77,12 +66,26 @@ context-free syntax
   Strategy.One   = <one(<Strategy>)>
   Strategy.All   = <all(<Strategy>)>
 
+  SVar.SVar = SId
+
+  Strategy.Let =
+<let
+  <{Def "\n"}*>
+in
+  <Strategy>
+end>
+
+  Strategy.CallT =
+    <<SVar>(<{Strategy ", "}*>|<{Term ", "}*>)>
+
+  Strategy.CallDynamic =
+    <call(<Term>|<{Strategy ", "}*>|<{Term ", "}*>)> {deprecated("Dynamic calls are not supported")}
+
+  Strategy.ImportTerm = <import-term(<ModName>)>
+
 context-free priorities
   { Strategy.Build
     Strategy.Match
   }
 > Strategy.Seq
 > Strategy.GuardedLChoice
-
-context-free syntax
-  Strategy.ImportTerm = <import-term(<ModName>)>

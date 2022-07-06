@@ -1,0 +1,48 @@
+module Colorer
+
+imports
+
+  libspoofax/color/colors
+  libspoofax/color/default
+  completion/colorer/StrategoLang-cc-esv
+
+colorer Constants
+
+  Int    : darkgreen
+  Real   : darkgreen
+  Char   : blue
+
+  _.Str     : blue
+  _.StrCong : blue
+
+colorer String quotations
+
+  _.StringEscape1 : gray
+  _.StringEscape2 : gray
+  _.StringEscape3 : gray
+  _.StringEscape4 : gray
+  _.QStr    : darkblue
+  _.QDollar : darkblue
+  _.QBr     : gray
+
+  QuotedBracket1 : blue
+  QuotedBracket2 : blue
+  QuotedBracket3 : blue
+  QuotedBracket4 : blue
+
+colorer Types
+
+  keyword = 127 0 85 bold
+
+  Dyn : keyword
+
+colorer Terms
+
+  Wld.Wld : _ bold
+
+colorer Strategy names
+
+  strategy = 0 64 128
+
+  SId           : strategy
+  MaybeEmptySId : strategy

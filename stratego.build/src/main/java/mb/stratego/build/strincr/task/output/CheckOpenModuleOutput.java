@@ -2,15 +2,12 @@ package mb.stratego.build.strincr.task.output;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.data.StrategyAnalysisData;
-import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 
 public class CheckOpenModuleOutput implements Serializable {
@@ -32,8 +29,7 @@ public class CheckOpenModuleOutput implements Serializable {
 
         CheckOpenModuleOutput that = (CheckOpenModuleOutput) o;
 
-        if(astWithCasts != null ? !astWithCasts.equals(that.astWithCasts) :
-            that.astWithCasts != null)
+        if(!Objects.equals(astWithCasts, that.astWithCasts))
             return false;
         return messages.equals(that.messages);
     }
@@ -45,7 +41,15 @@ public class CheckOpenModuleOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckOpenModule.Output(" + messages.size() + ")";
+        if(astWithCasts == null) {
+            assert messages.isEmpty();
+            return "CheckOpenModuleOutput@" + System.identityHashCode(this) + "{inputIsALibrary=true}";
+        }
+        //@formatter:off
+        return "CheckOpenModuleOutput@" + System.identityHashCode(this) + '{'
+            + "astWithCasts=" + astWithCasts.toString(4)
+            + ", messages=" + messages.size()
+            + '}';
+        //@formatter:on
     }
-
 }

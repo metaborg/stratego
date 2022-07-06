@@ -1,0 +1,217 @@
+module box/operators
+
+imports
+  box/base
+  box/literals
+
+// Expressions over the BOX language can be constructed by
+// \emph{composing} boxes using BOX operators. These operators
+// specify the relative positioning of boxes. BOX supports several of these
+// \emph{positional} operators. Examples of positional operators are the
+// \textsf{H} and \textsf{V} operators which format their sub-boxes
+// horizontally and vertically, respectively. The exact formatting of the
+// positional operators can be controlled by means of \emph{space options}.
+// These options allow for instance, the horizontal and vertical layout
+// within the \textsf{H} and \textsf{V} operators to be controlled.
+//
+// Besides positional operators, BOX also contains
+// \emph{non-positional} operators. These operators are used to control
+// how sub-boxes are displayed. These operators include font operators to
+// specify font parameters (font family, font color, etc.) and operators for
+// cross referencing.
+//
+// \subsection{Space Options}
+//
+// Space options are used to adapt the amount of layout between boxes. The
+// horizontal, vertical, and indentation offset between boxes can be
+// adapted.
+
+context-free sorts
+  SpaceSymbol // SPACE-SYMBOL
+  SOption // S-OPTION
+
+context-free syntax
+   SOption.SOpt = SpaceSymbol "=" NatCon
+   SOption.SOptB = SpaceSymbol "=" Box
+
+// Below all supported space options are defined. The \textsf{hs} option is
+// used to define the horizontal layout between boxes. The \textsf{vs}
+// option defines the amount of vertical layout between boxes (the number of
+// newlines between boxes in a vertical context). The \textsf{is} option
+// defines indentation between boxes within a vertical context. Not every
+// combination of space option and BOX operator makes sense. E.g.\ the
+// modification of the vertical offset in combination of the \textsf{H}
+// operator does not make any sense.
+
+context-free syntax
+  SpaceSymbol.VS = "vs"
+  SpaceSymbol.HS = "hs"
+  SpaceSymbol.IS = "is"
+
+// \subsection{Positional BOX Operators}
+// Smaller boxes can be composed to form new boxes using positional BOX
+// operators that specify the relative ordering of sub boxes.
+//
+// The \textsf{H} operator is used to format a list of boxes horizontally.
+// The operator only supports the \textsf{hs} space option to control the
+// amount of horizontal layout between its sub-boxes. The \textsf{V}
+// operator is used to format a list of boxes vertically. The operator
+// supports the \textsf{vs} and \textsf{is} space options to control the
+// amount of vertical layout and the amount of indentation between its
+// sub-boxes, respectively. The \textsf{HV} operator is used to format a
+// list of boxes horizontally \emph{or} vertically, depending on the
+// available width. The operator calculates an optimal combination of
+// \textsf{H} and \textsf{V} operators in such a way that the number of
+// lines occupied is minimized. Because the \textsf{HV} is a combination of
+// the \textsf{H} and \textsf{V} operators, it supports all space
+// options of these operators (\textsf{hs}, \textsf{vs}, and \textsf{is}).
+
+context-free syntax
+  Box.H = "H"  SOption* "[" Box* "]"
+  Box.V = "V"  SOption* "[" Box* "]"
+  Box.HV = "HV" SOption* "[" Box* "]"
+
+// Contrary to the \textsf{V} and \textsf{HV} operators, the \textsf{Z}
+// and \textsf{HZ} operators wrap back to the left margin.
+// The left margin is the column position set by a preceding \textsf{I}
+// operator. Apart from this side effect, the \textsf{I} operator is
+// identical to the \textsf{H} operator with the empty string and the child
+// box of the \textsf{I} operator as childs, and its \textsf{hs} option
+// set to the value of the \textsf{is} option of the \textsf{I} operator.
+
+context-free syntax
+
+  Box.Z = "Z"  SOption* "[" Box* "]"
+  Box.HZ = "HZ" SOption* "[" Box* "]"
+  Box.I = "I"  SOption* "[" Box  "]"
+
+// The \textsf{ALT} operator is used to choose between two alternative BOX
+// expressions depending on the available width. When its first argument
+// fits on the current line, that BOX expression is used. Otherwise, the
+// \textsf{ALT} operator chooses the second alternative. No space options
+// are supported by this operator.
+
+context-free syntax
+  Box.ALT = "ALT" "[" Box Box "]"
+
+// Alignments are implemented by means of two BOX operators: \textsf{A} and
+// \textsf{R}. The arguments of the \textsf{A} operator are \textsf{R}
+// boxes. Each \textsf{R} BOX represents a row, each element of an
+// \textsf{R} BOX represents an entry in the alignment. The number of
+// arguments of an
+// \textsf{R} BOX may not exceed the number of columns of the alignment. For
+// each column the user can specify whether the alignment should be left,
+// right, or centered. The number of alignment indications should be equal
+// to the number of columns. Each alignment indication can be extended with
+// space options, specifying the horizontal layout between columns. The
+// \textsf{A} operator supports the \textsf{vs} space option which defines
+// the vertical layout between individual rows.
+//
+// \textsf{R} boxes occurring outside an alignment are formatted as
+// \text{HV} operator. This behavior enables the use of an alternative
+// formatting (not based on the \textsf{A} operator) of alignments within an
+// \textsf{ALT} operator. The \textsf{R} operator therefore supports all
+// space options of the \textsf{HV} operator.
+
+context-free sorts
+  AOption // A-OPTION
+  AOptions // A-OPTIONS
+
+context-free syntax
+  Box.A = "A" AOptions SOption* "[" Box* "]"
+  Box.R = "R" SOption* "[" Box* "]"
+
+// Justification of columns and horizontal layout between columns can be
+// specified using AOptions. An AOption is composed of an alignment
+// indicator (\textsf{l} for left, \textsf{r} for right, and \textsf{c} for
+// centered alignment), and space options (only the \textsf{hs} option is
+// supported).
+
+  AOption.AL = "l" SOption*
+  AOption.AC = "c" SOption*
+  AOption.AR = "r" SOption*
+  AOptions.AOPTIONS = "(" {AOption ","}* ")"
+
+// \subsection{Non-Positional BOX Operators}
+//
+// There are four different types of non-positional BOX operators: font
+// operators to change the textual appearance of BOX expressions, cross
+// reference operators to create links between boxes, the comment operator
+// to indicate that a BOX expression contains comments, and the line
+// operator to draw lines of characters of arbitrary length.
+//
+//
+// BOX font operators are used to change the textual appearance of the
+// argument BOX expression. Fonts can be characterized by the parameters
+// font name (\textsf{fn}), font family (\textsf{fm}), font series
+// (\textsf{se}), font shape (\textsf{sh}), font size (\textsf{sz}), and
+// font color (\textsf{cl}). The most general font operator is \textsf{F}.
+// By means of font parameters the desired font can be controlled.
+
+lexical sorts
+  FID
+
+lexical syntax
+  FID = [A-Za-z]+
+
+context-free sorts
+  FontParam // FONT-PARAM
+  FOption // F-OPTION
+  FontOperator // FONT-OPERATOR
+
+context-free syntax
+  FOption.FNAT = FontParam "=" NatCon
+  FOption.FFID = FontParam "=" FID
+
+context-free syntax
+  FontOperator.F = "F" FOption*
+  Box.FBOX       = FontOperator "[" Box "]"
+  FontParam.FN   = "fn"
+  FontParam.FM   = "fm"
+  FontParam.SE   = "se"
+  FontParam.SH   = "sh"
+  FontParam.SZ   = "sz"
+  FontParam.CL   = "cl"
+
+// By using the \textsf{F} font operator, fonts are defined statically.
+// BOX also support fonts to be defined dynamically using special
+// font operators.  These operators are used to format specific language
+// constructs like keywords and variables. The mapping from these
+// operators to fonts is deferred to the back-ends.
+
+context-free syntax
+  FontOperator.KW = "KW"
+  FontOperator.VAR = "VAR"
+  FontOperator.NUM = "NUM"
+  FontOperator.MATH = "MATH"
+
+// The \textsf{LBL} operator is used to label BOX terms. A labeled BOX term
+// can be refered to using the \textsf{REF} operator.  The first argument of
+// the \textsf{LBL} and \textsf{REF} operators denote the name of the label.
+// The second argument of the \textsf{LBL} operator denotes the BOX term to
+// label. The second argument of the \textsf{REF} operator denotes the BOX
+// containing the reference. Both operators do not support any space
+// options.
+
+context-free syntax
+  Box.LBL = "LBL" "[" BoxLiteral Box "]"
+  Box.REF = "REF" "[" BoxLiteral Box "]"
+
+// Comments can be formatted using the \textsf{C} operator. The operator
+// supports the \textsf{is} space option to denote the indentation level of
+// comments.
+
+context-free syntax
+  Box.C = "C" SOption* "[" Box* "]"
+
+// The \textsf{L} operator  is used to construct horizontal bars of fixed
+// \emph{or} variable width. A bar of fixed width can be constructed by
+// specifying its width as a fixed number. A bar of variable width can be
+// constructed by specifying a BOX expressions as width parameter. The
+// second argument of the \textsf{L} operator specifies the symbol of which
+// the bar should be constructed. The \textsf{L} operator does not support
+// any space options.
+
+context-free syntax
+  Box.L = "L" "[" Box Box "]"
+  Box.LNAT = "L" "[" NatCon Box "]"

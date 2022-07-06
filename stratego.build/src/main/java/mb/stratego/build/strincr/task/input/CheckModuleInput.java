@@ -26,8 +26,8 @@ public class CheckModuleInput implements Serializable {
         } else {
             fileOpenInEditor = null;
         }
-        return new ResolveInput(mainModuleIdentifier, frontInput.strFileGeneratingTasks,
-            frontInput.includeDirs, frontInput.linkedLibraries, fileOpenInEditor, frontInput.autoImportStd);
+        return new ResolveInput(mainModuleIdentifier, frontInput.importResolutionInfo,
+            fileOpenInEditor, frontInput.autoImportStd);
     }
 
     @Override public boolean equals(Object o) {
@@ -53,6 +53,12 @@ public class CheckModuleInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckModuleInput(" + frontInput + ", " + mainModuleIdentifier + ')';
+        //@formatter:off
+        return "CheckModuleInput@" + System.identityHashCode(this) + '{'
+            + "frontInput=" + frontInput
+            + ", mainModuleIdentifier=" + mainModuleIdentifier
+            + ", projectPath=" + projectPath
+            + '}';
+        //@formatter:on
     }
 }

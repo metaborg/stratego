@@ -1,44 +1,62 @@
 module strc/incr/fix-new-grammar
 
 imports
-
+  signatures/gradual-types/internal-sig
   signatures/sugar/string-quotations-sig
   libspoofax/term/origin
+  gradual-types/utils
 
 strategies
 
+  // Add padding for string quotation that used to come out of a parser hack
   fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation)))
 
   origin-column-from-list = origin-column <+ Hd; origin-column
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation1(sqp) -> StringQuotation1(padding, sqp)
-  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    trm@StringQuotation1(sqp) -> StringQuotation1(<otf(!padding)> sqp, sqp)
+  with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation2(sqp) -> StringQuotation2(padding, sqp)
-  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    trm@StringQuotation2(sqp) -> StringQuotation2(<otf(!padding)> padding, sqp)
+  with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation3(sqp) -> StringQuotation3(padding, sqp)
-  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    trm@StringQuotation3(sqp) -> StringQuotation3(<otf(!padding)> padding, sqp)
+  with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation4(sqp) -> StringQuotation4(padding, sqp)
-  where padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    trm@StringQuotation4(sqp) -> StringQuotation4(<otf(!padding)> padding, sqp)
+  with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    sqp@StringEscape1(trm) -> StringEscape1(padding, trm)
-  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    sqp@StringEscape1(trm) -> StringEscape1(<otf(!padding)> padding, trm)
+  with padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    sqp@StringEscape2(trm) -> StringEscape2(padding, trm)
-  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    sqp@StringEscape2(trm) -> StringEscape2(<otf(!padding)> padding, trm)
+  with padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    sqp@StringEscape3(trm) -> StringEscape3(padding, trm)
-  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    sqp@StringEscape3(trm) -> StringEscape3(<otf(!padding)> padding, trm)
+  with padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    sqp@StringEscape4(trm) -> StringEscape4(padding, trm)
-  where padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    sqp@StringEscape4(trm) -> StringEscape4(<otf(!padding)> padding, trm)
+  with padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
+    <+ padding := ""
+     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())

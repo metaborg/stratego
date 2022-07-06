@@ -7,26 +7,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.FileObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.util.cmd.Arguments;
 
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.PieBuilder;
+import mb.pie.api.Supplier;
 import mb.pie.api.Task;
+import mb.pie.api.TopDownSession;
+import mb.pie.api.ValueSupplier;
 import mb.pie.runtime.PieBuilderImpl;
-import mb.pie.runtime.store.InMemoryStore;
-import mb.pie.runtime.store.SerializingStore;
+import mb.pie.runtime.store.SerializingStoreBuilder;
 import mb.pie.taskdefs.guice.GuiceTaskDefs;
 import mb.pie.taskdefs.guice.GuiceTaskDefsModule;
 import mb.resource.fs.FSPath;
@@ -36,12 +48,12 @@ import mb.stratego.build.spoofax2.integrationtest.lang.Stratego;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.StrategoGradualSetting;
 
 public class StrategoIncrementalCompilationTest {
     public static @Nullable Spoofax spoofax;
@@ -58,17 +70,17 @@ public class StrategoIncrementalCompilationTest {
             Files.createTempDirectory(StrategoIncrementalCompilationTest.class.getName())
                 .toAbsolutePath();
 
-        final Path helloFile = temporaryDirectoryPath.resolve("hello.str");
+        final Path helloFile = temporaryDirectoryPath.resolve("hello.str2");
         final String helloFileContents =
-            "module hello " + "imports " + "  libstratego-lib " + "  world " + "rules "
+            "module hello " + "imports " + "  strategolib" + "  world " + "rules "
                 + "  hello = !$[Hello, [<world>]]; debug";
 
         Files.write(helloFile, helloFileContents.getBytes(StandardCharsets.UTF_8),
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        final Path worldFile = temporaryDirectoryPath.resolve("world.str");
+        final Path worldFile = temporaryDirectoryPath.resolve("world.str2");
         final String worldFileContents =
-            "module world " + "imports " + "  libstratego-lib " + "rules "
+            "module world " + "imports " + "  strategolib " + "rules "
                 + "  world = !\"world!\"";
 
         Files.write(worldFile, worldFileContents.getBytes(StandardCharsets.UTF_8),
@@ -86,9 +98,11 @@ public class StrategoIncrementalCompilationTest {
 
         final PieBuilder pieBuilder = new PieBuilderImpl();
         pieBuilder.withStoreFactory(
-            (serde, resourceService, loggerFactory) -> new SerializingStore<>(serde,
-                resourceService.getWritableResource(serializingStorePath), InMemoryStore::new,
-                InMemoryStore.class));
+            (serde, resourceService, loggerFactory) ->
+                SerializingStoreBuilder
+                    .ofInMemoryStore(serde)
+                    .withResourceStorage(resourceService.getWritableResource(serializingStorePath))
+                    .build());
         pieBuilder.withTaskDefs(spoofax.injector.getInstance(GuiceTaskDefs.class));
         Pie pie = pieBuilder.build();
 
@@ -103,14 +117,61 @@ public class StrategoIncrementalCompilationTest {
         final Arguments newArgs = new Arguments();
         final String mainModuleName = "hello";
         final ModuleIdentifier mainModuleIdentifier =
-            new ModuleIdentifier(false, mainModuleName, new FSPath(helloFile));
+            new ModuleIdentifier(true, false, mainModuleName, new FSPath(helloFile));
         Path depPath = temporaryDirectoryPath.resolve("depPath");
+        final String libraryName = "incrCompTest";
+        final ArrayList<String> packageNames = new ArrayList<>();
+        packageNames.add("mb.stratego.build.spoofax2.test");
+        final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
+        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(1);
+        {
+            // load strategolib language (str2lib)
+            final ILanguageImpl sourceDepImpl = spoofax.languageDiscoveryService
+                .languageFromArchive(spoofax.resolve(Stratego.getStrategoLibPath().toFile()));
+            for(ILanguageComponent sourceDepImplComp : sourceDepImpl.components()) {
+                final String[] str2libProject = { null };
+                for(IExportConfig export : sourceDepImplComp.config().exports()) {
+                    if(str2libProject[0] != null) {
+                        break;
+                    }
+                    export.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport resource) {}
+
+                        @Override public void visit(LangFileExport resource) {
+                            if(resource.language.equals("StrategoLang") && resource.file.endsWith("str2lib")) {
+                                str2libProject[0] = resource.file;
+                            }
+                        }
+
+                        @Override public void visit(ResourceExport resource) {}
+                    });
+                }
+                if(str2libProject[0] != null) {
+                    final FileObject strjIncludes =
+                        spoofax.resourceService.resolve(temporaryDirectoryPath.resolve("strj-includes").toFile());
+                    final FileObject str2LibFileObject = sourceDepImplComp.location().resolveFile(str2libProject[0]);
+                    final ResourcePath str2LibFile =
+                        new FSPath(spoofax.resourceService.localFile(str2LibFileObject, strjIncludes));
+                    final @Nullable DynamicClassLoadingFacet facet =
+                        sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
+                    if(facet == null) {
+                        continue;
+                    }
+                    final ArrayList<ResourcePath> jarFiles =
+                        new ArrayList<>(facet.jarFiles.size());
+                    for(FileObject file : facet.jarFiles) {
+                        jarFiles.add(new FSPath(spoofax.resourceService.localFile(file, strjIncludes)));
+                    }
+                    str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                }
+            }
+        }
         CompileInput compileInput =
-            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-                "mb.stratego.build.spoofax2.test",
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
-                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-                StrategoGradualSetting.DYNAMIC, true, true);
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
+                libraryName, str2libraries);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -122,7 +183,7 @@ public class StrategoIncrementalCompilationTest {
             // Ignore
         }
 
-        Path strategoJavaPackageOutputDir = depPath;
+        Path strategoJavaPackageOutputDir = depPath.resolve(packageNames.get(0).replace('.','/'));
         Assertions.assertTrue(Files.exists(strategoJavaPackageOutputDir));
         Assertions.assertTrue(Files.isDirectory(strategoJavaPackageOutputDir));
         final Path interopRegistererJavaFile = strategoJavaPackageOutputDir.resolve("InteropRegisterer.java");
@@ -157,8 +218,8 @@ public class StrategoIncrementalCompilationTest {
         // incremental change
 
         final String newHelloFileContents =
-            "module hello " + "imports " + "  libstratego-lib " + "  world " + "rules "
-                + "  hello = !$[Hello, [<world>]]; debug";
+            "module hello " + "imports " + "  strategolib " + "  world " + "rules "
+                + "  hello = !$[Hello, [<world>]]; debug; rules(A: (a, \"hi\") -> (a, \"no\"))";
 
         Files.write(helloFile, newHelloFileContents.getBytes(StandardCharsets.UTF_8),
             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -167,23 +228,25 @@ public class StrategoIncrementalCompilationTest {
 
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoAterm);
 
-        compileInput = new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath),
-            "mb.stratego.build.spoofax2.test",
-            new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
-            strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0),
-            StrategoGradualSetting.STATIC, true, true);
+        compileInput =
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+                packageNames,
+                new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
+                strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
+                libraryName, str2libraries);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
-        // compile
+        // compile bottom-up
 
         try(final MixedSession session = pie.newSession()) {
-            session.require(compileTask);
+            TopDownSession tdSession = session.updateAffectedBy(Collections.singleton(new FSPath(helloFile)));
             session.deleteUnobservedTasks(t -> true,
                 (t, r) -> r != null && Objects.equals(r.getLeafExtension(), "java"));
 
+            // compile in different place
             final CompileOutput compileOutput =
-                Objects.requireNonNull(session.require(compileTask));
+                Objects.requireNonNull(tdSession.require(compileTask));
             if(compileOutput instanceof CompileOutput.Failure) {
                 final CompileOutput.Failure failure = (CompileOutput.Failure) compileOutput;
                 int errorsCount = 0;

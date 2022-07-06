@@ -13,7 +13,7 @@ public class ExternalStrategyOverlap extends Message {
     }
 
     @Override public String getMessage() {
-        return "Strategy '" + locationTermString() + "' overlaps with an externally defined strategy";
+        return "Strategy '" + locationTermString + "' overlaps with an externally defined strategy";
     }
 
     public static ExternalStrategyOverlap followOrigin(IStrategoString name, long lastModified) {

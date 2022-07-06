@@ -1,0 +1,12 @@
+module congruence-arguments
+imports strategolib
+signature
+  sorts
+    Term
+  constructors
+    If : Term * Term -> Term
+
+strategies
+
+  main = <If(id, id)> If("a","b")
+

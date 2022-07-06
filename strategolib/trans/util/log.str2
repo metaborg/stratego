@@ -1,0 +1,236 @@
+/**
+ * Strategies for logging
+ */
+
+module util/log
+imports
+  collection/tuple/cons
+  collection/tuple/common
+  collection/list/cons
+  collection/list/common
+  term/string
+  term/integer
+  system/io/term
+  system/io/file
+  system/io/dir
+  system/io/process
+  util/config/common
+  util/config/options
+  util/config/verbose
+  strategy/conditional
+
+  lang/stacktrace
+
+signature
+  sorts
+    Severity
+  constructors
+    Emergency : Severity
+    Alert     : Severity
+    Critical  : Severity
+    Error     : Severity
+    Warning   : Severity
+    Notice    : Severity
+    Info      : Severity
+    Debug     : Severity
+    Vomit     : Severity
+
+strategies
+  debug-area(a -> b | string) :: a -> b
+  debug-area(s|msg) =
+      log(|Debug(), <conc-strings> ("entering area ", msg))
+    ; s
+    ; log(|Debug(), <conc-strings> ("leaving area ",  msg))
+
+  risky(a -> b | ?) :: a -> b
+  risky(s|msg) =
+    risky(s|Error(), msg)
+
+  risky(a -> b | Severity, ?) :: a -> b
+  risky(s|severity, msg) =
+    restore(s, log(|severity, msg, <id>))
+
+strategies
+
+  log(|Severity, ?, ?) :: a -> a
+  log(|severity : Severity, msg, term) =
+    if-log-severity(
+      log(|severity, msg)
+      ; where(
+          <copy-char; log-puts> (<addi> (<severity-string; string-length> severity, 3), ' ')
+        ; <write-in-text-to-stream> (<log-stream>, term)
+        ; <log-puts> "\n"
+        )
+    | severity
+    )
+
+  log(|Severity, ?) :: a -> a
+  log(|severity : Severity, msg) =
+    if-log-severity(
+      where(
+        <is-list <+ ![<id>]> msg
+      ; map(is-string <+ write-to-string)
+      ; <concat-strings ; log-puts> ["[ ", <log-src>, " | ",  <severity-string> severity, " ] " | <id> ]
+      ; <log-puts> "\n"
+      )
+    | severity
+    )
+
+  if-log-severity(a -> a | Severity) :: a -> a
+  if-log-severity(s | severity) =
+    if-verbose(s | <verbose-level> severity)
+
+strategies
+
+  log-stream :: ? -> Stream
+  log-stream =
+    <get-config> "log-stream"
+  log-stream =
+      <getenv> "STRATEGO_LOG"
+    ; <fopen> (<id>, "a")
+  log-stream =
+    <stderr-stream> ()
+
+  set-log-stream :: Stream -> ?
+  set-log-stream =
+    <set-config> ("log-stream", <id>)
+
+  log-puts :: string -> Stream
+  log-puts =
+    <fputs> (<id>, <log-stream> ())
+
+  log-src :: ? -> string
+  log-src =
+    whoami; base-filename
+    <+ !"identity crisis"
+
+rules
+
+  verbose-level :: Severity -> int
+  verbose-level : Emergency() -> -10
+  verbose-level : Alert()     -> -5
+  verbose-level : Critical()  -> -2
+  verbose-level : Error()     -> 0
+  verbose-level : Warning()   -> 1
+  verbose-level : Info()      -> 1
+  verbose-level : Notice()    -> 2
+  verbose-level : Debug()     -> 4
+  verbose-level : Vomit()     -> 10
+
+  severity-string :: Severity -> string
+  severity-string : Emergency() -> "emergency"
+  severity-string : Alert()     -> "alert"
+  severity-string : Critical()  -> "critical"
+  severity-string : Error()     -> "error"
+  severity-string : Info()      -> "info"
+  severity-string : Warning()   -> "warning"
+  severity-string : Notice()    -> "notice"
+  severity-string : Debug()     -> "debug"
+  severity-string : Vomit()     -> "vomit"
+
+  string-to-level :: string -> int
+  string-to-level : "emergency" -> level
+    where <verbose-level> Emergency() => level
+
+  string-to-level : "alert"     -> level
+    where <verbose-level> Alert() => level
+
+  string-to-level : "critical"  -> level
+    where <verbose-level> Critical() => level
+
+  string-to-level : "error"     -> level
+    where <verbose-level> Error() => level
+
+  string-to-level : "warning"   -> level
+    where <verbose-level> Warning() => level
+
+  string-to-level : "notice"    -> level
+    where <verbose-level> Notice() => level
+
+  string-to-level : "info"      -> level
+    where <verbose-level> Info() => level
+
+  string-to-level : "debug"     -> level
+    where <verbose-level> Debug() => level
+
+  string-to-level : "vomit"     -> level
+    where <verbose-level> Vomit() => level
+
+strategies
+
+  /**
+   * Logs the specified message as critical and terminates the program
+   * with exit code 1.
+   */
+  fatal-err(|string) :: ? -> b
+  fatal-err(|msg) =
+    log(|Critical(), msg, <id>);
+    fatal-err(|msg, <try(is(List(string));concat-strings)>)
+
+  /**
+   * Logs the specified message as an error.
+   */
+  err(|string) :: a -> a
+  err(|msg) =
+    log(|Error(), msg, <id>)
+
+  /**
+   * Logs the specified message as a warning.
+   */
+  warn(|string) :: a -> a
+  warn(|msg) =
+    log(|Warning(), msg, <id>)
+
+  /**
+   * Logs the specified message as a notice.
+   */
+  notice(|string) :: a -> a
+  notice(|msg) =
+    log(|Notice(), msg, <id>)
+
+  /**
+   * Logs the specified message as a debug.
+   */
+  dbg(|string) :: a -> a
+  dbg(|msg) =
+    log(|Debug(), msg, <id>)
+
+strategies
+
+  /**
+   * Logs the specified message as critical and terminates the program
+   * with exit code 1.
+   */
+  fatal-err-msg(|string) :: a -> b
+  fatal-err-msg(|msg) =
+    log(|Critical(), msg);
+    fatal-err(|msg, ())
+
+  /**
+   * Logs the specified message as an error.
+   */
+  err-msg(|string) :: a -> a
+  err-msg(|msg) =
+    log(|Error(), msg)
+
+  /**
+   * Logs the specified message as a warning.
+   */
+  warn-msg(|string) :: a -> a
+  warn-msg(|msg) =
+    log(|Warning(), msg)
+
+  /**
+   * Logs the specified message as a notice.
+   */
+  notice-msg(|string) :: a -> a
+  notice-msg(|msg) =
+    log(|Notice(), msg)
+
+strategies
+
+  external fatal-err :: (|?, ?, List(string)) a -> b
+
+  fatal-err(|?, ?) :: a -> b
+  fatal-err(|msg, term) =
+    fatal-err(|msg, term, <stacktrace-get-all-frame-names; Tl; Tl>)

@@ -18,7 +18,35 @@ public class DynRuleOverlapError extends Message {
     }
 
     @Override public String getMessage() {
-        return "Overlapping left-hand-sides for dynamic rule " + locationTerm + ": " + lhs1 + " in "
+        return "Overlapping left-hand-sides for dynamic rule " + locationTermString + ": " + lhs1 + " in "
             + def1 + " overlaps with " + lhs2 + " in " + def2 + ".";
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+        if(!super.equals(o))
+            return false;
+
+        DynRuleOverlapError that = (DynRuleOverlapError) o;
+
+        if(!lhs1.equals(that.lhs1))
+            return false;
+        if(!def1.equals(that.def1))
+            return false;
+        if(!lhs2.equals(that.lhs2))
+            return false;
+        return def2.equals(that.def2);
+    }
+
+    @Override public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + lhs1.hashCode();
+        result = 31 * result + def1.hashCode();
+        result = 31 * result + lhs2.hashCode();
+        result = 31 * result + def2.hashCode();
+        return result;
     }
 }

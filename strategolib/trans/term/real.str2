@@ -1,0 +1,84 @@
+/**
+ * This module contains strategies for operating on real numbers.
+ *
+ * In Stratego, real numbers are primitive terms, separate from
+ * integers. The precision of the reals match that of the underlying
+ * runtime platform, which currently always is the ANSI C library.
+ *
+ * @author Eelco Visser <visser@acm.org>
+ * @author Karl Trygve Kalleberg <karltk@strategoxt.org> - documentation
+ */
+module term/real
+imports collection/tuple/cons
+strategies
+
+  /** Predicate to check if the current term is a real number.
+   *
+   * @type Real -> Real
+   */
+  external is-real :: (|) ? -> real
+
+  /** Compute cosine of a real number.
+   *
+   * @type Real -> Real
+   */
+  external cos :: (|) real -> real
+
+  /** Compute sine of a real number.
+   *
+   * @type Real -> Real
+   */
+  external sin :: (|) real -> real
+
+  /** Compute square of a real number.
+   *
+   * Note: The number sqrt is applied to must be non-negative, as complex
+   * numbers are not supported.
+   *
+   * @type Real -> Real
+   */
+  external sqrt :: (|) real -> real
+
+  /** Compute arc tangent of a par of real numbers. The result, when applied to
+   * the pair (x,y), is the arc tangent of y/x, expressed as radians between
+   * -PI and PI. The signs of the parameters x and y are used to determine the
+   * correct quadrant.
+   *
+   * @type Real -> Real
+   */
+  atan2 :: real * real -> real
+  atan2 = ?(<id>, y); atan2(|y)
+
+  external atan2 :: (|real) real -> real
+
+  /** Convert a real to a string with default (maximal) precision.
+   *
+   * @type Real -> String
+   */
+  external real-to-string :: (|) real -> string
+
+  /** Convert a real to a string with given precision.
+   *
+   * The term argument prec specifies the number of digits after the
+   * period is required. The result is rounded.
+   *
+   * Example: <real-to-string(2)> 12.124 => "12.12"
+   *
+   * @type prec Int
+   * @type Real -> String
+   */
+  external real-to-string :: (|int) real -> string
+
+  /** Construct a real from a string.
+   *
+   * Example: <string-to-real> "123.0e+02"
+   *
+   * @type String -> Real
+   */
+  external string-to-real :: (|) string -> real
+
+  /** Construct a real from an int, also succeed if already a real.
+   *
+   * @type ? -> Real
+   */
+  external real :: (|) ? -> real

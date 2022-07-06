@@ -1,0 +1,119 @@
+module system/posix-xsi/file
+
+imports
+  term/string
+  system/error
+  system/posix/file
+  system/posix/file-abstractions
+  system/io/dir
+  system/io/file
+
+  collection/tuple/cons
+
+/**
+ * Generate a new, not existing file name.
+ */
+strategies
+
+  /**
+   * Safe, mkstemp based, creation of temporary file
+   */
+  new-temp-file :: ? -> string * FileDescriptor
+  new-temp-file =
+      <conc-strings> (<temp-dir>, "/StrategoXT")
+    ; mkstemp
+
+  /**
+   * Safe, mkdtemp based, creation of temporary directory
+   */
+  new-temp-dir :: ? -> string
+  new-temp-dir =
+      <conc-strings> (<temp-dir>, "/StrategoXT")
+    ; mkdtemp
+
+strategies
+
+  temp-dir :: ? -> string
+  temp-dir =
+    <getenv> "TMPDIR"
+    <+ P_tmpdir
+
+  external P_tmpdir :: (|) ? -> string
+
+  /**
+   * Creates a unique temporary file
+   *
+   * returns a fd if succesful, fails on error
+   * @type String -> String * Int
+   */
+  mkstemp :: string -> string * int
+  mkstemp =
+      <conc-strings> (<id>, "XXXXXX") => template
+    ; <internal-mkstemp> template
+    <+ <perror; fail> "SSL/mkstemp"
+
+  external internal-mkstemp :: (|) string -> string * int
+
+  /**
+   * Creates a unique temporary directory
+   *
+   * returns a fd if succesful, fails on error
+   * @type String -> String
+   */
+  mkdtemp :: string -> string
+  mkdtemp =
+      <conc-strings> (<id>, "XXXXXX") => template
+    ; <internal-mkdtemp> template
+    <+ <perror; fail> "SSL/mkdtemp"
+
+  external internal-mkdtemp :: (|) string -> string
+
+strategies
+
+ /**
+  * rename renames a file, moving it between directories if required.
+  * Any  other  hard links to the file (as created using link(2)) are unaffected.
+  *
+  * If newpath already exists it will be atomically replaced (subject to  a
+  * few  conditions ~ see ERRORS below), so that there is no point at which
+  * another process attempting to access newpath will find it missing.
+  *
+  * If newpath exists but the operation fails for some reason rename  guarantees
+  * to leave an instance of newpath in place.
+  *
+  * From 0.9.4 this implementation copies the file if the primitive rename
+  * fails because of an XDEV error.
+  */
+  rename-file :: string * string -> C99FileLoc
+  rename-file =
+      ?(oldname, newname)
+    ; (  <internal-rename-file(|newname)> oldname
+      <+ ( get-last-error => ErrorNumber(<EXDEV> ())
+         < <copy-file> (oldname, newname)
+           ; <remove-file> oldname
+         + fail
+         )
+      )
+
+ /**
+  * Copy a file using memory mapped I/O.
+  *
+  * If newname is a directory the file is copied to a file in the directory
+  * with the same base name as the old file.
+  */
+  copy-file :: string * string -> C99FileLoc
+  copy-file =
+    ?(oldname, newname)
+    ; where(
+        if <file-exists; filemode; isdir> newname then
+          <concat-strings>[newname, "/", <base-filename> oldname]
+        else !newname end => newname'
+      )
+    ; <internal-copy-file(|newname')> oldname
+
+  // Warning: not implemented
+  fdcopy :: FileDescriptor * FileDescriptor -> ?
+  fdcopy =
+    ?(<id>, fdout); internal-fdcopy(|fdout)
+
+  external internal-fdcopy :: (|FileDescriptor) FileDescriptor -> ?

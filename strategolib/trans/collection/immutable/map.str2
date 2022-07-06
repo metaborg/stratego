@@ -1,0 +1,622 @@
+/**
+ * This module contains strategies for operating on immutable maps.
+ *
+ * Note that these maps do not support generic traversal. These are "blob" terms without children
+ * and need to be operated on through the strategies in this module.
+ *
+ * @author Jeff Smits <mail@jeffsmits.net>
+ *
+ */
+module collection/immutable/map
+imports
+  collection/list/cons
+  collection/tuple/cons
+  collection/tuple/common
+  strategy/conditional
+  collection/immutable/set
+  collection/immutable/rel
+
+signature
+  sorts
+    ImmutableMap(*, *)
+    ImmutableMapImplBlob
+  constructors
+    /**
+     * Represents a reference to a Set
+     */
+    ImmutableMap : ImmutableMapImplBlob -> ImmutableMap(k, v)
+    : blob -> ImmutableMapImplBlob
+
+/**
+ * Immutable map construction and deconstruction
+ */
+strategies
+
+external internal-immutable-map :: (|) ? -> ImmutableMapImplBlob
+
+/**
+ * Create an empty immutable map.
+ *
+ * @type _ -> ImmutableMap
+ */
+immap-new :: ? -> ImmutableMap(k, v)
+immap-new = internal-immutable-map; !ImmutableMap(<id>)
+
+/**
+ * Create an immutable map from a list of pairs.
+ * If multiple keys map to the same value, the first value in the list is kept.
+ *
+ * @type List -> ImmutableMap
+ */
+immap-from-list :: List(k * v) -> ImmutableMap(k, v)
+immap-from-list = immap-from-list(Fst)
+
+external internal-immutable-map-from-list :: (k * k -> k|) List(k * v) -> ImmutableMapImplBlob
+
+/**
+ * Create an immutable map from a list of pairs.
+ * If multiple keys map to the same value, the given strategy merges the values of the intersecting
+ * keys.
+ *
+ * @param merge: Term * Term -> Term
+ * @type List -> ImmutableMap
+ */
+immap-from-list(k * k -> k) :: List(k * v) -> ImmutableMap(k, v)
+immap-from-list(merge) = internal-immutable-map-from-list(merge|); !ImmutableMap(<id>)
+
+external internal-immutable-map-to-list :: (|) ImmutableMapImplBlob -> List(k * v)
+
+/**
+ * Turn the immutable map into a list of pairs.
+ *
+ * @type ImmutableMap -> List
+ */
+immap-to-list :: ImmutableMap(k, v) -> List(k * v)
+immap-to-list = ?ImmutableMap(<id>); internal-immutable-map-to-list
+
+external internal-immutable-map-to-relation :: (|) ImmutableMapImplBlob -> ImmutableRelationImplBlob
+
+/**
+ * Turn the immutable map into an immutable relation.
+ *
+ * @type ImmutableMap -> ImmutableRelation
+ */
+immap-to-imrel :: ImmutableMap(k, v) -> ImmutableRelation(k, v)
+immap-to-imrel = ?ImmutableMap(<id>); internal-immutable-map-to-relation; !ImmutableRelation(<id>)
+
+external internal-immutable-map-keys :: (|) ImmutableMapImplBlob -> List(k)
+
+/**
+ * Get all keys of the immutable map.
+ *
+ * @type ImmutableMap -> List
+ */
+immap-keys :: ImmutableMap(k, v) -> List(k)
+immap-keys = ?ImmutableMap(<id>); internal-immutable-map-keys
+
+external internal-immutable-map-keys-to-set :: (|) ImmutableMapImplBlob -> ImmutableSetImplBlob
+
+/**
+ * Get all keys of the immutable map as an immutable set.
+ *
+ * @type ImmutableMap -> List
+ */
+immap-keys-imset :: ImmutableMap(k, v) -> ImmutableSet(k)
+immap-keys-imset = ?ImmutableMap(<id>); internal-immutable-map-keys-to-set; !ImmutableSet(<id>)
+
+external internal-immutable-map-values :: (|) ImmutableMapImplBlob -> List(v)
+
+/**
+ * Get all values of the immutable map.
+ *
+ * @type ImmutableMap -> List
+ */
+immap-values :: ImmutableMap(k, v) -> List(v)
+immap-values = ?ImmutableMap(<id>); internal-immutable-map-values
+
+/**
+ * Get all values of the immutable map.
+ *
+ * @type ImmutableMap -> ImmutableSet
+ */
+immap-values-imset :: ImmutableMap(k, v) -> ImmutableSet(v)
+immap-values-imset = immap-values; imset-from-list
+
+/**
+ * Elemental operations
+ */
+strategies
+
+/**
+ * Succeeds if the given immutable map is empty.
+ *
+ * @type ImmutableMap -?> ImmutableMap
+ */
+immap-empty :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-empty = equal(|<immap-new>)
+
+/**
+ * Succeeds if the key is in the immutable map.
+ *
+ * @param k - the key
+ * @type ImmutableMap -?> ImmutableMap
+ */
+immap-contains-key(|k) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-contains-key(|k) = where(immap-get(|k))
+
+/**
+ * Succeeds if the key is in the immutable map.
+ * With a custom equality operator.
+ *
+ * @param eq: Term * Term -?>
+ * @param k - the key
+ * @type ImmutableMap -?> ImmutableMap
+ */
+immap-contains-key(k * k -> ?|k) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-contains-key(eq|k) = where(immap-get(eq|k))
+
+external internal-immutable-map-get :: (|k) ImmutableMapImplBlob -> v
+
+/**
+ * Returns the associated value of the key in the immutable map,
+ * or fails if the key is not in the immutable map.
+ *
+ * @param k - the key used to look up the value
+ * @type ImmutableMap -?> Term
+ */
+immap-get(|k) :: ImmutableMap(k, v) -> v
+immap-get(|k) = ?ImmutableMap(<id>); internal-immutable-map-get(|k)
+
+external internal-immutable-map-get-eq :: (k * k -> ?|k) ImmutableMapImplBlob -> v
+
+/**
+ * Returns the associated value of the key in the immutable map,
+ * or fails if the key is not in the immutable map.
+ * With a custom equality operator.
+ *
+ * @param eq: Term * Term -?>
+ * @param k - the key used to look up the value
+ * @type ImmutableMap -?> Term
+ */
+immap-get(k * k -> ?|k) :: ImmutableMap(k, v) -> v
+immap-get(eq|k) = ?ImmutableMap(<id>); internal-immutable-map-get-eq(eq | k)
+
+external internal-immutable-map-put :: (|k, v) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Inserts a mapping in the immutable map. Returns a new map with the added mapping.
+ *
+ * @param k - the key of the mapping to be inserted
+ * @param v - the value of the mapping to be inserted
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-put(|k, v) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-put(|k, v) = ImmutableMap(internal-immutable-map-put(|k, v))
+
+external internal-immutable-map-put-eq :: (k * k -> ?|k, v) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Inserts a mapping in the immutable map. Returns a new map with the added mapping.
+ * With a custom equality operator.
+ *
+ * @param eq: Term * Term -?>
+ * @param k - the key of the mapping to be inserted
+ * @param v - the value of the mapping to be inserted
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-put(k * k -> ?|k, v) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-put(eq|k, v) = ImmutableMap(internal-immutable-map-put-eq(eq | k, v))
+
+external internal-immutable-map-remove :: (|k) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Removes a mapping in the immutable map. Returns a new map without the removed mapping.
+ *
+ * @param k - the key by which to find the mapping that is to be removed
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-remove(|k) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-remove(|k) = ImmutableMap(internal-immutable-map-remove(|k))
+
+external internal-immutable-map-remove-eq :: (k * k -> ?|k) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Removes a mapping in the immutable map. Returns a new map without the removed mapping.
+ * With a custom equality operator.
+ *
+ * @param eq: Term * Term -?>
+ * @param k - the key by which to find the mapping that is to be removed
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-remove(k * k -> ?|k) :: ImmutableMap(k, v) -> ImmutableMap(k, v)
+immap-remove(eq|k) = ImmutableMap(internal-immutable-map-remove-eq(eq | k))
+
+/**
+ * Higher-order operations
+ */
+strategies
+
+external internal-immutable-map-filter :: (k1 * v1 -> k2 * v2, k2 * (v2 * v2) -> v2|) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Remove all pairs from the immutable map for which the filter strategy fails.
+ * Returns a new immutable map without the removed pairs.
+ * For pairs mapped to the same key the values are merged with the second parameter.
+ * This version gives the merge function the key as well as the pair of values to merge.
+ *
+ * @param s: Term * Term -?> Term * Term
+ * @param merge: Term * (Term * Term) -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-filter'(k1 * v1 -> k2 * v2, k2 * (v2 * v2) -> v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-filter'(s, merge): ImmutableMap(b) -> ImmutableMap(<internal-immutable-map-filter(s, merge|)> b)
+
+/**
+ * Remove all pairs from the immutable map for which the filter strategy fails.
+ * Returns a new immutable map without the removed pairs.
+ * For pairs mapped to the same key the values are merged with the second parameter.
+ *
+ * @param s: Term * Term -?> Term * Term
+ * @param merge: Term * Term -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-filter(k1 * v1 -> k2 * v2, v2 * v2 -> v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-filter(s, merge) = immap-filter'(s, Snd;merge)
+
+/**
+ * Remove all pairs from the immutable map for which the filter strategy fails.
+ * Returns a new immutable map without the removed pairs.
+ * Pairs mapped to the same key keep one of the values (chosen arbitrarily).
+ *
+ * @param s: Term * Term -?> Term * Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-filter(k1 * v1 -> k2 * v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-filter(s) = immap-filter(s, Fst)
+
+/**
+ * Remove all pairs from the immutable map for which the filter strategy fails on the key.
+ * Returns a new immutable map without the removed pairs.
+ *
+ * @param s: Term -?> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-filter-keys(k1 -> k2) :: ImmutableMap(k1, v) -> ImmutableMap(k2, v)
+immap-filter-keys(s) = immap-filter((s, id))
+
+/**
+ * Remove all pairs from the immutable map for which the filter strategy fails on the value.
+ * Returns a new immutable map without the removed pairs.
+ *
+ * @param s: Term -?> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-filter-values(v1 -> v2) :: ImmutableMap(k, v1) -> ImmutableMap(k, v2)
+immap-filter-values(s) = immap-filter((id, s))
+
+external internal-immutable-map-map :: (k1 * v1 -> k2 * v2, k2 * (v2 * v2) -> v2|) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Map all pairs from the immutable map.
+ * Returns a new immutable map with the mapped pairs.
+ * For pairs mapped to the same key the values are merged with the second parameter.
+ * This version gives the merge function the key as well as the pair of values to merge.
+ *
+ * @param s: Term * Term -?> Term * Term
+ * @param merge: Term * (Term * Term) -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-map'(k1 * v1 -> k2 * v2, k2 * (v2 * v2) -> v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-map'(s, merge): ImmutableMap(b) -> ImmutableMap(<internal-immutable-map-map(s, merge|)> b)
+
+/**
+ * Map all pairs from the immutable map.
+ * Returns a new immutable map with the mapped pairs.
+ * For pairs mapped to the same key the values are merged with the second parameter.
+ *
+ * @param s: Term * Term -?> Term * Term
+ * @param merge: Term * Term -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-map(k1 * v1 -> k2 * v2, v2 * v2 -> v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-map(s, merge) = immap-map'(s, Snd;merge)
+
+/**
+ * Map all pairs from the immutable map.
+ * Returns a new immutable map with the mapped pairs.
+ * Pairs mapped to the same key keep one of the values (chosen arbitrarily).
+ *
+ * @param s: Term -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-map(k1 * v1 -> k2 * v2) :: ImmutableMap(k1, v1) -> ImmutableMap(k2, v2)
+immap-map(s) = immap-map(s, Fst)
+
+/**
+ * Map all keys from the immutable map.
+ * Returns a new immutable map with the mapped keys.
+ * For pairs mapped to the same key the values are merged with the second parameter.
+ *
+ * @param s: Term -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-map-keys(k1 -> k2, v * v -> v) :: ImmutableMap(k1, v) -> ImmutableMap(k2, v)
+immap-map-keys(s, merge) = immap-map((s, id), merge)
+
+/**
+ * Map all values from the immutable map.
+ * Returns a new immutable map with the mapped values.
+ *
+ * @param s: Term -> Term
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-map-values(v1 -> v2) :: ImmutableMap(k, v1) -> ImmutableMap(k, v2)
+immap-map-values(s) = immap-map((id, s))
+
+/**
+ * Combining operations
+ */
+strategies
+
+external internal-immutable-map-intersect :: (v * v -> v|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Intersect with another immutable map.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @param m: Term * Term -> Term
+ * @param other: ImmutableMap
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-intersect(v * v -> v|ImmutableMap(k,v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect(m|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-intersect(m | other))
+
+/**
+ * Intersect two immutable maps.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @param m: Term * Term -> Term
+ * @type ImmutableMap * ImmutableMap -> ImmutableMap
+ */
+immap-intersect(v * v -> v) :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect(m) =
+  ?(l, r); <immap-intersect(m|r)> l
+
+external internal-immutable-map-intersect-set :: (|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Intersect with an immutable set.
+ * Returns a new immutable map with the pairs where the key was in the immutable set.
+ *
+ * @param other: ImmutableSet
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-intersect-set(|ImmutableSet(k)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect-set(|r) = where(ImmutableSet(other) := r);
+  ImmutableMap(internal-immutable-map-intersect-set(|other))
+
+/**
+ * Intersect the left immutable map with the right immutable set.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-intersect-set :: ImmutableMap(k,v) * ImmutableSet(k) -> ImmutableMap(k,v)
+immap-intersect-set =
+  ?(l, r); <immap-intersect-set(|r)> l
+
+external internal-immutable-map-subtract :: (|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Subtract another immutable map from the given one.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @param other: ImmutableMap - the map to remove from the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-subtract(|ImmutableMap(k, v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract(|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-subtract(|other))
+
+/**
+ * Subtract the right immutable map from the left.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @type ImmutableMap * ImmutableMap -> ImmutableMap
+ */
+immap-subtract :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract =
+  ?(l, r); <immap-subtract(|r)> l
+
+external internal-immutable-map-subtract-set :: (|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Subtract an immutable set from the immutable map.
+ * Returns a new immutable map without the pairs where the key was in the immutable set.
+ *
+ * @param other: ImmutableSet - the set to remove from the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-subtract-set(|ImmutableSet(k)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract-set(|r) = where(ImmutableSet(other) := r);
+  ImmutableMap(internal-immutable-map-subtract-set(|other))
+
+/**
+ * Subtract the right immutable set from the left immutable map.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-subtract-set :: ImmutableMap(k,v) * ImmutableSet(k) -> ImmutableMap(k,v)
+immap-subtract-set =
+  ?(l, r); <immap-subtract-set(|r)> l
+
+external internal-immutable-map-union :: (v * v -> v|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Union with another immutable map.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new set with the union.
+ *
+ * @param m: Term * Term -> Term
+ * @param other: ImmutableMap - the map to add to the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-union(v * v -> v|ImmutableMap(k,v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-union(m|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-union(m | other))
+
+/**
+ * Union two immutable maps.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new map with the union.
+ *
+ * @param m: Term * Term -> Term
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-union(v * v -> v) :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-union(m) =
+  ?(l, r); <immap-union(m|r)> l
+
+/**
+ * Combining operations with custom equality operator (prefers the current/left mappings)
+ */
+strategies
+
+external internal-immutable-map-intersect-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Intersect with another immutable map.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @param m: Term * Term -> Term
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableMap
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-intersect(v * v -> v, v * v -> ?|ImmutableMap(k,v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect(m, eq|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-intersect-eq(m, eq | other))
+
+/**
+ * Intersect two immutable maps.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @param m: Term * Term -> Term
+ * @param eq: Term * Term -?>
+ * @type ImmutableMap * ImmutableMap -> ImmutableMap
+ */
+immap-intersect(v * v -> v, v * v -> ?) :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect(m, eq) =
+  ?(l, r); <immap-intersect(m, eq|r)> l
+
+external internal-immutable-map-intersect-set-eq :: (v * v -> ?|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Intersect with an immutable set.
+ * Returns a new immutable map with the pairs where the key was in the immutable set.
+ *
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableSet
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-intersect-set(v * v -> ?|ImmutableSet(k)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-intersect-set(eq|r) = where(ImmutableSet(other) := r);
+  ImmutableMap(internal-immutable-map-intersect-set-eq(eq | other))
+
+/**
+ * Intersect the left immutable map with the right immutable set.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new immutable map with the intersection.
+ *
+ * @param eq: Term * Term -?>
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-intersect-set(v * v -> ?) :: ImmutableMap(k,v) * ImmutableSet(k) -> ImmutableMap(k,v)
+immap-intersect-set(eq) =
+  ?(l, r); <immap-intersect-set(eq|r)> l
+
+external internal-immutable-map-subtract-eq :: (v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Subtract another immutable map from the given one.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableMap - the map to remove from the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-subtract(v * v -> ?|ImmutableMap(k,v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract(eq|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-subtract-eq(eq | other))
+
+/**
+ * Subtract the right immutable map from the left.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @param eq: Term * Term -?>
+ * @type ImmutableMap * ImmutableMap -> ImmutableMap
+ */
+immap-subtract(v * v -> ?) :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract(eq) =
+  ?(l, r); <immap-subtract(eq|r)> l
+
+external internal-immutable-map-subtract-set-eq :: (v * v -> ?|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Subtract an immutable set from the immutable map.
+ * Returns a new immutable map without the pairs where the key was in the immutable set.
+ *
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableSet - the set to remove from the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-subtract-set(v * v -> ?|ImmutableSet(k)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-subtract-set(eq|r) = where(ImmutableSet(other) := r);
+  ImmutableMap(internal-immutable-map-subtract-set-eq(eq | other))
+
+/**
+ * Subtract the right immutable set from the left immutable map.
+ * Returns a new immutable map without the pairs where the key was a key in the immutable map.
+ *
+ * @param eq: Term * Term -?>
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-subtract-set(v * v -> ?) :: ImmutableMap(k,v) * ImmutableSet(k) -> ImmutableMap(k,v)
+immap-subtract-set(eq) =
+  ?(l, r); <immap-subtract-set(eq|r)> l
+
+external internal-immutable-map-union-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob
+
+/**
+ * Union with another immutable map.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new map with the union.
+ *
+ * @param m: Term * Term -> Term
+ * @param eq: Term * Term -?>
+ * @param other: ImmutableMap - the map to remove from the current term immutable map
+ * @type ImmutableMap -> ImmutableMap
+ */
+immap-union(v * v -> v, v * v -> ?|ImmutableMap(k,v)) :: ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-union(m, eq|r) = where(ImmutableMap(other) := r);
+  ImmutableMap(internal-immutable-map-union-eq(m, eq | other))
+
+/**
+ * Union two immutable maps.
+ * The given strategy merges the values of the intersecting keys.
+ * Returns a new map with the union.
+ *
+ * @param m: Term * Term -> Term
+ * @param eq: Term * Term -?>
+ * @type ImmutableMap * ImmutableSet -> ImmutableMap
+ */
+immap-union(v * v -> v, v * v -> ?) :: ImmutableMap(k,v) * ImmutableMap(k,v) -> ImmutableMap(k,v)
+immap-union(m, eq) =
+  ?(l, r); <immap-union(m, eq|r)> l

@@ -11,6 +11,7 @@ imports
 
   strc
   strc/front/frontend
+  strc/incr/compile
 
   strj
   strj/s2j
@@ -58,14 +59,13 @@ rules // Debugging
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend-sep-comp
     ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
-    ; debug1
     ; where(
         <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
       ; <set-config> ("--single-strategy", ())
       ; <set-config> ("--fusion", "off")
       ; <set-config> ("--cache-dir", ".")
       ; <set-config> ("-p", "test")
-      ; strj-preinit-options
+      ; strj-preinit-options(|["org.strategoxt.stratego_lib"])
       ; <dirname> path
       ; rules(OutputDirName := <id>)
       )

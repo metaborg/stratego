@@ -1,0 +1,22 @@
+/**
+ * Strategies for exploring directories.
+ */
+module system/io/dir
+strategies
+
+  /**
+   * Removes a file from a directory.
+   */
+  external remove-file :: (|) string -> string
+
+ /**
+  * The  getenv() function searches the environment list for a
+  * string that matches the string pointed to  by  name.   The
+  * strings are of the form name = value.
+  */
+  external getenv :: (|) string -> string
+
+strategies
+  home-dir :: string -> string
+  home-dir =
+    <getenv> "HOME"

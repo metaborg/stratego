@@ -444,6 +444,10 @@ rules
     |[ s1 +> s2 ]| -> |[ s2 <+ s1 ]|
     // RChoice(s1, s2) -> LChoice(s2, s1)
 
+  Desugar:
+    LTrySome(s1, s2) -> |[ s1 < s2 <+ id + s2 ]|
+//   |[ s1 <* s2 ]| -> |[ s1 < s2 <+ id + s2 ]|
+
   Desugar :
     |[ if s1 then s2 else s3 end ]| -> |[ where(s1) < s2 + s3 ]|
 
@@ -468,7 +472,7 @@ rules
 
   Desugar :
     |[ where(s) ]| -> |[ {x: ?x; s; !x} ]|
-    where <not(Id)> s
+    where <not(?Id())> s
     with x := <tnewvar> "where"
 
   Desugar :
@@ -646,11 +650,36 @@ rules
     "'\\r'" -> 13
   DesugarChar : // space
     "'\\ '" -> 32
+  DesugarChar : // quotation mark / double quote mark
+    "'\\\"'" -> 34
+  DesugarChar : // backspace
+    "'\\b'" -> 8
+  DesugarChar : // form feed
+    "'\\f'" -> 12
+  DesugarChar : // backslash
+    "'\\\\'" -> 92
 
 // note: this should not be done in frontend if already done by pack-stratego
   DesugarOnce : 
     Str(x) -> Str(y)
-    where <un-double-quote; unescape> x => y
+    where <un-double-quote; local-unescape> x => y
+
+internal local-unescape(|) = string-as-chars(local-unescape-chars)
+
+internal local-unescape-chars(|) = unescape-chars(local-UnEscape)
+
+internal local-UnEscape(|) =
+    UnEscape-double-quote
+  + UnEscape-backslash
+  + UnEscape-linefeed
+  + UnEscape-tab
+  + UnEscape-carriage-return
+  + UnEscape-single-quote
+  + UnEscape-backspace
+  + UnEscape-form-feed
+
+internal UnEscape-backspace(|) = \['\', 'b'  | cs ] -> [8 | cs ]\
+internal UnEscape-form-feed(|) = \['\', 'f'  | cs ] -> [12 | cs ]\
 
 strategies
 

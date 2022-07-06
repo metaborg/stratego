@@ -1,0 +1,60 @@
+module partition-test
+imports strategolib
+
+signature
+  sorts
+    String
+    Section
+    Module(a)
+    List(a)
+  constructors
+    Imports : List(String) -> Section
+    Module  : string * List(a) -> Module(a)
+    Content : string -> Section
+
+strategies
+  part( a -> b ) :: List(a) -> (List(b) * List(a))
+  part(s) :
+    [] -> ([], [])
+  part(s) :
+    [x | xs] -> ([y | ys], zs)
+    where <s> x => y
+    ;     <part(s)> xs => (ys, zs) 
+  part(s) :
+    [x | xs] -> (ys, [x | zs])
+    where <part(s)> xs => (ys, zs)
+
+  input =
+    ![ Module("module3",[Imports(["module1"]),Content("module3")])
+     , "module4"
+     , Module("module2",[Imports([]),Content("module2")])
+     , "module7"
+     , Module("module1",[Imports(["module2","module3"]),Content("module1")])
+     ]
+
+  main = 
+    test-suite(!"partition-test",
+    test1;
+    test2
+    )
+
+  test1 = 
+    apply-test(!"test1"
+    , partition(?Module(<id>, _))
+    , input
+    , !(["module3", "module2", "module1"], ["module4", "module7"])
+    )
+
+  test2 = 
+    apply-test(!"test1"
+    , part(?Module(<id>, _))
+    , input
+    , !(["module3", "module2", "module1"], ["module4", "module7"])
+    )
+
+  test3 = 
+    apply-test(!"test1"
+    , partition(?Module(<id>, _))
+    , input
+    , input;part(?Module(<id>, _))
+    )

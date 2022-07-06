@@ -1,13 +1,11 @@
 module gradual-types/modules
 imports
   core/identifiers
+  core/strategies
   gradual-types/signatures
 
-sorts Def
 context-free syntax
 
-  Def.DefHasTypeNoArgs = [[Id] :: [SSimpleFunType]]
-  
-  Def.DefHasType       = [[Id]([{SType ", "}*]) :: [SSimpleFunType]]
-  
-  Def.DefHasTType      = [[Id]([{SType ", "}*] | [{Type ", "}*]) :: [SSimpleFunType]]
+  Def.DefHasTypeNoArgs = [[SId] :: [SSimpleFunType]]
+  Def.DefHasType       = [[SId]([{SType ", "}*]) :: [SSimpleFunType]]
+  Def.DefHasTType      = [[SId]([{SType ", "}*] | [{Type ", "}*]) :: [SSimpleFunType]]

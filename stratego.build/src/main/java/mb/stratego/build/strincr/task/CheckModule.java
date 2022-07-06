@@ -4,11 +4,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -19,9 +22,12 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
+import io.usethesource.capsule.Set;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -32,12 +38,14 @@ import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.ConstructorType;
 import mb.stratego.build.strincr.data.GTEnvironment;
-import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyAnalysisData;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.function.GetAllModuleIdentifiers;
 import mb.stratego.build.strincr.function.GetDynamicRuleDefinitions;
+import mb.stratego.build.strincr.function.GetStrategyType;
 import mb.stratego.build.strincr.function.ModulesDefiningStrategy;
 import mb.stratego.build.strincr.function.ToAnnoDefs;
 import mb.stratego.build.strincr.function.ToTypesLookup;
@@ -49,20 +57,23 @@ import mb.stratego.build.strincr.message.InternalStrategyOverlap;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.message.StrategyOverlapsWithDynamicRuleHelper;
-import mb.stratego.build.strincr.message.TypeSystemInternalCompilerError;
+import mb.stratego.build.strincr.message.UnreachableModule;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.MissingDefinitionForTypeDefinition;
+import mb.stratego.build.strincr.message.type.MissingStrategyTypeImport;
+import mb.stratego.build.strincr.message.type.MissingTypeDefinition;
+import mb.stratego.build.strincr.message.type.TypeSystemInternalCompilerError;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.termvisitors.CountErrT;
+import mb.stratego.build.termvisitors.FindErrT;
+import mb.stratego.build.termvisitors.FindSortTP;
 import mb.stratego.build.util.InsertCastsInput;
 import mb.stratego.build.util.InsertCastsOutput;
 import mb.stratego.build.util.InvalidASTException;
-import mb.stratego.build.util.PieUtils;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.StrIncrContext;
 
@@ -94,7 +105,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
     @Override public CheckModuleOutput exec(ExecContext context, CheckModuleInput input) throws Exception {
         if(input.frontInput.moduleIdentifier.isLibrary()) {
-            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0), new ArrayList<>(0));
+            return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
+                new LinkedHashSet<>(0), new ArrayList<>(0));
         }
 
         final @Nullable ModuleData moduleData = context.require(front, input.frontInput);
@@ -102,9 +114,13 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
 
         final IModuleImportService.ModuleIdentifier moduleIdentifier =
             input.frontInput.moduleIdentifier;
+        final ArrayList<Message> messages = new ArrayList<>();
 
+        final LinkedHashSet<StrategySignature> strategiesDefinedByModule = new LinkedHashSet<>();
+        final ResolveInput resolveInput = input.resolveInput();
         final GTEnvironment environment =
-            prepareGTEnvironment(context, moduleData, input.frontInput);
+            prepareGTEnvironment(context, moduleData, input.frontInput, strategiesDefinedByModule,
+                resolveInput, messages);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
@@ -116,33 +132,55 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             strategyDataWithCasts =
             extractStrategyDefs(moduleIdentifier, output.astWithCasts, dynamicRules);
 
-        final ArrayList<Message> messages = new ArrayList<>(output.messages.size());
         messages.addAll(output.messages);
 
-        otherChecks(context, input.resolveInput(), moduleData, messages, projectPath);
+        otherChecks(context, resolveInput, moduleData, messages, projectPath);
 
-        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, messages);
+        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, strategiesDefinedByModule,
+            messages);
     }
 
     void otherChecks(ExecContext context, ResolveInput input, ModuleData moduleData,
         ArrayList<Message> messages, String projectPath) throws ExecException {
-        checkExternalsInternalsOverlap(context, moduleData.normalStrategyData,
+        final HashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData = new HashMap<>(moduleData.normalStrategyData);
+        Relation.putAll(strategyData, moduleData.internalStrategyData, ArrayList::new);
+        Relation.putAll(strategyData, moduleData.externalStrategyData, ArrayList::new);
+        checkExternalsInternalsOverlap(context, strategyData,
             moduleData.dynamicRuleData.keySet(), moduleData.lastModified, messages, input);
-        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules, moduleData.lastModified,
-            messages, projectPath);
+        checkDynamicRuleOverlap(context, input, moduleData.dynamicRules.keySet(),
+            moduleData.lastModified, messages, projectPath);
+        checkUnreachableModule(context, input, moduleData, messages);
+    }
+
+    private void checkUnreachableModule(ExecContext context, ResolveInput input,
+        ModuleData moduleData, ArrayList<Message> messages) {
+        LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers =
+            context.requireMapping(resolve, input, GetAllModuleIdentifiers.INSTANCE);
+        if(!allModuleIdentifiers.contains(moduleData.moduleIdentifier)) {
+            messages.add(new UnreachableModule(tryGetModuleName(moduleData.ast), moduleData.moduleIdentifier, moduleData.lastModified));
+        }
+    }
+
+    private static IStrategoTerm tryGetModuleName(IStrategoTerm ast) {
+        if(TermUtils.isAppl(ast, "Module", 2)) {
+            return ast.getSubterm(0);
+        }
+        return ast;
     }
 
     private void checkDynamicRuleOverlap(ExecContext context, ResolveInput input,
-        LinkedHashSet<StrategySignature> dynamicRules, long lastModified,
-        ArrayList<Message> messages, String projectPath) throws ExecException {
-        final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule = new HashSet<>();
+        Collection<StrategySignature> dynamicRules, long lastModified, ArrayList<Message> messages,
+        String projectPath) throws ExecException {
+        final HashSet<IModuleImportService.ModuleIdentifier> modulesDefiningDynamicRule =
+            new HashSet<>();
         for(StrategySignature dynamicRule : dynamicRules) {
-            modulesDefiningDynamicRule.addAll(PieUtils.requirePartial(context, resolve, input, new ModulesDefiningStrategy(dynamicRule)));
+            modulesDefiningDynamicRule.addAll(
+                context.requireMapping(resolve, input, new ModulesDefiningStrategy(dynamicRule)));
         }
         final ArrayList<IStrategoTerm> containsDynRuleDefs = new ArrayList<>();
         for(IModuleImportService.ModuleIdentifier moduleIdentifier : modulesDefiningDynamicRule) {
-            containsDynRuleDefs.addAll(PieUtils
-                .requirePartial(context, front, Resolve.getFrontInput(input, moduleIdentifier),
+            containsDynRuleDefs.addAll(
+                context.requireMapping(front, Resolve.getFrontInput(input, moduleIdentifier),
                     GetDynamicRuleDefinitions.INSTANCE));
         }
         final IStrategoTerm overlapMessages =
@@ -176,28 +214,45 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             messages.add(Message.from(noteTerm, MessageSeverity.NOTE, lastModified));
         }
 
-        // sanity check
+        // sanity checks
+        final List<StrategySignature> defsWithSortTP = FindSortTP.findSortTP(astWithCasts);
+        if(!defsWithSortTP.isEmpty()) {
+            messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast),
+                "type system did not give error message on checking TP but did not prove it was TP either", defsWithSortTP,
+                MessageSeverity.ERROR, lastModified));
+        }
         if(errors.isEmpty()) {
-            if(CountErrT.countErrT(astWithCasts) > 0) {
-                messages.add(
-                    new TypeSystemInternalCompilerError(input.environment.ast, MessageSeverity.ERROR,
-                        lastModified));
+            final List<StrategySignature> defsWithErrT = FindErrT.findErrT(astWithCasts);
+            if(!defsWithErrT.isEmpty()) {
+                messages.add(new TypeSystemInternalCompilerError(astToFilenameTerm(input.environment.ast),
+                    "type system did not give errors but did insert cast to error type in", defsWithErrT,
+                    MessageSeverity.ERROR, lastModified));
             }
         }
         return new InsertCastsOutput(astWithCasts, messages);
     }
 
+    private IStrategoString astToFilenameTerm(IStrategoTerm ast) {
+        final @Nullable ImploderAttachment location = ImploderAttachment.get(OriginAttachment.tryGetOrigin(ast));
+        final String filename = location.getLeftToken().getFilename();
+        final IStrategoString filenameTerm = tf.makeString(filename);
+        if(location != null) {
+            filenameTerm.putAttachment(ImploderAttachment.createCompactPositionAttachment(filename, 0, 0, 0, 0));
+        }
+        return filenameTerm;
+    }
+
     private void checkExternalsInternalsOverlap(ExecContext context,
-        Map<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
+        Map<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages, ResolveInput resolveInput) {
         final HashSet<StrategySignature> strategyFilter =
-            new HashSet<>(normalStrategyData.keySet());
+            new HashSet<>(strategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs =
-            PieUtils.requirePartial(context, resolve, resolveInput, new ToAnnoDefs(strategyFilter));
+            context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));
 
-        for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
+        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : strategyData
             .entrySet()) {
             final StrategySignature strategySignature = e.getKey();
             final IStrategoString signatureNameTerm = TermUtils.toStringAt(strategySignature, 0);
@@ -206,27 +261,27 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
             for(StrategyFrontData strategyFrontData : e.getValue()) {
                 if(strategyFrontData.kind == StrategyFrontData.Kind.TypeDefinition && kinds
                     .contains(strategyFrontData.kind)) {
-                    messages
-                        .add(new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
-                            MessageSeverity.ERROR, lastModified));
+                    messages.add(
+                        new DuplicateTypeDefinition(strategyFrontData.signature.getSubterm(0),
+                            lastModified));
                 }
                 kinds.add(strategyFrontData.kind);
             }
             if(kinds.contains(StrategyFrontData.Kind.Override) || kinds
                 .contains(StrategyFrontData.Kind.Extend)) {
                 if(!annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages.add(
-                        ExternalStrategyNotFound.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(ExternalStrategyNotFound.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
             }
             if(kinds.contains(StrategyFrontData.Kind.Normal)) {
                 if(annoDefs.externalStrategySigs.contains(strategySignature)) {
-                    messages
-                        .add(ExternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(ExternalStrategyOverlap.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
                 if(annoDefs.internalStrategySigs.contains(strategySignature)) {
-                    messages
-                        .add(InternalStrategyOverlap.followOrigin(signatureNameTerm, lastModified));
+                    messages.add(InternalStrategyOverlap.followOrigin(signatureNameTerm,
+                        annoDefs.lastModified));
                 }
                 if(dynamicRuleGenerated.contains(strategySignature)) {
                     messages.add(new StrategyOverlapsWithDynamicRuleHelper(signatureNameTerm,
@@ -292,7 +347,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                 if(strategySignature == null) {
                     throw new InvalidASTException(moduleIdentifier, strategyDefAppl);
                 }
-                final LinkedHashSet<StrategySignature> definedDynamicRules =
+                final TreeSet<StrategySignature> definedDynamicRules =
                     CollectDynRuleSigs.collect(strategyDefAppl);
                 Relation.getOrInitialize(strategyData, strategySignature, LinkedHashSet::new).add(
                     new StrategyAnalysisData(strategySignature, strategyDefAppl,
@@ -306,23 +361,43 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     }
 
     GTEnvironment prepareGTEnvironment(ExecContext context, ModuleData moduleData,
-        FrontInput frontInput) {
+        FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions,
+        ResolveInput resolveInput, ArrayList<Message> messages) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
             io.usethesource.capsule.Map.Transient.of();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
+        final Set.Transient<SortSignature> sorts = Set.Transient.of();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 
         // Get the relevant strategy and constructor types and all injections, that are defined in
         //     the module itself
-        registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, injections);
+        registerModuleDefinitions(moduleData, strategyTypes, constructorTypes, sorts, injections);
 
-        // Get the relevant strategy and constructor types and all injections, that are visible
+        moduleDefinitions.addAll(moduleData.normalStrategyData.keySet());
+        // TODO: is this necessary? I don't think multiple internal strategy definitions are allowed anyway
+        moduleDefinitions.addAll(moduleData.internalStrategyData.keySet());
+        // Get the relevant strategy and constructor types and all sorts and injections, that are visible
         //     through the import, not following them transitively!
         final ToTypesLookup toTypesLookup =
-            new ToTypesLookup(moduleData.usedStrategies, moduleData.usedAmbiguousStrategies,
-                moduleData.usedConstructors);
+            new ToTypesLookup(new LinkedHashSet<>(moduleDefinitions),
+                new LinkedHashSet<>(moduleData.overlayData.keySet()), moduleData.usedStrategies,
+                moduleData.usedAmbiguousStrategies, moduleData.usedConstructors);
+        final HashMap<StrategySignature, IStrategoTerm> strategyDefsWithType = new HashMap<>();
+        final HashSet<StrategySignature> strategyDefsWithoutType = new HashSet<>();
+        normalStrategyDataLoop:
+        for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : moduleData.normalStrategyData
+            .entrySet()) {
+            StrategySignature sig = e.getKey();
+            for(StrategyFrontData sfd : e.getValue()) {
+                if(sfd.kind.equals(StrategyFrontData.Kind.TypeDefinition)) {
+                    strategyDefsWithType.put(sig, sfd.signature.getSubterm(0));
+                    continue normalStrategyDataLoop;
+                }
+            }
+            strategyDefsWithoutType.add(sig);
+        }
         final HashSet<IModuleImportService.ModuleIdentifier> seen = new HashSet<>();
         seen.add(frontInput.moduleIdentifier);
         seen.addAll(moduleData.imports);
@@ -330,13 +405,28 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         while(!worklist.isEmpty()) {
             final IModuleImportService.ModuleIdentifier moduleIdentifier = worklist.remove();
             final FrontInput moduleInput =
-                new FrontInput.Normal(moduleIdentifier, frontInput.strFileGeneratingTasks,
-                    frontInput.includeDirs, frontInput.linkedLibraries, frontInput.autoImportStd);
+                new FrontInput.Normal(moduleIdentifier, frontInput.importResolutionInfo,
+                    frontInput.autoImportStd);
             final TypesLookup typesLookup =
-                PieUtils.requirePartial(context, front, moduleInput, toTypesLookup);
+                context.requireMapping(front, moduleInput, toTypesLookup);
             for(Map.Entry<StrategySignature, StrategyType> e : typesLookup.strategyTypes
                 .entrySet()) {
-                ToTypesLookup.registerStrategyType(strategyTypes, e.getKey(), e.getValue());
+                final StrategySignature signature = e.getKey();
+                final StrategyType strategyType = e.getValue();
+
+                final @Nullable StrategyType current = strategyTypes.get(signature);
+                if(current == null || !(strategyType instanceof StrategyType.Standard)) {
+                    if(current == null || current instanceof StrategyType.Standard) {
+                        strategyTypes.__put(signature, strategyType);
+                    } else if(!(current instanceof StrategyType.Standard) && !(strategyType instanceof StrategyType.Standard)) {
+                        // Problem found and reported already in Resolve
+                    }
+                }
+
+                moduleDefinitions.remove(signature);
+                if(!(strategyType instanceof StrategyType.Standard)) {
+                    strategyDefsWithoutType.remove(signature);
+                }
             }
             for(Map.Entry<ConstructorSignature, HashSet<ConstructorType>> e : typesLookup.constructorTypes
                 .entrySet()) {
@@ -344,53 +434,66 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     constructorTypes.__insert(e.getKey(), ty);
                 }
             }
+            sorts.__insertAll(typesLookup.sorts);
             for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : typesLookup.allInjections
                 .entrySet()) {
                 for(IStrategoTerm to : e.getValue()) {
                     injections.__insert(e.getKey(), to);
                 }
             }
-            // TODO: do not resolve imports transitively when the module importing is Stratego 2
-            for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
-                if(!seen.contains(anImport)) {
-                    seen.add(anImport);
-                    worklist.add(anImport);
+            // if unless it's a Stratego 1 module, we have to follow the transitive imports...
+            if(frontInput.moduleIdentifier.legacyStratego()) {
+                for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
+                    if(!seen.contains(anImport)) {
+                        seen.add(anImport);
+                        worklist.add(anImport);
+                    }
                 }
             }
         }
 
         final StrategoImmutableMap strategyEnvironment =
             new StrategoImmutableMap(strategyTypes.freeze());
-        return GTEnvironment
-            .from(strategyEnvironment, constructorTypes.freeze(), injections.freeze(),
-                moduleData.ast, tf, moduleData.lastModified);
+        for(StrategySignature strategyDefWithoutType : strategyDefsWithoutType) {
+            final GetStrategyType getStrategyType = new GetStrategyType(strategyDefWithoutType);
+            final StrategyType strategyType =
+                context.requireMapping(resolve, resolveInput, getStrategyType);
+            if(strategyType == null || strategyType instanceof StrategyType.Standard) {
+                messages.add(new MissingTypeDefinition(strategyDefWithoutType.getSubterm(0), moduleData.lastModified));
+            } else {
+                messages.add(new MissingStrategyTypeImport(strategyDefWithoutType.getSubterm(0),
+                    moduleData.lastModified));
+            }
+        }
+        return GTEnvironment.from(strategyEnvironment, constructorTypes.freeze(), sorts.freeze(),
+            injections.freeze(), moduleData.ast, tf, moduleData.lastModified);
     }
 
     private void registerModuleDefinitions(ModuleData moduleData,
         io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes,
         BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes,
-        BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+        Set.Transient<SortSignature> sorts, BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.internalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData
             .values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
             }
         }
-        for(HashSet<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.dynamicRuleData.values()) {
             for(StrategyFrontData strategyFrontDatum : strategyFrontData) {
                 ToTypesLookup.registerStrategyType(strategyTypes, strategyFrontDatum.signature,
                     strategyFrontDatum.type);
@@ -399,31 +502,33 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.constrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
         for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.externalConstrData
             .entrySet()) {
             for(ConstructorData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
-        for(Map.Entry<ConstructorSignature, ArrayList<OverlayData>> e : moduleData.overlayData
+        for(Map.Entry<ConstructorSignature, ArrayList<ConstructorData>> e : moduleData.overlayData
             .entrySet()) {
-            for(OverlayData d : e.getValue()) {
-                constructorTypes.__put(e.getKey(), d.type);
+            for(ConstructorData d : e.getValue()) {
+                constructorTypes.__insert(e.getKey(), d.type);
             }
         }
+        sorts.__insertAll(moduleData.sortData);
+        sorts.__insertAll(moduleData.externalSortData);
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.injections
             .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
-                injections.__put(e.getKey(), to);
+                injections.__insert(e.getKey(), to);
             }
         }
         for(Map.Entry<IStrategoTerm, ArrayList<IStrategoTerm>> e : moduleData.externalInjections
             .entrySet()) {
             for(IStrategoTerm to : e.getValue()) {
-                injections.__put(e.getKey(), to);
+                injections.__insert(e.getKey(), to);
             }
         }
     }

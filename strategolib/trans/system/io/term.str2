@@ -1,0 +1,329 @@
+/**
+ * Term input and output.
+ */
+module system/io/term
+imports
+  system/posix/file
+
+  system/io/char
+  system/io/dir
+  system/io/file
+  system/io/process
+  system/error
+
+  term/common
+  term/integer
+  term/string
+  collection/list/common
+  collection/list/cons
+  collection/tuple/cons
+  strategy/conditional
+  util/config/options
+  util/log
+
+/**
+ * Term input and output
+ */
+strategies
+
+  /**
+   * <ReadFromFile> file reads the term in file.
+   * The file needs to be in textual or binary ATerm format.
+   *
+   * @type File -> a
+   */
+  ReadFromFile :: FileLoc -> ?
+  ReadFromFile =
+      ( <open-stream> (<id>, "r")
+      <+ <conc-strings; perror; fail> ("SSL/ReadFromFile ", <write-to-string>))
+    ; where(read-from-stream => trm)
+    ; fclose
+    ; !trm
+
+  /**
+   * <WriteToBinaryFile> (file, term) writes term to file in BAF format.i
+   *
+   * @type File * a -> a
+   */
+  WriteToBinaryFile :: FileLoc * a -> a
+  WriteToBinaryFile =
+    WriteToFile(write-in-baf-to-stream)
+
+  /**
+   * <WriteToTextFile> (file, term) writes term to file in textual ATerm format.
+   *
+   * @type File * a -> a
+   */
+  WriteToTextFile :: FileLoc * a -> a
+  WriteToTextFile =
+    WriteToFile(write-in-text-to-stream; <fputc> ('\n', <id>))
+
+  /**
+   * <WriteToFile(s)> (file, term) writes term to file with the writer s.
+   *
+   * @type (Stream * a -> Stream) * File * a -> a
+   */
+  WriteToFile(Stream * a -> Stream) :: FileLoc * a -> a
+  WriteToFile(writer) =
+      ?(<id>, trm)
+    ; <open-stream> (<id>, "w")
+    ; <writer> (<id>, trm)
+    ; fclose
+    ; !trm
+
+  open(a -> FileLoc) :: a -> ?
+  open(file) =
+    file; ReadFromFile
+
+  save(a -> FileLoc) :: a -> a
+  save(file) =
+    <WriteToTextFile> (<file>, <id>)
+
+/**
+ * ATerm input and output with streams
+ *
+ * @TODO move to io module.
+ */
+strategies
+
+  /**
+   * Writes an ATerm to a Stream.
+   *
+   * @type Stream * _ -> Stream
+   */
+  write-to-stream :: Stream * a -> Stream
+  write-to-stream =
+    write-in-baf-to-stream
+
+  write-in-baf-to-stream :: Stream * a -> Stream
+  write-in-baf-to-stream =
+    ?(Stream(stream), <id>); internal-write-term-to-stream-baf(|stream); !Stream(<id>)
+
+  write-in-taf-to-stream :: Stream * a -> Stream
+  write-in-taf-to-stream =
+    ?(Stream(stream), <id>); internal-write-term-to-stream-taf(|stream); !Stream(<id>)
+
+  write-in-text-to-stream :: Stream * a -> Stream
+  write-in-text-to-stream =
+    ?(Stream(stream), <id>); internal-write-term-to-stream-text(|stream); !Stream(<id>)
+
+  external internal-write-term-to-stream-baf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-saf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-taf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-text :: (|StreamImplBlob) ? -> StreamImplBlob
+
+  external internal-read-term-from-stream :: (|) StreamImplBlob -> ?
+
+  /**
+   * Reads an ATerm from a Stream
+   *
+   * @type Stream -> _
+   */
+  read-from-stream :: Stream -> ?
+  read-from-stream =
+    ?Stream(<id>); internal-read-term-from-stream
+
+  /**
+   * Reads an ATerm from a String
+   *
+   * @type String -> _
+   */
+  external read-from-string :: (|) string -> ?
+
+  /**
+   * Writes an ATerm to a String
+   *
+   * @type a -> String
+   */
+  external write-to-string :: (|) a -> string
+
+  /**
+   * Writes an ATerm to a binary string represented as a list of chars.
+   *
+   * @type a -> List(Char)
+   */
+  external write-to-binary-string :: (|) ? -> List(Char)
+
+  /**
+   * Writes an ATerm to a shared string represented as a list of chars.
+   *
+   * @type a -> List(Char)
+   */
+  external write-to-shared-string :: (|) ? -> List(Char)
+
+strategies
+
+  /**
+   * Prints the terms to a stream. If a term is a string it is printed
+   * without quotes, otherwise it is printed as a term.
+   *
+   * @type Stream * [a] -> Stream
+   */
+  fprint :: ? * List(?) -> Stream
+  fprint =
+    (?Stream(_) <+ is(FileLoc);stdio-stream, id)
+    ; ?(stream :: Stream, <id>)
+    ; map(
+        where(
+          is-string
+        < <fputs> (<id>, stream)
+        + <write-in-text-to-stream> (stream, <id>)
+        )
+      )
+    ; !stream
+
+  /**
+   * fprint, followed by a newline.
+   *
+   * @type Stream * [a] -> Stream
+   */
+  fprintnl :: ? * List(?) -> Stream
+  fprintnl =
+    fprint; <fputc> ('\n', <id>)
+
+ /**
+  * Prints terms to a file. If \verb|ti| is a string it is printed without
+  * quotes, otherwise it is printed as a term. \verb|printnl| has the same
+  * behaviour, but also prints a newline after \verb|tn|.
+  *
+  * E.g. <print> (file, [t1,...,tn]) prints terms ti to file. Terms ti
+  * that are strings are printed without quotes
+  *
+  * @obsolete use fprint
+  */
+  print :: Stream * List(?) -> Stream
+  print =
+    ?(stream, strs)
+    ; obsolete(!"print: use fprint")
+    ; fprint
+
+ /**
+  * Same as print, but prints a newline at the end.
+  *
+  * @obsolete use fprintnl
+  */
+  printnl :: Stream * List(?) -> Stream * List(?)
+  printnl =
+    ?(stream, strs)
+    ; obsolete(!"printnl: use fprintnl")
+
+strategies
+
+  /**
+   * Prints the current term to stderr without changing it.
+   * This is a useful strategy for debugging specifications (hence its name).
+   *
+   * @type  a -> a
+   */
+  debug :: a -> a
+  debug =
+    where(<fprintnl> (stderr(), [<id>]))
+
+  /**
+   * Prints the term produced by applying msg followed by the current term to stderr.
+   *
+   * @type  a -> a
+   */
+  debug(a -> ?) :: a -> a
+  debug(msg) =
+    where(<fprintnl> (stderr(), [<msg>,<id>]))
+
+strategies
+
+  debug-depth :: a -> a
+  debug-depth =
+    debug-depth(!4, !"")
+
+  debug-depth(Tuple() -> int) :: a -> a
+  debug-depth(depth) =
+    debug-depth(depth, !"")
+
+  debug-depth(Tuple() -> int, ? -> ?) :: a -> a
+  debug-depth(depth, s) =
+    where(
+      at-depth(depth, !"...")
+    ; debug(s)
+    )
+
+strategies
+
+  /**
+   * Prints the term produced by applying msg to stderr.
+   *
+   * @param  term to print to stderr
+   * @type   a -> a
+   */
+  say(a -> ?) :: a -> a
+  say(msg) =
+    where(msg; debug)
+
+  trace(a -> ?, a -> a) :: a -> a
+  trace(msg,s) =
+    debug(msg); (s; debug(!"succeeded: ") <+ debug(!"failed: "))
+
+  /**
+   * Prints a list of terms to stderr using fprintnl.
+   *
+   * @type List(a) -> List(a)
+   */
+  error :: List(a) -> List(a)
+  error =
+    where(<fprintnl> (stderr(), <id>))
+
+  /**
+   * Prints a list of terms to stderr using fprintnl and exits with code 1.
+   *
+   * @type List(a) -> List(a)
+   */
+  fatal-error :: List(string) -> b
+  fatal-error =
+      error
+    ; fatal-err(|<concat-strings>, ())
+
+  /**
+   * Prints giving-up to stderr and exits with code 1.
+   *
+   * @type _ -> _
+   */
+  giving-up :: a -> b
+  giving-up =
+    <fatal-error> ["giving-up"]
+
+  /**
+   * Logs an obsolete strategy message with the given message.
+   *
+   * @param Strategy that produces a string message.
+   * @type  a -> a
+   */
+  obsolete(Tuple() -> string) :: a -> a
+  obsolete(msg) =
+    log(|Warning(), <conc-strings> ("program uses obsolete strategy ", <msg> ()))
+
+  /**
+   * Tries to apply s and prints msg to stderr if this fails.
+   * Risky preserves the failure of s: if s fails, then risky will
+   * fail as well.
+   *
+   * @param Strategy that produces a string message
+   * @param Strategy to apply
+   * @type  a -> a
+   */
+  risky(a -> ?, a -> a) :: a -> a
+  risky(msg, s) =
+    restore(s, debug(msg))
+
+/**
+ * Print to the stdout. You usually don't want this.
+ */
+strategies
+  echo :: a -> a
+  echo =
+    where(<fprintnl> (stdout(), <is-list <+ ![<id>]>))
+
+  echo(a -> ?) :: a -> a
+  echo(msg) =
+    where(<fprintnl> (stdout(), [<msg>,<id>]))
+
+  printstring :: string -> string
+  printstring =
+    where(<fprint> (stdout(), [<id>]))

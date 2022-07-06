@@ -1,0 +1,98 @@
+module outline
+
+imports
+  strategolib
+
+imports
+  
+  signatures/gpp-sig
+//  libspoofax/editor/outline
+
+rules
+  
+internal editor-outline:
+    (_, _, ast, path, project-path) -> outline
+    where
+      outline := <simple-label-outline(to-outline-label)> ast
+  
+internal  to-outline-label = fail
+
+signature // copied from libspoofax
+  sorts
+    Label Children Node
+  constructors
+
+    Node : Label * Children -> Node
+
+strategies
+
+  /**
+   * Creates an outline given a strategy s1 that rewrites AST nodes to outline labels.
+   * Only AST nodes for which s1 succeed end up in the outline.
+   *
+   * Example:
+   *   outline = simple-label-outline(to-outline-label)
+   *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-label: Property(name, _) -> name
+   */
+internal  simple-label-outline(s1) = collect-om(to-outline-node(s1, fail), conc)
+
+  /**
+   * Similar to simple-label-outline(s1), but with an additional strategy s2 that rewrites
+   * AST nodes to outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
+   *
+   * Example:
+   *   outline = custom-label-outline(to-outline-label, to-outline-node)
+   *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-node: Property(name, _) -> Node(name, [Node("dummy", [])])
+   */
+internal  custom-label-outline(s1, s2) = collect-om(origin-track-forced(s2) <+ to-outline-node(s1, s2), conc)
+
+  /**
+  * @internal
+  * Note: we annotate labels with random numbers to guarantee that similar labels do not share the
+  * same in-memory term, which would cause origins to be overwritten.
+  */
+internal  to-outline-node(s1, s2):
+    term -> Node(label, children)
+    where
+      random := <next-random>;
+      label := <origin-track-forced(s1; term-to-outline-label; add-annotation(|random); remove-annotations(?random))> term;
+      children := <get-arguments; custom-label-outline(s1, s2)> term
+
+  /**
+  * @internal
+  */
+internal  term-to-outline-label =
+    is-string
+      <+
+    ?term{a}; origin-text; ?label; !label{a}
+      <+
+    write-to-string // fallback
+
+strategies
+
+internal  origin-track-forced(s) =
+    ![<id>]; all(s); ?[<id>]
+
+internal  origin-text      = origin-support-sublist(prim("SSL_EXT_origin_text", <id>))
+
+internal  origin-support-sublist(s) =
+    (origin-sublist-term; s) <+
+    (?[h|[]]; <s> h) <+
+    s
+
+internal  origin-sublist-term = prim("SSL_EXT_origin_sublist_term", <id>)
+
+strategies
+
+internal  add-annotation(|a):
+    t{a*} -> t{a, a*} where <not(is-list)> a
+
+internal  add-annotations(|a'*):
+    t{a*} -> t{a''*} where <is-list> a'*; a''* := [a'*, a*]
+
+internal  remove-annotations(s):
+    t{a*} -> t{a'*}
+    where
+      a'* := <remove-all(s)> a*

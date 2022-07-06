@@ -1,6 +1,6 @@
 module core/identifiers
 
-sorts ModName ModNamePart
+lexical sorts ModName ModNamePart
 lexical syntax
   ModName = {ModNamePart "/"}+
   ModNamePart = [a-zA-Z\.\_] [a-zA-Z0-9\'\.\-\_]*
@@ -13,7 +13,7 @@ context-free syntax
   ModName = "signature"   {reject}
   ModName = "strategies"  {reject}
 
-sorts Id LId LCID UCID Wld SortVar
+lexical sorts Id LId LCID UCID SortVar BuiltInType SomeSort
 lexical syntax
 // Removed leading underscore option, nearly always conflicts with Term.BuildDefault
 //  Id   = [a-zA-Z\_] [a-zA-Z0-9\'\-\_]*
@@ -24,12 +24,13 @@ lexical syntax
 
   LCID = [a-z] [a-zA-Z0-9\'\-\_]*
   UCID = [A-Z] [a-zA-Z0-9\'\-\_]*
-  
+
   SortVar = LCID
   SortVar = BuiltInType {reject}
   BuiltInType = "string"
   BuiltInType = "int"
   BuiltInType = "real"
+  BuiltInType = "blob"
 
 lexical restrictions
   Id   -/- [a-zA-Z0-9\'\_\*]
@@ -46,10 +47,7 @@ lexical syntax
   LCID = Keyword  {reject}
   UCID = Keyword  {reject}
 
-context-free restrictions
-  Wld -/- [a-zA-Z0-9\'\-\_]
-
-sorts Keyword
+lexical sorts Keyword
 lexical syntax
   Keyword = "all"
   Keyword = "constructors"
@@ -72,7 +70,7 @@ lexical syntax
   Keyword = "stratego"
   Keyword = "test"
   Keyword = "where"
-  Keyword = "with"
+//  Keyword = "with"
   Keyword = "import-term"
   Keyword = "is"
 

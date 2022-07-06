@@ -16,7 +16,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import static org.spoofax.interpreter.core.Interpreter.cify;
 
-public class StrategySignature extends StrategoTuple {
+public class StrategySignature extends StrategoTuple implements Comparable<StrategySignature> {
     public final String name;
     public final int noStrategyArgs;
     public final int noTermArgs;
@@ -48,7 +48,7 @@ public class StrategySignature extends StrategoTuple {
     }
 
     public HashMap<StrategySignature, StrategyType> dynamicRuleSignatures(ITermFactory tf) {
-        final String n = cify(this.name);
+        final String n = this.name;
         final int s = this.noStrategyArgs;
         final int t = this.noTermArgs;
         final HashMap<StrategySignature, StrategyType> result = new HashMap<>(40);
@@ -136,7 +136,6 @@ public class StrategySignature extends StrategoTuple {
         if(!TermUtils.isAppl(term)) {
             return null;
         }
-        final IStrategoString name = TermUtils.toStringAt(term, 0);
         final int sArity;
         final int tArity;
         switch(TermUtils.toAppl(term).getName()) {
@@ -198,6 +197,40 @@ public class StrategySignature extends StrategoTuple {
             default:
                 return null;
         }
+        final IStrategoString name = TermUtils.toStringAt(term, 0);
         return new StrategySignature(name, sArity, tArity);
+    }
+
+    public static @Nullable StrategySignature fromTuple(IStrategoTerm tuple) {
+        if(!(TermUtils.isTuple(tuple, 3) && TermUtils.isStringAt(tuple, 0) && TermUtils.isIntAt(
+            tuple, 1) && TermUtils.isIntAt(tuple, 2))) {
+            return null;
+        }
+        return new StrategySignature(TermUtils.toStringAt(tuple, 0),
+            TermUtils.toJavaIntAt(tuple, 1), TermUtils.toJavaIntAt(tuple, 2));
+    }
+
+    @Override public int compareTo(StrategySignature o) {
+        final int nameComparison = this.name.compareTo(o.name);
+        if(nameComparison != 0) {
+            return nameComparison;
+        }
+        final int noStrategyArgsComparison = Integer.compare(this.noStrategyArgs, o.noStrategyArgs);
+        if(noStrategyArgsComparison != 0) {
+            return noStrategyArgsComparison;
+        }
+        return Integer.compare(this.noTermArgs, o.noTermArgs);
+    }
+
+    /**
+     * Interpret strategy signature as congruence
+     *
+     * @return constructor signature corresponding with this strategy being it's congruence. Returns null if strategy has term arguments.
+     */
+    public @Nullable ConstructorSignature toConstructorSignature() {
+        if(noTermArgs != 0) {
+            return null;
+        }
+        return new ConstructorSignature(name, noStrategyArgs);
     }
 }

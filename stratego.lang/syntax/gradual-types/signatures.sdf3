@@ -2,8 +2,9 @@ module gradual-types/signatures
 
 imports
   core/identifiers
+  core/signatures
 
-sorts Type SortT Dyn ConstrType
+context-free sorts Type SortT Dyn
 context-free syntax
   ConstType.DynT = Dyn
   Dyn.Dyn          = [?]
@@ -12,17 +13,23 @@ context-free syntax
   Type.StringT     = "string"
   Type.IntT        = "int"
   Type.RealT       = "real"
+  Type.BlobT       = "blob"
   Type             = [([Type])] {bracket}
   Type             = SortT
   SortT.Sort       = [[Id]([{Type ", "}*])]
   SortT.SortNoArgs = UCID
+  SortT            = "TP" {reject}
   SortT.SortVar    = SortVar
+
+  SortArg.TupleT      = [[Sort] * [{Sort " * "}+]]
+  SortArg.DynT        = Dyn
+
 context-free priorities
   Type.TupleT <0> .> Type.TupleT,
   {Type "*"}+ = Type <0> .> Type.TupleT,
   {Type "*"}+ = {Type "*"}+ "*" Type <2> .> Type.TupleT
 
-sorts SType SFunType
+context-free sorts SType SFunType SSimpleFunType FunTType
 context-free syntax
   SType.SDyn             = [?]
   SType                  = SFunType

@@ -1,0 +1,9 @@
+module system/c99/fallback-posix
+
+imports
+  util/config/options
+
+strategies
+
+  report-run-time =
+    id

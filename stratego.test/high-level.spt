@@ -1,11 +1,18 @@
 module high-level
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-  specification
+  module test
 
-  signature constructors
+  signature
+  sorts
+    Expr
+    List(*)
+    Module
+    Stat
+    Tuple(*, *)
+  constructors
     Int : string -> Expr
     Add : Expr * Expr -> Expr
 
@@ -56,10 +63,10 @@ test Typed Ill-Formed AST gives error [[
    0 warnings
    has origin locations
 
-test Typed Ill-Formed AST with indirection gives error inside where clause because it's a rule, not a strategy [[
+test Typed Ill-Formed AST with indirection gives error on use [[
     typed :: Expr -> Expr
-    typed: e1 -> Add(e1, e2)
-    where [[e2]] := "1"
+    typed: e1 -> Add(e1, [[e2]])
+    where e2 := "1"
 ]] 1 error at #1
    0 warnings
    has origin locations
@@ -72,7 +79,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
    0 warnings
    has origin locations
 
-test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+test Typed AST assigned incompatible typed value gives error on constructor [[
     typed :: Expr -> Expr
     typed: e1 -> Add(e1, e2)
     where [[Add]](e2 :: Expr, _) := "1"
@@ -80,7 +87,7 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
    0 warnings
    has origin locations
 
-test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+test Typed AST pattern with incorrectly typed whild gives error on child [[
     typed :: Expr -> Expr
     typed: e1 -> Add(e1, e2)
     where Add([[e2 :: string]], _) := e1
@@ -88,11 +95,11 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on va
    0 warnings
    has origin locations
 
-test Typed Ill-Formed AST with indirection and type ascription gives error on variable definition [[
+test Dynamically typed Ill-Formed AST gives warning on child [[
     typed :: Expr -> Expr
-    typed: e1 -> Add(e1, e2)
+    typed: e1 -> Add(e1, e1)
     where Add([[e2 :: string]], _) :: ? := e1
-]] 1 errors at #1
+]] 0 errors
    1 warning at #1
    has origin locations
 
@@ -104,10 +111,10 @@ test Typed Ill-Formed AST with indirection and type ascription gives error on li
    0 warnings
    has origin locations
 
-test Typed Ill-Formed AST with more indirection gives error inside where clause because it's a rule, not a strategy [[
+test Typed Ill-Formed AST with more indirection gives error on use [[
     typed :: Expr -> Expr
-    typed: e1 -> Add(e1, e2)
-    where [[e2]] := Add(Int("1"), [["1"]])
+    typed: e1 -> Add(e1, [[e2]])
+    where e2 := Add(Int("1"), [["1"]])
 ]] 1 error at #1
    1 warning at #2
    has origin locations
@@ -147,26 +154,26 @@ test Type ascription inside an untyped strategy is ok [[
    run count-inserted-casts-and-proxies to 0
 
 // TODO: requires tracking current-type originated from a specific variable
-test Strengthen type of dyn variable after use in typed position [[
-    typed1 :: Expr -> Expr
-    typed1: e -> Add(e, e)
-
-    typed2 :: Stat -> Stat
-    typed2 = id
-
-    untyped: Add(e1, _) -> e1
-    where
-      <typed1> e1
-    ; <[[typed2]]> e1
-]] 1 error at #1
-   0 warnings
-   has origin locations
+//test Strengthen type of dyn variable after use in typed position [[
+//    typed1 :: Expr -> Expr
+//    typed1: e -> Add(e, e)
+//
+//    typed2 :: Stat -> Stat
+//    typed2 = id
+//
+//    untyped: Add(e1, _) -> e1
+//    where
+//      <typed1> e1
+//    ; <[[typed2]]> e1
+//]] 1 error at #1
+//   0 warnings
+//   has origin locations
 
 test Different types in different branches [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -179,9 +186,9 @@ test Different types in different branches [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <something-else> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
@@ -189,10 +196,10 @@ test Different types in different branches [[
    has origin locations
 
 test Dynamic type after different types in branches #1 [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -206,9 +213,9 @@ test Dynamic type after different types in branches #1 [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
@@ -216,10 +223,10 @@ test Dynamic type after different types in branches #1 [[
    has origin locations
 
 test Dynamic type after different types in branches #2 [[
-  map(? -> ?|) :: List(?) -> List(?)
-  map(s) = fail
-  Snd :: ? * ? -> ?
-  Snd = fail
+  internalmap(? -> ?|) :: List(?) -> List(?)
+  internalmap(s) = fail
+  internalSnd :: ? * ? -> ?
+  internalSnd = fail
   s = fail
   returns-a-list :: ? -> List(?)
   returns-a-list = fail
@@ -233,14 +240,15 @@ test Dynamic type after different types in branches #2 [[
   local-variable-type-inference: a -> b
   where if <s> a
     then c := <returns-a-list> a
-       ; <map(do-something)> c // c :: List(?), no cast necessary
+       ; <internalmap(do-something)> c // c :: List(?), no cast necessary
     else c := <returns-a-pair> a
-       ; <Snd; do-something> c // c :: ? * ?, no cast necessary
+       ; <internalSnd; do-something> c // c :: ? * ?, no cast necessary
     end
   ; b := <[[something-else]]> c // c :: ?, cast necessary when matching to anything
 ]] 0 errors
    0 warnings
-   has origin locations
+// inserted cast does runtime check on type of something-else, which is a Sort("Tuple", [DynT(), DynT()]) where the Tuple string has no origins
+//   has origin locations
 
 test Duplicate type definitions not allowed [[
   something-else :: List(?) -> ?
@@ -256,11 +264,15 @@ test Overloaded constructor, unambiguous use [[
     Explode(t_0, t_1) -> Explode(t_0', t_1)
     where t_0' := <RightContext(?As(_, _)) + fail> t_0
 
-signature constructors
-
-  Explode             : Term * Term -> PreTerm
-  As                  : Var * Term -> Term 
-  As                  : Var * PreTerm -> PreTerm
+signature
+  sorts
+    Term
+    PreTerm
+    Var
+  constructors
+    Explode             : Term * Term -> PreTerm
+    As                  : Var * Term -> Term 
+    As                  : Var * PreTerm -> PreTerm
 ]] 0 errors
    0 warnings
    has origin locations

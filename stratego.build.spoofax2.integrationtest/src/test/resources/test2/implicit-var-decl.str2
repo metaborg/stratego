@@ -1,0 +1,10 @@
+module implicit-var-decl
+imports strategolib
+
+strategies
+
+  main =
+	parse-options(io-options);
+	?options;
+	option-defined(?Program(prog));
+	<fprintnl> (stdout(), [prog, "\n", options])

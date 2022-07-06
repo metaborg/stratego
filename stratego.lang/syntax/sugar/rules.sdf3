@@ -8,34 +8,35 @@ module sugar/rules
     sugar/terms
     sugar/strategies
 
-sorts RuleDef
-
 template options
   tokenize: ")(|"
 
+context-free sorts RuleDef RDefT RDefP
 context-free syntax
   RuleDef.RDefNoArgs =
-<<Id>:
+<<SId>:
   <Rule>>
 
   Def.AnnoDef =
     <<Anno+> <RuleDef>>
 
   RuleDef.RDef =
-<<Id>(<{Typedid ", "}*>):
+<<SId>(<{Typedid ", "}*>):
   <Rule>>
 
-  RuleDef.RDefT =
-<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>):
+  RuleDef = RDefT
+  RDefT.RDefT =
+<<SId>(<{Typedid ", "}*> | <{Typedid ", "}*>):
   <Rule>>
 
   // Rule definition with pattern matched term parameters
-  RuleDef.RDefP =
-<<Id>(<{Typedid ", "}*> | <{TermNoVar ", "}*>):
+  RuleDef = RDefP
+  RDefP.RDefP =
+<<SId>(<{Typedid ", "}*> | <{Term ", "}+>):
   <Rule>>
+  RDefP = RDefT {reject}
 
-sorts Rule RuleCond
-
+context-free sorts Rule RuleCond
 context-free syntax
 
   Rule.Rule = [[Term] -> [Term]

@@ -1,4 +1,7 @@
 specification
 signature
+  sorts
+    String
+    Fred
   constructors
     Fred : String -> Fred

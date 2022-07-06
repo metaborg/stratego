@@ -16,6 +16,28 @@ public class FailedToGetModuleAst extends Message {
 
     @Override public String getMessage() {
         return "Cannot get module AST for module " + moduleIdentifier.moduleString()
-            + "with exception:\n" + exception.toString();
+            + " with exception:\n" + exception.toString();
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o)
+            return true;
+        if(o == null || getClass() != o.getClass())
+            return false;
+        if(!super.equals(o))
+            return false;
+
+        FailedToGetModuleAst that = (FailedToGetModuleAst) o;
+
+        if(!moduleIdentifier.equals(that.moduleIdentifier))
+            return false;
+        return exception.equals(that.exception);
+    }
+
+    @Override public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + moduleIdentifier.hashCode();
+        result = 31 * result + exception.hashCode();
+        return result;
     }
 }

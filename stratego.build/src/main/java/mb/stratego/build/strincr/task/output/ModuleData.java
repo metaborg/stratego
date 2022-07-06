@@ -5,68 +5,89 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.util.TermUtils;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.strincr.task.Front;
+import mb.stratego.build.termvisitors.HasDynamicRuleDefinitions;
+import mb.stratego.build.util.InvalidASTException;
 import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.WithLastModified;
 
 /**
  * The AST of a module and some of it's data pre-extracted.
+ * The imports are pre-resolved and therefore are not purely derived from the ast, same with the
+ * messages. Everything in between is not put into hash/equals because it's directly derived from
+ * the ast.
  */
 public class ModuleData implements Serializable, WithLastModified {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
+    public final ArrayList<String> str2LibPackageNames;
     public final IStrategoTerm ast;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
+    public final LinkedHashSet<SortSignature> sortData;
+    public final LinkedHashSet<SortSignature> externalSortData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData;
     public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         normalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         internalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>>
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>>
         externalStrategyData;
-    public final LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData;
-    public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final LinkedHashSet<ConstructorSignature> usedConstructors;
     public final LinkedHashSet<StrategySignature> usedStrategies;
-    public final LinkedHashSet<StrategySignature> dynamicRules;
+    public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
     public final LinkedHashSet<String> usedAmbiguousStrategies;
     public final ArrayList<Message> messages;
     public final long lastModified;
     private transient @Nullable LinkedHashMap<String, LinkedHashSet<StrategyFrontData>>
         ambStrategyIndex = null;
+    private transient @Nullable ArrayList<IStrategoTerm> dynamicRuleDefinitions = null;
 
-    public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier, IStrategoTerm ast,
+    public ModuleData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+        ArrayList<String> str2LibPackageName, IStrategoTerm ast,
         ArrayList<IModuleImportService.ModuleIdentifier> imports,
+        LinkedHashSet<SortSignature> sortData, LinkedHashSet<SortSignature> externalSortData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> constrData,
         LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> externalConstrData,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> externalInjections,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> normalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> internalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> externalStrategyData,
-        LinkedHashMap<StrategySignature, LinkedHashSet<StrategyFrontData>> dynamicRuleData,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> normalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
+        LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
+        LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts, LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         LinkedHashSet<ConstructorSignature> usedConstructors,
         LinkedHashSet<StrategySignature> usedStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules,
+        LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
         LinkedHashSet<String> usedAmbiguousStrategies, ArrayList<Message> messages,
         long lastModified) {
         this.moduleIdentifier = moduleIdentifier;
+        this.str2LibPackageNames = str2LibPackageName;
         this.ast = ast;
         this.imports = imports;
+        this.sortData = sortData;
+        this.externalSortData = externalSortData;
         this.constrData = constrData;
         this.externalConstrData = externalConstrData;
         this.injections = injections;
@@ -76,6 +97,8 @@ public class ModuleData implements Serializable, WithLastModified {
         this.externalStrategyData = externalStrategyData;
         this.dynamicRuleData = dynamicRuleData;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
+        this.overlayUsedConstrs = overlayUsedConstrs;
         this.usedConstructors = usedConstructors;
         this.usedStrategies = usedStrategies;
         this.dynamicRules = dynamicRules;
@@ -84,7 +107,59 @@ public class ModuleData implements Serializable, WithLastModified {
         this.lastModified = lastModified;
     }
 
+    public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
+        if(ambStrategyIndex == null) {
+            ambStrategyIndex = new LinkedHashMap<>();
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : normalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : internalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : externalStrategyData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+            for(Map.Entry<StrategySignature, ArrayList<StrategyFrontData>> e : dynamicRuleData
+                .entrySet()) {
+                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
+                    .addAll(e.getValue());
+            }
+        }
+        return ambStrategyIndex;
+    }
+
+    public ArrayList<IStrategoTerm> dynamicRuleDefinitions() {
+        if(dynamicRuleDefinitions == null) {
+            dynamicRuleDefinitions = new ArrayList<>();
+            final IStrategoList defs = Front.getDefs(moduleIdentifier, ast);
+            for(IStrategoTerm def : defs) {
+                if(!TermUtils.isAppl(def) || def.getSubtermCount() != 1) {
+                    throw new InvalidASTException(moduleIdentifier, def);
+                }
+                switch(TermUtils.toAppl(def).getName()) {
+                    case "Rules":
+                        // fall-through
+                    case "Strategies":
+                        for(IStrategoTerm strategyDef : def.getSubterm(0)) {
+                            if(HasDynamicRuleDefinitions.visit(strategyDef)) {
+                                dynamicRuleDefinitions.add(strategyDef);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+        return dynamicRuleDefinitions;
+    }
+
     @Override public boolean equals(Object o) {
+        // N.B. since the whole AST is used in equals/hashcode, we don't need to check any of the fields derived from the AST
         if(this == o)
             return true;
         if(o == null || getClass() != o.getClass())
@@ -100,32 +175,6 @@ public class ModuleData implements Serializable, WithLastModified {
             return false;
         if(!imports.equals(that.imports))
             return false;
-        if(!constrData.equals(that.constrData))
-            return false;
-        if(!externalConstrData.equals(that.externalConstrData))
-            return false;
-        if(!injections.equals(that.injections))
-            return false;
-        if(!externalInjections.equals(that.externalInjections))
-            return false;
-        if(!normalStrategyData.equals(that.normalStrategyData))
-            return false;
-        if(!internalStrategyData.equals(that.internalStrategyData))
-            return false;
-        if(!externalStrategyData.equals(that.externalStrategyData))
-            return false;
-        if(!dynamicRuleData.equals(that.dynamicRuleData))
-            return false;
-        if(!overlayData.equals(that.overlayData))
-            return false;
-        if(!usedConstructors.equals(that.usedConstructors))
-            return false;
-        if(!usedStrategies.equals(that.usedStrategies))
-            return false;
-        if(!dynamicRules.equals(that.dynamicRules))
-            return false;
-        if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
-            return false;
         return messages.equals(that.messages);
     }
 
@@ -133,53 +182,39 @@ public class ModuleData implements Serializable, WithLastModified {
         int result = moduleIdentifier.hashCode();
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
-        result = 31 * result + constrData.hashCode();
-        result = 31 * result + externalConstrData.hashCode();
-        result = 31 * result + injections.hashCode();
-        result = 31 * result + externalInjections.hashCode();
-        result = 31 * result + normalStrategyData.hashCode();
-        result = 31 * result + internalStrategyData.hashCode();
-        result = 31 * result + externalStrategyData.hashCode();
-        result = 31 * result + dynamicRuleData.hashCode();
-        result = 31 * result + overlayData.hashCode();
-        result = 31 * result + usedConstructors.hashCode();
-        result = 31 * result + usedStrategies.hashCode();
-        result = 31 * result + dynamicRules.hashCode();
-        result = 31 * result + usedAmbiguousStrategies.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 
     @Override public String toString() {
-        return "ModuleData(" + moduleIdentifier + ')';
-    }
-
-    public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
-        if(ambStrategyIndex == null) {
-            ambStrategyIndex = new LinkedHashMap<>();
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : normalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : internalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : externalStrategyData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-            for(Map.Entry<StrategySignature, LinkedHashSet<StrategyFrontData>> e : dynamicRuleData
-                .entrySet()) {
-                Relation.getOrInitialize(ambStrategyIndex, e.getKey().name, LinkedHashSet::new)
-                    .addAll(e.getValue());
-            }
-        }
-        return ambStrategyIndex;
+        //@formatter:off
+        return "ModuleData@" + System.identityHashCode(this) + '{'
+            + "moduleIdentifier=" + moduleIdentifier
+            + ", str2LibPackageName='" + str2LibPackageNames + '\''
+            + ", ast=" + ast.toString(4)
+            + ", imports=" + imports
+            + ", sortData=" + sortData.size()
+            + ", externalSortData=" + externalSortData.size()
+            + ", constrData=" + constrData.size()
+            + ", externalConstrData=" + externalConstrData.size()
+            + ", injections=" + injections.size()
+            + ", externalInjections=" + externalInjections.size()
+            + ", normalStrategyData=" + normalStrategyData.size()
+            + ", internalStrategyData=" + internalStrategyData.size()
+            + ", externalStrategyData=" + externalStrategyData.size()
+            + ", dynamicRuleData=" + dynamicRuleData.size()
+            + ", overlayData=" + overlayData.size()
+            + ", overlayUsedConstrs=" + overlayUsedConstrs.size()
+            + ", usedConstructors=" + usedConstructors.size()
+            + ", usedStrategies=" + usedStrategies.size()
+            + ", dynamicRules=" + dynamicRules.size()
+            + ", usedAmbiguousStrategies=" + usedAmbiguousStrategies.size()
+            + ", messages=" + messages.size()
+            + ", lastModified=" + lastModified
+            + (ambStrategyIndex == null ? "" : ", ambStrategyIndex=" + ambStrategyIndex.size())
+            + '}';
+        //@formatter:on
     }
 
     @Override public long lastModified() {

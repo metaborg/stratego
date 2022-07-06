@@ -1,0 +1,30 @@
+module test36
+imports collection/list/cons collection/tuple/cons
+signature
+  sorts
+    FILE
+    Term
+  constructors
+    Stream : Term -> Term
+    stdout : FILE
+
+strategies
+
+  main = 
+    ?foo
+    ; <fclose> Stream(0)
+    ; gclose(|1)
+    ; !foo
+
+  fclose =
+    try(?Stream(o))
+
+  gclose( | foo) =
+    rec x(
+    { bar : 
+      !foo
+      ; ?bar
+    }
+    )
+
+  try(s) = s <+ id

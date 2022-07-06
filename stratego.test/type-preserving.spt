@@ -1,0 +1,125 @@
+module type-preserving
+
+language StrategoLang
+
+fixture [[
+  module test
+
+  signature
+    sorts
+      List(*)
+      Option(*)
+      PolyType(a)
+      Tuple(*, *)
+      Tuple()
+    constructors
+      One : a -> PolyType(a)
+      Cons : a * List(a) -> List(a)
+      Nil : List(a)
+      Some : a -> Option(a)
+      None : Option(a)
+
+  rules
+  [[...]]
+]]
+
+test Type preserving generic traversal with explicit recursion [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Type preserving generic traversal with Rec construct is not supported [[
+  somespinetd(TP) :: TP
+  somespinetd(s) =
+    rec x(s; try(some([[x]])))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test A forall a. a -> a strategy can be used in sarg position which expected a TP strategy [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+
+  debug :: a -> a
+  debug = fail
+
+  main :: TP
+  main = spinetd(debug)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Simple type preserving tracking [[
+  at-depth(Tuple() -> int, TP) :: TP
+  at-depth(depth, s) =
+      !(<depth> (), <id>)
+    ; ?(_, <id>)
+
+  topdown(TP) :: TP
+  topdown(s) = fail
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Complicated type preserving tracking is not supported [[
+  at-depth(Tuple() -> int, TP) :: TP
+  at-depth(depth, s) =
+      !(<depth> (), <id>)
+    ; topdown(
+        {d :
+           ?(0, <s> )
+        <+ ?(d, <id>); all(!(<dec> d, <id>))
+        }
+      )
+
+  topdown(TP) :: TP
+  topdown(s) = fail
+]] >0 errors
+   0 warnings
+   has origin locations
+
+test A dynamically typed strategy cannot be used as a TP sarg [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+
+  dynamically-typed = fail
+
+  main :: TP
+  main = spinetd([[dynamically-typed]])
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test A dynamically typed strategy cannot be used as a TP sarg, even through indirection [[
+  spinetd(TP) :: TP
+  spinetd(s) =
+    s; try(one(spinetd(s)))
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+
+  dynamically-typed = fail
+
+  main :: TP
+  main = spinetd([[try(dynamically-typed)]])
+]] 1 error at #1
+   0 warnings
+   0 notes
+   has origin locations

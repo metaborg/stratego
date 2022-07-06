@@ -12,40 +12,41 @@ imports
 template options
   tokenize: ")(|"
 
+context-free sorts SDefP
 context-free syntax
   StrategyDef.SDefNoArgs =
-<<Id> =
+<<SId> =
   <Strategy>>
 
   StrategyDef.SDef =
-<<Id>(<{Typedid ", "}*>) =
+<<SId>(<{Typedid ", "}*>) =
   <Strategy>>
 
   // Strategy definition with pattern matched term parameters
-  StrategyDef.SDefP =
-<<Id>(<{Typedid ", "}*>|<{TermNoVar ","}*>) =
+  StrategyDef = SDefP
+  SDefP.SDefP =
+<<SId>(<{Typedid ", "}*>|<{Term ","}+>) =
   <Strategy>>
+  SDefP = SDefT {reject}
 
 context-free syntax
   Typedid.DefaultVarDec = ID
 
-  TermNoVar = Term
-
-context-free priorities
-  TermNoVar = Term <0> .>
-  Term = Var
-
+context-free sorts Call With
 context-free syntax
 
-  Strategy.Call = <<SVar>(<{Strategy ","}*>)>
+  Strategy = Call
+  Call.Call = <<SVar>(<{Strategy ","}*>)>
+  Call = With {reject}
   Strategy.ScopeDefault = <{<Strategy>}>
   Strategy.BA = [<[Strategy]> [Term]]
   Strategy.LChoice = [[Strategy] <+ [Strategy]] {right}
 
-  Strategy.Rec        = <rec <Id>( <Strategy> )>
+  Strategy.Rec        = <rec <SId>( <Strategy> )>
   Strategy.Not        = <not(<Strategy>)>
   Strategy.Where      = <where(<Strategy>)>
-  Strategy.With       = <with(<Strategy>)>
+  Strategy = With
+  With.With       = <with(<Strategy>)>
   Strategy.Test       = <test(<Strategy>)> {deprecated("Use `where` instead")}
   Strategy.PrimNoArgs = <prim(<String>)>
   Strategy.Prim       = <prim(<String>, <{Term ", "}*>)>
@@ -68,7 +69,7 @@ context-free syntax // congruence operators
 
   Strategy.AnnoCong       = <<Strategy>{<Strategy>}>
 
-%% Syntactic sugar sugar
+// Syntactic sugar sugar
 
 context-free syntax
 
@@ -76,12 +77,13 @@ context-free syntax
   Strategy.LRule      = <\\<Rule>\\>
   Strategy.SRule      = <(<Rule>)>
   Strategy.Choice     = <<Strategy> + <Strategy>> {right}
-  Strategy.RChoice    = [[Strategy] +> [Strategy]] {right}
+  Strategy.RChoice    = [[Strategy] +> [Strategy]] {right, deprecated("Flip your arguments and use <+")}
   Strategy.Proceed    = <proceed(<{Strategy ", "}+>)>
   Strategy.CondChoice = <if <Strategy> then <Strategy> else <Strategy> end>
   Strategy.IfThen     = <if <Strategy> then <Strategy> end>
+  Strategy.LTrySome   = [[Strategy] <* [Strategy]] {left}
 
-sorts SwitchCase
+context-free sorts SwitchCase
 context-free syntax
   Strategy.SwitchChoiceNoOtherwise =
 <switch <Strategy>
@@ -104,6 +106,7 @@ context-free priorities
 > Strategy.BA
 > Strategy.AM
 > Strategy.Seq
+> Strategy.LTrySome
 > {right:
    Strategy.Choice
    Strategy.LChoice
@@ -111,9 +114,24 @@ context-free priorities
    Strategy.GuardedLChoice
   }
 
+// Strategy.AnnoCong and Strategy.ExplodeCong are same syntax as Term.AnnoList and Term.Explode
+//   respectively. So we need to disambiguate that we prefer the Term version to be on the
+//   right-hand side of Strategy productions that have a Term as the right-most part of their rule,
+//   and this is expressed by that we don't want such a production inside AnnoCong or ExplodeCong as
+//   the left-hand child.
 context-free priorities
   Strategy.AnnoCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign },
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM },
 
   Strategy.ExplodeCong <0>
-  .> { Strategy.Match Strategy.Build Strategy.Assign }
+  .> { Strategy.Match Strategy.Build Strategy.Assign Strategy.BA Strategy.AM }
+
+// Normal priorities work on operator priority semantics using the outer recursive positions. 
+//   Strategy.GuardedLChoice and Strategy.Choice have a larger overlap, therefore we need to
+//   disambiguate that we want `a < b + (c + d)` not `a < (b + c) + d` when there are no
+//   parentheses. Therefore we disallow Strategy.Choice as the second argument to
+//   Stratego.GuardedLChoice. This _should_ be under index <1>, but works as we want it under <2>,
+//   which is probably a bug in SDF3 or JSGLR2?
+context-free priorities
+  Strategy.GuardedLChoice <2>
+  .> Strategy.Choice

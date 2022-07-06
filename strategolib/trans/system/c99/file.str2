@@ -1,0 +1,29 @@
+/**
+ * This module provides standard fallbacks to important Stratego strategies.
+ *
+ * The strategies are usually less efficient or feature rich than
+ * their POSIX+XSI equivalents.
+ *
+ * Warning: this file is currently also included in the POSIX library.
+ */
+module system/c99/file
+
+imports
+  system/io/file
+  collection/tuple/cons
+
+strategies
+
+  /**
+   * Alternative to the POSIX+XSI copy-file
+   */
+  copy-file :: C99FileLoc * C99FileLoc -> C99FileLoc * C99FileLoc
+  copy-file: (newname, oldname) -> <id>
+    where <internal-copy-file(|newname)> oldname
+
+  /**
+   * Alternative to the POSIX+XSI rename-file
+   */
+  rename-file :: C99FileLoc * C99FileLoc -> C99FileLoc * C99FileLoc
+  rename-file: (newname, oldname) -> <id>
+    where <internal-rename-file(|newname)> oldname

@@ -1,0 +1,117 @@
+module system/posix/time
+
+imports
+  term/common
+  term/integer
+
+  collection/tuple/cons
+  collection/tuple/common
+  collection/list/cons
+
+  system/io/term
+  system/io/file
+  system/io/process
+  util/config/common
+  util/config/options
+
+signature
+  sorts
+    Clock
+  constructors
+    : int * int * int * int -> Clock
+//    : Clock -> int * int * int * int
+
+strategies
+
+  /* The times() function stores the current process times in a quadruple
+     (user time, system time, user time of children, system time of children)
+     See man 2 times for more information */
+  external times :: (|) ? -> int * int * int * int
+
+  external ticks-to-seconds :: (|) int -> real
+
+  diff-times :: (int * int * int * int) * (int * int * int * int) -> int * int * int * int
+  diff-times :
+    ((ut1, st1, cut1, cst1), (ut2, st2, cut2, cst2)) ->
+    (<subti>(ut1, ut2), <subti>(st1, st2), <subti>(cut1, cut2), <subti>(cst1, cst2))
+
+  add-times :: (int * int * int * int) * (int * int * int * int) -> int * int * int * int
+  add-times :
+    ((ut1, st1, cut1, cst1), (ut2, st2, cut2, cst2)) ->
+    (<addi>(ut1, ut2), <addi>(st1, st2), <addi>(cut1, cut2), <addi>(cst1, cst2))
+
+  times-to-seconds :: int * int * int * int -> real * real * real * real
+  times-to-seconds :
+    (ut, st, cut, cst) ->
+    (<ticks-to-seconds> ut, <ticks-to-seconds> st, <ticks-to-seconds> cut, <ticks-to-seconds> cst)
+
+  user-time :: int * int * int * int -> int
+  user-time :
+    (ut, st, cut, cst) -> ut
+
+  system-time :: int * int * int * int -> int
+  system-time :
+    (ut, st, cut, cst) -> st
+
+  cuser-time :: int * int * int * int -> int
+  cuser-time :
+    (ut, st, cut, cst) -> cut
+
+  csystem-time :: int * int * int * int -> int
+  csystem-time :
+    (ut, st, cut, cst) -> cst
+
+  self-children-user-time :: int * int * int * int -> int
+  self-children-user-time :
+    (ut, st, cut, cst) -> <addi> (ut, cut)
+
+  self-children-sys-time :: int * int * int * int -> int
+  self-children-sys-time :
+    (ut, st, cut, cst) -> <addi> (st, cst)
+
+  /**
+   * Total run-time so far.
+   */
+  run-time :: ? -> real
+  run-time =
+    times; tfoldr(!0, addi, is-int); ticks-to-seconds
+
+  /**
+   * Outputs the name of the program and the run time in seconds to
+   * stderr.
+   */
+  report-run-time =
+    if <geq>(<get-config> "--statistics", 1) then
+      where(<fprintnl> (stderr(), [<whoami> (), " (", <run-time>, " secs)"]))
+    end
+
+  profile(a -> b) :: a -> b * int
+  profile(s) =
+    where(times => start)
+    ; s
+    ; !(<id>, <<diff-times> (<times>, start); tfoldr(!0, addi, is-int)>)
+
+  profile(int * int * int * int -> string, a -> b) :: a -> b
+  profile(msg, s) =
+    where(times => start)
+    ; s
+    ; where(
+        <diff-times
+         ; <fprint> (stderr(), [<msg>
+                             , " user ", <self-children-user-time; ticks-to-seconds>
+                             , " system ", <self-children-sys-time; ticks-to-seconds>
+                 , "\n"])> (<times>, start)
+      )
+
+  profile'(List(?) -> ?, a -> b) :: a -> b
+  profile'(msg, s) =
+    where(times => start)
+    ; s
+    ; where(
+    !(<times>, start)
+        ; diff-times
+        ; ![" user ",    <self-children-user-time; ticks-to-seconds>
+           , " system ", <self-children-sys-time;  ticks-to-seconds>]
+        ; msg
+      )
+

@@ -9,25 +9,27 @@ module strj/strj-options
 
 imports
   libstratego-lib
-//  libstrc
+
+  strc/strc/strc-options
+
   strj/s2j-options
   strj/s2j
   strj
 
 strategies
 
-  strj-preinit-options =
+  strj-preinit-options(|libs) =
     <set-config> ("VERSION", <strc-version-number>)
   ; <set-config> ("--verbose", 1)
   ; <set-config> ("--statistics", 1)
   ; <set-config> ("-O", 2)
   ; <set-config> ("-I", [])
   ; <set-config> ("--no-concrete-syntax-externals", 1)
-  ; <post-extend-config> ("-la", ["org.strategoxt.stratego_lib"])
- 
-  strj-parse-options =
+  ; <list-loop(\lib -> <post-extend-config> ("-la", [lib])\)> libs
+
+  strj-parse-options(|libs) =
     with(
-      strj-preinit-options
+      strj-preinit-options(|libs)
     )
   ; parse-options(
       strj-options
@@ -55,26 +57,26 @@ strategies
   ; if <get-config> "--library"; not(<get-config> "-p" + <get-config> "-F") then
       fatal-err-msg(|"No package name specified")
     end
-  
+
   strj-options =
     input-option
   <+
     output-option // TODO: add a -d destination dir option that uses the package name
   <+
     ArgOption(
-      "--main" + "-m"
+      ?"--main" + ?"-m"
     , <set-config>("-m", <id>); !()
     , !"--main f | -m f    Main strategy to compile (default: main)"
     )
   <+
     Option(
-      "--clean" + "-clean"
+      ?"--clean" + ?"-clean"
     , <set-config> ("--clean", <id>)
     , !"--clean            Remove all existing Java files in the output directory"
     )
   <+
     s2j-general-options
-        
+
   <+ ArgOption(fail, fail, !"")
   <+ ArgOption(fail, fail, !"Library options:")
   <+ ArgOption(fail, fail, !"")
@@ -85,78 +87,78 @@ strategies
   <+ ArgOption(fail, fail, !"Configuration of the Stratego compiler:")
   <+ ArgOption(fail, fail, !"")
   <+
-    Option("--ast",
+    Option(?"--ast",
       where(<set-config>("--ast",())); !(),
       !"--ast              Produce abstract syntax tree of packed program"
     )
   <+
-    Option("-F",           
+    Option(?"-F",
       where(<set-config>("-F",())); !(),
       !"-F                 Produce core after front-end"
     )
   <+
-    Option("--single-strategy",
+    Option(?"--single-strategy",
     where(<set-config>("--single-strategy",())); !(),
     !"--single-strategy    Generate from a single strategy definition")
   <+
-    Option("--boilerplate",
+    Option(?"--boilerplate",
     where(<set-config>("--boilerplate",())); !(),
     !"--boilerplate        Generate boilerplate (main/interopregister)")
-  <+ 
-    Option("--prefer-str",
+  <+
+    Option(?"--prefer-str",
     where(<set-config> ("--prefer-str", "")); !(),
     !"--prefer-str       Prefer .str files over .rtree files")
   <+
-    ArgOption("--default-syntax", where(<set-config>("--default-syntax", <id>)),
+    ArgOption(?"--default-syntax", where(<set-config>("--default-syntax", <id>)),
 	!"--default-syntax syn        use syntax syn as default")
   <+
-    ArgOption("--cache-dir",
+    ArgOption(?"--cache-dir",
     where(<set-config> ("--cache-dir", <where(file-exists; filemode; isdir <+ mkdir)>)),
     !"--cache-dir <dir>  Maintain a compilation cache in <dir>")
   <+
-    Option("--fusion",     
+    Option(?"--fusion",
     where(<toggle-config>("--fusion",())); !(),
     !"--fusion           Toggle specialize applications of innermost (default: on)" )
   <+
-    Option("--asfix",
+    Option(?"--asfix",
     where(<set-config>("--asfix",())); !(),
     !"--asfix            Concrete syntax parts are not imploded")
    <+
-     Option("--Xpp-java",
+     Option(?"--Xpp-java",
        rules(PrettyPrintJava: _)
      , !"--Xpp-java         Pretty-print Java output (slow)"
      )
   <+
-    Option("--Xecj33",
+    Option(?"--Xecj33",
       rules(OldECJCompatibility: _)
     , !"--Xecj33           Generate code compatible with ECJ 3.3 and lower";
       if-java-platform(fail)
     )
   <+
-    Option("-c",
+    Option(?"-c",
       warn-msg(|"Ignored unsupported option -c")
     , fail
     )
   + Option(
-      "-Xsep-comp-tool"
+      ?"-Xsep-comp-tool"
     , rules(IsIncrementalCompilation: _);
       <set-config> ("--library", ());
       (ManuallySetOptimization <+ <set-config> ("-O", <strc-set-opt-level> 1))
     , !"--Xsep-comp-tool  Compile based on sep-comp-tool (experimental)"
     )
-  
+
   <+ ArgOption(fail, fail, !"")
   <+ ArgOption(fail, fail, !"General options:")
   <+ ArgOption(fail, fail, !"")
   <+
     general-options
   <+
-    Option("-h" + "--help",         
-    where(<set-config> ("--help",())); !(),         
+    Option(?"-h" + ?"--help",
+    where(<set-config> ("--help",())); !(),
     !"-h | --help        Show help")
   <+
-    Option("-v" + "--version",     
-    where(<set-config> ("-v",())); !(),         
+    Option(?"-v" + ?"--version",
+    where(<set-config> ("-v",())); !(),
     !"-v | --version     Display program's version")
   <+
     stratego-warnings-options

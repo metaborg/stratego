@@ -1,0 +1,87 @@
+/**
+ * This module contains strategies for working on associative lists.
+ *
+ * Associative lists are on the form [(key1, value1), (key2, value2), ...]
+ * Each key must be unique for the strategies in this module to operate
+ * correctly. Any term can be used as key.
+ *
+ * The associative lists must be created correctly by the application code;
+ * this module only contains strategies for searching associative lists.
+ *
+ * Keys may have annotations. These are considered to be part of the key,
+ * so identical term with differing annotations are effectively different
+ * keys.
+ *
+ * @author Eelco Visser <visser@acm.org>
+ * @author Karl Trygve Kalleberg <karltk@strategoxt.org> - documentation
+ *
+ */
+module collection/list/lookup
+imports
+  collection/list/common
+  collection/list/cons
+  collection/tuple/cons
+
+strategies
+
+  /**
+   * Lookup the first value associated with a key in an associative
+   * list. An associative list is a list of key-value pairs.
+   *
+   * Note: If multiple identical keys exist, only the value for the
+   * first will be retrieved.
+   *
+   * Example:
+   *   <lookup> (2, [(1, "a"), (2, "b"), (3, "c")]) => "b"
+   *
+   * @type  k * List(k * v) -> v
+   */
+  lookup :: k * List(k * v) -> v
+  lookup: (x, xs) -> <getfirst({y: ?(x, y); !y})> xs
+  // slower-lookup = Look1 <+ Look2; slower-lookup
+
+  /**
+   * Find first element of a list to which s applies.
+   * The result is the application of s to this element.
+   *
+   * @type s    a  -> b
+   * @type     List(a) -> b
+   */
+  getfirst(a -> b) :: List(a) -> b
+  getfirst(s) =
+    // Hd; s <+ Tl; getfirst(s)
+    // performance tweak
+    ?[_ | _]; one(where(s; ?x)); !x
+
+  /**
+   * Used to be a faster version of lookup. Now lookup itself uses the fast implementation.
+   *
+   * @type  k * List(k * v) -> v
+   * @internal
+   */
+  lookup' :: k * List(k * v) -> v
+  lookup' = lookup
+
+  /**
+   * Looks up the first value associated with a particular key
+   * in a list, using keyeq to do key comparisons.
+   *
+   * @type k * List(k * v) -> v
+   */
+  lookup(k1 * k2 -> ?) :: k1 * List(k2 * v) -> v
+  lookup(keyeq): (k1, xs) -> <getfirst(\(k2, v) -> v where <keyeq> (k1, k2)\)> xs
+  // slower-lookup(keyeq) = Look1'(keyeq) <+ Look2; lookup(keyeq)
+
+rules
+
+  /** @internal */
+  Look1 :: k * List(k * v) -> v
+  Look1 : (x, [(x, y)|_]) -> y
+
+  /** @internal */
+  Look2 :: a * List(b) -> a * List(b)
+  Look2 : (x, [_|xs]) -> (x, xs)
+
+  /** @internal */
+  Look1'(k * k -> ?) :: k * List(k * v) -> v
+  Look1'(keyeq) : (x, [(y, v)|_]) -> v where <keyeq> (x, y)

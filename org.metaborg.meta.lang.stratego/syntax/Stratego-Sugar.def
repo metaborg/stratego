@@ -1,98 +1,4 @@
 definition
-module Stratego-Gradual-Terms
-imports Stratego-Core-Terms Stratego-Gradual-Signatures
-
-exports
-  context-free syntax
-    Term "::" Type -> Term {cons("TypeAscription")}
-
-module Stratego-Gradual-Strategies
-imports Stratego-Gradual-Signatures Stratego-Core-Identifiers Stratego-Core-Strategies
-
-exports
-  sorts Strategy Coercion Proxy
-
-  context-free syntax
-    "cast" "(" Coercion ")"                                                                   -> Strategy  {cons("Cast")}
-    "is" "(" Type ")"                                                                         -> Strategy  {cons("TypeTest")}
-    "fail"                                                                                    -> Coercion  {cons("Fail")}
-    "id"                                                                                      -> Coercion  {cons("Id")}
-    Type                                                                                      -> Coercion  {cons("RuntimeCheck")}
-    "fail"                                                                                    -> SCoercion {cons("SFail")}
-    "id"                                                                                      -> SCoercion {cons("SId")}
-    SType                                                                                     -> SCoercion {cons("SRuntimeCheck")}
-    SortT "." Id                                                                              -> TypedId   {cons("TypedId")}
-    Proxy                                                                                     -> Strategy  
-    "proxy" "(" Coercion "," Coercion ")(" SVar ")"                                           -> Proxy     {cons("Proxy")}
-    "proxy" "(" {SCoercion ","}* "|" {Coercion ","}* ")(" Coercion "," Coercion ")(" SVar ")" -> Proxy     {cons("ProxyT")}
-    "cast"                                                                                    -> SVar      {reject}
-
-  lexical restrictions
-    "cast" "is" "fail" "id" "proxy" -/- [a-zA-Z0-9\'\-\_]
-
-module Stratego-Gradual-Signatures
-imports Stratego-Core-Identifiers
-
-exports
-  sorts Type SortT Dyn ConstrType
-
-  context-free syntax
-    Dyn                    -> ConstType {cons("DynT")}
-    "?"                    -> Dyn       {cons("Dyn")}
-    Type "*" {Type "*"}+   -> Type      {cons("TupleT")}
-    Dyn                    -> Type      {cons("DynT")}
-    "string"               -> Type      {cons("StringT")}
-    "int"                  -> Type      {cons("IntT")}
-    "real"                 -> Type      {cons("RealT")}
-    "(" Type ")"           -> Type      {bracket}
-    SortT                  -> Type      
-    Id "(" {Type ","}* ")" -> SortT     {cons("Sort")}
-    UCID                   -> SortT     {cons("SortNoArgs")}
-    SortVar                -> SortT     {cons("SortVar")}
-
-  context-free priorities
-    Type "*" {Type "*"}+ -> Type
-    <0> . >
-    Type "*" {Type "*"}+ -> Type
-    ,
-    Type -> {Type "*"}+
-    <0> . >
-    Type "*" {Type "*"}+ -> Type
-    ,
-    {Type "*"}+ "*" Type -> {Type "*"}+
-    <2> . >
-    Type "*" {Type "*"}+ -> Type
-
-  sorts SType SFunType
-
-  context-free syntax
-    "?"                                                 -> SType          {cons("SDyn")}
-    SFunType                                            -> SType          
-    "TP"                                                -> SSimpleFunType {cons("TP")}
-    Type "->" Type                                      -> SSimpleFunType {cons("FunNoArgsType")}
-    SSimpleFunType                                      -> SFunType       
-    "(" {SType ","}* ")" SSimpleFunType                 -> SFunType       {cons("FunType")}
-    "(" {SType ","}* "|" {Type ","}* ")" SSimpleFunType -> SFunType       {cons("FunTType")}
-
-module Stratego-Gradual-Modules
-imports Stratego-Core-Identifiers Stratego-Gradual-Signatures
-
-exports
-  sorts Def
-
-  context-free syntax
-    Id "::" SSimpleFunType                                      -> Def {cons("DefHasTypeNoArgs")}
-    Id "(" {SType ","}* ")" "::" SSimpleFunType                 -> Def {cons("DefHasType")}
-    Id "(" {SType ","}* "|" {Type ","}* ")" "::" SSimpleFunType -> Def {cons("DefHasTType")}
-
-module Stratego-Gradual
-
-imports
-  Stratego-Gradual-Modules
-  Stratego-Gradual-Signatures
-  Stratego-Gradual-Strategies
-  Stratego-Gradual-Terms
-
 module Stratego-Sugar-Overlays
 imports
   Stratego-Core-Identifiers
@@ -972,7 +878,6 @@ imports
   Stratego-Sugar-Rules
   Stratego-Sugar-DynamicRules
   Stratego-Sugar-Overlays
-  Stratego-Gradual
 
 hiddens
   context-free start-symbols Module

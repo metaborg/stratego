@@ -23,6 +23,10 @@ public enum BuiltinLibraryIdentifier implements IModuleImportService.ModuleIdent
         this.libString = "lib" + cmdArgString;
     }
 
+    @Override public boolean legacyStratego() {
+        return true;
+    }
+
     @Override public boolean isLibrary() {
         return true;
     }

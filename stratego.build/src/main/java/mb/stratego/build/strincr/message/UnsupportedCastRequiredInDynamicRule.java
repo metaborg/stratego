@@ -9,6 +9,6 @@ public class UnsupportedCastRequiredInDynamicRule extends Message {
     }
 
     @Override public String getMessage() {
-        return "Pattern induces cast, but cast is not supported in this position.";
+        return "Dynamic rule pattern induces cast, but cast cannot be inserted in this dynamic rule.";
     }
 }

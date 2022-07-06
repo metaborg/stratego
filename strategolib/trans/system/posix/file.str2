@@ -1,0 +1,262 @@
+module system/posix/file
+imports
+  system/posix/error
+  system/posix/file-abstractions
+  system/io/file
+  term/string
+  collection/tuple/cons
+  collection/list/cons
+
+signature
+  sorts
+    AccessPermission
+    FileDescriptor
+    FileMode
+  constructors
+    F_OK: AccessPermission
+    R_OK: AccessPermission
+    W_OK: AccessPermission
+    X_OK: AccessPermission
+
+    : int -> FileDescriptor
+    : int -> FileMode
+
+/**
+ * Standard file descriptors
+ */
+strategies
+
+  // Standard input, equal to <fileno> stdin
+  external STDIN_FILENO :: (|) a -> FileDescriptor
+
+  // Standard output, equal to <fileno> stdout
+  external STDOUT_FILENO :: (|) a -> FileDescriptor
+
+  // Standard error output, equal to <fileno> stderr
+  external STDERR_FILENO :: (|) a -> FileDescriptor
+
+/**
+ * Terminal I/O
+ */
+strategies
+
+  /**
+   * Succeeds if file descriptor refers to a terminal device.
+   */
+  external isatty :: (|) FileDescriptor -> int
+
+/**
+ * These  functions  return  information  about the specified
+ * file.  You do not need any access rights to  the  file  to
+ * get  this  information  but  you need search rights to all
+ * directories named in the path leading to the file.
+ */
+strategies
+
+  /**
+   * Returns the modification time of a file in sections since
+   * epoch.
+   */
+  external modification-time :: (|) string -> int
+
+/**
+ * File operations
+ */
+strategies
+
+  /**
+   * link-file creats a hard link from file 'new' to file 'old'.
+   *
+   * Warning: not implemented.
+   */
+  link-file :: string * string -> string
+  link-file =
+    ?(<id>, new); link-file(|new)
+
+  external link-file :: (|string) string -> string
+
+/**
+ * Directories
+ */
+strategies
+
+ /**
+  * Given a path to a directory, returns a list of files in that directory,
+  * including the self (.) and parent pointers (..).
+  */
+  external readdir :: (|) string -> List(string)
+
+  /**
+   * Returns the current working directory.
+   */
+  external getcwd :: (|) ? -> string
+
+  /**
+   * Change current working directory.
+   */
+  external chdir :: (|) string -> int
+
+  /**
+   * Create directory
+   *
+   * TODO: don't ignore permission list
+   */
+  external mkdir :: (|List(AccessPermission)) string -> int
+
+  mkdir :: string -> string
+  mkdir =
+    where(mkdir(|[Read(), Write(), Execute()]))
+
+  /**
+   * Remove empty directory
+   */
+  external rmdir :: (|) string -> int
+
+/**
+ * Primitive file operations
+ */
+strategies
+
+  /**
+   * Opening a file
+   */
+
+  // create a file and return a file descriptor
+  // Warning: not implemented.
+  external creat :: (|) string -> FileDescriptor
+
+  // open a file and return a file descriptor
+  // Warning: not implemented.
+  external open :: (|) string -> FileDescriptor
+
+  /**
+   * Closing a file
+   *
+   * Deallocates a file descriptor
+   */
+  external close :: (|) FileDescriptor -> FileDescriptor
+
+  /**
+   * Duplicating a file descriptor
+   *
+   * Warning: not implemented.
+   */
+  external dup :: (|) FileDescriptor -> FileDescriptor
+
+  // Warning: not implemented.
+  dup2 :: FileDescriptor * FileDescriptor -> FileDescriptor
+  dup2 =
+    ?(<id>, tofd); dup2(|tofd)
+
+  external dup2 :: (|FileDescriptor) FileDescriptor -> FileDescriptor
+
+  /**
+   * checks the accessibility of the specified file wrt to the
+   * specified permissions. Fails if the access is not allowed,
+   * returns the path otherwise.
+   *
+   * @inc access
+   */
+  access :: string * List(AccessPermission) -> string
+  access =
+    ?(<id>, permissions); access(|permissions)
+
+  external access :: (|List(AccessPermission)) string -> string
+
+/**
+ * Connecting high and low level file operations
+ */
+strategies
+
+  /**
+   * The fdopen function associates a stream with the existing file
+   * descriptor, fd.
+   *
+   * The mode of the stream ("r", "r+", "w", "w+",  "a", "a+") must be
+   * compatible with the mode of the file descriptor.  The file position
+   *
+   * Warning: not implemented.
+   */
+  fdopen :: FileDescriptor * string -> Stream
+  fdopen =
+    ?(<id>, mode); internal-fdopen(|mode); !Stream(<id>)
+
+  external internal-fdopen :: (|string) FileDescriptor -> StreamImplBlob
+
+  /**
+   * The function fileno examines the argument stream and returns its
+   * integer descriptor
+   *
+   * @inc fileno
+   */
+  fileno :: Stream -> FileDescriptor
+  fileno =
+    ?Stream(<is(int)>)
+
+  /**
+   * Mode of a file
+   */
+  external filemode :: (|) string -> FileMode
+
+  /**
+   * Succeeds when applied to a FileMode of a regular file
+   */
+  external isreg :: (|) FileMode -> FileMode
+
+  /**
+   * Succeeds when applied to a FileMode of a directory.
+   *
+   * Idiom: <file-exists ; filemode ; isdir> "/etc"
+   */
+  external isdir :: (|) FileMode -> FileMode
+
+  /**
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a character special file
+   */
+  external ischr :: (|) FileMode -> FileMode
+
+  /**
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a block special file
+   */
+  external isblk :: (|) FileMode -> FileMode
+
+  /**
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a FIFO special file
+   */
+  external isfifo :: (|) FileMode -> FileMode
+
+  /**
+   * Succeeds when applied to a FileMode of a symbolic link.
+   */
+  external islnk :: (|) FileMode -> FileMode
+
+  /**
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a socket file
+   */
+  external issock :: (|) FileMode -> FileMode
+
+/**
+ * Pipes (and FIFOs)
+ */
+signature
+  sorts
+    Pipe
+  constructors
+    Pipe       : int * int -> Pipe
+
+strategies
+
+  /**
+   * Pipe creates a pair Pipe(fd1, fd2) of file descriptors, pointing
+   * to a pipe inode, and places them in the array pointed to by filedes.
+   * fd1 is for reading, fd2 is for writing.
+   */
+  external pipe :: (|) ? -> Pipe

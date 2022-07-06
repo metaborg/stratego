@@ -1,6 +1,10 @@
 module Expressions
 
 signature
+  sorts
+    String
+    Exp
+    Id
   constructors
     meta-var : String -> Exp
     Call     : Id * List(Exp) -> Exp
@@ -10,12 +14,16 @@ signature
 
 
 signature
+  sorts
+    Option(a)
   constructors
     Some : a -> Option(a)
     None : Option(a)
 
 
 signature
+  sorts
+    List(a)
   constructors
     Cons : a * List(a) -> List(a)
     Nil  : List(a)

@@ -1,0 +1,13 @@
+module system/io/process
+
+/**
+ * Terminating the Current Process
+ */
+strategies
+
+  /**
+   * Abort execution with exit value n.
+   *
+   * @type Int -> _
+   */
+  external exit :: (|) int -> a

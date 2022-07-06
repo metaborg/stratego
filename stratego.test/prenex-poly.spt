@@ -1,16 +1,33 @@
 module prenex-poly
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-  specification
+  module test
+
+  signature
+    sorts
+      List(*)
+      Option(*)
+      PolyType(*)
+      Tuple(*, *)
+      Tuple(*, *, *)
+      Hashtable(*, *)
+      HashtableImplBlob
+    constructors
+      One : a -> PolyType(a)
+      Cons : a * List(a) -> List(a)
+      Nil : List(a)
+      Some : a -> Option(a)
+      None : Option(a)
+      Hashtable : HashtableImplBlob -> Hashtable(k, v)
 
   rules
   [[...]]
 ]]
 
 test untyped map [[
-    map(s) = [s | map(s)] <+ ?[]
+    internal map(s) = [s | map(s)] <+ ?[]
 
     test-map :: ? -> List(string)
     test-map = ![1,2,3]; map(!"hi!")
@@ -19,41 +36,241 @@ test untyped map [[
    has origin locations
 
 test typed map [[
-    map(a -> b) :: List(a) -> List(b)
-    map(s) = [s | map(s)] <+ ?[]
+    internalmap(a -> b) :: List(a) -> List(b)
+    internalmap(s) = [s | internalmap(s)] <+ ?[]
 
     test-map :: ? -> List(string)
-    test-map = ![1,2,3]; map(!"hi!")
+    test-map = ![1,2,3]; internalmap(!"hi!")
     // `map`'s type is ideally instantiated as `(int -> string) List(int) -> List(string)`
     // but `(? -> string) List(?) -> List(string)` is also possible, since `!"hi!" :: ? -> string` by itself
 ]] 0 errors
    0 warnings
-//   has origin locations
+   has origin locations
 
 test untyped collect-all [[
-    mapconcat(s) = fail
+    internal mapconcat(s) = fail
 
-    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+    internal collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
 
     test-collect-all :: ? -> List(string)
     test-collect-all = ![1,2,3]; collect-all(!"hi!")
 ]] 0 errors
    0 warnings
-   has origin locations
+//   has origin locations
 
 test typed collect-all [[
-    conc :: List(a) * List(a) -> List(a)
-    conc = fail
+    internalconc :: List(c) * List(c) -> List(c)
+    internalconc = fail
 
-    mapconcat(a -> List(b)) :: List(a) -> List(b)
-    mapconcat(s): [t@_#(c*) | t] -> <conc> (<s> t, <mapconcat(s)> c*)
-    mapconcat(s): [] -> []
+    internalmapconcat(a -> List(b)) :: List(a) -> List(b)
+    internalmapconcat(s): [h | t] -> <internalconc> (<s> h, <internalmapconcat(s)> t)
+    internalmapconcat(s): [] -> []
 
-    collect-all(? -> b) :: ? -> List(b)
-    collect-all(s) = ?t@_#(<id>); mapconcat(collect-all(s)); (![<s> t | <id>] <+ id)
+    internalcollect-all(? -> b) :: ? -> List(b)
+    internalcollect-all(s) = ?t@_#(<id>); internalmapconcat(internalcollect-all(s)); (![<s> t | <id>] <+ id)
 
     test-collect-all :: ? -> List(string)
-    test-collect-all = ![1,2,3]; collect-all(!"hi!")
+    test-collect-all = ![1,2,3]; internalcollect-all(!"hi!")
 ]] 0 errors
    0 warnings
    has origin locations
+
+test build an option [[
+    MkSome :: b -> Option(b)
+    MkSome: c -> Some(c)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test build an option with wrong type [[
+    MkSome :: a -> Option(b)
+    MkSome: c -> Some([[c]])
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test type-ascribe local type variable [[
+    MkSome :: b -> Option(b)
+    MkSome: c -> Some(c :: b)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Same type variable in type, strategy type, and local variable should not interfere [[
+    MkPolyType :: a -> PolyType(a)
+    MkPolyType: a -> One(a)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Cannot cast to type variable [[
+    MkPolyType :: ? -> PolyType(a)
+    MkPolyType: a -> One([[a]])
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test list cong [[
+  is-list :: List(a) -> List(a)
+  is-list = [] <+ ?[_ | _]
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test map impl with rec succeeds [[
+  map(a -> b) :: List(a) -> List(b)
+  map(s) =
+    rec x([] + [s | x])
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test list pattern match [[
+  Hd :: List(a) -> a
+  Hd   : [x | _] -> x
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test list cong type does not prefer head (or tail) [[
+  map1(a -> a) :: List(a) -> List(a)
+  map1(s) =
+    [s | id]; [id | try(map1(s))] <+ [id | map1(s)]
+
+  try(a -> a) :: a -> a
+  try(s) = s <+ id
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Cannot cast from List(?) to List(a) in sarg [[
+  reverse :: List(a) -> List(a)
+  reverse =
+    let f :: a -> a
+        f = id
+        g :: ? -> List(?)
+        g = ![]
+    in
+    reverse-acc(f, [[g]])
+    end
+
+  /** @internal */
+  reverse-acc(a -> b, ? -> List(b)) :: List(a) -> List(b)
+  reverse-acc(s, acc) :
+    [] -> <acc>()
+
+  /** @internal */
+  reverse-acc(s, acc) :
+    [x | xs] -> <{ys:where(![<s>x | <acc>] => ys); reverse-acc(s, !ys)}> xs
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test Tuple congruence should preserve type info [[
+  FoldR :: List(a) -> a * List(a)
+  FoldR    : [x | xs] -> (x, xs)
+
+  foldr1(List(a) -> b, a * b -> b) :: List(a) -> b
+  foldr1(s1, s2) =
+    rec x([id]; s1 <+ FoldR; (id, x); s2)
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test Rec tail call stays unconstrained type var [[
+  FoldL(a * b -> c) :: List(a) * b -> List(a) * c
+  FoldL(s) : ([x | xs], y) -> (xs, <s> (x, y))
+
+  foldl(a * b -> b) :: List(a) * b -> b
+  foldl(s) =
+    [[rec x(\ ([], y) -> y \ + FoldL(s); x)]]
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test Mixed dynamically typed and typed should be fine [[
+  remove-extension =
+    if get-extension; explode-string; !['.' | <id>] => ext then
+      explode-string
+      ; at-suffix(?ext; ![])
+      ; implode-string
+    end
+
+  get-extension = fail
+  explode-string = fail
+  implode-string = fail
+
+  at-suffix(List(a) -> List(a)) :: List(a) -> List(a)
+  at-suffix(s) =
+    rec x(s <+ [id | x])
+]] 0 errors
+   0 warnings
+//   has origin locations
+
+test rest-zip should typecheck [[
+  rest-zip(a * b -> c) :: List(a) * List(b) -> List(a) * List(b) * List(c)
+  rest-zip(s) =
+    genzip((?([],_) + ?(_,[])); ?(tla, tlb); ![], Zip2, Zip3, s);
+    \ pairs -> (tla, tlb, pairs) \
+
+
+  genzip(i -> o, i -> a * i, b * o -> o, a -> b) :: i -> o
+  genzip(empty, split, cons, s) =
+    empty + split; (s, genzip(empty, split, cons, s)); cons
+
+  Zip2 :: List(a) * List(b) -> (a * b) * (List(a) * List(b))
+  Zip2   : ([x|xs],[y|ys]) -> ((x, y), (xs, ys))
+
+  Zip3 :: a * List(a) -> List(a)
+  Zip3   : (x, xs) -> [x|xs]
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test error on casting to rigid type var in sarg [[
+  make-set :: List(a) -> List(a)
+  make-set =
+    [[foldr(fail, union, ![<id>])]]
+
+  union :: ? -> ?
+  union = fail
+
+  foldr(List(d) -> b, c * b -> b, a -> c) :: List(a) -> b
+  foldr(s1, s2, f) = fail
+]] 1 error at #1
+   0 warnings
+//   has origin locations
+
+test sarg can have arguments [[
+  hashtable-putlist((|k, v) Hashtable(k, v) -> Hashtable(k, v)|List(k * v)) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-putlist(f : ATerm * ATerm * Hashtable -> Hashtable|kv*) =
+    ?htbl
+    ; where(<map(\ (key, value) -> <f(|key, value)> htbl \)> kv*)
+
+  map(a -> b) :: List(a) -> List(b)
+  map(s) = [s | map(s)] <+ ?[]
+]] 0 errors
+   0 warnings
+//   has origin locations
+
+test App in a buildterm in targ position should get the right "current type" to type-check [[
+  hashtable-push(|k, v) :: Hashtable(k, List(v)) -> Hashtable(k, List(v))
+  hashtable-push(|key, value) =
+    hashtable-put(|key, [value | <hashtable-get(|key) <+ ![]>])
+
+// equivalents that typecheck without relying on current type being correct in targ position
+  hashtable-push(|key, value) =
+    where(value2 := [value | <hashtable-get(|key) <+ ![]>]); hashtable-put(|key, value2)
+  hashtable-push(|key, value) =
+    where(tail := <hashtable-get(|key) <+ ![]>); hashtable-put(|key, [value | tail])
+
+  hashtable-get(|k) :: Hashtable(k, v) -> v
+  hashtable-get(|key) =
+    ?Hashtable(tbl); prim("SSL_hashtable_get", tbl, key)
+
+  hashtable-put(|k, v) :: Hashtable(k, v) -> Hashtable(k, v)
+  hashtable-put(|key, value) =
+    ?Hashtable(tbl); prim("SSL_hashtable_put", tbl, key, value); !Hashtable(<id>)
+]] 0 errors
+   0 warnings
+//   has origin locations

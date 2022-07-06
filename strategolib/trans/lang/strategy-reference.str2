@@ -1,0 +1,27 @@
+/**
+ * This module provides a mechanism for capturing a reference to a strategy and for applying the referred strategy.
+ *
+ * @author Vlad Vergu <v.a.vergu add tudelft.nl>
+ */
+module lang/strategy-reference
+
+signature
+  sorts
+    StrategyRef
+  constructors
+    : blob -> StrategyRef
+
+strategies
+
+  /**
+  * Capture a reference to a strategy as a term. The strategy s must be fully specified (i.e. all its arguments must be specified).
+  *
+  * @note The resulting reference term cannot be pretty-printed or matched against (at least not realiably). The reference
+  * to the strategy is only valid within the instance of the interpreter which produced it
+  */
+  external to-sref :: (? -> ?|) ? -> StrategyRef
+
+  /**
+  * Apply the strategy referenced by the term. The referenced strategy is applied to the input term.
+  */
+  external apply-sref :: (|StrategyRef) ? -> ?

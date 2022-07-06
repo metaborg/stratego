@@ -1,0 +1,12 @@
+/.cache
+/bin
+/src-gen
+/target
+/build
+
+/.classpath
+/.project
+/.settings
+/.factorypath
+
+/.polyglot.metaborg.yaml

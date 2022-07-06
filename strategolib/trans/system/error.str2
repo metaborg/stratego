@@ -1,0 +1,51 @@
+/**
+ * Error handling for system strategies.
+ *
+ * @since   0.9.4
+ * @author  Martin Bravenboer <mbravenb@cs.uu.nl>
+ */
+module system/error
+
+signature
+  sorts
+    Error
+  constructors
+    ErrorNumber : int -> Error
+
+strategies
+
+  /**
+   * @type    _ -> Error
+   * @since   0.9.4
+   */
+  get-last-error :: ? -> Error
+  get-last-error =
+    !ErrorNumber(<get-errno>)
+
+  /**
+   * @see     man errno
+   * @type    _ -> Int
+   * @since   0.9.4
+   */
+  external get-errno :: (|) ? -> int
+
+  /**
+   * Print a system error message.
+   *
+   * @see    man perror
+   * @type   String -> String
+   * @since  0.9.4
+   */
+  external perror :: (|) ? -> string
+
+  /**
+   * Return string describing error code
+   *
+   * @see    man strerror
+   * @type   Int -> String
+   * @since  0.9.4
+   */
+  external strerror :: (|) int -> string
+
+strategies
+  external EXDEV :: (|) ? -> int

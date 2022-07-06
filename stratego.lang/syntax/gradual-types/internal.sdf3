@@ -3,24 +3,55 @@ module gradual-types/internal
 imports
   core/identifiers
   core/constants
+  core/modules
+  core/strategies
   gradual-types/signatures
 
-sorts Type ConstrType ErrorDesc MessageType
+context-free sorts Str2Lib Str2LibComponent Anno
+context-free syntax
+
+  Str2Lib.Str2Lib = [library [ModNamePart]
+    [{Str2LibComponent "\n"}+]
+    [{Module "\n\n"}+]
+  ]
+
+  Str2LibComponent.Maven = [maven [groupId:JavaId]:[id:JavaId]:[MavenVersion]]
+  Str2LibComponent.Package = [package [PackageName]]
+
+  Anno.Overlay = [overlay]
+
+lexical sorts VersionNumber VersionQualifier MavenVersion PackageName JavaId
+lexical syntax
+
+  MavenVersion = VersionNumber "." VersionNumber "." VersionNumber VersionQualifier
+  VersionNumber = [0-9]+
+  VersionQualifier = "-" [A-Za-z0-9\-\.]+
+  PackageName = {JavaId "."}+
+  JavaId = [A-Za-z\_\$] [A-Za-z0-9\_\$]+
+
+lexical restrictions
+
+  VersionQualifier -/- [A-Za-z0-9\-\.]
+
+context-free sorts ConstrType
+context-free syntax
+
+  Def.DefHasType = [[SId] :: [SFunType]]
+
+  Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
+  Type.EmptyT = [empty]
+  Anno.LocalDef = [localdef]
+  Anno.AmbiguousStrategyResolution = [ambiguous strategy resolves to arities: [Int], [Int]]
+  SType.SEmptyT = [s-empty]
+  Dyn = Type // to allow DynT(<some type>)
+
+  ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]
+
+context-free sorts ErrorDesc MessageType
 context-free syntax
   MessageType.MTError = [error]
   MessageType.MTWarning = [warning]
   MessageType.MTNote = [note]
-
-  Def.DefHasType = [[Id] :: [SFunType]]
-
-  Type.IllFormedTermT = [[Id]#([{Type ", "}*])]
-  Type.ErrT = [err]
-  Anno.LocalDef = [localdef]
-  Anno.AmbiguousStrategyResolution = [ambiguous strategy resolves to arities: [Int], [Int]]
-  SType.SErrT = [s-err]
-  Dyn = Type // to allow DynT(<some type>)
-
-  ConstrType.ConstrType = [[{Type " * "}+] -> [Type]]
 
   ErrorDesc.CallDynamicNotSupported = [The dynamic `call(name|sargs|targs)` construct is no longer supported.]
   ErrorDesc.TermVariableTypedWithStrategyType = [This term variable was given a strategy type.]
@@ -31,20 +62,29 @@ context-free syntax
   ErrorDesc.ProceedInNonExtendStrategy = [Cannot call proceed in a strategy or rule defined without the `extend` keyword.]
   ErrorDesc.CallStrategyArgumentTakesParameters = [This call takes parameters, it has type: [SFunType].]
   ErrorDesc.AmbiguousStrategyResolution = [Call to strategy was ambiguous, could resolve to the following: [{SFunType ", "}+].]
-  
+
   ErrorDesc.NormalDefinitionOverlapsWithExternal = [Definition of strategy overlaps with definition of external strategy.]
   ErrorDesc.NormalDefinitionOverlapsWithInternal = [Definition of strategy overlaps with definition of internal strategy.]
   ErrorDesc.OverrideDefinitionWithoutExternal = [Cannot find external strategy to override.]
   ErrorDesc.ExtendDefinitionWithoutExternal = [Cannot find external strategy to extend.]
 
   ErrorDesc.NoInjectionBetween = [Cannot convert from [Type] to [Type] automatically, no known injection.]
+  ErrorDesc.CastInserted = [Converting from [Type] to [Type] with a cast.]
+  ErrorDesc.SCastInserted = [Converting from [SType] to [SType] with a cast.]
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
-  ErrorDesc.TypeMismatch = [Expected [Type], but got [Type].]
+  ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
   ErrorDesc.UnresolvedLocal = [Undefined local variable.]
+  ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
+  ErrorDesc.UnresolvedSortVar = [Undefined sort variable.]
   ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
   ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
+  ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
+  ErrorDesc.LiteralCastFail = [Cannot compile literal failing cast]
+  ErrorDesc.MissingParsingInfoOnStringQuotation = [String quotation does not have parser information required to figure out indentation.]
+  ErrorDesc.StrategyCongruenceOverlap = [Strategy overlaps with congruence for constructor of same name.]
+  ErrorDesc.GadtSort = [Must use all unique sort variables as sort arguments, GADTs are not supported.]
 
   ErrorDesc.AsInBuildTerm = [The @ pattern may not be used in build context.]
   ErrorDesc.WldInBuildTerm = [The _ pattern may not be used in build context.]
@@ -56,9 +96,16 @@ context-free syntax
   ErrorDesc.NonListInAnno = [Expected list, but got [Type].]
   ErrorDesc.MultipleAppsInMatch = [Multiple projections in one pattern, only one is actually returned. ]
 
-  ErrorDesc.BuildUnboundTerm = [Use of unbound local variable. ]
   ErrorDesc.MatchNotSpecificEnoughForTP = [Cannot infer specific type for TP rule match. Found result: [Type]. ]
 
   ErrorDesc.UnsupportedCastRequiredInDynamicRule = [Pattern induces cast, but cast is not supported in this position. ]
 
   ErrorDesc.DynRuleOverlapError = [Overlapping left-hand-sides for dynamic rule '[Id]': [String] in [String] overlaps with [String] in [String]. ]
+  ErrorDesc.CannotCastToRigidTypeVar = [Cannot cast [Type] to type [Type], its type is not known at run-time in this position. ]
+  ErrorDesc.WithClauseInDynRule = [Cannot use with clauses in dynamic rules. ]
+  ErrorDesc.ConstantCongruence = [Simple matching congruence: prefix with '?'. Or with '!' if you meant to build. ]
+
+  ErrorDesc.WldInOverlay = [Wildcard not allowed in overlay, add a default value after the underscore. ]
+  ErrorDesc.AsInOverlay = [As pattern not allowed in overlay. ]
+  ErrorDesc.StringQuotationInOverlay = [The string quotation pattern may not be used in overlay. ]
+  ErrorDesc.MissingTypeDefinition = [Missing type definition. ]

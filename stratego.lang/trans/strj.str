@@ -6,24 +6,28 @@
 module strj
 
 imports
-  strj/shared-constructors
 
-//  libstrc
   libstratego-lib
   libstratego-xtc
   libstratego-gpp
   libjava-front
-    
+
+  strc
+  strc/strc/strc-options
+
+  signatures/core/modules-sig
+
   strj/strj-options
   strj/s2j
   strj/lib/dr-scoping
   strj/fast-print/main
+  strj/shared-constructors
 
 strategies
 
   stratego2-strj-sep-comp =
     ([name, ctree | args] -> [name | args])
-  ; strj-parse-options
+  ; strj-parse-options(|[])
   ; main-module-required
   ; log-timed(
       xtc-input(strj-or-die2(|ctree))
@@ -46,14 +50,23 @@ strategies
   
   strj2 =
     try(mark-always-needed(|<get-config> "-m", 0, 0))
-  ; Specification(map(try(Strategies(![<joindefs>]))))
+  ; Specification(
+      partition(not(?Strategies(_)),?Strategies(<id>))
+    ; (id, ![Strategies(<concat;guarded-joindefs>)])
+    ; conc
+    )
   ; strc-optimize
   ; s2j
   ; with(clean-output-dir)
   ; log-timed(list-loop(output-java) | "Pretty printing succeeded", 1)
 
+  guarded-joindefs: sdefs1 -> sdefs2
+  with
+    names := <map(?SDefT(<id>, _, _, _));make-set> sdefs1
+  ; sdefs2 := <map(\name -> <filter(?SDefT(name, _, _, _));joindefs> sdefs1\)> names
+
   main-strj =
-    strj-parse-options
+    strj-parse-options(|["org.strategoxt.stratego_lib"])
   ; main-module-required
   ; log-timed(
       xtc-input(strj-or-die)

@@ -1,0 +1,610 @@
+/**
+ * Integer arithmetic and comparison.
+ */
+module term/integer
+imports
+  collection/list/common
+  collection/list/cons
+  collection/tuple/common
+  collection/tuple/cons
+  lang/dynamic-rules
+  strategy/iteration
+  term/real
+  term/string
+
+strategies
+
+  external is-int :: (|) ? -> int
+
+strategies
+
+  /**
+   * Adds two numbers (integer or real)
+   */
+  add :: ? * ? -> ?
+  add =
+       (is-int , is-int ); addi; is(?)
+    <+ (is-real, is-real); addr; is(?)
+
+  /**
+   * Adds two integers
+   */
+  addi :: int * int -> int
+  addi = ?(<id>, y); int-add(|y)
+
+  /**
+   * Adds two integers
+   */
+  external int-add :: (|int) int -> int
+
+  /**
+   * Adds two reals
+   */
+  addr :: real * real -> real
+  addr = ?(<id>, y); real-add(|y)
+
+  /**
+   * Adds two reals
+   */
+  external real-add :: (|real) real -> real
+
+strategies
+
+  /**
+   * Bitwise OR's two integers
+   */
+  iori :: int * int -> int
+  iori = ?(<id>, y); int-ior(|y)
+
+  /**
+   * Bitwise XOR's two integers
+   */
+  xori :: int * int -> int
+  xori = ?(<id>, y); int-xor(|y)
+
+  /**
+   * Bitwise AND's two integers
+   */
+  andi :: int * int -> int
+  andi = ?(<id>, y); int-and(|y)
+
+  /**
+   * Bitwise shift x to the left by y places
+   */
+  shli :: int * int -> int
+  shli = ?(<id>, y); int-shl(|y)
+
+  /**
+   * Bitwise shift x to the right by y places
+   */
+  shri :: int * int -> int
+  shri = ?(<id>, y); int-shr(|y)
+
+  external int-ior :: (|int) int -> int
+  external int-xor :: (|int) int -> int
+  external int-and :: (|int) int -> int
+  external int-shl :: (|int) int -> int
+  external int-shr :: (|int) int -> int
+
+strategies
+
+  /**
+   * Subtracts two numbers (integer or real)
+   */
+  subt :: ? * ? -> ?
+  subt =
+       (is-int , is-int ); subti; is(?)
+    <+ (is-real, is-real); subtr; is(?)
+
+  /**
+   * Subtracts two integers
+   */
+  subti :: int * int -> int
+  subti = ?(<id>, y); int-subt(|y)
+
+  /**
+   * Subtracts two integers
+   */
+  external int-subt :: (|int) int -> int
+
+  /**
+   * Subtracts two reals
+   */
+  subtr :: real * real -> real
+  subtr = ?(<id>, y); real-subt(|y)
+
+  /**
+   * Subtracts two reals
+   */
+  external real-subt :: (|real) real -> real
+
+strategies
+
+  /**
+   * Multiplies two numbers (integer or real)
+   */
+  mul :: ? * ? -> ?
+  mul =
+       (is-int , is-int ); muli; is(?)
+    <+ (is-real, is-real); mulr; is(?)
+
+  /**
+   * Multiplies two integers
+   */
+  muli :: int * int -> int
+  muli  = ?(<id>, y); int-mul(|y)
+
+  /**
+   * Multiplies two integers
+   */
+  external int-mul :: (|int) int -> int
+
+  /**
+   * Multiplies two reals
+   */
+  mulr :: real * real -> real
+  mulr  = ?(<id>, y); real-mul(|y)
+
+  /**
+   * Multiplies two reals
+   */
+  external real-mul :: (|real) real -> real
+
+strategies
+
+  /**
+   * Divides two numbers (integer or real)
+   */
+  div :: ? * ? -> ?
+  div =
+       (is-int , is-int ); divi; is(?)
+    <+ (is-real, is-real); divr; is(?)
+
+  /**
+   * Divides two integers
+   */
+  divi :: int * int -> int
+  divi  = ?(<id>, y); int-div(|y)
+
+  /**
+   * Divides two integers
+   */
+  external int-div :: (|int) int -> int
+
+  /**
+   * Divides two reals
+   */
+  divr :: real * real -> real
+  divr  = ?(<id>, y); real-div(|y)
+
+  /**
+   * Divides two reals
+   */
+  external real-div :: (|real) real -> real
+
+strategies
+
+  /**
+   * Returns the modulo (remainder after division) of two integers or reals.
+   */
+  mod :: ? * ? -> ?
+  mod =
+       (is-int , is-int ); modi; is(?)
+    <+ (is-real, is-real); modr; is(?)
+
+  /**
+   * Returns the modulo (remainder after division) of two integers
+   */
+  modi :: int * int -> int
+  modi = ?(<id>, y); int-mod(|y)
+
+  /**
+   * Returns the modulo (remainder after division) of two integers
+   */
+  external int-mod :: (|int) int -> int
+
+  /**
+   * Returns the modulo (remainder after division) of two reals
+   */
+  modr :: real * real -> real
+  modr = ?(<id>, y); real-mod(|y)
+
+  /**
+   * Returns the modulo (remainder after division) of two reals
+   */
+  external real-mod :: (|real) real -> real
+
+strategies
+
+  gt :: ? * ? -> ? * ?
+  gt =
+    where(
+      ?(<id>, y)
+    ; (  is-int;   int-gt(|<is-int> y)
+      <+ is-real; real-gt(|<is-real> y); is(?)
+      )
+    )
+
+  gti :: int * int -> int * int
+  gti = where(?(<id>, y); int-gt(|y))
+
+  gtr :: real * real -> real * real
+  gtr = where(?(<id>, y); real-gt(|y))
+
+  external real-gt :: (|real) real -> real
+
+  geq :: ? * ? -> ? * ?
+  geq = ?(x,x) <+ gt
+
+  lt :: ? * ? -> ? * ?
+  lt  = not(geq)
+
+  leq :: ? * ? -> ? * ?
+  leq = not(gt)
+
+  int-gt :: int * int -> int * int
+  int-gt = gti
+
+  int-geq :: int * int -> int * int
+  int-geq = ?(x,x) <+ gti
+
+  int-lt :: int * int -> int * int
+  int-lt = not(int-geq)
+
+  int-leq :: int * int -> int * int
+  int-leq = not(gti)
+
+strategies
+
+  /**
+   * @type Int -> Int
+   */
+  int-leq(|int) :: int -> int
+  int-leq(|y) =
+    not(int-gt(|y))
+
+  /**
+   * @type Int -> Int
+   */
+  external int-gt :: (|int) int -> int
+
+  /**
+   * @type Int -> Int
+   */
+  int-lt(|int) :: int -> int
+  int-lt(|y) =
+    where(not(?y <+ int-gt(|y)))
+
+strategies
+
+  // :: Int * Int * Int -> fail?
+  leq-leq :: ? * ? * ? -> ? * ? * ?
+  leq-leq = comp-comp(leq, leq)
+
+  leq-lt :: ? * ? * ? -> ? * ? * ?
+  leq-lt  = comp-comp(leq, lt)
+
+   lt-leq :: ? * ? * ? -> ? * ? * ?
+   lt-leq = comp-comp(lt,  leq)
+
+   lt-lt :: ? * ? * ? -> ? * ? * ?
+   lt-lt  = comp-comp(lt,  lt)
+
+  // Int * Int -> fail?, Int * Int -> fail? :: Int * Int * Int -> fail?
+  comp-comp(a * a -> b, a * a -> c) :: a * a * a -> a * a * a
+  comp-comp(s1, s2) =
+      ?(x, y, z)
+    ; where(<s1> (x, y); <s2> (y, z))
+
+strategies
+
+  /**
+   * @type  Int -> fail?
+   */
+  even :: int -> int
+  even = where(<modi> (<id>, 2) => 0)
+
+  /**
+   * @type (Int, Int) -> Int
+   */
+  max :: ? * ? -> ?
+  max = gt < Fst + Snd
+
+  min :: ? * ? -> ?
+  min = gt < Snd + Fst
+
+  int-max :: int * int -> int
+  int-max = gti < Fst + Snd
+
+  int-min :: int * int -> int
+  int-min = gti < Snd + Fst
+
+  /**
+   * @type  Int -> Int
+   */
+  pos :: int -> int
+  pos = where(<int-geq> (<id>, 0))
+
+  neg :: int -> int
+  neg = where(<int-lt>  (<id>, 0))
+
+  /**
+   * Turns a real or int into an int
+   */
+  external int :: (|) ? -> int
+
+strategies
+
+  /**
+   * Sets a seed for the following sequence of next-random calls.
+   * Typically, the seed is set to the Unix time (the result of the strategy time).
+   *
+   * @see    man srand
+   * @since  0.9.4
+   * @type   Int -> ()
+   */
+  external set-random-seed :: (|) int -> int
+
+  /**
+   * Gets the maximum random number that will be returned by the next-random number generator.
+   * Corresponds to RAND_MAX in C.
+   *
+   * @type _ -> Int()
+   */
+  external get-random-max :: (|) ? -> int
+
+  /**
+   * Returns a random number between 0 and get-random-max.
+   *
+   * For a given seed, this strategy always returns the same sequence  of numbers.
+   * If no seed value has been set using set-random-seed, then the seed is 1, which
+   * means that the sequence of random numbers will always be the same if you set no seed.
+   *
+   * @see    man rand
+   * @since  0.9.4
+   * @type   _ -> Int
+   */
+  external next-random :: (|) ? -> int
+
+strategies
+
+  apply-int-to-str-tuple(int * int -> int) :: string * string -> string
+  apply-int-to-str-tuple(s) =
+    (string-to-int, string-to-int) ; s ; int-to-string
+
+  addS :: string * string -> string
+  addS  = apply-int-to-str-tuple(addi)
+
+  subtS :: string * string -> string
+  subtS = apply-int-to-str-tuple(subti)
+
+  mulS :: string * string -> string
+  mulS  = apply-int-to-str-tuple(muli)
+
+  divS :: string * string -> string
+  divS  = apply-int-to-str-tuple(divi)
+
+  modS :: string * string -> string
+  modS  = apply-int-to-str-tuple(modi)
+
+  maxS :: string * string -> string
+  maxS  = apply-int-to-str-tuple(int-max)
+
+  minS :: string * string -> string
+  minS  = apply-int-to-str-tuple(int-min)
+
+  gtS :: string * string -> string * string
+  gtS   = where((string-to-int, string-to-int); int-gt)
+
+  geqS :: string * string -> string * string
+  geqS  = where((string-to-int, string-to-int); int-geq)
+
+  ltS :: string * string -> string * string
+  ltS   = where((string-to-int, string-to-int); int-lt)
+
+  leqS :: string * string -> string * string
+  leqS  = where((string-to-int, string-to-int); int-leq)
+
+  /**
+   * Increments a number.
+   *
+   * @type Int -> Int
+   */
+  inc :: ? -> ?
+  inc = <add>  (<id>, 1)
+
+  /**
+   * Increments an integer
+   *
+   * @type Int -> Int
+   */
+  int-inc :: int -> int
+  int-inc =
+    int-add(|1)
+
+  /**
+   * Decrements a number.
+   *
+   * @type Int -> Int
+   */
+  dec :: ? -> ?
+  dec = <subt> (<id>, 1)
+
+  /**
+   * Decrements an integer.
+   *
+   * @type Int -> Int
+   */
+  int-dec :: int -> int
+  int-dec =
+    int-subt(|1)
+
+strategies
+
+  log2 :: int -> int
+  log2 =
+    !(<id>, 0);
+    repeat((!(<divi>(<id>, 2), <modi; ?0>(<id>, 2)); Fst, int-inc));
+    ?(1, <id>)
+
+strategies
+
+  gcd :: int * int -> int
+  gcd =
+    (abs,abs)
+  ; let
+      gcd' :: int * int -> int
+      gcd' = \ (x,0) -> x \ + \ (x,y) -> <gcd'>(y,<modi>(x,y)) \
+    in
+      gcd'
+    end
+
+  abs :: int -> int
+  abs =
+    if neg then
+      <subti> (0, <id>)
+    end
+
+signature
+  sorts
+    IntI
+  constructors
+    Infinite : IntI
+             : int -> IntI
+
+rules
+
+  add-inf :: IntI * IntI -> IntI
+  add-inf =
+    ( \(Infinite(), _) -> Infinite()\
+    + \(_, Infinite()) -> Infinite()\)
+   <+ (is-int, is-int); addi
+
+  lt-inf :: IntI * IntI -> IntI * IntI
+  lt-inf =
+       (is-int, ?Infinite())
+    <+ (is-int, is-int); int-lt
+
+strategies
+  new-counter :: ? -> string
+  new-counter =
+    new; reset-counter
+
+  reset-counter :: a -> a
+  reset-counter = ?c;
+    where(<set-counter> (c, 0))
+
+  set-counter :: ? * b -> ? * b
+  set-counter =
+    ?(c,n); rules( Counter : c -> n )
+
+  get-counter :: ? -> int
+  get-counter =
+    Counter;is-int <+ <set-counter> (<id>, 0); !0
+
+  next-counter :: string -> int
+  next-counter =
+    ?c; get-counter; int-inc; where(<set-counter> (c, <id>))
+
+strategies
+
+  external int-to-string :: (|) int -> string
+
+  external string-to-int :: (|) string -> int
+
+/**
+ * Conversion of strings to integers
+ */
+strategies
+
+ /**
+  * @type String -> Int
+  * @inc hex-string-test
+  */
+  hex-string-to-int :: string -> int
+  hex-string-to-int = <generic-string-to-int> (<id>, 16)
+
+ /**
+  * @type String -> Int
+  * @inc dec-string-test
+  */
+  dec-string-to-int :: string -> int
+  dec-string-to-int = <generic-string-to-int> (<id>, 10)
+
+  oct-string-to-int :: string -> int
+  oct-string-to-int = <generic-string-to-int> (<id>, 8)
+
+ /**
+  * @type String -> Int
+  * @inc bin-string-test
+  */
+  bin-string-to-int :: string -> int
+  bin-string-to-int = <generic-string-to-int> (<id>, 2)
+
+  /**
+   * @type List(Char) -> Int
+   */
+  hex-chars-to-int :: List(int) -> int
+  hex-chars-to-int = <generic-chars-to-int> (<id>, 16)
+
+  /**
+   * @type List(Char) -> Int
+   */
+  dec-chars-to-int :: List(int) -> int
+  dec-chars-to-int = <generic-chars-to-int> (<id>, 10)
+
+  /**
+   * @type List(Char) -> Int
+   */
+  oct-chars-to-int :: List(int) -> int
+  oct-chars-to-int = <generic-chars-to-int> (<id>, 8)
+
+  /**
+   * @type List(Char) -> Int
+   */
+  bin-chars-to-int :: List(int) -> int
+  bin-chars-to-int = <generic-chars-to-int> (<id>, 2)
+
+  /**
+   * @type String * Int -> Int
+   */
+  generic-string-to-int :: string * int -> int
+  generic-string-to-int =
+      (explode-string, id)
+    ; generic-chars-to-int
+
+  /**
+   * @type List(Char) * Int -> Int
+   */
+  generic-chars-to-int :: List(int) * int -> int
+  generic-chars-to-int =
+    neg-chars-to-int <+ pos-chars-to-int
+
+  // :: List(Char) * Int -> Int
+  neg-chars-to-int :: List(int) * int -> int
+  neg-chars-to-int:
+    (['-' | chars], radix) -> <muli> (-1, <pos-chars-to-int> (chars, radix))
+      where <gt> (<length> chars, 0)
+
+  // :: List(Char) * Int -> Int
+  pos-chars-to-int :: List(int) * int -> int
+  pos-chars-to-int =
+      ?([char | chars], r)
+    ; <foldl(<addi> (<char-to-digit> (<Fst>, r), <muli> (<Snd>, r)))>
+        (chars, <char-to-digit> (char, r))
+
+  // :: Char -> Int
+  char-to-digit :: int * int -> int
+  char-to-digit:
+    (x, radix) -> result
+      where <is-num> x
+          ; <subti> (x, '0') => result
+          ; <int-lt> (result, radix)
+
+  char-to-digit:
+    (x, 16) -> <addi> (10, <subti> (x, 'a'))
+      where <leq-leq> ('a', x, 'f')
+
+  char-to-digit:
+    (x, 16) -> <addi> (10, <subti> (x, 'A'))
+      where <leq-leq> ('A', x, 'F')

@@ -1,7 +1,6 @@
 module core/constants
 
-sorts Int Real String StrChar
-
+lexical sorts Int Real String StrChar
 lexical syntax
   Int     = [\-]? [0-9]+
 
@@ -9,5 +8,5 @@ lexical syntax
 
   String  = "\"" StrChar* "\""
 
-  StrChar = ~[\"\\] 
-  StrChar = [\\] [\"tnr\\]
+  StrChar = ~[\"\\]
+  StrChar = [\\] [tnrbf\"\'\\]

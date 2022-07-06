@@ -1,0 +1,94 @@
+/**
+ * Various iteration strategies.
+ */
+module strategy/iteration
+imports
+  strategy/conditional
+  term/integer
+strategies
+
+  /**
+   * Repeatedly apply s until it fails.
+   */
+  repeat(a -> a) :: a -> a
+  repeat(s) =
+    repeat(s, id)
+
+  /**
+   * Repeatedly apply s until it fails and terminate with application of c.
+   */
+  external repeat :: (a -> a, a -> b|) a -> b
+  //repeat(s, c) =
+  //  (s; repeat(s, c)) <+ c
+
+  /**
+   * Repeatedly apply s (at least once) and terminate with application of c.
+   */
+  repeat1(a -> a, a -> b) :: a -> b
+  repeat1(s, c) =
+    s; repeat(s, c)
+
+  /**
+   * Repeatedly apply s (at least once).
+   */
+  repeat1(a -> a) :: a -> a
+  repeat1(s) =
+    s; repeat(s, id)
+
+  /**
+   * Repeatedly apply s until c succeeds.
+   */
+  repeat-until(a -> a, a -> b) :: a -> b
+  repeat-until(s, c) =
+    repeat(s; not(c), c)
+
+  /**
+   * Applies s repeatedly exactly n times. If s fails at some point during
+   * the n applications, the entire strategy fails. The result of the
+   * strategy is that of the nth application of s.
+   */
+  // Tradeoff: This implementation makes superfluous pairs all the time, but uses repeat which is not recursively defined
+  repeat(a -> a | int) :: a -> a
+  repeat(s | n) =
+    !(<id>, n)
+  ; repeat(\(t, l) -> (<s> t, <int-dec> l) where <int-gt> (n, 0)\)
+  ; ?(<id>, _)
+
+  /**
+   * While c succeeds apply s.
+   */
+  while(a -> b, b -> a) :: a -> a
+  while(c, s) =
+    repeat(c; s)
+
+  /**
+   * While c does not succeed apply s.
+   */
+  while-not(a -> b, a -> a) :: a -> b
+  while-not(c, s) =
+    repeat(not(c); s, c)
+
+  /**
+   * Apply s at least once and then repeat while c succeeds.
+   */
+  do-while(a -> a, a -> a) :: a -> a
+  do-while(s, c) =
+    s; repeat(c; s)
+
+  /**
+   * Repeat application of s after initialization with i
+   * while c fails.
+   */
+  for(a -> b, b -> c, b -> b) :: a -> c
+  for(i, c, s) =
+    i; while-not(c, s)
+
+  /**
+   * Apply s for each integer from low to up (inclusive).
+   */
+  // Tradeoff: This implementation makes superfluous pairs all the time, but uses repeat which is not recursively defined
+  for((|int) a -> a | int, int) :: a -> a
+  for(s : Int * a -> a | low, up) =
+    !(<id>, low)
+  ; repeat(\(t, l) -> (<s(|l)> t, <int-inc> l) where <int-leq> (l, up)\)
+  ; ?(<id>, _)

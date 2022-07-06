@@ -5,6 +5,7 @@ imports
   signatures/core/modules-sig
   signatures/sugar/modules-sig
   signatures/sugar/terms-sig
+  signatures/sugar/string-quotations-sig
   signatures/gradual-types/strategies-sig
 
   gradual-types/modules
@@ -12,10 +13,11 @@ imports
   pp
 
   libspoofax/term/origin
+  strc/incr/fix-new-grammar
 
 rules // Desugar
 
-  local-pre-desugar-all = bottomup(try(local-pre-desugar))
+  local-pre-desugar-all = bottomup(try(local-pre-desugar)); fix-new-grammar
 
   local-pre-desugar: NoAnnoList(Tuple([t])) -> t
 

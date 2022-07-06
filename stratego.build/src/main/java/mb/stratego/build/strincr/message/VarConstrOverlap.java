@@ -8,6 +8,6 @@ public class VarConstrOverlap extends Message {
     }
 
     @Override public String getMessage() {
-        return "Nullary constructor '" + locationTermString() + "' should be followed by round brackets ().";
+        return "Nullary constructor '" + locationTermString + "' should be followed by round brackets ().";
     }
 }

@@ -3,10 +3,10 @@ module core/modules
 imports
   core/identifiers
   core/layout
-  core/strategies
   core/signatures
+  core/strategies
 
-sorts Module
+context-free sorts Module
 context-free syntax
 
   Module.Module =
@@ -19,7 +19,7 @@ context-free syntax
 
 <{AnnoDecl "\n\n"}*>>
 
-sorts Decl AnnoDecl
+context-free sorts Decl AnnoDecl
 context-free syntax
   Decl.Imports =
 <imports
@@ -37,7 +37,7 @@ context-free syntax
 
   AnnoDecl = Decl
 
-sorts ImportModName
+context-free sorts ImportModName
 context-free syntax
   ImportModName.Import = ModName
 

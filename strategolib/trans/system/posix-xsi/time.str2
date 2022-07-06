@@ -1,0 +1,5 @@
+module system/posix-xsi/time
+strategies
+
+  // Warning: not implemented
+  external dtime :: (|) ? -> real

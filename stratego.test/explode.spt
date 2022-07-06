@@ -1,9 +1,9 @@
 module explode
 
-language strategoGT
+language StrategoLang
 
 fixture [[
-  specification
+  module test
 
   signature constructors
     Int : string -> Expr
@@ -16,13 +16,13 @@ fixture [[
 ]]
 
 test explode build with wrong constructor doesn't give error because most things can be a constructor here [[
-  explode1 = ![[()]]#([])
-]] //1 error at #1
+  explode1 = !()#([])
+]] 0 errors
    has origin locations
 
-test explode build with wrong arguments gives warning [[
+test explode build with wrong arguments gives error [[
   explode1 = !""#([[1]])
-]] 1 warning at #1
+]] 1 error at #1
    has origin locations
 
 test explode match with wrong constructor doesn't give error, too many things _can_ occur there [[
@@ -30,9 +30,9 @@ test explode match with wrong constructor doesn't give error, too many things _c
 ]] 0 errors
    has origin locations
 
-test explode match with wrong arguments gives warning [[
+test explode match with wrong arguments gives error [[
   explode1 = ?""#([[1]])
-]] 1 warning at #1
+]] 1 error at #1
    has origin locations
 
 test explode congruence with wrong constructor doesn't give error, too many things _can_ occur there [[
@@ -42,6 +42,6 @@ test explode congruence with wrong constructor doesn't give error, too many thin
 
 test explode congruence with wrong arguments gives warning [[
   explode1 = ""#([[1]])
-]] 2 warnings at #1
+]] 2 errors at #1
    has origin locations
 // 2 because both match and build fail (int -/> list(?) & list(?) -/> int)

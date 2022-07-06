@@ -1,0 +1,16 @@
+module one-tuple
+
+imports
+
+  libstratego-lib
+
+rules
+
+  editor-format:
+    (node, _, ast, path, project-path) -> (filename, result)
+    with
+      ext      := (<get-extension> path) :: string
+    ; filename := <guarantee-extension(|$[pp.[ext]])> path
+    ; result   := <pp-debug> node
+
+pp-debug = fail

@@ -4,12 +4,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
+import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
+import mb.stratego.build.strincr.data.SortSignature;
+import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.util.WithLastModified;
@@ -18,30 +22,39 @@ import mb.stratego.build.util.WithLastModified;
  * The information in the module data of a module as needed by the Resolve task for indexing.
  */
 public class ModuleIndex implements Serializable, WithLastModified {
+    public final ArrayList<String> str2LibPackageNames;
     public final ArrayList<IModuleImportService.ModuleIdentifier> imports;
-    public final LinkedHashSet<ConstructorSignature> constructors;
+    public final LinkedHashSet<SortSignature> sorts;
+    public final LinkedHashSet<SortSignature> externalSorts;
+    public final LinkedHashSet<ConstructorData> nonOverlayConstructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
-    public final LinkedHashSet<StrategySignature> strategies;
+    public final LinkedHashSet<StrategyFrontData> strategies;
     public final LinkedHashSet<StrategySignature> internalStrategies;
-    public final LinkedHashSet<StrategySignature> externalStrategies;
-    public final LinkedHashSet<StrategySignature> dynamicRules;
-    public final LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData;
+    public final LinkedHashSet<StrategyFrontData> externalStrategies;
+    public final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
+    public final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs;
     public final ArrayList<Message> messages;
     public final long lastModified;
 
-    public ModuleIndex(ArrayList<IModuleImportService.ModuleIdentifier> imports,
-        LinkedHashSet<ConstructorSignature> constructors,
-        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        LinkedHashSet<ConstructorSignature> externalConstructors,
-        LinkedHashSet<StrategySignature> strategies,
+    public ModuleIndex(ArrayList<String> str2LibPackageNames, ArrayList<IModuleImportService.ModuleIdentifier> imports,
+        LinkedHashSet<SortSignature> sorts, LinkedHashSet<SortSignature> externalSorts,
+        LinkedHashSet<ConstructorData> nonOverlayConstructors,
+        LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections, LinkedHashSet<ConstructorSignature> externalConstructors,
+        LinkedHashSet<StrategyFrontData> strategies,
         LinkedHashSet<StrategySignature> internalStrategies,
-        LinkedHashSet<StrategySignature> externalStrategies,
-        LinkedHashSet<StrategySignature> dynamicRules,
-        LinkedHashMap<ConstructorSignature, ArrayList<OverlayData>> overlayData,
+        LinkedHashSet<StrategyFrontData> externalStrategies,
+        LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
+        LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts, LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs,
         ArrayList<Message> messages, long lastModified) {
+        this.str2LibPackageNames = str2LibPackageNames;
         this.imports = imports;
-        this.constructors = constructors;
+        this.sorts = sorts;
+        this.externalSorts = externalSorts;
+        this.nonOverlayConstructors = nonOverlayConstructors;
         this.injections = injections;
         this.externalConstructors = externalConstructors;
         this.strategies = strategies;
@@ -49,6 +62,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         this.externalStrategies = externalStrategies;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
+        this.overlayUsedConstrs = overlayUsedConstrs;
         this.messages = messages;
         this.lastModified = lastModified;
     }
@@ -63,9 +78,15 @@ public class ModuleIndex implements Serializable, WithLastModified {
 
         if(lastModified != that.lastModified)
             return false;
+        if(!Objects.equals(str2LibPackageNames, that.str2LibPackageNames))
+            return false;
         if(!imports.equals(that.imports))
             return false;
-        if(!constructors.equals(that.constructors))
+        if(!sorts.equals(that.sorts))
+            return false;
+        if(!externalSorts.equals(that.externalSorts))
+            return false;
+        if(!nonOverlayConstructors.equals(that.nonOverlayConstructors))
             return false;
         if(!injections.equals(that.injections))
             return false;
@@ -85,8 +106,11 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public int hashCode() {
-        int result = imports.hashCode();
-        result = 31 * result + constructors.hashCode();
+        int result = str2LibPackageNames.hashCode();
+        result = 31 * result + imports.hashCode();
+        result = 31 * result + sorts.hashCode();
+        result = 31 * result + externalSorts.hashCode();
+        result = 31 * result + nonOverlayConstructors.hashCode();
         result = 31 * result + injections.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + strategies.hashCode();
@@ -100,10 +124,10 @@ public class ModuleIndex implements Serializable, WithLastModified {
     }
 
     @Override public String toString() {
-        return "ModuleIndex(" + imports + ", " + constructors + ", " + injections + ", "
-            + externalConstructors + ", " + strategies + ", " + internalStrategies + ", "
-            + externalStrategies + ", " + dynamicRules + ", " + overlayData + ", " + messages
-            + ", " + lastModified + ')';
+        return "ModuleIndex(" + imports + ", " + sorts + ", " + externalSorts + ", "
+            + nonOverlayConstructors + ", " + injections + ", " + externalConstructors + ", "
+            + strategies + ", " + internalStrategies + ", " + externalStrategies + ", "
+            + dynamicRules + ", " + overlayData + ", " + messages + ", " + lastModified + ')';
     }
 
     @Override public long lastModified() {

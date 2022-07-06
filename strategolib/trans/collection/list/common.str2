@@ -1,0 +1,1211 @@
+/**
+ * This module contains basic functionality for manipulating lists.
+ *
+ */
+module collection/list/common
+imports
+  collection/list/cons
+  collection/list/index
+  collection/list/lookup
+  collection/list/zip
+  collection/tuple/common
+  collection/tuple/cons
+  term/integer
+  term/common
+  strategy/conditional
+  strategy/iteration
+
+strategies
+
+  /**
+   * Iterative loop over a list applying s to each element.
+   *
+   * @param Strategy to apply to every element (a -> _)
+   * @type List(a) -> List(a)
+   */
+  external list-loop :: (a -> b|) List(a) -> List(a)
+
+  /**
+   * Iterative fold over a list applying s to each element and
+   * accumulator acc from left to right.
+   *
+   * @param Strategy applied for folding. The current
+   *        intermediate result is a term argument. The next element
+   *        of the list is the current term.
+   * @param Initial value for folding (type: c)
+   * @type List(a) -> c
+   */
+  external list-fold :: ((|c) a -> c | c) List(a) -> c
+
+strategies
+
+  /** @internal */
+  Hd :: List(a) -> a
+  Hd   : [x | _] -> x
+
+  /** @internal */
+  Tl :: List(a) -> List(a)
+  Tl   : [_ | l] -> l
+
+  /** @internal */
+  Last :: List(a) -> a
+  Last : [x]     -> x
+
+  /**
+   * @internal
+   */
+  MkSingleton :: a -> List(a)
+  MkSingleton =
+    ![<id>]
+
+  /**
+   * Splits a Cons into a tuple with head and tail.
+   */
+  split-Cons :: List(a) -> a * List(a)
+  split-Cons :
+    [x | xs] -> (x, xs)
+
+  /**
+   * Makes a Cons out of a tuple with head and tail. The
+   * tail must be a list, but may be the empty list.
+   */
+  MkCons :: a * List(a) -> List(a)
+  MkCons :
+    (x, xs) -> [x | xs]
+
+strategies
+
+  /**
+   * Succeeds if the input term is a list.
+   */
+  is-list :: ? -> List(?)
+  is-list = ?[] <+ ?[_ | _]
+
+  /**
+   * Apply a strategy to each element of a list.
+   *
+   * @param s is applied to all elements
+   * @inc   map-test
+   */
+  map(a -> b) :: List(a) -> List(b)
+  map(s) =
+//    rec x([] + [s | x])
+    // performance tweak
+      ?[_ | _] < all(s) + ?[]
+
+  /** @internal */
+  map1(a -> a) :: List(a) -> List(a)
+  map1(s) =
+    [s | id]; [id | try(map1(s))] <+ [id | map1(s)]
+
+  /**
+   * In reverse order, apply a strategy to each element of a list.
+   *
+   * @param s is applied to all elements
+   */
+  reverse-map(a -> b) :: List(a) -> List(b)
+  reverse-map(s): [h1 | t1] -> [h2 | t2]
+    where
+      t2 := <reverse-map(s)> t1
+    ; h2 := <s> h1
+  reverse-map(s) = ?[]
+
+  /**
+   * @inc map
+   *
+   * @note list(s) is an alias for map
+   */
+  list(a -> b) :: List(a) -> List(b)
+  list(s) =
+    map(s)
+
+  /**
+   * Apply a strategy to some elements in a list. The elements
+   * of the original list will be kept unchanged when the
+   * strategy s fails.
+   *
+   * @param s
+   */
+  list-some(a -> a) :: List(a) -> List(a)
+  list-some(s) =
+    rec x([s| id] < [id| map(try(s))] + [id| x])
+
+ /**
+  * Returns the length of a list.
+  *
+  * @inc length-test
+  */
+  external length :: (|) List(a) -> int
+
+  /**
+   * Succeeds if the term is in the list.
+   */
+  elem :: a * List(a) -> List(a)
+  elem =
+    ?(x, <id>); where(fetch(?x))
+
+  /**
+   * Succeeds if the term is in the list, using the given
+   * strategy for determining equality.
+   *
+   * @param eq
+   */
+  elem(a * a -> a) :: a * List(a) -> List(a)
+  elem(eq) =
+    ?(x, <id>); fetch(<eq> (x, <id>))
+
+  /**
+   * Find first list element for which s succeeds.
+   *
+   * @param s
+   * @inc   fetch-test
+   */
+  fetch(a -> a) :: List(a) -> List(a)
+  fetch(s) =
+//    rec x([s | id] <+ [id | x])
+    // performance tweak
+    ?[_ | _]; one(s)
+
+  /**
+   * Return first list element for which s succeeds.
+   * The result is the application of s to this element.
+   *
+   * @param s
+   * @inc   fetch-elem-test
+   */
+  fetch-elem(a -> b) :: List(a) -> b
+  fetch-elem(s) =
+//    fetch(where(s => x)); !x
+    // performance tweak
+    getfirst(s)
+
+  /**
+   * Splits a list in two parts at the first point where s succeeds.
+   *
+   * The element to which s was applied is not part of the result. split-fetch
+   * fails if s cannot be applied to any of the elements.
+   *
+   * Examples:
+   *   <split-fetch(\ 3 -> 6 \)> [1, 2, 3] => ([1,2], [])
+   *   <split-fetch(\ 3 -> 6 \)> [2, 3, 4] => ([2], [4])
+   *   <split-fetch(\ 3 -> 6 \)> [3, 4, 5] => ([], [4,5])
+   *   not(<split-fetch(\ 3 -> 6 \)> [8, 7, 6])
+   *
+   * @param s
+   * @inc   split-fetch-test
+   */
+  split-fetch(a -> b) :: List(a) -> List(a) * List(a)
+  split-fetch(s) =
+    at-suffix({h,t: ([h|t] -> [] where <s> h; tl := t)}); !(<id>, tl)
+
+  /**
+   * Splits a list in two parts at the point where s succeeds, keeping the
+   * element at which s succeeded.
+   *
+   * Unlike split-fetch, this strategy keeps the dividing element as part of
+   * the result as the second element in the triple: (before, split, after)
+   *
+   * split-fetch-keep fails if s cannot be applied to any of the elements.
+   *
+   * @param s
+   */
+  split-fetch-keep(a -> b) :: List(a) -> List(a) * b * List(a)
+  split-fetch-keep(s) =
+    at-suffix({h,t: ([h|t] -> [] where el := <s> h; tl := t)}); !(<id>, el, tl)
+
+  /**
+   * Breaks a list into multiple parts (tokens).
+   *
+   * The term argument sep is a list of delimiters (elements that separate
+   * tokens from one another), which is used to split the list
+   * into multiple tokens. The result is a list of lists, i.e. a list
+   * of tokens.
+   *
+   * @param sep List of separator elements.
+   */
+  list-tokenize(|List(a)) :: List(a) -> List(List(a))
+  list-tokenize(|sep) =
+    list-tokenize({c: ?c; <fetch(?c)> sep})
+
+  /**
+   * Breaks a list into multiple parts (tokens).
+   *
+   * The strategy argument sep is used to split the list. Wherever it
+   * succeeds, the original list is split, and the parts are returned
+   * as a list of lists, i.e. a list of tokens.
+   *
+   * @param s
+   */
+  list-tokenize(a -> b) :: List(a) -> List(List(a))
+  list-tokenize(sep) =
+      (split-fetch(sep) <+ !(<id>, []))
+    ; ( \ (  []     , [])        -> []   \
+      + \ (l@[_ | _], [])        -> [l]  \
+      + \ (  []     , l@[_ | _]) -> <list-tokenize(sep)> l \
+      + \ (t@[_ | _], l@[_ | _]) -> [t | <list-tokenize(sep)> l] \
+      )
+
+strategies
+
+  /**
+   * Apply a strategy to the tail of a list.
+   *
+   * @param s  is applied to the tail
+   */
+  at-tail(List(a) -> List(a)) :: List(a) -> List(a)
+  at-tail(s) =
+    [id | s]
+
+  /**
+   * Apply s to the Nil of a list.
+   *
+   * @param s   is applied to Nil ([])
+   */
+  external at-end :: (List(b) -> List(a)|) List(a) -> List(a)
+//  at-end(s) =
+//    rec x([id | x] + ?[]; s)
+
+  /**
+   * Apply a strategy to some suffix of a list.
+   *
+   * The longest suffix (that is, the first application in a list)
+   * is preferred.
+   *
+   * @param s  is applied to the suffix
+   */
+  at-suffix(List(a) -> List(a)) :: List(a) -> List(a)
+  at-suffix(s) =
+    rec x(s <+ [id | x])
+
+  /**
+   * Apply a strategy to some suffix of a list.
+   *
+   * The shortest suffix (that is, the last application in a list)
+   * is preferred.
+   *
+   * @param s  is applied to the suffix
+   */
+  at-suffix-rev(List(a) -> List(a)) :: List(a) -> List(a)
+  at-suffix-rev(s) =
+    rec x([id | x] <+ s)
+
+  /**
+   * Apply s to the last Cons ([_]) of a list.
+   *
+   * @param s  Is applied to the [x] and must return a list
+   */
+  at-last(List(a) -> List(a)) :: List(a) -> List(a)
+  at-last(s) =
+    rec x([id]; s <+ [id | x])
+
+  /**
+   * Splits a list into a tuple of its init list and last element.
+   *
+   * Example:
+   *   <split-init-last> [1, 2, 3, 4] => ([1, 2, 3], 4)
+   *   <split-init-last> [1]          => ([], 1)
+   *
+   * @inc    split-init-last
+   * @since  0.9.4
+   */
+  split-init-last :: List(a) -> List(a) * a
+  split-init-last =
+    at-last(?[x]; ![]); !(<id>, x)
+
+  /**
+   * Applies s1 to all elements in a list, except the last, where
+   * s2 is applied.
+   *
+   * @param s1
+   * @param s2
+   */
+  at-init(a -> b, a -> b) :: List(a) -> List(b)
+  at-init(s1, s2) =
+    rec x([s2] <+ [s1 | x])
+
+  /**
+   * Applies a strategy to a list in bottom up order. That is to say,
+   * the strategy s will be applied to successively longer excerpts
+   * of the list, starting from the end.
+   *
+   * At the first invocation, s will be applied to the tail of the list,
+   * and is expected to return a new list. The last element of the list
+   * will then be added in front of this result, and s is applied to
+   * this. The recursion continues through all elements from last to
+   * first, each time on a longer list, hence "bottom up".
+   *
+   * Example: <listbu(![9 | <id>])> [1,2,3,4] => [9,1,9,2,9,3,9,4,9]
+   *
+   * @param s
+   */
+  listbu(List(a) -> List(a)) :: List(a) -> List(a)
+  listbu(s) =
+    rec x((?[] + [id| x]); s)
+
+  /**
+   * @inc listbu
+   */
+  listbu1(List(a) -> List(a)) :: List(a) -> List(a)
+  listbu1(s) =
+    [id| listbu1(s)]; try(s) <+ s
+
+  /**
+   * Applies a strategy to a list in top down order. That is to say,
+   * the strategy s will first be applied to the whole list, then
+   * successively shorter excerpts, all the way chopping of elements from
+   * the start of the list.
+   *
+   * At the first invocation, s will be applied to the whole list, and
+   * is expected to return a new list. The first element is chopped off
+   * this result, and s is applied again, until s has been applied to
+   * the empty list. The recursion continues through successively
+   * shorter list, hence "top down".
+   *
+   * @note The strategy s should result in a list which is longer than
+   * it is given, because that will result in non-termination.
+   *
+   * Example: <listtd(not(?[]) ; ![<sum>] <+ ![])> [1,2,3,4] => [10]
+   *
+   * @param s
+   */
+  listtd(List(a) -> List(a)) :: List(a) -> List(a)
+  listtd(s) =
+    rec x(s; (?[] + [id| x]))
+
+  /**
+   * Applies s in a top down then bottom up, i.e. down up, order. See
+   * listtd and listbu for a detailed description of each phase.
+   *
+   * @note As with listtd, the strategy s should never result in a list
+   * which is longer than given to it.
+   *
+   * @param s
+   */
+  listdu(List(a) -> List(a)) :: List(a) -> List(a)
+  listdu(s) =
+    rec x(s; (?[] + [id| x]); s)
+
+  /**
+   * Applies s1 in a top down order then s2 in a bottom up order. See
+   * listd and listbu for a detailed description of each phase.
+   *
+   * @note As with listtd, the strategy s2 should never result in a list
+   * which is longer than given to it.
+   *
+   * @param s1
+   * @param s2
+   */
+  listdu2(List(a) -> List(a), List(a) -> List(a)) :: List(a) -> List(a)
+  listdu2(s1, s2) =
+    rec x(s1; (?[] + [id| x]); s2)
+
+  /** @internal */
+  RevInit :: a -> a * List(b)
+  RevInit : xs -> (xs, [])
+
+  /** @internal */
+  Rev :: List(a) * List(a) -> List(a) * List(a)
+  Rev     : ([x| xs], ys) -> (xs, [x| ys])
+
+  /** @internal */
+  RevExit :: List(a) * List(b) -> List(b)
+  RevExit : ([], ys) -> ys
+
+  /**
+   * Reverses a list.
+   *
+   * @inc reverse-test
+   */
+  reverse :: List(a) -> List(a)
+  reverse =
+    reverse-acc(id, ![])
+
+  /**
+   * Reverses a list and applies s to all the elements.
+   *
+   * @param a -> b
+   * @type  List(a) -> List(b)
+   */
+  reverse(a -> b) :: List(a) -> List(b)
+  reverse(s) =
+    reverse-acc(s, ![])
+
+  /** @internal */
+  reverse-acc(a -> b, Tuple() -> List(b)) :: List(a) -> List(b)
+  reverse-acc(s, acc) :
+    [] -> <acc> ()
+
+  /** @internal */
+  reverse-acc(s, acc) :
+    [x | xs] -> <{ys:where(![<s>x | <acc> ()] => ys); reverse-acc(s, !ys)}> xs
+
+rules
+
+  /** @internal */
+  UptoInit :: a -> a * List(b)
+  UptoInit : i -> (i, [])
+
+  /** @internal */
+  UptoExit :: int * b -> b
+  UptoExit : (i, xs) -> xs where <lt> (i, 0)
+
+  /** @internal */
+  UptoStep :: int * List(int) -> int * List(int)
+  UptoStep : (i, xs) -> (<subti> (i, 1), [i| xs])
+
+strategies
+
+  /**
+   * Generates a sequence of numbers from 0 up to the given input
+   * integer, inclusive.
+   *
+   * See also range.
+   *
+   * @inc upto-test
+   */
+  upto :: int -> List(int)
+  upto =
+    UptoInit;
+    let
+      x :: int * List(int) -> List(int)
+      x = UptoExit <+ UptoStep; x
+    in x
+    end
+
+strategies
+
+  /**
+   * Concatenates all lists of a tuple.
+   *
+   * @inc  conc-test
+   */
+  conct :: ? -> List(?)
+  conct =
+    is(List(?) * List(?)); \ (l1, l2) -> <at-end(!l2)> l1 \
+    <+ \ "" # (xs) -> <is(List(List(?))); concat> xs \
+
+  /**
+   * Concatenates all lists of a pair.
+   */
+  conc :: List(a) * List(a) -> List(a)
+  conc : (l1, l2) -> <at-end(!l2)> l1
+
+  /**
+   * Concatenates a list of lists into one list.
+   *
+   * Example: <concat> [[1,2],[3,4],[5,6]] => [1,2,3,4,5,6]
+   *
+   * @inc  concat-test
+   */
+  external concat :: (|) List(List(a)) -> List(a)
+//  concat =
+//    rec x(?[] + \ [l | ls] -> <at-end(<x> ls)> l\ )
+
+  /**
+   * Concats two elements if both elements are lists. Otherwise, constructs
+   * a Conc term.
+   *
+   * Generic term construction is used to avoid infinite recursion: makeConc
+   * is used in the compilation of Conc itself.
+   */
+  makeConc :: a * b -> List(?)
+  makeConc =
+    ?(xs, ys)
+    ; if <is-list> xs; <is-list> ys then conct else !"Conc"#([xs, ys]) :: List(?) end
+
+strategies
+
+  /**
+   * Separates the elements of the list by the specified separator.
+   * The separate-by variant that uses a term argument is prefered.
+   */
+  separate-by :: a * List(a) -> List(a)
+  separate-by =
+    ?(sep, <id>)
+    ; separate-by(|sep)
+
+  /**
+   * Separates the elements of the list by the specified separator.
+   * The separate-by variant that uses a term argument is prefered.
+   *
+   * @param Strategy that results in a separator.
+   */
+  separate-by(Tuple() -> a) :: List(a) -> List(a)
+  separate-by(sep) =
+    separate-by(|<sep> ())
+
+  /**
+   * Separates the elements of the list by the specified separator.
+   *
+   * @param Separator term
+   */
+  separate-by(|a) :: List(a) -> List(a)
+  separate-by(|sep) =
+    ?[]
+    + [id |
+        rec x(
+          ?[]
+        + [id | x]
+          ; ![sep | <id>]
+        )]
+
+strategies
+
+  /**
+   * Transposes an n by m matrix. The matrix must be represented as
+   * a list of n elements, where each element is a list of length m.
+   * The element of the inner lists may be of any type.
+   *
+   * Example: <matrix-transpose> [[1,2],[3,4]] => [[1,3],[2,4]]
+   */
+  matrix-transpose :: List(List(a)) -> List(List(a))
+  matrix-transpose =
+      map(?[]); ![]
+    +   map(split-Cons)
+      ; unzip
+      ; (id, matrix-transpose)
+      ; MkCons
+
+  /**
+   * <for-each-pair(s)> (xs, ys) produces the list of pairs <s> (x,y).
+   * for each pair of x from xs and y from ys.
+   *
+   * @inc for-each-pair-test
+   */
+  for-each-pair(a * b -> c) :: List(a) * List(b) -> List(List(c))
+  for-each-pair(s) =
+    ?(xs, ys); <map(\ x -> <map(<s>(x,<id>))> ys \ )> xs
+
+strategies
+
+  /**
+   * Succeeds if the first input term is a member of the second.
+   */
+  member :: a * List(a) -> a * List(a)
+  member = (?x, fetch(?x))
+
+rules
+
+  /** @internal */
+  FoldR1 :: List(a) -> a * a
+  FoldR1   : [x, y] -> (x, y)
+
+  /** @internal */
+  FoldR :: List(a) -> a * List(a)
+  FoldR    : [x | xs] -> (x, xs)
+
+  /** @internal */
+  FoldL(a * b -> c) :: List(a) * b -> List(a) * c
+  FoldL(s) : ([x | xs], y) -> (xs, <s> (x, y))
+
+  /** @internal */
+  lsplit(a -> b, a -> b) :: a -> List(b)
+  lsplit(f, g) : x -> [<f> x, <g> x]
+
+strategies
+
+  /**
+   * foldr, requires a list of length > 1.
+   *
+   * @param  List(a) -> b
+   * @param  (a, b) -> b
+   * @type   List(a) -> b
+   * @internal
+   */
+  foldr1(List(a) -> b, a * b -> b) :: List(a) -> b
+  foldr1(s1, s2) =
+//    rec x([id]; s1 <+ FoldR; (id, x); s2)
+    // performance tweak
+    ?[_ | _]; foldr(s1, s2, id)
+
+  /**
+   * foldr, requires a list of length > 1.
+   * The additional parameter strategy f is applied to each element just
+   * before each folding step.
+   *
+   * @param List(c) -> b
+   * @param (c, b) -> b
+   * @param a -> c
+   * @type  List(a) -> b
+   * @internal
+   */
+  foldr1(List(c) -> b, c * b -> b, a -> c) :: List(a) -> b
+  foldr1(s1, s2, f) =
+//    rec x([f]; s1 <+ FoldR; (f, x); s2)
+    // performance tweak
+    ?[_ | _]; foldr(s1, s2, f)
+
+  /**
+   * foldr, requires a list of length > 1.
+   * Note that s maps (a, a) to a, only one type is involved.
+   *
+   * @param (a, a) -> a
+   * @type  List(a) -> a
+   * @internal
+   */
+  foldr1(a * a -> a) :: List(a) -> a
+  foldr1(s) =
+    (FoldR1 <+ FoldR; (id, foldr1(s))); s
+
+  /**
+   * Right folds a list. That is, the strategy s2 is applied as a
+   * binary operator between all adjacent elements in the list.
+   * foldr starts by applying s2 to the last element in the list
+   * and the result of s1. s1 is therefore the starting point of
+   * the folding.
+   *
+   * Example: <foldr(!0, add)> [1,2,3,4] => 10
+   *
+   * @param [] -> b
+   * @param (a, b) -> b
+   * @type  List(a) -> b
+   */
+  foldr(List(c) -> b, a * b -> b) :: List(a) -> b
+  foldr(s1, s2) =
+    ?[]; s1
+//    + \ [y|ys] -> <s2>(y, <foldr(s1, s2)> ys) \
+    // performance tweak
+    + ?[_|_]; foldr(s1, s2, id)
+
+  /**
+   * Right folds a list. That is, the strategy s2 is applied as a
+   * binary operator between all adjacent elements in the list.
+   * foldr starts by applying s2 to the last element in the list
+   * and the result of s1. s1 is therefore the starting point of
+   * the folding.
+   *
+   * The additional parameter strategy f is applied to each element just
+   * before each folding step.
+   *
+   * Example: <foldr(!0, add, inc)> [1,2,3,4] => 14
+   *
+   * @param [] -> b
+   * @param (c, b) -> b
+   * @param a -> c
+   * @type  List(a) -> b
+   */
+  external foldr :: (List(d) -> b, c * b -> b, a -> c|) List(a) -> b
+//  foldr(s1, s2, f)  =
+//    ?[]; s1
+//    + \ [y|ys] -> <s2> (<f> y, <foldr(s1, s2, f)> ys) \
+
+  /**
+   * Left folds a list. That is, the strategy s is applied as a
+   * binary operator between all adjacent elements in the list.
+   * foldl starts by applying s to b and the first element in
+   * the list. b is therefore the starting point of the folding.
+   *
+   * Example: <foldl(add)> ([1,2,3,4], 0)
+   *
+   * @param (a, b) -> b
+   * @type  (List(a), b) -> b
+   */
+  foldl(a * b -> b) :: List(a) * b -> b
+  foldl(s) =
+    \ ([], y) -> y \ + FoldL(s); foldl(s)
+
+  /** @internal */
+  mapfoldr1(List(a) -> b, a -> b, b * List(b) -> b) :: List(a) -> b
+  mapfoldr1(s1, s2, s3) =
+    rec x([id]; s1 <+ [s2|x]; \ [a|b]->(a,b)\; s3)
+
+  /**
+   * Transform the elements of a list into lists (map)
+   * and concatenate into a single list (concat).
+   *
+   * Note: equivalent to map(s); concat
+   *
+   * @param a -> List(b)
+   * @type  List(a) -> List(b)
+   */
+  mapconcat(a -> List(b)) :: List(a) -> List(b)
+  mapconcat(s) =
+    foldr(?[], conc, s)
+
+  /**
+   * Returns the last element of a list.
+   *
+   * Fails if applied to the empty list.
+   *
+   * @type List(a) -> a
+   */
+  last :: List(a) -> a
+  last =
+    Last <+ Tl; last
+
+
+  /**
+   * Returns a list with the first and the last element of
+   * the input list. For the empty list and the singleton
+   * list, this is equivalent to id.
+   *
+   * @type List(a) -> List(a)
+   */
+  first-last :: List(a) -> List(a)
+  first-last =
+    [id | try(last; MkSingleton)] <+ ?[]
+
+ /**
+  * Returns a list of all elements of a list, except the last.
+  *
+  * Fails if applied to the empty list.
+  *
+  * @inc init
+  * @inc empty init
+  *
+  * @type List(a) -> List(a)
+  */
+  init :: List(a) -> List(a)
+  init =
+    at-last(Tl)
+
+  /**
+   * @inc split-init-last
+   * @note Alias for split-init-last.
+   */
+  split-last :: List(a) -> List(a) * a
+  split-last =
+    split-init-last
+
+  /**
+   * Makes n copies of a term into a list of duplicates. The
+   * first input term is the integer n, the second is the term
+   * to duplicate.
+   *
+   * @inc copy-test
+   *
+   * Example: <copy> (3, "foo") => ["foo", "foo", "foo"]
+   */
+  copy :: int * a -> List(a)
+  copy = copy(id)
+
+  /**
+   * Makes n copies of a term into a list of duplicates, applying
+   * the strategy s to every copy. The first input term is the
+   * integer n, the second is the term to duplicate.
+   *
+   * Example: <copy(\ "foo" -> "bar" \)> (3, "foo") => ["bar","bar","bar"]
+   */
+  copy(a -> b) :: int * a -> List(b)
+  copy(s) =
+    let
+      Copy1 :: int * a -> int * a * List(b)
+      Copy1 = \(n,t) -> (n,t,[])\
+
+      Copy2 :: int * a * List(b) -> List(b)
+      Copy2 = \(0,t,ts) -> ts\
+
+      Copy3 :: int * a * List(b) -> int * a * List(b)
+      Copy3 = \(n,t,ts) -> (<subti>(n,1), t, [<s> t|ts]) where <geq>(n,1)\
+    in
+      for(Copy1, Copy2, Copy3)
+    end
+
+  /** @internal */
+  thread-map(a * b -> c * b) :: List(a) * b -> List(c) * b
+  thread-map(s) :
+    ([], t) -> ([], t)
+
+  /**
+   * Applies s to each element in the list, keeping along a separate
+   * context term.
+   *
+   * For each element in the list, a tuple (a, b) is constructed and
+   * given to s. From the result, (a', b'), a' goes to the final list
+   * returned by this strategy, and b' becomes the new b as s is
+   * applied to the next element.
+   *
+   * Example: <thread-map(add ; !(<id>, <id>))> ([1,2,3,4], 1) => ([2,4,7,11],11)
+   *
+   * @param s a * b -> a' * b'
+   * @type List(a) * b -> List(a') * b'
+   */
+  thread-map(s) :
+    ([x | xs], t) -> ([y | ys], t'')
+    where <s> (x, t) => (y, t')
+    ; <thread-map(s)> (xs, t') => (ys, t'')
+
+  /**
+   * Numbers each element in a list successively with an
+   * integer, starting at 0. The result is a list of pairs,
+   * (elem, num) where elem is the original element and num
+   * is its associated number. s is applied to each pair
+   * before inserting it into the list
+   *
+   * Example: <number(id)> ["a","b","c"] => [("a",0),("b",1),("c",2)]
+   *
+   * @inc number-test
+   *
+   * @param s a * Int -> a' * Int
+   * @type List(a) -> List((a,n),...)
+   */
+  number(a * int -> b) :: List(a) -> List(b)
+  number(s) =
+    !(<id>, 0); thread-map(!(<s>,<Snd;int-inc>)); ?(<id>,_)
+
+  /**
+   * Take elements from the start of a list while s succeeds.
+   * Each element of the list is tested against s, starting at
+   * the head of the list. For as long as s succeeds, the elements
+   * are accumulated in a list, which is returned as s fails, or
+   * the end of the list is reached. The actual term returned by
+   * s is ignored.
+   *
+   * Example: <take-while(?2 ; !3)> [2,2,3] => [2,2]
+   *
+   * @param s       a -> _
+   * @type    List(a) -> List(a)
+   */
+  take-while(a -> b) :: List(a) -> List(a)
+  take-while(s) =
+    at-suffix(?[] + ([not(s)|id];![]))
+
+  /**
+   * Take elements from the start of a list until s succeeds.
+   * Each element of the list is tested against s, starting at
+   * the head of the list. For as long as s does not succeed, the
+   * elements are accumulated in a list, which is returned at
+   * the instant s fails. The actual term returned by s is
+   * ignored. If s never succeeds, the entire list is returned.
+   *
+   * Example: <take-until(?2; !3)> [3,3,2,4] => [3,3]
+   *
+   * @param s       a -> _
+   * @type    List(a) -> List(a)
+   */
+  take-until(a -> a) :: List(a) -> List(a)
+  take-until(s) =
+    at-suffix(?[] + ([s|id];![]))
+
+  /**
+   * Take the first n elements of a list, given by isn. The
+   * strategy argument isn must produce an integer, which
+   * gives the length of the sublist to return. If there are
+   * not enough elements, this strategy fails.
+   *
+   * @param isn _ -> Int
+   * @type List(a) -> List(a)
+   */
+  take(Tuple() -> int) :: List(a) -> List(a)
+  take(isn) =
+    take(|<isn> ())
+
+  /**
+   * Returns the first n elements of a list, fails
+   * if list has fewer than n elements.
+   *
+   * @param n The number of elements to take.
+   * @type List(a) -> List(a)
+   */
+  take(|int) :: List(a) -> List(a)
+  take(|n) =
+    if <eq>(n,0) then
+      ![]
+    else
+      ![<Hd> | <Tl; take(|<subti>(n,1))>]
+    end
+
+  /**
+   * Returns the n first elements after s has been applied to them.
+   * With the exception of side effects, takemap(s|n) is equal to
+   * take(|n); map(s). The difference when considering side-effects
+   * is that s is applied while taking elements, so if s has a
+   * side-effect these will be performed, even if take fails.
+   *
+   * @param n - The number of elements to retrieve
+   * @param s a -> b
+   * @type List(a) -> List(b)
+   */
+  takemap(a -> b|int) :: List(a) -> List(b)
+  takemap(s|n) =
+    if <eq>(n,0) then
+      ![]
+    else
+      ![<Hd; s> | <Tl; takemap(s|<subti>(n,1))>]
+    end
+
+  /**
+   * Drops elements from the start of a list while s succeeds. The
+   * first element at which s fails and all following it will be
+   * returned.
+   *
+   * Example: <drop-while(?2)> [2,2,3,4] => [3,4]
+   *
+   * @param s       a -> _
+   * @type    List(a) -> List(a)
+   */
+  drop-while(a -> b) :: List(a) -> List(a)
+  drop-while(s) =
+    at-suffix((?[] + [not(s)|id]);?xs); !xs
+
+  /**
+   * Drops elements from the start of a list until s succeeds. The
+   * first element at which s succeeds and all following it will be
+   * returned.
+   *
+   * Example: <drop-until(?3)> [2,2,3,4] => [3,4]
+   *
+   * @param s       a -> _
+   * @type    List(a) -> List(a)
+   */
+  drop-until(a -> a) :: List(a) -> List(a)
+  drop-until(s) =
+    at-suffix((?[] + [s|id]);?xs); !xs
+
+  /**
+   * Drops the first n elements from a list. If the list has
+   * fewer than n elements, the strategy fails.
+   *
+   * @param n - the number of elements to drop
+   * @type  List(a) -> List(a)
+   */
+  drop(|int) :: List(a) -> List(a)
+  drop(|n) =
+    if <eq>(n,0) then
+      id
+    else
+      Tl; drop(|<subti>(n,1))
+    end
+
+  /**
+   * Splits a list after n elements and applies strategy s to the
+   * first sublist. The second sublist is left untouched.
+   * Disregarding side-effects, splitmap is equal to
+   * !(<take(|n); map(s)>, <drop(|n)>). If side-effects are
+   * considered, note that application of s happens while
+   * traversing and splitting.
+   *
+   * @param s a -> b
+   * @param n - the number of elements to apply s to, from the start
+   * @type List(a) -> (List(b), List(a))
+   */
+  splitmap(a -> b|int) :: List(a) -> List(b) * List(a)
+  splitmap(s|n) =
+    if <eq>(n,0) then
+      !([], <id>)
+    else
+      where(Hd; s => x)
+      ; where(Tl; splitmap(s|<subti>(n,1)) => (xs, ys))
+      ; !([x | xs], ys)
+    end
+
+  /**
+   * @inc split-fetch
+   * @note Alias for split-fetch/1
+   */
+  split-at(a -> b) :: List(a) -> List(a) * List(a)
+  split-at(s) =
+    split-fetch(s)
+
+  /**
+   * Splits a list in two, with the second part containing the last
+   * n elements and and first part containing all elements except the
+   * last n.
+   *
+   * @type List(a) -> (List(a), List(a))
+   * @param n - the number of elements to split at (counting from the back)
+   */
+  back-split-at(|int) :: List(a) -> List(a) * List(a)
+  back-split-at(|n) =
+    foldr(!(([], []), 0)
+          , {x, l, r, m :
+             ?(x, ((l, r), m))
+             ; if <lt>(m, n)
+               then
+                 !((l, [x | r]), <int-inc>m)
+               else
+                 !(([x | l], r), m)
+               end})
+    ; ?(<id>, _)
+
+  /**
+   * Drops a number of terms from the front of a list.
+   *
+   * The number is specified by the strategy argument, which should
+   * produce an integer.
+   *
+   * @type  List(a) -> List(a)
+   * @param _ -> Int
+   */
+  drop(Tuple() -> int) :: List(a) -> List(a)
+  drop(isn) =
+    where(<isn> () => n)
+    ; nzip0(id)
+    ; drop-until(?(n,_))
+    ; map(?(_, <id>))
+
+  /**
+   * Splits the list in two sublists, containing elements from 0 to
+   * n and from n onwards.
+   *
+   * Example: <split-at(|4)>[1,2,3,4,5,6,7,8,9] => ([1,2,3,4], [5,6,7,8,9])
+   *
+   * @type List(a) -> (List(a), List(a))
+   */
+  split-at(|int) :: List(a) -> List(a) * List(a)
+  split-at(|n) =
+    at-index-tail(?tail; ![] | n)
+    ; !(<id>, tail)
+
+strategies
+
+  /**
+   * Trim elements from the end of a list
+   *
+   * Removes the longest sublist from the end of a list, for which
+   * all elements satisfy the strategy s.
+   *
+   * @type  List(a) -> List(a)
+   * @param should succeed for all elements that have to be trimmed.
+   * @since 0.9.5
+   * @inc   trim-test
+   */
+  rtrim(a -> ?) :: List(a) -> List(a)
+  rtrim(s) =
+    ?[]
+  + at-suffix-rev(
+      where( not(?[])     // This only succeeds if we're not at list-end
+           ; not([s|id])) // and s fails at the head of the current suffix
+    ; ![<Hd>]) // s failed, no further trimming.
+
+  /**
+   * Trim elements from the start of a list.
+   *
+   * Removes the longest sublist from the start of a list, for which
+   * all elements satisfy the strategy s.
+   *
+   * @type  List(a) -> List(a)
+   * @param should succeed for all elements that have to be trimmed.
+   * @since 0.9.5
+   * @inc   trim-test
+   * @note Alias for drop-while
+   */
+  ltrim(a -> b) :: List(a) -> List(a)
+  ltrim(s) = drop-while(s)
+
+  /**
+   * Trim elements from both start and end of a list.
+   *
+   * Removest the longest sublist from both start and end of a
+   * list for which all elements satisfy s.
+   *
+   * @type List(a) -> List(a)
+   * @param s a -> -
+   * @since 0.9.5
+   * @inc trim-test
+   */
+  trim(a -> b) :: List(a) -> List(a)
+  trim(s) = ltrim(s); rtrim(s)
+
+strategies
+
+  /**
+   * Completely flattens a list and its sublists to a single list.
+   *
+   * See list-misc-test for examples.
+   *
+   * @type List(rec x(a or List(x))) -> List(a)
+   * @inc flatten-test
+   */
+  external flatten-list :: (|) List(?) -> List(?)
+//  flatten-list =
+//    foldr(![], (is-list, id) < conc + MkCons, is-list < flatten-list + id)
+
+  /**
+   * Eliminates all elements at the end of the two lists that are equal.
+   * Only works correctly on lists of equal length!
+   *
+   * Example: <eliminate-common-suffix>([1,3,4], [1,2,4]) => ([1,3], [1,2])
+   *
+   * @type (List(a), List(a)) -> (List(a), List(a))
+   */
+  eliminate-common-suffix :: List(a) * List(a) -> List(a) * List(a)
+  eliminate-common-suffix =
+    ?([x | xs], [y | ys])
+    ; <eliminate-common-suffix>(xs, ys)
+    ; if ?([], []); <eq>(x, y)
+      then !([], [])
+      else (![x | <id>], ![y | <id>])
+      end
+    <+ !([], [])
+
+  /**
+   * Returns the common prefix of two lists.
+   *
+   * Examples:
+   *  <common-prefix>([1,2,3], [1,2,4,5]) => [1,2]
+   *  <common-prefix>([1,2,3], [2,3,4]) => []
+   *
+   * @type (List(a), List(a)) -> List(a)
+   */
+  common-prefix :: List(a) * List(a) -> List(a)
+  common-prefix =
+    ?([x | xs], [x | ys])
+    ; ![x | <common-prefix>(xs, ys)]
+    <+ ![]
+
+
+strategies
+
+strategies
+
+  /**
+   * Returns a list of combinations by choosing one element from every
+   * list, in every possible combination.
+   *
+   * Examples:
+   *
+   *   $ <list-combinations> [[1, 2]]
+   *   [[1],[2]]
+   *
+   *   $ <list-combinations> [[1, 2], []]
+   *   []
+   *
+   *   $ <list-combinations> [[1, 2], ["a", "b"]]
+   *   [[1,"a"],[2,"a"],[1,"b"],[2,"b"]]
+   *
+   *   $ <list-combinations> []
+   *   [[]]
+   *
+   * @type List(List(a)) -> List(List(a))
+   */
+  list-combinations :: List(List(a)) -> List(List(a))
+  list-combinations =
+    let step :: List(List(a)) -> List(List(a))
+        step = fail
+          <+ \ [] -> [[]] \
+
+          <+ \ [[] | _] -> [] \
+
+          <+ {xs :
+               ?[xs | <step>]
+               ; map-intermediate(|xs)
+             }
+
+        map-intermediate(|List(a)) :: List(List(a)) -> List(List(a))
+        map-intermediate(|xs) = fail
+          <+ \ [] -> [] \
+
+          <+ {intermediate, tail, tail' :
+               ?[intermediate | tail]
+               ; tail' :=  <map-intermediate(|xs)> tail
+               ; <map-xs(|intermediate, tail')> xs
+             }
+
+        /**
+         * This is just a foldr, but Stratego does not support
+         * specialization of map-xs to an intermediate without
+         * introducing tuples, which means that we cannot
+         * use a generic fold.
+         */
+        map-xs(|List(a), List(List(a))) :: List(a) -> List(List(a))
+        map-xs(|intermediate, tail) = fail
+          <+ \ [] -> tail \
+
+          <+ {x:
+               ?[x | <id>]
+               ; map-xs(|intermediate, tail)
+               ; ![[x | intermediate] | <id>]
+             }
+    in step
+   end

@@ -1,0 +1,33 @@
+module test106
+
+imports collection/list/cons
+
+signature
+  sorts
+    Bar
+    String
+    Int
+  constructors
+    Bar : String * Int -> Bar
+    : int -> Int
+
+overlays
+
+  Foo(String) :: Bar
+  Foo(x) = Bar(x, _ 1)
+
+strategies
+
+  main = id
+    ; <test1> Bar("a", 3)
+    ; <test2> Bar("a", 3)
+
+  test1 =
+    ?Foo("a")
+    ; !Foo("c")
+
+  test2 =
+    ?x@Foo(y)
+    ; ![x, y]
+
+
