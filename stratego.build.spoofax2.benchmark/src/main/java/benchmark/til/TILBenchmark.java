@@ -1,22 +1,22 @@
-package benchmark.chocopy;
+package benchmark.til;
 
-import api.chocopy.ChocoPyProgram;
+import api.til.TILProgram;
 import benchmark.generic.OptimisationBenchmark;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.Param;
 
 import java.io.IOException;
 
-public abstract class ChocoPyBenchmark extends OptimisationBenchmark<ChocoPyProgram> {
+public abstract class TILBenchmark extends OptimisationBenchmark<TILProgram> {
 
-    private static final String LANGUAGE_SUBFOLDER = "chocopy";
+    private static final String LANGUAGE_SUBFOLDER = "til";
 
     @Param({"", "hash-switch"})
     public String switchImplementation = "";
 
     @Override
     public void instantiateProgram() throws MetaborgException, IOException {
-        program = new ChocoPyProgram(sourcePath, optimisationLevel, metaborgVersion);
+        program = new TILProgram(sourcePath, optimisationLevel, metaborgVersion);
     }
 
     @Override

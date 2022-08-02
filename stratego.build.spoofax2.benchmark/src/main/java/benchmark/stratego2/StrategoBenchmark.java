@@ -11,7 +11,7 @@ public abstract class StrategoBenchmark extends OptimisationBenchmark<Stratego2P
 
     private static final String LANGUAGE_SUBFOLDER = "stratego2";
 
-    @Param({"", "elseif", "nested-switch", "hash-switch"})
+    @Param({"", /*"elseif", "nested-switch",*/ "hash-switch"})
     public String switchImplementation = "";
 
 //    @Param({"", /*"name-arity",*/ "arity-name"})

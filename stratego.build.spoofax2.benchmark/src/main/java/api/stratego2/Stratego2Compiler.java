@@ -205,7 +205,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         timer = System.currentTimeMillis();
         CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
-                        new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
+                        new FSPath(classDir), new ArrayList<>(Collections.singletonList(javaPackageName)), new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
                         new ArrayList<>(0), library, autoImportStd, true, languageIdentifier.id, new ArrayList<>());
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);

@@ -33,7 +33,7 @@ final class SpaceBenchmarks {
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
-        String[] switchImplementations = {"", "elseif", "nested-switch", "hash-switch"};
+        String[] switchImplementations = {"", /*"elseif", "nested-switch",*/ "hash-switch"};
 //        String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends StrategoCompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(

@@ -1,15 +1,16 @@
-package benchmark.chocopy;
+package benchmark.til;
 
-import api.chocopy.ChocoPyProgram;
+import api.til.TILProgram;
 import org.metaborg.core.MetaborgException;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 
 class Compile {
     final String filename;
-    ChocoPyProgram program;
+    TILProgram program;
 
     final Path p = Paths.get("src", "main", "resources");
 
@@ -29,17 +30,17 @@ class Compile {
         c.loadProgram();
 
         for (int i = 0; i < 5; i++) {
-            System.out.print("Compiling ChocoPy...");
+            System.out.print("Compiling TIL...");
             c.program.compiler.setupBuild();
             start = System.currentTimeMillis();
-            c.program.compileChocoPy();
+            c.program.compileTIL();
             elapsed = System.currentTimeMillis() - start;
             c.program.compiler.cleanup();
             System.out.printf(" (%f s)%n", elapsed / 1000.f);
         }
 
         start = System.currentTimeMillis();
-        String res = c.program.run();
+        String res = c.program.run(Collections.emptyList());
         elapsed = System.currentTimeMillis() - start;
 
         System.out.println(res);
@@ -49,6 +50,6 @@ class Compile {
     }
 
     private void loadProgram() throws IOException, MetaborgException {
-        program = new ChocoPyProgram(p.resolve(filename), optimisationLevel, "2.6.0-SNAPSHOT");
+        program = new TILProgram(p.resolve(filename), optimisationLevel, "2.6.0-SNAPSHOT");
     }
 }

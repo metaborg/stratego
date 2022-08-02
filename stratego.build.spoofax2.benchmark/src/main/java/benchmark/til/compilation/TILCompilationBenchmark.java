@@ -1,17 +1,19 @@
-package benchmark.chocopy.compilation;
+package benchmark.til.compilation;
 
-import api.chocopy.ChocoPyProgram;
-import benchmark.chocopy.ChocoPyBenchmark;
+import api.til.TILProgram;
+import benchmark.til.TILBenchmark;
+
 import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.unit.ISpoofaxAnalyzeUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxTransformUnit;
 import org.openjdk.jmh.annotations.*;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public abstract class ChocoPyCompilationBenchmark extends ChocoPyBenchmark {
+public abstract class TILCompilationBenchmark extends TILBenchmark {
 
     @Setup(Level.Iteration)
     public void prepareCompilation() throws MetaborgException {
@@ -19,14 +21,14 @@ public abstract class ChocoPyCompilationBenchmark extends ChocoPyBenchmark {
     }
 
     @Benchmark
-    public final Collection<ISpoofaxTransformUnit<ISpoofaxAnalyzeUnit>> runChocoPyCompiler() throws MetaborgException {
-        return getProgram().compileChocoPy();
+    public final IStrategoTerm runTILCompiler() throws MetaborgException {
+        return getProgram().compileTIL();
     }
 
     @Override
     @TearDown(Level.Iteration)
     public void teardown() {
-        ChocoPyProgram p = getProgram();
+        TILProgram p = getProgram();
         if (null != p)
             p.cleanup();
     }
