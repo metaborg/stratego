@@ -29,10 +29,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import api.Compiler;
+import api.SimpleSpoofaxModule;
 
 public final class TILLanguageProject extends Compiler<IStrategoTerm> {
 
-    private final Spoofax spoofax = new Spoofax();
+    private final Spoofax spoofax = new Spoofax(new SimpleSpoofaxModule());
     private final IContextService contextService = spoofax.contextService;
     private final ISimpleProjectService projectService = spoofax.injector.getInstance(ISimpleProjectService.class);
     private final ITermFactory tf = spoofax.termFactory;

@@ -18,7 +18,7 @@ TIL_POM_DIR=$(TIL_REPO_DIR)/$(TIL_PROJECT)
 TIL_LANGUAGE_PROJECT=$(TIL_POM_DIR)
 RESULTS_DIR=$(DATA_DIR)/benchmark_results
 
-BENCHMARK_ARGS?=-e failing -rf json -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S` `echo $(TARGET) | tr -d '()|.'`.json" $(TARGET)
+BENCHMARK_ARGS?=-e failing -rf json -rff "$(RESULTS_DIR)/`date +%Y%m%d-%H%M%S`_`echo $(TARGET) | tr -d '()|.'`.json" $(TARGET)
 
 # DERIVATIVES - DO NOT CHANGE
 MAVEN_REPO=$(HOME)/.m2/repository
