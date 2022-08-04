@@ -1,6 +1,7 @@
 package benchmark.stratego2;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -41,7 +42,7 @@ public class StrategoBenchmarkTests {
                 Mergesort.class, Quicksort.class, Sieve.class));
     private final Collection<Class<? extends TILExecutionBenchmark>> tilExecutionProblems =
         new LinkedList<>(
-            Arrays.asList(benchmark.til.execution.Factorial.class));
+            Arrays.asList(benchmark.til.execution.Factorial.class, benchmark.til.execution.EBlock.class));
 
     @TestFactory Stream<DynamicTest> strategoExecutionBenchmarkTests() {
         return strategoProblems.stream().flatMap(problemClass -> {
@@ -51,8 +52,8 @@ public class StrategoBenchmarkTests {
                     .map(switchImplementation -> {
                         final StrategoExecutionBenchmark benchmark;
                         try {
-                            benchmark = problemClass.newInstance();
-                        } catch(InstantiationException | IllegalAccessException e) {
+                            benchmark = problemClass.getDeclaredConstructor().newInstance();
+                        } catch(InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                             throw new RuntimeException(e);
                         }
                         try {
