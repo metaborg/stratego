@@ -41,4 +41,4 @@ COPY Makefile .
 
 RUN make prepare-benchmark
 
-CMD [ "/bin/bash" ]
+ENTRYPOINT [ "/bin/bash" ]

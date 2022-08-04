@@ -45,10 +45,9 @@ clean:
 benchmark-jar: $(BENCHMARK_JAR)
 
 $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
-	@echo "Building benchmark jar"
-	@cd $(BENCHMARK_DIR) && \
-        mvn -q -fn dependency:go-offline -DoverWriteIfNewer=false && \
-	mvn -q -o package
+	@echo "Building benchmark jar (includes testing benchmarks)"
+	cd $(BENCHMARK_DIR) && \
+	mvn -q -nsu package
 
 $(RESULTS_DIR):
 	@echo "Result dir: $(RESULTS_DIR)"
@@ -83,7 +82,7 @@ $(TIL_LANGUAGE).O%: $(TIL_REPO) | $(TIL_METABORG_TEMPLATE_FILE)
 
 $(TIL_LANGUAGE): $(TIL_REPO)
 	cd $(TIL_POM_DIR) && \
-	mvn -q -fn dependency:go-offline -DoverWriteIfNewer=false
+	mvn -q -nsu dependency:go-offline -DoverWriteIfNewer=false
 	cd $(TIL_POM_DIR) && \
 	mvn -q -o clean install
 
