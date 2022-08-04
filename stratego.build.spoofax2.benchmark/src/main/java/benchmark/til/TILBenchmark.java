@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public abstract class TILBenchmark extends OptimisationBenchmark<TILProgram> {
 
-    private static final String LANGUAGE_SUBFOLDER = "til";
+    private static final String LANGUAGE_SUBFOLDER = "TIL";
 
     @Param({"", "hash-switch"})
     public String switchImplementation = "";
