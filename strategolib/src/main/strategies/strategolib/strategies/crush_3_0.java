@@ -1,5 +1,7 @@
 package strategolib.strategies;
 
+import java.util.ListIterator;
+
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
@@ -20,7 +22,10 @@ public class crush_3_0 extends Strategy {
             return null;
         }
 
-        for(IStrategoTerm subterm : current) {
+        for(ListIterator<IStrategoTerm> iterator =
+            current.getSubterms().listIterator(current.getSubtermCount()); iterator.hasPrevious();) {
+            IStrategoTerm subterm = iterator.previous();
+
             final IStrategoTerm subtermResult = s.invoke(context, subterm);
             if(subtermResult == null) {
                 return null;
