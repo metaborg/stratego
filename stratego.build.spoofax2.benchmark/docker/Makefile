@@ -47,7 +47,8 @@ benchmark-jar: $(BENCHMARK_JAR)
 $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
 	@echo "Building benchmark jar"
 	@cd $(BENCHMARK_DIR) && \
-	mvn -q package
+        mvn -q -fn dependency:go-offline -DoverWriteIfNewer=false && \
+	mvn -q -o package
 
 $(RESULTS_DIR):
 	@echo "Result dir: $(RESULTS_DIR)"
