@@ -121,6 +121,7 @@ public final class TILLanguageProject extends Compiler<IStrategoTerm> {
         } else {
             artifactName = "TIL-0.1.0-SNAPSHOT.spoofax-language";
         }
+        System.out.println("Loading language " + artifactName);
         return localRepository.resolve(Paths.get("mb", "cube", "TIL", "0.1.0-SNAPSHOT",
             artifactName));
     }
