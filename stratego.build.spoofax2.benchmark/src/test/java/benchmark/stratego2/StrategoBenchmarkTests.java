@@ -16,6 +16,7 @@ import org.metaborg.core.MetaborgException;
 
 import benchmark.exception.InvalidConfigurationException;
 import benchmark.exception.SkipException;
+import benchmark.generic.OptimisationBenchmark;
 import benchmark.stratego2.execution.Benchexpr;
 import benchmark.stratego2.execution.Benchsym;
 import benchmark.stratego2.execution.Benchtree;
@@ -61,6 +62,9 @@ public class StrategoBenchmarkTests {
                             benchmark.setOptimisationLevel(optimisationLevel);
                             benchmark.setSharedConstructors("on");
                             benchmark.setSwitchImplementation(switchImplementation);
+                            // set shadowing fields in non-BaseBenchmark
+                            benchmark.optimisationLevel = optimisationLevel;
+                            benchmark.switchImplementation = switchImplementation;
 
                             benchmark.setup();
                         } catch(SkipException e) {
@@ -106,6 +110,9 @@ public class StrategoBenchmarkTests {
                             benchmark.setOptimisationLevel(optimisationLevel);
                             benchmark.setSharedConstructors("on");
                             benchmark.setSwitchImplementation(switchImplementation);
+                            // set shadowing fields in non-BaseBenchmark
+                            benchmark.optimisationLevel = optimisationLevel;
+                            benchmark.switchImplementation = switchImplementation;
 
                             benchmark.setup();
                         } catch(SkipException e) {

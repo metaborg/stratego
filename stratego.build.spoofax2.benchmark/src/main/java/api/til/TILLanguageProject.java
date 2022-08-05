@@ -115,7 +115,13 @@ public final class TILLanguageProject extends Compiler<IStrategoTerm> {
     }
 
     private static Path getTILPath(int optimisationLevel) {
+        final String artifactName;
+        if(optimisationLevel != -1) {
+            artifactName = String.format("TIL-0.1.0-SNAPSHOT.spoofax-language.O%d", optimisationLevel);
+        } else {
+            artifactName = "TIL-0.1.0-SNAPSHOT.spoofax-language";
+        }
         return localRepository.resolve(Paths.get("mb", "cube", "TIL", "0.1.0-SNAPSHOT",
-            String.format("TIL-0.1.0-SNAPSHOT.spoofax-language.O%d", optimisationLevel)));
+            artifactName));
     }
 }
