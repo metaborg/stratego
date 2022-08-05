@@ -33,7 +33,7 @@ import benchmark.stratego2.execution.StrategoExecutionBenchmark;
 import benchmark.til.execution.TILExecutionBenchmark;
 
 public class StrategoBenchmarkTests {
-    private final Integer[] optimisationLevels = { 2, 3, 4 };
+    private final Integer[] optimisationLevels = { 3, 4 };
     private final String[] switchImplementations =
         { "", /*"elseif", "nested-switch",*/ "hash-switch" };
     private final Collection<Class<? extends StrategoExecutionBenchmark>> strategoProblems =

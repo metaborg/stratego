@@ -10,6 +10,6 @@ import benchmark.til.problem.EBlockProblem;
 
 public class EBlock extends TILExecutionBenchmark implements EBlockProblem {
     @Override protected Collection<String> input() {
-        return Arrays.asList("1", "1");
+        return Arrays.asList("\"1\"", "\"1\"");
     }
 }
