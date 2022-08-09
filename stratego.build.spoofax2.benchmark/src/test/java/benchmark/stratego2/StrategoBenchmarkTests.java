@@ -31,6 +31,8 @@ import benchmark.stratego2.execution.Quicksort;
 import benchmark.stratego2.execution.Sieve;
 import benchmark.stratego2.execution.StrategoExecutionBenchmark;
 import benchmark.til.execution.Add100;
+import benchmark.til.execution.Add1000;
+import benchmark.til.execution.Add200;
 import benchmark.til.execution.Add500;
 import benchmark.til.execution.TILExecutionBenchmark;
 
@@ -46,7 +48,7 @@ public class StrategoBenchmarkTests {
     private final Collection<Class<? extends TILExecutionBenchmark>> tilExecutionProblems =
         new LinkedList<>(
             Arrays.asList(benchmark.til.execution.Factorial.class, benchmark.til.execution.EBlock.class,
-                Add100.class, Add500.class));
+                Add100.class, Add200.class, Add500.class, Add1000.class));
 
     @TestFactory Stream<DynamicTest> strategoExecutionBenchmarkTests() {
         return strategoProblems.stream().flatMap(problemClass -> {
