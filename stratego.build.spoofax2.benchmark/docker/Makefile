@@ -46,7 +46,7 @@ benchmark-jar: $(BENCHMARK_JAR)
 
 $(BENCHMARK_JAR): $(STRATEGO_REPO_DIR)
 	@echo "Building benchmark jar (includes testing benchmarks)"
-	cd $(BENCHMARK_DIR) && \
+	@cd $(BENCHMARK_DIR) && \
 	mvn -q -nsu package
 
 $(RESULTS_DIR):
@@ -77,13 +77,14 @@ $(TIL_METABORG_FILE): $(TIL_REPO)
 $(TIL_LANGUAGE).O%: $(TIL_REPO) | $(TIL_METABORG_TEMPLATE_FILE)
 	@echo "Building TIL with -O $*"
 	@yq e '.language.stratego.args += ["-O", $*]' $(TIL_METABORG_TEMPLATE_FILE) > $(TIL_METABORG_FILE)
+	@cd $(TIL_POM_DIR) && \
+	mvn -q -nsu dependency:go-offline -DoverWriteIfNewer=false
 	@$(MAKE) $(TIL_LANGUAGE)
 	@mv $(TIL_LANGUAGE) $(TIL_LANGUAGE).O$*
 
-$(TIL_LANGUAGE): $(TIL_REPO)
-	cd $(TIL_POM_DIR) && \
-	mvn -q -nsu dependency:go-offline -DoverWriteIfNewer=false
-	cd $(TIL_POM_DIR) && \
+# Don't depend on $(TIL_REPO), that overwrites the change made in $(TIL_LANGUAGE).O%
+$(TIL_LANGUAGE):
+	@cd $(TIL_POM_DIR) && \
 	mvn -q -o clean install
 
 .PHONY: til.O2 til.O3 til.O4

@@ -39,6 +39,6 @@ RUN git config --global user.name "Stratego2 Evaluation" && \
 
 COPY Makefile .
 
-RUN make prepare-benchmark
+RUN make all
 
 ENTRYPOINT [ "/bin/bash" ]
