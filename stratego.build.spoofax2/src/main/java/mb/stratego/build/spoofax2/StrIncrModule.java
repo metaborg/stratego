@@ -2,6 +2,7 @@ package mb.stratego.build.spoofax2;
 
 import com.google.inject.Singleton;
 
+import mb.pie.task.archive.ArchiveToJar;
 import mb.pie.task.archive.UnarchiveFromJar;
 import mb.pie.taskdefs.guice.TaskDefsModule;
 import mb.resource.DefaultResourceService;
@@ -48,5 +49,6 @@ public class StrIncrModule extends TaskDefsModule {
         bindTaskDef(FrontSplit.class, FrontSplit.id);
         bindTaskDef(CopyLibraryClassFiles.class, CopyLibraryClassFiles.id);
         bindTaskDef(UnarchiveFromJar.class, UnarchiveFromJar.class.getName());
+        bindTaskDef(ArchiveToJar.class, ArchiveToJar.class.getName());
     }
 }
