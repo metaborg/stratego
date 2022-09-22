@@ -2,6 +2,7 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -50,6 +51,20 @@ public class CompileInput implements Serializable {
         this.createShadowJar = createShadowJar;
         this.usingLegacyStrategoStdLib =
             linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
+    }
+
+    public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
+        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, String packageName,
+        @Nullable ResourcePath cacheDir, ArrayList<String> constants,
+        ArrayList<ResourcePath> includeDirs,
+        ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
+        Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
+        boolean autoImportStd, boolean createShadowJar, String libraryName,
+        ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
+        this(mainModuleIdentifier, projectPath, outputDir, str2libReplicateDir,
+            new ArrayList<String>(Collections.singletonList(packageName)), cacheDir, constants,
+            includeDirs, linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd,
+            createShadowJar, libraryName, str2libraries);
     }
 
     @Override public boolean equals(Object o) {

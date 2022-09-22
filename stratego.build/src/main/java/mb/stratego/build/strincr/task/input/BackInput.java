@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 
 import org.metaborg.util.cmd.Arguments;
+import org.metaborg.util.log.MetaborgLogger;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -260,6 +261,9 @@ public abstract class BackInput implements Serializable {
                 backTask.resourcePathConverter.toString(checkInput.projectPath);
             final IStrategoTerm result =
                 backTask.strategoLanguage.desugar(desugaringInput, projectPath);
+            if(result.getSubtermCount() < 2) {
+                throw new ExecException("Wat. " + result.toString(10));
+            }
             final IStrategoTerm desugaredAst = result.getSubterm(0);
             final IStrategoTerm strategySigTerms = result.getSubterm(1);
 
