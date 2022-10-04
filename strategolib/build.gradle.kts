@@ -1,7 +1,6 @@
 plugins {
   id("org.metaborg.gradle.config.java-library")
   id("org.metaborg.devenv.spoofax.gradle.langspec")
-  id("de.set.ecj") // Use ECJ to speed up compilation of Stratego's generated Java files.
   `maven-publish`
 }
 
@@ -21,11 +20,4 @@ metaborg { // Do not create Java publication; this project is already published 
   javaCreatePublication = false
   javaCreateSourcesJar = false
   javaCreateJavadocJar = false
-}
-
-ecj {
-  toolVersion = "3.21.0"
-}
-tasks.withType<JavaCompile> { // ECJ does not support headerOutputDirectory (-h argument).
-  options.headerOutputDirectory.convention(provider { null })
 }
