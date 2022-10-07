@@ -248,9 +248,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
                         </dependency>
                     </dependencies>
                     <configuration>
-                        <argLine>
-                            –illegal-access=permit
-                        </argLine>
+                        <!--<argLine>-–illegal-access=permit</argLine>-->
                         <reportFormat>plain</reportFormat>
                         <consoleOutputReporter>
                             <disable>true</disable>
