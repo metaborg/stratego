@@ -55,11 +55,11 @@ $(RESULTS_DIR):
 
 $(TIL_REPO_DIR):
 	@echo "Cloning TIL repo"
-	@git clone -q $(TIL_REPO_URL) $(TIL_REPO_DIR)
+	@git clone -q --depth 1 $(TIL_REPO_URL) $(TIL_REPO_DIR)
 
 $(STRATEGO_REPO_DIR):
 	@echo "Cloning Stratego repo"
-	@git clone -q $(BENCHMARK_REPO_URL) $(STRATEGO_REPO_DIR)
+	@git clone -q --depth 1 $(BENCHMARK_REPO_URL) $(STRATEGO_REPO_DIR)
 
 $(TIL_REPO): $(TIL_REPO_DIR)
 	@echo "Updating existing TIL repo"

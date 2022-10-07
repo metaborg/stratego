@@ -39,6 +39,10 @@ RUN git config --global user.name "Stratego2 Evaluation" && \
 
 COPY Makefile .
 
-RUN make all
+RUN make prepare-benchmark \
+ && rm -rf .gradle /tmp/* .cache .pluto .kotlin
+
+RUN make run-benchmark \
+ && rm -rf .gradle /tmp/* .cache .pluto .kotlin
 
 ENTRYPOINT [ "/bin/bash" ]
