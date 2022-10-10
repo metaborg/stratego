@@ -3,6 +3,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib
+from matplotlib.ticker import ScalarFormatter
 import pandas as pd
 import numpy as np
 import os
@@ -274,16 +275,26 @@ def til_plot(df):
 
 def unscaled_plot(df):
     df_unscaledproblem = df[df["Problem Size"] == -1]
+    data = df_unscaledproblem.loc[
+                df_unscaledproblem["Benchmark"].str.contains("stratego")
+                    & ((df_unscaledproblem["Pattern Match Compilation"] == optlevel_to_label("2"))
+                        | (df_unscaledproblem["Codegen Implementation"] == "hash-switch"))].copy()
+
+    data2 = pd.DataFrame()
+
+    for problem, df_problem in data.groupby("Problem"):
+        for stage, df_p_stage in df_problem.groupby("Stage"):
+            median = df_p_stage[df_p_stage["Codegen Implementation"] == ""]["Score"].median()
+            data2 = pd.concat([data2, df_p_stage.assign(MedianScore=lambda x: median)], ignore_index=True)
+
+    data2["Score"] = data2["Score"] / data2["MedianScore"]
 
     # print(df_unscaledproblem.to_latex(
     #     columns=["Problem", "Stage", "Samples", "Score", "Score Error (99.9%)", "Pattern Match Compilation", "Codegen Implementation"]
     # ))
 
     g = sns.catplot(
-        data = df_unscaledproblem.loc[
-            df_unscaledproblem["Benchmark"].str.contains("stratego")
-                & ((df_unscaledproblem["Pattern Match Compilation"] == optlevel_to_label("2"))
-                    | (df_unscaledproblem["Codegen Implementation"] == "hash-switch"))],
+        data = data2,
         x = "Problem",
         y = "Score",
         col = "Stage",
@@ -293,7 +304,7 @@ def unscaled_plot(df):
         sharey=False,
     )
 
-    g.set_ylabels("Time (s)")
+    g.set_ylabels("Factor vs. no PMC (log)")
     for _, ax in g.axes_dict.items():
         locs = ax.get_xticks()
         labels = ax.get_xticklabels()
@@ -301,8 +312,11 @@ def unscaled_plot(df):
         ax.grid(True, 'major', 'y')
         ax.set_xticks([s-0.5 for s in locs], minor=True)
         ax.grid(True, 'minor', 'x', alpha=0.5)
+        ax.set_yscale('log')
+        ax.yaxis.set_major_formatter(ScalarFormatter(1))
+        ax.yaxis.set_minor_formatter(ScalarFormatter(1))
     # plt.xticks(rotation=90)
-    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.23, 0.9))
+    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.46, 0.9))
     g.set_titles(None, None, "{col_name}")
 
     # g.map(plt.errorbar, "Problem", "Score", "Score Error (99.9%)", marker="o")
