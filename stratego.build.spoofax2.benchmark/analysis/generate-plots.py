@@ -189,7 +189,6 @@ def runtime_plot(df_scaledproblem):
         data=df_scaledproblem[
             (df_scaledproblem["Problem Size"] != -1)
                 & (df_scaledproblem["Stage"] == "run")
-                & (df_scaledproblem["Codegen Implementation"].isin(["", "nested-switch"]))
                 & (df_scaledproblem["Pattern Match Compilation"].isin(opt_levels))],
         x="Problem Size",
         y="Score",
@@ -276,9 +275,7 @@ def til_plot(df):
 def unscaled_plot(df):
     df_unscaledproblem = df[df["Problem Size"] == -1]
     data = df_unscaledproblem.loc[
-                df_unscaledproblem["Benchmark"].str.contains("stratego")
-                    & ((df_unscaledproblem["Pattern Match Compilation"] == optlevel_to_label("2"))
-                        | (df_unscaledproblem["Codegen Implementation"] == "hash-switch"))].copy()
+                df_unscaledproblem["Benchmark"].str.contains("stratego")].copy()
 
     data2 = pd.DataFrame()
 
@@ -288,10 +285,6 @@ def unscaled_plot(df):
             data2 = pd.concat([data2, df_p_stage.assign(MedianScore=lambda x: median)], ignore_index=True)
 
     data2["Score"] = data2["Score"] / data2["MedianScore"]
-
-    # print(df_unscaledproblem.to_latex(
-    #     columns=["Problem", "Stage", "Samples", "Score", "Score Error (99.9%)", "Pattern Match Compilation", "Codegen Implementation"]
-    # ))
 
     g = sns.catplot(
         data = data2,
@@ -308,19 +301,16 @@ def unscaled_plot(df):
     for _, ax in g.axes_dict.items():
         locs = ax.get_xticks()
         labels = ax.get_xticklabels()
-        ax.set_xticks(locs, labels, rotation=90)
-        ax.grid(True, 'major', 'y')
+        ax.set_xticklabels(labels, rotation=90)
+        ax.grid(True, 'minor', 'y')
         ax.set_xticks([s-0.5 for s in locs], minor=True)
         ax.grid(True, 'minor', 'x', alpha=0.5)
         ax.set_yscale('log')
         ax.yaxis.set_major_formatter(ScalarFormatter(1))
         ax.yaxis.set_minor_formatter(ScalarFormatter(1))
-    # plt.xticks(rotation=90)
-    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.46, 0.9))
+    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.47, 0.9))
     g.set_titles(None, None, "{col_name}")
 
-    # g.map(plt.errorbar, "Problem", "Score", "Score Error (99.9%)", marker="o")
-    # g.map(plt.xticks, "Problem", "Score", rotation=90)
     return g
 
 def main(output_dir, files):
@@ -331,7 +321,6 @@ def main(output_dir, files):
     df_scaledproblem = df[
         df["Benchmark"].str.contains("stratego")
             & (df["Problem Size"] != -1)
-            & (df["Codegen Implementation"].isin(["", "nested-switch"]))
             & (df["Problem"] != "BenchNullary")
     ]
     
