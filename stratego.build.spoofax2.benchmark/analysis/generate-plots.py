@@ -108,7 +108,6 @@ configs = [
     }
 ]
 
-
 def configure_grid(g: sns.FacetGrid, problem=None):
     ## Global settings
     g.set_ylabels("Time (s)")
@@ -235,6 +234,9 @@ def fact_bub_plot(df_scaledproblem):
     # TODO Include strj runtime -> with and without fusion
     sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.1, 0.9))
     g.set(yscale="log")
+    for _, ax in g.axes_dict.items():
+        ax.yaxis.set_major_formatter(ScalarFormatter(1))
+        ax.grid(True, 'minor', 'y')
     g.set_titles(None, None, "{col_name}")
     g.set_axis_labels("Input size", "Time (s) - logarithmic")
     return g
@@ -244,7 +246,7 @@ def til_plot(df):
     cols = ["Factorial", "Bubblesort"]
     opt_levels=list(map(optlevel_to_label, ["3", "4"]))
 
-    df_til_add = df[df["Benchmark"].str.contains("til") & df["Problem"].str.contains("Add")].copy()
+    df_til_add = df[df["Benchmark"].str.contains("til") & df["Problem"].str.contains("Add") & (df["Pattern Match Compilation"].isin(opt_levels))].copy()
     df_til_add["Problem Size"] = df_til_add["Problem"].str[3:].astype("int")
     df_til_add["Stage"] = df_til_add["Stage"].map(lambda s: "Interpret" if s == "run" else "Optimise" if s == "runTILCompiler" else s )
 
@@ -267,13 +269,16 @@ def til_plot(df):
 
     sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.1, 0.9))
     # g.set(yscale="log")
+    for _, ax in g.axes_dict.items():
+        ax.grid(True, 'minor', 'y')
     g.set_titles(None, None, "{col_name}")
     g.set_axis_labels("Number of variables/additions", "Time (s)")
     # TODO Include strj runtime -> with and without fusion
     return g
 
 def unscaled_plot(df):
-    df_unscaledproblem = df[df["Problem Size"] == -1]
+    opt_levels=list(map(optlevel_to_label, ["3", "4"]))
+    df_unscaledproblem = df[(df["Problem Size"] == -1) & (df["Pattern Match Compilation"].isin(opt_levels))]
     data = df_unscaledproblem.loc[
                 df_unscaledproblem["Benchmark"].str.contains("stratego")].copy()
 
@@ -297,7 +302,7 @@ def unscaled_plot(df):
         sharey=False,
     )
 
-    g.set_ylabels("Factor vs. no PMC (log)")
+    g.set_ylabels("Factor vs. no PMC - logarithmic")
     for _, ax in g.axes_dict.items():
         locs = ax.get_xticks()
         labels = ax.get_xticklabels()
@@ -315,6 +320,7 @@ def unscaled_plot(df):
 
 def main(output_dir, files):
     sns.set_theme()
+    sns.set(font_scale=1.2)
     
     df = load_data(files)
 
