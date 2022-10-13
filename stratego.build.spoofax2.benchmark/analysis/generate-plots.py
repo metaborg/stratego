@@ -319,8 +319,8 @@ def unscaled_plot(df):
     return g
 
 def main(output_dir, files):
-    sns.set_theme()
-    sns.set(font_scale=1.2)
+    sns.set_theme(font='Linux Biolinum O', font_scale=1.2)
+    plt.rc('pdf',fonttype = 42)
     
     df = load_data(files)
 
