@@ -313,7 +313,7 @@ def unscaled_plot(df):
         ax.set_yscale('log')
         ax.yaxis.set_major_formatter(ScalarFormatter(1))
         ax.yaxis.set_minor_formatter(ScalarFormatter(1))
-    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.47, 0.9))
+    sns.move_legend(g, "upper left", frameon=True, bbox_to_anchor=(0.47, 0.8))
     g.set_titles(None, None, "{col_name}")
 
     return g
