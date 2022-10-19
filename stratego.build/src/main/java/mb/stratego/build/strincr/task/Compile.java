@@ -82,9 +82,9 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
                 originTasks.addAll(clcfOutput.unarchiveTasks);
             }
             final ArrayList<ArchiveDirectory> archiveDirs = new ArrayList<>(1);
-            archiveDirs.add(ArchiveDirectory.ofDirectory(input.outputDir));
+            archiveDirs.add(ArchiveDirectory.ofDirectory(input.str2libReplicateDir));
             final ArchiveToJar.Input archiveInput =
-                new ArchiveToJar.Input(null, archiveDirs, input.outputDir.appendRelativePath("str2libs.jar"), originTasks);
+                new ArchiveToJar.Input(null, archiveDirs, input.str2libReplicateDir.getParent().appendRelativePath("str2libs.jar"), originTasks);
             context.require(archiveToJar, archiveInput);
         }
         for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
