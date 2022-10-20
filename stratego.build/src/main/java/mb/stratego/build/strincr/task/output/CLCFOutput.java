@@ -3,13 +3,13 @@ package mb.stratego.build.strincr.task.output;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import mb.pie.api.Supplier;
+import mb.resource.hierarchical.ResourcePath;
 
 public class CLCFOutput implements Serializable {
-    public final ArrayList<Supplier<?>> unarchiveTasks;
+    public final ArrayList<ResourcePath> writtenClassFiles;
 
-    public CLCFOutput(ArrayList<Supplier<?>> originTasks) {
-        this.unarchiveTasks = originTasks;
+    public CLCFOutput(ArrayList<ResourcePath> writtenClassFiles) {
+        this.writtenClassFiles = writtenClassFiles;
     }
 
     @Override public boolean equals(Object o) {
@@ -20,17 +20,17 @@ public class CLCFOutput implements Serializable {
 
         CLCFOutput that = (CLCFOutput) o;
 
-        return unarchiveTasks.equals(that.unarchiveTasks);
+        return writtenClassFiles.equals(that.writtenClassFiles);
     }
 
     @Override public int hashCode() {
-        return unarchiveTasks.hashCode();
+        return writtenClassFiles.hashCode();
     }
 
     @Override public String toString() {
         //@formatter:off
         return "CLCFOutput@" + System.identityHashCode(this) + '{'
-            + "unarchiveTasks=" + unarchiveTasks.size()
+            + "writtenClassFiles=" + writtenClassFiles.size()
             + '}';
         //@formatter:on
     }

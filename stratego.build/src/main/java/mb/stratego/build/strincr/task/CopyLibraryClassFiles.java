@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
-import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
 import mb.pie.api.stamp.resource.ResourceStampers;
 import mb.pie.task.archive.UnarchiveFromJar;
@@ -34,7 +33,6 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
 
     @Override public CLCFOutput exec(ExecContext context, CLCFInput input) throws Exception {
         Stratego2LibInfo stratego2LibInfo = context.require(input.stratego2LibInfoSupplier);
-        final ArrayList<Supplier<?>> originTasks = new ArrayList<>(stratego2LibInfo.jarFilesOrDirectories.size());
         for(ResourcePath jarFileOrDir : stratego2LibInfo.jarFilesOrDirectories) {
             final ResourceService resourceService = context.getResourceService();
             final HierarchicalResource jarResourceOrDir =
@@ -45,12 +43,11 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
                         new ExtensionPathStringMatcher("class"), false, true,
                         input.stratego2LibInfoSupplier);
                 context.require(unarchiveFromJar, unarchiveInput);
-                originTasks.add(unarchiveFromJar.createSupplier(unarchiveInput));
             } else if(jarResourceOrDir.isDirectory()) {
                 copyDirectory(context, jarFileOrDir, input.outputDir);
             }
         }
-        return new CLCFOutput(originTasks);
+        return new CLCFOutput(new ArrayList<>(0));
     }
 
     @Override public String getId() {
