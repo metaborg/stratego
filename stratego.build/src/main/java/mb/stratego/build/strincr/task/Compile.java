@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.task;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -14,8 +13,6 @@ import mb.pie.api.STask;
 import mb.pie.api.STaskDef;
 import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
-import mb.pie.task.archive.ArchiveDirectory;
-import mb.pie.task.archive.ArchiveToJar;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -29,7 +26,6 @@ import mb.stratego.build.strincr.task.input.CheckModuleInput;
 import mb.stratego.build.strincr.task.input.CompileDynamicRulesInput;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.BackOutput;
-import mb.stratego.build.strincr.task.output.CLCFOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileDynamicRulesOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
@@ -44,16 +40,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
     public final Resolve resolve;
     public final CopyLibraryClassFiles copyLibraryClassFiles;
-    public final ArchiveToJar archiveToJar;
     public final Check check;
     public final CompileDynamicRules compileDynamicRules;
     public final Back back;
 
-    @Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, ArchiveToJar archiveToJar,
-        Check check, CompileDynamicRules compileDynamicRules, Back back) {
+    @Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
+        CompileDynamicRules compileDynamicRules, Back back) {
         this.resolve = resolve;
         this.copyLibraryClassFiles = copyLibraryClassFiles;
-        this.archiveToJar = archiveToJar;
         this.check = check;
         this.compileDynamicRules = compileDynamicRules;
         this.back = back;
@@ -75,17 +69,9 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final ResourcePath outputDirWithPackage =
             input.outputDir.appendOrReplaceWithPath(input.packageNames.get(0).replace('.', '/'));
         if(input.createShadowJar) {
-            final ArrayList<Supplier<?>> originTasks = new ArrayList<>();
             for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
-                final CLCFOutput clcfOutput =
-                    context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.str2libReplicateDir));
-                originTasks.addAll(clcfOutput.unarchiveTasks);
+                context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.str2libReplicateDir));
             }
-            final ArrayList<ArchiveDirectory> archiveDirs = new ArrayList<>(1);
-            archiveDirs.add(ArchiveDirectory.ofDirectory(input.str2libReplicateDir));
-            final ArchiveToJar.Input archiveInput =
-                new ArchiveToJar.Input(null, archiveDirs, input.str2libReplicateDir.getParent().appendRelativePath("str2libs.jar"), originTasks);
-            context.require(archiveToJar, archiveInput);
         }
         for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
             extraArgs.add("-la", importedStr2LibPackageName);
