@@ -183,8 +183,8 @@ public class Stratego {
             final ArrayList<String> constants = new ArrayList<>(0);
             final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
             final FSPath outputDir1 = new FSPath(outputDir);
-            final ResourcePath str2libReplicateDir =
-                new FSPath(temporaryDirectoryPath.resolve("str2libs"));
+            // Put everything together, easier for Java compilation later in the tests
+            final ResourcePath str2libReplicateDir = outputDir1;
             final boolean createShadowJar = true;
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, outputDir1, str2libReplicateDir,
