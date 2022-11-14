@@ -290,40 +290,34 @@ rules
 
   // Strategy definition with pattern matched term parameters.
   Desugar :
-      SDefP(f, xs, xt, s) -> SDefT(f, xs, xt', s')
-      with  (xt', s') := <transform-P-to-T-s(|s)> xt
-    
+      SDefP(f, xs, xt, s) -> SDefT(f, xs, xt', <seqs(|s)> s')
+      with  (xt', s') := <transform-P-to-T(match-term)> xt
+
   // Rule definition with pattern matched term parameters.
   Desugar :
-      RDefP(f, xs, xt, RuleNoCond(a, b)) -> RDefT(f, xs, xt', Rule(a, b, [w*]))
-      with  (xt', w*) := <transform-P-to-T-r> xt
-      
+      RDefP(f, xs, xt, RuleNoCond(a, b)) -> RDefT(f, xs, xt', Rule(a, b, w*))
+      with  (xt', w*) := <transform-P-to-T(match-term-r)> xt
+
   Desugar :
       RDefP(f, xs, xt, Rule(a, b, r*)) -> RDefT(f, xs, xt', Rule(a, b, [w*, r*]))
       where <is-list> r*
-      with  (xt', w*) := <transform-P-to-T-r> xt
-      
+      with  (xt', w*) := <transform-P-to-T(match-term-r)> xt
+
   Desugar :
       RDefP(f, xs, xt, Rule(a, b, r)) -> RDefT(f, xs, xt', Rule(a, b, [w*, WhereClause(r)]))
       where <not(is-list)> r
-      with  (xt', w*) := <transform-P-to-T-r> xt
-            
+      with  (xt', w*) := <transform-P-to-T(match-term-r)> xt
+
   // For a given term argument (except plain variables), returns a tuple (term, name).
-  transform-P-to-T-s(|s): xt -> (xt', s')
+  transform-P-to-T(s): xt -> (xt', s')
   with  names := <map(add-name)> xt
-          ; xt' := <map(transform-term)> names
-          ; s' := <filter(match-term); seqs(|s)> names
-            
-  transform-P-to-T-r: xt -> (xt', w*)
-  with  names := <map(add-name)> xt
-          ; xt' := <map(transform-term)> names
-          ; w* := <filter(match-term-r)> names
-            
-  add-name: Var(n) -> (<id>, n)
+      ; xt' := <map(transform-term)> names
+      ; s' := <map(s)> names
+
   add-name: _ -> (<id>, <get-constructor;tnewvar>)
   transform-term: (_, n) -> DefaultVarDec(n)
-  match-term: (t, n) -> Where(Assign(t, Var(n))) where <not(?Var(_))>t
-  match-term-r: (t, n) -> WhereClause(Assign(t, Var(n))) where <not(?Var(_))>t
+  match-term: (t, n) -> Where(Assign(t, Var(n)))
+  match-term-r: (t, n) -> WhereClause(Assign(t, Var(n)))
   seqs(|s) = foldr(!s, MkSeq)
 
   Desugar:

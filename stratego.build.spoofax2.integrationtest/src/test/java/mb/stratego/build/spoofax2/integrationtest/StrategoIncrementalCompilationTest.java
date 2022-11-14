@@ -122,7 +122,7 @@ public class StrategoIncrementalCompilationTest {
         final String libraryName = "incrCompTest";
         final ArrayList<String> packageNames = new ArrayList<>();
         packageNames.add("mb.stratego.build.spoofax2.test");
-        final ResourcePath javaClassDir = projectPath.appendOrReplaceWithPath("target/classes");
+        final ResourcePath str2libReplicateDir = projectPath.appendOrReplaceWithPath("target/replicate/str2libs");
         final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(1);
         {
             // load strategolib language (str2lib)
@@ -167,7 +167,7 @@ public class StrategoIncrementalCompilationTest {
             }
         }
         CompileInput compileInput =
-            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), str2libReplicateDir,
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
@@ -229,7 +229,7 @@ public class StrategoIncrementalCompilationTest {
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoAterm);
 
         compileInput =
-            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), javaClassDir,
+            new CompileInput(mainModuleIdentifier, projectPath, new FSPath(depPath), str2libReplicateDir,
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,

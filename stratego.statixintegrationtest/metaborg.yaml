@@ -1,5 +1,5 @@
 ---
-id: org.example:stratego.statixintegrationtest:2.5.17
+id: org.example:stratego.statixintegrationtest:2.6.0-SNAPSHOT
 name: strategostatix-integrationtest
 dependencies:
   compile:
@@ -14,6 +14,9 @@ dependencies:
   - org.metaborg:strategolib:${metaborgVersion}
   - org.metaborg:gpp:${metaborgVersion}
   - org.metaborg:org.metaborg.meta.lang.stratego:${metaborgVersion}
+  java:
+  - org.metaborg:strategolib:${metaborgVersion}
+  - org.metaborg:gpp:${metaborgVersion}
 pardonedLanguages:
 - EditorService
 - Stratego-Sugar

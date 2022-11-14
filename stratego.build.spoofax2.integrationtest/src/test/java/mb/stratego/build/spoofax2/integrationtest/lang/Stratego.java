@@ -183,12 +183,14 @@ public class Stratego {
             final ArrayList<String> constants = new ArrayList<>(0);
             final ArrayList<STask<?>> sdfTasks = new ArrayList<>(0);
             final FSPath outputDir1 = new FSPath(outputDir);
+            // Put everything together, easier for Java compilation later in the tests
+            final ResourcePath str2libReplicateDir = outputDir1;
             final boolean createShadowJar = true;
             CompileInput compileInput =
-                new CompileInput(mainModuleIdentifier, projectPath, outputDir1,
-                    outputDir1, packageNames, new FSPath(temporaryDirectoryPath.resolve("cacheDir")),
-                    constants, strjIncludeDirs, linkedLibraries, args,
-                    sdfTasks, library, autoImportStd, createShadowJar, languageIdentifier.id, str2libraries);
+                new CompileInput(mainModuleIdentifier, projectPath, outputDir1, str2libReplicateDir,
+                    packageNames, new FSPath(temporaryDirectoryPath.resolve("cacheDir")), constants,
+                    strjIncludeDirs, linkedLibraries, args, sdfTasks, library, autoImportStd,
+                    createShadowJar, languageIdentifier.id, str2libraries);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
