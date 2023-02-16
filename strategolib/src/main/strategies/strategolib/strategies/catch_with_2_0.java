@@ -16,12 +16,16 @@ public class catch_with_2_0 extends Strategy {
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy s, Strategy c) {
         final ITermFactory factory = context.getFactory();
+        // Save trace before call
+        final String[] savedTrace = context.getTrace();
         try {
             return s.invoke(context, current);
         } catch(StrategoErrorExit e) {
             final IStrategoString message = factory.makeString(e.getMessage() != null ? e.getMessage() : "");
-            final IStrategoList trace = e.getTrace() != null ? e.getTrace() : factory.makeList();
-            final IStrategoTerm exception = factory.makeTuple(message, current, trace);
+            final IStrategoList failedTrace = e.getTrace() != null ? e.getTrace() : factory.makeList();
+            // Restore trace after failed call
+            context.setTrace(savedTrace);
+            final IStrategoTerm exception = factory.makeTuple(message, current, failedTrace);
             final IStrategoTerm catchResult = c.invoke(context, exception);
             if(catchResult == null) {
                 return current;
