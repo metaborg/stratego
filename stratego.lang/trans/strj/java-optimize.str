@@ -204,7 +204,7 @@ strategies
       x_Fail: {
         bstm*
       }
-      context.popOnFailure();
+      context.popOnFailure(e);
       return null;
     ]| ->
     bstm* |[
@@ -212,7 +212,7 @@ strategies
         bstm'*
       }
       context.push(e);
-      context.popOnFailure();
+      context.popOnFailure(e);
       return null;
     ]|
     where
@@ -221,7 +221,7 @@ strategies
   if-no-invokes-remove-stack-pop =
     if [id, id] then
       with(
-        ?bstm* |[ context.popOnSuccess(); bstm_return ]|
+        ?bstm* |[ context.popOnSuccess("~x'"); bstm_return ]|
       )
     ; !bstm* |[ bstm_return ]|
     else

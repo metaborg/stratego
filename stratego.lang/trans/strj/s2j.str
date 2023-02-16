@@ -803,11 +803,11 @@ rules
            if (TRACES_ENABLED) context.push("~x'");
            Fail: {
              bstm
-             if (TRACES_ENABLED) context.popOnSuccess();
+             if (TRACES_ENABLED) context.popOnSuccess("~x'");
              if (TRUE) // (avoid unreachable stm error)
                return term;
            };
-           if (TRACES_ENABLED) context.popOnFailure();
+           if (TRACES_ENABLED) context.popOnFailure("~x'");
            return null;
        }
     ]|
