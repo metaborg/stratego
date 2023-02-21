@@ -3,7 +3,7 @@ package strategolib.strategies;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-import strategolib.terms.StrategoImmutableSet;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

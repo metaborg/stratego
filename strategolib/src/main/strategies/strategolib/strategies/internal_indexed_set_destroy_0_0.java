@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-import strategolib.terms.StrategoSet;
+import org.spoofax.interpreter.library.ssl.StrategoSet;
 
 /**
  * This is a copy of internal_indexed_set_reset_0_0

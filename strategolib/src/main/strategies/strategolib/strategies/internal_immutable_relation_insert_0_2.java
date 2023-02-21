@@ -1,7 +1,7 @@
 package strategolib.strategies;
 
 import io.usethesource.capsule.BinaryRelation;
-import strategolib.terms.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;

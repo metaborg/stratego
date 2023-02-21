@@ -1,8 +1,8 @@
 package strategolib.strategies;
 
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategoImmutableSet;
 import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;

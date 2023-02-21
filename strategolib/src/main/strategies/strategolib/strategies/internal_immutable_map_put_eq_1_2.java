@@ -5,8 +5,8 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableMap;
 import strategolib.terms.StrategyEqualityComparator;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_put_eq_1_2 extends Strategy {
     public static internal_immutable_map_put_eq_1_2 instance = new internal_immutable_map_put_eq_1_2();

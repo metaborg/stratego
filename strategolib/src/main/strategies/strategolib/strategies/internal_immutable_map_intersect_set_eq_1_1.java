@@ -9,9 +9,9 @@ import org.strategoxt.lang.Strategy;
 import io.usethesource.capsule.Map;
 import io.usethesource.capsule.Set;
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableMap;
-import strategolib.terms.StrategoImmutableSet;
 import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 public class internal_immutable_map_intersect_set_eq_1_1 extends Strategy {
     public static internal_immutable_map_intersect_set_eq_1_1 instance = new internal_immutable_map_intersect_set_eq_1_1();

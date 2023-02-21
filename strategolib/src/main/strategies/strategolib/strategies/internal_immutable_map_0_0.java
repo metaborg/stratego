@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-import strategolib.terms.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 
 public class internal_immutable_map_0_0 extends Strategy {
     public static internal_immutable_map_0_0 instance = new internal_immutable_map_0_0();

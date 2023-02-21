@@ -6,8 +6,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Map;
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableMap;
 import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 
 public class internal_immutable_map_union_eq_2_1 extends Strategy {
     public static internal_immutable_map_union_eq_2_1 instance = new internal_immutable_map_union_eq_2_1();

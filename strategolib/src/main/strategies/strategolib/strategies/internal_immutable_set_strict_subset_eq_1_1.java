@@ -6,8 +6,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Set;
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableSet;
 import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 public class internal_immutable_set_strict_subset_eq_1_1 extends Strategy {
     public static internal_immutable_set_strict_subset_eq_1_1 instance =

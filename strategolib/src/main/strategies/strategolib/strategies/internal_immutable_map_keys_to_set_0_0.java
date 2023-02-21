@@ -1,8 +1,8 @@
 package strategolib.strategies;
 
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategoImmutableMap;
-import strategolib.terms.StrategoImmutableSet;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
