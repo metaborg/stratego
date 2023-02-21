@@ -1,20 +1,19 @@
 package strategolib.strategies;
 
-import org.metaborg.core.context.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableSet;
-import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_insert_eq_1_1 extends Strategy {
     public static internal_immutable_set_insert_eq_1_1 instance = new internal_immutable_set_insert_eq_1_1();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare,
         IStrategoTerm value) {
-        return insert(context, current, value, new StrategyEqualityComparator(context, compare));
+        return insert(context, current, value, new CompiledStrategyEqualityComparator(context, compare));
     }
 
     protected IStrategoTerm insert(Context context, IStrategoTerm current, IStrategoTerm value,

@@ -9,8 +9,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Map;
-import strategolib.terms.StrategoImmutableMap;
-import strategolib.terms.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 public class internal_immutable_relation_to_map_1_0 extends Strategy {
     public static internal_immutable_relation_to_map_1_0 instance = new internal_immutable_relation_to_map_1_0();

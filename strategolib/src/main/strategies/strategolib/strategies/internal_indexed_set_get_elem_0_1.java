@@ -5,7 +5,7 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-import strategolib.terms.StrategoSet;
+import org.spoofax.interpreter.library.ssl.StrategoSet;
 
 public class internal_indexed_set_get_elem_0_1 extends Strategy {
     public static internal_indexed_set_get_elem_0_1 instance = new internal_indexed_set_get_elem_0_1();

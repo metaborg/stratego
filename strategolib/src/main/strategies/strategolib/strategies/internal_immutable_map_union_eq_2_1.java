@@ -6,8 +6,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Map;
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategoImmutableMap;
-import strategolib.terms.StrategyEqualityComparator;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_union_eq_2_1 extends Strategy {
     public static internal_immutable_map_union_eq_2_1 instance = new internal_immutable_map_union_eq_2_1();
@@ -16,7 +16,7 @@ public class internal_immutable_map_union_eq_2_1 extends Strategy {
      * Stratego 2 type: {@code internal-immutable-map-union-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
      @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge, Strategy compare, IStrategoTerm other) {
-        return union(context, current, merge, other, new StrategyEqualityComparator(context, compare));
+        return union(context, current, merge, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
     protected IStrategoTerm union(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm, EqualityComparator<Object> cmp) {

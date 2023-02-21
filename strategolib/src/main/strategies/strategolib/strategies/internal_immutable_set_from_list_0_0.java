@@ -6,7 +6,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategoImmutableSet;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 public class internal_immutable_set_from_list_0_0 extends Strategy {
     public static internal_immutable_set_from_list_0_0 instance = new internal_immutable_set_from_list_0_0();
