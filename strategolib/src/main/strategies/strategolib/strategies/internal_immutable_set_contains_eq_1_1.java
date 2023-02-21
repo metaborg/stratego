@@ -5,14 +5,14 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategyEqualityComparator;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_contains_eq_1_1 extends Strategy {
     public static internal_immutable_set_contains_eq_1_1 instance = new internal_immutable_set_contains_eq_1_1();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key) {
-        return contains(context, current, key, new StrategyEqualityComparator(context, compare));
+        return contains(context, current, key, new CompiledStrategyEqualityComparator(context, compare));
     }
 
     protected IStrategoTerm contains(Context context, IStrategoTerm current, IStrategoTerm key, EqualityComparator<Object> cmp) {

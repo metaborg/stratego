@@ -5,8 +5,8 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategyEqualityComparator;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_subtract_eq_1_1 extends Strategy {
     public static internal_immutable_set_subtract_eq_1_1 instance = new internal_immutable_set_subtract_eq_1_1();
@@ -17,7 +17,7 @@ public class internal_immutable_set_subtract_eq_1_1 extends Strategy {
         final Set.Immutable<IStrategoTerm> other = ((StrategoImmutableSet) otherTerm).backingSet;
 
         final Set.Immutable<IStrategoTerm> result =
-            one.__removeAllEquivalent(other, new StrategyEqualityComparator(context, comp));
+            one.__removeAllEquivalent(other, new CompiledStrategyEqualityComparator(context, comp));
         return new StrategoImmutableSet(result);
     }
 }

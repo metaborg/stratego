@@ -1,8 +1,8 @@
 package strategolib.strategies;
 
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategyEqualityComparator;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -15,7 +15,7 @@ public class internal_immutable_set_union_eq_1_1 extends Strategy {
         final Set.Immutable<IStrategoTerm> one = ((StrategoImmutableSet) current).backingSet;
         final Set.Immutable<IStrategoTerm> other = ((StrategoImmutableSet) otherTerm).backingSet;
 
-        return 
-            new StrategoImmutableSet(one.__insertAllEquivalent(other, new StrategyEqualityComparator(context, comp)));
+        return
+            new StrategoImmutableSet(one.__insertAllEquivalent(other, new CompiledStrategyEqualityComparator(context, comp)));
     }
 }

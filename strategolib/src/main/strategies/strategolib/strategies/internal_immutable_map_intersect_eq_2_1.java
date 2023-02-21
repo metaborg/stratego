@@ -7,8 +7,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Map;
 import io.usethesource.capsule.util.EqualityComparator;
-import strategolib.terms.StrategyEqualityComparator;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
     public static internal_immutable_map_intersect_eq_2_1 instance = new internal_immutable_map_intersect_eq_2_1();
@@ -18,7 +18,7 @@ public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge, Strategy compare,
         IStrategoTerm other) {
-        return intersect(context, current, merge, other, new StrategyEqualityComparator(context, compare));
+        return intersect(context, current, merge, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
     protected IStrategoTerm intersect(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm,
