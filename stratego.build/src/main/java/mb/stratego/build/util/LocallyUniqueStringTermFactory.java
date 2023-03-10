@@ -39,7 +39,7 @@ public class LocallyUniqueStringTermFactory extends AbstractWrappedTermFactory {
 
     @Override public IStrategoString makeString(String s) {
         final IStrategoString string = new StrategoString(s, null);
-        if(s.length() <= MAX_POOLED_STRING_LENGTH) {
+        if(s.length() <= MAX_POOLED_STRING_LENGTH && TermFactory.endsWithDigit(s)) {
             synchronized(usedStrings) {
                 usedStrings.add(s);
             }
