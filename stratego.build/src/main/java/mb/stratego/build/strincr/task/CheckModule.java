@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -364,10 +365,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions,
         ResolveInput resolveInput, ArrayList<Message> messages) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
-            io.usethesource.capsule.Map.Transient.of();
+            CapsuleUtil.transientMap();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
-        final Set.Transient<SortSignature> sorts = Set.Transient.of();
+        final Set.Transient<SortSignature> sorts = CapsuleUtil.transientSet();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 
