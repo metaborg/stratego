@@ -152,6 +152,8 @@ public class GlobalData implements Serializable {
             return false;
         if(!overlayData.equals(that.overlayData))
             return false;
+        if(!overlayAsts.equals(that.overlayAsts))
+            return false;
         return messages.equals(that.messages);
     }
 
@@ -170,6 +172,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + externalStrategyTypes.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + overlayAsts.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
@@ -192,6 +195,7 @@ public class GlobalData implements Serializable {
             + ", externalStrategies=" + externalStrategyTypes.size()
             + ", dynamicRules=" + dynamicRules.size()
             + ", overlayData=" + overlayData.size()
+            + ", overlayData=" + overlayAsts.size()
             + ", messages=" + messages.size()
             + ", lastModified=" + lastModified
             + (compileGlobalIndex == null ? "" : ", compileGlobalIndex=" + compileGlobalIndex)

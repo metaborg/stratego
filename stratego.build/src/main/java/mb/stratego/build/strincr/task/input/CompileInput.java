@@ -3,6 +3,7 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -32,7 +33,7 @@ public class CompileInput implements Serializable {
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, ArrayList<String> packageNames,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
-        ArrayList<ResourcePath> includeDirs,
+        LinkedHashSet<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
@@ -56,7 +57,7 @@ public class CompileInput implements Serializable {
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, String packageName,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants,
-        ArrayList<ResourcePath> includeDirs,
+        LinkedHashSet<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,

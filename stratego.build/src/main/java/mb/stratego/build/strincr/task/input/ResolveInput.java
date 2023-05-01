@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -41,8 +42,7 @@ public class ResolveInput implements Serializable {
             return false;
         if(!importResolutionInfo.equals(that.importResolutionInfo))
             return false;
-        return fileOpenInEditor != null ? fileOpenInEditor.equals(that.fileOpenInEditor) :
-            that.fileOpenInEditor == null;
+        return Objects.equals(fileOpenInEditor, that.fileOpenInEditor);
     }
 
     @Override public int hashCode() {

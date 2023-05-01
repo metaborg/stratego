@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -78,7 +77,7 @@ public class ModuleIndex implements Serializable, WithLastModified {
 
         if(lastModified != that.lastModified)
             return false;
-        if(!Objects.equals(str2LibPackageNames, that.str2LibPackageNames))
+        if(!str2LibPackageNames.equals(that.str2LibPackageNames))
             return false;
         if(!imports.equals(that.imports))
             return false;
@@ -102,6 +101,10 @@ public class ModuleIndex implements Serializable, WithLastModified {
             return false;
         if(!overlayData.equals(that.overlayData))
             return false;
+        if(!overlayAsts.equals(that.overlayAsts))
+            return false;
+        if(!overlayUsedConstrs.equals(that.overlayUsedConstrs))
+            return false;
         return messages.equals(that.messages);
     }
 
@@ -118,6 +121,8 @@ public class ModuleIndex implements Serializable, WithLastModified {
         result = 31 * result + externalStrategies.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + overlayAsts.hashCode();
+        result = 31 * result + overlayUsedConstrs.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;

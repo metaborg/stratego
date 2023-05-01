@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -173,7 +174,7 @@ public class Stratego {
                     }
                 }
             }
-            final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
+            final LinkedHashSet<ResourcePath> strjIncludeDirs = new LinkedHashSet<>();
             strjIncludeDirs.add(projectPath);
             final ArrayList<String> packageNames = new ArrayList<>(1);
             packageNames.add(packageName);

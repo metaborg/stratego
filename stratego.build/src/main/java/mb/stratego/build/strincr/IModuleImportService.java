@@ -112,6 +112,8 @@ public interface IModuleImportService {
         public final Collection<? extends ResourcePath> includeDirs;
         public final Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
         public final Collection<Supplier<Stratego2LibInfo>> str2libraries;
+        public final boolean supportRTree = false;
+        public final boolean supportStr1 = false;
 
         public ImportResolutionInfo(Collection<STask<?>> strFileGeneratingTasks,
             Collection<? extends ResourcePath> includeDirs,
@@ -131,6 +133,10 @@ public interface IModuleImportService {
 
             ImportResolutionInfo that = (ImportResolutionInfo) o;
 
+            if(supportRTree != that.supportRTree)
+                return false;
+            if(supportStr1 != that.supportStr1)
+                return false;
             if(!strFileGeneratingTasks.equals(that.strFileGeneratingTasks))
                 return false;
             if(!includeDirs.equals(that.includeDirs))
@@ -145,6 +151,8 @@ public interface IModuleImportService {
             result = 31 * result + includeDirs.hashCode();
             result = 31 * result + linkedLibraries.hashCode();
             result = 31 * result + str2libraries.hashCode();
+            result = 31 * result + Boolean.hashCode(this.supportRTree);
+            result = 31 * result + Boolean.hashCode(this.supportStr1);
             return result;
         }
 
@@ -155,6 +163,8 @@ public interface IModuleImportService {
                 + ", includeDirs=" + includeDirs
                 + ", linkedLibraries=" + linkedLibraries
                 + ", str2libraries=" + str2libraries
+                + ", supportRTree=" + supportRTree
+                + ", supportStr1=" + supportStr1
                 + '}';
             //@formatter:on
         }

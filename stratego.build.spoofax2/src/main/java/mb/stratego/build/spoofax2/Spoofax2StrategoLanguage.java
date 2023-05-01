@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,12 +30,9 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
-import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
 
 import com.google.common.collect.Lists;

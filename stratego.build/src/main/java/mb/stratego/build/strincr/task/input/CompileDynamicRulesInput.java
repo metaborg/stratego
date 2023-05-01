@@ -44,6 +44,8 @@ public class CompileDynamicRulesInput implements Serializable {
 
         CompileDynamicRulesInput that = (CompileDynamicRulesInput) o;
 
+        if(usingLegacyStrategoStdLib != that.usingLegacyStrategoStdLib)
+            return false;
         if(!checkInput.equals(that.checkInput))
             return false;
         if(!outputDirWithPackage.equals(that.outputDirWithPackage))
@@ -54,9 +56,7 @@ public class CompileDynamicRulesInput implements Serializable {
             return false;
         if(!constants.equals(that.constants))
             return false;
-        if(!extraArgs.equals(that.extraArgs))
-            return false;
-        return usingLegacyStrategoStdLib == that.usingLegacyStrategoStdLib;
+        return extraArgs.equals(that.extraArgs);
     }
 
     @Override public int hashCode() {

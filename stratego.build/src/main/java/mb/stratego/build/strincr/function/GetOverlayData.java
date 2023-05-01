@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.pie.api.SerializableFunction;
-import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.function.output.OverlayData;
 import mb.stratego.build.strincr.task.output.ModuleData;

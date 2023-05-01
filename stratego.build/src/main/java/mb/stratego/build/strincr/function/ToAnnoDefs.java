@@ -1,6 +1,5 @@
 package mb.stratego.build.strincr.function;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 import mb.pie.api.SerializableFunction;
@@ -9,9 +8,9 @@ import mb.stratego.build.strincr.function.output.AnnoDefs;
 import mb.stratego.build.strincr.task.output.GlobalData;
 
 public class ToAnnoDefs implements SerializableFunction<GlobalData, AnnoDefs> {
-    public final HashSet<StrategySignature> filter;
+    public final LinkedHashSet<StrategySignature> filter;
 
-    public ToAnnoDefs(HashSet<StrategySignature> filter) {
+    public ToAnnoDefs(LinkedHashSet<StrategySignature> filter) {
         this.filter = filter;
     }
 

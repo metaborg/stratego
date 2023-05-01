@@ -246,8 +246,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         Map<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages, ResolveInput resolveInput) {
-        final HashSet<StrategySignature> strategyFilter =
-            new HashSet<>(strategyData.keySet());
+        final LinkedHashSet<StrategySignature> strategyFilter =
+            new LinkedHashSet<>(strategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs =
             context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));

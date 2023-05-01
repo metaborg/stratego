@@ -15,7 +15,6 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -48,7 +47,6 @@ import mb.stratego.build.strincr.message.UsingStratego1File;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.GenerateStratego;
@@ -72,7 +70,6 @@ import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.TypeDefiniti
 public class Front implements TaskDef<FrontInput, ModuleData> {
     public static final String id = "stratego." + Front.class.getSimpleName();
     public final IModuleImportService moduleImportService;
-    protected final StrIncrContext strContext;
     protected final ITermFactory tf;
     protected final GenerateStratego generateStratego;
     protected final StrategoLanguage strategoLanguage;
@@ -81,7 +78,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
         GenerateStratego generateStratego, StrategoLanguage strategoLanguage,
         ResourcePathConverter resourcePathConverter) {
-        this.strContext = strContext;
         this.tf = strContext.getFactory();
         this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
@@ -141,7 +137,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier, new ArrayList<>(0),
+            final ArrayList<String> str2LibPackageNames = new ArrayList<>(0);
+            return new ModuleData(input.moduleIdentifier, str2LibPackageNames,
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
@@ -504,7 +501,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     constrData);
                 continue;
             }
-            final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
             final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
             final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
             final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
@@ -517,7 +513,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 dataMap = constrData;
             }
             Relation.getOrInitialize(dataMap, constrSig, ArrayList::new)
-                .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                .add(new ConstructorData(constrSig, constrType));
         }
     }
 
@@ -637,10 +633,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
                     final ConstructorSignature constrSig =
                         new ConstructorSignature("", froms.size());
-                    final IStrategoTerm constrTerm =
-                        tf.replaceTerm(constrType.toOpType(tf), constrDef);
                     Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                        new ConstructorData(constrSig, constrType));
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }

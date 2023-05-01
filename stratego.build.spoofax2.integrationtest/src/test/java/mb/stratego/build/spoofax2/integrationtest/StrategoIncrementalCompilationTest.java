@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -111,7 +112,7 @@ public class StrategoIncrementalCompilationTest {
 
         final ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries = new ArrayList<>(1);
         linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
-        final ArrayList<ResourcePath> strjIncludeDirs = new ArrayList<>(1);
+        final LinkedHashSet<ResourcePath> strjIncludeDirs = new LinkedHashSet<>();
         strjIncludeDirs.add(new FSPath(projectLocation));
 
         final Arguments newArgs = new Arguments();

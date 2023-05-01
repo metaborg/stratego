@@ -82,6 +82,8 @@ public abstract class BackInput implements Serializable {
 
         BackInput input = (BackInput) o;
 
+        if(usingLegacyStrategoStdLib != input.usingLegacyStrategoStdLib)
+            return false;
         if(!outputDir.equals(input.outputDir))
             return false;
         if(!packageNames.equals(input.packageNames))
@@ -92,9 +94,7 @@ public abstract class BackInput implements Serializable {
             return false;
         if(!extraArgs.equals(input.extraArgs))
             return false;
-        if(!checkInput.equals(input.checkInput))
-            return false;
-        return usingLegacyStrategoStdLib == input.usingLegacyStrategoStdLib;
+        return checkInput.equals(input.checkInput);
     }
 
     @Override public int hashCode() {

@@ -139,4 +139,6 @@ public class StrategyType extends StrategoAppl {
                 new ArrayList<>(Collections.nCopies(noTermArgs, dyn)));
         }
     }
+
+    // equals/hashcode/toString inherited from StrategoAppl
 }

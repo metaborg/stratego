@@ -233,4 +233,6 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         }
         return new ConstructorSignature(name, noStrategyArgs);
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }
