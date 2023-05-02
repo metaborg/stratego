@@ -220,5 +220,4 @@ public class ModuleData implements Serializable, WithLastModified {
     @Override public long lastModified() {
         return lastModified;
     }
-
 }

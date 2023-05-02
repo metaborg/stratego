@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
@@ -15,6 +17,7 @@ import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.message.Message;
+import mb.stratego.build.util.Relation;
 import mb.stratego.build.util.WithLastModified;
 
 /**
@@ -137,5 +140,145 @@ public class ModuleIndex implements Serializable, WithLastModified {
 
     @Override public long lastModified() {
         return lastModified;
+    }
+
+    /**
+     * @param before the situation of the module before the change
+     * @param after the situation of the module after the change
+     * @return pair of additions and removals, in that order, of the change
+     */
+    public static Diff diff(ModuleIndex before, ModuleIndex after) {
+        if(before.equals(after)) {
+            return Diff.equal();
+        }
+
+        final ModuleIndex additions = additions(before, after);
+        final ModuleIndex subtractions = additions(after, before);
+        return Diff.from(additions, subtractions);
+    }
+
+    /**
+     * @param before
+     * @param after
+     * @return roughly after - before
+     */
+    private static ModuleIndex additions(ModuleIndex before, ModuleIndex after) {
+        final ArrayList<String> str2LibPackageNames = new ArrayList<>(after.str2LibPackageNames);
+        final ArrayList<IModuleImportService.ModuleIdentifier> imports = new ArrayList<>(after.imports);
+        final LinkedHashSet<SortSignature> sorts = new LinkedHashSet<>(after.sorts);
+        final LinkedHashSet<SortSignature> externalSorts = new LinkedHashSet<>(after.externalSorts);
+        final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>(after.nonOverlayConstructors);
+        final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections =
+            Relation.copy(after.injections, LinkedHashMap::new, ArrayList::new);
+        final LinkedHashSet<ConstructorSignature> externalConstructors = new LinkedHashSet<>(after.externalConstructors);
+        final LinkedHashSet<StrategyFrontData> strategies = new LinkedHashSet<>(after.strategies);
+        final LinkedHashSet<StrategySignature> internalStrategies = new LinkedHashSet<>(after.internalStrategies);
+        final LinkedHashSet<StrategyFrontData> externalStrategies = new LinkedHashSet<>(after.externalStrategies);
+        final LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules =
+            Relation.copy(after.dynamicRules, LinkedHashMap::new, TreeSet::new);
+        final LinkedHashMap<ConstructorSignature, ArrayList<ConstructorData>> overlayData =
+            Relation.copy(after.overlayData, LinkedHashMap::new, ArrayList::new);
+        final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts =
+            Relation.copy(after.overlayAsts, LinkedHashMap::new, ArrayList::new);
+        final LinkedHashMap<ConstructorSignature, LinkedHashSet<ConstructorSignature>> overlayUsedConstrs =
+            Relation.copy(after.overlayUsedConstrs, LinkedHashMap::new, LinkedHashSet::new);
+        final ArrayList<Message> messages = new ArrayList<>(after.messages);
+        final long lastModified = after.lastModified - before.lastModified;
+
+        str2LibPackageNames.removeAll(before.str2LibPackageNames);
+        imports.removeAll(before.imports);
+        sorts.removeAll(before.sorts);
+        externalSorts.removeAll(before.externalSorts);
+        nonOverlayConstructors.removeAll(before.nonOverlayConstructors);
+        Relation.removeAll(injections, before.injections);
+        externalConstructors.removeAll(before.externalConstructors);
+        strategies.removeAll(before.strategies);
+        internalStrategies.removeAll(before.internalStrategies);
+        externalStrategies.removeAll(before.externalStrategies);
+        Relation.removeAll(dynamicRules, before.dynamicRules);
+        Relation.removeAll(overlayData, before.overlayData);
+        Relation.removeAll(overlayAsts, before.overlayAsts);
+        Relation.removeAll(overlayUsedConstrs, before.overlayUsedConstrs);
+        messages.removeAll(before.messages);
+
+        return new ModuleIndex(str2LibPackageNames, imports, sorts, externalSorts,
+            nonOverlayConstructors, injections, externalConstructors, strategies, internalStrategies,
+            externalStrategies, dynamicRules, overlayData, overlayAsts, overlayUsedConstrs, messages, lastModified);
+    }
+
+    public static final class Diff {
+        public final @Nullable ModuleIndex additions;
+        public final @Nullable ModuleIndex subtractions;
+        public final boolean isEqual;
+
+        private Diff(ModuleIndex additions, ModuleIndex subtractions) {
+            this.additions = additions;
+            this.subtractions = subtractions;
+            isEqual = false;
+        }
+
+        private Diff() {
+            this.additions = null;
+            this.subtractions = null;
+            isEqual = true;
+        }
+
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((additions == null) ? 0 : additions.hashCode());
+            result = prime * result + ((subtractions == null) ? 0 : subtractions.hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if(this == obj)
+                return true;
+            if(obj == null)
+                return false;
+            if(getClass() != obj.getClass())
+                return false;
+            Diff other = (Diff) obj;
+            if(additions == null) {
+                if(other.additions != null)
+                    return false;
+            } else if(!additions.equals(other.additions))
+                return false;
+            if(subtractions == null) {
+                if(other.subtractions != null)
+                    return false;
+            } else if(!subtractions.equals(other.subtractions))
+                return false;
+            return true;
+        }
+
+        @Override public String toString() {
+            if(isEqual) {
+                return "Diff.equal";
+            }
+            return "Diff(" + additions + ", " + subtractions + ")";
+        }
+
+        public static Diff equal() {
+            return new Diff();
+        }
+
+        public static Diff from(ModuleIndex additions, ModuleIndex subtractions) {
+            if(isEmpty(additions) && isEmpty(subtractions)) {
+                return new Diff();
+            }
+            return new Diff(additions, subtractions);
+        }
+
+        private static boolean isEmpty(ModuleIndex diffMIndex) {
+            return diffMIndex.str2LibPackageNames.isEmpty() && diffMIndex.imports.isEmpty()
+                && diffMIndex.sorts.isEmpty() && diffMIndex.externalSorts.isEmpty()
+                && diffMIndex.nonOverlayConstructors.isEmpty() && diffMIndex.injections.isEmpty()
+                && diffMIndex.externalConstructors.isEmpty() && diffMIndex.strategies.isEmpty()
+                && diffMIndex.internalStrategies.isEmpty() && diffMIndex.externalStrategies.isEmpty()
+                && diffMIndex.dynamicRules.isEmpty() && diffMIndex.overlayData.isEmpty()
+                && diffMIndex.overlayAsts.isEmpty() && diffMIndex.overlayUsedConstrs.isEmpty()
+                && diffMIndex.messages.isEmpty();
+        }
     }
 }

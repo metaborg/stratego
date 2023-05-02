@@ -102,5 +102,9 @@ public abstract class FrontInput implements Serializable {
                 + '}';
             //@formatter:on
         }
+
+        public FrontInput withoutOpenFile() {
+            return new FrontInput.Normal(moduleIdentifier, importResolutionInfo, autoImportStd);
+        }
     }
 }

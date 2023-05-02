@@ -63,4 +63,8 @@ public class ResolveInput implements Serializable {
             + '}';
         //@formatter:on
     }
+
+    public ResolveInput withoutOpenFile() {
+        return new ResolveInput(mainModuleIdentifier, importResolutionInfo, autoImportStd);
+    }
 }

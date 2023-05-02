@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
+import org.metaborg.util.tuple.Tuple2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
