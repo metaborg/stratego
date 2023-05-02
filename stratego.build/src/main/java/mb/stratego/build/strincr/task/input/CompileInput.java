@@ -37,12 +37,12 @@ public class CompileInput implements Serializable {
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
+        ArrayList<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
         this.str2libReplicateDir = str2libReplicateDir;
         this.libraryName = libraryName;
         this.checkInput =
             new CheckInput(mainModuleIdentifier, projectPath, new IModuleImportService.ImportResolutionInfo(strFileGeneratingTasks, includeDirs,
-                linkedLibraries, str2libraries), autoImportStd);
+                linkedLibraries, str2libraries, supportRTree, supportStr1), autoImportStd);
         this.outputDir = outputDir.getNormalized();
         this.packageNames = packageNames;
         this.cacheDir = cacheDir;
@@ -61,11 +61,11 @@ public class CompileInput implements Serializable {
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        ArrayList<Supplier<Stratego2LibInfo>> str2libraries) {
+        ArrayList<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
         this(mainModuleIdentifier, projectPath, outputDir, str2libReplicateDir,
             new ArrayList<String>(Collections.singletonList(packageName)), cacheDir, constants,
             includeDirs, linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd,
-            createShadowJar, libraryName, str2libraries);
+            createShadowJar, libraryName, str2libraries, supportRTree, supportStr1);
     }
 
     @Override public boolean equals(Object o) {

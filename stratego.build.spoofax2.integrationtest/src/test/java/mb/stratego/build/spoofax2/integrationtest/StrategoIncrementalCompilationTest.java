@@ -172,7 +172,7 @@ public class StrategoIncrementalCompilationTest {
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
-                libraryName, str2libraries);
+                libraryName, str2libraries, true, true);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -234,7 +234,7 @@ public class StrategoIncrementalCompilationTest {
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
-                libraryName, str2libraries);
+                libraryName, str2libraries, true, true);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

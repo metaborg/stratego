@@ -112,17 +112,19 @@ public interface IModuleImportService {
         public final Collection<? extends ResourcePath> includeDirs;
         public final Collection<? extends IModuleImportService.ModuleIdentifier> linkedLibraries;
         public final Collection<Supplier<Stratego2LibInfo>> str2libraries;
-        public final boolean supportRTree = false;
-        public final boolean supportStr1 = false;
+        public final boolean supportRTree;
+        public final boolean supportStr1;
 
         public ImportResolutionInfo(Collection<STask<?>> strFileGeneratingTasks,
             Collection<? extends ResourcePath> includeDirs,
             Collection<? extends ModuleIdentifier> linkedLibraries,
-            Collection<Supplier<Stratego2LibInfo>> str2libraries) {
+            Collection<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
             this.strFileGeneratingTasks = strFileGeneratingTasks;
             this.includeDirs = includeDirs;
             this.linkedLibraries = linkedLibraries;
             this.str2libraries = str2libraries;
+            this.supportRTree = supportRTree;
+            this.supportStr1 = supportStr1;
         }
 
         @Override public boolean equals(Object o) {
