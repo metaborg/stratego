@@ -124,7 +124,7 @@ public class StrategoIncrementalCompilationTest {
         final ArrayList<String> packageNames = new ArrayList<>();
         packageNames.add("mb.stratego.build.spoofax2.test");
         final ResourcePath str2libReplicateDir = projectPath.appendOrReplaceWithPath("target/replicate/str2libs");
-        final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>(1);
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>(1);
         {
             // load strategolib language (str2lib)
             final ILanguageImpl sourceDepImpl = spoofax.languageDiscoveryService

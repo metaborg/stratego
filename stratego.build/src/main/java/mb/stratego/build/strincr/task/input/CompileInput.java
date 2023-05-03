@@ -37,7 +37,7 @@ public class CompileInput implements Serializable {
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        ArrayList<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
+        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
         this.str2libReplicateDir = str2libReplicateDir;
         this.libraryName = libraryName;
         this.checkInput =
@@ -61,7 +61,7 @@ public class CompileInput implements Serializable {
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        ArrayList<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
+        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
         this(mainModuleIdentifier, projectPath, outputDir, str2libReplicateDir,
             new ArrayList<String>(Collections.singletonList(packageName)), cacheDir, constants,
             includeDirs, linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd,

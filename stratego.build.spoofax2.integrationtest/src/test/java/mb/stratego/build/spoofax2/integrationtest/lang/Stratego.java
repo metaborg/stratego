@@ -131,7 +131,7 @@ public class Stratego {
 
             final ResourcePath projectPath = new FSPath(input.getParent());
 
-            final ArrayList<Supplier<Stratego2LibInfo>> str2libraries = new ArrayList<>();
+            final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
             if(!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
                 // load strategolib language (str2lib)
                 final ILanguageImpl sourceDepImpl = spoofax.languageDiscoveryService
