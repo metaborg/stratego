@@ -65,12 +65,12 @@ exports:
 - language: StrategoLang
   directory: src-gen
   includes:
-  - injections/StrategoLang/*.str
-  - injections/StrategoLang/**/*.str
+  - injections/StrategoLang/*.str2
+  - injections/StrategoLang/**/*.str2
   - pp/StrategoLang/*.str2
-  - pp/StrategoLang/**/*.str
-  - signatures/StrategoLang/*.str
-  - signatures/StrategoLang/**/*.str
+  - pp/StrategoLang/**/*.str2
+  - signatures/StrategoLang/*.str2
+  - signatures/StrategoLang/**/*.str2
   excludes:
   - pp/StrategoLang/permissive-water-pp.str2
   - injections/StrategoLang/permissive-water-injections.str2
