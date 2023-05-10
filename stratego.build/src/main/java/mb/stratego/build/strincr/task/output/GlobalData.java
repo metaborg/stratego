@@ -9,7 +9,6 @@ import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.util.tuple.Tuple2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
@@ -43,6 +42,8 @@ public class GlobalData implements Serializable {
     public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final ArrayList<Message> messages;
     public final long lastModified;
+    protected final int hashCode;
+
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
     private transient @Nullable CongruenceGlobalIndex congruenceGlobalIndex = null;
     private transient @Nullable GlobalConsInj globalConsInj = null;
@@ -79,6 +80,7 @@ public class GlobalData implements Serializable {
         this.overlayAsts = overlayAsts;
         this.messages = messages;
         this.lastModified = lastModified;
+        this.hashCode = hashFunction();
     }
 
     public CompileGlobalIndex getCompileGlobalIndex() {
@@ -123,6 +125,8 @@ public class GlobalData implements Serializable {
 
         GlobalData that = (GlobalData) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(lastModified != that.lastModified)
             return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
@@ -159,6 +163,10 @@ public class GlobalData implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = allModuleIdentifiers.hashCode();
         result = 31 * result + importedStr2LibPackageNames.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();

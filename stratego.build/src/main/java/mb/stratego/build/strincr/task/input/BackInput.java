@@ -58,6 +58,7 @@ public abstract class BackInput implements Serializable {
     public final Arguments extraArgs;
     public final CheckInput checkInput;
     public final boolean usingLegacyStrategoStdLib;
+    protected final int hashCode;
 
     public BackInput(ResourcePath outputDir, ArrayList<String> packageNames,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
@@ -69,6 +70,7 @@ public abstract class BackInput implements Serializable {
         this.extraArgs = extraArgs;
         this.checkInput = checkInput;
         this.usingLegacyStrategoStdLib = usingLegacyStrategoStdLib;
+        this.hashCode = hashFunction();
     }
 
     public abstract CTreeBuildResult buildCTree(ExecContext context, Back backTask,
@@ -82,6 +84,8 @@ public abstract class BackInput implements Serializable {
 
         BackInput input = (BackInput) o;
 
+        if(hashCode != input.hashCode)
+            return false;
         if(usingLegacyStrategoStdLib != input.usingLegacyStrategoStdLib)
             return false;
         if(!outputDir.equals(input.outputDir))
@@ -98,6 +102,10 @@ public abstract class BackInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return hashCode;
+    }
+
+    protected int hashFunction() {
         int result = outputDir.hashCode();
         result = 31 * result + packageNames.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);

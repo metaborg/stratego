@@ -29,6 +29,7 @@ public class CompileInput implements Serializable {
     public final boolean usingLegacyStrategoStdLib;
     public final boolean createShadowJar;
     public final String libraryName;
+    protected final int hashCode;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, ArrayList<String> packageNames,
@@ -52,6 +53,7 @@ public class CompileInput implements Serializable {
         this.createShadowJar = createShadowJar;
         this.usingLegacyStrategoStdLib =
             linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
+        this.hashCode = hashFunction();
     }
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
@@ -76,6 +78,8 @@ public class CompileInput implements Serializable {
 
         CompileInput that = (CompileInput)o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(library != that.library)
             return false;
         if(usingLegacyStrategoStdLib != that.usingLegacyStrategoStdLib)
@@ -100,6 +104,10 @@ public class CompileInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = checkInput.hashCode();
         result = 31 * result + outputDir.hashCode();
         result = 31 * result + str2libReplicateDir.hashCode();

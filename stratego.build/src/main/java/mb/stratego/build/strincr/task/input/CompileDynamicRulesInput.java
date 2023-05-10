@@ -21,6 +21,7 @@ public class CompileDynamicRulesInput implements Serializable {
     public final Arguments extraArgs;
     public final boolean usingLegacyStrategoStdLib;
     public final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask;
+    protected final int hashCode;
 
     public CompileDynamicRulesInput(ResourcePath outputDirWithPackage, ArrayList<String> packageNames,
         ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs, CheckInput checkInput,
@@ -34,6 +35,7 @@ public class CompileDynamicRulesInput implements Serializable {
         this.extraArgs = extraArgs;
         this.usingLegacyStrategoStdLib = usingLegacyStrategoStdLib;
         this.strategyAnalysisDataTask = strategyAnalysisDataTask;
+        this.hashCode = hashFunction();
     }
 
     @Override public boolean equals(Object o) {
@@ -44,6 +46,8 @@ public class CompileDynamicRulesInput implements Serializable {
 
         CompileDynamicRulesInput that = (CompileDynamicRulesInput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(usingLegacyStrategoStdLib != that.usingLegacyStrategoStdLib)
             return false;
         if(!checkInput.equals(that.checkInput))
@@ -60,6 +64,10 @@ public class CompileDynamicRulesInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return hashCode;
+    }
+
+    protected int hashFunction() {
         int result = checkInput.hashCode();
         result = 31 * result + outputDirWithPackage.hashCode();
         result = 31 * result + packageNames.hashCode();

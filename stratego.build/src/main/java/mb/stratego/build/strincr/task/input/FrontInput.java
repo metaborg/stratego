@@ -14,12 +14,14 @@ public abstract class FrontInput implements Serializable {
     public final IModuleImportService.ModuleIdentifier moduleIdentifier;
     public final ImportResolutionInfo importResolutionInfo;
     public final boolean autoImportStd;
+    protected final int hashCode;
 
     public FrontInput(IModuleImportService.ModuleIdentifier moduleIdentifier,
         ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
         this.moduleIdentifier = moduleIdentifier;
         this.importResolutionInfo = importResolutionInfo;
         this.autoImportStd = autoImportStd;
+        this.hashCode = hashFunction();
     }
 
     @Override public boolean equals(Object o) {
@@ -30,6 +32,8 @@ public abstract class FrontInput implements Serializable {
 
         FrontInput that = (FrontInput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(autoImportStd != that.autoImportStd)
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
@@ -38,6 +42,10 @@ public abstract class FrontInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = moduleIdentifier.hashCode();
         result = 31 * result + importResolutionInfo.hashCode();
         result = 31 * result + (autoImportStd ? 1 : 0);

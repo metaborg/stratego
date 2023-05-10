@@ -13,6 +13,7 @@ public class ResolveInput implements Serializable {
     public final ImportResolutionInfo importResolutionInfo;
     public final @Nullable FrontInput.FileOpenInEditor fileOpenInEditor;
     public final boolean autoImportStd;
+    protected final int hashCode;
 
     public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
         ImportResolutionInfo importResolutionInfo,
@@ -21,6 +22,7 @@ public class ResolveInput implements Serializable {
         this.importResolutionInfo = importResolutionInfo;
         this.fileOpenInEditor = fileOpenInEditor;
         this.autoImportStd = autoImportStd;
+        this.hashCode = hashFunction();
     }
 
     public ResolveInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
@@ -36,6 +38,8 @@ public class ResolveInput implements Serializable {
 
         ResolveInput that = (ResolveInput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(autoImportStd != that.autoImportStd)
             return false;
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
@@ -46,6 +50,10 @@ public class ResolveInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = mainModuleIdentifier.hashCode();
         result = 31 * result + importResolutionInfo.hashCode();
         result = 31 * result + (fileOpenInEditor != null ? fileOpenInEditor.hashCode() : 0);
