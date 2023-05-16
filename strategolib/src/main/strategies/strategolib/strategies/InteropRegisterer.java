@@ -202,7 +202,7 @@ public class InteropRegisterer extends JavaInteropRegisterer {
             open_0_0.instance,
             perror_0_0.instance,
             pipe_0_0.instance,
-            read_term_from_string_0_0.instance,
+            read_from_string_0_0.instance,
             readdir_0_0.instance,
             real_0_0.instance,
             real_add_0_1.instance,

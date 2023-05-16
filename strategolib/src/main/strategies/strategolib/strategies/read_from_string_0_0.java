@@ -7,7 +7,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class read_from_string_0_0 extends Strategy {
-    public static read_from_string_0_0 instance = new read_term_from_string_0_0();
+    public static read_from_string_0_0 instance = new read_from_string_0_0();
 
     /**
      * Stratego 2 type: {@code read-from-string :: (|) string -> ?}
