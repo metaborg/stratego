@@ -441,7 +441,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__insert(e.getKey(), to);
                 }
             }
-            // if unless it's a Stratego 1 module, we have to follow the transitive imports...
+            // if it's a Stratego 1 module, we have to follow the transitive imports...
             if(frontInput.moduleIdentifier.legacyStratego()) {
                 for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
                     if(!seen.contains(anImport)) {

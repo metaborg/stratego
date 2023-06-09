@@ -189,11 +189,13 @@ public class Stratego {
             final boolean createShadowJar = true;
             boolean supportRTree = true;
             boolean supportStr1 = true;
+            final ResourcePath resolveExternals = null;
             CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, outputDir1, str2libReplicateDir,
                     packageNames, new FSPath(temporaryDirectoryPath.resolve("cacheDir")), constants,
                     strjIncludeDirs, linkedLibraries, args, sdfTasks, library, autoImportStd,
-                    createShadowJar, languageIdentifier.id, str2libraries, supportRTree, supportStr1);
+                    createShadowJar, languageIdentifier.id, str2libraries, supportRTree, supportStr1,
+                    resolveExternals);
             Task<CompileOutput> compileTask =
                 spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

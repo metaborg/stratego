@@ -27,6 +27,7 @@ import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.build.SpoofaxCommonPaths;
 import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.util.cmd.Arguments;
 
@@ -172,7 +173,7 @@ public class StrategoIncrementalCompilationTest {
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
-                libraryName, str2libraries, true, true);
+                libraryName, str2libraries, true, true, null);
         Task<CompileOutput> compileTask =
             spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 
@@ -234,7 +235,7 @@ public class StrategoIncrementalCompilationTest {
                 packageNames,
                 new FSPath(temporaryDirectoryPath.resolve("cacheDir2")), new ArrayList<>(0),
                 strjIncludeDirs, linkedLibraries, newArgs, new ArrayList<>(0), true, true, true,
-                libraryName, str2libraries, true, true);
+                libraryName, str2libraries, true, true, null);
 
         compileTask = spoofax.injector.getInstance(Compile.class).createTask(compileInput);
 

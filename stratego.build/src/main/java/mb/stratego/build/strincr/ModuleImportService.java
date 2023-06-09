@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,11 +28,14 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.Supplier;
 import mb.pie.api.stamp.output.OutputStampers;
+import mb.pie.api.stamp.resource.ExistsResourceStamper;
 import mb.pie.api.stamp.resource.ResourceStampers;
+import mb.resource.ReadableResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.resource.hierarchical.match.PathResourceMatcher;
 import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
+import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.util.ExistsAndRTreeStamper;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
@@ -338,5 +343,21 @@ public class ModuleImportService implements IModuleImportService {
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
             return null;
         }
+    }
+
+    @Override public boolean externalStrategyExists(ExecContext context, StrategySignature strategySignature,
+        ImportResolutionInfo importResolutionInfo) {
+        try {
+            return context.require(
+                importResolutionInfo.resolveExternals.appendAsRelativePath(
+                    dollarsForCapitals(strategySignature.cifiedName()) + ".java"), ResourceStampers.<ReadableResource>exists()).exists();
+        } catch(IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String dollarsForCapitals(String cified) {
+        return cified.replaceAll("\\p{Lu}", "\\$$0");
     }
 }

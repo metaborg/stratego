@@ -14,8 +14,7 @@ public class CheckInput implements Serializable {
     protected final int hashCode;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, ImportResolutionInfo importResolutionInfo,
-        boolean autoImportStd) {
+        ResourcePath projectPath, ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.projectPath = projectPath;
         this.importResolutionInfo = importResolutionInfo;

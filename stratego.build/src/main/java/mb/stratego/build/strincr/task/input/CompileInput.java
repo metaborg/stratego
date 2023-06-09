@@ -26,24 +26,24 @@ public class CompileInput implements Serializable {
     public final ArrayList<String> constants;
     public final Arguments extraArgs;
     public final boolean library;
-    public final boolean usingLegacyStrategoStdLib;
     public final boolean createShadowJar;
     public final String libraryName;
     protected final int hashCode;
 
     public CompileInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir, ArrayList<String> packageNames,
-        @Nullable ResourcePath cacheDir, ArrayList<String> constants,
+        ResourcePath projectPath, ResourcePath outputDir, ResourcePath str2libReplicateDir,
+        ArrayList<String> packageNames, @Nullable ResourcePath cacheDir, ArrayList<String> constants,
         LinkedHashSet<ResourcePath> includeDirs,
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
+        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree,
+        boolean supportStr1, @Nullable ResourcePath resolveExternals) {
         this.str2libReplicateDir = str2libReplicateDir;
         this.libraryName = libraryName;
         this.checkInput =
             new CheckInput(mainModuleIdentifier, projectPath, new IModuleImportService.ImportResolutionInfo(strFileGeneratingTasks, includeDirs,
-                linkedLibraries, str2libraries, supportRTree, supportStr1), autoImportStd);
+                linkedLibraries, str2libraries, supportRTree, supportStr1, resolveExternals), autoImportStd);
         this.outputDir = outputDir.getNormalized();
         this.packageNames = packageNames;
         this.cacheDir = cacheDir;
@@ -51,8 +51,6 @@ public class CompileInput implements Serializable {
         this.extraArgs = extraArgs;
         this.library = library;
         this.createShadowJar = createShadowJar;
-        this.usingLegacyStrategoStdLib =
-            linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
         this.hashCode = hashFunction();
     }
 
@@ -63,11 +61,13 @@ public class CompileInput implements Serializable {
         ArrayList<? extends IModuleImportService.ModuleIdentifier> linkedLibraries,
         Arguments extraArgs, ArrayList<STask<?>> strFileGeneratingTasks, boolean library,
         boolean autoImportStd, boolean createShadowJar, String libraryName,
-        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
+        LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree,
+        boolean supportStr1, @Nullable ResourcePath resolveExternals) {
         this(mainModuleIdentifier, projectPath, outputDir, str2libReplicateDir,
             new ArrayList<String>(Collections.singletonList(packageName)), cacheDir, constants,
             includeDirs, linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd,
-            createShadowJar, libraryName, str2libraries, supportRTree, supportStr1);
+            createShadowJar, libraryName, str2libraries, supportRTree, supportStr1,
+            resolveExternals);
     }
 
     @Override public boolean equals(Object o) {
@@ -81,8 +81,6 @@ public class CompileInput implements Serializable {
         if(hashCode != that.hashCode)
             return false;
         if(library != that.library)
-            return false;
-        if(usingLegacyStrategoStdLib != that.usingLegacyStrategoStdLib)
             return false;
         if(createShadowJar != that.createShadowJar)
             return false;
@@ -116,7 +114,6 @@ public class CompileInput implements Serializable {
         result = 31 * result + constants.hashCode();
         result = 31 * result + extraArgs.hashCode();
         result = 31 * result + (library ? 1 : 0);
-        result = 31 * result + (usingLegacyStrategoStdLib ? 1 : 0);
         result = 31 * result + (createShadowJar ? 1 : 0);
         result = 31 * result + libraryName.hashCode();
         return result;
@@ -133,7 +130,6 @@ public class CompileInput implements Serializable {
             + ", constants=" + constants
             + ", extraArgs='" + extraArgs + '\''
             + ", library=" + library
-            + ", usingLegacyStrategoStdLib=" + usingLegacyStrategoStdLib
             + ", createShadowJar=" + createShadowJar
             + ", libraryName='" + libraryName + '\''
             + '}';

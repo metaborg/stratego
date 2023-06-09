@@ -39,6 +39,7 @@ import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.message.ExternalStrategySourceNotFound;
 import mb.stratego.build.strincr.message.FailedToGetModuleAst;
 import mb.stratego.build.strincr.message.InvalidASTMessage;
 import mb.stratego.build.strincr.message.Message;
@@ -189,9 +190,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
+                    // TODO: test that module is not a source dep from another project
+                    final boolean moduleInProject = !input.moduleIdentifier.isLibrary();
+                    addStrategyData(context, input.moduleIdentifier, strategyData, internalStrategyData,
                         externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0),
-                        projectPath);
+                        projectPath, messages, input.importResolutionInfo, moduleInProject, ast.lastModified);
                     break;
                 default:
                     throw new InvalidASTException(input.moduleIdentifier, def);
@@ -266,13 +269,14 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         return id;
     }
 
-    protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+    protected void addStrategyData(ExecContext context, IModuleImportService.ModuleIdentifier moduleIdentifier,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, IStrategoTerm strategyDefs,
-        String projectPath) throws ExecException {
+        String projectPath, ArrayList<Message> messages, ImportResolutionInfo importResolutionInfo, boolean moduleInProject,
+        long lastModified) throws ExecException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -341,6 +345,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                     final @Nullable StrategySignature strategySignature =
                         StrategySignature.fromDefinition(strategyDef);
+                    if(moduleInProject && importResolutionInfo.resolveExternals != null && kind == External) {
+                        if(!moduleImportService.externalStrategyExists(context, strategySignature, importResolutionInfo)) {
+                            messages.add(ExternalStrategySourceNotFound.followOrigin(TermUtils.toString(strategySignature.getSubterm(0)), lastModified));
+                        }
+                    }
                     if(strategySignature == null) {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }

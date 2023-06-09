@@ -1,6 +1,7 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 
 import javax.annotation.Nullable;
 

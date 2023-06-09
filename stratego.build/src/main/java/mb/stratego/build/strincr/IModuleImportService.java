@@ -3,6 +3,7 @@ package mb.stratego.build.strincr;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -13,6 +14,7 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.Supplier;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.util.LastModified;
 
 /**
@@ -114,17 +116,20 @@ public interface IModuleImportService {
         public final Collection<Supplier<Stratego2LibInfo>> str2libraries;
         public final boolean supportRTree;
         public final boolean supportStr1;
+        public final @Nullable ResourcePath resolveExternals;
 
         public ImportResolutionInfo(Collection<STask<?>> strFileGeneratingTasks,
             Collection<? extends ResourcePath> includeDirs,
             Collection<? extends ModuleIdentifier> linkedLibraries,
-            Collection<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree, boolean supportStr1) {
+            Collection<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree,
+            boolean supportStr1, @Nullable ResourcePath resolveExternals) {
             this.strFileGeneratingTasks = strFileGeneratingTasks;
             this.includeDirs = includeDirs;
             this.linkedLibraries = linkedLibraries;
             this.str2libraries = str2libraries;
             this.supportRTree = supportRTree;
             this.supportStr1 = supportStr1;
+            this.resolveExternals = resolveExternals;
         }
 
         @Override public boolean equals(Object o) {
@@ -145,6 +150,8 @@ public interface IModuleImportService {
                 return false;
             if(!linkedLibraries.equals(that.linkedLibraries))
                 return false;
+            if(!Objects.equals(resolveExternals, that.resolveExternals))
+                return false;
             return str2libraries.equals(that.str2libraries);
         }
 
@@ -155,6 +162,7 @@ public interface IModuleImportService {
             result = 31 * result + str2libraries.hashCode();
             result = 31 * result + Boolean.hashCode(this.supportRTree);
             result = 31 * result + Boolean.hashCode(this.supportStr1);
+            result = 31 * result + Objects.hashCode(this.resolveExternals);
             return result;
         }
 
@@ -167,6 +175,7 @@ public interface IModuleImportService {
                 + ", str2libraries=" + str2libraries
                 + ", supportRTree=" + supportRTree
                 + ", supportStr1=" + supportStr1
+                + ", resolveExternals=" + resolveExternals
                 + '}';
             //@formatter:on
         }
@@ -193,6 +202,8 @@ public interface IModuleImportService {
         throws Exception;
 
     @Nullable String fileName(ModuleIdentifier moduleIdentifier);
+
+    boolean externalStrategyExists(ExecContext context, StrategySignature strategySignature, ImportResolutionInfo importResolutionInfo);
 
     boolean equals(Object o);
 
