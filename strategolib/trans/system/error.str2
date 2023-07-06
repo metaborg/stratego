@@ -27,9 +27,7 @@ strategies
    * @type    _ -> Int
    * @since   0.9.4
    */
-  get-errno :: ? -> int
-  get-errno =
-    prim("SSL_get_errno")
+  external get-errno :: (|) ? -> int
 
   /**
    * Print a system error message.
@@ -38,9 +36,7 @@ strategies
    * @type   String -> String
    * @since  0.9.4
    */
-  perror :: a -> string
-  perror =
-    ?s; prim("SSL_perror", s)
+  external perror :: (|) ? -> string
 
   /**
    * Return string describing error code
@@ -49,10 +45,7 @@ strategies
    * @type   Int -> String
    * @since  0.9.4
    */
-  strerror :: int -> string
-  strerror =
-    ?s; prim("SSL_strerror", s)
+  external strerror :: (|) int -> string
 
 strategies
-  EXDEV :: a -> a
-  EXDEV = prim("SSL_EXDEV")
+  external EXDEV :: (|) ? -> int

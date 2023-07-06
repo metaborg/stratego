@@ -116,4 +116,6 @@ public class ConstructorSignature extends StrategoTuple {
     public StrategySignature toCongruenceSig() {
         return new StrategySignature(TermUtils.toStringAt(this, 0), noArgs, 0);
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

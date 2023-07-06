@@ -8,6 +8,8 @@ imports
   system/io/dir
   system/io/file
 
+  collection/tuple/cons
+
 /**
  * Generate a new, not existing file name.
  */
@@ -15,30 +17,28 @@ strategies
 
   /**
    * Safe, mkstemp based, creation of temporary file
-   *
-   * @type _ -> (String, FileDescr)
    */
+  new-temp-file :: ? -> string * FileDescriptor
   new-temp-file =
       <conc-strings> (<temp-dir>, "/StrategoXT")
     ; mkstemp
 
   /**
    * Safe, mkdtemp based, creation of temporary directory
-   *
-   * @type  _ -> String
    */
+  new-temp-dir :: ? -> string
   new-temp-dir =
       <conc-strings> (<temp-dir>, "/StrategoXT")
     ; mkdtemp
 
 strategies
 
+  temp-dir :: ? -> string
   temp-dir =
     <getenv> "TMPDIR"
     <+ P_tmpdir
 
-  P_tmpdir =
-    prim("SSL_P_tmpdir")
+  external P_tmpdir :: (|) ? -> string
 
   /**
    * Creates a unique temporary file
@@ -46,10 +46,13 @@ strategies
    * returns a fd if succesful, fails on error
    * @type String -> String * Int
    */
+  mkstemp :: string -> string * int
   mkstemp =
-    <conc-strings> (<id>, "XXXXXX") => template
-    ; prim("SSL_mkstemp", template)
+      <conc-strings> (<id>, "XXXXXX") => template
+    ; <internal-mkstemp> template
     <+ <perror; fail> "SSL/mkstemp"
+
+  external internal-mkstemp :: (|) string -> string * int
 
   /**
    * Creates a unique temporary directory
@@ -57,10 +60,13 @@ strategies
    * returns a fd if succesful, fails on error
    * @type String -> String
    */
+  mkdtemp :: string -> string
   mkdtemp =
-    <conc-strings> (<id>, "XXXXXX") => template
-    ; prim("SSL_mkdtemp", template)
+      <conc-strings> (<id>, "XXXXXX") => template
+    ; <internal-mkdtemp> template
     <+ <perror; fail> "SSL/mkdtemp"
+
+  external internal-mkdtemp :: (|) string -> string
 
 strategies
 
@@ -78,9 +84,10 @@ strategies
   * From 0.9.4 this implementation copies the file if the primitive rename
   * fails because of an XDEV error.
   */
+  rename-file :: string * string -> C99FileLoc
   rename-file =
       ?(oldname, newname)
-    ; (  prim("SSL_rename", oldname, newname)
+    ; (  <internal-rename-file(|newname)> oldname
       <+ ( get-last-error => ErrorNumber(<EXDEV> ())
          < <copy-file> (oldname, newname)
            ; <remove-file> oldname
@@ -94,6 +101,7 @@ strategies
   * If newname is a directory the file is copied to a file in the directory
   * with the same base name as the old file.
   */
+  copy-file :: string * string -> C99FileLoc
   copy-file =
     ?(oldname, newname)
     ; where(
@@ -101,7 +109,11 @@ strategies
           <concat-strings>[newname, "/", <base-filename> oldname]
         else !newname end => newname'
       )
-    ; prim("SSL_copy", oldname, newname')
+    ; <internal-copy-file(|newname')> oldname
 
+  // Warning: not implemented
+  fdcopy :: FileDescriptor * FileDescriptor -> ?
   fdcopy =
-    ?(fdin, fdout); prim("SSL_fdcopy", fdin, fdout)
+    ?(<id>, fdout); internal-fdcopy(|fdout)
+
+  external internal-fdcopy :: (|FileDescriptor) FileDescriptor -> ?

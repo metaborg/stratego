@@ -38,7 +38,7 @@ insertCasts-ScopeLabels(|e1, st1) = otf12(insertCasts-ScopeLabels-(|e1, st1))
 insertCasts-ScopeLabels(|e1, st1) =
     is-list
   ; !(<id>, st1)
-  ; thread-map(insertCasts-DynRuleScopeId(|e1))
+  ; thread-map-otf(insertCasts-DynRuleScopeId(|e1))
 
 //  ScopeLabels              : Term -> ScopeLabels
 
@@ -72,7 +72,7 @@ strategies // Strategy (dynamic-rules, continued)
 insertCasts-Strategy-(|e1, st1):
   GenDynRules(d1*) -> (GenDynRules(d2*), <current-type-of(|st1)> st2)
   with
-    (d2*, st2) := <thread-map(insertCasts-DynRuleDef-Type(|e1, DynT()))> (d1*, st1)
+    (d2*, st2) := <thread-map-otf(insertCasts-DynRuleDef-Type(|e1, DynT()))> (d1*, st1)
 
 
 insertCasts-DynRuleDef-Type(|e1, t1): (d1, st1) -> <insertCasts-DynRuleDef(|e1, <current-type(|t1)> st1)> d1
@@ -103,7 +103,7 @@ insertCasts-DynRuleDef-(|e1, st1):
   SetDynRule(i1, t1) -> (SetDynRule(i2, t2), st3)
   with
     (i2, st2) := <insertCasts-DynRuleId(|e1, st1)> i1
-  ; (t2, st3) := <insertCasts-Rule(|e1, st2)> t1
+  ; (t2, st3) := <insertCasts-Rule(insertCasts-DynRuleCond|e1, st2)> t1
 
 //  AddDynRule               : DynRuleId * Rule -> DynRuleDef
 
@@ -111,7 +111,22 @@ insertCasts-DynRuleDef-(|e1, st1):
   AddDynRule(i1, t1) -> (AddDynRule(i2, t2), st3)
   with
     (i2, st2) := <insertCasts-DynRuleId(|e1, st1)> i1
-  ; (t2, st3) := <insertCasts-Rule(|e1, st2)> t1
+  ; (t2, st3) := <insertCasts-Rule(insertCasts-DynRuleCond|e1, st2)> t1
+
+insertCasts-DynRuleCond(|e1) = otf22(insertCasts-DynRuleCond-(|e1))
+
+insertCasts-DynRuleCond-(|e1):
+  (WhereClause(s1), st1) -> (WhereClause(s2), st3)
+  with
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type-of(|st1)> st2
+
+insertCasts-DynRuleCond-(|e1):
+  (c@WithClause(s1), st1) -> (WithClause(s2), st3)
+  with
+    (s2, st2) := <insertCasts-Strategy(|e1, st1)> s1
+  ; st3 := <current-type-of(|st1)> st2
+  ; <report-Err> (c, WithClauseInDynRule())
 
 //  SetDynRuleMatch          : DynRuleId * Term -> DynRuleDef
 
@@ -146,7 +161,7 @@ insertCasts-DynRuleDef-(|e1, st1):
   SetDynRuleDepends(i1, s1, t1) -> (SetDynRuleDepends(i2, s2, t2), st4)
   with
     (i2, st2) := <insertCasts-DynRuleId(|e1, st1)> i1
-  ; (s2, st3) := <insertCasts-Rule(|e1, st2)> s1
+  ; (s2, st3) := <insertCasts-Rule(insertCasts-DynRuleCond|e1, st2)> s1
   ; (t2, st4) := <insertCasts-BuildTerm(|e1, st3)> t1
 
 insertCasts-DynRuleId(|e1, st1) = otf12(insertCasts-DynRuleId-(|e1, st1))

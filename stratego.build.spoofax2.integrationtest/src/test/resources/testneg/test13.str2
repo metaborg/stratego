@@ -1,0 +1,9 @@
+/**
+ * Invocation of typed strategy from standard library with the wrong type should fail
+ */
+module test13
+imports strategolib
+strategies
+
+ main =
+   <map(id)> ()

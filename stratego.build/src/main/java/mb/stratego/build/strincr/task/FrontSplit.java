@@ -42,11 +42,12 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
         throws Exception {
         if(input.frontInput.moduleIdentifier.isLibrary()) {
             return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
-                new ArrayList<>(0));
+                new LinkedHashSet<>(0), new ArrayList<>(0));
         }
 
         final LastModified<IStrategoTerm> astWLM =
-            PieUtils.requirePartial(context, front, input.frontInput, GetASTWithLastModified.INSTANCE);
+            PieUtils.requirePartial(context, front, input.frontInput,
+                GetASTWithLastModified.INSTANCE);
 
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -54,6 +55,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
             strategyDataWithCasts = CheckModule
             .extractStrategyDefs(input.frontInput.moduleIdentifier, astWLM.wrapped, dynamicRules);
 
-        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, new ArrayList<>(0));
+        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, new LinkedHashSet<>(0),
+            new ArrayList<>(0));
     }
 }

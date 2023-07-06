@@ -1,0 +1,87 @@
+module overlay
+
+language StrategoLang
+
+fixture [[
+  module test
+
+  signature
+    sorts
+      List(*)
+      Option(*)
+      Tuple(*, *)
+      A
+      B
+      D
+    constructors
+      A : A
+      B : B
+      C : B
+      D : D
+      : D -> B
+
+  overlays
+  [[...]]
+]]
+
+test overlay without a type definition is wrong [[
+  [[hello]] = "1"
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay with a type definition is right [[
+  hello :: string
+  hello = "1"
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test overlay with wrong type definition is wrong [[
+  hello :: int
+  hello = [["1"]]
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay arity matters [[
+  hello(string) :: string
+  [[hello]] = "1"
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay type definition can have variables [[
+  hello(a) :: a
+  hello(t) = t
+]] 0 errors
+   0 warnings
+   has origin locations
+
+test overlay type definition sort variables should be introduced [[
+  hello([[b]]) :: a
+  hello(t) = t
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay does not allow wildcard pattern [[
+  hello :: a
+  hello = [[_]]
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay does not allow as pattern [[
+  hello :: string
+  hello = [[a@"1"]]
+]] 1 error at #1
+   0 warnings
+   has origin locations
+
+test overlay does not allow string quotation pattern [[
+  hello :: string
+  hello = [[$<1>]]
+]] 1 error at #1
+   0 warnings
+//   has origin locations

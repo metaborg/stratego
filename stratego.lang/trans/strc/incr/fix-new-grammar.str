@@ -1,40 +1,41 @@
 module strc/incr/fix-new-grammar
 
 imports
-
+  signatures/gradual-types/internal-sig
   signatures/sugar/string-quotations-sig
   libspoofax/term/origin
   gradual-types/utils
 
 strategies
 
+  // Add padding for string quotation that used to come out of a parser hack
   fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation)))
 
   origin-column-from-list = origin-column <+ Hd; origin-column
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation1(sqp) -> StringQuotation1(<otf(!padding)> sqp, sqp)
+    trm@StringQuotation1(sqp) -> StringQuotation1(<otf(!padding)> sqp, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation2(sqp) -> StringQuotation2(<otf(!padding)> padding, sqp)
+    trm@StringQuotation2(sqp) -> StringQuotation2(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation3(sqp) -> StringQuotation3(<otf(!padding)> padding, sqp)
+    trm@StringQuotation3(sqp) -> StringQuotation3(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation4(sqp) -> StringQuotation4(<otf(!padding)> padding, sqp)
+    trm@StringQuotation4(sqp) -> StringQuotation4(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape1(trm) -> StringEscape1(<otf(!padding)> padding, trm)

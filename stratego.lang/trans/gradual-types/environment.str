@@ -5,7 +5,7 @@ imports
 libstratego-lib
 
 gradual-types/utils
-gradual-types/signatures 
+gradual-types/signatures
 signatures/-
 signatures/gradual-types/internal-sig
 signatures/gradual-types/signatures-sig
@@ -56,9 +56,13 @@ strat-env = ?Env(<id>, _, _)
 strat-env(s) = Env(s, id, id)
 
 // Note that this also tries to find a congruence if it fails to find a strategy
-strat-lookup(|name, snum, tnum, type) =
-  strat-env; immap-get(|(name, snum, tnum))
-strat-lookup(|name, snum, tnum, type) =
+strat-lookup(|name, snum, tnum) =
+  strat-env
+; (  immap-get(|(name, snum, tnum))
+  <+ immap-get(|(name, 0, 0)); ?SDyn()
+  )
+
+congr-lookup(|name, snum, tnum, type) =
     where(0 := tnum)
   ; constr-env
   ; imrel-get(|(name, snum))
@@ -72,8 +76,7 @@ strat-lookup(|name, snum, tnum, type) =
       \[ConstrType(args, sort)] -> FunTType(<map(!FunTType(<id>, <id>))> args, [], sort, sort)\
       <+ !FunTType(<range;map(!SDyn())> snum, [], DynT(Dyn()), DynT(Dyn()))
     end
-strat-lookup(|name, snum, tnum, type) =
-  strat-env; immap-get(|(name, 0, 0)); ?SDyn()
+
 strat-put(|name, snum, tnum, value) = strat-env(immap-put(|(name, snum, tnum), value))
 strat-merge-env(s): (e, se) -> <strat-env(immap-union(s|se))> e
 strat-copy-type(|name, snum, tnum, as) = strat-env(env-copy-type(|(name, snum, tnum), (as, snum, tnum)))
@@ -93,6 +96,8 @@ constr-env(s) = Env(id, s, id)
 constr-lookup(|name, arity) = constr-env; imrel-get(|(name, arity)); imset-to-list
 constr-put(|name, arity, value) = constr-env(imrel-insert(|(name, arity), value))
 constr-merge-env: (e, ce) -> <constr-env(imrel-union(|ce))> e
+
+overlay-lookup(|name, arity) = constr-env; imrel-get(|(name, arity)); imset-to-list; filter(?_{Overlay()})
 
 sort-env = ?Env(_, _, <id>)
 sort-env(s) = Env(id, id, s)
@@ -149,6 +154,13 @@ current-type(s) = St(id, s, id)
 current-type(s) = StMatchTerm(current-type(s), id, id)
 current-type(s) = StBuildTerm(current-type(s), id)
 current-type-of(|st) = current-type(|<current-type> st)
+
+// alias of current-type for StBuildTerm, this more accurately describes the role of current-type
+// when passing down a type during type-checking of a BuildTerm
+expected-type = ?StBuildTerm(<current-type>, _)
+expected-type(|t) = StBuildTerm(current-type(|t), id)
+expected-type(s) = StBuildTerm(current-type(s), id)
+expected-type-of(|st) = expected-type(|<expected-type> st)
 
 type-var-env = ?St(_, _, <id>)
 type-var-env = ?StMatchTerm(<type-var-env>, _, _)

@@ -11,8 +11,19 @@ signature
     prod   : List(Sort) * Sort * List(Attr) -> Prod
 
     appl   : Prod * List(AsFixTerm) -> AsFixTerm
+    : string -> String
+    : String -> AsFixTerm
+    : Sort -> AsFixTerm
 
 overlays
+  DefaultLayout :: string
+  BinOp(String) :: Prod
+  BinExp(AsFixTerm, AsFixTerm, String, AsFixTerm, AsFixTerm) :: AsFixTerm
+  BinExp(AsFixTerm, String, AsFixTerm) :: AsFixTerm
+  Add(AsFixTerm, AsFixTerm, AsFixTerm, AsFixTerm) :: AsFixTerm
+  Add(AsFixTerm, AsFixTerm) :: AsFixTerm
+  Mul(AsFixTerm, AsFixTerm) :: AsFixTerm
+  Var(AsFixTerm) :: AsFixTerm
 
   DefaultLayout = " "
 

@@ -9,6 +9,7 @@ signature
     Plus  : Exp * Exp -> Exp
     Int   : Type
     Float : Type
+    : string -> String
 
 strategies
 
@@ -401,6 +402,11 @@ strategies
     )
 
 overlays
+  VarA :: Exp
+
+  VarAInt :: Exp
+  VarAFloat :: Exp
+
   VarA = Var("a")
 
   VarAInt = Var("a"){Int()}

@@ -17,23 +17,28 @@ public class ToModuleIndex implements SerializableFunction<ModuleData, ModuleInd
 
     @Override public ModuleIndex apply(ModuleData moduleData) {
         final LinkedHashSet<StrategyFrontData> strategies = new LinkedHashSet<>();
-        for(LinkedHashSet<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.normalStrategyData.values()) {
             strategies.addAll(strategyFrontData);
+        }
+        final LinkedHashSet<StrategyFrontData> externalStrategyData = new LinkedHashSet<>();
+        for(ArrayList<StrategyFrontData> strategyFrontData : moduleData.externalStrategyData.values()) {
+            externalStrategyData.addAll(strategyFrontData);
         }
         final LinkedHashSet<ConstructorData> nonOverlayConstructors = new LinkedHashSet<>();
         for(ArrayList<ConstructorData> data : moduleData.constrData.values()) {
             for(ConstructorData datum : data) {
-                if(!datum.isOverlay()) {
+                if(!datum.isOverlay) {
                     nonOverlayConstructors.add(datum);
                 }
             }
         }
-        return new ModuleIndex(moduleData.str2LibPackageName, moduleData.imports, moduleData.sortData,
-            moduleData.externalSortData, nonOverlayConstructors, moduleData.injections,
-            new LinkedHashSet<>(moduleData.externalConstrData.keySet()), strategies,
-            new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
-            new LinkedHashSet<>(moduleData.externalStrategyData.keySet()), moduleData.dynamicRules,
-            moduleData.overlayData, moduleData.messages, moduleData.lastModified);
+        return new ModuleIndex(moduleData.str2LibPackageNames, moduleData.imports,
+            moduleData.sortData, moduleData.externalSortData, nonOverlayConstructors,
+            moduleData.injections, new LinkedHashSet<>(moduleData.externalConstrData.keySet()),
+            strategies, new LinkedHashSet<>(moduleData.internalStrategyData.keySet()),
+            externalStrategyData, moduleData.dynamicRules, moduleData.overlayData,
+            moduleData.overlayAsts, moduleData.overlayUsedConstrs, moduleData.messages,
+            moduleData.lastModified);
     }
 
     @Override public boolean equals(Object other) {

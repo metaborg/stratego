@@ -4,7 +4,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class UsingStratego1File extends Message {
     public UsingStratego1File(IStrategoTerm locationTerm, long lastModified) {
-        super(locationTerm, MessageSeverity.WARNING, 0L);
+        super(locationTerm, MessageSeverity.WARNING, lastModified);
     }
 
     @Override public String getMessage() {

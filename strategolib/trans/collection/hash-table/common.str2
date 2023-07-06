@@ -56,7 +56,9 @@ strategies
    */
   new-hashtable(|int, int) :: ? -> Hashtable
   new-hashtable(|initial_size, max_load) =
-    prim("SSL_hashtable_create", initial_size, max_load); !Hashtable(<id>)
+    !Hashtable(<internal-hashtable-create(|initial_size)> max_load)
+
+  external internal-hashtable-create :: (|int) int -> HashtableImplBlob
 
   /**
    * Destroys and deallocates memory consumed by an existing hashtable.
@@ -65,7 +67,9 @@ strategies
    */
   hashtable-destroy :: Hashtable -> Hashtable
   hashtable-destroy =
-    ?Hashtable(tbl); prim("SSL_hashtable_destroy", tbl); !Hashtable(<id>)
+    Hashtable(internal-hashtable-destroy)
+
+  external internal-hashtable-destroy :: (|) HashtableImplBlob -> HashtableImplBlob
 
   /**
    * Clears the contents of an existing hashtable.
@@ -74,7 +78,9 @@ strategies
    */
   hashtable-clear :: Hashtable -> Hashtable
   hashtable-clear =
-    ?Hashtable(tbl); prim("SSL_hashtable_reset", tbl); !Hashtable(<id>)
+    Hashtable(internal-hashtable-reset)
+
+  external internal-hashtable-reset :: (|) HashtableImplBlob -> HashtableImplBlob
 
 /**
  * Hashtable operations
@@ -91,7 +97,9 @@ strategies
    */
   hashtable-put(|?, ?) :: Hashtable -> Hashtable
   hashtable-put(|key, value) =
-    ?Hashtable(tbl); prim("SSL_hashtable_put", tbl, key, value); !Hashtable(<id>)
+    Hashtable(internal-hashtable-put(|key, value))
+
+  external internal-hashtable-put :: (|?, ?) HashtableImplBlob -> HashtableImplBlob
 
   /**
    * Gets the value for a key. If the key does not exist, this strategy
@@ -102,7 +110,9 @@ strategies
    */
   hashtable-get(|?) :: Hashtable -> ?
   hashtable-get(|key) =
-    ?Hashtable(tbl); prim("SSL_hashtable_get", tbl, key)
+    ?Hashtable(<internal-hashtable-get(|key)>)
+
+  external internal-hashtable-get :: (|?) HashtableImplBlob -> ?
 
   /**
    * Removes a key (with its associated value) from the hashtable. This
@@ -112,7 +122,9 @@ strategies
    */
   hashtable-remove(|?) :: Hashtable -> Hashtable
   hashtable-remove(|key) =
-    ?Hashtable(tbl); prim("SSL_hashtable_remove", tbl, key); !Hashtable(<id>)
+    Hashtable(internal-hashtable-remove(|key))
+
+  external internal-hashtable-remove :: (|?) HashtableImplBlob -> HashtableImplBlob
 
   /**
    * Get a list containing all keys of a hashtable.
@@ -121,7 +133,9 @@ strategies
    */
   hashtable-keys :: Hashtable -> List(?)
   hashtable-keys =
-    ?Hashtable(tbl); prim("SSL_hashtable_keys", tbl)
+    ?Hashtable(<internal-hashtable-keys>)
+
+  external internal-hashtable-keys :: (|) HashtableImplBlob -> List(?)
 
   /**
    * Get a list containing all values of a hashtable
@@ -145,8 +159,9 @@ strategies
    */
   hashtable-fold((|?, ?) a -> a | a) :: Hashtable -> a
   hashtable-fold(s : ? * ? * a -> a | t) =
-    ?Hashtable(tbl)
-    ; prim("SSL_table_fold", s | t, tbl)
+    ?Hashtable(<internal-hashtable-fold(s|t)>)
+
+  external internal-hashtable-fold :: ((|?, ?) a -> a|a) HashtableImplBlob -> a
 
   /**
    * Apply an iterative fold left (starting with first element) over
@@ -159,8 +174,9 @@ strategies
    */
   hashtable-fold-keys((|?) a -> a | a) :: Hashtable -> a
   hashtable-fold-keys(s : k * a -> a | t) =
-    ?Hashtable(tbl)
-    ; prim("SSL_table_keys_fold", s | t, tbl)
+    ?Hashtable(<internal-hashtable-keys-fold(s|t)>)
+
+  external internal-hashtable-keys-fold :: ((|?) a -> a|a) HashtableImplBlob -> a
 
   /**
    * Apply an iterative fold left (starting with first element) over
@@ -173,8 +189,9 @@ strategies
    */
   hashtable-fold-values((|?) a -> a | a) :: Hashtable -> a
   hashtable-fold-values(s : v * a -> a | t) =
-    ?Hashtable(tbl)
-    ; prim("SSL_table_values_fold", s | t, tbl)
+    ?Hashtable(<internal-hashtable-values-fold(s|t)>)
+
+  external internal-hashtable-values-fold :: ((|?) a -> a|a) HashtableImplBlob -> a
 
 /**
  * Hashtable bulk operations
@@ -460,7 +477,7 @@ strategies
               })
 
           else ![] end => changes2
-          ; (<not([])> changes1 <+ <not([])> changes2)
+          ; (<not(?[])> changes1 <+ <not(?[])> changes2)
 
 
   /**
@@ -665,7 +682,9 @@ strategies
    */
   table-hashtable :: ? -> Hashtable
   table-hashtable =
-    prim("SSL_table_hashtable"); !Hashtable(<id>)
+    !Hashtable(<internal-table-hashtable>)
+
+  external internal-table-hashtable :: (|) ? -> HashtableImplBlob
 
   /**
    * Retrieves a named table by looking it up in the table-table.

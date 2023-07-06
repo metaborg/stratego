@@ -9,24 +9,26 @@ fixture [[
     [[...]]
 ]]
 
+// N.B. string interpolation inside an SPT test messes up origins because the column info is not available.
+
 test simple string interpolation [[
   string: _ -> $<>
 ]] 0 errors
-   has origin locations
+//   has origin locations
 
 test simple string interpolation 2 [[
   string: _ -> $<aa>
 ]] 0 errors
-   has origin locations
+//   has origin locations
 
 test string interpolation with string var [[
   string: _ -> $<aa<st>>
     where st :: string := "a"
 ]] 0 errors
-   has origin locations
+//   has origin locations
 
 test string interpolation with int var [[
   string: _ -> $<aa<i>>
     where i :: int := 1
 ]] 0 errors
-   has origin locations
+//   has origin locations

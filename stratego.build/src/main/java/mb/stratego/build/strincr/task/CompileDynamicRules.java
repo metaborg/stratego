@@ -1,11 +1,13 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.Interactivity;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.data.StrategySignature;
@@ -39,7 +41,7 @@ public class CompileDynamicRules implements TaskDef<CompileDynamicRulesInput, Co
         final TreeSet<StrategySignature> compiledThroughDynamicRule = new TreeSet<>();
         for(StrategySignature dynamicRule : compileGlobalIndex.dynamicRules.keySet()) {
             final BackInput.DynamicRule dynamicRuleInput =
-                new BackInput.DynamicRule(input.outputDirWithPackage, input.packageName, input.cacheDir,
+                new BackInput.DynamicRule(input.outputDirWithPackage, input.packageNames, input.cacheDir,
                     input.constants, input.extraArgs, input.checkInput, dynamicRule,
                     input.strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, dynamicRuleInput);
@@ -51,6 +53,10 @@ public class CompileDynamicRules implements TaskDef<CompileDynamicRulesInput, Co
 
         return new CompileDynamicRulesOutput(compiledThroughDynamicRule, compileGlobalIndex.dynamicRules.keySet(),
             resultFiles);
+    }
+
+    @Override public boolean shouldExecWhenAffected(CompileDynamicRulesInput input, Set<?> tags) {
+        return tags.isEmpty() || tags.contains(Interactivity.NonInteractive);
     }
 
     @Override public String getId() {

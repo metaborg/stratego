@@ -1,22 +1,25 @@
 package mb.stratego.build.strincr.function.output;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.StrategySignature;
 
 public class CongruenceGlobalIndex implements Serializable {
     public final LinkedHashSet<ConstructorSignature> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> nonExternalStrategies;
-    public final LinkedHashSet<OverlayData> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayData;
 
     public CongruenceGlobalIndex(LinkedHashSet<ConstructorSignature> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> nonExternalStrategies,
-        LinkedHashSet<OverlayData> overlayData) {
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayData) {
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.nonExternalStrategies = nonExternalStrategies;

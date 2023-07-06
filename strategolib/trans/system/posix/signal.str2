@@ -10,6 +10,7 @@ imports
   term/integer
   term/string
   collection/list/common
+  collection/list/cons
 
 signature
   sorts
@@ -20,19 +21,19 @@ signature
 
 strategies
 
-  // :: Int -> Signal
+  signal-from-number :: int -> Signal
   signal-from-number = ?i;
     ( <fetch-elem(?Signal(_, i, _))> AllSignals()
     <+ !UnknownSignal(i))
 
-  // :: Signal -> Int
+  number-from-signal :: Signal -> int
   number-from-signal :
     Signal(_, i, _) -> i
 
   number-from-signal :
     UnknownSignal(i) -> i
 
-  // :: Signal -> String
+  signal-to-descr :: Signal -> string
   signal-to-descr :
     Signal(n, i, s) -> <concat-strings> [n, " (", <int-to-string> i, "): ", s]
 
@@ -41,9 +42,10 @@ strategies
 
 overlays
 
- /**
-  * Table containing all signals.
-  */
+  /**
+   * Table containing all signals.
+   */
+  AllSignals :: List(Signal)
   AllSignals =
     [ SIGHUP(),  SIGINT(),  SIGQUIT(), SIGABRT(), SIGKILL(),   SIGALRM(), SIGTERM()
     , SIGBUS(),  SIGCHLD(), SIGCONT(), SIGFPE(),  SIGILL(),    SIGPIPE(), SIGSEGV()
@@ -55,6 +57,14 @@ overlays
  * POSIX
  */
 overlays
+  SIGHUP  :: Signal
+  SIGINT  :: Signal
+  SIGQUIT :: Signal
+  SIGABRT :: Signal
+  SIGKILL :: Signal
+  SIGALRM :: Signal
+  SIGTERM :: Signal
+
   SIGHUP  = Signal("HUP",   1, "Hangup")
   SIGINT  = Signal("INT",   2, "Terminal interrupt")
   SIGQUIT = Signal("QUIT",  3, "Terminal quit")
@@ -67,6 +77,21 @@ overlays
  * POSIX 1003.1-2001
  */
 overlays
+  SIGBUS  :: Signal
+  SIGCHLD :: Signal
+  SIGCONT :: Signal
+  SIGFPE  :: Signal
+  SIGILL  :: Signal
+  SIGPIPE :: Signal
+  SIGSEGV :: Signal
+  SIGSTOP :: Signal
+  SIGTSTP :: Signal
+  SIGTTIN :: Signal
+  SIGTTOU :: Signal
+  SIGURG  :: Signal
+  SIGUSR1 :: Signal
+  SIGUSR2 :: Signal
+
   SIGBUS  = Signal("BUS",   7, "Access to an undefined portion of a memory object")
   SIGCHLD = Signal("CHLD", 17, "Child process terminated, stopped, or continued")
   SIGCONT = Signal("CONT", 18, "Continue executing, if stopped")
@@ -86,6 +111,14 @@ overlays
  * POSIX 1003.1-2001, XSI extension
  */
 overlays
+  SIGPOLL   :: Signal
+  SIGPROF   :: Signal
+  SIGSYS    :: Signal
+  SIGTRAP   :: Signal
+  SIGVTALRM :: Signal
+  SIGXCPU   :: Signal
+  SIGXFSZ   :: Signal
+
   SIGPOLL   = Signal("POLL",    29, "Pollable event")
   SIGPROF   = Signal("PROF",    27, "Profiling timer expired")
   SIGSYS    = Signal("SYS",     31, "Bad system call")

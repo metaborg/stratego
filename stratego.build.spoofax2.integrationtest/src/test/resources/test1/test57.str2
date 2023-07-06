@@ -4,11 +4,11 @@ imports strategolib
 signature
   sorts
     Dec Exp Seq(a) Int List(a)
-   constructors
-     Let : List(Dec) * List(Exp) -> Exp
-     Seq : Seq(Exp) -> Exp
-     Foo : Int -> Dec
-     Bar : Int -> Exp
+  constructors
+    Let : List(Dec) * List(Exp) -> Exp
+    Seq : Seq(Exp) -> Exp
+    Foo : Int -> Dec
+    Bar : Int -> Exp
 
 strategies
 

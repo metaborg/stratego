@@ -6,6 +6,7 @@ module util/log
 imports
   collection/tuple/cons
   collection/tuple/common
+  collection/list/cons
   collection/list/common
   term/string
   term/integer
@@ -17,6 +18,8 @@ imports
   util/config/options
   util/config/verbose
   strategy/conditional
+
+  lang/stacktrace
 
 signature
   sorts
@@ -158,47 +161,38 @@ strategies
   /**
    * Logs the specified message as critical and terminates the program
    * with exit code 1.
-   *
-   * @type a -> _
    */
-  fatal-err(|string) :: a -> b
-  fatal-err(|msg : String) =
-    log(|Critical(), msg, <id>); <exit> 1
+  fatal-err(|string) :: ? -> b
+  fatal-err(|msg) =
+    log(|Critical(), msg, <id>);
+    fatal-err(|msg, <try(is(List(string));concat-strings)>)
 
   /**
    * Logs the specified message as an error.
-   *
-   * @type a -> a
    */
   err(|string) :: a -> a
-  err(|msg : String) =
+  err(|msg) =
     log(|Error(), msg, <id>)
 
   /**
    * Logs the specified message as a warning.
-   *
-   * @type a -> a
    */
   warn(|string) :: a -> a
-  warn(|msg : String) =
+  warn(|msg) =
     log(|Warning(), msg, <id>)
 
   /**
    * Logs the specified message as a notice.
-   *
-   * @type a -> a
    */
   notice(|string) :: a -> a
-  notice(|msg : String) =
+  notice(|msg) =
     log(|Notice(), msg, <id>)
 
   /**
    * Logs the specified message as a debug.
-   *
-   * @type a -> a
    */
   dbg(|string) :: a -> a
-  dbg(|msg : String) =
+  dbg(|msg) =
     log(|Debug(), msg, <id>)
 
 strategies
@@ -206,36 +200,37 @@ strategies
   /**
    * Logs the specified message as critical and terminates the program
    * with exit code 1.
-   *
-   * @type a -> _
    */
   fatal-err-msg(|string) :: a -> b
-  fatal-err-msg(|msg : String) =
-    log(|Critical(), msg); <exit> 1
+  fatal-err-msg(|msg) =
+    log(|Critical(), msg);
+    fatal-err(|msg, ())
 
   /**
    * Logs the specified message as an error.
-   *
-   * @type a -> a
    */
   err-msg(|string) :: a -> a
-  err-msg(|msg : String) =
+  err-msg(|msg) =
     log(|Error(), msg)
 
   /**
    * Logs the specified message as a warning.
-   *
-   * @type a -> a
    */
   warn-msg(|string) :: a -> a
-  warn-msg(|msg : String) =
+  warn-msg(|msg) =
     log(|Warning(), msg)
 
   /**
    * Logs the specified message as a notice.
-   *
-   * @type a -> a
    */
   notice-msg(|string) :: a -> a
-  notice-msg(|msg : String) =
+  notice-msg(|msg) =
     log(|Notice(), msg)
+
+strategies
+
+  external fatal-err :: (|?, ?, List(string)) a -> b
+
+  fatal-err(|?, ?) :: a -> b
+  fatal-err(|msg, term) =
+    fatal-err(|msg, term, <stacktrace-get-all-frame-names; Tl; Tl>)

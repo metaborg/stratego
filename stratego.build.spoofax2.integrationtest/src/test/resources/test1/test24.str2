@@ -13,6 +13,7 @@ signature
 
 overlays
 
+  F(Exp) :: Exp
   F(x) = G(H(x),A())
 
 rules

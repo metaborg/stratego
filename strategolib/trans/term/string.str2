@@ -28,7 +28,7 @@ imports
 
 signature
   sorts
-    Char // TODO: use this to point out characters
+    Char
   constructors
     : int -> Char
 
@@ -135,7 +135,7 @@ strategies
 
   /**
    * @deprecated: Please use locally scoped new/newname instead.
-   * This primitive is bad for deterministic and separate compilation
+   * This strategy is bad for deterministic and separate compilation
    * and is very difficult and costly to support. Currently may break
    * its uniqueness guarantee due to garbage collection on the JVM at
    * and inopportune time.
@@ -143,12 +143,11 @@ strategies
    * Generates a unique new string of the form 'c_d',
    * where c is one char and d is a positive integer.
    */
-  new :: ? -> string
-  new = prim("SSL_new")
+  external new :: (|) ? -> string
 
   /**
    * @deprecated: Please use locally scoped new/newname instead.
-   * This primitive is bad for deterministic and separate compilation
+   * This strategy is bad for deterministic and separate compilation
    * and is very difficult and costly to support. Currently may break
    * its uniqueness guarantee due to garbage collection on the JVM at
    * and inopportune time.
@@ -173,8 +172,7 @@ strategies
    *   ; <newname; debug> "a_"       // produces "a_0"
    *   ; <newname; debug> "a_1"      // produces "a_10"
    */
-  newname :: string -> string
-  newname = ?prefix; prim("SSL_newname", prefix)
+  external newname :: (|) string -> string
 
   /**
    * Generates a unique new term.
@@ -183,20 +181,14 @@ strategies
    *
    * @since 0.18
    */
-  newterm :: ? -> ?
-  newterm =
-    if-c-platform(prim("SSL_new"));
-    if-java-platform(SRTS-EXT-newint)
-
-  external SRTS-EXT-newint(|)
+  external newterm :: (|) ? -> int
 
   /**
    * Predicate that checks if the supplied term is a string.
    *
    * @type String -> String
    */
-  is-string :: ? -> string
-  is-string     = ?x; prim("SSL_is_string", x)
+  external is-string :: (|) ? -> string
 
   /**
    * Predicate that checks if the supplied term is a printable character.
@@ -211,16 +203,14 @@ strategies
    *
    * @type List(Char) -> String
    */
-  implode-string :: List(Char) -> string
-  implode-string = ?x; prim("SSL_implode_string", x)
+  external implode-string :: (|) List(Char) -> string
 
   /**
    * Explodes a String to a list of chars.
    *
    * @type String -> List(Char)
    */
-  explode-string :: string -> List(Char)
-  explode-string = ?x; prim("SSL_explode_string", x)
+  external explode-string :: (|) string -> List(Char)
 
   /**
    * Wraps a strategy on a list of chars in a strategy on a string.
@@ -258,7 +248,9 @@ strategies
    */
   strcat :: string * string -> string
   strcat =
-    ?(str1, str2); prim("SSL_strcat", str1, str2)
+    ?(<id>, str2); strcat(|str2)
+
+  external strcat :: (|string) string -> string
 
   /**
    * Concats a list of Strings
@@ -269,9 +261,7 @@ strategies
    * @inc      concat-strings-3
    * @inc      concat-strings-4
    */
-  concat-strings :: List(string) -> string
-  concat-strings =
-    ?strings; prim("SSL_concat_strings", strings)
+  external concat-strings :: (|) List(string) -> string
 
 strategies
 
@@ -292,9 +282,7 @@ strategies
    * @inc      strlen-2
    * @inc      strlen-3
    */
-  strlen :: string -> int
-  strlen =
-    ?str; prim("SSL_strlen", str)
+  external strlen :: (|) string -> int
 
 strategies
 
@@ -322,7 +310,7 @@ strategies
     rec x(
        (s; [id, id | x])
     <+ [id | x]
-    <+ []
+    <+ ?[]
     )
 
   /**
@@ -347,7 +335,7 @@ strategies
   unescape-chars(s) =
     rec x(
       try(s)
-    ; ([id | x] <+ [])
+    ; ([id | x] <+ ?[])
     )
 
   /**
@@ -456,7 +444,7 @@ strategies
   escape((List(Char) -> List(Char)) List(Char) -> List(Char)) :: string -> string
   escape(esc : (List(String) -> List(String)) * List(String) -> List(String) ) =
     explode-string;
-    rec x(esc(x) <+ [id | x] <+ []);
+    rec x(esc(x) <+ [id | x] <+ ?[]);
     implode-string
 
   /**
@@ -864,7 +852,7 @@ strategies
     where(max' := <subti> (max, n))
   ; [id | internal-remove-padding(|max', max')]
   <+
-    []
+    ?[]
 
   /**
    * @type Char * String * Int -> String
@@ -994,7 +982,7 @@ strategies
         <explode-string>sub => sub';
         <explode-string>l;
         \ x -> ([],x) \;
-        rec r( (id,[]) <+
+        rec r( (id,?[]) <+
                \ (x,x') -> (<conc>(x,sub'),<left-match>(x',sub')) \ <+
                \ (x',[x|xs]) -> <r>(<at-end(![x])>x',xs) \ );
     (implode-string,implode-string)
@@ -1117,7 +1105,7 @@ strategies
       let
         r :: List(a) * List(a) -> List(a) * List(a)
         r = \ ([l|ls],[l|rs]) -> <r> (ls,rs) \
-         <+ (id,[])
+         <+ (id,?[])
       in
         r
       ; Fst
@@ -1388,7 +1376,7 @@ strategies
    * @since 0.9.5
    */
   is-whitespace :: Char -> Char
-  is-whitespace = where('\t' + ' ')
+  is-whitespace = where(?'\t' + ?' ')
 
   /**
    * Trims all trailing whitespace in a (single-line) string.
@@ -1581,12 +1569,13 @@ strategies
    *
    * @author Karl Trygve Kalleberg <karltk@stratego.org>
    */
-  string-replace(|string, string) :: string -> string
-  string-replace(|old, new) =
-      !([], <explode-string>, <explode-string> old)
-    ; internal-string-replace(|<explode-string> old, <explode-string ; reverse> new)
-    ; reverse
-    ; implode-string
+  external string-replace :: (|string, string) string -> string
+
+//  string-replace(|old, new) =
+//      !([], <explode-string>, <explode-string> old)
+//    ; internal-string-replace(|<explode-string> old, <explode-string ; reverse> new)
+//    ; reverse
+//    ; implode-string
 
 strategies
 

@@ -49,6 +49,8 @@ public class TypesLookup implements Serializable {
             return false;
         if(!constructorTypes.equals(that.constructorTypes))
             return false;
+        if(!sorts.equals(that.sorts))
+            return false;
         if(!imports.equals(that.imports))
             return false;
         return allInjections.equals(that.allInjections);
@@ -57,6 +59,7 @@ public class TypesLookup implements Serializable {
     @Override public int hashCode() {
         int result = strategyTypes.hashCode();
         result = 31 * result + constructorTypes.hashCode();
+        result = 31 * result + sorts.hashCode();
         result = 31 * result + allInjections.hashCode();
         result = 31 * result + imports.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
@@ -64,7 +67,7 @@ public class TypesLookup implements Serializable {
     }
 
     @Override public String toString() {
-        return "TypesLookup(" + strategyTypes + ", " + constructorTypes + ", " + allInjections
+        return "TypesLookup(" + strategyTypes + ", " + constructorTypes + ", " + sorts + ", " + allInjections
             + ", " + imports + ", " + lastModified + ')';
     }
 }

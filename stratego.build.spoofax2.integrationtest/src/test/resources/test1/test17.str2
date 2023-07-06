@@ -10,6 +10,7 @@ signature
 
 overlays
 
+  F(Term, Term) :: Term
   F(x,y) = F(x, A(), y)
 
 strategies

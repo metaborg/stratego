@@ -1,0 +1,18 @@
+module overlapping-local-strategies2
+
+strategies
+  foo =
+    let
+      s = !1
+    in
+      ?"A"; s; ?1
+    end
+
+  foo =
+    let
+      s = !2
+    in
+      ?"B"; s; ?2
+    end
+
+  main = <foo> "B"

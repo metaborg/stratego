@@ -1,6 +1,6 @@
 package mb.stratego.build.spoofax2;
 
-import com.google.inject.Singleton;
+import javax.inject.Singleton;
 
 import mb.pie.task.archive.UnarchiveFromJar;
 import mb.pie.taskdefs.guice.TaskDefsModule;

@@ -4,10 +4,11 @@ signature
   sorts
     List(a)
     Call
+    Term
   constructors
     Nil   : List(a)
     Cons  : a * List(a) -> List(a)
-    Call  : a * List(a) -> Call
+    Call  : Term * List(Term) -> Call
 
 rules
 

@@ -1,8 +1,10 @@
 module congruence-arguments
 imports strategolib
 signature
+  sorts
+    Term
   constructors
-    If : a * b -> b
+    If : Term * Term -> Term
 
 strategies
 

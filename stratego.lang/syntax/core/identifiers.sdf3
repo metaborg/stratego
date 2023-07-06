@@ -13,7 +13,7 @@ context-free syntax
   ModName = "signature"   {reject}
   ModName = "strategies"  {reject}
 
-lexical sorts Id LId LCID UCID SortVar
+lexical sorts Id LId LCID UCID SortVar BuiltInType SomeSort
 lexical syntax
 // Removed leading underscore option, nearly always conflicts with Term.BuildDefault
 //  Id   = [a-zA-Z\_] [a-zA-Z0-9\'\-\_]*

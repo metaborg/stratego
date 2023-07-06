@@ -4,7 +4,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class ConstantCongruence extends Message {
     public ConstantCongruence(IStrategoTerm congruence, long lastModified) {
-        super(congruence, MessageSeverity.WARNING, lastModified);
+        this(congruence, MessageSeverity.WARNING, lastModified);
+    }
+
+    public ConstantCongruence(IStrategoTerm locationTerm, MessageSeverity severity, long lastModified) {
+        super(locationTerm, severity, lastModified);
     }
 
     @Override public String getMessage() {

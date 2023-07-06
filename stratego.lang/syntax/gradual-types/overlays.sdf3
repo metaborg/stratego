@@ -1,0 +1,13 @@
+module gradual-types/overlays
+imports
+  core/identifiers
+  core/signatures
+  gradual-types/signatures
+  sugar/overlays
+
+context-free syntax
+  Overlay.OverlayDeclNoArgs =
+    [[Id] :: [ConstType]]
+
+  Overlay.OverlayDecl =
+    [[Id]([{Type ", "}*]) :: [ConstType]]

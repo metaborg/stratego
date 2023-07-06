@@ -3,14 +3,20 @@ imports
   system/posix/process
   system/posix/signal
   system/posix/file
+  system/posix/file-abstractions
   system/io/term
   system/io/process
+  system/io/file
 
   strategy/conditional
   strategy/general/option
   term/string
   util/log
   util/config/verbose
+
+  collection/tuple/cons
+  collection/list/cons
+  collection/list/common
 
 /**
  * Fork abstractions
@@ -22,12 +28,15 @@ strategies
    * of the pid of the child process and the current term in the
    * parent process.
    */
+  fork(a -> ?) :: a -> int * a
   fork(child) =
     fork(child, id)
 
+  fork(a -> ?, int * a -> b) :: a -> b
   fork(child, parent) =
-    ?t; fork; ?pid; (?0 < <child> t + <parent> (pid, t))
+    ?t; fork; ?pid; (?0 < <child;fail> t + <parent> (pid, t))
 
+  fork-and-wait(a -> ?) :: a -> a
   fork-and-wait(child) =
     fork(child, ?(<waitpid>, t); warn-ifsignaled; ?WaitStatus(0,_,_); !t)
 
@@ -38,12 +47,41 @@ strategies
 
   /**
    * Call a program with list of string arguments.
-   *
-   * @type (String, List(String)) -> (String, List(String))
    */
+  call :: string * List(string) -> string * List(string)
   call =
-    call(id)
+//     call(id)
+    // (Java extension) // FIXME: properly detect that <call> isn't invoking a class
+    where( // Java call
+        ?(program, args);
+        <where(is-substring(!".")); not(is-substring(!"/") + is-substring(!"\\") + file-exists)> program;
+        if <is-list> args then
+          <internal-java-call(|[program | args], 0)> program
+        else
+          warn(|"Program arguments for <call> should be a list");
+          <internal-java-call(|args, 0)> program
+        end
+      <+ // External tool call
+        ?(program, args);
+    
+        Stream(instream)  := <stdin-stream>;
+        Stream(outstream) := <stdout-stream>;
+        Stream(errstream) := <stderr-stream>;
+        
+        log(|Info(), ["Calling external tool ", program, " ", <separate-by(|" "); concat-strings> args]);
+        <internal-call(|args, instream, outstream, errstream)> program => 0
+      /* // External tool call with custom in/out/err streams
+      <+
+        ?(program, args, instream, outstream, errstream);
+        
+        log(|Info(), ["Calling external tool ", program, " ", <separate-by(|" "); concat-strings> args]);
+        prim("SSL_EXT_call", program, args, instream, outstream, errstream) => 0 */
+    )
 
+  external internal-java-call :: (|List(string), int) string -> ?
+  external internal-call :: (|List(string), int, int, int) string -> int
+
+  call(string * List(string) -> ?) :: string * List(string) -> string * List(string)
   call(init-child) =
     ?(prog,args)
     ; fork-and-wait(init-child; <execvp> (prog, args); <exit> 1)
@@ -51,9 +89,8 @@ strategies
   /**
    * Call program with a list of strings arguments and print
    * information to stderr.
-   *
-   * @type (String, List(String)) -> (String, List(String))
    */
+  call-noisy :: string * List(string) -> string * List(string)
   call-noisy =
     ?(prog,args)
     ; fork-and-wait(<debug; execvp> (prog, args))
@@ -65,9 +102,8 @@ strategies
 
   /**
    * Succeeds if the process of this WaitStatus exited.
-   *
-   * @type WaitStatus -> WaitStatus
    */
+  exited :: WaitStatus -> WaitStatus
   exited =
     ?WaitStatus(s,_,_)
     ; where(<not(eq)> (s, -1))
@@ -75,9 +111,8 @@ strategies
 
   /**
    * Succeeds if the process of this WaitStatus was signaled.
-   *
-   * @type WaitStatus -> WaitStatus
    */
+  signaled :: WaitStatus -> WaitStatus
   signaled =
     ?WaitStatus(_,s,_)
     ; where(<not(eq)> (s, -1))
@@ -85,9 +120,8 @@ strategies
 
   /**
    * Succeeds if the process of this WaitStatus was stopped.
-   *
-   * @type WaitStatus -> WaitStatus
    */
+  stopped :: WaitStatus -> WaitStatus
   stopped =
     ?WaitStatus(_,_,s)
     ; where(<not(eq)> (s, -1))
@@ -98,8 +132,9 @@ strategies
    *
    * @type WaitStatus -> WaitStatus
    */
+  warn-ifsignaled :: WaitStatus -> WaitStatus
   warn-ifsignaled =
-    where(try(
+    try(where(
       ?WaitStatus(_, <id>, _)
     ; not(?-1)
     ; signal-from-number
@@ -113,13 +148,8 @@ strategies
    *
    * Optionally you can define file descriptors to use for stdin, stdout,
    * stderr.
-   *
-   * @param  opt-fdin   Option(FileDescr)
-   * @param  opt-fdout  Option(FileDescr)
-   * @param  opt-fderr  Option(FileDescr)
-   *
-   * @type  (String, List(String)) -> ()
    */
+  call(|Option(FileDescriptor), Option(FileDescriptor), Option(FileDescriptor)) :: string * List(string) -> Tuple()
   call(|opt-fdin, opt-fdout, opt-fderr) =
       ?(prog, args)
       ; fork-and-wait(

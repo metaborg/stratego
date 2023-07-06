@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -28,11 +28,14 @@ import mb.pie.api.ExecException;
 import mb.pie.api.STask;
 import mb.pie.api.Supplier;
 import mb.pie.api.stamp.output.OutputStampers;
+import mb.pie.api.stamp.resource.ExistsResourceStamper;
 import mb.pie.api.stamp.resource.ResourceStampers;
+import mb.resource.ReadableResource;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
 import mb.resource.hierarchical.match.PathResourceMatcher;
 import mb.resource.hierarchical.match.path.ExtensionsPathMatcher;
+import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.util.ExistsAndRTreeStamper;
 import mb.stratego.build.util.LastModified;
 import mb.stratego.build.util.Relation;
@@ -131,26 +134,34 @@ public class ModuleImportService implements IModuleImportService {
                 }
 
                 final Set<Import> imports = new TreeSet<>(new Import.Comparator());
+                if(!moduleString.contains("/")) {
+                    for(ResourcePath dir : includeDirs) {
+                        final ResourcePath str2libPath =
+                            dir.appendOrReplaceWithPath(moduleString + ".str2lib");
+                        final HierarchicalResource str2libResource = context
+                            .require(str2libPath, ResourceStampers.<HierarchicalResource>exists());
+                        if(str2libResource.exists()) {
+                            imports.add(new Import(SomethingToImport.Str2Lib, false, true, moduleString,
+                                str2libPath));
+                        }
+                    }
+                }
+                if(importResolutionInfo.supportRTree) {
+                    for(ResourcePath dir : includeDirs) {
+                        final ResourcePath rtreePath =
+                            dir.appendOrReplaceWithPath(moduleString + ".rtree");
+                        final HierarchicalResource rtreeResource = context
+                            .require(rtreePath, new ExistsAndRTreeStamper<HierarchicalResource>());
+                        if(rtreeResource.exists()) {
+                            final boolean isLibrary =
+                                ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
+                            imports.add(
+                                new Import(SomethingToImport.RTree, true, isLibrary, moduleString,
+                                    rtreePath));
+                        }
+                    }
+                }
                 for(ResourcePath dir : includeDirs) {
-                    final ResourcePath str2libPath =
-                        dir.appendOrReplaceWithPath(moduleString + ".str2lib");
-                    final HierarchicalResource str2libResource = context
-                        .require(str2libPath, ResourceStampers.<HierarchicalResource>exists());
-                    if(str2libResource.exists()) {
-                        imports.add(new Import(SomethingToImport.Str2Lib, false, true, moduleString,
-                            str2libPath));
-                    }
-                    final ResourcePath rtreePath =
-                        dir.appendOrReplaceWithPath(moduleString + ".rtree");
-                    final HierarchicalResource rtreeResource = context
-                        .require(rtreePath, new ExistsAndRTreeStamper<HierarchicalResource>());
-                    if(rtreeResource.exists()) {
-                        final boolean isLibrary =
-                            ExistsAndRTreeStamper.isLibraryRTree(rtreeResource);
-                        imports.add(
-                            new Import(SomethingToImport.RTree, true, isLibrary, moduleString,
-                                rtreePath));
-                    }
                     final ResourcePath str2Path =
                         dir.appendOrReplaceWithPath(moduleString + ".str2");
                     final HierarchicalResource str2Resource = context
@@ -159,13 +170,17 @@ public class ModuleImportService implements IModuleImportService {
                         imports.add(new Import(SomethingToImport.Str2, false, false, moduleString,
                             str2Path));
                     }
-                    final ResourcePath strPath =
-                        dir.appendOrReplaceWithPath(moduleString + ".str");
-                    final HierarchicalResource strResource = context.require(strPath,
-                        ResourceStampers.<HierarchicalResource>exists());
-                    if(strResource.exists()) {
-                        imports.add(
-                            new Import(SomethingToImport.Str, true, false, moduleString, strPath));
+                }
+                if(importResolutionInfo.supportStr1) {
+                    for(ResourcePath dir : includeDirs) {
+                        final ResourcePath strPath =
+                            dir.appendOrReplaceWithPath(moduleString + ".str");
+                        final HierarchicalResource strResource = context.require(strPath,
+                            ResourceStampers.<HierarchicalResource>exists());
+                        if(strResource.exists()) {
+                            imports.add(
+                                new Import(SomethingToImport.Str, true, false, moduleString, strPath));
+                        }
                     }
                 }
                 if(imports.isEmpty()) {
@@ -188,17 +203,22 @@ public class ModuleImportService implements IModuleImportService {
                 return new ResolvedImport(result);
             }
             case "ImportWildcard": {
+                final List<String> extensions = new ArrayList<>(3);
+                if(importResolutionInfo.supportRTree) {
+                    extensions.add("rtree");
+                }
+                extensions.add("str2");
+                if(importResolutionInfo.supportStr1) {
+                    extensions.add("str");
+                }
+                final PathResourceMatcher pathResourceMatcher = new PathResourceMatcher(new ExtensionsPathMatcher(extensions));
                 final String directory = TermUtils.toJavaStringAt(appl, 0);
                 final Map<String, TreeSet<Import>> foundModules = new HashMap<>();
                 for(ResourcePath includeDir : importResolutionInfo.includeDirs) {
-                    final ResourcePath searchDirectory =
-                        includeDir.appendOrReplaceWithPath(directory);
-                    context.require(searchDirectory);
-                    final HierarchicalResource searchDir =
-                        context.getResourceService().getHierarchicalResource(searchDirectory);
+                    final HierarchicalResource searchDir = context.require(includeDir.appendOrReplaceWithPath(directory));
                     if(searchDir.exists()) {
                         // N.B. deliberate choice not to resolve to str2lib files here, those should be imported by name.
-                        searchDir.listForEach(new PathResourceMatcher(new ExtensionsPathMatcher("rtree", "str2", "str")), moduleFile -> {
+                        searchDir.listForEach(pathResourceMatcher, moduleFile -> {
                             @Nullable final String filename = moduleFile.getLeaf();
                             @Nullable final String ext = moduleFile.getLeafExtension();
                             assert filename != null : "HierarchicalResource::list returned some resources without a path leaf?!";
@@ -304,8 +324,8 @@ public class ModuleImportService implements IModuleImportService {
                     try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
                         final long lastModified = resource.getLastModifiedTime().getEpochSecond();
                         return new LastModified<>(strategoLanguage
-                            .parse(inputStream, StandardCharsets.UTF_8,
-                                resourcePathConverter.toString(identifier.path)), lastModified);
+                            .parse(context, inputStream,
+                                StandardCharsets.UTF_8, resourcePathConverter.toString(identifier.path)), lastModified);
                     }
                 }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
@@ -323,5 +343,21 @@ public class ModuleImportService implements IModuleImportService {
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
             return null;
         }
+    }
+
+    @Override public boolean externalStrategyExists(ExecContext context, StrategySignature strategySignature,
+        ImportResolutionInfo importResolutionInfo) {
+        try {
+            return context.require(
+                importResolutionInfo.resolveExternals.appendAsRelativePath(
+                    dollarsForCapitals(strategySignature.cifiedName()) + ".java"), ResourceStampers.<ReadableResource>exists()).exists();
+        } catch(IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String dollarsForCapitals(String cified) {
+        return cified.replaceAll("\\p{Lu}", "\\$$0");
     }
 }

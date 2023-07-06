@@ -6,39 +6,43 @@ imports
   libspoofax/color/default
   completion/colorer/StrategoLang-cc-esv
 
-colorer Extension
+colorer Constants
+
+  Int    : darkgreen
+  Real   : darkgreen
+  Char   : blue
+
+  _.Str     : blue
+  _.StrCong : blue
+
+colorer String quotations
 
   _.StringEscape1 : gray
   _.StringEscape2 : gray
   _.StringEscape3 : gray
   _.StringEscape4 : gray
-
-  _.Str     : blue
-  _.StrCong : blue
-  _.QStr    : blue
-  _.QDollar : blue
+  _.QStr    : darkblue
+  _.QDollar : darkblue
   _.QBr     : gray
-
-  strategydefs = 0 64 128 bold
-
-  RuleDef            : strategydefs
-  RuleDec            : strategydefs
-  StrategyDef        : strategydefs
-  SDefT              : strategydefs
-  RDefT              : strategydefs
-  Overlay            : strategydefs
-  _.DefHasTypeNoArgs : strategydefs
-  _.DefHasType       : strategydefs
-  _.DefHasTType      : strategydefs
-
-  strategycalls = 0 64 128
-
-  _.RootApp : strategycalls
-  _.App     : strategycalls
-  SVar      : strategycalls
-  TypedId   : strategycalls
 
   QuotedBracket1 : blue
   QuotedBracket2 : blue
   QuotedBracket3 : blue
   QuotedBracket4 : blue
+
+colorer Types
+
+  keyword = 127 0 85 bold
+
+  Dyn : keyword
+
+colorer Terms
+
+  Wld.Wld : _ bold
+
+colorer Strategy names
+
+  strategy = 0 64 128
+
+  SId           : strategy
+  MaybeEmptySId : strategy

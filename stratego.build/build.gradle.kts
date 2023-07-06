@@ -5,7 +5,7 @@ plugins {
 
 fun compositeBuild(name: String) = "$group:$name:$version"
 val spoofax2Version: String by ext
-val pieVersion = "0.18.0" // HACK: override PIE version to make it binary compatible with this version.
+val pieVersion = "0.19.7" // HACK: override PIE version to make it binary compatible with this version.
 dependencies {
   api(platform("org.metaborg:parent:$spoofax2Version"))
 

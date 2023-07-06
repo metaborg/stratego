@@ -25,14 +25,14 @@ strategies // Equality
    * Tests whether current term is equal to argument term.
    */
 
-  equal(|a) :: a -> a
+  equal(|?) :: a -> a
   equal(|x) =
     ?x
 
   /**
    * Tests whether two argument terms are equal to each other.
    */
-  equal(|a, a) :: b -> b
+  equal(|a, ?) :: b -> b
   equal(|x, y) =
     where(!x => y)
 

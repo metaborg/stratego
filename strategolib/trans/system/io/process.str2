@@ -10,6 +10,4 @@ strategies
    *
    * @type Int -> _
    */
-  exit :: int -> a
-  exit =
-    ?n; prim("SSL_exit", n)
+  external exit :: (|) int -> a

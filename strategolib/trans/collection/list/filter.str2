@@ -18,9 +18,9 @@ strategies
    *
    * @inc test1
    */
-  filter(a -> b) :: List(a) -> List(b)
-  filter(s) =
-    [] + [s | filter(s)] <+ ?[_ | <filter(s)> ]
+  external filter :: (a -> b|) List(a) -> List(b)
+//  filter(s) =
+//    ?[] + [s | filter(s)] <+ ?[_ | <filter(s)> ]
 
 
   filter(a -> b, List(a) -> List(b)) :: List(a) -> List(b)
@@ -62,7 +62,7 @@ strategies
    */
   reverse-filter(a -> b) :: List(a) -> List(b)
   reverse-filter(s) =
-    []
+    ?[]
     + ?[x | xs]
       ; <reverse-filter(s)> xs
       ; try(![<s> x | <id>])
@@ -77,7 +77,7 @@ strategies
   /** @internal */
   filter-gen(List(a) -> List(b), (List(a) -> List(b)) List(b) -> List(b)) :: List(a) -> List(b)
   filter-gen(pred, cont : (term -> term) * term -> term) =
-    rec x([] + (pred; cont(x)) <+ Tl; x)
+    rec x(?[] + (pred; cont(x)) <+ Tl; x)
 
   /** @internal */
   filter-option-args(a -> a) :: List(a) -> List(a)
@@ -98,6 +98,7 @@ strategies
     end
 
   /** @internal */
+  list-some-filter(a -> a) :: List(a) -> List(a)
   list-some-filter(s) =
     rec x([s| id]; [id| filter(s)] <+ [id| x]; Tl)
 

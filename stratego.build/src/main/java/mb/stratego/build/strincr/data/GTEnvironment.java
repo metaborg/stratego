@@ -27,6 +27,7 @@ public class GTEnvironment extends StrategoTuple {
         StrategoImmutableRelation constructors, StrategoImmutableSet sorts,
         StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap,
         StrategoImmutableRelation aliasMap, IStrategoTerm ast, ITermFactory tf, long lastModified) {
+        // TODO: Add lastModified to super call, so it is taken into account in equals/hashcode. Needs modification on Stratego side that matches on this tuple
         super(
             new IStrategoTerm[] { strategyEnvironment.withWrapper(tf), constructors.withWrapper(tf),
                 sorts.withWrapper(tf), injectionClosure.withWrapper(tf), lubMap.withWrapper(tf),
@@ -97,4 +98,6 @@ public class GTEnvironment extends StrategoTuple {
         }
         return new StrategoImmutableMap(lubMap.freeze());
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

@@ -3,8 +3,9 @@ imports collection/list/cons
 signature
   sorts
     Call
+    Term
   constructors
-    Call : a * List(a) -> Call
+    Call : Term * List(Term) -> Call
 
 strategies
 

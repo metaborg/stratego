@@ -9,9 +9,11 @@ signature
     Int
   constructors
     Bar : String * Int -> Bar
+    : int -> Int
 
 overlays
 
+  Foo(String) :: Bar
   Foo(x) = Bar(x, _ 1)
 
 strategies

@@ -34,7 +34,6 @@ context-free syntax
   Sort.SortNoArgs = UCID
   Sort.Sort       = <<Id>(<{SortArg ", "}*>)>
   SortArg = Sort
-  SortArg.TupleT      = [[Sort] * [{Sort " * "}+]]
 
 context-free sorts Opdecl
 context-free syntax

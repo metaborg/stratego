@@ -3,8 +3,8 @@ imports strategolib
 signature
   sorts
     Int Exp
-   constructors
-     Add : Int * Int -> Exp
+  constructors
+    Add : Int * Int -> Exp
 
 strategies
 

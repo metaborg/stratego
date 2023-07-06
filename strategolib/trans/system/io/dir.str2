@@ -7,18 +7,14 @@ strategies
   /**
    * Removes a file from a directory.
    */
-  remove-file :: string -> string
-  remove-file =
-    ?name; prim("SSL_remove", name)
+  external remove-file :: (|) string -> string
 
  /**
   * The  getenv() function searches the environment list for a
   * string that matches the string pointed to  by  name.   The
   * strings are of the form name = value.
   */
-  getenv :: string -> string
-  getenv =
-    ?name; prim("SSL_getenv", name)
+  external getenv :: (|) string -> string
 
 strategies
   home-dir :: string -> string

@@ -14,9 +14,7 @@ imports
 
 strategies
 
-  is-int :: ? -> int
-  is-int =
-    ?i; prim("SSL_is_int", i)
+  external is-int :: (|) ? -> int
 
 strategies
 
@@ -24,26 +22,31 @@ strategies
    * Adds two numbers (integer or real)
    */
   add :: ? * ? -> ?
-  add  = ?(x,y); (prim("SSL_addi",x,y) <+ prim("SSL_addr",x,y))
+  add =
+       (is-int , is-int ); addi; is(?)
+    <+ (is-real, is-real); addr; is(?)
 
   /**
    * Adds two integers
    */
   addi :: int * int -> int
-  addi = ?(x,y); prim("SSL_addi",x,y)
+  addi = ?(<id>, y); int-add(|y)
 
   /**
    * Adds two integers
    */
-  int-add(|int) :: int -> int
-  int-add(|y) =
-    ?x; prim("SSL_addi", x, y)
+  external int-add :: (|int) int -> int
 
   /**
    * Adds two reals
    */
   addr :: real * real -> real
-  addr = ?(x,y); prim("SSL_addr",x,y)
+  addr = ?(<id>, y); real-add(|y)
+
+  /**
+   * Adds two reals
+   */
+  external real-add :: (|real) real -> real
 
 strategies
 
@@ -51,31 +54,37 @@ strategies
    * Bitwise OR's two integers
    */
   iori :: int * int -> int
-  iori = ?(x, y); prim("SSL_iori",x,y)
+  iori = ?(<id>, y); int-ior(|y)
 
   /**
    * Bitwise XOR's two integers
    */
   xori :: int * int -> int
-  xori = ?(x, y); prim("SSL_xori",x,y)
+  xori = ?(<id>, y); int-xor(|y)
 
   /**
    * Bitwise AND's two integers
    */
   andi :: int * int -> int
-  andi = ?(x, y); prim("SSL_andi",x,y)
+  andi = ?(<id>, y); int-and(|y)
 
   /**
    * Bitwise shift x to the left by y places
    */
   shli :: int * int -> int
-  shli = ?(x, y); prim("SSL_shli",x,y)
+  shli = ?(<id>, y); int-shl(|y)
 
   /**
    * Bitwise shift x to the right by y places
    */
   shri :: int * int -> int
-  shri = ?(x, y); prim("SSL_shri",x,y)
+  shri = ?(<id>, y); int-shr(|y)
+
+  external int-ior :: (|int) int -> int
+  external int-xor :: (|int) int -> int
+  external int-and :: (|int) int -> int
+  external int-shl :: (|int) int -> int
+  external int-shr :: (|int) int -> int
 
 strategies
 
@@ -83,26 +92,31 @@ strategies
    * Subtracts two numbers (integer or real)
    */
   subt :: ? * ? -> ?
-  subt  = ?(x,y); (prim("SSL_subti",x,y) <+ prim("SSL_subtr",x,y))
+  subt =
+       (is-int , is-int ); subti; is(?)
+    <+ (is-real, is-real); subtr; is(?)
 
   /**
    * Subtracts two integers
    */
   subti :: int * int -> int
-  subti = ?(x,y); prim("SSL_subti",x,y)
+  subti = ?(<id>, y); int-subt(|y)
 
   /**
    * Subtracts two integers
    */
-  int-subt(|int) :: int -> int
-  int-subt(|y) =
-    ?x; prim("SSL_subti", x, y)
+  external int-subt :: (|int) int -> int
 
   /**
    * Subtracts two reals
    */
   subtr :: real * real -> real
-  subtr = ?(x,y); prim("SSL_subtr",x,y)
+  subtr = ?(<id>, y); real-subt(|y)
+
+  /**
+   * Subtracts two reals
+   */
+  external real-subt :: (|real) real -> real
 
 strategies
 
@@ -110,19 +124,31 @@ strategies
    * Multiplies two numbers (integer or real)
    */
   mul :: ? * ? -> ?
-  mul   = ?(x,y); (prim("SSL_muli",x,y) <+ prim("SSL_mulr",x,y))
+  mul =
+       (is-int , is-int ); muli; is(?)
+    <+ (is-real, is-real); mulr; is(?)
 
   /**
    * Multiplies two integers
    */
   muli :: int * int -> int
-  muli  = ?(x,y); prim("SSL_muli",x,y)
+  muli  = ?(<id>, y); int-mul(|y)
+
+  /**
+   * Multiplies two integers
+   */
+  external int-mul :: (|int) int -> int
 
   /**
    * Multiplies two reals
    */
   mulr :: real * real -> real
-  mulr  = ?(x,y); prim("SSL_mulr",x,y)
+  mulr  = ?(<id>, y); real-mul(|y)
+
+  /**
+   * Multiplies two reals
+   */
+  external real-mul :: (|real) real -> real
 
 strategies
 
@@ -130,19 +156,31 @@ strategies
    * Divides two numbers (integer or real)
    */
   div :: ? * ? -> ?
-  div = ?(x,y); (prim("SSL_divi",x,y) <+ prim("SSL_divr",x,y))
+  div =
+       (is-int , is-int ); divi; is(?)
+    <+ (is-real, is-real); divr; is(?)
 
   /**
    * Divides two integers
    */
   divi :: int * int -> int
-  divi  = ?(x,y); prim("SSL_divi",x,y)
+  divi  = ?(<id>, y); int-div(|y)
+
+  /**
+   * Divides two integers
+   */
+  external int-div :: (|int) int -> int
 
   /**
    * Divides two reals
    */
   divr :: real * real -> real
-  divr  = ?(x,y); prim("SSL_divr",x,y)
+  divr  = ?(<id>, y); real-div(|y)
+
+  /**
+   * Divides two reals
+   */
+  external real-div :: (|real) real -> real
 
 strategies
 
@@ -150,32 +188,50 @@ strategies
    * Returns the modulo (remainder after division) of two integers or reals.
    */
   mod :: ? * ? -> ?
-  mod = ?(x,y); (prim("SSL_modi",x,y) <+ prim("SSL_modr",x,y))
+  mod =
+       (is-int , is-int ); modi; is(?)
+    <+ (is-real, is-real); modr; is(?)
 
   /**
    * Returns the modulo (remainder after division) of two integers
    */
   modi :: int * int -> int
-  modi =
-    ?(x,y); prim("SSL_modi",x,y)
+  modi = ?(<id>, y); int-mod(|y)
 
   /**
-   * Returns the modulo (remainder after division) of two floats
+   * Returns the modulo (remainder after division) of two integers
+   */
+  external int-mod :: (|int) int -> int
+
+  /**
+   * Returns the modulo (remainder after division) of two reals
    */
   modr :: real * real -> real
-  modr =
-    ?(x,y); prim("SSL_modr",x,y)
+  modr = ?(<id>, y); real-mod(|y)
+
+  /**
+   * Returns the modulo (remainder after division) of two reals
+   */
+  external real-mod :: (|real) real -> real
 
 strategies
 
   gt :: ? * ? -> ? * ?
-  gt    = ?(x,y); where(prim("SSL_gti",x,y) <+ prim("SSL_gtr",x,y))
+  gt =
+    where(
+      ?(<id>, y)
+    ; (  is-int;   int-gt(|<is-int> y)
+      <+ is-real; real-gt(|<is-real> y); is(?)
+      )
+    )
 
   gti :: int * int -> int * int
-  gti    = ?(x,y); where(prim("SSL_gti",x,y))
+  gti = where(?(<id>, y); int-gt(|y))
 
   gtr :: real * real -> real * real
-  gtr    = ?(x,y); where(prim("SSL_gtr",x,y))
+  gtr = where(?(<id>, y); real-gt(|y))
+
+  external real-gt :: (|real) real -> real
 
   geq :: ? * ? -> ? * ?
   geq = ?(x,x) <+ gt
@@ -185,6 +241,9 @@ strategies
 
   leq :: ? * ? -> ? * ?
   leq = not(gt)
+
+  int-gt :: int * int -> int * int
+  int-gt = gti
 
   int-geq :: int * int -> int * int
   int-geq = ?(x,x) <+ gti
@@ -207,16 +266,14 @@ strategies
   /**
    * @type Int -> Int
    */
-  int-gt(|int) :: int -> int
-  int-gt(|y) =
-    ?x; where(prim("SSL_gti",x,y))
+  external int-gt :: (|int) int -> int
 
   /**
    * @type Int -> Int
    */
   int-lt(|int) :: int -> int
   int-lt(|y) =
-    ?x; where(prim("SSL_lti", x, y))
+    where(not(?y <+ int-gt(|y)))
 
 strategies
 
@@ -271,8 +328,10 @@ strategies
   neg :: int -> int
   neg = where(<int-lt>  (<id>, 0))
 
-  int :: ? -> int
-  int   = ?x; prim("SSL_int",x)
+  /**
+   * Turns a real or int into an int
+   */
+  external int :: (|) ? -> int
 
 strategies
 
@@ -284,8 +343,7 @@ strategies
    * @since  0.9.4
    * @type   Int -> ()
    */
-  set-random-seed :: int -> ?
-  set-random-seed = ?seed; prim("SSL_srand", seed)
+  external set-random-seed :: (|) int -> int
 
   /**
    * Gets the maximum random number that will be returned by the next-random number generator.
@@ -293,8 +351,7 @@ strategies
    *
    * @type _ -> Int()
    */
-  get-random-max :: ? -> int
-  get-random-max = prim("SSL_RAND_MAX")
+  external get-random-max :: (|) ? -> int
 
   /**
    * Returns a random number between 0 and get-random-max.
@@ -307,8 +364,7 @@ strategies
    * @since  0.9.4
    * @type   _ -> Int
    */
-  next-random :: ? -> int
-  next-random = prim("SSL_rand")
+  external next-random :: (|) ? -> int
 
 strategies
 
@@ -317,37 +373,37 @@ strategies
     (string-to-int, string-to-int) ; s ; int-to-string
 
   addS :: string * string -> string
-  addS  = apply-int-to-str-tuple(add)
+  addS  = apply-int-to-str-tuple(addi)
 
   subtS :: string * string -> string
-  subtS = apply-int-to-str-tuple(subt)
+  subtS = apply-int-to-str-tuple(subti)
 
   mulS :: string * string -> string
-  mulS  = apply-int-to-str-tuple(mul)
+  mulS  = apply-int-to-str-tuple(muli)
 
   divS :: string * string -> string
-  divS  = apply-int-to-str-tuple(div)
+  divS  = apply-int-to-str-tuple(divi)
 
   modS :: string * string -> string
-  modS  = apply-int-to-str-tuple(mod)
+  modS  = apply-int-to-str-tuple(modi)
 
   maxS :: string * string -> string
-  maxS  = apply-int-to-str-tuple(max)
+  maxS  = apply-int-to-str-tuple(int-max)
 
   minS :: string * string -> string
-  minS  = apply-int-to-str-tuple(min)
+  minS  = apply-int-to-str-tuple(int-min)
 
   gtS :: string * string -> string * string
-  gtS   = where((string-to-int, string-to-int); gt)
+  gtS   = where((string-to-int, string-to-int); int-gt)
 
   geqS :: string * string -> string * string
-  geqS  = where((string-to-int, string-to-int); geq)
+  geqS  = where((string-to-int, string-to-int); int-geq)
 
   ltS :: string * string -> string * string
-  ltS   = where((string-to-int, string-to-int); lt)
+  ltS   = where((string-to-int, string-to-int); int-lt)
 
   leqS :: string * string -> string * string
-  leqS  = where((string-to-int, string-to-int); leq)
+  leqS  = where((string-to-int, string-to-int); int-leq)
 
   /**
    * Increments a number.
@@ -452,11 +508,9 @@ strategies
 
 strategies
 
-  int-to-string :: int -> string
-  int-to-string = ?x; prim("SSL_int_to_string",x)
+  external int-to-string :: (|) int -> string
 
-  string-to-int :: string -> int
-  string-to-int = ?x; prim("SSL_string_to_int",x)
+  external string-to-int :: (|) string -> int
 
 /**
  * Conversion of strings to integers

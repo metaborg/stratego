@@ -8,6 +8,7 @@ imports
 strategies
   copy-pipe-to-file :: Pipe * FileDescriptor -> FileDescriptor
   copy-pipe-to-file :
-    (Pipe(fd1, fd2), name) -> name
-    where <fdopen>(name, "w") => fdout
-        ; <fdcopy> (fd1, fdout)
+    (Pipe(fd1, fd2), fdout) -> fdout
+    where
+//          <fdopen>(name, "w") => fdout;
+          <fdcopy> (fd1, fdout)

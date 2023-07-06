@@ -4,6 +4,8 @@ imports
   system/io/term
   system/io/file
 
+  collection/tuple/cons
+  collection/list/cons
   collection/list/common
   term/string
   term/integer
@@ -17,15 +19,22 @@ strategies
    * @type  String -> String
    * @since 0.9.4
    */
+  abspath :: string -> string
   abspath =
       is-abspath
     < id
     + <concat-strings> [<getcwd> (), "/", <id>]
 
+  file-newer :: string * string -> int * int
   file-newer =
-    (modification-time, modification-time); gt
+    (modification-time, modification-time); gti
 
 overlays
+
+  Read      :: AccessPermission
+  Write     :: AccessPermission
+  Execute   :: AccessPermission
+  Existence :: AccessPermission
 
   Read      = R_OK()
   Write     = W_OK()
@@ -37,37 +46,45 @@ strategies
   /**
    * @type  String -> String
    */
+  file-exists :: string -> string
   file-exists =
     <access> (<id>, [F_OK()])
 
   /**
    * @type  String -> String
    */
+  can-read-file :: string -> string
   can-read-file =
     <access> (<id>, [R_OK()])
 
+  is-readable :: string -> string
   is-readable = can-read-file
 
   /**
    * @type  String -> String
    */
+  can-write-file :: string -> string
   can-write-file =
     <access> (<id>, [W_OK()])
 
+  is-writable :: string -> string
   is-writable = can-write-file
 
   /**
    * @type  String -> String
    */
+  can-execute-file :: string -> string
   can-execute-file =
     <access> (<id>, [X_OK()])
 
+  is-executable :: string -> string
   is-executable = can-execute-file
 
   /**
    * @type String -> String
    * @inc  create?
    */
+  can-create-file :: string -> string
   can-create-file =
     where(dirname; can-write-file)
 
@@ -90,10 +107,13 @@ strategies
    *   <find-in-path(id|["ssl/spec","ssl/tests"])> "file.str" => "ssl/spec/file.str"
    */
 
+  find-in-path(string -> ?|List(string)) :: string -> string
+  find-in-path(strict|path) =
+    file-exists
+
   find-in-path(strict|path) =
     ?file
-    ; ( file-exists
-      <+ <fetch-elem(<concat-strings; file-exists> [<id>,"/",file])> path
+    ; (  <fetch-elem(<concat-strings; file-exists> [<id>,"/",file])> path
       <+ if strict then <fatal-error> ["no such file: ", file] else fail end
       )
 
@@ -105,7 +125,7 @@ strategies
    *
    * @param should build a list of paths in which the search is performed.
    */
-
+  find-in-path(|List(string)) :: string -> string
   find-in-path(|path) =
     find-in-path(id|path)
 
@@ -121,14 +141,14 @@ strategies
    * Example (when run in strategoxt root):
    *   <find-in-path> ("file.str", ["ssl/spec", "ssl/tests"]) => "ssl/spec/file.str"
    */
-
+  find-in-path :: string * List(string) -> string
   find-in-path =
     ?(file, path); <find-in-path(fail|path)> file
 
   /**
    * @obsolete
    */
-
+  find-in-path(string -> List(string)) :: string -> string
   find-in-path(mkpath) =
     find-in-path(|<mkpath>)
 
@@ -144,11 +164,12 @@ strategies
    *
    * @param should build the file extension as a string.
    */
-
+  find-file(|string, List(string)) :: string -> string
   find-file(|ext, path) =
     guarantee-extension(|ext)
     ; find-in-path(fail|path)
 
+  find-file(|string) :: string * List(string) -> string
   find-file(|ext) =
     ?(file, path)
     ; <find-file(|ext, path)> file
@@ -156,6 +177,7 @@ strategies
   /**
    * @obsolete
    */
+  find-file(string * List(string) -> string) :: string * List(string) -> string
   find-file(ext) =
     find-file(|<ext>)
 
@@ -168,6 +190,7 @@ strategies
    * @param should build a list of paths in which the search is performed.
    * @param should build the file extension as a string.
    */
+  find-file(string -> List(string), string -> string) :: string -> string
   find-file(mkpath, ext) =
     guarantee-extension(|<ext>)
     ; find-in-path(|<mkpath>)
@@ -182,6 +205,7 @@ strategies
    *
    * @obsolete  use new-temp-file or XTC temporary files
    */
+  new-file :: string -> string
   new-file =
     obsolete(!"new-file; use new-temp-file or XTC temporary files")
     ; rec x(<conc-strings> (<new>(), ".tmp"); try(file-exists; x))

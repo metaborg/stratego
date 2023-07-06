@@ -1,0 +1,95 @@
+module type-test
+
+language StrategoLang
+
+fixture [[
+module type-test
+
+signature
+  sorts
+    RID RINT RSTRING REOF RLBL RLBL2
+
+    RIDINTSTRING
+
+    ROEFLBLID
+
+    WrappedROEFLBLID
+    WrappedRLBL2
+    
+    Literal
+
+  constructors
+    RLBL : string -> RLBL
+    RID : string -> RID
+    RINT : string -> RINT
+    RSTRING : string -> RSTRING
+    REOF : string -> REOF
+
+    : RLBL -> RIDINTSTRING
+    : RINT -> RIDINTSTRING
+    : RSTRING -> RIDINTSTRING
+    RIDINTSTRING : string -> RIDINTSTRING
+
+    : REOF -> ROEFLBLID
+    : RLBL -> ROEFLBLID
+    : RID -> ROEFLBLID
+
+    RLBL : string -> RLBL2
+
+    Wrapped : ROEFLBLID -> WrappedROEFLBLID
+    
+    Wrapped : RLBL2 -> WrappedRLBL2
+    
+    : string -> Literal
+
+rules
+  [[...]]
+]]
+
+test type test a dynamic type succeeds [[
+  try-convert :: ? -> RID
+  try-convert = [[is(RID)]]
+]] analysis succeeds
+   has origin locations
+
+test type test unrelated sorts should give static error message [[
+  try-convert :: RLBL -> RID
+  try-convert = [[is(RID)]]
+]] 1 error at #1
+   has origin locations
+
+test type test partly overlapping injection sorts [[
+  try-convert :: RIDINTSTRING -> ROEFLBLID
+  try-convert = [[is(ROEFLBLID)]]
+]] analysis succeeds
+   has origin locations
+
+test type test overlapping constructors [[
+  try-convert :: RLBL -> RLBL2
+  try-convert = [[is(RLBL2)]]
+]] analysis succeeds
+   has origin locations
+
+test type test nested overlapping constructors [[
+  try-convert :: WrappedRLBL2 -> WrappedROEFLBLID
+  try-convert = [[is(WrappedROEFLBLID)]]
+]] analysis succeeds
+   has origin locations
+
+test type test nested partly overlapping constructors [[
+  try-convert :: WrappedROEFLBLID -> WrappedRLBL2
+  try-convert = [[is(WrappedRLBL2)]]
+]] analysis succeeds
+   has origin locations
+
+test type test primitive type [[
+  try-convert :: Literal -> string
+  try-convert = [[is(string)]]
+]] analysis succeeds
+   has origin locations
+
+test type test sortvar [[
+  try-convert :: TP
+  try-convert = [[is(RLBL)]]
+]] analysis succeeds
+   has origin locations
