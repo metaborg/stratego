@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,8 +35,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.HybridInterpreter;
-
-import com.google.common.collect.Lists;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.StrategoLanguage;
@@ -161,7 +160,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : strategoLangImpl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;
