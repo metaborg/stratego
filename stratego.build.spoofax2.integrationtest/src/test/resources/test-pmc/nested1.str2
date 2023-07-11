@@ -1,0 +1,41 @@
+module nested1
+imports strategolib
+
+strategies
+  s = match sequential
+         case | (_, _): match sequential
+                          case | ("x", "y"): !"xy"
+                          case | _:          !"not xy"
+                        end
+       end
+
+  main =
+    test-suite(
+      !"nested multimatch on tuples"
+    , tuple1
+    ; tuple2
+    ; tuple3
+    )
+
+  tuple1 =
+    apply-test(
+      !"tuple1"
+    , s
+    , !("x", "y")
+    , !"xy"
+    )
+  
+  tuple2 =
+    apply-test(
+      !"tuple2"
+    , s
+    , !("x", "z")
+    , !"not xy"
+    )
+
+  tuple3 =
+    apply-and-fail(
+      !"tuple3"
+    , s
+    , !("x", "y", "z")
+    )

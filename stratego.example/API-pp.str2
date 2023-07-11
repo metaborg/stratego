@@ -1,0 +1,29 @@
+module pp/statix/API-pp
+
+imports
+  libstratego-gpp
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libspoofax/term/annotation
+  libstratego-sglr
+  libstratego-sglr
+  signatures/statix/API-sig
+
+
+strategies
+  prettyprint-example =
+    prettyprint-Statix
+
+  prettyprint-Statix =
+    fail
+
+  prettyprint-Statix(|sort) =
+    fail
+
+
+strategies
+  prettyprint-SDF-start-symbols =
+    prettyprint-Statix-start-symbols
+
+  prettyprint-Statix-start-symbols =
+    fail

@@ -1,0 +1,7 @@
+module sdefp
+
+imports libstratego-lib
+
+rules
+  R(|x): [x | xs] -> xs
+  R(|[]): [xs] -> xs

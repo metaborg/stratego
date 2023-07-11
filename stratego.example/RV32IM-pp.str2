@@ -1,0 +1,3849 @@
+module pp/RV32IM-pp
+
+imports
+  strategolib
+  libstratego-gpp
+  libstratego-sglr
+  libspoofax/sdf/pp
+  libspoofax/term/origin
+  libspoofax/term/annotation
+  signatures/RV32IM-sig
+
+
+imports
+  signatures/Common-sig
+
+
+imports
+  pp/Common-pp
+
+strategies
+
+  RV32IM-get-indent :
+    (t@Program(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Start"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Label(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Label"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSData(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSText(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSByte(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSString(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSAsciiz(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSWord(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSSpace(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSGlobl(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSAlign(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSEquiv(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSEqu(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@PSSet(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Pseudodirective"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Add(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Addi(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@And(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Andi(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Or(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Ori(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Xor(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Xori(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sub(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Beq(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Bne(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Blt(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Bge(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Bltu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Bgeu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Ecall(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Lui(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Auipc(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Jal(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Jalr(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Lb(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Lw(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    (t@Lw(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Lh(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Lbu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Lhu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sb(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sh(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sw(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sw2(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Slt(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sltu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Slti(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sltiu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-indent :
+    ( t@Sll(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Sll(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Sll(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Srl(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("srl")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Srl(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Srl(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Srl(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Srl(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Sra(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("sra")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Sra(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Sra(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Sra(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Sra(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Slli(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("slli")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Slli(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Slli(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Slli(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Slli(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Srli(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("srli")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Srli(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Srli(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Srli(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Srli(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Srai(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("srai")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Srai(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Srai(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Srai(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Srai(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Mul(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("mul")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Mul(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Mul(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Mul(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Mul(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Mulh(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("mulh")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Mulh(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Mulh(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Mulh(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Mulh(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Mulhsu(t1__, t2__, t3__) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , t1__'
+                                  )
+                                ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("mulhsu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Mulhsu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Mulhsu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Mulhsu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Mulhsu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Mulhu(t1__, t2__, t3__) -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , t1__'
+                                 )
+                               ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("mulhu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Mulhu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Mulhu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Mulhu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Mulhu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Rem(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("rem")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Rem(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Rem(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Rem(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Rem(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Remu(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("rmeu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Remu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Remu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Remu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Remu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Div(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("div")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Div(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Div(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Div(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Div(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Divu(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("divu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Divu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Divu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Divu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Divu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Beqz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("beqz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Beqz(_, _)
+
+  RV32IM-get-indent :
+    (t@Beqz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Beqz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Beqz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bgez(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bgez")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bgez(_, _)
+
+  RV32IM-get-indent :
+    (t@Bgez(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Bgez(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Bgez(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bgtz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bgtz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bgtz(_, _)
+
+  RV32IM-get-indent :
+    (t@Bgtz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Bgtz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Bgtz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bltz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bltz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bltz(_, _)
+
+  RV32IM-get-indent :
+    (t@Bltz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Bltz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Bltz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bnez(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bnez")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bnez(_, _)
+
+  RV32IM-get-indent :
+    (t@Bnez(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Bnez(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Bnez(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bgt(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bgt")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bgt(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Bgt(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Bgt(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Bgt(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bgtu(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bgtu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bgtu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Bgtu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Bgtu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Bgtu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Ble(t1__, t2__, t3__) -> [ H(
+                                 [SOpt(HS(), "0")]
+                               , t1__'
+                               )
+                             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("ble")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Ble(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Ble(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Ble(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Ble(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Bleu(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("bleu")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Bleu(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Bleu(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Bleu(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Bleu(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Blez(t1__, t2__, t3__) -> [ H(
+                                  [SOpt(HS(), "0")]
+                                , t1__'
+                                )
+                              ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("blez")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t3__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Blez(_, _, _)
+
+  RV32IM-get-indent :
+    ( t@Blez(t1__, t2__, t3__)
+    , index
+    ) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           case ?3 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    ( t@Blez(t1__, t2__, t3__)
+    , index
+    ) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           case ?3 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    ( t@Blez(t1__, t2__, t3__)
+    , index
+    ) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           case ?3 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Call(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , t1__'
+                    )
+                  ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("call")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Call(_)
+
+  RV32IM-get-indent :
+    (t@Call(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Call(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Call(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    J(t1__) -> [ H(
+                   [SOpt(HS(), "0")]
+                 , t1__'
+                 )
+               ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("j")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?J(_)
+
+  RV32IM-get-indent :
+    (t@J(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@J(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@J(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Jal(t1__) -> [ H(
+                     [SOpt(HS(), "0")]
+                   , t1__'
+                   )
+                 ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("jal")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Jal(_)
+
+  RV32IM-get-indent :
+    (t@Jal(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Jal(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Jal(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Jalr(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , t1__'
+                    )
+                  ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("jalr")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Jalr(_)
+
+  RV32IM-get-indent :
+    (t@Jalr(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Jalr(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Jalr(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Jr(t1__) -> [ H(
+                    [SOpt(HS(), "0")]
+                  , t1__'
+                  )
+                ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("jr")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Jr(_)
+
+  RV32IM-get-indent :
+    (t@Jr(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Jr(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Jr(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Ret() -> [ H(
+                 [SOpt(HS(), "0")]
+               , t1__'
+               )
+             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [S("ret")]
+
+  is-RV32IM-Instruction =
+    ?Ret()
+
+  RV32IM-get-indent :
+    (t@Ret(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Ret(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Ret(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    La(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , t1__'
+                        )
+                      ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("la")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?La(_, _)
+
+  RV32IM-get-indent :
+    (t@La(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@La(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@La(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Li(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , t1__'
+                        )
+                      ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("li")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-IntOrID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Li(_, _)
+
+  RV32IM-get-indent :
+    (t@Li(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Li(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Li(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Mv(t1__, t2__) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , t1__'
+                        )
+                      ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("mv")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Mv(_, _)
+
+  RV32IM-get-indent :
+    (t@Mv(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Mv(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Mv(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Neg(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , t1__'
+                         )
+                       ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("neg")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Neg(_, _)
+
+  RV32IM-get-indent :
+    (t@Neg(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Neg(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Neg(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Not(t1__, t2__) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , t1__'
+                         )
+                       ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("not")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Not(_, _)
+
+  RV32IM-get-indent :
+    (t@Not(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Not(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Not(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Nop() -> [ H(
+                 [SOpt(HS(), "0")]
+               , t1__'
+               )
+             ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [S("nop")]
+
+  is-RV32IM-Instruction =
+    ?Nop()
+
+  RV32IM-get-indent :
+    (t@Nop(), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Nop(), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Nop(), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Tail(t1__) -> [ H(
+                      [SOpt(HS(), "0")]
+                    , t1__'
+                    )
+                  ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("tail")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Tail(_)
+
+  RV32IM-get-indent :
+    (t@Tail(t1__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Tail(t1__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Tail(t1__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Seqz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("seqz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Seqz(_, _)
+
+  RV32IM-get-indent :
+    (t@Seqz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Seqz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Seqz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Sgtz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("sgtz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Sgtz(_, _)
+
+  RV32IM-get-indent :
+    (t@Sgtz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Sgtz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Sgtz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Sltz(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("sltz")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Sltz(_, _)
+
+  RV32IM-get-indent :
+    (t@Sltz(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Sltz(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Sltz(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  prettyprint-RV32IM-Instruction :
+    Snez(t1__, t2__) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , t1__'
+                          )
+                        ]
+    with t1__' := <clean-layout-empty-symbols(
+                   | ""
+                   , FALSE()
+                   , FALSE()
+                   )
+                   ; flatten-list> [ S("snez")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t1__
+                                   , S(",")
+                                   , S(" ")
+                                   , <check-nonterminal-isEmpty ; id
+                                      <+ pp-one-V(prettyprint-RV32IM-ID)
+                                      <+ pp-one-Z(prettyprint-completion-aux)> t2__
+                                   ]
+
+  is-RV32IM-Instruction =
+    ?Snez(_, _)
+
+  RV32IM-get-indent :
+    (t@Snez(t1__, t2__), index) -> indent
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             indent := ""
+           case ?2 :
+             indent := ""
+           otherwise :
+             indent := ""
+         end
+
+  RV32IM-get-separator :
+    (t@Snez(t1__, t2__), index) -> separator
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             separator := ""
+           case ?2 :
+             separator := ""
+           otherwise :
+             separator := ""
+         end
+
+  RV32IM-get-leading-ws :
+    (t@Snez(t1__, t2__), index) -> ws
+    where sort := <ia-get-sort> t
+          ; <?"Instruction"> sort
+    with switch !index
+           case ?1 :
+             ws := " "
+           case ?2 :
+             ws := " "
+           otherwise :
+             ws := ""
+         end
+
+  is-RV32IM-Start =
+    fail
+
+  is-RV32IM-Line =
+    fail
+
+  is-RV32IM-Label =
+    fail
+
+  is-RV32IM-IntOrID =
+    fail
+
+  is-RV32IM-Statement =
+    fail
+
+  is-RV32IM-Pseudodirective =
+    fail
+
+  is-RV32IM-Instruction =
+    fail
+
+  prettyprint-RV32IM-Start :
+    amb([h|hs]) -> <prettyprint-RV32IM-Start> h
+
+  prettyprint-RV32IM-Line :
+    amb([h|hs]) -> <prettyprint-RV32IM-Line> h
+
+  prettyprint-RV32IM-Label :
+    amb([h|hs]) -> <prettyprint-RV32IM-Label> h
+
+  prettyprint-RV32IM-IntOrID :
+    amb([h|hs]) -> <prettyprint-RV32IM-IntOrID> h
+
+  prettyprint-RV32IM-Statement :
+    amb([h|hs]) -> <prettyprint-RV32IM-Statement> h
+
+  prettyprint-RV32IM-Pseudodirective :
+    amb([h|hs]) -> <prettyprint-RV32IM-Pseudodirective> h
+
+  prettyprint-RV32IM-Instruction :
+    amb([h|hs]) -> <prettyprint-RV32IM-Instruction> h
+
+  prettyprint-RV32IM-Start :
+    Start-Plhdr() -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("$Start")]
+                       )
+                     ]
+
+  is-RV32IM-Start =
+    ?Start-Plhdr()
+
+  prettyprint-RV32IM-Line :
+    Line-Plhdr() -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S("$Line")]
+                      )
+                    ]
+
+  is-RV32IM-Line =
+    ?Line-Plhdr()
+
+  prettyprint-RV32IM-Label :
+    Label-Plhdr() -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("$Label")]
+                       )
+                     ]
+
+  is-RV32IM-Label =
+    ?Label-Plhdr()
+
+  prettyprint-RV32IM-Statement :
+    Statement-Plhdr() -> [ H(
+                             [SOpt(HS(), "0")]
+                           , [S("$Statement")]
+                           )
+                         ]
+
+  is-RV32IM-Statement =
+    ?Statement-Plhdr()
+
+  prettyprint-RV32IM-STRING :
+    STRING-Plhdr() -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("$STRING")]
+                        )
+                      ]
+
+  is-RV32IM-STRING =
+    ?STRING-Plhdr()
+
+  prettyprint-RV32IM-INT :
+    INT-Plhdr() -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("$INT")]
+                     )
+                   ]
+
+  is-RV32IM-INT =
+    ?INT-Plhdr()
+
+  prettyprint-RV32IM-Pseudodirective :
+    Pseudodirective-Plhdr() -> [ H(
+                                   [SOpt(HS(), "0")]
+                                 , [S("$Pseudodirective")]
+                                 )
+                               ]
+
+  is-RV32IM-Pseudodirective =
+    ?Pseudodirective-Plhdr()
+
+  prettyprint-RV32IM-IntOrID :
+    IntOrID-Plhdr() -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [S("$IntOrID")]
+                         )
+                       ]
+
+  is-RV32IM-IntOrID =
+    ?IntOrID-Plhdr()
+
+  prettyprint-RV32IM-Instruction :
+    Instruction-Plhdr() -> [ H(
+                               [SOpt(HS(), "0")]
+                             , [S("$Instruction")]
+                             )
+                           ]
+
+  is-RV32IM-Instruction =
+    ?Instruction-Plhdr()
+
+  prettyprint-RV32IM-ID :
+    ID-Plhdr() -> [ H(
+                      [SOpt(HS(), "0")]
+                    , [S("$ID")]
+                    )
+                  ]
+
+  is-RV32IM-ID =
+    ?ID-Plhdr()
+
+  prettyprint-RV32IM-Start :
+    Start-Plhdr(_) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("$Start")]
+                        )
+                      ]
+
+  is-RV32IM-Start =
+    ?Start-Plhdr(_)
+
+  prettyprint-RV32IM-Line :
+    Line-Plhdr(_) -> [ H(
+                         [SOpt(HS(), "0")]
+                       , [S("$Line")]
+                       )
+                     ]
+
+  is-RV32IM-Line =
+    ?Line-Plhdr(_)
+
+  prettyprint-RV32IM-Label :
+    Label-Plhdr(_) -> [ H(
+                          [SOpt(HS(), "0")]
+                        , [S("$Label")]
+                        )
+                      ]
+
+  is-RV32IM-Label =
+    ?Label-Plhdr(_)
+
+  prettyprint-RV32IM-Statement :
+    Statement-Plhdr(_) -> [ H(
+                              [SOpt(HS(), "0")]
+                            , [S("$Statement")]
+                            )
+                          ]
+
+  is-RV32IM-Statement =
+    ?Statement-Plhdr(_)
+
+  prettyprint-RV32IM-STRING :
+    STRING-Plhdr(_) -> [ H(
+                           [SOpt(HS(), "0")]
+                         , [S("$STRING")]
+                         )
+                       ]
+
+  is-RV32IM-STRING =
+    ?STRING-Plhdr(_)
+
+  prettyprint-RV32IM-INT :
+    INT-Plhdr(_) -> [ H(
+                        [SOpt(HS(), "0")]
+                      , [S("$INT")]
+                      )
+                    ]
+
+  is-RV32IM-INT =
+    ?INT-Plhdr(_)
+
+  prettyprint-RV32IM-Pseudodirective :
+    Pseudodirective-Plhdr(_) -> [ H(
+                                    [SOpt(HS(), "0")]
+                                  , [S("$Pseudodirective")]
+                                  )
+                                ]
+
+  is-RV32IM-Pseudodirective =
+    ?Pseudodirective-Plhdr(_)
+
+  prettyprint-RV32IM-IntOrID :
+    IntOrID-Plhdr(_) -> [ H(
+                            [SOpt(HS(), "0")]
+                          , [S("$IntOrID")]
+                          )
+                        ]
+
+  is-RV32IM-IntOrID =
+    ?IntOrID-Plhdr(_)
+
+  prettyprint-RV32IM-Instruction :
+    Instruction-Plhdr(_) -> [ H(
+                                [SOpt(HS(), "0")]
+                              , [S("$Instruction")]
+                              )
+                            ]
+
+  is-RV32IM-Instruction =
+    ?Instruction-Plhdr(_)
+
+  prettyprint-RV32IM-ID :
+    ID-Plhdr(_) -> [ H(
+                       [SOpt(HS(), "0")]
+                     , [S("$ID")]
+                     )
+                   ]
+
+  is-RV32IM-ID =
+    ?ID-Plhdr(_)
+
+  prettyprint-RV32IM-Line :
+    Line-Opt-Plhdr() -> [ H(
+                            []
+                          , [S("")]
+                          )
+                        ]
+
+  is-RV32IM-Line =
+    ?Line-Opt-Plhdr()
+
+  prettyprint-RV32IM-INT :
+    INT-Opt-Plhdr() -> [ H(
+                           []
+                         , [S("")]
+                         )
+                       ]
+
+  is-RV32IM-INT =
+    ?INT-Opt-Plhdr()
+
+  prettyprint-RV32IM-IntOrID :
+    IntOrID-Opt-Plhdr() -> [ H(
+                               []
+                             , [S("")]
+                             )
+                           ]
+
+  is-RV32IM-IntOrID =
+    ?IntOrID-Opt-Plhdr()

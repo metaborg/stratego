@@ -1,0 +1,94 @@
+module evalsym
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Pos ENat SNat
+
+constructors
+   true : Bool 
+   false : Bool 
+   d1 : Pos 
+   cDub : Bool * Pos -> Pos 
+   Exz : ENat 
+   Exs : ENat -> ENat 
+   Explus : ENat * ENat -> ENat 
+   Exmult : ENat * ENat -> ENat 
+   Exexp : ENat * ENat -> ENat 
+   Z : SNat 
+   S : SNat -> SNat 
+   eqBool : Bool * Bool -> Bool 
+   and : Bool * Bool -> Bool 
+   eqPos : Pos * Pos -> Bool 
+   lambda0 : ENat -> Bool 
+   eq : SNat * SNat -> Bool 
+   succ17 : SNat -> SNat 
+   plus17 : SNat * SNat -> SNat 
+   mult17 : SNat * SNat -> SNat 
+   exp17 : SNat * SNat -> SNat 
+   eval17 : ENat -> SNat 
+   evalsym17 : ENat -> SNat 
+   dec : ENat -> ENat 
+   two : ENat 
+   seventeen : ENat 
+   f : ENat -> Bool 
+
+rules
+   REC_E: eqBool (true(),b) -> b
+   REC_E: eqBool (false(),true()) -> false()
+   REC_E: eqBool (false(),false()) -> true()
+   REC_E: and (b,true()) -> b
+   REC_E: and (b,false()) -> false()
+   REC_E: eqPos (d1(),d1()) -> true()
+   REC_E: eqPos (d1(),cDub (b,p)) -> false()
+   REC_E: eqPos (cDub (b,p),d1()) -> false()
+   REC_E: eqPos (cDub (b,p),cDub (c,q)) -> and (eqBool (b,c), eqPos (p,q))
+   REC_E: lambda0 (m) -> eq (eval17 (m),evalsym17 (m))
+   REC_E: eq (Z(),Z()) -> true()
+   REC_E: eq (Z(),S (r)) -> false()
+   REC_E: eq (S (r),Z()) -> false()
+   REC_E: eq (S (r),S (t)) -> eq (r,t)
+   REC_E: succ17 (r) -> Z() where equal-after-eval (|eq (r,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), true())
+   REC_E: succ17 (r) -> S (r) where equal-after-eval (|eq (r,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), false())
+   REC_E: plus17 (r,Z()) -> r
+   REC_E: plus17 (r,S (t)) -> succ17 (plus17 (r,t))
+   REC_E: mult17 (r,Z()) -> Z()
+   REC_E: mult17 (r,S (t)) -> plus17 (r,mult17 (r,t))
+   REC_E: exp17 (r,Z()) -> succ17 (Z())
+   REC_E: exp17 (r,S (t)) -> mult17 (r,exp17 (r,t))
+   REC_E: eval17 (Exz()) -> Z()
+   REC_E: eval17 (Exs (n)) -> succ17 (eval17 (n))
+   REC_E: eval17 (Explus (n,m)) -> plus17 (eval17 (n),eval17 (m))
+   REC_E: eval17 (Exmult (n,m)) -> mult17 (eval17 (n),eval17 (m))
+   REC_E: eval17 (Exexp (n,m)) -> exp17 (eval17 (n),eval17 (m))
+   REC_E: evalsym17 (Exz()) -> Z()
+   REC_E: evalsym17 (Exs (n)) -> succ17 (evalsym17 (n))
+   REC_E: evalsym17 (Explus (n,m)) -> plus17 (evalsym17 (n),evalsym17 (m))
+   REC_E: evalsym17 (Exmult (n,Exz())) -> Z()
+   REC_E: evalsym17 (Exmult (n,Exs (m))) -> evalsym17 (Explus (Exmult (n,m),n))
+   REC_E: evalsym17 (Exmult (n,Explus (m,o))) -> evalsym17 (Explus (Exmult (n,m),Exmult (n,o)))
+   REC_E: evalsym17 (Exmult (n,Exmult (m,o))) -> evalsym17 (Exmult (Exmult (n,m),o))
+   REC_E: evalsym17 (Exmult (n,Exexp (m,o))) -> evalsym17 (Exmult (n,dec (Exexp (m,o))))
+   REC_E: evalsym17 (Exexp (n,Exz())) -> succ17 (Z())
+   REC_E: evalsym17 (Exexp (n,Exs (m))) -> evalsym17 (Exmult (Exexp (n,m),n))
+   REC_E: evalsym17 (Exexp (n,Explus (m,o))) -> evalsym17 (Exmult (Exexp (n,m),Exexp (n,o)))
+   REC_E: evalsym17 (Exexp (n,Exmult (m,o))) -> evalsym17 (Exexp (Exexp (n,m),o))
+   REC_E: evalsym17 (Exexp (n,Exexp (m,o))) -> evalsym17 (Exexp (n,dec (Exexp (m,o))))
+   REC_E: dec (Exexp (n,Exz())) -> Exs (Exz())
+   REC_E: dec (Exexp (n,Exs (m))) -> Exmult (Exexp (n,m),n)
+   REC_E: dec (Exexp (n,Explus (m,o))) -> Exmult (Exexp (n,m),Exexp (n,o))
+   REC_E: dec (Exexp (n,Exmult (m,o))) -> dec (Exexp (Exexp (n,m),o))
+   REC_E: dec (Exexp (n,Exexp (m,o))) -> dec (Exexp (n,dec (Exexp (m,o))))
+   REC_E: two() -> Exs (Exs (Exz()))
+   REC_E: seventeen() -> Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exz()))))))))))))))))))))))))
+   REC_E: f (m) -> lambda0 (Exexp (two(),m))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (seventeen())) ;
+      <exit> 0

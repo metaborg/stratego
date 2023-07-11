@@ -51,6 +51,10 @@ rules
       <+ \ (elems, last)         -> ListTail(elems, last) \
       ) 
 
+  Ensugar:
+    ScopedGuardedMatchCase(x*, p, Id(), s) ->
+    ScopedMatchCase(x*, p, s)
+
   implode-cons =
     \ Op("Cons",[e, tail]) -> [e | <implode-cons> tail] \
     <+ ![<id>]
@@ -72,6 +76,14 @@ rules
 
   EnsugarOnce : 
     Str(x) -> Str(y)
+      where <string-as-chars(
+              not(is-double-quoted-chars)
+            ; escape-chars
+            ; double-quote-chars
+            )> x => y
+
+  EnsugarOnce :
+    StrC(x) -> StrC(y)
       where <string-as-chars(
               not(is-double-quoted-chars)
             ; escape-chars

@@ -3,6 +3,7 @@ module core/terms
 imports
   core/identifiers
   core/constants
+  core/strategies
 
 context-free sorts ID Var Wld
 context-free syntax
@@ -17,6 +18,7 @@ context-free syntax
   Term      = Wld
   Term.Anno = <<PreTerm>{^<PreTerm>}>
   Term.As   = <<Var>@<Term>>
+  Term.Path = PathTrm
 
 context-free sorts PreTerm // term without annotations
 context-free syntax
@@ -35,3 +37,4 @@ context-free syntax
 context-free priorities
   PreTerm.Explode > Term.As,
   Term.Anno > PreTerm.As
+//  , Var.Var > Term.Path

@@ -1,0 +1,84 @@
+module tautologyhard
+
+imports libstrategolib
+
+signature
+
+sorts
+   Prop
+
+constructors
+   tt : Prop 
+   ff : Prop 
+   and : Prop * Prop -> Prop 
+   xor : Prop * Prop -> Prop 
+   Xnot : Prop -> Prop 
+   or : Prop * Prop -> Prop 
+   implies : Prop * Prop -> Prop 
+   iff : Prop * Prop -> Prop 
+   a : Prop 
+   b : Prop 
+   c : Prop 
+   d : Prop 
+   e : Prop 
+   a1 : Prop 
+   a2 : Prop 
+   a3 : Prop 
+   a4 : Prop 
+   a5 : Prop 
+   a6 : Prop 
+   a7 : Prop 
+   a8 : Prop 
+   a9 : Prop 
+   a10 : Prop 
+   a11 : Prop 
+   a12 : Prop 
+   a13 : Prop 
+   a14 : Prop 
+   a15 : Prop 
+   a16 : Prop 
+   a17 : Prop 
+   a18 : Prop 
+
+rules
+   REC_E: and (P, tt()) -> P
+   REC_E: and (P, ff()) -> ff()
+   REC_E: xor (P, ff()) -> P
+   REC_E: xor (ff(), tt()) -> tt()
+   REC_E: xor (tt(), tt()) -> ff()
+   REC_E: Xnot (P) -> xor (P, tt())
+   REC_E: or (P, Q) -> xor (and (P, Q), xor (P, Q))
+   REC_E: implies (P, Q) -> Xnot (xor (P, and (P, Q)))
+   REC_E: iff (P, Q) -> Xnot (xor (P, Q))
+   REC_E: a() -> ff()
+   REC_E: b() -> tt()
+   REC_E: c() -> ff()
+   REC_E: d() -> tt()
+   REC_E: e() -> ff()
+   REC_E: a1() -> tt()
+   REC_E: a2() -> ff()
+   REC_E: a3() -> tt()
+   REC_E: a4() -> ff()
+   REC_E: a5() -> tt()
+   REC_E: a6() -> ff()
+   REC_E: a7() -> tt()
+   REC_E: a8() -> ff()
+   REC_E: a9() -> tt()
+   REC_E: a10() -> ff()
+   REC_E: a11() -> tt()
+   REC_E: a12() -> ff()
+   REC_E: a13() -> tt()
+   REC_E: a14() -> ff()
+   REC_E: a15() -> tt()
+   REC_E: a16() -> ff()
+   REC_E: a17() -> tt()
+   REC_E: a18() -> ff()
+
+strategies
+   eval = memo (innermost (REC_E))
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> implies (and (iff (iff (or (a1(), a2()), or (Xnot (a3()), iff (xor (a4(), a5()),Xnot (Xnot (Xnot (a6())))))), Xnot (and (and (a7(), a8()), Xnot (xor (xor (or (a9(), and (a10(),a11())), a2()), and (and (a11(), xor (a2(), iff (a5(), a5()))), xor (xor (a7(), a7()),iff (a9(), a4())))))))), implies (iff (iff (or (a1(), a2()), or (Xnot (a3()),iff (xor (a4(), a5()), Xnot (Xnot (Xnot (a6())))))), Xnot (and (and (a7(), a8()),Xnot (xor (xor (or (a9(), and (a10(), a11())), a2()), and (and (a11(), xor (a2(), iff (a5(),a5()))), xor (xor (a7(), a7()), iff (a9(), a4())))))))), Xnot (and (implies (and (a1(),a2()), Xnot (xor (or (or (xor (implies (and (a3(), a4()), implies (a5(), a6())), or (a7(),a8())), xor (iff (a9(), a10()), a11())), xor (xor (a2(), a2()), a7())), iff (or (a4(), a9()),xor (Xnot (a6()), a6()))))), Xnot (iff (Xnot (a11()), Xnot (a9()))))))),Xnot (and (implies (and (a1(), a2()), Xnot (xor (or (or (xor (implies (and (a3(), a4()),implies (a5(), a6())), or (a7(), a8())), xor (iff (a9(), a10()), a11())), xor (xor (a2(),a2()), a7())), iff (or (a4(), a9()), xor (Xnot (a6()), a6()))))), Xnot (iff (Xnot (a11()),Xnot (a9()))))))) ;
+      (<eval-and-print> implies (and (Xnot (and (xor (a1(), xor (or (a2(), a3()), a4())), xor (iff (xor (Xnot (a5()),or (xor (iff (a6(), a7()), iff (a8(), a9())), and (a10(), a9()))), iff (Xnot (Xnot (a2())),implies (or (a9(), a6()), or (a10(), a5())))), Xnot (or (a9(), implies (Xnot (a8()), or (a4(),a9()))))))), implies (Xnot (and (xor (a1(), xor (or (a2(), a3()), a4())),xor (iff (xor (Xnot (a5()), or (xor (iff (a6(), a7()), iff (a8(), a9())), and (a10(), a9()))),iff (Xnot (Xnot (a2())), implies (or (a9(), a6()), or (a10(), a5())))), Xnot (or (a9(),implies (Xnot (a8()), or (a4(), a9()))))))), Xnot (implies (implies (and (or (a1(),xor (xor (a2(), a3()), Xnot (a4()))), Xnot (xor (a5(), and (a6(), a7())))),implies (xor (implies (a8(), a9()), a10()), xor (and (a4(), or (a4(), a1())), a2()))),or (or (xor (or (a4(), a7()), a2()), and (a8(), a1())), Xnot (Xnot (Xnot (a6())))))))),Xnot (implies (implies (and (or (a1(), xor (xor (a2(), a3()), Xnot (a4()))), Xnot (xor (a5(),and (a6(), a7())))), implies (xor (implies (a8(), a9()), a10()), xor (and (a4(), or (a4(),a1())), a2()))), or (or (xor (or (a4(), a7()), a2()), and (a8(), a1())),Xnot (Xnot (Xnot (a6())))))))) ;
+      (<eval-and-print> implies (and (Xnot (and (xor (a1(), xor (or (a2(), a3()), a4())), xor (iff (xor (Xnot (a5()),or (xor (iff (a6(), a7()), iff (a8(), a9())), and (a10(), a11()))), implies (or (a4(),and (a3(), iff (a1(), a2()))), Xnot (Xnot (a4())))), xor (implies (implies (a6(), a1()),Xnot (a1())), Xnot (a9()))))), implies (Xnot (and (xor (a1(), xor (or (a2(), a3()), a4())),xor (iff (xor (Xnot (a5()), or (xor (iff (a6(), a7()), iff (a8(), a9())), and (a10(),a11()))), implies (or (a4(), and (a3(), iff (a1(), a2()))), Xnot (Xnot (a4())))),xor (implies (implies (a6(), a1()), Xnot (a1())), Xnot (a9()))))),Xnot (implies (implies (and (or (a1(), xor (xor (a2(), a3()), Xnot (a4()))), Xnot (xor (a5(),and (a6(), a7())))), implies (xor (implies (a8(), a9()), a10()), xor (and (a11(),implies (a2(), a8())), a8()))), Xnot (or (implies (or (a5(), or (a8(), and (a8(), a9()))),Xnot (a2())), Xnot (a7()))))))), Xnot (implies (implies (and (or (a1(), xor (xor (a2(),a3()), Xnot (a4()))), Xnot (xor (a5(), and (a6(), a7())))), implies (xor (implies (a8(),a9()), a10()), xor (and (a11(), implies (a2(), a8())), a8()))), Xnot (or (implies (or (a5(),or (a8(), and (a8(), a9()))), Xnot (a2())), Xnot (a7()))))))) ;
+      <exit> 0

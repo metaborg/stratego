@@ -1,0 +1,10 @@
+module safe-assign
+
+signature
+  sorts T
+  constructors T : string * ATerm -> T
+
+strategies
+  s1 = t := current
+  s2(s) = t := T("bla", <s>)
+  s3(s|x) = t := <s> x

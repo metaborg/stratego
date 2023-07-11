@@ -1,0 +1,34 @@
+module oddeven
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat Bool
+
+constructors
+   true : Bool 
+   false : Bool 
+   d0 : Nat 
+   s : Nat -> Nat 
+   odd : Nat -> Bool 
+   even : Nat -> Bool 
+
+rules
+   REC_E: odd (d0()) -> false()
+   REC_E: odd (s (N)) -> true() where equal-after-eval (|even (N), true())
+   REC_E: odd (s (N)) -> false() where equal-after-eval (|even (N), false())
+   REC_E: even (d0()) -> true()
+   REC_E: even (s (N)) -> true() where equal-after-eval (|odd (N), true())
+   REC_E: even (s (N)) -> false() where equal-after-eval (|odd (N), false())
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> odd (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (d0()))))))))))))))))) ;
+      (<eval-and-print> odd (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (d0())))))))))))))))))))))) ;
+      (<eval-and-print> odd (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (d0()))))))))))))))))))))))))))) ;
+      <exit> 0

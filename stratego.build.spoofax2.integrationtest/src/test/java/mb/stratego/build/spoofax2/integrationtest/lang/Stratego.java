@@ -92,10 +92,11 @@ public class Stratego {
     }
 
     public static CompileOutput str2(Path input, String baseName, String packageName,
-                                     Path outputDir, boolean library,
+                                     Path packageDir, boolean library,
                                      ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries, boolean autoImportStd,
-                                     LanguageIdentifier languageIdentifier) throws MetaborgException, IOException {
-        return str2(input, baseName, packageName, outputDir, library, linkedLibraries, autoImportStd, languageIdentifier, new Arguments());
+                                     LanguageIdentifier languageIdentifier)
+        throws MetaborgException, IOException {
+        return str2(input, baseName, packageName, packageDir, library, linkedLibraries, autoImportStd, languageIdentifier, new Arguments());
     }
 
     public static CompileOutput str2(Path input, String baseName, String packageName,

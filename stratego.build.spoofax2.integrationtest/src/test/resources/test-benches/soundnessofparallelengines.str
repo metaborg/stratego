@@ -1,0 +1,39 @@
+module soundnessofparallelengines
+
+imports libstrategolib
+
+signature
+
+sorts
+   N
+
+constructors
+   d0 : N 
+   s : N -> N 
+   g : N -> N 
+   f : N -> N 
+
+rules
+   REC_E: f (g (d0())) -> d0()
+   REC_E: f (g (s (X))) -> f (g (X))
+
+strategies
+   eval = memo (innermost (REC_E))
+
+  main =
+    test-suite(
+      !"soundnessofparallelengine"
+    , apply-test(eval|
+        "soundnessofparallelengine"
+      , f (g (s (d0())))
+      , d0()
+      )
+    )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|tn, ti, to)
+  external apply-and-show(s|tn, ti)
+
+  external memo(s|)
+  external innermost(s|)
+  external equal(|t1, t2)

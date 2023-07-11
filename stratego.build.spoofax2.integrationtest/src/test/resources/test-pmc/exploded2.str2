@@ -1,0 +1,8 @@
+module exploded2
+
+strategies
+
+  main =
+    <match sequential
+      case x | x when !x: ?x
+    end> () => ()

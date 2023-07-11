@@ -1,0 +1,29 @@
+module order
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat
+
+constructors
+   d0 : Nat 
+   s : Nat -> Nat 
+   f : Nat -> Nat 
+   g : Nat -> Nat 
+
+rules
+   REC_E: g (d0()) -> d0()
+   REC_E: g (s (x)) -> x
+   REC_E: f (s (x)) -> d0() where equal-after-eval (|x, d0())
+   REC_E: f (s (x)) -> x where not (equal-after-eval (|x, d0()))
+   REC_E: f (d0()) -> s (d0())
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (g (d0()))) ;
+      <exit> 0

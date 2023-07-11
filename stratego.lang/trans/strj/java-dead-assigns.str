@@ -58,6 +58,10 @@ strategies
   dead-assigns-control =
     If(id, {| IsUsed: dead-assigns-stm |}, {| IsUsed: dead-assigns-stm |})
   ; If(dead-assigns-expr, id, id)
+
+  dead-assigns-control =
+    Switch(id, SwitchBlock(map(SwitchGroup(id, {| IsUsed: dead-assigns-stm |})), id))
+  ; Switch(dead-assigns-expr, id)
   
   dead-assigns-control =
     Block({| IsUsed: dead-assigns-stm |})
@@ -67,7 +71,7 @@ strategies
   ; Labeled(id, is-container-stm; dead-assigns-stm)
 
   is-container-stm =
-    ?Labeled(_, _) + ?Block(_) + ?If(_, _) + ?If(_, _, _)
+    ?Labeled(_, _) + ?Block(_) + ?If(_, _) + ?If(_, _, _) + ?Switch(_, _)
   + ?Try(_, _) + ?Try(_, _, _) + ?Synchronized(_, _)
   + ?While(_, _) + ?DoWhile(_, _) + ?ForEach(_, _, _) + ?For(_, _, _, _)
 

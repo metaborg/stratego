@@ -8,6 +8,8 @@ imports
   pp/StrategoLang-parenthesize
   pp/StrategoLang-pp
 
+  strc/front/stratego-ensugar
+
 rules
 
   editor-format:
@@ -52,3 +54,6 @@ strategies
 
   parenthesize-Stratego = parenthesize-StrategoLang
   pp-stratego-string = pp-StrategoLang-string
+
+strategies
+  pp-stratego-core = Stratego-Ensugar; pp-stratego-string

@@ -1,0 +1,84 @@
+module heuristics
+
+imports
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/utils
+
+  signatures/core/strategies-sig
+
+  libstratego-lib
+
+strategies
+  SelectHeuristically(h1) =
+    WithSHeuristics(S(h1))
+
+  SelectHeuristically(h1, h2) =
+    WithSHeuristics(S(h1); S(h2))
+
+  SelectHeuristically(h1, h2, h3) =
+    WithSHeuristics(S(h1); S(h2); S(h3))
+
+  SelectHeuristically(h1, h2, h3, h4) =
+    WithSHeuristics(S(h1); S(h2); S(h3); S(h4))
+
+  internal WithSHeuristics(s) = WithSHeuristics'(s, R)
+
+  internal WithSHeuristics'(h, ph) = id
+  ; Matrix2IdxColList
+  ; h // list(Col) -> list(Col)
+  ; ph // list(Col) -> Col
+
+  internal S(s)  = [id] <+ Select'(s, ?Col(_, <id>, _, _))
+  internal PS(s) = [id] <+ Select'(s, ?Col(<id>, _, _, _))
+
+  // TODO Identify columns by unique path instead of integer
+  internal Matrix2IdxColList = cols; add-indices
+
+  internal select'(|score): ((idx, col), (max, col*)) -> (max, col*)                where <lt> (score, max)
+  internal select'(|score): ((idx, col), (max, col*)) -> (max, [(idx, col) | col*]) where <eq> (score, max)
+  internal select'(|score): ((idx, col), (max, col*)) -> (score, [(idx, col)])      where <gt> (score, max)
+
+  internal Select'(heuristic, mapcol) =
+    let
+      score-col = mapcol; heuristic
+      select    = {score: where(?((_, <score-col>), _) => score); select'(|score)}
+    in
+      foldr1(Hd; \ (i, col) -> (<score-col> col, [(i, col)]) \, select); Snd
+    end
+
+strategies // heuristics
+  /*
+    Favors columns where the first pattern is a constructor pattern.
+  */
+  FirstRow: [p | _] -> 0 where <is-wld> p
+  FirstRow: [p | _] -> 1 where <not(is-wld)> p
+
+  /*
+    Favors columns with less wildcards.
+  */
+  SmallDefault = retain-all(is-wld + ?Anno(<is-wld>, <is-wld>)); length; negate
+
+  LargeBranchingFactor = head-constructors; foldr(![], union, ![<Fst; is-literal-cons < get-constructor + id>]); length; inc
+
+  SmallBranchingFactor = LargeBranchingFactor; negate
+
+  Arity = head-constructors; foldr(!0, addi, (?(<cons-arity>, _))); negate
+
+  LeafEdge = fail
+
+  Rows = fail
+
+strategies // pseudo-heuristics (that examine paths/indices instead of patterns)
+  N = Hd // Left-most ordering
+
+  L = PS(PathLength; negate); Hd // BFS (left-bias)
+  R = PS(PathLength; negate); last // BFS (right-bias)
+
+strategies
+  internal negate = <subt> (0, <id>)
+
+  internal PathLength =
+     \ CurP()     -> 1 \
+  <+ \ SubP(p, _) -> <PathLength; inc> p \
+  <+ \ c#([p])    -> <PathLength; inc> p where <not(?"SubP" + ?"CurP")> c \

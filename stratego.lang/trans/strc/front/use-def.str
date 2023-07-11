@@ -100,6 +100,12 @@ strategies
 			   CallT(id,id,use-vars))
     + CallDynamic(id,id,id) < or(CallDynamic(id,unbound-vars,id),
                                  CallDynamic(use-vars,id,use-vars))
+    + ScopedMatchCase(id, id, id) < or(ScopedMatchCase(id, bind-vars, id),
+                                   ScopedMatchCase(id, id, unbound-vars))
+    + ScopedGuardedMatchCase(id, id, id, id) < or(ScopedGuardedMatchCase(id, bind-vars, id, id),
+                                                  ScopedGuardedMatchCase(id, id, unbound-vars, unbound-vars))
+//    + MatchCase(id, id) < or(MatchCase(bind-vars, id),
+//                             MatchCase(id, unbound-vars))
     + some(unbound-vars)
 
   bind-vars = 

@@ -1,0 +1,51 @@
+module analysis/name-resolution/scopedmatchcase
+language StrategoLang
+
+fixture [[
+module matchchoice
+
+signature
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  [[...]]
+]]
+
+test resolve pattern var (bound) [[
+s(|[[t]]) = match sequential
+          case | Cons([[t]], _): !1
+        end
+]] resolve #2 to #1
+
+test resolve pattern var (implicitly scoped) [[
+s = match sequential
+      case | Cons([[t]], _): !1
+    end
+]] resolve #1
+
+test resolve pattern var (explicitly scoped) [[
+s = match sequential
+      case [[t]] | Cons([[t]], _): !1
+    end
+]] resolve #2 to #1
+
+test resolve build var (bound) [[
+s(|[[t]]) = match sequential
+          case | Cons(_, _): ![[t]]
+        end
+]] resolve #2 to #1
+
+test resolve build var (implicitly scoped) [[
+s = match sequential
+      case | Cons([[t]], _): ![[t]]
+    end
+]] resolve #2 to #1
+
+test resolve build var (explicitly scoped) [[
+s = match sequential
+      case [[t]] | Cons(t, _): ![[t]]
+    end
+]] resolve #2 to #1

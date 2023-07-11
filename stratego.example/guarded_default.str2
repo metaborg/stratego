@@ -1,0 +1,17 @@
+module guarded_default
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+strategies
+  length(s) = match sequential
+               case | Nil(): !0
+               case | Cons(_, Nil()): !1
+               case | _ if all(s): !2
+               case | _ if id: !3
+               case | _ if fail: !4
+               case | _ if some(s): !5
+             end

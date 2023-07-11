@@ -1,0 +1,15 @@
+module switch
+
+signature
+  sorts Foo
+  constructors
+    Foo : Foo
+    Foo : Foo -> Foo
+    Foo : Foo * Foo -> Foo
+
+strategies
+  s(|t) =
+    switch !t
+      case ?Foo(Foo(), _): !1
+      case ?Foo(_): !2
+    end

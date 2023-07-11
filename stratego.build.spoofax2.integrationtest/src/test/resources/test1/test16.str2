@@ -12,9 +12,9 @@ signature
 strategies
 
   eq-or-c-r = 
-    {?(x, x); !x} 
-    + {?(r@A(), C()); !r}
-    + {?(r@B(), C()); !r}
+    {?(x, x); !x} +
+    {?(r@A(), C()); !r} +
+    {?(r@B(), C()); !r}
 
   main = 
     test-suite(!"test16", 
@@ -43,3 +43,6 @@ strategies
 	, !B()
 	)
 
+external apply-test(s1, s2, s3, s4|)
+external test-suite(s1, s2|)
+external debug(|t)

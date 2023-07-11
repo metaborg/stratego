@@ -1,0 +1,33 @@
+module multimatch4
+
+imports strategolib
+
+strategies
+  s(s1) =
+    match sequential
+      case | _ when match sequential
+                      case x1 | (_, _) when lt: s1
+                      case x2 | (_, _) when lt: !"success"
+                    end: ![<id>]
+    end
+
+  main =
+    test-suite(!"Nested MultiMatch",
+      apply-and-fail(s(fail)
+        | "MM as guard 1"
+        , (0, 1)
+      )
+    ; apply-and-fail(s(fail)
+      | "MM as guard 2"
+      , (2, 1)
+      )
+    ; apply-and-fail(s(id)
+      | "MM as guard 3"
+      , (2, 1)
+      )
+    ; apply-test(s(id)
+      | "MM as guard 4"
+      , (0, 1)
+      , [(0, 1)]
+      )
+    )

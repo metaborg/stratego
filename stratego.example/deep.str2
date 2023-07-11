@@ -1,0 +1,12 @@
+module deep
+imports libstratego-lib
+
+strategies
+  length =
+    match sequential
+      case | Nil(): !0
+      case a | Cons(a, Nil()): !a
+      case b | Cons(b, Cons(_, Nil())): !b
+      case c | Cons(_, Cons(c, Cons(_, Nil()))): !c
+      case | Cons(_, _): !4
+    end

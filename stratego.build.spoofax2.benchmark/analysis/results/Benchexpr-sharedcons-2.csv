@@ -1,0 +1,3 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: metaborgVersion","Param: optimisationLevel","Param: problemSize","Param: sharedConstructors"
+"benchmark.stratego2.execution.Benchexpr.run","ss",1,5,7.696471,9.379940,"s/op",2.6.0-SNAPSHOT,3,10,on
+"benchmark.stratego2.execution.Benchexpr.run","ss",1,5,16.429908,18.820540,"s/op",2.6.0-SNAPSHOT,3,10,off

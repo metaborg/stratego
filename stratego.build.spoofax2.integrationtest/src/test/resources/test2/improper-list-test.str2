@@ -6,6 +6,8 @@ signature
     List(a)
   constructors
     Bla : List(a) -> List(a)
+    Nil : List(a)
+    Cons : a * List(a) -> List(a)
 
 strategies 
 

@@ -1,0 +1,51 @@
+module parse/multimatch
+
+language StrategoLang
+
+fixture [[
+module parse/multimatch
+
+signature
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  s = [[...]]
+]]
+
+test multimatch 1 [[
+match sequential
+  case (_, _): !1
+  case Nil(): !2
+  case x: !x
+end
+]] parse fails
+
+test scoped multimatch [[
+match sequential
+  case x | (x, _): !1
+  case y | y: !y
+end
+]] parse succeeds
+
+test mixed multimatch [[
+match sequential
+  case x | (x, _): !1
+  case _: !2
+  case y | Nil(): !3
+end
+]] parse fails
+
+test no strategy lhs 1 [[
+match sequential
+  case | ?x: !1
+end
+]] parse fails
+
+test no strategy lhs 2 [[
+match sequential
+  case | !x: !1
+end
+]] parse fails
