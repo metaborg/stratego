@@ -323,9 +323,11 @@ public class ModuleImportService implements IModuleImportService {
                     final HierarchicalResource resource = context.require(identifier.path);
                     try(final InputStream inputStream = new BufferedInputStream(resource.openRead())) {
                         final long lastModified = resource.getLastModifiedTime().getEpochSecond();
-                        return new LastModified<>(strategoLanguage
+                        IStrategoTerm ast = strategoLanguage
                             .parse(context, inputStream,
-                                StandardCharsets.UTF_8, resourcePathConverter.toString(identifier.path)), lastModified);
+                                StandardCharsets.UTF_8, resourcePathConverter.toString(identifier.path));
+                        ast = strategoLanguage.postparseDesugar(ast);
+                        return new LastModified<>(ast, lastModified);
                     }
                 }
         } else {// if(moduleIdentifier instanceof BuiltinLibraryIdentifier) {
