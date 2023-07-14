@@ -1,0 +1,84 @@
+module deduplicated
+
+imports
+  core/terms
+  core/signatures
+  core/identifiers
+
+  sugar/terms
+  sugar/rules
+  core/strategies
+  sugar/dynamic-rules
+  sugar/string-quotations
+
+  gradual-types/signatures
+  gradual-types/strategies
+
+/*
+This file contains the original productions of constructors that were renamed to conform to
+requirements from Statix that every constructor be unique.
+*/
+
+context-free syntax // core/terms
+  PreTerm.As      = <<Var>@<PreTerm>>
+
+context-free syntax // core/signatures
+  SortDef.SortVar    = LCID {deprecated("This syntax never had a clear meaning should not be used")}
+  SortDef.SortNoArgs = UCID
+  SortDef.Sort = [[UCID]([{Kind ", "}*])]
+  SortDef.Sort = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
+
+  SortDef.ExtSort = [external [UCID]([{Kind ", "}*])]
+
+  OpType.FunType = [[{ConstType " * "}+] -> [ConstType]]
+
+context-free syntax // sugar/terms
+  PreTerm.App       = [<[Strategy]> [Term]]
+  PreTerm.RootApp   = [<[Strategy]>]
+
+context-free syntax // sugar/rules
+  Def.AnnoDef =
+    <<Anno+> <RuleDef>>
+
+syntax // sugar/dynamic-rules
+  // 1 space after RuleNames
+  Strategy-CF.DynRuleUnionFix =
+  "\\" LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
+
+  // 1 space after RuleNames
+  Strategy-CF.DynRuleIntersectUnionFix =
+  "/" LAYOUT?-CF RuleNames-CF LAYOUT?-CF "\\"
+      LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
+
+context-free syntax // sugar/string-quotations
+
+  StringQuotedPart1.QStr = StringQuotedChars1
+  StringQuotedPart2.QStr = StringQuotedChars2
+  StringQuotedPart3.QStr = StringQuotedChars3
+  StringQuotedPart4.QStr = StringQuotedChars4
+
+  StringQuotedPart1.QDollar = Dollar1
+  StringQuotedPart2.QDollar = Dollar2
+  StringQuotedPart3.QDollar = Dollar3
+  StringQuotedPart4.QDollar = Dollar4
+
+  StringQuotedPart1.QBr = QuotedBracket1
+  StringQuotedPart2.QBr = QuotedBracket2
+  StringQuotedPart3.QBr = QuotedBracket3
+  StringQuotedPart4.QBr = QuotedBracket4
+
+context-free syntax // gradual-types/signatures
+  ConstType.DynT = Dyn
+
+  SortT.Sort       = [[Id]([{Type ", "}*])]
+  SortT.SortNoArgs = UCID
+  SortT.SortVar    = SortVar
+
+  SortArg.TupleT = [[Sort] * [{Sort " * "}+]]
+  SortArg.DynT   = Dyn
+
+  SFunType.FunType = [([{SType ", "}*]) [SSimpleFunType]]
+
+context-free syntax // gradual-types/strategies
+  Coercion.Fail = [fail]
+  Coercion.Id = [id]
