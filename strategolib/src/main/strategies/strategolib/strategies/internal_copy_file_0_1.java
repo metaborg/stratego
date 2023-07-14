@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 
-import org.apache.commons.io.IOUtils;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -64,7 +63,12 @@ public class internal_copy_file_0_1 extends Strategy {
                     final FileChannel outChannel = ((FileOutputStream) out).getChannel();
                     inChannel.transferTo(0, inChannel.size(), outChannel);
                 } else {
-                    IOUtils.copy(in, out);
+                    final byte[] buffer = new byte[8192];
+                    int n = in.read(buffer);
+                    while (n != -1) {
+                        out.write(buffer, 0, n);
+                        n = in.read(buffer);
+                    }
                 }
             } finally {
                 if(closeOut) {

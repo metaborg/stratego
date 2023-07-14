@@ -6,11 +6,11 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-public class read_term_from_string_0_0 extends Strategy {
-    public static read_term_from_string_0_0 instance = new read_term_from_string_0_0();
+public class read_from_string_0_0 extends Strategy {
+    public static read_from_string_0_0 instance = new read_from_string_0_0();
 
     /**
-     * Stratego 2 type: {@code read-term-from-string :: (|) string -> ?}
+     * Stratego 2 type: {@code read-from-string :: (|) string -> ?}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm term) {
         try {

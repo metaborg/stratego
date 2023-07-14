@@ -7,7 +7,6 @@ import java.util.LinkedHashSet;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 

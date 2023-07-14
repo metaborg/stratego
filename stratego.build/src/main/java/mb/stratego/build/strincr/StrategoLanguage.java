@@ -113,6 +113,11 @@ public interface StrategoLanguage {
         return callStrategy(ast, projectPath, "stratego2-compile-top-level-def");
     }
 
+
+    default IStrategoTerm postparseDesugar(IStrategoTerm ast) throws ExecException {
+        return callStrategy(ast, null, "stratego2-postparse-desugar");
+    }
+
     /**
      * Call to the code generation code for Stratego, to transform an AST into Java and write it to
      * file.

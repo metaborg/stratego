@@ -2,7 +2,6 @@ package mb.stratego.build.strincr.data;
 
 import java.io.Serializable;
 
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
 
@@ -12,8 +11,7 @@ public class ConstructorData implements Serializable {
     public final boolean isOverlay;
 //    public final boolean isExternal; // is this useful?
 
-    public ConstructorData(ConstructorSignature signature, IStrategoAppl astTerm,
-        ConstructorType type) {
+    public ConstructorData(ConstructorSignature signature, ConstructorType type) {
         this(signature, type, false);
     }
 

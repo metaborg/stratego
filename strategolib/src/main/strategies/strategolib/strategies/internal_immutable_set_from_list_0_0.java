@@ -1,5 +1,6 @@
 package strategolib.strategies;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
@@ -13,7 +14,7 @@ public class internal_immutable_set_from_list_0_0 extends Strategy {
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
         final IStrategoList list = (IStrategoList) current;
-        final Set.Transient<IStrategoTerm> map = Set.Transient.of();
+        final Set.Transient<IStrategoTerm> map = CapsuleUtil.transientSet();
         for(IStrategoTerm t : list) {
             if(!map.contains(t)) {
                 map.__insert(t);

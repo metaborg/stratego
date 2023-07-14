@@ -31,15 +31,10 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
-import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
-
-import com.google.common.collect.Lists;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.StrategoLanguage;
@@ -165,7 +160,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : strategoLangImpl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;

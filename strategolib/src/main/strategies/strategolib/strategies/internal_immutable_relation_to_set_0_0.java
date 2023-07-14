@@ -1,5 +1,6 @@
 package strategolib.strategies;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -13,7 +14,7 @@ public class internal_immutable_relation_to_set_0_0 extends Strategy {
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
         final StrategoImmutableRelation relation = (StrategoImmutableRelation) current;
-        final Set.Transient<IStrategoTerm> result = Set.Transient.of();
+        final Set.Transient<IStrategoTerm> result = CapsuleUtil.transientSet();
         for(IStrategoTerm pair : relation) {
             result.__insert(pair);
         }

@@ -12,6 +12,7 @@ public class CompileDynamicRulesOutput implements Serializable {
     public final TreeSet<StrategySignature> newGenerated;
     public final TreeSet<StrategySignature> undefineGenerated;
     public final LinkedHashSet<ResourcePath> resultFiles;
+    protected final int hashCode;
 
     public CompileDynamicRulesOutput(TreeSet<StrategySignature> compiledThroughDynamicRule,
         Collection<StrategySignature> dynamicRules, LinkedHashSet<ResourcePath>  resultFiles) {
@@ -30,6 +31,7 @@ public class CompileDynamicRulesOutput implements Serializable {
                 undefineGenerated.add(dynamicRule);
             }
         }
+        this.hashCode = hashFunction();
     }
 
     @Override public boolean equals(Object o) {
@@ -40,6 +42,8 @@ public class CompileDynamicRulesOutput implements Serializable {
 
         CompileDynamicRulesOutput that = (CompileDynamicRulesOutput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(!newGenerated.equals(that.newGenerated))
             return false;
         if(!undefineGenerated.equals(that.undefineGenerated))
@@ -48,6 +52,10 @@ public class CompileDynamicRulesOutput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = newGenerated.hashCode();
         result = 31 * result + undefineGenerated.hashCode();
         result = 31 * result + resultFiles.hashCode();

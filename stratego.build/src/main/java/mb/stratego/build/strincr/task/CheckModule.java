@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -246,8 +247,8 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         Map<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         Collection<StrategySignature> dynamicRuleGenerated, long lastModified,
         ArrayList<Message> messages, ResolveInput resolveInput) {
-        final HashSet<StrategySignature> strategyFilter =
-            new HashSet<>(strategyData.keySet());
+        final LinkedHashSet<StrategySignature> strategyFilter =
+            new LinkedHashSet<>(strategyData.keySet());
         strategyFilter.addAll(dynamicRuleGenerated);
         final AnnoDefs annoDefs =
             context.requireMapping(resolve, resolveInput, new ToAnnoDefs(strategyFilter));
@@ -364,10 +365,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions,
         ResolveInput resolveInput, ArrayList<Message> messages) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
-            io.usethesource.capsule.Map.Transient.of();
+            CapsuleUtil.transientMap();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
-        final Set.Transient<SortSignature> sorts = Set.Transient.of();
+        final Set.Transient<SortSignature> sorts = CapsuleUtil.transientSet();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 
@@ -441,7 +442,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
                     injections.__insert(e.getKey(), to);
                 }
             }
-            // if unless it's a Stratego 1 module, we have to follow the transitive imports...
+            // if it's a Stratego 1 module, we have to follow the transitive imports...
             if(frontInput.moduleIdentifier.legacyStratego()) {
                 for(IModuleImportService.ModuleIdentifier anImport : typesLookup.imports) {
                     if(!seen.contains(anImport)) {

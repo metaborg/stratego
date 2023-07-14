@@ -2,7 +2,7 @@
 id: org.metaborg:stratego.lang:${metaborgVersion}
 name: StrategoLang
 metaborgVersion: 2.6.0-SNAPSHOT
-metaborgBaselineVersion: 2.5.17
+metaborgBaselineVersion: 2.5.18
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
@@ -51,7 +51,32 @@ exports:
   directory: src-gen/syntax
 - language: Stratego-Sugar
   directory: src-gen
+  includes:
+  - injections/StrategoLang/*.str
+  - injections/StrategoLang/**/*.str
+  - pp/StrategoLang/*.str
+  - pp/StrategoLang/**/*.str
+  - signatures/StrategoLang/*.str
+  - signatures/StrategoLang/**/*.str
+  excludes:
+  - pp/StrategoLang/permissive-water-pp.str
+  - injections/StrategoLang/permissive-water-injections.str
+  - signatures/StrategoLang/permissive-water-sig.str
+- language: StrategoLang
+  directory: src-gen
+  includes:
+  - injections/StrategoLang/*.str2
+  - injections/StrategoLang/**/*.str2
+  - pp/StrategoLang/*.str2
+  - pp/StrategoLang/**/*.str2
+  - signatures/StrategoLang/*.str2
+  - signatures/StrategoLang/**/*.str2
+  excludes:
+  - pp/StrategoLang/permissive-water-pp.str2
+  - injections/StrategoLang/permissive-water-injections.str2
+  - signatures/StrategoLang/permissive-water-sig.str2
 - language: EditorService
   directory: src-gen
-- language: ds
-  directory: src-gen
+  includes:
+  - completion/colorer/StrategoLang/*.esv
+  - completion/colorer/StrategoLang/**/*.esv

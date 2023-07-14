@@ -96,4 +96,6 @@ public class SortSignature extends StrategoTuple {
 
         return isExternal;
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

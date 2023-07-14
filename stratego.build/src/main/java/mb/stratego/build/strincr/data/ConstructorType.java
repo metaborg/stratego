@@ -138,4 +138,6 @@ public class ConstructorType extends StrategoAppl {
         }
         return type;
     }
+
+    // equals/hashcode/toString inherited from StrategoAppl
 }

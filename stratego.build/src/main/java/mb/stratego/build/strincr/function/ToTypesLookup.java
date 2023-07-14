@@ -176,6 +176,10 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
 
         ToTypesLookup that = (ToTypesLookup) o;
 
+        if(!definedStrategies.equals(that.definedStrategies))
+            return false;
+        if(!definedOverlays.equals(that.definedOverlays))
+            return false;
         if(!usedStrategies.equals(that.usedStrategies))
             return false;
         if(!usedAmbiguousStrategies.equals(that.usedAmbiguousStrategies))
@@ -184,7 +188,9 @@ public class ToTypesLookup implements SerializableFunction<ModuleData, TypesLook
     }
 
     @Override public int hashCode() {
-        int result = usedStrategies.hashCode();
+        int result = definedStrategies.hashCode();
+        result = 31 * result + definedOverlays.hashCode();
+        result = 31 * result + usedStrategies.hashCode();
         result = 31 * result + usedAmbiguousStrategies.hashCode();
         result = 31 * result + usedConstructors.hashCode();
         return result;

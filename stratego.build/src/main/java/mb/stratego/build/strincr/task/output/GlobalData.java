@@ -42,6 +42,8 @@ public class GlobalData implements Serializable {
     public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final ArrayList<Message> messages;
     public final long lastModified;
+    protected final int hashCode;
+
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
     private transient @Nullable CongruenceGlobalIndex congruenceGlobalIndex = null;
     private transient @Nullable GlobalConsInj globalConsInj = null;
@@ -78,6 +80,7 @@ public class GlobalData implements Serializable {
         this.overlayAsts = overlayAsts;
         this.messages = messages;
         this.lastModified = lastModified;
+        this.hashCode = hashFunction();
     }
 
     public CompileGlobalIndex getCompileGlobalIndex() {
@@ -122,6 +125,8 @@ public class GlobalData implements Serializable {
 
         GlobalData that = (GlobalData) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(lastModified != that.lastModified)
             return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
@@ -152,10 +157,16 @@ public class GlobalData implements Serializable {
             return false;
         if(!overlayData.equals(that.overlayData))
             return false;
+        if(!overlayAsts.equals(that.overlayAsts))
+            return false;
         return messages.equals(that.messages);
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = allModuleIdentifiers.hashCode();
         result = 31 * result + importedStr2LibPackageNames.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();
@@ -170,6 +181,7 @@ public class GlobalData implements Serializable {
         result = 31 * result + externalStrategyTypes.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + overlayAsts.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
@@ -192,6 +204,7 @@ public class GlobalData implements Serializable {
             + ", externalStrategies=" + externalStrategyTypes.size()
             + ", dynamicRules=" + dynamicRules.size()
             + ", overlayData=" + overlayData.size()
+            + ", overlayData=" + overlayAsts.size()
             + ", messages=" + messages.size()
             + ", lastModified=" + lastModified
             + (compileGlobalIndex == null ? "" : ", compileGlobalIndex=" + compileGlobalIndex)

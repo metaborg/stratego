@@ -14,6 +14,7 @@ import mb.pie.api.STaskDef;
 import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.function.GetCheckMessages;
@@ -80,10 +81,13 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
             new STaskDef<>(CheckModule.id);
 
+        boolean usingLegacyStrategoStdLib =
+            input.checkInput.importResolutionInfo.linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
+
         final CompileDynamicRulesInput compileDRInput =
             new CompileDynamicRulesInput(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput,
-                strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
+                strategyAnalysisDataTask, usingLegacyStrategoStdLib);
         final STask<CompileDynamicRulesOutput> compileDR =
             compileDynamicRules.createSupplier(compileDRInput);
         resultFiles.addAll(context.require(compileDR).resultFiles);
@@ -92,7 +96,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
             final BackInput.Normal normalInput =
                 new BackInput.Normal(outputDirWithPackage, input.packageNames, input.cacheDir,
                     input.constants, extraArgs, input.checkInput, strategySignature,
-                    strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
+                    strategyAnalysisDataTask, usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
             assert output != null && !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
@@ -100,14 +104,14 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final BackInput.Boilerplate boilerplateInput =
             new BackInput.Boilerplate(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput, input.library,
-                input.usingLegacyStrategoStdLib, input.libraryName, compileDR);
+                usingLegacyStrategoStdLib, input.libraryName, compileDR);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null && !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
             new BackInput.Congruence(outputDirWithPackage, input.packageNames, input.cacheDir,
-                input.constants, extraArgs, input.checkInput, input.usingLegacyStrategoStdLib, compileDR);
+                input.constants, extraArgs, input.checkInput, usingLegacyStrategoStdLib, compileDR);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null && !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(congruenceOutput.resultFiles);

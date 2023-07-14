@@ -1,5 +1,6 @@
 package strategolib.strategies;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -12,7 +13,7 @@ public class internal_immutable_set_filter_1_0 extends Strategy {
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy filter) {
         final Set.Immutable<IStrategoTerm> set = ((StrategoImmutableSet) current).backingSet;
-        final Set.Transient<IStrategoTerm> resultSet = Set.Transient.of();
+        final Set.Transient<IStrategoTerm> resultSet = CapsuleUtil.transientSet();
         for(IStrategoTerm value : set) {
             current = filter.invoke(context, value);
             if(current == null) {
