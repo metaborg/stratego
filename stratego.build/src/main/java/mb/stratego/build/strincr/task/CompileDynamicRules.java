@@ -4,7 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.Interactivity;
@@ -25,7 +24,7 @@ public class CompileDynamicRules implements TaskDef<CompileDynamicRulesInput, Co
     public final Resolve resolve;
     public final Back back;
 
-    @Inject public CompileDynamicRules(Resolve resolve, Back back) {
+    @jakarta.inject.Inject @javax.inject.Inject public CompileDynamicRules(Resolve resolve, Back back) {
         this.resolve = resolve;
         this.back = back;
     }

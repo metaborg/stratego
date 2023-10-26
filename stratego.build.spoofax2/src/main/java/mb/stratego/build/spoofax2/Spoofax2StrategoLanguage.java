@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import org.apache.commons.io.IOUtils;
@@ -53,7 +52,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private final ISpoofaxSyntaxService syntaxService;
     private final StrIncrContext strContext;
 
-    @Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, StrategoCommon strategoCommon,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxUnitService unitService,

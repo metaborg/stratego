@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;

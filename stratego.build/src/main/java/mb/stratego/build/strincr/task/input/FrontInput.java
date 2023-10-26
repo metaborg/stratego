@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
