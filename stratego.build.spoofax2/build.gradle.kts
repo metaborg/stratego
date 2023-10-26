@@ -15,5 +15,5 @@ dependencies {
 
   api("org.metaborg:pie.taskdefs.guice")
 
-  compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("jakarta.annotation:jakarta.annotation-api")
 }

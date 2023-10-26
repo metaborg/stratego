@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

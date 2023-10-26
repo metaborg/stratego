@@ -1,6 +1,5 @@
 package mb.stratego.build.util;
 
-import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
@@ -10,14 +9,14 @@ public class StrIncrContext extends Context {
     protected LocallyUniqueStringTermFactory factory;
 
     /**
-     * Hide zero-argument constructor from superclass so Guice understands to use the @Inject constructor
+     * Hide zero-argument constructor from superclass so Guice understands to use the @jakarta.inject.Inject @javax.inject.Inject constructor
      */
     @SuppressWarnings("unused")
     private StrIncrContext() {
         super();
     }
 
-    @Inject public StrIncrContext(ITermFactory termFactory) {
+    @jakarta.inject.Inject @javax.inject.Inject public StrIncrContext(ITermFactory termFactory) {
         super(new LocallyUniqueStringTermFactory(termFactory));
         factory = (LocallyUniqueStringTermFactory) super.getFactory();
         strj.init(this);

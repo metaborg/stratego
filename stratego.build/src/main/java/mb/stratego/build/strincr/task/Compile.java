@@ -3,7 +3,6 @@ package mb.stratego.build.strincr.task;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
 
 import org.metaborg.util.cmd.Arguments;
 
@@ -45,7 +44,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public final CompileDynamicRules compileDynamicRules;
     public final Back back;
 
-    @Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
+    @jakarta.inject.Inject @javax.inject.Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
         CompileDynamicRules compileDynamicRules, Back back) {
         this.resolve = resolve;
         this.copyLibraryClassFiles = copyLibraryClassFiles;

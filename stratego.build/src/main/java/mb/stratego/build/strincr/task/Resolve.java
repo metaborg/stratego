@@ -14,8 +14,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -56,7 +55,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     public final IModuleImportService moduleImportService;
     protected final ITermFactory tf;
 
-    @Inject public Resolve(StrIncrContext strContext, Front front, IModuleImportService moduleImportService) {
+    @jakarta.inject.Inject @javax.inject.Inject public Resolve(StrIncrContext strContext, Front front, IModuleImportService moduleImportService) {
         this.front = front;
         this.moduleImportService = moduleImportService;
         this.tf = strContext.getFactory();

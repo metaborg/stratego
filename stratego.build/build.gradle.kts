@@ -19,5 +19,5 @@ dependencies {
   api(project(":stratego.compiler.pack"))
   implementation("org.apache.commons:commons-lang3")
   implementation("commons-io:commons-io")
-  compileOnly("com.google.code.findbugs:jsr305")
+  compileOnly("jakarta.annotation:jakarta.annotation-api")
 }
