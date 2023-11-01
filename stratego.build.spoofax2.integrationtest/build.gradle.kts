@@ -10,11 +10,10 @@ dependencies {
   api(platform("org.metaborg:parent:$spoofax2Version"))
 
   api(compositeBuild("stratego.build.spoofax2"))
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 
   testImplementation("org.metaborg:pie.runtime")
   testImplementation("org.metaborg:strategoxt-jar:$spoofax2Version")
-  testCompileOnly("jakarta.annotation:jakarta.annotation-api")
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.
