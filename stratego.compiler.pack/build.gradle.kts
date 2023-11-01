@@ -10,5 +10,5 @@ dependencies {
   api(compositeBuild("org.spoofax.terms"))
   api(compositeBuild("org.metaborg.util"))
   api("org.slf4j:slf4j-api")
-  compileOnly("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.annotation:jakarta.annotation-api")
 }
