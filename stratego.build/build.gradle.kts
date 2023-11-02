@@ -16,7 +16,6 @@ dependencies {
   api(compositeBuild("org.spoofax.terms"))
   api(compositeBuild("org.spoofax.interpreter.core"))
   api(compositeBuild("org.strategoxt.strj"))
-  api(project(":stratego.compiler.pack"))
   implementation("org.apache.commons:commons-lang3")
   implementation("commons-io:commons-io")
   implementation("jakarta.annotation:jakarta.annotation-api")
