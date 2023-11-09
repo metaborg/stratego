@@ -1,5 +1,5 @@
 ---
-id: org.metaborg:gpp:2.5.18
+id: org.metaborg:gpp:2.6.0-SNAPSHOT
 name: gpp
 dependencies:
   compile:

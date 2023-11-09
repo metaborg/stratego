@@ -13,7 +13,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -58,6 +58,7 @@ public abstract class BackInput implements Serializable {
     public final Arguments extraArgs;
     public final CheckInput checkInput;
     public final boolean usingLegacyStrategoStdLib;
+    protected final int hashCode;
 
     public BackInput(ResourcePath outputDir, ArrayList<String> packageNames,
         @Nullable ResourcePath cacheDir, ArrayList<String> constants, Arguments extraArgs,
@@ -69,6 +70,7 @@ public abstract class BackInput implements Serializable {
         this.extraArgs = extraArgs;
         this.checkInput = checkInput;
         this.usingLegacyStrategoStdLib = usingLegacyStrategoStdLib;
+        this.hashCode = hashFunction();
     }
 
     public abstract CTreeBuildResult buildCTree(ExecContext context, Back backTask,
@@ -82,6 +84,10 @@ public abstract class BackInput implements Serializable {
 
         BackInput input = (BackInput) o;
 
+        if(hashCode != input.hashCode)
+            return false;
+        if(usingLegacyStrategoStdLib != input.usingLegacyStrategoStdLib)
+            return false;
         if(!outputDir.equals(input.outputDir))
             return false;
         if(!packageNames.equals(input.packageNames))
@@ -92,12 +98,14 @@ public abstract class BackInput implements Serializable {
             return false;
         if(!extraArgs.equals(input.extraArgs))
             return false;
-        if(!checkInput.equals(input.checkInput))
-            return false;
-        return usingLegacyStrategoStdLib == input.usingLegacyStrategoStdLib;
+        return checkInput.equals(input.checkInput);
     }
 
     @Override public int hashCode() {
+        return hashCode;
+    }
+
+    protected int hashFunction() {
         int result = outputDir.hashCode();
         result = 31 * result + packageNames.hashCode();
         result = 31 * result + (cacheDir != null ? cacheDir.hashCode() : 0);

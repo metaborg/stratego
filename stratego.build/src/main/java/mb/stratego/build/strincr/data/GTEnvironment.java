@@ -1,5 +1,6 @@
 package mb.stratego.build.strincr.data;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
@@ -27,6 +28,7 @@ public class GTEnvironment extends StrategoTuple {
         StrategoImmutableRelation constructors, StrategoImmutableSet sorts,
         StrategoImmutableRelation injectionClosure, StrategoImmutableMap lubMap,
         StrategoImmutableRelation aliasMap, IStrategoTerm ast, ITermFactory tf, long lastModified) {
+        // TODO: Add lastModified to super call, so it is taken into account in equals/hashcode. Needs modification on Stratego side that matches on this tuple
         super(
             new IStrategoTerm[] { strategyEnvironment.withWrapper(tf), constructors.withWrapper(tf),
                 sorts.withWrapper(tf), injectionClosure.withWrapper(tf), lubMap.withWrapper(tf),
@@ -87,7 +89,7 @@ public class GTEnvironment extends StrategoTuple {
          *      the name from the term or have a nicer representation of types.
          */
         final Map.Transient<IStrategoTerm, IStrategoTerm> lubMap =
-            Map.Transient.of();
+            CapsuleUtil.transientMap();
         for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> entry : injectionClosure.backingRelation
             .entrySet()) {
             final IStrategoTerm from = entry.getKey();
@@ -97,4 +99,6 @@ public class GTEnvironment extends StrategoTuple {
         }
         return new StrategoImmutableMap(lubMap.freeze());
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

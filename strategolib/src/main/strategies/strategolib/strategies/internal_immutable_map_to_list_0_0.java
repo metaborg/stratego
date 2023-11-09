@@ -6,7 +6,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.Map;
-import strategolib.terms.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 
 public class internal_immutable_map_to_list_0_0 extends Strategy {
     public static internal_immutable_map_to_list_0_0 instance = new internal_immutable_map_to_list_0_0();

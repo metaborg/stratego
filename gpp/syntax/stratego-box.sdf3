@@ -4,6 +4,7 @@ imports
   box/main
   box/base
   StrategoLang/import-namespaced
+  StrategoLang/core/modules-namespaced
   StrategoLang/core/terms-namespaced
 
 context-free start-symbols

@@ -25,6 +25,8 @@ public class AnnoDefs implements Serializable {
 
         AnnoDefs that = (AnnoDefs) o;
 
+        if(lastModified != that.lastModified)
+            return false;
         if(!internalStrategySigs.equals(that.internalStrategySigs))
             return false;
         return externalStrategySigs.equals(that.externalStrategySigs);
@@ -33,11 +35,12 @@ public class AnnoDefs implements Serializable {
     @Override public int hashCode() {
         int result = internalStrategySigs.hashCode();
         result = 31 * result + externalStrategySigs.hashCode();
+        result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 
     @Override public String toString() {
         return "AnnoDefs(" + internalStrategySigs
-            + ", " + externalStrategySigs + ')';
+            + ", " + externalStrategySigs + ", " + lastModified + ')';
     }
 }

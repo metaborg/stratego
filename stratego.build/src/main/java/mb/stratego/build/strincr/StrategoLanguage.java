@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -110,6 +110,11 @@ public interface StrategoLanguage {
      */
     default IStrategoTerm desugar(IStrategoTerm ast, String projectPath) throws ExecException {
         return callStrategy(ast, projectPath, "stratego2-compile-top-level-def");
+    }
+
+
+    default IStrategoTerm postparseDesugar(IStrategoTerm ast) throws ExecException {
+        return callStrategy(ast, null, "stratego2-postparse-desugar");
     }
 
     /**

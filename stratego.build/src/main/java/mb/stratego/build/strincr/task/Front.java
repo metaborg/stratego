@@ -12,10 +12,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
-import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -40,6 +38,7 @@ import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategyFrontData;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
+import mb.stratego.build.strincr.message.ExternalStrategySourceNotFound;
 import mb.stratego.build.strincr.message.FailedToGetModuleAst;
 import mb.stratego.build.strincr.message.InvalidASTMessage;
 import mb.stratego.build.strincr.message.Message;
@@ -48,7 +47,6 @@ import mb.stratego.build.strincr.message.UsingStratego1File;
 import mb.stratego.build.strincr.task.input.FrontInput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.termvisitors.CollectDynRuleSigs;
-import mb.stratego.build.termvisitors.DesugarType;
 import mb.stratego.build.termvisitors.UsedConstrs;
 import mb.stratego.build.termvisitors.UsedNamesFront;
 import mb.stratego.build.util.GenerateStratego;
@@ -72,16 +70,14 @@ import static mb.stratego.build.strincr.data.StrategyFrontData.Kind.TypeDefiniti
 public class Front implements TaskDef<FrontInput, ModuleData> {
     public static final String id = "stratego." + Front.class.getSimpleName();
     public final IModuleImportService moduleImportService;
-    protected final StrIncrContext strContext;
     protected final ITermFactory tf;
     protected final GenerateStratego generateStratego;
     protected final StrategoLanguage strategoLanguage;
     protected final ResourcePathConverter resourcePathConverter;
 
-    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
+    @jakarta.inject.Inject @javax.inject.Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
         GenerateStratego generateStratego, StrategoLanguage strategoLanguage,
         ResourcePathConverter resourcePathConverter) {
-        this.strContext = strContext;
         this.tf = strContext.getFactory();
         this.generateStratego = generateStratego;
         this.moduleImportService = moduleImportService;
@@ -141,7 +137,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 fileName != null ? fileName : input.moduleIdentifier.moduleString(), 0, 0, 0, 0));
             messages.add(new FailedToGetModuleAst(module, input.moduleIdentifier, e));
 
-            return new ModuleData(input.moduleIdentifier, new ArrayList<>(0),
+            final ArrayList<String> str2LibPackageNames = new ArrayList<>(0);
+            return new ModuleData(input.moduleIdentifier, str2LibPackageNames,
                 generateStratego.emptyModuleAst(input.moduleIdentifier), imports, sortData,
                 externalSortData, constrData, externalConstrData, injections, externalInjections,
                 strategyData, internalStrategyData, externalStrategyData, dynamicRuleData,
@@ -192,9 +189,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 case "Rules":
                     // fall-through
                 case "Strategies":
-                    addStrategyData(input.moduleIdentifier, strategyData, internalStrategyData,
+                    // TODO: test that module is not a source dep from another project
+                    final boolean moduleInProject = !input.moduleIdentifier.isLibrary();
+                    addStrategyData(context, input.moduleIdentifier, strategyData, internalStrategyData,
                         externalStrategyData, dynamicRuleData, dynamicRules, def.getSubterm(0),
-                        projectPath);
+                        projectPath, messages, input.importResolutionInfo, moduleInProject, ast.lastModified);
                     break;
                 default:
                     throw new InvalidASTException(input.moduleIdentifier, def);
@@ -269,13 +268,14 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
         return id;
     }
 
-    protected void addStrategyData(IModuleImportService.ModuleIdentifier moduleIdentifier,
+    protected void addStrategyData(ExecContext context, IModuleImportService.ModuleIdentifier moduleIdentifier,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> strategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> internalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> externalStrategyData,
         LinkedHashMap<StrategySignature, ArrayList<StrategyFrontData>> dynamicRuleData,
         LinkedHashMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, IStrategoTerm strategyDefs,
-        String projectPath) throws ExecException {
+        String projectPath, ArrayList<Message> messages, ImportResolutionInfo importResolutionInfo, boolean moduleInProject,
+        long lastModified) throws ExecException {
         /*
         def-type-pair: DefHasType(name, t@FunNoArgsType(_, _)) -> ((name, 0, 0), <try(desugar-SType)> t)
         def-type-pair: DefHasType(name, t@FunType(sarg*, _)) -> ((name, <length> sarg*, 0), <try(desugar-SType)> t)
@@ -344,6 +344,11 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     }
                     final @Nullable StrategySignature strategySignature =
                         StrategySignature.fromDefinition(strategyDef);
+                    if(moduleInProject && importResolutionInfo.resolveExternals != null && kind == External) {
+                        if(!moduleImportService.externalStrategyExists(context, strategySignature, importResolutionInfo)) {
+                            messages.add(ExternalStrategySourceNotFound.followOrigin(TermUtils.toString(strategySignature.getSubterm(0)), lastModified));
+                        }
+                    }
                     if(strategySignature == null) {
                         throw new InvalidASTException(moduleIdentifier, strategyDef);
                     }
@@ -504,7 +509,6 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                     constrData);
                 continue;
             }
-            final IStrategoTerm constrTerm = DesugarType.alltd(strContext, constrDef);
             final ConstructorType constrType = constrType(moduleIdentifier, constrDef);
             final HashMap<ConstructorSignature, ArrayList<ConstructorData>> dataMap;
             final @Nullable Boolean external = ConstructorSignature.isExternal(constrDef);
@@ -517,7 +521,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
                 dataMap = constrData;
             }
             Relation.getOrInitialize(dataMap, constrSig, ArrayList::new)
-                .add(new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                .add(new ConstructorData(constrSig, constrType));
         }
     }
 
@@ -637,10 +641,8 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
 
                     final ConstructorSignature constrSig =
                         new ConstructorSignature("", froms.size());
-                    final IStrategoTerm constrTerm =
-                        tf.replaceTerm(constrType.toOpType(tf), constrDef);
                     Relation.getOrInitialize(constrData, constrSig, ArrayList::new).add(
-                        new ConstructorData(constrSig, (IStrategoAppl) constrTerm, constrType));
+                        new ConstructorData(constrSig, constrType));
                 }
                 Relation.getOrInitialize(dataMap, from, ArrayList::new).add(constrType.to);
         }

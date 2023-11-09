@@ -1,5 +1,5 @@
 ---
-id: org.example:stratego.statixintegrationtest:2.5.18
+id: org.example:stratego.statixintegrationtest:2.6.0-SNAPSHOT
 name: strategostatix-integrationtest
 dependencies:
   compile:

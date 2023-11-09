@@ -73,7 +73,7 @@ syntax
 
 
   // 1 space after RuleNames
-  Strategy-CF.DynRuleUnionFix =
+  Strategy-CF.DynRuleUnionFix1 =
   "\\" LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
 
   // no space after RuleNames
@@ -82,7 +82,7 @@ syntax
       LAYOUT?-CF RuleNames-CF "/*" LAYOUT?-CF Strategy-CF
 
   // 1 space after RuleNames
-  Strategy-CF.DynRuleIntersectUnionFix =
+  Strategy-CF.DynRuleIntersectUnionFix1 =
   "/" LAYOUT?-CF RuleNames-CF LAYOUT?-CF "\\"
       LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
 

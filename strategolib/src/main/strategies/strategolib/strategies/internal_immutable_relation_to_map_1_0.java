@@ -2,6 +2,7 @@ package strategolib.strategies;
 
 import java.util.Map.Entry;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
@@ -9,8 +10,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Map;
-import strategolib.terms.StrategoImmutableMap;
-import strategolib.terms.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 public class internal_immutable_relation_to_map_1_0 extends Strategy {
     public static internal_immutable_relation_to_map_1_0 instance = new internal_immutable_relation_to_map_1_0();
@@ -20,7 +21,7 @@ public class internal_immutable_relation_to_map_1_0 extends Strategy {
 
         final BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> relation =
             ((StrategoImmutableRelation) current).backingRelation;
-        final Map.Transient<IStrategoTerm, IStrategoTerm> result = Map.Transient.of();
+        final Map.Transient<IStrategoTerm, IStrategoTerm> result = CapsuleUtil.transientMap();
         for(Entry<IStrategoTerm, IStrategoTerm> e : relation.entrySet()) {
             final IStrategoTerm key = e.getKey();
             final IStrategoTerm value = e.getValue();

@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import org.apache.commons.io.IOUtils;
@@ -31,15 +30,10 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
-import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
-
-import com.google.common.collect.Lists;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.StrategoLanguage;
@@ -58,7 +52,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private final ISpoofaxSyntaxService syntaxService;
     private final StrIncrContext strContext;
 
-    @Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, StrategoCommon strategoCommon,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxUnitService unitService,
@@ -165,7 +159,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : strategoLangImpl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;

@@ -1,6 +1,6 @@
 package mb.stratego.build.strincr;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.resource.hierarchical.ResourcePath;
 
@@ -40,6 +40,8 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier, 
 
         ModuleIdentifier that = (ModuleIdentifier) o;
 
+        if(legacyStratego != that.legacyStratego)
+            return false;
         if(isLibrary != that.isLibrary)
             return false;
         if(!moduleString.equals(that.moduleString))
@@ -48,9 +50,11 @@ public class ModuleIdentifier implements IModuleImportService.ModuleIdentifier, 
     }
 
     @Override public int hashCode() {
-        int result = isLibrary ? 1 : 0;
+        int result = Boolean.hashCode(legacyStratego);
+        result = 31 * result + Boolean.hashCode(isLibrary);
         result = 31 * result + moduleString.hashCode();
         result = 31 * result + path.hashCode();
+
         return result;
     }
 

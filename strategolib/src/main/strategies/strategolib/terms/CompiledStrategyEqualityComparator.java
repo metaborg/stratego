@@ -7,12 +7,12 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.util.EqualityComparator;
 
-public class StrategyEqualityComparator implements EqualityComparator<Object> {
+public class CompiledStrategyEqualityComparator implements EqualityComparator<Object> {
     private final Context context;
     private final Strategy compare;
     private final IStrategoTermBuilder factory;
 
-    public StrategyEqualityComparator(Context env, Strategy comp) {
+    public CompiledStrategyEqualityComparator(Context env, Strategy comp) {
         this.context = env;
         this.compare = comp;
         this.factory = env.getFactory();

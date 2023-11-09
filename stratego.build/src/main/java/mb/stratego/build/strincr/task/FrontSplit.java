@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
-import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -30,7 +29,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
 
     public final Front front;
 
-    @Inject public FrontSplit(Front front) {
+    @jakarta.inject.Inject @javax.inject.Inject public FrontSplit(Front front) {
         this.front = front;
     }
 

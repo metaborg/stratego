@@ -18,8 +18,8 @@ context-free syntax
   Strategy.TypeTest   = [is([Type])]
 //  Strategy.TypedCong = [[TypedId]([{Strategy ", "}*])]
 
-  Coercion.Fail = [fail]
-  Coercion.Id = [id]
+  Coercion.FailC = [fail]
+  Coercion.IdC = [id]
   Coercion.RuntimeCheck = Type
 
   SCoercion.SFail         = [fail]

@@ -7,7 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -59,6 +59,8 @@ public class ModuleData implements Serializable, WithLastModified {
     public final LinkedHashSet<String> usedAmbiguousStrategies;
     public final ArrayList<Message> messages;
     public final long lastModified;
+    protected final int hashCode;
+
     private transient @Nullable LinkedHashMap<String, LinkedHashSet<StrategyFrontData>>
         ambStrategyIndex = null;
     private transient @Nullable ArrayList<IStrategoTerm> dynamicRuleDefinitions = null;
@@ -105,6 +107,7 @@ public class ModuleData implements Serializable, WithLastModified {
         this.usedAmbiguousStrategies = usedAmbiguousStrategies;
         this.messages = messages;
         this.lastModified = lastModified;
+        this.hashCode = hashFunction();
     }
 
     public LinkedHashMap<String, LinkedHashSet<StrategyFrontData>> ambStrategyIndex() {
@@ -167,6 +170,8 @@ public class ModuleData implements Serializable, WithLastModified {
 
         ModuleData that = (ModuleData) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(lastModified != that.lastModified)
             return false;
         if(!moduleIdentifier.equals(that.moduleIdentifier))
@@ -179,6 +184,10 @@ public class ModuleData implements Serializable, WithLastModified {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = moduleIdentifier.hashCode();
         result = 31 * result + ast.hashCode();
         result = 31 * result + imports.hashCode();
@@ -220,5 +229,4 @@ public class ModuleData implements Serializable, WithLastModified {
     @Override public long lastModified() {
         return lastModified;
     }
-
 }

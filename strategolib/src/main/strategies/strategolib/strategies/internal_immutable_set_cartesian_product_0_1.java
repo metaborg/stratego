@@ -6,8 +6,8 @@ import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set;
-import strategolib.terms.StrategoImmutableRelation;
-import strategolib.terms.StrategoImmutableSet;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 
 public class internal_immutable_set_cartesian_product_0_1 extends Strategy {
     public static internal_immutable_set_cartesian_product_0_1 instance = new internal_immutable_set_cartesian_product_0_1();

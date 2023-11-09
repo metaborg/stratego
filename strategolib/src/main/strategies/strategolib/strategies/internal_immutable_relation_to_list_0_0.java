@@ -6,7 +6,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 import io.usethesource.capsule.BinaryRelation;
-import strategolib.terms.StrategoImmutableRelation;
+import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 public class internal_immutable_relation_to_list_0_0 extends Strategy {
     public static internal_immutable_relation_to_list_0_0 instance = new internal_immutable_relation_to_list_0_0();
