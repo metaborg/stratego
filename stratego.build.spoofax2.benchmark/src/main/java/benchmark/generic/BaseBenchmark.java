@@ -26,7 +26,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     protected P program;
     protected Arguments args;
 
-    public String metaborgVersion = "2.5.19";
+    public String metaborgVersion = "2.6.0-SNAPSHOT";
 
     @Param({"2"})
     public int optimisationLevel;
