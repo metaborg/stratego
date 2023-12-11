@@ -1,0 +1,22 @@
+module check1
+
+imports libstrategolib
+
+signature
+
+sorts
+   USingleton Nat
+
+constructors
+   Ucons : Nat -> USingleton 
+   d0 : Nat 
+   succ : Nat -> Nat 
+
+rules
+
+strategies
+   eval = id
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> d0()) ;
+      <exit> 0

@@ -1,0 +1,22 @@
+"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: optimisationLevel","Param: problemSize","Param: sharedConstructors","Param: switchImplementation"
+"benchmark.chocopy.compilation.CallMutual.compileChocoPy","ss",1,15,0.009798,0.002777,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.CallMutual.compileChocoPy","ss",1,15,0.009345,0.001290,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.CallMutual.compileChocoPy","ss",1,15,0.010593,0.006009,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.Exp.compileChocoPy","ss",1,15,0.008655,0.001202,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.Exp.compileChocoPy","ss",1,15,0.007891,0.001618,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.Exp.compileChocoPy","ss",1,15,0.009122,0.002106,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.GoingUpMultipleFrames.compileChocoPy","ss",1,15,0.010509,0.002244,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.GoingUpMultipleFrames.compileChocoPy","ss",1,15,0.010355,0.002322,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.GoingUpMultipleFrames.compileChocoPy","ss",1,15,0.008731,0.002155,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.Prime.compileChocoPy","ss",1,15,0.010031,0.001680,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.Prime.compileChocoPy","ss",1,15,0.009902,0.002164,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.Prime.compileChocoPy","ss",1,15,0.010031,0.002252,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.Sieve.compileChocoPy","ss",1,15,0.013420,0.003247,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.Sieve.compileChocoPy","ss",1,15,0.014017,0.003402,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.Sieve.compileChocoPy","ss",1,15,0.024684,0.023363,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.Stdlib.compileChocoPy","ss",1,15,0.012417,0.003211,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.Stdlib.compileChocoPy","ss",1,15,0.012567,0.002528,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.Stdlib.compileChocoPy","ss",1,15,0.010570,0.002111,"s/op",4,-1,on,hash-switch
+"benchmark.chocopy.compilation.Tree.compileChocoPy","ss",1,15,0.012169,0.002835,"s/op",2,-1,on,
+"benchmark.chocopy.compilation.Tree.compileChocoPy","ss",1,15,0.013043,0.003625,"s/op",3,-1,on,
+"benchmark.chocopy.compilation.Tree.compileChocoPy","ss",1,15,0.013590,0.002728,"s/op",4,-1,on,hash-switch
