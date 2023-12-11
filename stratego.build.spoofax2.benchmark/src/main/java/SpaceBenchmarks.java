@@ -61,7 +61,7 @@ final class SpaceBenchmarks {
                                 benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
                                 benchmark.setOptimisationLevel(optimisationLevel);
                                 benchmark.setSharedConstructors("on");
-                                benchmark.setSwitchImplementation(switchImplementation);
+//                                benchmark.setSwitchImplementation(switchImplementation);
 //                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
 
                                 benchmark.setup();

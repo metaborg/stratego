@@ -48,6 +48,7 @@ $(STRATEGO_REPO_DIR):
 
 .PHONY: run-benchmark
 run-benchmark: $(BENCHMARK_JAR) | $(RESULTS_DIR)
+	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) $(BENCHMARK_ARGS)
 
 .PHONY: prepare-benchmark

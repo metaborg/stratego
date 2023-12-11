@@ -11,16 +11,6 @@ public abstract class StrategoBenchmark extends OptimisationBenchmark<Stratego2P
 
     private static final String LANGUAGE_SUBFOLDER = "stratego2";
 
-    @Param({"", "elseif", "nested-switch", "hash-switch"})
-    public String switchImplementation = "";
-
-//    @Param({"", /*"name-arity",*/ "arity-name"})
-//    public String switchImplementationOrder = "";
-
-//    @SuppressWarnings("unused")
-//    @Param({"on", "off"})
-//    String fusion = "";
-
     @Override
     public void instantiateProgram() throws MetaborgException, IOException {
         program = new Stratego2Program(sourcePath, args, metaborgVersion);

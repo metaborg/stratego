@@ -27,17 +27,10 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     protected P program;
     protected Arguments args;
 
-//    @Param({"2.6.0-SNAPSHOT"})
-    public String metaborgVersion = "2.6.0-SNAPSHOT";
+    public String metaborgVersion = "2.5.19";
 
     @Param({"2"})
     public int optimisationLevel;
-
-    @Param({""})
-    public String switchImplementation;
-
-//    @Param({""})
-//    public String switchImplementationOrder;
 
     @Param({"on"})
     public String sharedConstructors;
@@ -57,14 +50,6 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
         this.sharedConstructors = sharedConstructors;
     }
 
-    public final void setSwitchImplementation(String switchImplementation) {
-        this.switchImplementation = switchImplementation;
-    }
-
-//    public void setSwitchImplementationOrder(String switchImplementationOrder) {
-//        this.switchImplementationOrder = switchImplementationOrder;
-//    }
-
     /**
      * @throws SkipException
      * @throws InvalidConfigurationException
@@ -72,26 +57,6 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     @Setup(Level.Trial)
     public void setup() {
         args = new Arguments();
-        if (4 == optimisationLevel) {
-            if (Objects.equals(switchImplementation, "")) {
-                throw new InvalidConfigurationException("No switch implementation set on -O 4");
-            } /*else if ((Objects.equals(switchImplementation, "nested-switch") && Objects.equals(switchImplementationOrder, ""))
-                    || (Objects.equals(switchImplementation, "hash-switch") && !Objects.equals(switchImplementationOrder, ""))
-                    || (Objects.equals(switchImplementation, "elseif") && !Objects.equals(switchImplementationOrder, ""))
-            ) {
-                throw new InvalidConfigurationException("Invalid combination of switch implementation and switch implementation order.");
-            }*/
-
-            args.add("--pmc:switchv", switchImplementation);
-
-//            if (Objects.equals(switchImplementation, "nested-switch")) {
-//                args.add("--pmc:switchv-order", switchImplementationOrder);
-//            }
-        } else {
-            if (!Objects.equals(switchImplementation, "") /*|| !Objects.equals(switchImplementationOrder, "")*/)
-                throw new InvalidConfigurationException("Switch implementation set, but not on -O 4");
-        }
-
         sourcePath = Paths.get("src", "main", "resources", languageSubFolder(), sourceFileName());
 
         args.add("-O", optimisationLevel);
@@ -120,7 +85,7 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
      */
     protected final void handleException(Exception e) {
         if (e instanceof FileNotFoundException) {
-            throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath), e);
+            throw new SkipException(String.format("Benchmark problem file %s does not exist! Skipping.", sourcePath, " pwd: ", System.getProperty("user.dir")), e);
         } else if (e instanceof IOException) {
             throw new SkipException("Exception while creating temporary intermediate directory! Skipping.", e);
         } else if (e instanceof MetaborgException) {
