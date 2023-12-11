@@ -67,7 +67,7 @@ final class SpaceBenchmarks {
                                 benchmark.setOptimisationLevel(optimisationLevel);
                                 benchmark.setProblemSize(problemSize);
                                 benchmark.setSharedConstructors("on");
-                                benchmark.setSwitchImplementation(switchImplementation);
+//                                benchmark.setSwitchImplementation(switchImplementation);
 //                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
 
                                 benchmark.setup();
