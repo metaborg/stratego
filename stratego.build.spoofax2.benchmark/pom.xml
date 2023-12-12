@@ -39,6 +39,18 @@ THE POSSIBILITY OF SUCH DAMAGE.
     <packaging>jar</packaging>
 
     <name>JMH benchmark sample: Java</name>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--JMH version to use with this project.-->
+        <jmh.version>1.32</jmh.version>
+        <!--Java source/target to use for compilation.-->
+        <javac.target>1.8</javac.target>
+        <!--Name of the benchmark Uber-JAR to generate.-->
+        <uberjar.name>benchmarks</uberjar.name>
+
+        <metaborg-version>2.6.0-SNAPSHOT</metaborg-version>
+        <pie-version>0.20.0</pie-version>
+    </properties>
 
     <!--
        This is the demo/sample template build script for building Java benchmarks with JMH.
@@ -65,48 +77,48 @@ THE POSSIBILITY OF SUCH DAMAGE.
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>stratego.build</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.metaborg.core</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.metaborg.spoofax.core</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>stratego.build.spoofax2</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>strategoxt-jar</artifactId>
-            <version>2.6.0-SNAPSHOT</version>
+            <version>${metaborg-version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>pie.api</artifactId>
-            <version>0.19.2</version>
+            <version>${pie-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>pie.runtime</artifactId>
-            <version>0.19.2</version>
+            <version>${pie-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>pie.task.archive</artifactId>
-            <version>0.19.2</version>
+            <version>${pie-version}</version>
         </dependency>
         <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>pie.taskdefs.guice</artifactId>
-            <version>0.19.2</version>
+            <version>${pie-version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -120,25 +132,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <version>1.7.25</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!--
-            JMH version to use with this project.
-          -->
-        <jmh.version>1.32</jmh.version>
-
-        <!--
-            Java source/target to use for compilation.
-          -->
-        <javac.target>1.8</javac.target>
-
-        <!--
-            Name of the benchmark Uber-JAR to generate.
-          -->
-        <uberjar.name>benchmarks</uberjar.name>
-    </properties>
 
     <build>
         <plugins>
