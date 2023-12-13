@@ -2,8 +2,10 @@ package api.stratego2;
 
 import api.Compiler;
 import api.Java;
+import api.SimpleSpoofaxModule;
 import benchmark.exception.SkipException;
 import com.google.common.collect.Lists;
+
 import mb.log.stream.StreamLoggerFactory;
 import mb.pie.api.*;
 import mb.pie.runtime.PieBuilderImpl;
@@ -156,7 +158,8 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
 
     @Override
     protected void setupBuild() throws MetaborgException {
-        spoofax = new Spoofax(new StrIncrModule(), new GuiceTaskDefsModule());
+        spoofax = new Spoofax(new SimpleSpoofaxModule(), new StrIncrModule(),
+            new GuiceTaskDefsModule());
         // compile
 
         FSPath serializingStorePath =
@@ -198,7 +201,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                        new ArrayList<>(0), library, autoImportStd, languageIdentifier.id, new ArrayList<>());
+                        new ArrayList<>(0), library, autoImportStd, true, languageIdentifier.id, new ArrayList<>());
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         debugPrint("Creating compile task...");
@@ -327,3 +330,4 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         if (output) System.out.printf(format, args);
     }
 }
+

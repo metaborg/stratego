@@ -26,7 +26,12 @@ public abstract class StrategoExecutionBenchmark extends StrategoBenchmark {
 
     @Benchmark
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public final String run() throws Exception {
-        return getProgram().run();
+    public final String run() throws IOException, InterruptedException {
+        return getProgram().run(inputString);
+    }
+
+    @Override
+    protected final String sourceFileName() {
+        return problemFileName();
     }
 }

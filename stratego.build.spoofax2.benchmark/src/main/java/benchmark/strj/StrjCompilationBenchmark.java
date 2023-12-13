@@ -12,6 +12,13 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 public abstract class StrjCompilationBenchmark extends StrategoCompilationBenchmark {
+
+    @Param({""})
+    public String switchImplementation;
+
+    @Param({""})
+    public String switchImplementationOrder;
+
     @Param({"on"})
     public String sharedConstructors;
 

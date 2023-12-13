@@ -54,7 +54,7 @@ public abstract class JavaCompilationBenchmark extends StrategoBenchmark {
      * @throws IOException
      * @throws SkipException
      */
-//    @Benchmark
+    @Benchmark
     public final File compileJava() throws IOException {
         return getProgram().compileJava();
     }
