@@ -1,7 +1,7 @@
 # CONFIG
 SPOOFAX_VERSION=2.6.0-SNAPSHOT
 
-BENCHMARK_REPO_URL=https://github.com/toinehartman/stratego.git
+BENCHMARK_REPO_URL=https://github.com/rensux/stratego.git
 BENCHMARK_PROJECT=stratego.build.spoofax2.benchmark
 
 TIL_REPO_URL?=https://github.com/MetaborgCube/TIL.git
@@ -95,10 +95,10 @@ til.O4: $(TIL_LANGUAGE).O4
 .PHONY: til-variants
 til-variants: $(TIL_LANGUAGE).O2 $(TIL_LANGUAGE).O3 $(TIL_LANGUAGE).O4
 
+.PHONY: prepare-benchmark
+prepare-benchmark: $(BENCHMARK_JAR) | $(RESULTS_DIR)
+
 .PHONY: run-benchmark
-run-benchmark: til-variants $(BENCHMARK_JAR) | $(RESULTS_DIR)
+run-benchmark: prepare-benchmark
 	cd $(BENCHMARK_DIR) && \
 	java -jar $(BENCHMARK_JAR) $(BENCHMARK_ARGS)
-
-.PHONY: prepare-benchmark
-prepare-benchmark: til-variants $(BENCHMARK_JAR) | $(RESULTS_DIR)
