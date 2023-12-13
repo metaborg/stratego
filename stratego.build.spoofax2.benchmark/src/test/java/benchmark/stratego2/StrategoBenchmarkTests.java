@@ -38,8 +38,6 @@ import benchmark.til.execution.TILExecutionBenchmark;
 
 public class StrategoBenchmarkTests {
     private final Integer[] optimisationLevels = { 3, 4 };
-    private final String[] switchImplementations =
-        { "", /*"elseif", "nested-switch",*/ "hash-switch" };
     private final Collection<Class<? extends StrategoExecutionBenchmark>> strategoProblems =
         new LinkedList<>(
             Arrays.asList(Benchexpr.class, Benchsym.class, Benchtree.class, Bubblesort.class,
@@ -53,57 +51,53 @@ public class StrategoBenchmarkTests {
     @TestFactory Stream<DynamicTest> strategoExecutionBenchmarkTests() {
         return strategoProblems.stream().flatMap(problemClass -> {
             final AtomicReference<String> result = new AtomicReference<>();
-            return Arrays.stream(optimisationLevels).flatMap(
-                optimisationLevel -> Arrays.stream(switchImplementations)
-                    .map(switchImplementation -> {
-                        final StrategoExecutionBenchmark benchmark;
-                        try {
-                            benchmark = problemClass.getDeclaredConstructor().newInstance();
-                        } catch(InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-                        try {
-                            benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
-                            benchmark.setOptimisationLevel(optimisationLevel);
-                            benchmark.setSharedConstructors("on");
-                            benchmark.setSwitchImplementation(switchImplementation);
-                            // set shadowing fields in non-BaseBenchmark
-                            benchmark.optimisationLevel = optimisationLevel;
-                            benchmark.switchImplementation = switchImplementation;
+            return Arrays.stream(optimisationLevels).map(
+                optimisationLevel -> {
+                    final StrategoExecutionBenchmark benchmark;
+                    try {
+                        benchmark = problemClass.getDeclaredConstructor().newInstance();
+                    } catch(InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
+                        benchmark.setOptimisationLevel(optimisationLevel);
+                        benchmark.setSharedConstructors("on");
+                        // set shadowing fields in non-BaseBenchmark
+                        benchmark.optimisationLevel = optimisationLevel;
 
-                            benchmark.setup();
-                        } catch(SkipException e) {
-                            throw new RuntimeException(e);
-                        } catch(InvalidConfigurationException e) {
-                            return null;
-                        }
-                        return DynamicTest.dynamicTest(
-                            "Compile & run " + benchmark.problemFileName() + " -O"
-                                + optimisationLevel + " -switch=" + switchImplementation, () -> {
-                                try {
-                                    benchmark.compile();
-                                    benchmark.setInput();
+                        benchmark.setup();
+                    } catch(SkipException e) {
+                        throw new RuntimeException(e);
+                    } catch(InvalidConfigurationException e) {
+                        return null;
+                    }
+                    return DynamicTest.dynamicTest(
+                        "Compile & run " + benchmark.problemFileName() + " -O"
+                            + optimisationLevel, () -> {
+                            try {
+                                benchmark.compile();
+                                benchmark.setInput();
 
-                                    final String localResult = benchmark.run();
-                                    if(!result.compareAndSet(null, localResult)) {
-                                        Assertions.assertEquals(result.get(), localResult);
-                                    }
-                                } catch(IOException | MetaborgException | InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                } finally {
-                                    benchmark.teardown();
+                                final String localResult = benchmark.run();
+                                if(!result.compareAndSet(null, localResult)) {
+                                    Assertions.assertEquals(result.get(), localResult);
                                 }
-                            });
-                    }).filter(Objects::nonNull));
+                            } catch(IOException | MetaborgException | InterruptedException e) {
+                                throw new RuntimeException(e);
+                            } finally {
+                                benchmark.teardown();
+                            }
+                        });
+                }).filter(Objects::nonNull);
         });
     }
 
     @TestFactory Stream<DynamicTest> TILExecutionBenchmarkTests() {
         return tilExecutionProblems.stream().flatMap(problemClass -> {
             final AtomicReference<String> result = new AtomicReference<>();
-            return Arrays.stream(optimisationLevels).flatMap(
-                optimisationLevel -> Arrays.stream(switchImplementations)
-                    .map(switchImplementation -> {
+            return Arrays.stream(optimisationLevels).map(
+                optimisationLevel -> {
                         final TILExecutionBenchmark benchmark;
                         try {
                             benchmark = problemClass.newInstance();
@@ -114,10 +108,8 @@ public class StrategoBenchmarkTests {
                             benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
                             benchmark.setOptimisationLevel(optimisationLevel);
                             benchmark.setSharedConstructors("on");
-                            benchmark.setSwitchImplementation(switchImplementation);
                             // set shadowing fields in non-BaseBenchmark
                             benchmark.optimisationLevel = optimisationLevel;
-                            benchmark.switchImplementation = switchImplementation;
 
                             benchmark.setup();
                         } catch(SkipException e) {
@@ -127,7 +119,7 @@ public class StrategoBenchmarkTests {
                         }
                         return DynamicTest.dynamicTest(
                             "Compile & run " + benchmark.problemFileName() + " -O"
-                                + optimisationLevel + " -switch=" + switchImplementation, () -> {
+                                + optimisationLevel, () -> {
                                 try {
                                     benchmark.setInput();
 
@@ -141,7 +133,7 @@ public class StrategoBenchmarkTests {
                                     benchmark.teardown();
                                 }
                             });
-                    }).filter(Objects::nonNull));
+                    }).filter(Objects::nonNull);
         });
     }
 }

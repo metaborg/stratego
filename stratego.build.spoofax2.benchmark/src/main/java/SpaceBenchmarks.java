@@ -28,13 +28,11 @@ final class SpaceBenchmarks {
 
         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(resultsFile));
 
-        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Param: switchImplementation", /*"Param: switchImplementationOrder",*/ "Score"}, Character.toString(delim)));
+        fileWriter.write(Strings.join(new String[]{"Benchmark", "Param: problemSize", "Param: optimisationLevel", "Score"}, Character.toString(delim)));
         fileWriter.newLine();
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
-        String[] switchImplementations = {"", /*"elseif", "nested-switch",*/ "hash-switch"};
-//        String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends StrategoCompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr.class,
@@ -52,54 +50,43 @@ final class SpaceBenchmarks {
 
         for (Class<? extends StrategoCompilationBenchmark> problemClass : problems) {
                 for (int optimisationLevel : optimisationLevels) {
-                    for (String switchImplementation : switchImplementations) {
-//                        for (String switchImplementationOrder : switchImplementationOrders){
-                            System.out.printf("%s (%d); -O %d; switch: %s%n", problemClass.getSimpleName(), optimisationLevel, switchImplementation);
+                        System.out.printf("%s (%d); -O %d%n", problemClass.getSimpleName(), optimisationLevel, optimisationLevel);
 
-                            StrategoCompilationBenchmark benchmark = problemClass.newInstance();
-                            try {
-                                benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
-                                benchmark.setOptimisationLevel(optimisationLevel);
-                                benchmark.setSharedConstructors("on");
-                                benchmark.setSwitchImplementation(switchImplementation);
-//                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
+                        StrategoCompilationBenchmark benchmark = problemClass.newInstance();
+                        try {
+                            benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
+                            benchmark.setOptimisationLevel(optimisationLevel);
+                            benchmark.setSharedConstructors("on");
 
-                                benchmark.setup();
+                            benchmark.setup();
 
-                                Map<String, Long> bms = new HashMap<>();
-                                bms.put("Java space", Stratego2Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
-                                bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
+                            Map<String, Long> bms = new HashMap<>();
+                            bms.put("Java space", Stratego2Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
+                            bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
 
-                                for (Map.Entry<String, Long> bm : bms.entrySet()) {
-                                    fileWriter.write(problemClass.getName() + "." + bm.getKey());
+                            for (Map.Entry<String, Long> bm : bms.entrySet()) {
+                                fileWriter.write(problemClass.getName() + "." + bm.getKey());
 
-                                    fileWriter.write(delim);
-                                    fileWriter.write("");
+                                fileWriter.write(delim);
+                                fileWriter.write("");
 
-                                    fileWriter.write(delim);
-                                    fileWriter.write(Integer.toString(optimisationLevel));
+                                fileWriter.write(delim);
+                                fileWriter.write(Integer.toString(optimisationLevel));
 
-                                    fileWriter.write(delim);
-                                    fileWriter.write(switchImplementation);
+                                fileWriter.write(delim);
+                                fileWriter.write(Long.toString(bm.getValue()));
 
-//                                    fileWriter.write(delim);
-//                                    fileWriter.write(switchImplementationOrder);
-
-                                    fileWriter.write(delim);
-                                    fileWriter.write(Long.toString(bm.getValue()));
-
-                                    fileWriter.newLine();
-                                    fileWriter.flush();
-                                }
-                            } catch (IOException | MetaborgException e) {
-                                e.printStackTrace();
-                            } finally {
-                                benchmark.teardown();
+                                fileWriter.newLine();
+                                fileWriter.flush();
                             }
-
+                        } catch (IOException | MetaborgException e) {
+                            e.printStackTrace();
+                        } finally {
+                            benchmark.teardown();
                         }
+
                     }
-//                }
+
             }
 
         fileWriter.close();
