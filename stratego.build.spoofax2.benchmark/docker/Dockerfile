@@ -35,14 +35,14 @@ RUN mkdir ${BUILD_DIR}
 
 # Git config
 RUN git config --global user.name "Stratego2 Evaluation" && \
-    git config --global user.email "t.j.b.hartman@student.tudelft.nl"
+    git config --global user.email "renzo.russel@gmail.com"
 
 COPY Makefile .
 
-RUN make prepare-benchmark \
- && rm -rf .gradle /tmp/* .cache .pluto .kotlin
+RUN make prepare-benchmark
+RUN rm -rf .gradle .cache .pluto .kotlin /tmp/mb.* /tmp/vfs_cache*
 
-RUN make run-benchmark \
- && rm -rf .gradle /tmp/* .cache .pluto .kotlin
+#RUN make run-benchmark
+#RUN rm -rf .gradle .cache .pluto .kotlin /tmp/mb.* /tmp/vfs_cache*
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "make", "run-benchmark" ]
