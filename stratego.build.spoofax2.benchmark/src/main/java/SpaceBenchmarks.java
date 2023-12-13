@@ -33,7 +33,7 @@ final class SpaceBenchmarks {
         fileWriter.flush();
 
         int[] optimisationLevels = {2, 3, 4};
-        String[] switchImplementations = {"", "elseif", "nested-switch", "hash-switch"};
+        String[] switchImplementations = {"", /*"elseif", "nested-switch",*/ "hash-switch"};
 //        String[] switchImplementationOrders = {"", "arity-name"};
 
         Collection<Class<? extends StrategoCompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
@@ -61,7 +61,7 @@ final class SpaceBenchmarks {
                                 benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
                                 benchmark.setOptimisationLevel(optimisationLevel);
                                 benchmark.setSharedConstructors("on");
-//                                benchmark.setSwitchImplementation(switchImplementation);
+                                benchmark.setSwitchImplementation(switchImplementation);
 //                                benchmark.setSwitchImplementationOrder(switchImplementationOrder);
 
                                 benchmark.setup();
