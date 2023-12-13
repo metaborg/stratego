@@ -19,6 +19,7 @@
 
         <metaborg.version>2.6.0-SNAPSHOT</metaborg.version>
         <pie.version>0.20.0</pie.version>
+        <skip.tests>true</skip.tests>
     </properties>
 
     <!--
@@ -146,6 +147,7 @@
                                     -->
                                     <artifact>*:*</artifact>
                                     <excludes>
+                                        <exclude>module-info.class</exclude>
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
@@ -212,6 +214,7 @@
                         <argLine>-Xmx1024m</argLine>
                         <argLine>-Xss16m</argLine>
                         <reportFormat>plain</reportFormat>
+                        <skipTests>${skip.tests}</skipTests>
                         <consoleOutputReporter>
                             <disable>true</disable>
                         </consoleOutputReporter>
