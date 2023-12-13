@@ -11,9 +11,6 @@ public abstract class TILBenchmark extends OptimisationBenchmark<TILProgram> {
 
     private static final String LANGUAGE_SUBFOLDER = "TIL";
 
-    @Param({"", "hash-switch"})
-    public String switchImplementation = "";
-
     @Override
     public void instantiateProgram() throws MetaborgException, IOException {
         program = new TILProgram(sourcePath, optimisationLevel, metaborgVersion);
