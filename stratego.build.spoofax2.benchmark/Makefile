@@ -30,11 +30,10 @@ TIL_LANGUAGE=$(TIL_MAVEN_FOLDER)/$(TIL_ARTIFACT)
 
 # Targets
 .PHONY: all
-all: run-benchmark
+all: clean run-benchmark
 
 .PHONY: clean
 clean:
-	-rm -rf $(BUILD_DIR)
 	@mvn -q clean
 
 .PHONY: benchmark-jar

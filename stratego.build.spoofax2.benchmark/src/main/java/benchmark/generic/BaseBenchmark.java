@@ -17,9 +17,9 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Thread)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
-@Fork(value = 2, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
+@Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
 
     protected Path sourcePath;
@@ -27,7 +27,6 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
     protected P program;
     protected Arguments args;
 
-//    @Param({"2.6.0-SNAPSHOT"})
     public String metaborgVersion = "2.6.0-SNAPSHOT";
 
     @Param({"2"})
@@ -35,9 +34,6 @@ public abstract class BaseBenchmark<P extends Program<?>> implements Problem {
 
     @Param({"on"})
     public String sharedConstructors;
-
-    //    @Param({"on", "off"})
-//    public String fusion;
 
     public final void setMetaborgVersion(String metaborgVersion) {
         this.metaborgVersion = metaborgVersion;
