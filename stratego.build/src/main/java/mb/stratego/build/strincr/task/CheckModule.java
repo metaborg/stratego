@@ -13,8 +13,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
@@ -95,7 +94,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private final ITermFactory tf;
     private final ResourcePathConverter resourcePathConverter;
 
-    @Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
+    @jakarta.inject.Inject @javax.inject.Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
         StrategoLanguage strategoLanguage, ResourcePathConverter resourcePathConverter) {
         this.resolve = resolve;
         this.front = front;

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.stamp.ResourceStamper;
 import mb.pie.api.stamp.resource.ValueResourceStamp;

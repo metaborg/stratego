@@ -18,7 +18,7 @@ import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;

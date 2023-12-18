@@ -16,8 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -44,7 +43,7 @@ public class ModuleImportService implements IModuleImportService {
     private final ResourcePathConverter resourcePathConverter;
     private final StrategoLanguage strategoLanguage;
 
-    @Inject public ModuleImportService(ResourcePathConverter resourcePathConverter,
+    @jakarta.inject.Inject @javax.inject.Inject public ModuleImportService(ResourcePathConverter resourcePathConverter,
         StrategoLanguage strategoLanguage) {
         this.resourcePathConverter = resourcePathConverter;
         this.strategoLanguage = strategoLanguage;

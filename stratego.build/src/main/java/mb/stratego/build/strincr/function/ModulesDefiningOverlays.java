@@ -3,7 +3,7 @@ package mb.stratego.build.strincr.function;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.SerializableFunction;
 import mb.stratego.build.strincr.IModuleImportService;
