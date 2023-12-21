@@ -93,7 +93,7 @@ public class StrategoBenchmarkTests {
         });
     }
 
-    @TestFactory Stream<DynamicTest> TILExecutionBenchmarkTests() {
+    Stream<DynamicTest> TILExecutionBenchmarkTests() {
         return tilExecutionProblems.stream().flatMap(problemClass -> {
             final AtomicReference<String> result = new AtomicReference<>();
             return Arrays.stream(optimisationLevels).map(
