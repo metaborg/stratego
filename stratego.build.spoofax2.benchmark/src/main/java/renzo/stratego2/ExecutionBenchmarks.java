@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
 public class ExecutionBenchmarks extends Stratego2Benchmarks {
     @Param({
             "Benchexpr10",
@@ -86,6 +87,9 @@ public class ExecutionBenchmarks extends Stratego2Benchmarks {
 //            "Sieve100",
     })
     public ExecutableProblem problem;
+
+    @Param({"3"})
+    public int optimisationLevel = -1;
 
     @Setup(Level.Trial)
     public final void setup() throws MetaborgException, IOException {
