@@ -44,7 +44,7 @@ public class StrjCompilationBenchmarks { //TODO: figure out wtf this is
         }
     }
 
-    @Benchmark
+//    @Benchmark
     public final boolean compileStrj() throws IOException {
         return program.compileStrj();
     }

@@ -28,7 +28,7 @@ public class Str2ExecutionBenchmarks {
 //            "Benchexpr16",
 //            "Benchexpr17",
 //
-//            "Benchsym10",
+            "Benchsym10",
 //            "Benchsym11",
 //            "Benchsym12",
 //            "Benchsym13",
@@ -38,31 +38,31 @@ public class Str2ExecutionBenchmarks {
 //            "Benchsym17",
 //            "Benchsym18",
 //
-//            "Benchtree2",
+            "Benchtree2",
 //            "Benchtree4",
 //            "Benchtree6",
 //
-//            "Bubblesort10",
+            "Bubblesort10",
 //            "Bubblesort20",
 //            "Bubblesort50",
 //            "Bubblesort100",
 //            "Bubblesort200",
 //
-//            "Calls",
+            "Calls",
 //
-//            "Factorial4",
+            "Factorial4",
 //            "Factorial5",
 //            "Factorial6",
 //            "Factorial7",
 //
-//            "Fibonacci18",
+            "Fibonacci18",
 //            "Fibonacci19",
 //            "Fibonacci20",
 //            "Fibonacci21",
 //
-//            "GarbageCollection",
+            "GarbageCollection",
 //
-//            "Hanoi4",
+            "Hanoi4",
 //            "Hanoi5",
 //            "Hanoi6",
 //            "Hanoi7",
@@ -71,19 +71,19 @@ public class Str2ExecutionBenchmarks {
 //            "Hanoi10",
 //            "Hanoi11",
 //
-//            "Mergesort10",
+            "Mergesort10",
 //            "Mergesort20",
 //            "Mergesort30",
 //            "Mergesort40",
 //
-//            "Quicksort10",
+            "Quicksort10",
 //            "Quicksort12",
 //            "Quicksort14",
 //            "Quicksort16",
 //            "Quicksort18",
 //            "Quicksort20",
 //
-//            "Sieve20",
+            "Sieve20",
 //            "Sieve40",
 //            "Sieve60",
 //            "Sieve80",
