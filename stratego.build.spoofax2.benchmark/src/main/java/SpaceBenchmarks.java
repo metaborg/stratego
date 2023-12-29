@@ -1,17 +1,21 @@
 import api.stratego2.Stratego2Compiler;
-import benchmark.stratego2.compilation.stratego.*;
+import api.stratego2.Stratego2Program;
+import benchmark.stratego2.problems.ExecutableProblem;
 import joptsimple.internal.Strings;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.metaborg.core.MetaborgException;
-import org.openjdk.jmh.annotations.Param;
+import org.metaborg.util.cmd.Arguments;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static benchmark.stratego2.problems.ExecutableProblem.*;
 
 final class SpaceBenchmarks {
     private static final char delim = ',';
@@ -19,7 +23,7 @@ final class SpaceBenchmarks {
     private SpaceBenchmarks() {
     }
 
-    public static void main(String... args) throws IOException, InstantiationException, IllegalAccessException {
+    public static void main(String... args) throws IOException {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-hhmmss");
         String resultsFileName = String.format("%s_results-compilespace.csv", format.format(new Date()));
         File resultsFile = FileUtils.getFile(resultsFileName);
@@ -34,65 +38,62 @@ final class SpaceBenchmarks {
 
         int[] optimisationLevels = {2, 3, 4};
 
-        Collection<Class<? extends StrategoCompilationBenchmark>> problems = new LinkedList<>(Arrays.asList(
-                Benchexpr.class,
-                Benchsym.class,
-                Benchtree.class,
-                Bubblesort.class,
-                Calls.class,
-                Factorial.class,
-                Fibonacci.class,
-                GarbageCollection.class,
-                Hanoi.class,
-                Mergesort.class,
-                Quicksort.class,
-                Sieve.class));
+        Collection<ExecutableProblem> problems = new LinkedList<>(Arrays.asList(
+                Benchexpr10,
+                Benchsym10,
+                Benchtree10,
+                Bubblesort10,
+                Calls,
+                Factorial4,
+                Fibonacci18,
+                GarbageCollection,
+                Hanoi4,
+                Mergesort10,
+                Quicksort10,
+                Sieve20));
 
-        for (Class<? extends StrategoCompilationBenchmark> problemClass : problems) {
-            for (int problemSize : Arrays.stream(
-                            FieldUtils.getField(problemClass, "problemSize", true)
-                                    .getAnnotation(Param.class)
-                                    .value())
-                    .mapToInt(Integer::valueOf).toArray()) {
-                for (int optimisationLevel : optimisationLevels) {
-                        System.out.printf("%s (%d); -O %d%n", problemClass.getSimpleName(), optimisationLevel, optimisationLevel);
+        for (ExecutableProblem problem : problems) {
+            for (int optimisationLevel : optimisationLevels) {
+                System.out.printf("%s (%s); -O %d%n", problem.name, problem.input, optimisationLevel);
+                Stratego2Program program = null;
+                try {
+                    Path sourcePath = Paths.get("src", "main", "resources", "stratego2", problem.name + ".str2");
+                    String MetaborgVersion = "2.6.0-SNAPSHOT";
+                    Arguments str2Args = new Arguments();
+                    str2Args.add("-O", optimisationLevel);
+                    str2Args.add("-sc", "on");
+                    program = new Stratego2Program(sourcePath, str2Args, MetaborgVersion);
 
-                        StrategoCompilationBenchmark benchmark = problemClass.newInstance();
-                        try {
-                            benchmark.setMetaborgVersion("2.6.0-SNAPSHOT");
-                            benchmark.setOptimisationLevel(optimisationLevel);
-                            benchmark.setSharedConstructors("on");
+                    Map<String, Long> bms = new HashMap<>();
+                    bms.put("Java space", Stratego2Compiler.javaFiles(program.compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
+                    bms.put("Class space", FileUtils.sizeOfDirectory(program.compileJava()));
 
-                            benchmark.setup();
+                    for (Map.Entry<String, Long> bm : bms.entrySet()) {
+                        fileWriter.write(problem.name + "." + bm.getKey());
 
-                            Map<String, Long> bms = new HashMap<>();
-                            bms.put("Java space", Stratego2Compiler.javaFiles(benchmark.getProgram().compileStratego()).stream().mapToLong(FileUtils::sizeOf).sum());
-                            bms.put("Class space", FileUtils.sizeOfDirectory(benchmark.getProgram().compileJava()));
+                        fileWriter.write(delim);
+                        fileWriter.write("");
 
-                            for (Map.Entry<String, Long> bm : bms.entrySet()) {
-                                fileWriter.write(problemClass.getName() + "." + bm.getKey());
+                        fileWriter.write(delim);
+                        fileWriter.write(Integer.toString(optimisationLevel));
 
-                                fileWriter.write(delim);
-                                fileWriter.write("");
+                        fileWriter.write(delim);
+                        fileWriter.write(Long.toString(bm.getValue()));
 
-                                fileWriter.write(delim);
-                                fileWriter.write(Integer.toString(optimisationLevel));
-
-                                fileWriter.write(delim);
-                                fileWriter.write(Long.toString(bm.getValue()));
-
-                                fileWriter.newLine();
-                                fileWriter.flush();
-                            }
-                        } catch (IOException | MetaborgException e) {
-                            e.printStackTrace();
-                        } finally {
-                            benchmark.teardown();
-                        }
-
+                        fileWriter.newLine();
+                        fileWriter.flush();
                     }
+                } catch (IOException | MetaborgException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (program != null) {
+                        program.cleanup();
+                    }
+                }
 
             }
+        }
+
         }
 
         fileWriter.close();
