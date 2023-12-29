@@ -1,7 +1,5 @@
 package renzo.stratego2.problems;
 
-import org.spoofax.interpreter.terms.IStrategoTerm;
-
 import static renzo.stratego2.problems.InputType.*;
 
 public enum ExecutableProblem {
@@ -113,12 +111,12 @@ public enum ExecutableProblem {
     Sieve100000("sieve", NatSZNum, 100_000);
 
     public final String name;
-    public final IStrategoTerm input;
-    private final int size;
+    public final String input;
+    private final int size; // for debug purposes
 
     ExecutableProblem(String name, InputType inputType, int size) {
         this.name = name;
-        this.input = InputType.constructInput(inputType, size);
+        this.input = InputType.constructInput(inputType, size).toString(Integer.MAX_VALUE);
         this.size = size;
     }
 
