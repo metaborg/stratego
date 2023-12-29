@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public class CompilationBenchmarks extends Stratego2Benchmarks {
 
     @Param({
