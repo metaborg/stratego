@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class CompilationBenchmarks extends Stratego2Benchmarks {
+public class JavaCompilationBenchmarks extends Stratego2Benchmarks {
 
     @Param({
             "Benchexpr10",
@@ -38,17 +38,16 @@ public class CompilationBenchmarks extends Stratego2Benchmarks {
     @Setup(Level.Trial)
     public final void setup() throws MetaborgException, IOException {
         initProgram();
+        program.compileStratego();
     }
 
-    @TearDown(Level.Iteration)
+    @TearDown(Level.Trial)
     public final void teardown() throws MetaborgException, IOException {
-        if (program != null) {
-            program.cleanup();
-        }
+        program.cleanup();
     }
 
     @Benchmark
-    public final void compileStratego() throws MetaborgException {
-        program.compileStratego();
+    public final void compileJava() throws MetaborgException, IOException {
+        program.compileJava();
     }
 }
