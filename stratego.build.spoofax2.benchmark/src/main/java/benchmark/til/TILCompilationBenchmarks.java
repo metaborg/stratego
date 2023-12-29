@@ -28,6 +28,11 @@ public class TILCompilationBenchmarks extends TILBenchmarks {
     @Param({"3"})
     public int optimisationLevel = -1;
 
+    @Setup(Level.Trial)
+    public void setup() {
+        initProgram();
+    }
+
     @Setup(Level.Iteration)
     public void prepareCompilation() throws MetaborgException {
         program.compiler.setupBuild();

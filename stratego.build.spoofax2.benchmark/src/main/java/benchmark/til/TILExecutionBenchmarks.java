@@ -32,6 +32,11 @@ public class TILExecutionBenchmarks extends TILBenchmarks {
     @Param({"3"})
     public int optimisationLevel = -1;
 
+    @Setup(Level.Trial)
+    public void setup() {
+        initProgram();
+    }
+
     @Benchmark
     public final String run() throws MetaborgException {
         return program.run(problem.input);
