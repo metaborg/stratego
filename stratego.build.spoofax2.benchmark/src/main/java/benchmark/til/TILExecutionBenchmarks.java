@@ -42,7 +42,7 @@ public class TILExecutionBenchmarks {
         program = initProgram(problem, optimisationLevel);
     }
 
-    @Benchmark
+//    @Benchmark
     public final String run() throws MetaborgException {
         return program.run(problem.input);
     }
