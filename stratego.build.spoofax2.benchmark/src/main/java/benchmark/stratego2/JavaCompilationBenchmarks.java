@@ -52,7 +52,7 @@ public class JavaCompilationBenchmarks {
         program.cleanup();
     }
 
-    @Benchmark
+//    @Benchmark
     public final File compileJava() throws MetaborgException, IOException {
         return program.compileJava();
     }

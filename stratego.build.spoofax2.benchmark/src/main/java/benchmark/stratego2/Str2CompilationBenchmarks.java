@@ -22,17 +22,17 @@ public class Str2CompilationBenchmarks {
 
     @Param({
             "Benchexpr10",
-//            "Benchsym10",
-//            "Benchtree2",
-//            "Bubblesort10",
-//            "Calls",
-//            "Factorial4",
-//            "Fibonacci18",
-//            "GarbageCollection",
-//            "Hanoi4",
-//            "Mergesort10",
-//            "Quicksort10",
-//            "Sieve20",
+            "Benchsym10",
+            "Benchtree2",
+            "Bubblesort10",
+            "Calls",
+            "Factorial4",
+            "Fibonacci18",
+            "GarbageCollection",
+            "Hanoi4",
+            "Mergesort10",
+            "Quicksort10",
+            "Sieve20",
     })
     public ExecutableStr2Problem problem;
 
