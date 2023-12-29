@@ -2,17 +2,17 @@ package benchmark.stratego2;
 
 import api.stratego2.Stratego2Program;
 import benchmark.exception.SkipException;
+import benchmark.stratego2.problems.ExecutableStr2Problem;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.util.cmd.Arguments;
-import benchmark.stratego2.problems.ExecutableProblem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public abstract class Stratego2Benchmarks {
-    public ExecutableProblem problem;
+public abstract class Str2Benchmarks {
+    public ExecutableStr2Problem problem;
     public Stratego2Program program;
     public int optimisationLevel;
 

@@ -2,7 +2,7 @@ package benchmark.stratego2.problems;
 
 import static benchmark.stratego2.problems.InputType.*;
 
-public enum ExecutableProblem {
+public enum ExecutableStr2Problem {
     Benchexpr10("benchexpr", SNatNum, 10),
     Benchexpr11("benchexpr", SNatNum, 11),
     Benchexpr12("benchexpr", SNatNum, 12),
@@ -114,7 +114,7 @@ public enum ExecutableProblem {
     public final String input;
     private final int size; // for debug purposes
 
-    ExecutableProblem(String name, InputType inputType, int size) {
+    ExecutableStr2Problem(String name, InputType inputType, int size) {
         this.name = name;
         this.input = InputType.constructInput(inputType, size).toString(Integer.MAX_VALUE);
         this.size = size;

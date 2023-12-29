@@ -2,8 +2,9 @@ package benchmark.stratego2;
 
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
-import benchmark.stratego2.problems.ExecutableProblem;
+import benchmark.stratego2.problems.ExecutableStr2Problem;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class JavaCompilationBenchmarks extends Stratego2Benchmarks {
+public class JavaCompilationBenchmarks extends Str2Benchmarks {
 
     @Param({
             "Benchexpr10",
@@ -30,7 +31,7 @@ public class JavaCompilationBenchmarks extends Stratego2Benchmarks {
 //            "Quicksort10",
 //            "Sieve20",
     })
-    public ExecutableProblem problem;
+    public ExecutableStr2Problem problem;
 
     @Param({"3"})
     public int optimisationLevel = -1;
@@ -47,7 +48,7 @@ public class JavaCompilationBenchmarks extends Stratego2Benchmarks {
     }
 
     @Benchmark
-    public final void compileJava() throws MetaborgException, IOException {
-        program.compileJava();
+    public final File compileJava() throws MetaborgException, IOException {
+        return program.compileJava();
     }
 }

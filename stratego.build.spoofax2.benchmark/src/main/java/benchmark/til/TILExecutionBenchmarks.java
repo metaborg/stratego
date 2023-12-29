@@ -2,8 +2,7 @@ package benchmark.til;
 
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import benchmark.til.problems.ExecutableProblem;
+import benchmark.til.problems.ExecutableTILProblem;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class CompilationBenchmarks extends TILBenchmarks {
+public class TILExecutionBenchmarks extends TILBenchmarks {
     @Param({
             "Add100",
 //            "Add200",
@@ -22,24 +21,24 @@ public class CompilationBenchmarks extends TILBenchmarks {
 //            "Add1000",
 //            "EBlock",
 //            "Factorial4",
+//            "Factorial5",
+//            "Factorial6",
+//            "Factorial7",
+//            "Factorial8",
+//            "Factorial9",
     })
-    public ExecutableProblem problem;
+    public ExecutableTILProblem problem;
 
     @Param({"3"})
     public int optimisationLevel = -1;
 
-    @Setup(Level.Iteration)
-    public void prepareCompilation() throws MetaborgException {
-        program.compiler.setupBuild();
-    }
-
     @Benchmark
-    public final IStrategoTerm run() throws MetaborgException {
-        return program.compileTIL();
+    public final String run() throws MetaborgException {
+        return program.run(problem.input);
     }
 
     @Override
-    @TearDown(Level.Iteration)
+    @TearDown(Level.Trial)
     public final void teardown() {
         if (program != null) {
             program.cleanup();

@@ -3,7 +3,7 @@ package benchmark.til;
 import api.til.TILProgram;
 import benchmark.exception.SkipException;
 import org.metaborg.core.MetaborgException;
-import benchmark.til.problems.ExecutableProblem;
+import benchmark.til.problems.ExecutableTILProblem;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public abstract class TILBenchmarks {
-    public ExecutableProblem problem;
+    public ExecutableTILProblem problem;
     public TILProgram program;
     public int optimisationLevel;
 

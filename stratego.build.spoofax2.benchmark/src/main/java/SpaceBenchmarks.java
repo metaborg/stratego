@@ -1,6 +1,6 @@
 import api.stratego2.Stratego2Compiler;
 import api.stratego2.Stratego2Program;
-import benchmark.stratego2.problems.ExecutableProblem;
+import benchmark.stratego2.problems.ExecutableStr2Problem;
 import joptsimple.internal.Strings;
 import org.apache.commons.io.FileUtils;
 import org.metaborg.core.MetaborgException;
@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static benchmark.stratego2.problems.ExecutableProblem.*;
+import static benchmark.stratego2.problems.ExecutableStr2Problem.*;
 
 final class SpaceBenchmarks {
     private static final char delim = ',';
@@ -38,7 +38,7 @@ final class SpaceBenchmarks {
 
         int[] optimisationLevels = {2, 3, 4};
 
-        Collection<ExecutableProblem> problems = new LinkedList<>(Arrays.asList(
+        Collection<ExecutableStr2Problem> problems = new LinkedList<>(Arrays.asList(
                 Benchexpr10,
                 Benchsym10,
                 Benchtree10,
@@ -52,7 +52,7 @@ final class SpaceBenchmarks {
                 Quicksort10,
                 Sieve20));
 
-        for (ExecutableProblem problem : problems) {
+        for (ExecutableStr2Problem problem : problems) {
             for (int optimisationLevel : optimisationLevels) {
                 System.out.printf("%s (%s); -O %d%n", problem.name, problem.input, optimisationLevel);
                 Stratego2Program program = null;

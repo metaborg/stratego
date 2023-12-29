@@ -3,7 +3,7 @@ package benchmark.til.problems;
 import java.util.Arrays;
 import java.util.Collection;
 
-public enum ExecutableProblem {
+public enum ExecutableTILProblem {
     Add100("add100", "0"),
     Add200("add200", "0"),
     Add500("add500", "0"),
@@ -18,7 +18,7 @@ public enum ExecutableProblem {
 
     public final String name;
     public final Collection<String> input;
-    ExecutableProblem(String name, String input) {
+    ExecutableTILProblem(String name, String input) {
         this.name = name;
         this.input = Arrays.asList(input.split(","));
     }
