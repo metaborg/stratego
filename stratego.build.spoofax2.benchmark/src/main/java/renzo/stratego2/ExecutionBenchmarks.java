@@ -1,23 +1,19 @@
 package renzo.stratego2;
 
-import api.stratego2.Stratego2Program;
-import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
 import renzo.stratego2.problems.ExecutableProblem;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
-public class ExecutionBenchmarks {
-
-    Stratego2Program program;
-
+public class ExecutionBenchmarks extends Stratego2Benchmarks {
     @Param({
             "Benchexpr10",
 //            "Benchexpr11",
@@ -89,10 +85,22 @@ public class ExecutionBenchmarks {
 //            "Sieve80",
 //            "Sieve100",
     })
-    ExecutableProblem problem;
+    public ExecutableProblem problem;
+
+    @Setup(Level.Trial)
+    public final void setup() throws MetaborgException, IOException {
+        initProgram();
+        program.compileStratego();
+        program.compileJava();
+    }
+
+    @TearDown(Level.Trial)
+    public final void teardown() throws MetaborgException, IOException {
+        program.cleanup();
+    }
 
     @Benchmark
-    public final CompileOutput compileStratego() throws MetaborgException {
-        return program.compileStratego();
+    public final void executionBenchmark() throws IOException, InterruptedException {
+        program.run(problem.input);
     }
 }
