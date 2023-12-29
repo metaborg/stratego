@@ -43,7 +43,7 @@ public class TILCompilationBenchmarks {
         program.compiler.setupBuild();
     }
 
-    @Benchmark
+//    @Benchmark
     public final IStrategoTerm compileTIL() throws MetaborgException {
         return program.compileTIL();
     }
