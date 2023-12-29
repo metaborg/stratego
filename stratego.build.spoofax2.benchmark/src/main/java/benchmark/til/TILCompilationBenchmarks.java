@@ -1,11 +1,14 @@
 package benchmark.til;
 
+import api.til.TILProgram;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import benchmark.til.problems.ExecutableTILProblem;
 
 import java.util.concurrent.TimeUnit;
+
+import static benchmark.til.TILBenchmarks.initProgram;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
@@ -14,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class TILCompilationBenchmarks extends TILBenchmarks {
+public class TILCompilationBenchmarks {
     @Param({
             "Add100",
 //            "Add200",
@@ -28,9 +31,11 @@ public class TILCompilationBenchmarks extends TILBenchmarks {
     @Param({"3"})
     public int optimisationLevel = -1;
 
+    public TILProgram program;
+
     @Setup(Level.Trial)
     public void setup() {
-        initProgram();
+        program = initProgram(problem, optimisationLevel);
     }
 
     @Setup(Level.Iteration)
@@ -43,7 +48,6 @@ public class TILCompilationBenchmarks extends TILBenchmarks {
         return program.compileTIL();
     }
 
-    @Override
     @TearDown(Level.Iteration)
     public final void teardown() {
         if (program != null) {

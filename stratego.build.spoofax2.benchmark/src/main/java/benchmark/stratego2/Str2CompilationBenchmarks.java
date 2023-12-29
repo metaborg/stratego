@@ -1,5 +1,6 @@
 package benchmark.stratego2;
 
+import api.stratego2.Stratego2Program;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
@@ -8,6 +9,8 @@ import benchmark.stratego2.problems.ExecutableStr2Problem;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static benchmark.stratego2.Str2Benchmarks.initProgram;
+
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -15,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class Str2CompilationBenchmarks extends Str2Benchmarks {
+public class Str2CompilationBenchmarks {
 
     @Param({
             "Benchexpr10",
@@ -36,9 +39,11 @@ public class Str2CompilationBenchmarks extends Str2Benchmarks {
     @Param({"3"})
     public int optimisationLevel = -1;
 
+    Stratego2Program program;
+
     @Setup(Level.Trial)
     public final void setup() throws MetaborgException, IOException {
-        initProgram();
+        program = initProgram(problem, optimisationLevel);
     }
 
     @TearDown(Level.Iteration)

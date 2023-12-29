@@ -10,18 +10,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public abstract class TILBenchmarks {
-    public ExecutableTILProblem problem;
-    public TILProgram program;
-    public int optimisationLevel;
+public final class TILBenchmarks {
 
-    public abstract void teardown() throws MetaborgException, IOException;
-
-    public final void initProgram() {
+    public static TILProgram initProgram(ExecutableTILProblem problem, int optimisationLevel) {
         Path sourcePath = Paths.get("src", "main", "resources", "til", problem.name + ".til");
         String MetaborgVersion = "2.6.0-SNAPSHOT";
         try {
-            program = new TILProgram(sourcePath, optimisationLevel, MetaborgVersion);
+            return new TILProgram(sourcePath, optimisationLevel, MetaborgVersion);
         } catch (Exception e) {
             System.out.println("****ERROR INITIALIZING PROGRAM****");
             if (e instanceof FileNotFoundException) {
@@ -32,5 +27,6 @@ public abstract class TILBenchmarks {
                 throw new SkipException("Exception in build system! Skipping.", e);
             }
         }
+        throw new SkipException("Failed to init program! Skipping.");
     }
 }
