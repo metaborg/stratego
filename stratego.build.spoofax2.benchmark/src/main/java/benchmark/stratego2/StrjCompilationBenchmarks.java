@@ -1,8 +1,8 @@
 package benchmark.stratego2;
 
+import benchmark.stratego2.problems.ExecutableStr2Problem;
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
-import benchmark.stratego2.problems.ExecutableProblem;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class StrjCompilationBenchmarks extends Stratego2Benchmarks { //TODO: figure out wtf this is
+public class StrjCompilationBenchmarks extends Str2Benchmarks { //TODO: figure out wtf this is
 
     @Param({
             "Factorial4",
@@ -22,7 +22,7 @@ public class StrjCompilationBenchmarks extends Stratego2Benchmarks { //TODO: fig
 //            "Factorial6",
 //            "Factorial7",
     })
-    public ExecutableProblem problem;
+    public ExecutableStr2Problem problem;
 
     @Param({"3"})
     public int optimisationLevel = -1;
@@ -40,7 +40,7 @@ public class StrjCompilationBenchmarks extends Stratego2Benchmarks { //TODO: fig
     }
 
     @Benchmark
-    public final void compileStrj() throws IOException {
-        program.compileStrj();
+    public final boolean compileStrj() throws IOException {
+        return program.compileStrj();
     }
 }

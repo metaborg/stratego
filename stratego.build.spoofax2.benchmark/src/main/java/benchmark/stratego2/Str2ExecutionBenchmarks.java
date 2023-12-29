@@ -2,7 +2,7 @@ package benchmark.stratego2;
 
 import org.metaborg.core.MetaborgException;
 import org.openjdk.jmh.annotations.*;
-import benchmark.stratego2.problems.ExecutableProblem;
+import benchmark.stratego2.problems.ExecutableStr2Problem;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
-public class ExecutionBenchmarks extends Stratego2Benchmarks {
+public class Str2ExecutionBenchmarks extends Str2Benchmarks {
     @Param({
             "Benchexpr10",
 //            "Benchexpr11",
@@ -86,7 +86,7 @@ public class ExecutionBenchmarks extends Stratego2Benchmarks {
 //            "Sieve80",
 //            "Sieve100",
     })
-    public ExecutableProblem problem;
+    public ExecutableStr2Problem problem;
 
     @Param({"3"})
     public int optimisationLevel = -1;
@@ -104,7 +104,7 @@ public class ExecutionBenchmarks extends Stratego2Benchmarks {
     }
 
     @Benchmark
-    public final void executionBenchmark() throws IOException, InterruptedException {
-        program.run(problem.input);
+    public final String executionBenchmark() throws IOException, InterruptedException {
+        return program.run(problem.input);
     }
 }
