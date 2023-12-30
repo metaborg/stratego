@@ -13,9 +13,9 @@ import static benchmark.stratego2.Str2Benchmarks.initProgram;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 0)
-@Measurement(iterations = 1)
-@Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
+@Warmup(iterations = 5)
+@Measurement(iterations = 5)
+@Fork(value = 10, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
 public class Str2ExecutionBenchmarks {
     @Param({
