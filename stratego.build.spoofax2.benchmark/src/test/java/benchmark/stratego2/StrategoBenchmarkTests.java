@@ -22,17 +22,17 @@ import static benchmark.stratego2.problems.ExecutableStr2Problem.*;
 public class StrategoBenchmarkTests {
     private final Integer[] optimisationLevels = {3, 4};
     private final Collection<ExecutableStr2Problem> strategoProblems = new LinkedList<>(Arrays.asList(
-            Benchexpr10,
-            Benchsym10,
-            Benchtree10,
-            Bubblesort10,
+            Benchexpr_10,
+            Benchsym_10,
+            Benchtree_10,
+            Bubblesort_10,
             Calls,
-            Factorial4,
-            Fibonacci18,
+            Factorial_4,
+            Fibonacci_18,
             GarbageCollection,
-            Hanoi4,
-            Mergesort10,
-            Quicksort10));//, Sieve20)); Sieve test fails to terminate in Docker
+            Hanoi_4,
+            Mergesort_10,
+            Quicksort_10));//, Sieve_20)); Sieve test fails to terminate in Docker
 
     @TestFactory
     Stream<DynamicTest> strategoExecutionBenchmarkTests() {

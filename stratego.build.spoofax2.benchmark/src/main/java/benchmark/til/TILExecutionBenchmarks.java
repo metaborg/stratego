@@ -18,17 +18,17 @@ import static benchmark.til.TILBenchmarks.initProgram;
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public class TILExecutionBenchmarks {
     @Param({
-            "Add100",
-//            "Add200",
-//            "Add500",
-//            "Add1000",
+            "Add_100",
+//            "Add_200",
+//            "Add_500",
+//            "Add_1000",
 //            "EBlock",
-//            "Factorial4",
-//            "Factorial5",
-//            "Factorial6",
-//            "Factorial7",
-//            "Factorial8",
-//            "Factorial9",
+//            "Factorial_4",
+//            "Factorial_5",
+//            "Factorial_6",
+//            "Factorial_7",
+//            "Factorial_8",
+//            "Factorial_9",
     })
     public ExecutableTILProblem problem;
 

@@ -21,12 +21,12 @@ import static benchmark.til.problems.ExecutableTILProblem.*;
 public class TILBenchmarkTests {
     private final Integer[] optimisationLevels = {3, 4};
     private final Collection<ExecutableTILProblem> tilExecutionProblems = new LinkedList<>(Arrays.asList(
-            Add100,
-            Add200,
-            Add500,
-            Add1000,
+            Add_100,
+            Add_200,
+            Add_500,
+            Add_1000,
             EBlock,
-            Factorial9));
+            Factorial_9));
 
 //    @TestFactory
     Stream<DynamicTest> TILExecutionBenchmarkTests() {
