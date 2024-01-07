@@ -109,7 +109,7 @@ public class Str2ExecutionBenchmark {
     }
 
     @Benchmark
-    public final String executionBenchmark() throws IOException, InterruptedException {
+    public final String executeStratego() throws IOException, InterruptedException {
         return program.run(problem.input);
     }
 }
