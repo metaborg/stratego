@@ -39,18 +39,18 @@ final class SpaceBenchmarks {
         int[] optimisationLevels = {2, 3, 4};
 
         Collection<ExecutableStr2Problem> problems = new LinkedList<>(Arrays.asList(
-                Benchexpr10,
-                Benchsym10,
-                Benchtree10,
-                Bubblesort10,
+                Benchexpr_10,
+                Benchsym_10,
+                Benchtree_10,
+                Bubblesort_10,
                 Calls,
-                Factorial4,
-                Fibonacci18,
+                Factorial_4,
+                Fibonacci_18,
                 GarbageCollection,
-                Hanoi4,
-                Mergesort10,
-                Quicksort10,
-                Sieve20));
+                Hanoi_4,
+                Mergesort_10,
+                Quicksort_10,
+                Sieve_20));
 
         for (ExecutableStr2Problem problem : problems) {
             for (int optimisationLevel : optimisationLevels) {

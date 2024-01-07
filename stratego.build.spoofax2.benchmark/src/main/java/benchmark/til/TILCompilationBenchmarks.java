@@ -19,12 +19,12 @@ import static benchmark.til.TILBenchmarks.initProgram;
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
 public class TILCompilationBenchmarks {
     @Param({
-            "Add100",
-//            "Add200",
-//            "Add500",
-//            "Add1000",
+            "Add_100",
+//            "Add_200",
+//            "Add_500",
+//            "Add_1000",
 //            "EBlock",
-//            "Factorial4",
+//            "Factorial_4",
     })
     public ExecutableTILProblem problem;
 

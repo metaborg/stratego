@@ -20,10 +20,10 @@ import static benchmark.stratego2.Str2Benchmarks.initProgram;
 public class StrjCompilationBenchmarks { //TODO: figure out wtf this is
 
     @Param({
-            "Factorial4",
-//            "Factorial5",
-//            "Factorial6",
-//            "Factorial7",
+            "Factorial_4",
+//            "Factorial_5",
+//            "Factorial_6",
+//            "Factorial_7",
     })
     public ExecutableStr2Problem problem;
 

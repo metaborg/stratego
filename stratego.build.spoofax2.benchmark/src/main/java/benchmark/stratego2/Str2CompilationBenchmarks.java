@@ -21,18 +21,18 @@ import static benchmark.stratego2.Str2Benchmarks.initProgram;
 public class Str2CompilationBenchmarks {
 
     @Param({
-            "Benchexpr10",
-            "Benchsym10",
-            "Benchtree2",
-            "Bubblesort10",
+            "Benchexpr_10",
+            "Benchsym_10",
+            "Benchtree_2",
+            "Bubblesort_10",
             "Calls",
-            "Factorial4",
-            "Fibonacci18",
+            "Factorial_4",
+            "Fibonacci_18",
             "GarbageCollection",
-            "Hanoi4",
-            "Mergesort10",
-            "Quicksort10",
-            "Sieve20",
+            "Hanoi_4",
+            "Mergesort_10",
+            "Quicksort_10",
+            "Sieve_20",
     })
     public ExecutableStr2Problem problem;
 
