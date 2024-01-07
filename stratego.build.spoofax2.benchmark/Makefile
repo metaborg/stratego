@@ -34,14 +34,15 @@ all: clean run-benchmark
 
 .PHONY: clean
 clean:
+	@echo "Cleaning target dir"
 	@mvn -q clean
 
 .PHONY: benchmark-jar
 benchmark-jar: $(BENCHMARK_JAR)
 
 $(BENCHMARK_JAR):
-	@echo "Building benchmark jar (includes testing benchmarks)"
-	mvn -q -nsu package
+	@echo "Building benchmark jar (excluding testing benchmarks)"
+	@mvn -q -nsu package
 
 $(RESULTS_DIR):
 	@echo "Result dir: $(RESULTS_DIR)"
