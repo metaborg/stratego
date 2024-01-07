@@ -8,7 +8,7 @@ import benchmark.til.problems.ExecutableTILProblem;
 
 import java.util.concurrent.TimeUnit;
 
-import static benchmark.til.TILBenchmarks.initProgram;
+import static benchmark.til.TILBenchmarkUtil.initProgram;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
@@ -17,7 +17,7 @@ import static benchmark.til.TILBenchmarks.initProgram;
 @Measurement(iterations = 1)
 @Fork(value = 1, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 1, timeUnit = TimeUnit.MINUTES)
-public class TILCompilationBenchmarks {
+public class TILCompilationBenchmark {
     @Param({
             "Add_100",
 //            "Add_200",

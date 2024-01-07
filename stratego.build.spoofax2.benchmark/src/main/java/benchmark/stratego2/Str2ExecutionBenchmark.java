@@ -8,7 +8,7 @@ import benchmark.stratego2.problems.ExecutableStr2Problem;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static benchmark.stratego2.Str2Benchmarks.initProgram;
+import static benchmark.stratego2.Str2BenchmarkUtil.initProgram;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
@@ -17,7 +17,7 @@ import static benchmark.stratego2.Str2Benchmarks.initProgram;
 @Measurement(iterations = 5)
 @Fork(value = 10, jvmArgs = {"-Xss16M", "-Xms4G", "-Xmx4G"})
 @Timeout(time = 5, timeUnit = TimeUnit.MINUTES)
-public class Str2ExecutionBenchmarks {
+public class Str2ExecutionBenchmark {
     @Param({
             "Benchexpr_10",
 //            "Benchexpr_11",
