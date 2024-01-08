@@ -27,7 +27,7 @@ public class StrjCompilationBenchmark { //TODO: figure out wtf this is
     })
     public ExecutableStr2Problem problem;
 
-    @Param({"3"})
+    @Param({"2"})
     public int optimisationLevel = -1;
 
     Stratego2Program program;

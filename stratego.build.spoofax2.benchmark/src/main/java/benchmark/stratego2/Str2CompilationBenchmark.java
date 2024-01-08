@@ -36,7 +36,7 @@ public class Str2CompilationBenchmark {
     })
     public ExecutableStr2Problem problem;
 
-    @Param({"3"})
+    @Param({"2"})
     public int optimisationLevel = -1;
 
     Stratego2Program program;
