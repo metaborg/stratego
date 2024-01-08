@@ -237,7 +237,7 @@ def main(output_dir, file):
 
     # df_til = df[df["language"].str.lower() == "til"]
 
-    basename = file.split(".")[0]
+    basename = file.split("/")[-1].split('.')[0]
     dir = f"{output_dir}/{basename}"
     os.makedirs(dir, exist_ok=True)
 
@@ -249,5 +249,6 @@ def main(output_dir, file):
 
 
 if __name__ == '__main__':
-    main("plots", "../data/benchmark_results/processed/20240107-195853_.json.csv")
+    # main("plots", "../data/benchmark_results/processed/20240107-195853_.json.csv")
+    main("plots", "../data/benchmark_results/processed/20240108-110702_.json.csv")
     # main(sys.argv[1], sys.argv[2:])
