@@ -32,7 +32,7 @@ public class TILExecutionBenchmark {
     })
     public ExecutableTILProblem problem;
 
-    @Param({"3"})
+    @Param({"2"})
     public int optimisationLevel = -1;
 
     public TILProgram program;
