@@ -19,4 +19,5 @@ dependencies {
   implementation("org.apache.commons:commons-lang3")
   implementation("commons-io:commons-io")
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 }
