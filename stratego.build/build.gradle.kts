@@ -14,9 +14,9 @@ dependencies {
   api("org.metaborg:resource")
   implementation(compositeBuild("org.metaborg.util"))
   api(compositeBuild("org.spoofax.terms"))
+  api(compositeBuild("jsglr.shared"))
+  api(compositeBuild("org.spoofax.jsglr2"))
   api(compositeBuild("org.spoofax.interpreter.core"))
   api(compositeBuild("org.strategoxt.strj"))
-  implementation("org.apache.commons:commons-lang3")
-  implementation("commons-io:commons-io")
   implementation("jakarta.annotation:jakarta.annotation-api")
 }

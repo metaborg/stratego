@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import jakarta.annotation.Nullable;
+import jsglr.shared.IToken;
+import jsglr.shared.ImploderAttachment;
 
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr2.messages.SourceRegion;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
