@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.ImploderAttachment;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -21,6 +20,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.jsglr.shared.ImploderAttachment;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;

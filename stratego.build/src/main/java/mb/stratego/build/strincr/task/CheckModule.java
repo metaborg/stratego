@@ -14,7 +14,6 @@ import java.util.Queue;
 import java.util.TreeSet;
 
 import jakarta.annotation.Nullable;
-import jsglr.shared.ImploderAttachment;
 
 import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
@@ -28,6 +27,7 @@ import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set;
+import mb.jsglr.shared.ImploderAttachment;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
