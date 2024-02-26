@@ -20,10 +20,14 @@ dependencyResolutionManagement {
     }
 }
 
-//include("gpp")
+include("stratego.lang")
+//include("strategolib")
+//include("stratego.lang")
 //include("org.metaborg.meta.lang.stratego")
+//include("gpp")
+//
 //include("stratego.build")
 //include("stratego.build.spoofax2")
 //include("stratego.lang")
-//include("strategolib")
+//
 
