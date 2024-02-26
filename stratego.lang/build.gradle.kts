@@ -30,7 +30,7 @@ dependencies {
     // Compile Languages
     compileLanguage(libs.spoofax.lang.esv)
     compileLanguage(libs.spoofax.lang.sdf3)
-    compileLanguage(libs.spoofax.meta.sdf3.ext.tatix)
+    compileLanguage(libs.spoofax.meta.sdf3.ext.statix)
 
     // Source Languages
     compileLanguage(libs.spoofax2.meta.lib.spoofax)
