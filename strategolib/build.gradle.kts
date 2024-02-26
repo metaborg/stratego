@@ -29,6 +29,10 @@ dependencies {
 
     // Compile Languages
     compileLanguage(libs.spoofax.lang.esv)
+    // FIXME: Needs org.metaborg:stratego.lang as a compile dependency
+    //  for it to be detected as a Stratego 2 project,
+    //  see SpoofaxLanguageSpecConfig lines 235:242
+    // TODO: Add another way to specify the Stratego version in the (Gradle) configuration?
     compileLanguage(project(":stratego.lang"))
 }
 
