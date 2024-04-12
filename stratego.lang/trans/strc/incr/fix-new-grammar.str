@@ -78,8 +78,10 @@ signatures/gradual-types/signatures-sig
 signatures/gradual-types/strategies-sig
 
 /*
-This file defines the postparse desugaring that undoes the unique constructor names introduced to
-fulfill requirements from Statix that every constructor be unique.
+This defines the postparse desugaring that undoes the unique constructor names introduced to
+fulfill requirements from Statix that every constructor be unique. While Stratego doesn't use Statix
+directly, Spoofax 3 will requires this for all SDF3 grammars, therefore we sadly have to conform for
+now.
 */
 
 rules
