@@ -7,12 +7,12 @@ import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr2.messages.SourceRegion;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.jsglr.shared.IToken;
+import mb.jsglr.shared.ImploderAttachment;
 import mb.stratego.build.strincr.message.type.AmbiguousConstructorUse;
 import mb.stratego.build.strincr.message.type.DuplicateTypeDefinition;
 import mb.stratego.build.strincr.message.type.GadtSort;
