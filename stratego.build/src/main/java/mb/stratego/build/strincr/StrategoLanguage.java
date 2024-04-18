@@ -8,6 +8,7 @@ import java.util.Collection;
 
 import jakarta.annotation.Nullable;
 
+import mb.pie.api.ExecContext;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
