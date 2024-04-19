@@ -6,7 +6,8 @@ metaborgBaselineVersion: 2.5.20
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}
-  - org.metaborg:stratego.lang:${metaborgBaselineVersion}
+    # TODO: change to metaborgBaselineVersion in 2.5.17 so this library can eventually be used in the compiler directly (instead of the strategoxt one or the baseline version of this library)
+  - org.metaborg:stratego.lang:${metaborgVersion}
 pardonedLanguages:
 - EditorService
 language:
