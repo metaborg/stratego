@@ -64,7 +64,7 @@ public class CompileInput implements Serializable {
         LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries, boolean supportRTree,
         boolean supportStr1, @Nullable ResourcePath resolveExternals) {
         this(mainModuleIdentifier, projectPath, outputDir, str2libReplicateDir,
-            new ArrayList<String>(Collections.singletonList(packageName)), cacheDir, constants,
+            new ArrayList<>(Collections.singletonList(packageName)), cacheDir, constants,
             includeDirs, linkedLibraries, extraArgs, strFileGeneratingTasks, library, autoImportStd,
             createShadowJar, libraryName, str2libraries, supportRTree, supportStr1,
             resolveExternals);

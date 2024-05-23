@@ -16,4 +16,5 @@ dependencies {
   api("org.metaborg:pie.taskdefs.guice")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
 }

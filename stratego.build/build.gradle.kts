@@ -18,5 +18,9 @@ dependencies {
   api(compositeBuild("org.spoofax.jsglr2"))
   api(compositeBuild("org.spoofax.interpreter.core"))
   api(compositeBuild("org.strategoxt.strj"))
+  implementation("org.apache.commons:commons-lang3")
+  implementation("commons-io:commons-io")
+  implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("jakarta.inject:jakarta.inject-api")
   implementation("jakarta.annotation:jakarta.annotation-api")
 }
