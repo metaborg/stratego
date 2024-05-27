@@ -1,6 +1,7 @@
 ---
 id: org.metaborg:stratego.typed.test:0.1.0-SNAPSHOT
 name: Stratego
+metaborgVersion: 2.6.0-SNAPSHOT
 dependencies:
   compile:
   - org.metaborg:stratego.typed:0.1.0-SNAPSHOT
