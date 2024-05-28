@@ -83,6 +83,13 @@ end>
 
   Strategy.ImportTerm = <import-term(<ModName>)>
 
+context-free priorities
+  { Strategy.Build
+    Strategy.Match
+  }
+> Strategy.Seq
+> Strategy.GuardedLChoice
+
 // PMC
 context-free sorts MatchOrder MatchCase
 context-free syntax
@@ -200,10 +207,3 @@ context-free syntax
   PatT.RefT = <REF>
   PatT.BlobT = <BLOB>
   PatT.PlaceT = <PLACEHOLDER>
-
-context-free priorities
-  { Strategy.Build
-    Strategy.Match
-  }
-> Strategy.Seq
-> Strategy.GuardedLChoice
