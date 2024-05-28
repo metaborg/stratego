@@ -100,16 +100,6 @@ end>
 <case <Strategy>:
   <Strategy>>
 
-context-free syntax
-  Strategy.MultiMatchTerm =
-<match <MatchOrder> <Term>
-  <{MatchCase "\n"}+>
-end>
-
-  MatchOrder.Specificity = <specificity>
-
-//  MatchCase.MatchCase = <case <Term>: <Strategy>>
-
 context-free priorities
   { Strategy.AnnoCong Strategy.ExplodeCong }
 > { Strategy.Match Strategy.Build }

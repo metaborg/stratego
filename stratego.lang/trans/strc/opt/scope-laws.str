@@ -27,4 +27,4 @@ rules
     where <isect> (<tvars> s1, xs) => ys;
           <diff> (xs, ys) => zs; not([])
 
-  // TODO: Add some ScopedMatchCase rules
+  // TODO: Add some ScopedGuardedMatchCase rules

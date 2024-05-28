@@ -49,11 +49,7 @@ rules
     ; (  \ (elems, NoAnnoList(Op("Nil",[]))) -> List(elems) \ 
       <+ \ (elems, Op("Nil",[])) -> List(elems) \ // XXX : Don't know for sure if this rule needs to stay, for now it stays..
       <+ \ (elems, last)         -> ListTail(elems, last) \
-      ) 
-
-  Ensugar:
-    ScopedGuardedMatchCase(x*, p, Id(), s) ->
-    ScopedMatchCase(x*, p, s)
+      )
 
   implode-cons =
     \ Op("Cons",[e, tail]) -> [e | <implode-cons> tail] \

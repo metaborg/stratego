@@ -52,9 +52,7 @@ rules
 
   Bind0 : Scope(xs, s) -> xs
   Bind0 : LRule(Rule(t1, t2, s)) -> <tvars> t1
-  Bind0 : ScopedMatchCase(xs, _, _) -> xs // TODO BINDS: Check
   Bind0 : ScopedGuardedMatchCase(xs, _, _, _) -> xs
-  //Bind0 : MatchCase(t, s) -> ? // TODO BINDS: Introduce?
 
   Bind1 : Let(defs, s2) -> <map(ignore-anno-def(?SDef(<id>,_,_) + ?SDefT(<id>,_,_,_) + ?RDef(<id>,_,_) + ?RDefT(<id>,_,_,_)))> defs
   Bind2 : SDef(f, xs, s) -> <declared-vars> xs
@@ -123,7 +121,6 @@ strategies
     + ExtTypedDef(id, id)
     + ExtTypedDefInl(id, id, split(id, nwvars); zip(ReplaceVar), id, id)
     + RDefT(id, id, split(id, nwvars); zip(ReplaceVar), id)
-    + ScopedMatchCase(nwvars, id, id)
     + ScopedGuardedMatchCase(nwvars, id, id, id)
     + dynrule-cong(id, id, split(id, nwvars); zip(ReplaceVar), id, id, id)
 
@@ -136,7 +133,6 @@ strategies
   tboundin(bnd, ubnd, ignore) =
     Scope(ignore, bnd)
     + LRule(Rule(bnd, bnd, bnd))
-    + ScopedMatchCase(ignore, bnd, bnd) // TODO BINDS Check
     + ScopedGuardedMatchCase(ignore, bnd, bnd, bnd)
     + RDecT(ignore, ignore, ignore)
     + SDefT(ignore, ignore, ignore, bnd)

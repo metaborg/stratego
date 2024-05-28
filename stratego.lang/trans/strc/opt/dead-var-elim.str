@@ -45,13 +45,6 @@ strategies
       |}
 
   elim-scopedmatchcase(x) =
-    ?ScopedMatchCase(_, _, _)
-    ; {| ElimVar :
-           ScopedMatchCase(map(DeclareDead), x, x)
-         ; EliminateFromScope
-      |}
-
-  elim-scopedmatchcase(x) =
     ?ScopedGuardedMatchCase(_, _, _, _)
     ; {| ElimVar :
            ScopedGuardedMatchCase(map(DeclareDead), x, x, x)
@@ -63,9 +56,6 @@ strategies
 
   EliminateFromScope =
     Scope(filter(not(!Var(<id>); ElimVar)), id)
-
-  EliminateFromScope =
-    ScopedMatchCase(filter(not(!Var(<id>); ElimVar)), id, id)
   
   EliminateFromScope =
     ScopedGuardedMatchCase(filter(not(!Var(<id>); ElimVar)), id, id, id)

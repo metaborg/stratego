@@ -59,16 +59,6 @@ strategies
 	//; debug(!"afo-scope out: ")
 
   afo-matchcase :
-    ScopedMatchCase(x1*, t1, s1) ->
-    ScopedMatchCase(x2*, t2, s2)
-  where
-    {| OffSet
-           : x2* := <map(try(offset-local-var(|"var")))> x1*
-           ; t2 := <afo> t1
-           ; s2 := <afo> s1
-           |}
-
-  afo-matchcase :
     ScopedGuardedMatchCase(x1*, t1, s1, s2) ->
     ScopedGuardedMatchCase(x2*, t2, s3, s4)
   where
