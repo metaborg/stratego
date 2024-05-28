@@ -2,7 +2,7 @@ module Test
 
 menus
 
-  menu: "Test" (openeditor) (source)
+  menu: "Test" (openeditor) (source) (meta)
     action: "Choice to MultiMatch" = test-choice2multimatch
     action: "MultiMatch to DFA" = test-multimatch2dfa
 
