@@ -7,8 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -50,7 +49,7 @@ public class GenerateStratego {
 
     public final IStrategoAppl anno_cong__ast;
 
-    @Inject public GenerateStratego(StrIncrContext context) {
+    @jakarta.inject.Inject @javax.inject.Inject public GenerateStratego(StrIncrContext context) {
         this.tf = context.getFactory();
         final IStrategoAppl aTerm = tf.makeAppl("Sort", B.string("ATerm"), B.list());
         IStrategoAppl constTypeATerm = tf.makeAppl("ConstType", aTerm);

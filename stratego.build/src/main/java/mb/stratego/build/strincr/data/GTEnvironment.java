@@ -1,5 +1,6 @@
 package mb.stratego.build.strincr.data;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
@@ -88,7 +89,7 @@ public class GTEnvironment extends StrategoTuple {
          *      the name from the term or have a nicer representation of types.
          */
         final Map.Transient<IStrategoTerm, IStrategoTerm> lubMap =
-            Map.Transient.of();
+            CapsuleUtil.transientMap();
         for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> entry : injectionClosure.backingRelation
             .entrySet()) {
             final IStrategoTerm from = entry.getKey();

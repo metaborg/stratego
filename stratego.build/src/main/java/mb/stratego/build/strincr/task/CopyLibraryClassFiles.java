@@ -3,7 +3,6 @@ package mb.stratego.build.strincr.task;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
@@ -25,7 +24,7 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
     public final ResourcePathConverter resourcePathConverter;
     public final UnarchiveFromJar unarchiveFromJar;
 
-    @Inject public CopyLibraryClassFiles(ResourcePathConverter resourcePathConverter,
+    @jakarta.inject.Inject @javax.inject.Inject public CopyLibraryClassFiles(ResourcePathConverter resourcePathConverter,
         UnarchiveFromJar unarchiveFromJar) {
         this.resourcePathConverter = resourcePathConverter;
         this.unarchiveFromJar = unarchiveFromJar;

@@ -1,6 +1,6 @@
 package mb.stratego.build.strincr;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.compat.override.strc_compat.Main;

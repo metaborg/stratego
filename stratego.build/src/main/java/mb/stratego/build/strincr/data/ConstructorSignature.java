@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.data;
 
 import java.util.Collections;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;

@@ -12,8 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -82,7 +81,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     public final Check check;
     public final Front front;
 
-    @Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
+    @jakarta.inject.Inject @javax.inject.Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
         GenerateStratego generateStratego, ResourcePathConverter resourcePathConverter,
         Resolve resolve, Check check, Front front) {
         this.strategoLanguage = strategoLanguage;

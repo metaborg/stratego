@@ -1,5 +1,6 @@
 package strategolib.strategies;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -20,7 +21,7 @@ public class internal_immutable_map_from_list_1_0 extends Strategy {
         final ITermFactory f = context.getFactory();
 
         final IStrategoList list = (IStrategoList) current;
-        final Map.Transient<IStrategoTerm, IStrategoTerm> map = Map.Transient.of();
+        final Map.Transient<IStrategoTerm, IStrategoTerm> map = CapsuleUtil.transientMap();
         for(IStrategoTerm t : list) {
             if(!TermUtils.isTuple(t, 2)) {
                 return null;

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;

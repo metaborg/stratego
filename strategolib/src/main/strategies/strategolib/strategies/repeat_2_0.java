@@ -35,7 +35,7 @@ public class repeat_2_0 extends Strategy {
     }
 
     private IStrategoTerm invokeSuspiciously(Context context, IStrategoTerm next, Strategy s) {
-        final Set<IStrategoTerm> valuesSeen = new HashSet<IStrategoTerm>();
+        final Set<IStrategoTerm> valuesSeen = new HashSet<>();
         IStrategoTerm result;
         do {
             result = next;

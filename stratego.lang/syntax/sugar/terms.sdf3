@@ -19,8 +19,8 @@ context-free syntax
 context-free syntax
 
   PreTerm.Char      = Char
-  PreTerm.App       = [<[Strategy]> [Term]]
-  PreTerm.RootApp   = [<[Strategy]>]
+  PreTerm.AppPT     = [<[Strategy]> [Term]]
+  PreTerm.RootAppPT = [<[Strategy]>]
   PreTerm.Tuple     = <(<{Term ", "}*>)>
   PreTerm.List      = <[<{Term ", "}*>]>
   PreTerm.ListTail  = <[<{Term ", "}+> | <Term>]>
@@ -34,15 +34,15 @@ context-free priorities
     PreTerm = Wld
   }
 , Term.NoAnnoList <0> .> {
-    PreTerm.As
-    PreTerm.App
-    PreTerm.RootApp
+    PreTerm.AsPT
+    PreTerm.AppPT
+    PreTerm.RootAppPT
     PreTerm.BuildDefaultPT
   }
 // AnnoList binds tighter
 , Term.AnnoList > {
-    PreTerm.As
-    PreTerm.App
+    PreTerm.AsPT
+    PreTerm.AppPT
   }
-, Term.Anno > PreTerm.App
-, PreTerm.Explode > { Term.App PreTerm.App Term.BuildDefault PreTerm.BuildDefaultPT }
+, Term.Anno > PreTerm.AppPT
+, PreTerm.Explode > { Term.App PreTerm.AppPT Term.BuildDefault PreTerm.BuildDefaultPT }

@@ -17,7 +17,7 @@ context-free syntax
 <<SId>:
   <Rule>>
 
-  Def.AnnoDef =
+  Def.AnnoRuleDef =
     <<Anno+> <RuleDef>>
 
   RuleDef.RDef =

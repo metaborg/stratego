@@ -3,7 +3,7 @@ package mb.stratego.build.strincr.task.input;
 import java.io.Serializable;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.IModuleImportService.ImportResolutionInfo;

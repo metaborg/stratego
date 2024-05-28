@@ -3,8 +3,7 @@ package mb.stratego.build.strincr.task;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
@@ -29,7 +28,7 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
     private final Resolve resolve;
     private final ResourcePathConverter resourcePathConverter;
 
-    @Inject public CheckOpenModule(CheckModule checkModule, Front front, Resolve resolve,
+    @jakarta.inject.Inject @javax.inject.Inject public CheckOpenModule(CheckModule checkModule, Front front, Resolve resolve,
         ResourcePathConverter resourcePathConverter) {
         this.checkModule = checkModule;
         this.front = front;

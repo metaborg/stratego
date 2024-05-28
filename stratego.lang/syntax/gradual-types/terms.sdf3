@@ -10,4 +10,4 @@ context-free syntax
 
 context-free priorities
 
-  { Term.App PreTerm.App Term.BuildDefault } > Term.TypeAscription
+  { Term.App PreTerm.AppPT Term.BuildDefault } > Term.TypeAscription

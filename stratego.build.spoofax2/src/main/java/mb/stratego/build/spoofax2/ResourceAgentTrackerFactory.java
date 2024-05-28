@@ -3,7 +3,6 @@ package mb.stratego.build.spoofax2;
 import java.io.File;
 import java.io.OutputStream;
 
-import javax.inject.Inject;
 
 import org.metaborg.core.resource.IResourceService;
 
@@ -14,7 +13,7 @@ public class ResourceAgentTrackerFactory implements IOAgentTrackerFactory {
     private final IResourceService resourceService;
 
 
-    @Inject public ResourceAgentTrackerFactory(IResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public ResourceAgentTrackerFactory(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

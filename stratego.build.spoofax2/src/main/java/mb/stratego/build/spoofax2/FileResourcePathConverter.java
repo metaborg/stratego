@@ -4,14 +4,13 @@ import mb.resource.ResourceService;
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.ResourcePathConverter;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 import java.io.File;
 
 public class FileResourcePathConverter implements ResourcePathConverter {
     private final ResourceService resourceService;
 
-    @Inject public FileResourcePathConverter(ResourceService resourceService) {
+    @jakarta.inject.Inject @javax.inject.Inject public FileResourcePathConverter(ResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

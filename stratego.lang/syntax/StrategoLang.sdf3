@@ -2,7 +2,6 @@ module StrategoLang
 
 imports
   import
-  // HACK: added import to make generated pp Stratego 2 code work. Fix in upcoming Spoofax 2.5.19 SDF3 codegen
-  core/modules
+  core/modules // for the Module sort
 
 context-free start-symbols Module

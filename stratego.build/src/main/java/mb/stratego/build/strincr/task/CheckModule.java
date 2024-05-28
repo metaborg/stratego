@@ -13,21 +13,21 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.util.TermUtils;
 
 import io.usethesource.capsule.BinaryRelation;
 import io.usethesource.capsule.Set;
+import mb.jsglr.shared.ImploderAttachment;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -94,7 +94,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private final ITermFactory tf;
     private final ResourcePathConverter resourcePathConverter;
 
-    @Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
+    @jakarta.inject.Inject @javax.inject.Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
         StrategoLanguage strategoLanguage, ResourcePathConverter resourcePathConverter) {
         this.resolve = resolve;
         this.front = front;
@@ -364,10 +364,10 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
         FrontInput frontInput, LinkedHashSet<StrategySignature> moduleDefinitions,
         ResolveInput resolveInput, ArrayList<Message> messages) {
         final io.usethesource.capsule.Map.Transient<StrategySignature, StrategyType> strategyTypes =
-            io.usethesource.capsule.Map.Transient.of();
+            CapsuleUtil.transientMap();
         final BinaryRelation.Transient<ConstructorSignature, ConstructorType> constructorTypes =
             BinaryRelation.Transient.of();
-        final Set.Transient<SortSignature> sorts = Set.Transient.of();
+        final Set.Transient<SortSignature> sorts = CapsuleUtil.transientSet();
         final BinaryRelation.Transient<IStrategoTerm, IStrategoTerm> injections =
             BinaryRelation.Transient.of();
 

@@ -22,12 +22,26 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>resource</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.spoofax.terms</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>jsglr.shared</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.spoofax.jsglr2</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
@@ -41,22 +55,20 @@
       <version>${metaborg-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>stratego.compiler.pack</artifactId>
-      <version>${metaborg-version}</version>
+      <groupId>io.usethesource</groupId>
+      <artifactId>capsule</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
+      <groupId>javax.inject</groupId>
+      <artifactId>javax.inject</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <scope>provided</scope>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
     </dependency>
   </dependencies>
 </project>

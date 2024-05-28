@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.data;
 
 import java.util.HashMap;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoString;

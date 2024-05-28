@@ -1,5 +1,6 @@
 package strategolib.strategies;
 
+import org.metaborg.util.collection.CapsuleUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.lang.Context;
@@ -24,7 +25,7 @@ public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
     protected IStrategoTerm intersect(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm,
         EqualityComparator<Object> cmp) {
         final ITermFactory factory = context.getFactory();
-        final Map.Transient<IStrategoTerm, IStrategoTerm> intersection = Map.Transient.of();
+        final Map.Transient<IStrategoTerm, IStrategoTerm> intersection = CapsuleUtil.transientMap();
         final Map.Immutable<IStrategoTerm, IStrategoTerm> one = ((StrategoImmutableMap) current).backingMap;
         final Map.Immutable<IStrategoTerm, IStrategoTerm> other = ((StrategoImmutableMap) otherTerm).backingMap;
         for(java.util.Map.Entry<IStrategoTerm, IStrategoTerm> e : other.entrySet()) {

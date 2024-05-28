@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
-import javax.inject.Inject;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.STask;
@@ -30,7 +29,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     public final Resolve resolve;
     public final CheckModule checkModule;
 
-    @Inject public Check(Resolve resolve, CheckModule checkModule) {
+    @jakarta.inject.Inject @javax.inject.Inject public Check(Resolve resolve, CheckModule checkModule) {
         this.resolve = resolve;
         this.checkModule = checkModule;
     }

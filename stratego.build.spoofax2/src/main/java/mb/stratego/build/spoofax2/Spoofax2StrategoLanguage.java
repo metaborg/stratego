@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import org.apache.commons.io.IOUtils;
@@ -35,8 +35,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.HybridInterpreter;
 
-import com.google.common.collect.Lists;
-
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.StrategoLanguage;
 import mb.stratego.build.strincr.data.GTEnvironment;
@@ -54,7 +52,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private final ISpoofaxSyntaxService syntaxService;
     private final StrIncrContext strContext;
 
-    @Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, StrategoCommon strategoCommon,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxUnitService unitService,
@@ -161,7 +159,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : strategoLangImpl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;

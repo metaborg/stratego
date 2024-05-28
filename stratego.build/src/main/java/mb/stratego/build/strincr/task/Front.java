@@ -12,16 +12,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.TermUtils;
 
+import mb.jsglr.shared.ImploderAttachment;
 import mb.pie.api.ExecContext;
 import mb.pie.api.ExecException;
 import mb.pie.api.TaskDef;
@@ -76,7 +75,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     protected final StrategoLanguage strategoLanguage;
     protected final ResourcePathConverter resourcePathConverter;
 
-    @Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
+    @jakarta.inject.Inject @javax.inject.Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
         GenerateStratego generateStratego, StrategoLanguage strategoLanguage,
         ResourcePathConverter resourcePathConverter) {
         this.tf = strContext.getFactory();

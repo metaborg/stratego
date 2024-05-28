@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.message.Message;

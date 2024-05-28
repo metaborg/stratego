@@ -1,6 +1,6 @@
 package mb.stratego.build.strincr;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.resource.hierarchical.ResourcePath;
 

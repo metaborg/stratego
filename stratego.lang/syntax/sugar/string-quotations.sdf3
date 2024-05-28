@@ -12,20 +12,20 @@ context-free sorts
 context-free syntax
   PreTerm = StringQuotation
 
-  StringQuotedPart1.QStr = StringQuotedChars1
-  StringQuotedPart2.QStr = StringQuotedChars2
-  StringQuotedPart3.QStr = StringQuotedChars3
-  StringQuotedPart4.QStr = StringQuotedChars4
+  StringQuotedPart1.QStr1 = StringQuotedChars1
+  StringQuotedPart2.QStr2 = StringQuotedChars2
+  StringQuotedPart3.QStr3 = StringQuotedChars3
+  StringQuotedPart4.QStr4 = StringQuotedChars4
 
-  StringQuotedPart1.QDollar = Dollar1
-  StringQuotedPart2.QDollar = Dollar2
-  StringQuotedPart3.QDollar = Dollar3
-  StringQuotedPart4.QDollar = Dollar4
+  StringQuotedPart1.QDollar1 = Dollar1
+  StringQuotedPart2.QDollar2 = Dollar2
+  StringQuotedPart3.QDollar3 = Dollar3
+  StringQuotedPart4.QDollar4 = Dollar4
 
-  StringQuotedPart1.QBr = QuotedBracket1
-  StringQuotedPart2.QBr = QuotedBracket2
-  StringQuotedPart3.QBr = QuotedBracket3
-  StringQuotedPart4.QBr = QuotedBracket4
+  StringQuotedPart1.QBr1 = QuotedBracket1
+  StringQuotedPart2.QBr2 = QuotedBracket2
+  StringQuotedPart3.QBr3 = QuotedBracket3
+  StringQuotedPart4.QBr4 = QuotedBracket4
 
 lexical sorts
   StringQuotedChars1 Dollar1 QuotedBracket1
