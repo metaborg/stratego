@@ -1,0 +1,117 @@
+module evalexpr
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Pos ENat SNat
+
+constructors
+   true : Bool 
+   false : Bool 
+   d1 : Pos 
+   cDub : Bool * Pos -> Pos 
+   Exz : ENat 
+   Exs : ENat -> ENat 
+   Explus : ENat * ENat -> ENat 
+   Exmult : ENat * ENat -> ENat 
+   Exexp : ENat * ENat -> ENat 
+   Z : SNat 
+   S : SNat -> SNat 
+   eqBool : Bool * Bool -> Bool 
+   and : Bool * Bool -> Bool 
+   eqPos : Pos * Pos -> Bool 
+   lambda0 : ENat -> Bool 
+   eqENat : ENat * ENat -> Bool 
+   eq : SNat * SNat -> Bool 
+   succ17 : SNat -> SNat 
+   plus17 : SNat * SNat -> SNat 
+   mult17 : SNat * SNat -> SNat 
+   exp17 : SNat * SNat -> SNat 
+   eval17 : ENat -> SNat 
+   evalexp17 : ENat -> SNat 
+   expand : ENat -> ENat 
+   two : ENat 
+   seventeen : ENat 
+   f : ENat -> Bool 
+
+rules
+   REC_E: eqBool (true(),b) -> b
+   REC_E: eqBool (false(),true()) -> false()
+   REC_E: eqBool (false(),false()) -> true()
+   REC_E: and (b,true()) -> b
+   REC_E: and (b,false()) -> false()
+   REC_E: eqPos (d1(),d1()) -> true()
+   REC_E: eqPos (d1(),cDub (b,p)) -> false()
+   REC_E: eqPos (cDub (b,p),d1()) -> false()
+   REC_E: eqPos (cDub (b,p),cDub (c,q)) -> and (eqBool (b,c), eqPos (p,q))
+   REC_E: lambda0 (m) -> eq (eval17 (m),evalexp17 (m))
+   REC_E: eq (Z(),Z()) -> true()
+   REC_E: eq (Z(),S (r)) -> false()
+   REC_E: eq (S (r),Z()) -> false()
+   REC_E: eq (S (r),S (t)) -> eq (r,t)
+   REC_E: eqENat (Exz(),Exz()) -> true()
+   REC_E: eqENat (Exz(),Exs (m)) -> false()
+   REC_E: eqENat (Exz(),Explus (m,n)) -> false()
+   REC_E: eqENat (Exz(),Exmult (m,n)) -> false()
+   REC_E: eqENat (Exz(),Exexp (m,n)) -> false()
+   REC_E: eqENat (Exs (m),Exz()) -> false()
+   REC_E: eqENat (Exs (n),Exs (m)) -> eqENat (n,m)
+   REC_E: eqENat (Exs (m),Explus (n,o)) -> false()
+   REC_E: eqENat (Exs (n),Exmult (m,o)) -> false()
+   REC_E: eqENat (Exs (m),Exexp (n,o)) -> false()
+   REC_E: eqENat (Explus (n,m),Exz()) -> false()
+   REC_E: eqENat (Explus (m,n),Exs (o)) -> false()
+   REC_E: eqENat (Explus (n,m),Explus (o,l)) -> and (eqENat (n,o),eqENat (m,l))
+   REC_E: eqENat (Explus (m,n),Exmult (o,l)) -> false()
+   REC_E: eqENat (Explus (n,m),Exexp (o,l)) -> false()
+   REC_E: eqENat (Exmult (m,n),Exz()) -> false()
+   REC_E: eqENat (Exmult (n,m),Exs (o)) -> false()
+   REC_E: eqENat (Exmult (m,n),Explus (o,l)) -> false()
+   REC_E: eqENat (Exmult (n,m),Exmult (o,l)) -> and (eqENat (n,o),eqENat (m,l))
+   REC_E: eqENat (Exmult (m,n),Exexp (o,l)) -> false()
+   REC_E: eqENat (Exexp (n,m),Exz()) -> false()
+   REC_E: eqENat (Exexp (m,n),Exs (o)) -> false()
+   REC_E: eqENat (Exexp (n,m),Explus (o,l)) -> false()
+   REC_E: eqENat (Exexp (m,n),Exmult (o,l)) -> false()
+   REC_E: eqENat (Exexp (m,n),Exexp (o,l)) -> and (eqENat (m,o),eqENat (n,l))
+   REC_E: succ17 (r) -> Z() where equal-after-eval (|eq (r,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), true())
+   REC_E: succ17 (r) -> S (r) where equal-after-eval (|eq (r,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), false())
+   REC_E: plus17 (r,Z()) -> r
+   REC_E: plus17 (r,S (t)) -> succ17 (plus17 (r,t))
+   REC_E: mult17 (r,Z()) -> Z()
+   REC_E: mult17 (r,S (t)) -> plus17 (r,mult17 (r,t))
+   REC_E: exp17 (r,Z()) -> succ17 (Z())
+   REC_E: exp17 (r,S (t)) -> mult17 (r,exp17 (r,t))
+   REC_E: eval17 (Exz()) -> Z()
+   REC_E: eval17 (Exs (n)) -> succ17 (eval17 (n))
+   REC_E: eval17 (Explus (n,m)) -> plus17 (eval17 (n),eval17 (m))
+   REC_E: eval17 (Exmult (n,m)) -> mult17 (eval17 (n),eval17 (m))
+   REC_E: eval17 (Exexp (n,m)) -> exp17 (eval17 (n),eval17 (m))
+   REC_E: evalexp17 (n) -> eval17 (expand (n))
+   REC_E: expand (Exz()) -> Exz()
+   REC_E: expand (Exs (n)) -> Explus (Exs (Exz()),n)
+   REC_E: expand (Explus (n,m)) -> Explus (expand (n),expand (m))
+   REC_E: expand (Exmult (n,Exz())) -> Exz()
+   REC_E: expand (Exmult (n,Exs (Exz()))) -> expand (n)
+   REC_E: expand (Exmult (n,Explus (m,o))) -> expand (Explus (Exmult (n,m),Exmult (n,o)))
+   REC_E: expand (Exmult (n,Exmult (m,o))) -> expand (Exmult (n,expand (Exmult (m,o))))
+   REC_E: expand (Exmult (n,Exexp (m,o))) -> expand (Exmult (n,expand (Exexp (m,o))))
+   REC_E: expand (Exexp (n,Exz())) -> Exs (Exz())
+   REC_E: expand (Exexp (n,Exs (m))) -> expand (n) where equal-after-eval (|eqENat (m,Exz()), true())
+   REC_E: expand (Exexp (n,Exs (m))) -> expand (Exexp (n,expand (Exs (m)))) where equal-after-eval (|eqENat (m,Exz()), false())
+   REC_E: expand (Exexp (n,Explus (m,o))) -> expand (Exmult (Exexp (n,m),Exexp (n,o)))
+   REC_E: expand (Exexp (n,Exmult (m,o))) -> expand (Exexp (n,expand (Exmult (m,o))))
+   REC_E: expand (Exexp (n,Exexp (m,o))) -> expand (Exexp (n,expand (Exexp (m,o))))
+   REC_E: two() -> Exs (Exs (Exz()))
+   REC_E: seventeen() -> Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exs (Exz())))))))))))))))))))
+   REC_E: f (m) -> lambda0 (Exexp (two(),m))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (seventeen())) ;
+      <exit> 0

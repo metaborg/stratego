@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="StrategoBenchmarkTests -Xms512m -Xmx2048m -Xss16m" type="JUnit" factoryName="JUnit">
+    <module name="stratego.build.spoofax2.benchmark" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="benchmark.stratego2.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="PACKAGE_NAME" value="benchmark.stratego2" />
+    <option name="MAIN_CLASS_NAME" value="benchmark.stratego2.StrategoBenchmarkTests" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <option name="VM_PARAMETERS" value="-ea -Xms512m -Xmx2048m -Xss16m" />
+    <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
