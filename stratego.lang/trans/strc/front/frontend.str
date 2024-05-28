@@ -139,7 +139,7 @@ strategies
               <+ ?_{"quoted"}
           )
     in
-      (Match(s) + ScopedMatchCase(id, s, id) + ScopedGuardedMatchCase(id, s, id, id))
+      (Match(s) + ScopedGuardedMatchCase(id, s, id, id))
     ; err(|"build symbols in match pattern")
     
     end

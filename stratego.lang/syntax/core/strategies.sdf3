@@ -100,7 +100,6 @@ end>
 
   MatchOrder.Sequential = <sequential>
 
-  MatchCase.ScopedMatchCase = <case <{ID ", "}*> | <Term>: <Strategy>>
   MatchCase.ScopedGuardedMatchCase = <case <{ID ", "}*> | <Term> when <Strategy>: <Strategy>>
 
 context-free sorts DTree
