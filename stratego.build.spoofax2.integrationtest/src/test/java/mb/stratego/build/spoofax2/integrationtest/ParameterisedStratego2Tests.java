@@ -171,7 +171,7 @@ public class ParameterisedStratego2Tests {
                     Arrays.asList(outputDir.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed");
             Assertions.assertTrue(
-                    Java.execute(outputDir + ":" + strategoxtJarPath, packageName + ".Main"),
+                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".Main"),
                     "Running java expected to succeed (" + baseName + ")");
         });
     }
