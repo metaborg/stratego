@@ -121,6 +121,7 @@ public class ParameterisedStratego2Tests {
     }
 
     @TestFactory
+    @Disabled(value = "testing PMC as end-to-end tests doesn't make sense anymore as these are now rejected in the surface syntax during static analysis")
     private Stream<DynamicNode> testPMC() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add
