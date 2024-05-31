@@ -4,12 +4,19 @@ signature
   sorts
     Term
   constructors
-    Nil : List(a)
-    Cons : a * List(a) -> List(a)
-
-    Simple : Term -> Term
+    Nil 	: 				         List(a)
+    Cons 	: a * List(a) 	-> List(a)
+    Car1 	: a 			      -> List(a)
+    Car2  : a             -> List(a)
+    Car3  : a             -> List(a)
 
 strategies
-
-  simple :: Term -> Term
-  simple: a -> Simple(a)
+  s(|x) =
+    match sequential
+      case   | (x, x): !1
+      case   | ([], []): !4
+      case x, xs | x#(xs): !5
+      case | Foo(1): !8
+      case | Bar(): !9
+      case | Foo(2): !10
+    end

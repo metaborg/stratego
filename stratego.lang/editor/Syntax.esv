@@ -1,6 +1,6 @@
 module Syntax
 
-imports 
+imports
 
   Colorer
 
@@ -14,9 +14,8 @@ language
   fences        : [ ] ( ) { }
 
 menus
-  
+
   menu: "Syntax" (openeditor) (source)
-    
     action: "Format"          = editor-format
     action: "Show parsed AST" = debug-show-aterm
 
@@ -24,7 +23,10 @@ menus
     action: "Show desugared AST (incr. comp.)" = debug-show-desugared
     action: "Show desugared AST (batch comp.)" = debug-show-ctree
 
+  menu: "Codegen" (openeditor) (source)
+    action: "Show Java (-O2)" = debug-show-java
+
 views
-  
+
   outline view: editor-outline (source)
     expand to level: 3

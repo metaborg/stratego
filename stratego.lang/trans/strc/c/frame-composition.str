@@ -57,6 +57,26 @@ strategies
            |}
 	//; debug(!"afo-scope out: ")
 
+  afo-scope :
+    Guard(x*, s1, s2) -> Guard(x'*, s1', s2')
+  where
+  {| OffSet
+   : x'* := <map(try(offset-local-var(|"var")))> x*
+   ; s1' := <afo> s1
+   ; s2' := <afo> s2
+  |}
+
+  afo-scope :
+    ScopedGuardedMatchCase(x1*, t1, s1, s2) ->
+    ScopedGuardedMatchCase(x2*, t2, s3, s4)
+  where
+    {| OffSet
+           : x2* := <map(try(offset-local-var(|"var")))> x1*
+           ; t2 := <afo> t1
+           ; s3 := <afo> s1
+           ; s4 := <afo> s2
+           |}
+
   offset-sdef :
     |[ f1(a1* | a2*) = s ]| -> |[ f2(a1* | a2*) = s ]|
     where f2 := <offset-local-var(|"svar")> f1

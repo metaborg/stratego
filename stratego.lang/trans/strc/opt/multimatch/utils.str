@@ -1,0 +1,85 @@
+module multimatch/utils
+
+imports
+  strc/opt/stratego-laws
+
+  signatures/core/strategies-sig
+
+  libstratego-lib
+
+overlays
+  NoAnnoMatch(t) = Anno(t, Wld())
+
+strategies
+
+  /*
+   * Generic zip.
+   * Works on any number of input arguments >0.
+   */
+  zipn = zipn(id)
+  zipn(s) = genzip(ZipN1, ZipN2, ZipN3, s)
+
+  internal ZipN1 = tmap(?[]); ![]
+  internal ZipN2 = !(<tmap(Hd)>, <tmap(Tl)>)
+  internal ZipN3 = Zip3
+
+  unzip(|n) = unzipn(id|n)
+  unzipn(s|n) = genzip(UnZipN1(|n), UnZipN3, UnZipN2, s)
+
+  internal UnZipN1(|n): [] -> <repeat(![[] | <id>]|n); ListToTuple> []
+    
+  internal UnZipN2: t@(theads, ttails) -> tlists
+  where
+    tlists := <tzip(MkCons); ListToTuple> t
+
+  internal UnZipN3 = UnZip3
+
+  averager = split(sum; real, length; real); div
+
+  /*
+   * Takes elements from the start of the list, including the first element at
+   * which `s` succeeds. Drops all subsequent elements.
+   */
+  drop-after(s) =
+    split-fetch-keep(where(s)) => (x1*, x2, _)
+  ; <at-end(![x2])> x1*
+
+  /*
+   * Find index of first element in list for which `s` succeeds.
+   * Index starts at 1.
+   */
+  find-first-index(s) = id
+  ; is-list
+  ; split-fetch(s)
+  ; Fst
+  ; length
+  ; inc
+
+  /*
+   * Swap elements `m` and `n` in a list.
+   * Index starts at 1.
+   */
+  swap(|m, n) = where(<eq> (m, n)); id
+  swap(|m, n): xs -> xs''
+  with
+    <is-list> xs
+  ; elM := <index(|m)> xs
+  ; elN := <index(|n)> xs
+  ; xs' := <set-index> (<dec> m, elN, xs)
+  ; xs'' := <set-index> (<dec> n, elM, xs')
+
+  or(s1, s2, s3) = or(or(s1, s2), s3)
+
+strategies
+  cons-arity: AnnoC() -> 2
+  cons-arity = ?FunC(_, <string-to-int>)
+  cons-arity = ?TupleC(<string-to-int>)
+  cons-arity = is-literal-cons; !0
+
+  is-literal-cons = ?StrC(_) + ?IntC(_) + ?RealC(_)
+  
+  is-wld = is-wld-sugar + is-wld-core
+  is-wld-sugar = ?Wld()
+  is-wld-core = ?NoAnnoMatch(Wld())
+
+  sequence-strategies = !Seq(<Fst>, <Snd>)

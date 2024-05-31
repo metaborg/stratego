@@ -1,0 +1,50 @@
+module permutations6
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat NatList NatListList
+
+constructors
+   d0 : Nat 
+   s : Nat -> Nat 
+   nil : NatList 
+   l : Nat -> NatList 
+   ll : NatList * NatList -> NatList 
+   nilP : NatListList 
+   p : NatList -> NatListList 
+   pp : NatListList * NatListList -> NatListList 
+   perm : Nat -> NatListList 
+   insert1 : Nat * NatListList -> NatListList 
+   insert0 : Nat * NatList -> NatListList 
+   map_cons : Nat * NatListList -> NatListList 
+   ppreduce : NatListList * NatListList -> NatListList 
+   ppflat : NatListList * NatListList -> NatListList 
+
+rules
+   REC_E: perm (d0()) -> ppreduce (p (nil()), nilP())
+   REC_E: perm (s (d0())) -> ppreduce (p (ll (l (s (d0())), nil())), nilP())
+   REC_E: perm (s (N)) -> insert1 (s (N), perm (N))
+   REC_E: insert1 (N, pp (p (P1), Ps)) -> ppreduce (insert0 (N, P1), insert1 (N, Ps))
+   REC_E: insert1 (N, p (P1)) -> insert0 (N,P1)
+   REC_E: insert1 (N, nilP()) -> nilP()
+   REC_E: insert0 (N, ll (l (M), P2)) -> ppreduce (p (ll (l (N), ll (l (M), P2))), map_cons (M, insert0 (N, P2)))
+   REC_E: insert0 (N, nil()) -> ppreduce (p (ll (l (N), nil())), nilP())
+   REC_E: map_cons (M, pp (p (P1), Ps)) -> ppreduce (p (ll (l (M), P1)), map_cons (M, Ps))
+   REC_E: map_cons (M, p (P1)) -> p (ll (l (M), P1))
+   REC_E: map_cons (M, nilP()) -> nilP()
+   REC_E: ppreduce (nilP(), Ps2) -> Ps2
+   REC_E: ppreduce (Ps1, nilP()) -> Ps1
+   REC_E: ppreduce (Ps1, Ps2) -> ppflat (Ps1, ppflat (Ps2, nilP()))
+   REC_E: ppflat (nilP(), accumulator) -> accumulator
+   REC_E: ppflat (p (P1), accumulator) -> pp (p (P1), accumulator)
+   REC_E: ppflat (pp (Ps1, Ps2), accumulator) -> ppflat (Ps1, ppflat (Ps2, accumulator))
+
+strategies
+   eval = memo (innermost (REC_E))
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> perm (s (s (s (s (s (s (d0())))))))) ;
+      <exit> 0

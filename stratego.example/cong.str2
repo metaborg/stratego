@@ -1,0 +1,20 @@
+module cong
+
+signature
+  sorts Foo Bar
+  constructors
+    Foo : a * a -> Foo
+    Bar : a     -> Bar
+
+strategies
+  s(|x) =
+    ?Foo(x, _) < !"match"
+  + ?Bar(_)
+  + fail
+
+  
+  // 1 + 2 + 3
+  // (1 + 2) + 3
+  
+  // s1 + s2 + s3
+  // s1 + (s2 + s3)

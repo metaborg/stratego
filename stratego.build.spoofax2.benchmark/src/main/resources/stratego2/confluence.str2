@@ -1,0 +1,25 @@
+module confluence
+
+imports libstrategolib
+
+signature
+
+sorts
+   S
+
+constructors
+   d0 : S 
+   g : S -> S 
+   f : S -> S 
+
+rules
+   REC_E: f (g (X)) -> X where equal-after-eval (|X, d0())
+   REC_E: f (g (g (X))) -> f (g (X))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (g (g (d0())))) ;
+      <exit> 0

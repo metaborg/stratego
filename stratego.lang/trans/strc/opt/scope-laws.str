@@ -26,4 +26,3 @@ rules
     Scope(ys, Seq(s1, Scope(zs, s2)))
     where <isect> (<tvars> s1, xs) => ys;
           <diff> (xs, ys) => zs; not([])
-

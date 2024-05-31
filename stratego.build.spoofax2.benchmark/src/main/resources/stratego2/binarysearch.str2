@@ -1,0 +1,149 @@
+module binarysearch
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Pos Int Nat
+
+constructors
+   T : Bool 
+   F : Bool 
+   Xone : Pos 
+   cDub : Bool * Pos -> Pos 
+   cInt : Nat -> Int 
+   cNeg : Pos -> Int 
+   Zero : Nat 
+   cNat : Pos -> Nat 
+   eqBool : Bool * Bool -> Bool 
+   Xnot : Bool -> Bool 
+   and : Bool * Bool -> Bool 
+   eqPos : Pos * Pos -> Bool 
+   lePos : Pos * Pos -> Bool 
+   ltPos : Pos * Pos -> Bool 
+   gePos : Pos * Pos -> Bool 
+   succ2Pos : Pos -> Pos 
+   plusPos : Pos * Pos -> Pos 
+   addc : Bool * Pos * Pos -> Pos 
+   lambda0 : Nat * Nat * Nat * Nat -> Nat 
+   max2Int : Int * Nat -> Nat 
+   min2 : Nat -> Int 
+   minus : Nat * Nat -> Int 
+   eq : Nat * Nat -> Bool 
+   ite : Bool * Nat * Nat -> Nat 
+   Pos2Nat : Pos -> Nat 
+   Nat2Pos : Nat -> Pos 
+   le : Nat * Nat -> Bool 
+   lt : Nat * Nat -> Bool 
+   ge : Nat * Nat -> Bool 
+   max2 : Nat * Nat -> Nat 
+   succ2 : Nat -> Pos 
+   pred2 : Pos -> Nat 
+   dub : Bool * Nat -> Nat 
+   plusNatPos : Nat * Pos -> Pos 
+   plus : Nat * Nat -> Nat 
+   gtesubtp : Pos * Pos -> Nat 
+   gtesubtn : Nat * Nat -> Nat 
+   gtesubtb : Bool * Pos * Pos -> Nat 
+   dividePos : Pos * Pos -> Nat 
+   divide : Nat * Pos -> Nat 
+   f : Nat -> Nat 
+   bs : Nat * Nat -> Nat 
+   bs2 : Nat * Nat * Nat -> Nat 
+
+rules
+   REC_E: eqBool (T(),b) -> b
+   REC_E: eqBool (F(),T()) -> F()
+   REC_E: eqBool (F(),F()) -> T()
+   REC_E: and (T(),b) -> b
+   REC_E: and (F(),b) -> F()
+   REC_E: Xnot (T()) -> F()
+   REC_E: Xnot (F()) -> T()
+   REC_E: eqPos (Xone(),Xone()) -> T()
+   REC_E: eqPos (Xone(),cDub (b,p)) -> F()
+   REC_E: eqPos (cDub (b,p),Xone()) -> F()
+   REC_E: eqPos (cDub (b,p),cDub (c,q)) -> and (eqBool (b,c), eqPos (p,q))
+   REC_E: lePos (Xone(),p) -> T()
+   REC_E: lePos (cDub (b,p),Xone()) -> F()
+   REC_E: lePos (cDub (b,p),cDub (c,q)) -> lePos (p,q) where equal-after-eval (|b, c)
+   REC_E: lePos (cDub (b,p),cDub (c,q)) -> lePos (p,q) where not (equal-after-eval (|b, c)) ; equal-after-eval (|b, F())
+   REC_E: lePos (cDub (b,p),cDub (c,q)) -> ltPos (p,q) where not (equal-after-eval (|b, c)) ; equal-after-eval (|b, T())
+   REC_E: ltPos (p,Xone()) -> F()
+   REC_E: ltPos (Xone(),cDub (b,p)) -> T()
+   REC_E: ltPos (cDub (b,p),cDub (c,q)) -> ltPos (p,q) where equal-after-eval (|b, c)
+   REC_E: ltPos (cDub (b,p),cDub (c,q)) -> lePos (p,q) where not (equal-after-eval (|b, c)) ; equal-after-eval (|b, F())
+   REC_E: ltPos (cDub (b,p),cDub (c,q)) -> ltPos (p,q) where not (equal-after-eval (|b, c)) ; equal-after-eval (|b, T())
+   REC_E: gePos (p,q) -> lePos (q,p)
+   REC_E: succ2Pos (Xone()) -> cDub (F(),Xone())
+   REC_E: succ2Pos (cDub (F(),p)) -> cDub (T(),p)
+   REC_E: succ2Pos (cDub (T(),p)) -> cDub (F(),succ2Pos (p))
+   REC_E: plusPos (p,q) -> addc (F(),p,q)
+   REC_E: addc (F(),Xone(),p) -> succ2Pos (p)
+   REC_E: addc (T(),Xone(),p) -> succ2Pos (succ2Pos (p))
+   REC_E: addc (F(),p,Xone()) -> succ2Pos (p)
+   REC_E: addc (T(),p,Xone()) -> succ2Pos (succ2Pos (p))
+   REC_E: addc (b,cDub (c,p),cDub (d,q)) -> cDub (b,addc (c,p,q)) where equal-after-eval (|c, d)
+   REC_E: addc (b,cDub (c,p),cDub (d,q)) -> cDub (Xnot (b),addc (b,p,q)) where not (equal-after-eval (|c, d))
+   REC_E: lambda0 (n,y,x,h) -> bs2 (n,h,y) where equal-after-eval (|lt (f (h),n), T())
+   REC_E: lambda0 (n,y,x,h) -> bs2 (n,x,h) where equal-after-eval (|lt (f (h),n), F())
+   REC_E: max2Int (cInt (m),n) -> max2 (m,n)
+   REC_E: max2Int (cNeg (p),n) -> n
+   REC_E: min2 (Zero()) -> cInt (Zero())
+   REC_E: min2 (cNat (p)) -> cNeg (p)
+   REC_E: minus (m,n) -> cInt (gtesubtn (m,n)) where equal-after-eval (|ge (m,n), T())
+   REC_E: minus (m,n) -> min2 (gtesubtn (n,m)) where equal-after-eval (|lt (m,n), T())
+   REC_E: eq (Zero(),Zero()) -> T()
+   REC_E: eq (Zero(),cNat (p)) -> F()
+   REC_E: eq (cNat (p),Zero()) -> F()
+   REC_E: eq (cNat (p),cNat (q)) -> eqPos (p,q)
+   REC_E: ite (T(),m,n) -> m
+   REC_E: ite (F(),m,n) -> n
+   REC_E: Pos2Nat (p) -> cNat (p)
+   REC_E: Nat2Pos (cNat (p)) -> p
+   REC_E: le (Zero(),n) -> T()
+   REC_E: le (cNat (p),Zero()) -> F()
+   REC_E: le (cNat (p),cNat (q)) -> lePos (p,q)
+   REC_E: lt (n,Zero()) -> F()
+   REC_E: lt (Zero(),cNat (p)) -> T()
+   REC_E: lt (cNat (p),cNat (q)) -> ltPos (p,q)
+   REC_E: ge (m,n) -> le (n,m)
+   REC_E: max2 (m,n) -> ite (le (m,n),n,m)
+   REC_E: succ2 (Zero()) -> Xone()
+   REC_E: succ2 (cNat (p)) -> succ2Pos (p)
+   REC_E: pred2 (Xone()) -> Zero()
+   REC_E: pred2 (cDub (T(),p)) -> cNat (cDub (F(),p))
+   REC_E: pred2 (cDub (F(),p)) -> dub (T(),pred2 (p))
+   REC_E: dub (F(),Zero()) -> Zero()
+   REC_E: dub (T(),Zero()) -> cNat (Xone())
+   REC_E: dub (b,cNat (p)) -> cNat (cDub (b,p))
+   REC_E: plusNatPos (Zero(),p) -> p
+   REC_E: plusNatPos (cNat (p),q) -> plusPos (p,q)
+   REC_E: plus (Zero(),n) -> n
+   REC_E: plus (n,Zero()) -> n
+   REC_E: plus (cNat (p),cNat (q)) -> cNat (addc (F(),p,q))
+   REC_E: gtesubtp (p,q) -> gtesubtb (F(),p,q)
+   REC_E: gtesubtn (n,Zero()) -> n
+   REC_E: gtesubtn (cNat (p),cNat (q)) -> gtesubtp (p,q)
+   REC_E: gtesubtb (F(),p,Xone()) -> pred2 (p)
+   REC_E: gtesubtb (T(),p,Xone()) -> pred2 (Nat2Pos (pred2 (p)))
+   REC_E: gtesubtb (b,cDub (c,p),cDub (d,q)) -> dub (b,gtesubtb (b,p,q)) where equal-after-eval (|c, d)
+   REC_E: gtesubtb (b,cDub (c,p),cDub (d,q)) -> dub (Xnot (b),gtesubtb (d,p,q)) where not (equal-after-eval (|c, d))
+   REC_E: dividePos (p,q) -> cNat (succ2 (divide (gtesubtp (p,q),q))) where equal-after-eval (|gePos (p,q), T())
+   REC_E: dividePos (p,q) -> Zero() where equal-after-eval (|ltPos (p,q), T())
+   REC_E: divide (Zero(),p) -> Zero()
+   REC_E: divide (cNat (p),q) -> dividePos (p,q)
+   REC_E: f (Zero()) -> Zero()
+   REC_E: f (cNat (Xone())) -> cNat (Xone())
+   REC_E: f (cNat (cDub (b,p))) -> plus (f (max2Int (minus (cNat (cDub (b,p)),Pos2Nat (Xone())),Zero())),f (max2Int (minus (cNat (cDub (b,p)),Pos2Nat (cDub (F(),Xone()))),Zero())))
+   REC_E: bs (n,m) -> bs2 (n,Zero(),m)
+   REC_E: bs2 (n,x,y) -> x where equal-after-eval (|eq (Pos2Nat (plusNatPos (x,Xone())),y), T())
+   REC_E: bs2 (n,x,y) -> lambda0 (n,y,x,divide (plus (x,y),cDub (F(),Xone()))) where equal-after-eval (|eq (Pos2Nat (plusNatPos (x,Xone())),y), F())
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> bs (Pos2Nat (cDub (T(),cDub (T(),cDub (F(),cDub (T(),cDub (F(),cDub (T(),cDub (T(),cDub (F(),cDub (T(),cDub (F(),cDub (T(),Xone())))))))))))),Pos2Nat (cDub (F(),cDub (F(),cDub (F(),cDub (F(),cDub (F(),cDub (F(),Xone()))))))))) ;
+      <exit> 0

@@ -64,6 +64,10 @@ rules
             + ?Minus(_, _)
             + fail)> t_1
 
+  external debug(|)
+  external say(s|)
+  external innermost(s|)
+
 signature
   sorts
     Unknown

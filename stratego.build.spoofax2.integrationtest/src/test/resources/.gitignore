@@ -1,0 +1,5 @@
+*.core.str2
+*.opt*.str2
+*.java
+*.aterm
+

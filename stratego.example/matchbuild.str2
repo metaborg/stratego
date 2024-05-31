@@ -1,0 +1,25 @@
+module matchbuild
+
+signature 
+  sorts List
+  constructors
+    Nil  :                List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+mb(|x) = ?Cons(x, Nil()); <conc> ([])
+      <+ ?Cons(x, Cons(y, Cons(_, Nil()))); !3
+      <+ ?_; map(id) // TODO look for renaming in Scope(dMatchCase)
+
+override map(s) =
+  rec x([] + [s | x]) 
+
+override conc =
+  \ (l1, l2) -> <at-end(!l2)> l1 \
+  <+ \ "" # (xs) -> <concat> xs \
+
+override concat =
+  rec x([] + \ [l | ls] -> <at-end(<x> ls)> l\ )
+
+override at-end(s) =
+  rec x([id | x] + []; s)

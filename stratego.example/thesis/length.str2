@@ -1,0 +1,11 @@
+module length
+
+imports libstratego-lib
+
+strategies
+  length =
+    match sequential
+      case       | []: !0
+      case x, xs | [x | xs]: <add> (1, <length> xs)
+      case       | _ when not(is-list): fatal-err(|"Not a list!")
+    end

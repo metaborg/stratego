@@ -36,6 +36,8 @@ strategies
 
       + CallT(id, map(raise), map(bld))
       + CallDynamic(bld,map(raise),map(bld))
+
+      + ScopedGuardedMatchCase(id, mch, raise, raise)
     )
   )
 

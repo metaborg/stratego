@@ -1,0 +1,26 @@
+module calc
+imports libstratego-lib
+
+signature
+  sorts Nat                  // natural numbers: 0, 1, 2, ...
+  constructors
+    O:Nat                    // 0
+    S:Nat -> Nat             // 1 + n
+
+    Plus :  Nat * Nat -> Nat // m + n
+    Minus : Nat * Nat -> Nat // m - n 
+    // Ex.:Minus(S(S(O())), S(O()))
+
+rules
+  Calc:Plus(O(), n)      -> n             // 0 + n       => n
+  Calc:Plus(n, O())      -> n             // n + 0       => n
+  Calc:Plus(S(m), n)     -> S(Plus(m, n)) // (1 + m) + n => 1 + (m + n)
+
+  Calc:Minus(n, O())     -> n             // n - 0             => n
+  Calc:Minus(S(m), S(n)) -> Minus(m, n)   // (1 + m) - (1 + n) => m - n
+  Calc:Minus(O(), S(_))  ->
+       <fatal-err(|"Negative result!")>   // 0 - (1 + n) => not a nat
+
+strategies
+  calculate = innermost(Calc)
+  main = <calculate> Minus(S(S(O())), S(O())) // calculates 2 - 1

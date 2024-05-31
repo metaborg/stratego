@@ -1,0 +1,16 @@
+module types
+language StrategoLang
+
+test sig 1 [[
+module sig
+
+strategies
+main(s: (T -> T) * T -> T|) = s
+]] run prettyprint-StrategoLang
+
+test sig 2 [[
+module sig
+
+strategies
+main(s: [[(T -> T) * T -> T]]) = s
+]] run prettyprint-StrategoLang-FunType on #1

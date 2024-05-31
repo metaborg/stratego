@@ -1,0 +1,27 @@
+module searchinconditions
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool
+
+constructors
+   true : Bool 
+   false : Bool 
+   a : Bool 
+   Xnot : Bool -> Bool 
+
+rules
+   REC_E: a() -> true()
+   REC_E: Xnot (X) -> true() where equal-after-eval (|X, false())
+   REC_E: Xnot (X) -> false() where equal-after-eval (|X, true())
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> Xnot (a())) ;
+      <exit> 0

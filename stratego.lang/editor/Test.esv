@@ -1,0 +1,11 @@
+module Test
+
+menus
+
+  menu: "Test" (openeditor) (source) (meta)
+    action: "Choice to MultiMatch" = test-choice2multimatch
+    action: "MultiMatch to DFA" = test-multimatch2dfa
+
+    action: "Choice to MultiMatch (PP)" = test-choice2multimatch-pp
+    action: "MultiMatch to DFA (PP)" = test-multimatch2dfa-pp
+  
