@@ -11,12 +11,7 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.DynamicContainer;
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.*;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.util.cmd.Arguments;
@@ -127,6 +122,7 @@ public class ParameterisedStratego2Tests {
     }
 
     @TestFactory
+    @Disabled(value = "testing PMC as end-to-end tests doesn't make sense anymore as these are now rejected in the surface syntax during static analysis")
     private Stream<DynamicNode> testPMC() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add
