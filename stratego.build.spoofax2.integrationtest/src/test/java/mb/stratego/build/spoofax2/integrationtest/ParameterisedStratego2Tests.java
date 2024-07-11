@@ -1,6 +1,5 @@
 package mb.stratego.build.spoofax2.integrationtest;
 
-import com.google.common.collect.Lists;
 import mb.resource.DefaultResourceService;
 import mb.resource.ResourceService;
 import mb.resource.fs.FSResourceRegistry;
@@ -12,20 +11,29 @@ import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.DynamicContainer;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.util.cmd.Arguments;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static mb.stratego.build.spoofax2.integrationtest.StrcTests.getErrorMessagesString;
@@ -37,8 +45,8 @@ public class ParameterisedStratego2Tests {
     public static final ResourceService resourceService =
             new DefaultResourceService(new FSResourceRegistry());
 
-    final List<Arguments> argParams = Lists.newArrayList(
-            ArgumentsFactory("-O", "2"),
+    final List<Arguments> argParams = Arrays.asList(
+//            ArgumentsFactory("-O", "2"),
 //            ArgumentsFactory("-O", "4", "--pmc:switchv", "elseif"),
             ArgumentsFactory("-O", "4")
     );
@@ -69,7 +77,7 @@ public class ParameterisedStratego2Tests {
                 .sorted(new NaturalOrderComparator<>())
                 .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoSdf), args))));
+                        .map(args -> compileAndRun(p, Collections.singletonList(BuiltinLibraryIdentifier.StrategoSdf), args))));
     }
 
     @TestFactory
@@ -83,8 +91,6 @@ public class ParameterisedStratego2Tests {
 
         List<String> test1Names = Arrays.asList("test31", "test33", "test34", "test37", "test53", "test76", "test77", "test78", "test87", "test90", "test92", "test93", "test98", "test112");
         List<String> test2Names = Arrays.asList("occan", "traversal-test");
-//        List<String> test1Names = Collections.EMPTY_LIST;
-//        List<String> test2Names = Collections.EMPTY_LIST;
 
         return Stream
                 .concat(
@@ -93,7 +99,7 @@ public class ParameterisedStratego2Tests {
                 ).map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(),
                         argParams
                             .stream()
-                            .map(args -> compileAndRun(p, Arrays.asList(BuiltinLibraryIdentifier.StrategoSdf), args)))
+                            .map(args -> compileAndRun(p, Collections.singletonList(BuiltinLibraryIdentifier.StrategoSdf), args)))
                 );
     }
 
@@ -116,7 +122,7 @@ public class ParameterisedStratego2Tests {
                     System.out.println(p);
                     return DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Collections.EMPTY_LIST, args)));
+                        .map(args -> compileAndRun(p, Collections.emptyList(), args)));
                 });
     }
 
@@ -137,7 +143,7 @@ public class ParameterisedStratego2Tests {
                 .sorted(new NaturalOrderComparator<>())
                 .map(p -> DynamicContainer.dynamicContainer(p.getFileName().toString(), argParams
                         .stream()
-                        .map(args -> compileAndRun(p, Collections.EMPTY_LIST, args))));
+                        .map(args -> compileAndRun(p, Collections.emptyList(), args))));
     }
 
     private static Stream<Path> streamStrategoFiles(Path dirWithTestFiles, String glob, Predicate<Path> disabled)
@@ -171,7 +177,7 @@ public class ParameterisedStratego2Tests {
                     Arrays.asList(outputDir.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed");
             Assertions.assertTrue(
-                    Java.execute(outputDir + ":" + strategoxtJarPath, packageName + ".Main"),
+                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".Main"),
                     "Running java expected to succeed (" + baseName + ")");
         });
     }

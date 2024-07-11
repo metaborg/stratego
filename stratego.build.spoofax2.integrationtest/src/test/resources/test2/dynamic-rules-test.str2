@@ -219,11 +219,5 @@ strategies
 signature
 sorts Tuple List(a)
 constructors
-  : Tuple(Nil())
-  : a -> Tuple(Cons(a, Nil()))
-  : a * b -> Tuple(Cons(a, Cons(b, Nil())))
-  : a * b * c -> Tuple(Cons(a, Cons(b, Cons(c, Nil()))))
-  : a * b * c * d -> Tuple(Cons(a, Cons(b, Cons(c, Cons(d, Nil())))))
-  
   Nil : List(a)
   Cons : a * List(a) -> List(a)

@@ -57,7 +57,3 @@ strategies
   external int(|)
   external reverse(|)
   external MkCons(|)
-
-signature
-constructors
-  : a * b -> Tuple(Cons(a, Cons(b, Nil())))

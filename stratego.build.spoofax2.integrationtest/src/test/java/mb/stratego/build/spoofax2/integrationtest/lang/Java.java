@@ -23,6 +23,7 @@ import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
 
 public class Java {
@@ -50,8 +51,8 @@ public class Java {
     }
 
     public static boolean execute(Collection<Path> classPaths, String mainClassName)
-        throws IOException, InterruptedException, ClassNotFoundException, InstantiationException,
-        IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        throws IOException, ClassNotFoundException, InstantiationException,
+        IllegalAccessException, NoSuchMethodException {
         final Path java = Paths.get(System.getProperty("java.home")).resolve("bin/java");
         final URL[] urls = new URL[classPaths.size()];
         int i = 0;
@@ -67,7 +68,12 @@ public class Java {
         try {
             result = mainNoExit.invoke(mainClassObj, new Object[] { new String[0] });
         } catch(InvocationTargetException e) {
-            return ((StrategoExit) e.getCause()).getValue() == 0;
+            Throwable cause = e.getCause();
+            if(cause instanceof StrategoExit) {
+                return ((StrategoExit) cause).getValue() == 0;
+            } else {
+                throw (StrategoException) cause;
+            }
         }
         return result != null;
     }

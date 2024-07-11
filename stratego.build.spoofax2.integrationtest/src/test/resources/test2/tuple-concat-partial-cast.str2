@@ -4,7 +4,7 @@ imports strategolib
 strategies
   tconcat''(List(c) -> b, List(?) * b -> b) :: ? -> b
   tconcat''(s1, s2) =
-    is-tuple; crush(<s1> [], s2)
+    is-tuple; crush(<s1> [], s2, is-list)
 
   main = !(<tconcat'(\[] -> [1]\, conc)> ([8], [9]), <tconcat''(\[] -> [1]\, conc)> ([8], [9]))
 
