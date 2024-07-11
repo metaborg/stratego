@@ -30,13 +30,17 @@ signature
  */
 strategies
 
+external internal-immutable-set :: (|) ? -> ImmutableSetImplBlob
+
 /**
  * Create an empty immutable set.
  *
  * @type _ -> ImmutableSet
  */
 imset-new :: ? -> ImmutableSet(k)
-imset-new = prim("SSL_immutable_set"); !ImmutableSet(<id>)
+imset-new = internal-immutable-set; !ImmutableSet(<id>)
+
+external internal-immutable-set-from-list :: (|) List(k) -> ImmutableSetImplBlob
 
 /**
  * Create an immutable set from a list.
@@ -44,7 +48,7 @@ imset-new = prim("SSL_immutable_set"); !ImmutableSet(<id>)
  * @type List -> ImmutableSet
  */
 imset-from-list :: List(k) -> ImmutableSet(k)
-imset-from-list = prim("SSL_immutable_set_from_list"); !ImmutableSet(<id>)
+imset-from-list = internal-immutable-set-from-list; !ImmutableSet(<id>)
 
 /**
  * Turn the immutable set into a list.
@@ -54,13 +58,15 @@ imset-from-list = prim("SSL_immutable_set_from_list"); !ImmutableSet(<id>)
 imset-to-list :: ImmutableSet(k) -> List(k)
 imset-to-list = imset-elements
 
+external internal-immutable-set-elements :: (|) ImmutableSetImplBlob -> List(k)
+
 /**
  * Get all elements of the immutable set.
  *
  * @type ImmutableSet -> List
  */
 imset-elements :: ImmutableSet(k) -> List(k)
-imset-elements = ?ImmutableSet(<id>); prim("SSL_immutable_set_elements")
+imset-elements = ?ImmutableSet(<id>); internal-immutable-set-elements
 
 /**
  * Elemental operations
@@ -75,6 +81,8 @@ strategies
 imset-empty :: ImmutableSet(k) -> ImmutableSet(k)
 imset-empty = equal(|<imset-new>)
 
+external internal-immutable-set-contains :: (|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Succeeds if element is in the immutable set.
  *
@@ -82,7 +90,9 @@ imset-empty = equal(|<imset-new>)
  * @type ImmutableSet -?> ImmutableSet
  */
 imset-contains(|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-contains(|e) = ImmutableSet(prim("SSL_immutable_set_contains", e))
+imset-contains(|e) = ImmutableSet(internal-immutable-set-contains(|e))
+
+external internal-immutable-set-contains-eq :: (k * k -> ?|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Succeeds is element is in the immutable set.
@@ -93,7 +103,9 @@ imset-contains(|e) = ImmutableSet(prim("SSL_immutable_set_contains", e))
  * @type ImmutableSet -?> ImmutableSet
  */
 imset-contains(k * k -> ?|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-contains(eq|e) = ImmutableSet(prim("SSL_immutable_set_contains_eq", eq | e))
+imset-contains(eq|e) = ImmutableSet(internal-immutable-set-contains-eq(eq | e))
+
+external internal-immutable-set-insert :: (|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Inserts an element in the immutable set. Returns a new set with the added element.
@@ -102,7 +114,9 @@ imset-contains(eq|e) = ImmutableSet(prim("SSL_immutable_set_contains_eq", eq | e
  * @type ImmutableSet -> ImmutableSet
  */
 imset-insert(|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-insert(|e) = ImmutableSet(prim("SSL_immutable_set_insert", e))
+imset-insert(|e) = ImmutableSet(internal-immutable-set-insert(|e))
+
+external internal-immutable-set-insert-eq :: (k * k -> ?|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Inserts an element in the immutable set. Returns a new set with the added element.
@@ -113,7 +127,9 @@ imset-insert(|e) = ImmutableSet(prim("SSL_immutable_set_insert", e))
  * @type ImmutableSet -> ImmutableSet
  */
 imset-insert(k * k -> ?|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-insert(eq|e) = ImmutableSet(prim("SSL_immutable_set_insert_eq", eq | e))
+imset-insert(eq|e) = ImmutableSet(internal-immutable-set-insert-eq(eq | e))
+
+external internal-immutable-set-remove :: (|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Removes an element in the immutable set. Returns a new set without the removed element.
@@ -122,7 +138,9 @@ imset-insert(eq|e) = ImmutableSet(prim("SSL_immutable_set_insert_eq", eq | e))
  * @type ImmutableSet -> ImmutableSet
  */
 imset-remove(|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-remove(|e) = ImmutableSet(prim("SSL_immutable_set_remove", e))
+imset-remove(|e) = ImmutableSet(internal-immutable-set-remove(|e))
+
+external internal-immutable-set-remove-eq :: (k * k -> ?|k) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Removes an element in the immutable set. Returns a new set without the removed element.
@@ -133,12 +151,14 @@ imset-remove(|e) = ImmutableSet(prim("SSL_immutable_set_remove", e))
  * @type ImmutableSet -> ImmutableSet
  */
 imset-remove(k * k -> ?|k) :: ImmutableSet(k) -> ImmutableSet(k)
-imset-remove(eq|e) = ImmutableSet(prim("SSL_immutable_set_remove_eq", eq | e))
+imset-remove(eq|e) = ImmutableSet(internal-immutable-set-remove-eq(eq | e))
 
 /**
  * Higher-order operations
  */
 strategies
+
+external internal-immutable-set-filter :: (k1 -> k2|) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Remove all elements from the immutable set for which the filter strategy fails.
@@ -148,7 +168,9 @@ strategies
  * @type ImmutableSet -> ImmutableSet
  */
 imset-filter(k1 -> k2) :: ImmutableSet(k1) -> ImmutableSet(k2)
-imset-filter(s): ImmutableSet(b) -> ImmutableSet(<prim("SSL_immutable_set_filter", s|)> b)
+imset-filter(s): ImmutableSet(b) -> ImmutableSet(<internal-immutable-set-filter(s|)> b)
+
+external internal-immutable-set-map :: (k1 -> k2, k2 -> k2|) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Map all elements from the immutable set.
@@ -158,7 +180,7 @@ imset-filter(s): ImmutableSet(b) -> ImmutableSet(<prim("SSL_immutable_set_filter
  * @type ImmutableSet -> ImmutableSet
  */
 imset-map(k1 -> k2) :: ImmutableSet(k1) -> ImmutableSet(k2)
-imset-map(s): ImmutableSet(b) -> ImmutableSet(<prim("SSL_immutable_set_map", s, id|)> b)
+imset-map(s): ImmutableSet(b) -> ImmutableSet(<internal-immutable-set-map(s, id|)> b)
 
 /**
  * Map all elements from the immutable set.
@@ -172,12 +194,14 @@ imset-map(s): ImmutableSet(b) -> ImmutableSet(<prim("SSL_immutable_set_map", s, 
  * @type ImmutableSet -> ImmutableSet
  */
 imset-map(k1 -> k2, k2 -> k2) :: ImmutableSet(k1) -> ImmutableSet(k2)
-imset-map(s, m): ImmutableSet(b) -> ImmutableSet(<prim("SSL_immutable_set_map", s, m|)> b)
+imset-map(s, m): ImmutableSet(b) -> ImmutableSet(<internal-immutable-set-map(s, m|)> b)
 
 /**
  * Combining operations
  */
 strategies
+
+external internal-immutable-set-intersect :: (|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
 
 /**
  * Intersect with another immutable set.
@@ -188,7 +212,7 @@ strategies
  */
 imset-intersect(|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-intersect(|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_intersect", other))
+  ImmutableSet(internal-immutable-set-intersect(|other))
 
 /**
  * Intersect two immutable sets.
@@ -200,6 +224,8 @@ imset-intersect :: ImmutableSet(k) * ImmutableSet(k) -> ImmutableSet(k)
 imset-intersect =
   ?(l, r); <imset-intersect(|r)> l
 
+external internal-immutable-set-subtract :: (|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Subtract another immutable set from the given one.
  * Returns a new set without the elements from the immutable set in the term argument.
@@ -209,7 +235,7 @@ imset-intersect =
  */
 imset-subtract(|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-subtract(|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_subtract", other))
+  ImmutableSet(internal-immutable-set-subtract(|other))
 
 /**
  * Subtract the right immutable set from the left.
@@ -221,6 +247,8 @@ imset-subtract :: ImmutableSet(k) * ImmutableSet(k) -> ImmutableSet(k)
 imset-subtract =
   ?(l, r); <imset-subtract(|r)> l
 
+external internal-immutable-set-union :: (|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Union with another immutable set.
  * Returns a new set with the union.
@@ -230,7 +258,7 @@ imset-subtract =
  */
 imset-union(|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-union(|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_union", other))
+  ImmutableSet(internal-immutable-set-union(|other))
 
 /**
  * Union two immutable sets.
@@ -247,6 +275,8 @@ imset-union =
  */
 strategies
 
+external internal-immutable-set-intersect-eq :: (k * k -> ?|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Intersect with another immutable set.
  * Returns a new set with the intersection.
@@ -257,7 +287,7 @@ strategies
  */
 imset-intersect(k * k -> ?|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-intersect(eq|r) = where(ImmutableSet(other) := r);
-  ?ImmutableSet(_); prim("SSL_immutable_set_intersect_eq", eq | other)
+  ImmutableSet(internal-immutable-set-intersect-eq(eq | other))
 
 /**
  * Intersect two immutable sets.
@@ -270,6 +300,8 @@ imset-intersect(k * k -> ?) :: ImmutableSet(k) * ImmutableSet(k) -> ImmutableSet
 imset-intersect(eq) =
   ?(l, r); <imset-intersect(eq|r)> l
 
+external internal-immutable-set-subtract-eq :: (k * k -> ?|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Subtract another immutable set from the given one.
  * Returns a new set without the elements from the immutable set in the term argument.
@@ -280,7 +312,7 @@ imset-intersect(eq) =
  */
 imset-subtract(k * k -> ?|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-subtract(eq|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_subtract_eq", eq | other))
+  ImmutableSet(internal-immutable-set-subtract-eq(eq | other))
 
 /**
  * Subtract the right immutable set from the left.
@@ -293,6 +325,8 @@ imset-subtract(k * k -> ?) :: ImmutableSet(k) * ImmutableSet(k) -> ImmutableSet(
 imset-subtract(eq) =
   ?(l, r); <imset-subtract(eq|r)> l
 
+external internal-immutable-set-union-eq :: (k * k -> ?|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Union with another immutable set.
  * Returns a new set with the union.
@@ -303,7 +337,7 @@ imset-subtract(eq) =
  */
 imset-union(k * k -> ?|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-union(eq|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_union_eq", eq | other))
+  ImmutableSet(internal-immutable-set-union-eq(eq | other))
 
 /**
  * Union two immutable sets.
@@ -321,6 +355,8 @@ imset-union(eq) =
  */
 strategies
 
+external internal-immutable-set-strict-subset :: (|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Strict subset comparison with another immutable set.
  * Fails if not a strict subset of the given other set.
@@ -330,7 +366,7 @@ strategies
  */
 imset-subset(|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-subset(|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_strict_subset", other))
+  ImmutableSet(internal-immutable-set-strict-subset(|other))
 
 /**
  * Strict subset comparison between left and right immutable set.
@@ -371,7 +407,7 @@ imset-superset =
  */
 imset-subset-eq(|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-subset-eq(|r) = where(ImmutableSet(other) := r);
-  ( ImmutableSet(prim("SSL_immutable_set_strict_subset", other))
+  ( ImmutableSet(internal-immutable-set-strict-subset(|other))
   <+ ?ImmutableSet(other))
 
 /**
@@ -409,6 +445,8 @@ imset-superset-eq =
  */
 strategies
 
+external internal-immutable-set-strict-subset-eq :: (k * k -> ?|ImmutableSetImplBlob) ImmutableSetImplBlob -> ImmutableSetImplBlob
+
 /**
  * Strict subset comparison with another immutable set.
  * Fails if not a strict subset of the given other set.
@@ -419,7 +457,7 @@ strategies
  */
 imset-subset(k * k -> ?|ImmutableSet(k)) :: ImmutableSet(k) -> ImmutableSet(k)
 imset-subset(eq|r) = where(ImmutableSet(other) := r);
-  ImmutableSet(prim("SSL_immutable_set_strict_subset_eq", eq | other))
+  ImmutableSet(internal-immutable-set-strict-subset-eq(eq | other))
 
 /**
  * Strict subset comparison between left and right immutable set.

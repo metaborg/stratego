@@ -29,6 +29,9 @@ imports
   collection/list/cons
   collection/list/common
   collection/tuple/cons
+
+  lang/stacktrace
+
 strategies
 
   /**
@@ -152,8 +155,8 @@ strategies
           try(<fclose;is(?)> fout); try(<fclose;is(?)> fin)
           ; report-success
         else
-            prim("SSL_stacktrace_get_all_frame_names") => trace
-          ; try(<fclose> fout); try(<fclose> fin)
+            stacktrace-get-all-frame-names => trace
+          ; try(where(<fclose> fout)); try(where(<fclose> fin))
           ; try(<get-config> "-o"; remove-file; is(?))
           ; <report-failure> trace
         end
@@ -176,7 +179,7 @@ strategies
   option-wrap(opts, usage, about, announce, s) =
     parse-options(opts, usage, about)
     ; announce
-    ; (s; report-success <+ prim("SSL_stacktrace_get_all_frame_names") ; report-failure)
+    ; (s; report-success <+ stacktrace-get-all-frame-names ; report-failure)
 
 strategies
 
@@ -298,7 +301,7 @@ strategies
 strategies
 
   // extended in another module, either posix/time or c99/fallback-posix
-  report-run-time :: ? -> ?
+  report-run-time :: a -> a
   report-run-time = fail
 
   verbose-to-int :: string -> int
@@ -343,12 +346,9 @@ strategies
   report-failure =
     report-failure(exit)
 
-  report-failure(|?, t) :: List(string) -> a
+  report-failure(|?, ?) :: List(string) -> a
   report-failure(|message, term) =
-    report-failure(
-      log(|Critical(), message, term)
-    ; <exit> 1
-    )
+    fatal-err(|message, <try(is(List(string));concat-strings)> term, <id>)
 
   /**
    * Report the failure of this program, without showing a stack trace.

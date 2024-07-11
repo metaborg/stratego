@@ -1,0 +1,10 @@
+---
+id: org.metaborg:gpp.test:${metaborgVersion}
+name: gpp
+metaborgVersion: 2.6.0-SNAPSHOT
+dependencies:
+  compile:
+  - org.metaborg:gpp:${metaborgVersion}
+  - org.metaborg:org.metaborg.meta.lang.spt:${metaborgVersion}
+build:
+  useBuildSystemSpec: true

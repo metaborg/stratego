@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.data;
 
 import java.util.Collections;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoInt;
@@ -116,4 +116,6 @@ public class ConstructorSignature extends StrategoTuple {
     public StrategySignature toCongruenceSig() {
         return new StrategySignature(TermUtils.toStringAt(this, 0), noArgs, 0);
     }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

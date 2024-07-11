@@ -10,12 +10,12 @@ context-free syntax
 
 context-free sorts SortDef
 context-free syntax
-  SortDef.SortVar    = LCID {deprecated("This syntax never had a clear meaning should not be used")}
-  SortDef.SortNoArgs = UCID
-  SortDef.Sort = [[UCID]([{Kind ", "}*])]
-  SortDef.Sort = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
+  SortDef.SortDefVar    = LCID {deprecated("This syntax never had a clear meaning should not be used")}
+  SortDef.SortDefNoArgs = UCID
+  SortDef.SortDef = [[UCID]([{Kind ", "}*])]
+  SortDef.SortDefDepr = <<Id>(<{Sort ", "}+>)> {deprecated("This syntax never had a clear meaning should be replaced by the version that uses kinds A(*, *)")}
 
-  SortDef.ExtSort = [external [UCID]([{Kind ", "}*])]
+  SortDef.ExtSortDef = [external [UCID]([{Kind ", "}*])]
 
 context-free sorts Sdecl
 context-free syntax
@@ -34,7 +34,6 @@ context-free syntax
   Sort.SortNoArgs = UCID
   Sort.Sort       = <<Id>(<{SortArg ", "}*>)>
   SortArg = Sort
-  SortArg.TupleT      = [[Sort] * [{Sort " * "}+]]
 
 context-free sorts Opdecl
 context-free syntax
@@ -61,7 +60,7 @@ context-free syntax
   OldType = ConstType
 
   OpType = ConstType
-  OpType.FunType = [[{ConstType " * "}+] -> [ConstType]]
+  OpType.OpFunType = [[{ConstType " * "}+] -> [ConstType]]
 
 // Restriction is required for the Sort* in Sdecl: List(a) is ambiguous.
 context-free restrictions

@@ -9,6 +9,7 @@ imports
   collection/list/set
   collection/tuple/cons
   term/integer
+  term/string
 
 strategies
 
@@ -25,7 +26,9 @@ strategies
   * E.g. <mkterm> (f, [t1,...,tn])  builds the constructor application f(t1,...,tn).
   */
   mkterm :: ? * List(?) -> ?
-  mkterm       = ?(c,ts); prim("SSL_mkterm",c,ts)
+  mkterm = ?(<id>,ts); internal-mkterm(|ts)
+
+  external internal-mkterm :: (|List(?)) ? -> ?
 
  /**
   * Decompose a term into a constructor name and a list of terms.
@@ -41,24 +44,21 @@ strategies
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
-  explode-term :: ? -> ? * List(?)
-  explode-term = ?t; prim("SSL_explode_term",t)
+  external explode-term :: (|) ? -> ? * List(?)
 
  /**
   * Get the constructor of a term.
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
-  get-constructor :: ? -> ?
-  get-constructor = ?t; prim("SSL_get_constructor", t)
+  external get-constructor :: (|) ? -> ?
 
  /**
   * Get the arguments of a term.
   *
   * Note that explode-term is equivalent to !(<get-constructor>, <get-arguments>).
   */
-  get-arguments :: ? -> List(?)
-  get-arguments = ?t; prim("SSL_get_arguments", t)
+  external get-arguments :: (|) ? -> List(?)
 
   /**
    * Get the arguments of a term application.
@@ -73,9 +73,7 @@ strategies
    * @param a -> b
    * @type f(a1 ... an) -> [b1 ... bn]
    */
-  get-appl-arguments(? -> a) :: ? -> List(a)
-  get-appl-arguments(s) =
-    ?t; prim("SSL_get_appl_arguments_map", s | t)
+  external get-appl-arguments :: (? -> a|) ? -> List(a)
 
  /**
   * Compare the address of two terms and succeeds if the address of the first is
@@ -85,55 +83,54 @@ strategies
   * Note that this relation is valid in one session (but what happens after
   * rehashing), but not necessarily between two sessions.
   */
+  // Overridden to not use term-address-lt but checksum comparison since the original
+  //   implementation was on maximally shared terms.
   address-lt :: a * b -> a * b
   address-lt =
-    ?(t1,t2); prim("SSL_address_lt",t1,t2)
+    where((checksum, checksum) ; string-lt)
 
   /**
    * Compare the address of two terms and succeeds if the address of the current
    * term is smaller than the address of the argument.
    */
+  // Overridden to not use term-address-lt but checksum comparison since the original
+  //   implementation was on maximally shared terms.
   term-address-lt(|b) :: a -> a
   term-address-lt(|t2) =
-    ?t1; prim("SSL_address_lt",t1,t2)
+    where(?t1 ; <address-lt> (t1,t2))
 
  /**
   * Give the address of a term.
   *
   * <address> t replaces t with its address (represented as a string).
   * This can be used to obtain a unique symbolic reference to a term.
-  *
-  * @type t -> String
   */
-  address :: ? -> int
-  address =
-    ?t; prim("SSL_address",t)
+  external address :: (|) ? -> string
 
  /**
   * Give checksum of a term. Similar to atsum from aterm package.
   */
-  checksum :: ? -> string
-  checksum = ?t ; prim("SSL_checksum",t)
+  external checksum :: (|) ? -> string
 
 strategies
 
-  crush(List(c) -> b, ? * b -> b) :: ? -> b
-  crush(nul, sum) :
-    _#(xs) -> <foldr(nul,sum)> xs
+  crush(List(c) -> b, ? * b -> b|) :: ? -> b
+  crush(nul, sum) =
+    crush(nul, sum, id)
 
-  crush(List(d) -> b, c * b -> b, ? -> c) :: ? -> b
-  crush(nul, sum, s) :
-    _#(xs) -> <foldr(nul,sum, s)> xs
+  external crush :: (List(d) -> b, c * b -> b, ? -> c|) ? -> b
+//  crush(nul, sum, s) :
+//    _#(xs) -> <foldr(nul,sum, s)> xs
 
 strategies
 
   node-size :: ? -> int
   node-size =
-    crush(!0, add, !1)
+    crush(!0, addi, !1)
 
   term-size :: ? -> int
   term-size =
-    crush(!1, add, term-size)
+    crush(!1, addi, term-size)
 
 strategies
 
@@ -155,9 +152,9 @@ strategies
 
   om-occurrences(? -> ?) :: ? -> int
   om-occurrences(s) =
-    if s then !1 else crush(!0, add, om-occurrences(s)) end
+    if s then !1 else crush(!0, addi, om-occurrences(s)) end
 
   occurrences(? -> ?) :: ? -> int
   occurrences(s) =
-    <addi> (<if s then !1 else !0 end>, <crush(!0, add, occurrences(s))>)
+    <addi> (<if s then !1 else !0 end>, <crush(!0, addi, occurrences(s))>)
 

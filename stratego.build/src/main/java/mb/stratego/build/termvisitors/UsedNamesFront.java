@@ -5,7 +5,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -136,7 +136,7 @@ public class UsedNamesFront extends UsedConstrs {
     private void registerAmbStratUse(IStrategoTerm term) {
         final IStrategoList sargs = TermUtils.toListAt(term, 1);
         for(IStrategoTerm sarg : sargs) {
-            final @Nullable StrategySignature strategySignature = recognizeCall(sarg);
+            final @Nullable StrategySignature strategySignature = StrategySignature.fromCall(sarg);
             if(strategySignature != null && strategySignature.noStrategyArgs == 0
                 && strategySignature.noTermArgs == 0 && isNonLocalStrategy(strategySignature)) {
                 sarg.putAttachment(AmbUseAttachment.INSTANCE);
@@ -170,6 +170,9 @@ public class UsedNamesFront extends UsedConstrs {
     }
 
     @Override public void postVisit(IStrategoTerm term) {
+        if(term.getAttachment(AmbUseAttachment.TYPE) != null) {
+            term.removeAttachment(AmbUseAttachment.TYPE);
+        }
         leaveScope(term);
         leaveTopLevelStrategy(term);
     }

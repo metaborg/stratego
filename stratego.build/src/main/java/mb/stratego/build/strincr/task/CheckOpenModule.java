@@ -1,17 +1,20 @@
 package mb.stratego.build.strincr.task;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
 import mb.pie.api.ExecContext;
 import mb.pie.api.TaskDef;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ResourcePathConverter;
 import mb.stratego.build.strincr.data.GTEnvironment;
+import mb.stratego.build.strincr.data.StrategySignature;
+import mb.stratego.build.strincr.function.GetResolveMessages;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.task.input.CheckModuleInput;
+import mb.stratego.build.strincr.task.input.ResolveInput;
 import mb.stratego.build.strincr.task.output.CheckOpenModuleOutput;
 import mb.stratego.build.strincr.task.output.ModuleData;
 import mb.stratego.build.util.InsertCastsInput;
@@ -22,12 +25,14 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
 
     private final CheckModule checkModule;
     private final Front front;
+    private final Resolve resolve;
     private final ResourcePathConverter resourcePathConverter;
 
-    @Inject public CheckOpenModule(CheckModule checkModule, Front front,
+    @jakarta.inject.Inject @javax.inject.Inject public CheckOpenModule(CheckModule checkModule, Front front, Resolve resolve,
         ResourcePathConverter resourcePathConverter) {
         this.checkModule = checkModule;
         this.front = front;
+        this.resolve = resolve;
         this.resourcePathConverter = resourcePathConverter;
     }
 
@@ -42,22 +47,24 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
 
         final IModuleImportService.ModuleIdentifier moduleIdentifier =
             input.frontInput.moduleIdentifier;
+        final ResolveInput resolveInput = input.resolveInput();
+        final ArrayList<Message> messages = new ArrayList<>(moduleData.messages.size());
+        messages.addAll(moduleData.messages);
 
+        final LinkedHashSet<StrategySignature> moduleDefinitions = new LinkedHashSet<>();
         final GTEnvironment environment =
-            checkModule.prepareGTEnvironment(context, moduleData, input.frontInput);
+            checkModule.prepareGTEnvironment(context, moduleData, input.frontInput,
+                moduleDefinitions, resolveInput, messages);
         final InsertCastsInput insertCastsInput =
             new InsertCastsInput(moduleIdentifier, input.projectPath, environment);
         final String projectPath = resourcePathConverter.toString(input.projectPath);
-        final InsertCastsOutput output = checkModule.insertCasts(insertCastsInput, projectPath, context.logger());
+        final InsertCastsOutput output = checkModule.insertCasts(insertCastsInput, projectPath);
 
-        final ArrayList<Message> messages =
-            new ArrayList<>(moduleData.messages.size() + output.messages.size());
-        messages.addAll(moduleData.messages);
         messages.addAll(output.messages);
 
-        checkModule
-            .otherChecks(context, input.resolveInput(), moduleData, messages,
-                projectPath);
+        checkModule.otherChecks(context, resolveInput, moduleData, messages, projectPath);
+
+        messages.addAll(context.requireMapping(resolve, resolveInput, GetResolveMessages.INSTANCE));
 
         return new CheckOpenModuleOutput(output.astWithCasts, messages);
     }

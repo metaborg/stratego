@@ -2,7 +2,7 @@ package mb.stratego.build.strincr.data;
 
 import java.util.HashMap;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -201,6 +201,15 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         return new StrategySignature(name, sArity, tArity);
     }
 
+    public static @Nullable StrategySignature fromTuple(IStrategoTerm tuple) {
+        if(!(TermUtils.isTuple(tuple, 3) && TermUtils.isStringAt(tuple, 0) && TermUtils.isIntAt(
+            tuple, 1) && TermUtils.isIntAt(tuple, 2))) {
+            return null;
+        }
+        return new StrategySignature(TermUtils.toStringAt(tuple, 0),
+            TermUtils.toJavaIntAt(tuple, 1), TermUtils.toJavaIntAt(tuple, 2));
+    }
+
     @Override public int compareTo(StrategySignature o) {
         final int nameComparison = this.name.compareTo(o.name);
         if(nameComparison != 0) {
@@ -212,4 +221,18 @@ public class StrategySignature extends StrategoTuple implements Comparable<Strat
         }
         return Integer.compare(this.noTermArgs, o.noTermArgs);
     }
+
+    /**
+     * Interpret strategy signature as congruence
+     *
+     * @return constructor signature corresponding with this strategy being it's congruence. Returns null if strategy has term arguments.
+     */
+    public @Nullable ConstructorSignature toConstructorSignature() {
+        if(noTermArgs != 0) {
+            return null;
+        }
+        return new ConstructorSignature(name, noStrategyArgs);
+    }
+
+    // equals/hashcode/toString inherited from StrategoTuple
 }

@@ -1,0 +1,29 @@
+module stratego-box
+
+imports
+  box/main
+  box/base
+  StrategoLang/import-namespaced
+  StrategoLang/core/modules-namespaced
+  StrategoLang/core/terms-namespaced
+
+context-free start-symbols
+  StrategoLang-Module
+
+context-free syntax
+  StrategoLang-PreTerm.ToTerm =             Box {avoid}
+  StrategoLang-PreTerm.ToTerm =       "|["  Box "]|" {prefer}
+  StrategoLang-PreTerm.ToTerm = "box" "|["  Box "]|"
+
+  StrategoLang-PreTerm.ToTerm =        "|["  Box* "]|"
+  StrategoLang-PreTerm.ToTerm = "box*" "|["  Box* "]|"
+
+  Box.FromTerm = "~"  StrategoLang-Term {prefer}
+  Box.FromTerm = "~*" StrategoLang-Term {prefer}
+
+  Box.FromTerm = "~lit:" StrategoLang-Term {prefer}
+
+variables
+  Box = "b" [0-9]*
+  Box* = "b" [0-9]* "*"
+  BoxLiteral = "s" [0-9]*

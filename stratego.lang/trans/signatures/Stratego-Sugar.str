@@ -13,6 +13,7 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/strategies-sig
   signatures/gradual-types/terms-sig
+  signatures/gradual-types/overlays-sig
 
   signatures/sugar/constants-sig
   signatures/sugar/signatures-sig

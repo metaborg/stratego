@@ -32,9 +32,8 @@ context-free syntax
   PreTerm.Op      = <<Id>(<{Term ", "}*>)>
   PreTerm.OpQ     = <<String>(<{Term ", "}*>)>
   PreTerm.Explode = <<Term>#(<Term>)>
-  PreTerm.As      = <<Var>@<PreTerm>>
+  PreTerm.AsPT    = <<Var>@<PreTerm>>
 
 context-free priorities
-  PreTerm.Explode > Term.As,
-  Term.Anno > PreTerm.As
+  PreTerm.Explode > Term.As
 //  , Var.Var > Term.Path

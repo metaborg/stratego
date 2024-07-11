@@ -12,10 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
-import mb.pie.api.Interactivity;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,6 +23,7 @@ import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.strj.strj_sep_comp_0_0;
 
 import mb.pie.api.ExecContext;
+import mb.pie.api.Interactivity;
 import mb.pie.api.STask;
 import mb.pie.api.TaskDef;
 import mb.resource.ResourceKeyString;
@@ -82,7 +81,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     public final Check check;
     public final Front front;
 
-    @Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
+    @jakarta.inject.Inject @javax.inject.Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
         GenerateStratego generateStratego, ResourcePathConverter resourcePathConverter,
         Resolve resolve, Check check, Front front) {
         this.strategoLanguage = strategoLanguage;
@@ -147,7 +146,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
         arguments.add("-i", "passedExplicitly.ctree");
         arguments.add("-o", resourcePathConverter.toString(input.outputDir));
 //        arguments.add("--verbose", 3);
-        arguments.addLine("-p " + input.packageName);
+        arguments.addLine("-p " + input.packageNames.get(0));
         arguments.add("--fusion");
         // @formatter:on
         if(input instanceof BackInput.Boilerplate) {
@@ -160,17 +159,18 @@ public class Back implements TaskDef<BackInput, BackOutput> {
                 .requirePartial(context, resolve, boilerplateInput.checkInput.resolveInput(),
                     GetStr2LibInfo.INSTANCE);
             final IStrategoTerm str2Lib = GenerateStratego.packStr2Library(tf, boilerplateInput.libraryName,
-                str2LibInfo.sorts, str2LibInfo.constructors, str2LibInfo.injections, str2LibInfo.strategyFrontData, input.packageName);
+                str2LibInfo.sorts, str2LibInfo.constructors, str2LibInfo.injections, str2LibInfo.strategyTypes, input.packageNames);
 
             // Output str2lib file
             final HierarchicalResource str2LibResource = context.getResourceService()
                 .getHierarchicalResource(boilerplateInput.str2LibFile());
-            context.provide(str2LibResource);
+            str2LibResource.createParents();
             try(final OutputStream os = str2LibResource.openWrite()) {
                 Writer out = new BufferedWriter(new OutputStreamWriter(os));
                 str2Lib.writeAsString(out, Integer.MAX_VALUE);
                 out.flush();
             }
+            context.provide(str2LibResource);
         } else {
             arguments.add("--single-strategy");
             arguments.add("--library");

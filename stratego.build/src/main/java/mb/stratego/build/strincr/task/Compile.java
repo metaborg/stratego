@@ -3,7 +3,6 @@ package mb.stratego.build.strincr.task;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
 
 import org.metaborg.util.cmd.Arguments;
 
@@ -14,9 +13,10 @@ import mb.pie.api.STaskDef;
 import mb.pie.api.Supplier;
 import mb.pie.api.TaskDef;
 import mb.resource.hierarchical.ResourcePath;
+import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.data.StrategySignature;
-import mb.stratego.build.strincr.function.GetMessages;
+import mb.stratego.build.strincr.function.GetCheckMessages;
 import mb.stratego.build.strincr.function.ToCompileGlobalIndex;
 import mb.stratego.build.strincr.function.output.CheckOutputMessages;
 import mb.stratego.build.strincr.function.output.CompileGlobalIndex;
@@ -29,7 +29,6 @@ import mb.stratego.build.strincr.task.output.BackOutput;
 import mb.stratego.build.strincr.task.output.CheckModuleOutput;
 import mb.stratego.build.strincr.task.output.CompileDynamicRulesOutput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
-import mb.stratego.build.util.PieUtils;
 
 /**
  * The one task to rule them all, this task runs {@link Check}, stops if there are errors, and
@@ -45,7 +44,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public final CompileDynamicRules compileDynamicRules;
     public final Back back;
 
-    @Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
+    @jakarta.inject.Inject @javax.inject.Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
         CompileDynamicRules compileDynamicRules, Back back) {
         this.resolve = resolve;
         this.copyLibraryClassFiles = copyLibraryClassFiles;
@@ -56,22 +55,23 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
 
     @Override public CompileOutput exec(ExecContext context, CompileInput input) {
         final CheckOutputMessages checkOutput =
-            PieUtils.requirePartial(context, check, input.checkInput, GetMessages.INSTANCE);
+            context.requireMapping(check, input.checkInput, GetCheckMessages.INSTANCE);
         if(checkOutput.containsErrors) {
             return new CompileOutput.Failure(checkOutput.messages);
         }
 
         final LinkedHashSet<ResourcePath> resultFiles = new LinkedHashSet<>();
 
-        final CompileGlobalIndex compileGlobalIndex = PieUtils
-            .requirePartial(context, resolve, input.checkInput.resolveInput(),
+        final CompileGlobalIndex compileGlobalIndex = context.requireMapping(resolve, input.checkInput.resolveInput(),
                 ToCompileGlobalIndex.INSTANCE);
 
         final Arguments extraArgs = new Arguments(input.extraArgs);
         final ResourcePath outputDirWithPackage =
-            input.outputDir.appendOrReplaceWithPath(input.packageName.replace('.', '/'));
-        for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
-            context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.javaClassDir));
+            input.outputDir.appendOrReplaceWithPath(input.packageNames.get(0).replace('.', '/'));
+        if(input.createShadowJar) {
+            for(Supplier<Stratego2LibInfo> str2library : input.checkInput.importResolutionInfo.str2libraries) {
+                context.require(copyLibraryClassFiles, new CLCFInput(str2library, input.str2libReplicateDir));
+            }
         }
         for(String importedStr2LibPackageName : compileGlobalIndex.importedStr2LibPackageNames) {
             extraArgs.add("-la", importedStr2LibPackageName);
@@ -80,34 +80,37 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
         final STaskDef<CheckModuleInput, CheckModuleOutput> strategyAnalysisDataTask =
             new STaskDef<>(CheckModule.id);
 
+        boolean usingLegacyStrategoStdLib =
+            input.checkInput.importResolutionInfo.linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib);
+
         final CompileDynamicRulesInput compileDRInput =
-            new CompileDynamicRulesInput(outputDirWithPackage, input.packageName, input.cacheDir,
+            new CompileDynamicRulesInput(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput,
-                strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
+                strategyAnalysisDataTask, usingLegacyStrategoStdLib);
         final STask<CompileDynamicRulesOutput> compileDR =
             compileDynamicRules.createSupplier(compileDRInput);
         resultFiles.addAll(context.require(compileDR).resultFiles);
 
         for(StrategySignature strategySignature : compileGlobalIndex.nonExternalStrategies) {
             final BackInput.Normal normalInput =
-                new BackInput.Normal(outputDirWithPackage, input.packageName, input.cacheDir,
+                new BackInput.Normal(outputDirWithPackage, input.packageNames, input.cacheDir,
                     input.constants, extraArgs, input.checkInput, strategySignature,
-                    strategyAnalysisDataTask, input.usingLegacyStrategoStdLib);
+                    strategyAnalysisDataTask, usingLegacyStrategoStdLib);
             final BackOutput output = context.require(back, normalInput);
             assert output != null && !output.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
             resultFiles.addAll(output.resultFiles);
         }
         final BackInput.Boilerplate boilerplateInput =
-            new BackInput.Boilerplate(outputDirWithPackage, input.packageName, input.cacheDir,
+            new BackInput.Boilerplate(outputDirWithPackage, input.packageNames, input.cacheDir,
                 input.constants, extraArgs, input.checkInput, input.library,
-                input.usingLegacyStrategoStdLib, input.libraryName, compileDR);
+                usingLegacyStrategoStdLib, input.libraryName, compileDR);
         final BackOutput boilerplateOutput = context.require(back, boilerplateInput);
         assert boilerplateOutput != null && !boilerplateOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(boilerplateOutput.resultFiles);
 
         final BackInput.Congruence congruenceInput =
-            new BackInput.Congruence(outputDirWithPackage, input.packageName, input.cacheDir,
-                input.constants, extraArgs, input.checkInput, input.usingLegacyStrategoStdLib, compileDR);
+            new BackInput.Congruence(outputDirWithPackage, input.packageNames, input.cacheDir,
+                input.constants, extraArgs, input.checkInput, usingLegacyStrategoStdLib, compileDR);
         final BackOutput congruenceOutput = context.require(back, congruenceInput);
         assert congruenceOutput != null && !congruenceOutput.depTasksHaveErrorMessages : "Previous code should have already returned on checkOutput.containsErrors";
         resultFiles.addAll(congruenceOutput.resultFiles);

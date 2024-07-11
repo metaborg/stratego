@@ -28,7 +28,7 @@ context-free syntax
   Strategy.GenDynRules =
     <rules(<DynRuleDef*>)>
   DynRuleDef.AddScopeLabel =
-    <<Id> + <Term>>
+    <<SId> + <Term>>
   DynRuleDef.UndefineDynRule =
     <<DynRuleId> :- <Term>>
   DynRuleDef.SetDynRule =
@@ -55,14 +55,14 @@ context-free syntax
 context-free sorts RuleDec
 context-free syntax
 
-  RuleDec.RDecNoArgs = Id
-  RuleDec.RDec = <<Id>(<{Typedid ", "}*> )>
-  RuleDec.RDecT = <<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
+  RuleDec.RDecNoArgs = SId
+  RuleDec.RDec = <<SId>(<{Typedid ", "}*> )>
+  RuleDec.RDecT = <<SId>(<{Typedid ", "}*> | <{Typedid ", "}*>)>
 
 context-free sorts RuleNames
 context-free syntax
 
-  RuleNames = {Id ", "}*
+  RuleNames = {SId ", "}*
   RuleNames.RuleNames = <~<Term>>
   Strategy.DynRuleIntersectFix = </<RuleNames>\\* <Strategy>>
 
@@ -73,7 +73,7 @@ syntax
 
 
   // 1 space after RuleNames
-  Strategy-CF.DynRuleUnionFix =
+  Strategy-CF.DynRuleUnionFix1 =
   "\\" LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
 
   // no space after RuleNames
@@ -82,7 +82,7 @@ syntax
       LAYOUT?-CF RuleNames-CF "/*" LAYOUT?-CF Strategy-CF
 
   // 1 space after RuleNames
-  Strategy-CF.DynRuleIntersectUnionFix =
+  Strategy-CF.DynRuleIntersectUnionFix1 =
   "/" LAYOUT?-CF RuleNames-CF LAYOUT?-CF "\\"
       LAYOUT?-CF RuleNames-CF " /*" LAYOUT?-CF Strategy-CF
 

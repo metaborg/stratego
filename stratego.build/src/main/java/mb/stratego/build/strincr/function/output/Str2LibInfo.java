@@ -16,15 +16,15 @@ public class Str2LibInfo implements Serializable {
     public final LinkedHashSet<SortSignature> sorts;
     public final LinkedHashSet<ConstructorData> constructors;
     public final LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections;
-    public final LinkedHashMap<StrategySignature, StrategyType> strategyFrontData;
+    public final LinkedHashMap<StrategySignature, StrategyType> strategyTypes;
 
     public Str2LibInfo(LinkedHashSet<SortSignature> sorts, LinkedHashSet<ConstructorData> constructors,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> injections,
-        LinkedHashMap<StrategySignature, StrategyType> strategyFrontData) {
+        LinkedHashMap<StrategySignature, StrategyType> strategyTypes) {
         this.sorts = sorts;
         this.constructors = constructors;
         this.injections = injections;
-        this.strategyFrontData = strategyFrontData;
+        this.strategyTypes = strategyTypes;
     }
 
     @Override public boolean equals(Object o) {
@@ -41,18 +41,18 @@ public class Str2LibInfo implements Serializable {
             return false;
         if(!injections.equals(that.injections))
             return false;
-        return strategyFrontData.equals(that.strategyFrontData);
+        return strategyTypes.equals(that.strategyTypes);
     }
 
     @Override public int hashCode() {
         int result = sorts.hashCode();
         result = 31 * result + constructors.hashCode();
         result = 31 * result + injections.hashCode();
-        result = 31 * result + strategyFrontData.hashCode();
+        result = 31 * result + strategyTypes.hashCode();
         return result;
     }
 
     @Override public String toString() {
-        return "Str2LibInfo(" + sorts + ", " + constructors + ", " + injections + ", " + strategyFrontData + ')';
+        return "Str2LibInfo(" + sorts + ", " + constructors + ", " + injections + ", " + strategyTypes + ')';
     }
 }

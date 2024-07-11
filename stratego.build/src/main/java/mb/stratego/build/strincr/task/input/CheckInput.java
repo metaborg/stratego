@@ -11,14 +11,15 @@ public class CheckInput implements Serializable {
     public final ResourcePath projectPath;
     public final ImportResolutionInfo importResolutionInfo;
     public final boolean autoImportStd;
+    protected final int hashCode;
 
     public CheckInput(IModuleImportService.ModuleIdentifier mainModuleIdentifier,
-        ResourcePath projectPath, ImportResolutionInfo importResolutionInfo,
-        boolean autoImportStd) {
+        ResourcePath projectPath, ImportResolutionInfo importResolutionInfo, boolean autoImportStd) {
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.projectPath = projectPath;
         this.importResolutionInfo = importResolutionInfo;
         this.autoImportStd = autoImportStd;
+        this.hashCode = hashFunction();
     }
 
     public ResolveInput resolveInput() {
@@ -40,6 +41,8 @@ public class CheckInput implements Serializable {
 
         CheckInput that = (CheckInput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(autoImportStd != that.autoImportStd)
             return false;
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
@@ -50,6 +53,10 @@ public class CheckInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = mainModuleIdentifier.hashCode();
         result = 31 * result + projectPath.hashCode();
         result = 31 * result + importResolutionInfo.hashCode();
@@ -58,6 +65,13 @@ public class CheckInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Check.Input(" + mainModuleIdentifier + ")";
+        //@formatter:off
+        return "CheckInput@" + System.identityHashCode(this) + '{'
+            + "mainModuleIdentifier=" + mainModuleIdentifier
+            + ", projectPath=" + projectPath
+            + ", importResolutionInfo=" + importResolutionInfo
+            + ", autoImportStd=" + autoImportStd
+            + '}';
+        //@formatter:on
     }
 }

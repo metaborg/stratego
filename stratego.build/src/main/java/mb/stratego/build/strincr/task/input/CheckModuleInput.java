@@ -1,8 +1,9 @@
 package mb.stratego.build.strincr.task.input;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import mb.resource.hierarchical.ResourcePath;
 import mb.stratego.build.strincr.IModuleImportService;
@@ -11,12 +12,14 @@ public class CheckModuleInput implements Serializable {
     public final FrontInput frontInput;
     public final IModuleImportService.ModuleIdentifier mainModuleIdentifier;
     public final ResourcePath projectPath;
+    protected final int hashCode;
 
     public CheckModuleInput(FrontInput frontInput,
         IModuleImportService.ModuleIdentifier mainModuleIdentifier, ResourcePath projectPath) {
         this.frontInput = frontInput;
         this.mainModuleIdentifier = mainModuleIdentifier;
         this.projectPath = projectPath;
+        this.hashCode = hashFunction();
     }
 
     public ResolveInput resolveInput() {
@@ -38,6 +41,8 @@ public class CheckModuleInput implements Serializable {
 
         CheckModuleInput that = (CheckModuleInput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(!frontInput.equals(that.frontInput))
             return false;
         if(!mainModuleIdentifier.equals(that.mainModuleIdentifier))
@@ -46,6 +51,10 @@ public class CheckModuleInput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = frontInput.hashCode();
         result = 31 * result + mainModuleIdentifier.hashCode();
         result = 31 * result + projectPath.hashCode();
@@ -53,6 +62,12 @@ public class CheckModuleInput implements Serializable {
     }
 
     @Override public String toString() {
-        return "CheckModuleInput(" + frontInput + ", " + mainModuleIdentifier + ')';
+        //@formatter:off
+        return "CheckModuleInput@" + System.identityHashCode(this) + '{'
+            + "frontInput=" + frontInput
+            + ", mainModuleIdentifier=" + mainModuleIdentifier
+            + ", projectPath=" + projectPath
+            + '}';
+        //@formatter:on
     }
 }

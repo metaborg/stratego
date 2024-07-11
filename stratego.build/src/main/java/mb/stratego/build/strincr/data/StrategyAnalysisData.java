@@ -1,7 +1,6 @@
 package mb.stratego.build.strincr.data;
 
 import java.io.Serializable;
-import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;

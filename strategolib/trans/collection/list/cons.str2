@@ -24,5 +24,7 @@ signature
 
     /**
      * Concatenation of two lists.
+     *
+     * This is used, among other things, to make list meta-variables work in mix syntax.
      */
     Conc : List(a) * List(a) -> List(a)

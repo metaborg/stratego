@@ -1,10 +1,12 @@
 module test43
 imports collection/list/cons collection/tuple/cons
 signature
+  sorts
+    Term
   constructors
-    Bar : a -> b
-    Foobar : a * b -> c
-    Foo : a * b -> c
+    Bar : Term -> Term
+    Foobar : Term * Term -> Term
+    Foo : Term * Term -> Term
 
 strategies
 

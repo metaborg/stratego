@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
+import jakarta.annotation.Nullable;
 
+import mb.pie.api.ExecContext;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.AggregateMetaborgException;
@@ -30,15 +30,10 @@ import org.metaborg.spoofax.core.syntax.ISpoofaxSyntaxService;
 import org.metaborg.spoofax.core.unit.ISpoofaxInputUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxParseUnit;
 import org.metaborg.spoofax.core.unit.ISpoofaxUnitService;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.binary.TermReader;
-import org.spoofax.terms.util.TermUtils;
 import org.strategoxt.HybridInterpreter;
-
-import com.google.common.collect.Lists;
 
 import mb.pie.api.ExecException;
 import mb.stratego.build.strincr.StrategoLanguage;
@@ -57,7 +52,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private final ISpoofaxSyntaxService syntaxService;
     private final StrIncrContext strContext;
 
-    @Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
+    @jakarta.inject.Inject @javax.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, StrategoCommon strategoCommon,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxUnitService unitService,
@@ -73,7 +68,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
         this.strContext = strContext;
     }
 
-    @Override public IStrategoTerm parse(InputStream inputStream, Charset charset, @Nullable String path)
+    @Override public IStrategoTerm parse(ExecContext context, InputStream inputStream, Charset charset, @Nullable String path)
         throws Exception {
         final @Nullable FileObject inputFile;
         if(path != null) {
@@ -122,33 +117,15 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
 
         // Remove ambiguity that occurs in old table from sdf2table when using JSGLR2 parser
         ast = new DisambiguateAsAnno(strContext).visit(ast);
+        if(strategoDialect != null) {
+            ast = metaExplode(ast);
+        }
 
         return ast;
     }
 
-    @Override public IStrategoTerm parseRtree(InputStream inputStream) throws Exception {
-        final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
-        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Module") && ast.getSubtermCount() == 2)) {
-            if(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Specification")
-                    && ast.getSubtermCount() == 1) {
-                throw new IOException(
-                    "Custom library detected with Specification/1 term in RTree file. This is "
-                        + "currently not supported. ");
-            }
-            throw new ExecException(
-                "Did not find Module/2 in RTree file. Found: \n" + ast.toString(2));
-        }
-        return ast;
-    }
-
-    @Override public IStrategoTerm parseStr2Lib(InputStream inputStream) throws Exception {
-        final IStrategoTerm ast = new TermReader(termFactory).parseFromStream(inputStream);
-        if(!(TermUtils.isAppl(ast) && ((IStrategoAppl) ast).getName().equals("Str2Lib")
-            && ast.getSubtermCount() == 3)) {
-            throw new ExecException(
-                "Did not find Str2Lib/3 in Str2Lib file. Found: \n" + ast.toString(2));
-        }
-        return ast;
+    @Override public TermReader newTermReader() {
+        return new TermReader(termFactory);
     }
 
     @Override public IStrategoTerm insertCasts(String moduleName, GTEnvironment environment,
@@ -157,47 +134,16 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
             " in module " + moduleName);
     }
 
-    @Override public IStrategoTerm desugar(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-compile-top-level-def");
+    @Override public IStrategoTerm makeList(Collection<IStrategoTerm> terms) {
+        return termFactory.makeList(terms);
     }
 
-    @Override public IStrategoTerm toJava(IStrategoList buildInput, String projectPath)
-        throws ExecException {
-        return callStrategy(buildInput, projectPath, "stratego2-strj-sep-comp");
-    }
-
-    @Override public IStrategoAppl toCongruenceAst(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return TermUtils.toAppl(callStrategy(ast, projectPath, "stratego2-mk-cong-def"));
-    }
-
-    @Override public Collection<? extends IStrategoAppl> toCongruenceAsts(
-        Collection<? extends IStrategoAppl> asts, String projectPath) throws ExecException {
-        final IStrategoList result = TermUtils.toList(callStrategy(termFactory.makeList(asts), projectPath, "stratego2-mk-cong-defs"));
-        final ArrayList<IStrategoAppl> congruences = new ArrayList<>(result.size());
-        for(IStrategoTerm t : result) {
-            congruences.add(TermUtils.toAppl(t));
-        }
-        return congruences;
-    }
-
-    @Override public IStrategoTerm auxSignatures(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-aux-signatures");
-    }
-
-    @Override public IStrategoTerm overlapCheck(IStrategoTerm ast, String projectPath)
-        throws ExecException {
-        return callStrategy(ast, projectPath, "stratego2-dyn-rule-overlap-check");
-    }
-
-    private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName)
+    @Override public IStrategoTerm callStrategy(IStrategoTerm input, @Nullable String projectPath, String strategyName)
         throws ExecException {
         return callStrategy(input, projectPath, strategyName, null);
     }
 
-    private IStrategoTerm callStrategy(IStrategoTerm input, String projectPath, String strategyName,
+    private IStrategoTerm callStrategy(IStrategoTerm input, @Nullable String projectPath, String strategyName,
         @Nullable String extra) throws ExecException {
         final @Nullable ILanguageImpl strategoLangImpl;
         final @Nullable ILanguage strategoLang = languageService.getLanguage("StrategoLang");
@@ -210,10 +156,10 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
             throw new ExecException("Cannot load stratego language. ");
         }
 
-        final FileObject fileObject = resourceService.resolve(projectPath);
+        final @Nullable FileObject fileObject = projectPath == null ? null : resourceService.resolve(projectPath);
         @Nullable IStrategoTerm result = null;
         boolean finished = false;
-        List<MetaborgException> exceptions = Lists.newArrayList();
+        List<MetaborgException> exceptions = new ArrayList<>();
         for(ILanguageComponent component : strategoLangImpl.components()) {
             if(!IStrategoCommon.hasStrategoFacets(component)) {
                 continue;

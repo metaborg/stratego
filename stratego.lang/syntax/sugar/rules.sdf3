@@ -14,25 +14,25 @@ template options
 context-free sorts RuleDef RDefT RDefP
 context-free syntax
   RuleDef.RDefNoArgs =
-<<Id>:
+<<SId>:
   <Rule>>
 
-  Def.AnnoDef =
+  Def.AnnoRuleDef =
     <<Anno+> <RuleDef>>
 
   RuleDef.RDef =
-<<Id>(<{Typedid ", "}*>):
+<<SId>(<{Typedid ", "}*>):
   <Rule>>
 
   RuleDef = RDefT
   RDefT.RDefT =
-<<Id>(<{Typedid ", "}*> | <{Typedid ", "}*>):
+<<SId>(<{Typedid ", "}*> | <{Typedid ", "}*>):
   <Rule>>
 
   // Rule definition with pattern matched term parameters
   RuleDef = RDefP
   RDefP.RDefP =
-<<Id>(<{Typedid ", "}*> | <{Term ", "}+>):
+<<SId>(<{Typedid ", "}*> | <{Term ", "}+>):
   <Rule>>
   RDefP = RDefT {reject}
 

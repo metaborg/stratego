@@ -87,25 +87,21 @@ strategies
   /**
    * Retrieve the primitive dynamic rules hashtable.
    */
-  dr-rule-sets-hashtable :: ? -> HashtableImplBlob
-  dr-rule-sets-hashtable =
-    prim("SSL_dynamic_rules_hashtable")
+  external dr-rule-sets-hashtable :: (|) ? -> HashtableImplBlob
 
   /**
    * @type  _ -> List(RuleScope)
    */
   dr-get-rule-set(|?) :: ? -> List(RuleScope)
   dr-get-rule-set(|name) =
-    prim("SSL_hashtable_get", <dr-rule-sets-hashtable>, name)
+    <hashtable-get(|name)> Hashtable(<dr-rule-sets-hashtable>)
     <+ dr-new-rule-set
        ; dr-set-rule-set(|name)
 
   dr-set-rule-set(|?) :: List(RuleScope) -> List(RuleScope)
-  dr-set-rule-set(|name) =
-    where(
-      ?ruleset
-      ; prim("SSL_hashtable_put", <dr-rule-sets-hashtable>, name, ruleset)
-    )
+  dr-set-rule-set(|name): ruleset -> ruleset
+    where
+      <hashtable-put(|name, ruleset)> Hashtable(<dr-rule-sets-hashtable>)
 
   dr-switch-rule-set(|?) :: List(RuleScope) -> List(RuleScope)
   dr-switch-rule-set(|name) =
@@ -788,7 +784,7 @@ strategies // looking up
     + (?[RuleScope(_, _) | rs]                      // else recurse
        ; <dr-lookup-rule-in-scope(|key, scpid)>rs)
 
-  dr-lookup-rule-in-scope-rs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
+  dr-lookup-rule-in-scope-cs(|?, HashtableImplBlob) :: List(RuleScope) -> List(?)
   dr-lookup-rule-in-scope-cs(|key, scpid) =
     ?[ChangeSet(_, rmset, tbl) | rs]
     ; (<iset-contains(|(scpid, key))>rmset
@@ -1470,7 +1466,7 @@ strategies // generic fix-point strategies
   dr-fix-and-merge-internal(merge, s | rulenames) =
     where(<map(fork-rule-sets)> rulenames => rs)
     ; where(
-        prim("SSL_hashtable_get", <dr-rule-sets-hashtable>, "DR_EXCEPTION")
+        <hashtable-get(|"DR_EXCEPTION")> Hashtable(<dr-rule-sets-hashtable>)
         ; [RuleScope(iset-elements, hashtable-getlist)] => [RuleScope(labels, tbl)]
         ; !0  => exRS
         <+ !1 => exRS

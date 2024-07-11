@@ -55,6 +55,14 @@ strategies
       s
     end
 
+  if-verbose1(a -> b) :: a -> b
+  if-verbose2(a -> b) :: a -> b
+  if-verbose3(a -> b) :: a -> b
+  if-verbose4(a -> b) :: a -> b
+  if-verbose5(a -> b) :: a -> b
+  if-verbose6(a -> b) :: a -> b
+  if-verbose7(a -> b) :: a -> b
+
   if-verbose1(s) = if-verbose(s|1)
   if-verbose2(s) = if-verbose(s|2)
   if-verbose3(s) = if-verbose(s|3)
@@ -78,6 +86,14 @@ strategies
     if <leq> (<verbosity> (), t) then
       s
     end
+
+  if-less-verbose1(a -> b) :: a -> b
+  if-less-verbose2(a -> b) :: a -> b
+  if-less-verbose3(a -> b) :: a -> b
+  if-less-verbose4(a -> b) :: a -> b
+  if-less-verbose5(a -> b) :: a -> b
+  if-less-verbose6(a -> b) :: a -> b
+  if-less-verbose7(a -> b) :: a -> b
 
   if-less-verbose1(s) = if-less-verbose(s|1)
   if-less-verbose2(s) = if-less-verbose(s|2)

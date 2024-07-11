@@ -16,6 +16,7 @@ public class CheckOutput implements Serializable {
     public final LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers;
     public final ArrayList<Message> messages;
     public final boolean containsErrors; // derived from messages
+    protected final int hashCode;
 
     public CheckOutput(
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
@@ -25,6 +26,7 @@ public class CheckOutput implements Serializable {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.messages = messages;
         this.containsErrors = containsErrors;
+        this.hashCode = hashFunction();
     }
 
     public CheckOutput(LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> dynamicRuleIndex,
@@ -42,6 +44,8 @@ public class CheckOutput implements Serializable {
 
         CheckOutput output = (CheckOutput) o;
 
+        if(hashCode != output.hashCode)
+            return false;
         if(!dynamicRuleIndex.equals(output.dynamicRuleIndex))
             return false;
         if(!allModuleIdentifiers.equals(output.allModuleIdentifiers))
@@ -50,6 +54,10 @@ public class CheckOutput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = dynamicRuleIndex.hashCode();
         result = 31 * result + allModuleIdentifiers.hashCode();
         result = 31 * result + messages.hashCode();
@@ -57,7 +65,14 @@ public class CheckOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Check.Output(" + messages.size() + ", " + containsErrors + ")";
+        //@formatter:off
+        return "CheckOutput@" + System.identityHashCode(this) + '{'
+            + "dynamicRuleIndex=" + dynamicRuleIndex.size()
+            + ", allModuleIdentifiers=" + allModuleIdentifiers.size()
+            + ", messages=" + messages.size()
+            + ", containsErrors=" + containsErrors
+            + '}';
+        //@formatter:on
     }
 
 }

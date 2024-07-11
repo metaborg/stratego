@@ -2,5 +2,6 @@ module StrategoLang
 
 imports
   import
+  core/modules // for the Module sort
 
 context-free start-symbols Module

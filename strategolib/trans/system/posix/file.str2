@@ -11,6 +11,7 @@ signature
   sorts
     AccessPermission
     FileDescriptor
+    FileMode
   constructors
     F_OK: AccessPermission
     R_OK: AccessPermission
@@ -18,6 +19,7 @@ signature
     X_OK: AccessPermission
 
     : int -> FileDescriptor
+    : int -> FileMode
 
 /**
  * Standard file descriptors
@@ -25,19 +27,13 @@ signature
 strategies
 
   // Standard input, equal to <fileno> stdin
-  STDIN_FILENO :: a -> FileDescriptor
-  STDIN_FILENO =
-    prim("SSL_STDIN_FILENO")
+  external STDIN_FILENO :: (|) a -> FileDescriptor
 
   // Standard output, equal to <fileno> stdout
-  STDOUT_FILENO :: a -> FileDescriptor
-  STDOUT_FILENO =
-    prim("SSL_STDOUT_FILENO")
+  external STDOUT_FILENO :: (|) a -> FileDescriptor
 
   // Standard error output, equal to <fileno> stderr
-  STDERR_FILENO :: a -> FileDescriptor
-  STDERR_FILENO =
-    prim("SSL_STDERR_FILENO")
+  external STDERR_FILENO :: (|) a -> FileDescriptor
 
 /**
  * Terminal I/O
@@ -47,9 +43,7 @@ strategies
   /**
    * Succeeds if file descriptor refers to a terminal device.
    */
-  isatty :: FileDescriptor -> int
-  isatty =
-    ?filedes; prim("SSL_isatty", filedes) => 1
+  external isatty :: (|) FileDescriptor -> int
 
 /**
  * These  functions  return  information  about the specified
@@ -62,24 +56,24 @@ strategies
   /**
    * Returns the modification time of a file in sections since
    * epoch.
-   *
-   * @type String -> Int
    */
-  modification-time :: string -> int
-  modification-time =
-    ?file; prim("SSL_modification_time", file)
+  external modification-time :: (|) string -> int
 
 /**
  * File operations
  */
 strategies
 
- /**
-  * link-file creats a hard link from file 'new' to file 'old'.
-  */
-  link-file :: ? * ? -> ?
+  /**
+   * link-file creats a hard link from file 'new' to file 'old'.
+   *
+   * Warning: not implemented.
+   */
+  link-file :: string * string -> string
   link-file =
-    ?(old, new); prim("SSL_link", old, new)
+    ?(<id>, new); link-file(|new)
+
+  external link-file :: (|string) string -> string
 
 /**
  * Directories
@@ -89,52 +83,34 @@ strategies
  /**
   * Given a path to a directory, returns a list of files in that directory,
   * including the self (.) and parent pointers (..).
-  *
-  * @type String -> List(String)
   */
-  readdir :: string -> List(string)
-  readdir =
-    ?dir; prim("SSL_readdir", dir)
+  external readdir :: (|) string -> List(string)
 
   /**
    * Returns the current working directory.
    */
-  getcwd :: ? -> string
-  getcwd =
-    prim("SSL_getcwd")
+  external getcwd :: (|) ? -> string
 
   /**
    * Change current working directory.
-   *
-   * @type String -> String
    */
-  chdir :: string -> int
-  chdir =
-    ?pathname; prim("SSL_chdir", pathname) => 0
+  external chdir :: (|) string -> int
 
   /**
    * Create directory
    *
-   * @type String -> Int
+   * TODO: don't ignore permission list
    */
-  mkdir(|List(AccessPermission)) :: string -> string
-  mkdir(|mode) =
-    where(
-      ?pathname; prim("SSL_mkdir", pathname, mode) => 0
-    )
+  external mkdir :: (|List(AccessPermission)) string -> int
 
   mkdir :: string -> string
   mkdir =
-    mkdir(|[Read(), Write(), Execute()])
+    where(mkdir(|[Read(), Write(), Execute()]))
 
   /**
    * Remove empty directory
-   *
-   * @type String -> Int
    */
-  rmdir :: string -> int
-  rmdir =
-    ?pathname; prim("SSL_rmdir", pathname) => 0
+  external rmdir :: (|) string -> int
 
 /**
  * Primitive file operations
@@ -146,47 +122,46 @@ strategies
    */
 
   // create a file and return a file descriptor
-  creat :: string -> FileDescriptor
-  creat =
-    ?pathname; prim("SSL_creat", pathname)
+  // Warning: not implemented.
+  external creat :: (|) string -> FileDescriptor
 
   // open a file and return a file descriptor
-  open :: string -> FileDescriptor
-  open =
-    ?pathname; prim("SSL_open", pathname)
+  // Warning: not implemented.
+  external open :: (|) string -> FileDescriptor
 
   /**
    * Closing a file
    *
    * Deallocates a file descriptor
    */
-  close :: FileDescriptor -> FileDescriptor
-  close =
-    ?fd; prim("SSL_close", fd)
+  external close :: (|) FileDescriptor -> FileDescriptor
 
   /**
    * Duplicating a file descriptor
+   *
+   * Warning: not implemented.
    */
-  dup :: FileDescriptor -> FileDescriptor
-  dup =
-    ?fd; prim("SSL_dup", fd)
+  external dup :: (|) FileDescriptor -> FileDescriptor
 
-  dup2 :: FileDescriptor * FileDescriptor -> ?
+  // Warning: not implemented.
+  dup2 :: FileDescriptor * FileDescriptor -> FileDescriptor
   dup2 =
-    ?(fd1, fd2); prim("SSL_dup2", fd1, fd2)
+    ?(<id>, tofd); dup2(|tofd)
+
+  external dup2 :: (|FileDescriptor) FileDescriptor -> FileDescriptor
 
   /**
    * checks the accessibility of the specified file wrt to the
    * specified permissions. Fails if the access is not allowed,
    * returns the path otherwise.
    *
-   * @type (String, List(AccessPermission)) -> String
-   *
    * @inc access
    */
   access :: string * List(AccessPermission) -> string
   access =
-    ?(path, permissions); prim("SSL_access", path, permissions)
+    ?(<id>, permissions); access(|permissions)
+
+  external access :: (|List(AccessPermission)) string -> string
 
 /**
  * Connecting high and low level file operations
@@ -200,83 +175,73 @@ strategies
    * The mode of the stream ("r", "r+", "w", "w+",  "a", "a+") must be
    * compatible with the mode of the file descriptor.  The file position
    *
-   * @type (FileDescr, String) -> Stream
+   * Warning: not implemented.
    */
   fdopen :: FileDescriptor * string -> Stream
   fdopen =
-    ?(fd, mode); prim("SSL_fdopen", fd, mode); !Stream(<id>)
+    ?(<id>, mode); internal-fdopen(|mode); !Stream(<id>)
+
+  external internal-fdopen :: (|string) FileDescriptor -> StreamImplBlob
 
   /**
    * The function fileno examines the argument stream and returns its
    * integer descriptor
    *
-   * @type Stream -> FileDescr
    * @inc fileno
    */
   fileno :: Stream -> FileDescriptor
   fileno =
-    ?Stream(stream); prim("SSL_fileno", stream)
+    ?Stream(<is(int)>)
 
   /**
    * Mode of a file
-   * @type String -> FileMode
    */
-  filemode :: string -> ? // TODO: check SSL_filemode
-  filemode =
-    ?pathname; prim("SSL_filemode", pathname); ?(<id>, 0)
+  external filemode :: (|) string -> FileMode
 
   /**
-   * @type File -> FileMode
+   * Succeeds when applied to a FileMode of a regular file
    */
-  isreg :: ? -> ?
-  isreg =
-    ?mode; prim("SSL_S_ISREG", mode)
+  external isreg :: (|) FileMode -> FileMode
 
   /**
-   * Succeeds when applied to a File which is a directory.
+   * Succeeds when applied to a FileMode of a directory.
    *
    * Idiom: <file-exists ; filemode ; isdir> "/etc"
+   */
+  external isdir :: (|) FileMode -> FileMode
+
+  /**
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
    *
-   * @type File -> FileMode
+   * Succeeds when applied to a FileMode of a character special file
    */
-  isdir :: ? -> ?
-  isdir =
-    ?mode; prim("SSL_S_ISDIR", mode)
+  external ischr :: (|) FileMode -> FileMode
 
   /**
-   * @type File -> FileMode
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a block special file
    */
-  ischr :: ? -> ?
-  ischr =
-    ?mode; prim("SSL_S_ISCHR", mode)
+  external isblk :: (|) FileMode -> FileMode
 
   /**
-   * @type File -> FileMode
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a FIFO special file
    */
-  isblk :: ? -> ?
-  isblk =
-    ?mode; prim("SSL_S_ISBLK", mode)
+  external isfifo :: (|) FileMode -> FileMode
 
   /**
-   * @type File -> FileMode
+   * Succeeds when applied to a FileMode of a symbolic link.
    */
-  isfifo :: ? -> ?
-  isfifo =
-    ?mode; prim("SSL_S_ISFIFO", mode)
+  external islnk :: (|) FileMode -> FileMode
 
   /**
-   * @type File -> FileMode
+   * Inaccurate result in Java: succeeds for non-regular, non-directory, non-symbolic link files
+   *
+   * Succeeds when applied to a FileMode of a socket file
    */
-  islnk :: ? -> ?
-  islnk =
-    ?mode; prim("SSL_S_ISLNK", mode)
-
-  /**
-   * @type File -> FileMode
-   */
-  issock :: ? -> ?
-  issock =
-    ?mode; prim("SSL_S_ISSOCK", mode)
+  external issock :: (|) FileMode -> FileMode
 
 /**
  * Pipes (and FIFOs)
@@ -293,9 +258,5 @@ strategies
    * Pipe creates a pair Pipe(fd1, fd2) of file descriptors, pointing
    * to a pipe inode, and places them in the array pointed to by filedes.
    * fd1 is for reading, fd2 is for writing.
-   *
-   * @type _ -> Pipe
    */
-  pipe :: ? -> Pipe
-  pipe =
-    prim("SSL_pipe")
+  external pipe :: (|) ? -> Pipe

@@ -1,5 +1,5 @@
 module system/posix-xsi/time
 strategies
 
-  dtime =
-    prim("SSL_dtime")
+  // Warning: not implemented
+  external dtime :: (|) ? -> real

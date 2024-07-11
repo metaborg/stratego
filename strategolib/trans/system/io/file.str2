@@ -3,6 +3,8 @@
  */
 module system/io/file
 imports
+  system/posix/file
+
   system/io/-
   collection/list/-
   term/string
@@ -19,16 +21,37 @@ signature
     Stream
     StreamImplBlob
     FileLoc
+    LegacyStream
   constructors
     Stream    : StreamImplBlob -> Stream
     : int -> StreamImplBlob
     NoStream  : Stream
 
     Path      : string -> FileLoc
+    : string -> FileLoc
 
     stdin     : FileLoc
     stdout    : FileLoc
     stderr    : FileLoc
+
+    : Stream -> LegacyStream
+    : StreamImplBlob -> LegacyStream
+
+signature
+  sorts
+    C99FileLoc
+  constructors
+    : string -> C99FileLoc
+    : FileLoc -> C99FileLoc
+
+/**
+ * shared externals for other system/{io,c99}/file
+ */
+strategies
+
+  external internal-copy-file :: (|C99FileLoc) C99FileLoc -> C99FileLoc
+
+  external internal-rename-file :: (|C99FileLoc) C99FileLoc -> C99FileLoc
 
 /**
  * Abstractions for streams
@@ -41,7 +64,7 @@ strategies
    * @type (FileLoc, String) -> Stream
    */
   open-stream :: FileLoc * string -> Stream
-  open-stream = ?(_, _);
+  open-stream =
     (  Fst; stdio-stream
     <+ (?Path(<id>), id); fopen
     <+ (is-string,   id); fopen
@@ -60,12 +83,11 @@ strategies
    *
    * @type _ -> Stream
    */
-  stdin-stream :: ? -> Stream
-  stdin-stream  = prim("SSL_stdin_stream") ; !Stream(<id>)
-  stdout-stream :: ? -> Stream
-  stdout-stream = prim("SSL_stdout_stream"); !Stream(<id>)
-  stderr-stream :: ? -> Stream
-  stderr-stream = prim("SSL_stderr_stream"); !Stream(<id>)
+  external stdin-stream :: (|) ? -> Stream
+
+  external stdout-stream :: (|) ? -> Stream
+
+  external stderr-stream :: (|) ? -> Stream
 
 /**
  * Stream operations
@@ -84,7 +106,9 @@ strategies
    */
   fopen :: string * string -> Stream
   fopen =
-    ?(pathname, mode); prim("SSL_fopen", pathname, mode); !Stream(<id>)
+    ?(pathname, mode); <internal-fopen(|mode)> pathname; !Stream(<id>)
+
+  external internal-fopen :: (|string) string -> StreamImplBlob
 
   /**
    * Dissociates the named stream from its underlying file or set of functions.
@@ -93,20 +117,24 @@ strategies
    *
    * @type Stream -> ()
    */
-  fclose :: Stream -> Tuple()
+  fclose :: LegacyStream -> Tuple()
   fclose =
-    ?Stream(stream); prim("SSL_fclose", stream)
-      <+ ?stream-old; prim("SSL_fclose", stream-old) // legacy
+    ?Stream(<id>); internal-fclose
+      <+ is(StreamImplBlob); internal-fclose // legacy
+
+  external internal-fclose :: (|) StreamImplBlob -> Tuple()
 
   /**
    * Forces a write of all user-space buffered data for the given Stream
    *
    * @type Stream -> Stream
    */
-  fflush :: Stream -> Stream
+  fflush :: LegacyStream -> Stream
   fflush =
-    ?Stream(stream); prim("SSL_fflush", stream); !Stream(<id>)
-    <+ ?stream-old; prim("SSL_fflush", stream-old); !Stream(<id>) // legacy
+    is(Stream); Stream(internal-fflush)
+    <+ is(StreamImplBlob); !Stream(<internal-fflush>) // legacy
+
+  external internal-fflush :: (|) StreamImplBlob -> StreamImplBlob
 
 /**
  * Character output to stream
@@ -119,7 +147,9 @@ strategies
    */
   fputs :: string * Stream -> Stream
   fputs =
-    ?(str, Stream(stream)); prim("SSL_fputs", str, stream); !Stream(<id>)
+    ?(str, Stream(<internal-fputs(|str)>)); !Stream(<id>)
+
+  external internal-fputs :: (|string) StreamImplBlob -> StreamImplBlob
 
   /**
    * Writes a String to stdout with a trailing newline and returns stdout.
@@ -127,8 +157,8 @@ strategies
    * @type String -> Stream
    */
   puts :: string -> Stream
-  puts =
-    ?str; prim("SSL_puts", str); !Stream(<id>)
+  puts :
+    string -> <fputs> (<conc-strings> (string, "\n"), <stdin-stream>)
 
   /**
    * Writes a Char to a Stream
@@ -137,7 +167,9 @@ strategies
    */
   fputc :: Char * Stream -> Stream
   fputc =
-    ?(c, Stream(stream)); prim("SSL_fputc", c, stream); !Stream(<id>)
+    ?(c, Stream(<internal-fputc(|c)>)); !Stream(<id>)
+
+  external internal-fputc :: (|Char) StreamImplBlob -> StreamImplBlob
 
 /**
  * Character input from stream
@@ -150,17 +182,14 @@ strategies
    *
    * @type Stream -> Char
    */
-  fgetc :: Stream -> Char
-  fgetc =
-    ?Stream(stream); prim("SSL_fgetc", stream)
+  external fgetc :: (|) Stream -> Char
 
 /**
  * tmpnam
  */
 strategies
 
-  tmpnam =
-    prim("SSL_tmpnam")
+  external tmpnam :: (|) ? -> string
 
 /**
  * Components of a pathname
@@ -341,6 +370,6 @@ strategies
          * The (n-1)th part should not end with a / or \
          * in that case, part n is not a real extension.
          */
-      ; <last; not(?'/' + '\\')> base
+      ; <last; not(?'/' + ?'\\')> base
       )
     ; <implode-string> ext

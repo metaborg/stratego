@@ -232,7 +232,7 @@ strategies
   ssubs = 
     substitute(IsSVar)
 
-// This should be in libstratego-lib, strategy/general/rename; but it's too much effort to bootstrap
+// This is in libstratego-lib, strategy/general/rename; but it's too much effort to bootstrap
 rules
 
   internal RnBinding(bndvrs, paste : (term -> vars) * term -> term, newvar : term -> term) :

@@ -18,8 +18,8 @@ context-free syntax
   Strategy.TypeTest   = [is([Type])]
 //  Strategy.TypedCong = [[TypedId]([{Strategy ", "}*])]
 
-  Coercion.Fail = [fail]
-  Coercion.Id = [id]
+  Coercion.FailC = [fail]
+  Coercion.IdC = [id]
   Coercion.RuntimeCheck = Type
 
   SCoercion.SFail         = [fail]
@@ -38,8 +38,8 @@ context-free sorts TypedSVar TypedTVar
 context-free syntax
 
   StrategyDef.ExtTypedDef =
-    [external [MaybeEmptyId] :: [FunTType]]
+    [external [MaybeEmptySId] :: [FunTType]]
 
   StrategyDef.ExtTypedDefInl =
-    [external [MaybeEmptyId]([{ID ", "}*] | [{ID ", "}*]) :: [FunTType] =
+    [external [MaybeEmptySId]([{ID ", "}*] | [{ID ", "}*]) :: [FunTType] =
   [Strategy]]

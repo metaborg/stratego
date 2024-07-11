@@ -758,7 +758,7 @@ signature
 imports
   signatures/-    // jasmin AST nodes
   libspoofax/sdf/pp // pp-* strategies
-  libstratego-gpp     // box language AST nodes
+  gpp     // box language AST nodes
   pp/JasminXT-Descriptors-pp
   pp/JasminXT-Names-pp
   pp/JasminXT-Types-pp
@@ -1989,7 +1989,7 @@ imports
   runtime/nabl/-
   runtime/task/-
   runtime/types/-
-  libstratego-gpp
+  gpp
   src-gen/pp/-
 
 strategies
@@ -3515,7 +3515,7 @@ strategies // manipulate frames
 
 imports
   libstratego-lib
-  libstratego-gpp
+  gpp
   libstratego-aterm
 
 imports
@@ -3884,7 +3884,7 @@ rules
 
 imports
 
-  libstratego-gpp
+  gpp
   libspoofax/sdf/pp
   libspoofax/editor/refactoring/-
   pp/-

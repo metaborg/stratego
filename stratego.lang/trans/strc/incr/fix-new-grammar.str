@@ -1,40 +1,45 @@
 module strc/incr/fix-new-grammar
 
 imports
-
+  signatures/gradual-types/internal-sig
   signatures/sugar/string-quotations-sig
   libspoofax/term/origin
   gradual-types/utils
 
 strategies
 
-  fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation)))
+  stratego2-postparse-desugar = fix-new-grammar
+
+strategies
+
+  // Add padding for string quotation that used to come out of a parser hack
+  fix-new-grammar = topdown(try(origin-track-forced(StringQuotation-to-InternalStringQuotation <+ postparse-reduplicate)))
 
   origin-column-from-list = origin-column <+ Hd; origin-column
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation1(sqp) -> StringQuotation1(<otf(!padding)> sqp, sqp)
+    trm@StringQuotation1(sqp) -> StringQuotation1(<otf(!padding)> sqp, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation2(sqp) -> StringQuotation2(<otf(!padding)> padding, sqp)
+    trm@StringQuotation2(sqp) -> StringQuotation2(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation3(sqp) -> StringQuotation3(<otf(!padding)> padding, sqp)
+    trm@StringQuotation3(sqp) -> StringQuotation3(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
-    StringQuotation4(sqp) -> StringQuotation4(<otf(!padding)> padding, sqp)
+    trm@StringQuotation4(sqp) -> StringQuotation4(<otf(!padding)> padding, sqp)
   with padding := <copy-char> (<origin-column-from-list;int-dec> sqp, ' ')
     <+ padding := ""
-     ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+     ; <report-Warn> (trm, MissingParsingInfoOnStringQuotation())
 
   StringQuotation-to-InternalStringQuotation:
     sqp@StringEscape1(trm) -> StringEscape1(<otf(!padding)> padding, trm)
@@ -59,3 +64,76 @@ strategies
   with padding := <copy-char> (<origin-column;int-dec> sqp, ' ')
     <+ padding := ""
      ; <report-Warn> (sqp, MissingParsingInfoOnStringQuotation())
+
+imports
+
+signatures/deduplicated-sig
+signatures/core/terms-sig
+signatures/core/signatures-sig
+signatures/sugar/terms-sig
+signatures/sugar/rules-sig
+signatures/sugar/dynamic-rules-sig
+signatures/sugar/string-quotations-sig
+signatures/gradual-types/signatures-sig
+signatures/gradual-types/strategies-sig
+
+/*
+This defines the postparse desugaring that undoes the unique constructor names introduced to
+fulfill requirements from Statix that every constructor be unique. While Stratego doesn't use Statix
+directly, Spoofax 3 will requires this for all SDF3 grammars, therefore we sadly have to conform for
+now.
+*/
+
+rules
+  // core/terms
+  postparse-reduplicate: AsPT(a, b) -> As(a, b)
+
+  // core/signatures
+  postparse-reduplicate: SortDefVar(a) -> SortVar(a)
+  postparse-reduplicate: SortDefNoArgs(a) -> SortNoArgs(a)
+  postparse-reduplicate: SortDef(a, b) -> Sort(a, b)
+  postparse-reduplicate: SortDefDepr(a, b) -> Sort(a, b)
+  postparse-reduplicate: ExtSortDef(a, b) -> ExtSort(a, b)
+
+  postparse-reduplicate: OpFunType(a, b) -> FunType(a, b)
+
+  // sugar/terms
+  postparse-reduplicate: AppPT(a, b) -> App(a, b)
+  postparse-reduplicate: RootAppPT(a) -> RootApp(a)
+
+  // sugar/rules
+  postparse-reduplicate: AnnoRuleDef(a, b) -> AnnoDef(a, b)
+
+  // sugar/dynamic-rules
+  postparse-reduplicate: DynRuleUnionFix1(a, b) -> DynRuleUnionFix(a, b)
+  postparse-reduplicate: DynRuleIntersectUnionFix1(a, b, c) -> DynRuleIntersectUnionFix(a, b, c)
+
+  // sugar/string-quotations
+  postparse-reduplicate: QStr1(a) -> QStr(a)
+  postparse-reduplicate: QStr2(a) -> QStr(a)
+  postparse-reduplicate: QStr3(a) -> QStr(a)
+  postparse-reduplicate: QStr4(a) -> QStr(a)
+  postparse-reduplicate: QDollar1(a) -> QDollar(a)
+  postparse-reduplicate: QDollar2(a) -> QDollar(a)
+  postparse-reduplicate: QDollar3(a) -> QDollar(a)
+  postparse-reduplicate: QDollar4(a) -> QDollar(a)
+  postparse-reduplicate: QBr1(a) -> QBr(a)
+  postparse-reduplicate: QBr2(a) -> QBr(a)
+  postparse-reduplicate: QBr3(a) -> QBr(a)
+  postparse-reduplicate: QBr4(a) -> QBr(a)
+
+  // gradual-types/signatures
+  postparse-reduplicate: ConstDynT(a) -> DynT(a)
+
+  postparse-reduplicate: SortT(a, b) -> Sort(a, b)
+  postparse-reduplicate: SortTNoArgs(a) -> SortNoArgs(a)
+  postparse-reduplicate: SortTVar(a) -> SortVar(a)
+
+  postparse-reduplicate: SATupleT(a, b) -> TupleT(a, b)
+  postparse-reduplicate: SADynT(a) -> DynT(a)
+
+  postparse-reduplicate: SFunType(a, b) -> FunType(a, b)
+
+  // gradual-types/strategies
+  postparse-reduplicate: FailC() -> Fail()
+  postparse-reduplicate: IdC() -> Id()

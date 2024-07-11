@@ -1,9 +1,14 @@
 package mb.stratego.build.strincr.data;
 
+import static mb.stratego.build.termvisitors.DesugarType.tryDesugarType;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTermBuilder;
@@ -11,22 +16,27 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.StrategoAppl;
 import org.spoofax.terms.util.TermUtils;
 
-import static mb.stratego.build.termvisitors.DesugarType.tryDesugarType;
-
 public class ConstructorType extends StrategoAppl {
     private final ArrayList<IStrategoTerm> from;
     public final IStrategoTerm to;
+    public final boolean isOverlay;
 
     public ConstructorType(IStrategoTermBuilder tf, ArrayList<IStrategoTerm> from,
         IStrategoTerm to) {
-        super(tf.makeConstructor("ConstrType", 2), new IStrategoTerm[] { tf.makeList(from), to },
-            null);
-        this.from = from;
-        this.to = to;
+        this(tf, from, to, false);
     }
 
-    public ArrayList<IStrategoTerm> getFrom() {
-        return from;
+    public ConstructorType(IStrategoTermBuilder tf, ArrayList<IStrategoTerm> from,
+        IStrategoTerm to, boolean isOverlay) {
+        super(tf.makeConstructor("ConstrType", 2), new IStrategoTerm[] { tf.makeList(from), to },
+            isOverlay ? tf.makeList(tf.makeAppl("Overlay")) : null);
+        this.from = from;
+        this.to = to;
+        this.isOverlay = isOverlay;
+    }
+
+    public List<IStrategoTerm> getFrom() {
+        return Collections.unmodifiableList(from);
     }
 
     public IStrategoTerm toOpType(IStrategoTermBuilder tf) {
@@ -88,4 +98,46 @@ public class ConstructorType extends StrategoAppl {
         }
         return type;
     }
+
+    public static @Nullable ConstructorType fromOverlayDecl(ITermFactory tf, IStrategoTerm olayDecl) {
+        final IStrategoAppl dynT = tf.makeAppl("DynT", tf.makeAppl("Dyn"));
+        final ConstructorType type;
+        switch(TermUtils.toAppl(olayDecl).getName()) {
+            case "OverlayDeclNoArgs": {
+                if(olayDecl.getSubtermCount() != 2) {
+                    return null;
+                }
+                final ArrayList<IStrategoTerm> fromTypes = new ArrayList<>(0);
+                if(TermUtils.isApplAt(olayDecl, 1, "ConstType", 1)) {
+                    type = new ConstructorType(tf, fromTypes,
+                        tryDesugarType(tf, olayDecl.getSubterm(1).getSubterm(0)), true);
+                } else {
+                    type = new ConstructorType(tf, fromTypes, dynT, true);
+                }
+                break;
+            }
+            case "OverlayDecl": {
+                if(olayDecl.getSubtermCount() != 3 || !TermUtils.isListAt(olayDecl, 1)) {
+                    return null;
+                }
+                final IStrategoList froms = TermUtils.toListAt(olayDecl, 1);
+                final ArrayList<IStrategoTerm> fromTypes = new ArrayList<>(froms.size());
+                for(IStrategoTerm from : froms) {
+                    fromTypes.add(tryDesugarType(tf, from));
+                }
+                if(TermUtils.isApplAt(olayDecl, 2, "ConstType", 1)) {
+                    type = new ConstructorType(tf, fromTypes,
+                        tryDesugarType(tf, olayDecl.getSubterm(2).getSubterm(0)), true);
+                } else {
+                    type = new ConstructorType(tf, fromTypes, dynT, true);
+                }
+                break;
+            }
+            default:
+                return null;
+        }
+        return type;
+    }
+
+    // equals/hashcode/toString inherited from StrategoAppl
 }

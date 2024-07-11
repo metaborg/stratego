@@ -1,13 +1,10 @@
 module sugar/modules
 imports
   core/modules
-  core/identifiers
-  sugar/strategies
-  sugar/signatures
+  core/strategies
   sugar/overlays
   sugar/rules
 
-context-free sorts Decl Def
 context-free syntax
   Decl.Rules =
 <rules

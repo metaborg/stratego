@@ -2,23 +2,27 @@ module gradual-types/signatures
 
 imports
   core/identifiers
+  core/signatures
 
-context-free sorts Type SortT Dyn ConstrType
+context-free sorts Type SortT Dyn
 context-free syntax
-  ConstType.DynT = Dyn
-  Dyn.Dyn          = [?]
-  Type.TupleT      = [[Type] * [{Type " * "}+]]
-  Type.DynT        = Dyn
-  Type.StringT     = "string"
-  Type.IntT        = "int"
-  Type.RealT       = "real"
-  Type.BlobT       = "blob"
-  Type             = [([Type])] {bracket}
-  Type             = SortT
-  SortT.Sort       = [[Id]([{Type ", "}*])]
-  SortT.SortNoArgs = UCID
-  SortT            = "TP" {reject}
-  SortT.SortVar    = SortVar
+  ConstType.ConstDynT = Dyn
+  Dyn.Dyn           = [?]
+  Type.TupleT       = [[Type] * [{Type " * "}+]]
+  Type.DynT         = Dyn
+  Type.StringT      = "string"
+  Type.IntT         = "int"
+  Type.RealT        = "real"
+  Type.BlobT        = "blob"
+  Type              = [([Type])] {bracket}
+  Type              = SortT
+  SortT.SortT       = [[Id]([{Type ", "}*])]
+  SortT.SortTNoArgs = UCID
+  SortT             = "TP" {reject}
+  SortT.SortTVar    = SortVar
+
+  SortArg.SATupleT = [[Sort] * [{Sort " * "}+]]
+  SortArg.SADynT   = Dyn
 
 context-free priorities
   Type.TupleT <0> .> Type.TupleT,
@@ -33,8 +37,8 @@ context-free syntax
   SSimpleFunType.TP                 = [TP]
   SSimpleFunType.FunNoArgsType      = [[Type] -> [Type]]
 
-  SFunType         = SSimpleFunType
-  SFunType.FunType = [([{SType ", "}*]) [SSimpleFunType]]
-  SFunType         = FunTType
+  SFunType          = SSimpleFunType
+  SFunType.SFunType = [([{SType ", "}*]) [SSimpleFunType]]
+  SFunType          = FunTType
 
   FunTType.FunTType = [([{SType ", "}*] | [{Type ", "}*]) [SSimpleFunType]]

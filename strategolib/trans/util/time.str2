@@ -57,33 +57,35 @@ strategies
   * Strategy time returns the time since the Epoch (00:00:00 UTC, January 1, 1970),
   * measured in seconds. It is an alias of now-epoch-time.
   */
-  time :: ? -> int
-  time =
-    prim("SSL_time")
+  external time :: (|) ? -> int
 
   now-epoch-time :: ? -> EpochTime
   now-epoch-time =
-    prim("SSL_now_epoch_time"); !EpochTime(<id>)
+    !EpochTime(<time>)
 
   now-local-time :: ? -> ComponentTime
   now-local-time =
-      now-epoch-time; epoch2local-time
+    now-epoch-time; epoch2local-time
 
   now-UTC :: ? -> ComponentTime
   now-UTC =
-      now-epoch-time; epoch2UTC
+    now-epoch-time; epoch2UTC
+
+  external internal-epoch2localtime :: (|) int -> int * int * int * int * int * int * int * int
 
   epoch2local-time :: EpochTime -> ComponentTime
   epoch2local-time =
-    ?EpochTime(t); prim("SSL_epoch2localtime", t); prim-tuple-to-ComponentTime
+    ?EpochTime(<id>); internal-epoch2localtime; prim-tuple-to-ComponentTime
+
+  external internal-epoch2utc :: (|) int -> int * int * int * int * int * int * int * int
 
   epoch2utc :: EpochTime -> ComponentTime
   epoch2utc =
-    ?EpochTime(t); prim("SSL_epoch2UTC", t); prim-tuple-to-ComponentTime
+    ?EpochTime(<id>); internal-epoch2utc; prim-tuple-to-ComponentTime
 
   epoch2UTC :: EpochTime -> ComponentTime
   epoch2UTC =
-    ?EpochTime(t); prim("SSL_epoch2UTC", t); prim-tuple-to-ComponentTime
+    epoch2utc
 
   just-day-time :: ComponentTime -> DayTime
   just-day-time =
@@ -185,10 +187,5 @@ rules
 strategies
 
   // RELATIVE TIME ; TIME OF PROCESS
-  clock-to-seconds :: ? -> ?
-  clock-to-seconds =
-    ?c; prim("SSL_ClockToSeconds", c)
-
-  clock :: ? -> ?
-  clock =
-    prim("SSL_clock")
+  external clock-to-seconds :: (|) int -> real
+  external clock :: (|) ? -> int

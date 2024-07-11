@@ -32,9 +32,14 @@ strategies
    */
   read-text-from-stream :: Stream -> string
   read-text-from-stream =
-      ?stream
-    ; rec x(![<fgetc> stream | <x> NoStream()] <+ ![])
-    ; implode-string
+//      ?stream
+//    ; rec x(![<fgetc> stream | <x> NoStream()] <+ ![])
+//    ; implode-string
+    // performance tweak
+    ?Stream(stream);
+    <internal-read-text-from-stream> stream
+
+  external internal-read-text-from-stream :: (|) StreamImplBlob -> string
 
   /**
    * Reads the next line of text in stream.
@@ -45,7 +50,7 @@ strategies
   read-text-line :: Stream -> string
   read-text-line =
     ?stream
-    ; rec x(![<fgetc; not('\n')> stream | <x> NoStream()] <+ ![])
+    ; rec x(![<fgetc; not(?'\n')> stream | <x> NoStream()] <+ ![])
     ; implode-string
 
 strategies

@@ -3,8 +3,9 @@ imports collection/list/cons collection/tuple/cons
 signature
   sorts
     FILE
+    Term
   constructors
-    Stream : a -> b
+    Stream : Term -> Term
     stdout : FILE
 
 strategies

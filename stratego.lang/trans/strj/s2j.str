@@ -347,7 +347,7 @@ rules
            // ~*cnst-inits
          }
        ]|
-       
+
        ~*<java-split-method> |[
          public static void initTypeInfo(Context compiledContext) {
            bstm3*
@@ -808,11 +808,11 @@ rules
            if (TRACES_ENABLED) context.push("~x'");
            Fail: {
              bstm
-             if (TRACES_ENABLED) context.popOnSuccess();
+             if (TRACES_ENABLED) context.popOnSuccess("~x'");
              if (TRUE) // (avoid unreachable stm error)
                return term;
            };
-           if (TRACES_ENABLED) context.popOnFailure();
+           if (TRACES_ENABLED) context.popOnFailure("~x'");
            return null;
        }
     ]|
@@ -1115,10 +1115,16 @@ strategies
     BlobT() -> |[ BlobT.INSTANCE ]|
 
   translate-Type:
-    Sort(str, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|
+    Sort(str{a*}, args) -> |[ new Sort(e_str, Arrays.asList(e_ty*)) ]|
+  where
+    not(<getfirst(?SortVar(_))> a*)
   with
     e_ty* := <map(translate-Type)> args
   ; e_str := Lit(String([Chars(str)]))
+
+  translate-Type:
+    Sort(str{a*}, args) -> <translate-Type> v
+  where <getfirst(?v@SortVar(_))> a*
 
   translate-Type:
     SortVar(str) -> |[ new SortVar(e_str) ]|
@@ -1255,7 +1261,7 @@ strategies
     ; rules(
         CallTAssigns :+= assigns
       )
-  
+
   lifted-call-to-instance-self-call :
     CallT(SVar(x), _, _) -> expr |[ this ]|
     where

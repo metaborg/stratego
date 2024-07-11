@@ -1,0 +1,66 @@
+module gradual-types/overlays
+
+imports
+
+  signatures/core/signatures-sig
+  signatures/core/terms-sig
+  signatures/sugar/signatures-sig
+  signatures/sugar/terms-sig
+  signatures/sugar/string-quotations-sig
+  signatures/gradual-types/terms-sig
+  signatures/gradual-types/overlays-sig
+  signatures/gradual-types/internal-sig
+
+  gradual-types/signatures
+  gradual-types/environment
+  gradual-types/utils
+  gradual-types/terms
+
+rules // Overlay type declarations
+
+  check-Overlay(|e1, st): OverlayDeclNoArgs(n, t) -> <id>
+    with
+      vars := <collect-all(?SortVar(_))> t
+    ; e2 := <foldl(\(var, e) -> <sort-add(|var, 0)> e\)> (vars, e1)
+    ; <sort-check-ConstType(fail|e2)> t
+
+  check-Overlay(|e1, st): OverlayDecl(n, t*, t) -> <id>
+    with
+      vars := <collect-all(?SortVar(_))> t
+    ; e2 := <foldl(\(var, e) -> <sort-add(|var, 0)> e\)> (vars, e1)
+    ; <sort-check-ConstType(fail|e2)> t
+    ; <map(sort-check-Sort(fail|e2))> t*
+
+rules // Overlay definitions
+
+  check-Overlay(|e, st) = otf(check-Overlay-(|e, st))
+
+  check-Overlay-(|e1, st1): trm0@OverlayNoArgs(cnstr, trm1) -> OverlayNoArgs(cnstr, trm2)
+    with
+      if [ConstrType([], t1) | _] := <overlay-lookup(|cnstr, 0)> e1
+        then
+          t2 := <alltd(\tv@SortVar(x) -> Sort(x{tv}, [])\)> t1
+        ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
+        ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, Sort(tv{SortVar(tv)}, []))> st\)> (tvs, st1)
+
+        ; (trm2, _) := <insertCasts-BuildTerm(id|e1, st2, t2)> trm1
+        else
+          <report-Err> (cnstr, MissingTypeDefinition())
+        ; trm2 := trm1
+      end
+
+  check-Overlay-(|e1, st1): trm0@Overlay(cnstr, trm1*, trm1) -> Overlay(cnstr, trm1*, trm2)
+    with
+      if [ConstrType(t1*, t1) | _] := <overlay-lookup(|cnstr, <length> trm1*)> e1
+        then
+          t2 := <alltd(\tv@SortVar(x) -> Sort(x{tv}, [])\)> t1
+        ; tvs := <collect(\SortVar(x) -> x where not(<type-var-lookup(|x)> st1)\)> t1
+        ; st2 := <foldl(\(tv, st) -> <type-var-put(|tv, Sort(tv{SortVar(tv)}, []))> st\)> (tvs, st1)
+
+        ; (_, (st3, [])) := <insertCasts-MatchTerm(id|e1, <current-type(|t2)> st2)> <otf(!Op(cnstr, <map(otf(!Var(<id>)))> trm1*))> trm0
+
+        ; (trm2, _) := <insertCasts-BuildTerm(id|e1, st3, t2)> trm1
+        else
+          <report-Err> (cnstr, MissingTypeDefinition())
+        ; trm2 := trm1
+      end

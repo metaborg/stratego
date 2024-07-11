@@ -5,8 +5,8 @@
 module desugar-list-matching
 
 imports signatures/Stratego-Sugar 
-	strc/front/desugar 
-	strc/lib/stratlib
+        strc/front/desugar 
+        strc/lib/stratlib
 
 strategies
 
@@ -20,7 +20,7 @@ strategies
         <+ RtoS; all(dlm)
         <+ Build(dlm-in-build(dlm))
         <+ CallT(id, map(dlm), map(dlm-in-build(dlm)))
-	<+ CallDynamic(dlm-in-build(dlm), map(dlm), map(dlm-in-build(dlm)))
+        <+ CallDynamic(dlm-in-build(dlm), map(dlm), map(dlm-in-build(dlm)))
         <+ Match(dlm-in-match(dlm))
       )
     )
@@ -29,9 +29,7 @@ strategies
     alltd(
       ListVarAsTail; dlm-in-build(dlm)
       <+ ListVarInBuild; dlm-in-build(dlm)
-      <+ ConcInBuild; dlm-in-build(dlm)
       <+ SingleListVar
-      <+ ConcInBuild
       <+ App(dlm, dlm-in-build(dlm))
       <+ RootApp(dlm)
     )
@@ -40,7 +38,6 @@ strategies
     alltd(
       ListVarAsTail; dlm-in-match(dlm)
       <+ SingleListVar
-      //<+ ConcInMatch
       <+ App(dlm, dlm-in-match(dlm))
       <+ RootApp(dlm)
     )
@@ -62,8 +59,8 @@ rules
   ListVarScope :
     SDefT(f, as1, as2, s) -> SDefT(f, as1, as2', s)
     where <map(try(DefaultVarDec(?ListVar(<id>)) + VarDec(?ListVar(<id>),id)))> as2 => as2'
-	//; <concat-strings> [f, "(", <length;int-to-string> as1, ",", <length; int-to-string> as2, ")"] => name
-	//; rules(CurrentDef : _ -> name )
+        //; <concat-strings> [f, "(", <length;int-to-string> as1, ",", <length; int-to-string> as2, ")"] => name
+        //; rules(CurrentDef : _ -> name )
 
   SingleListVar :
     Var(ListVar(x)) -> Var(x)
@@ -84,10 +81,3 @@ rules
   ListVarInBuild : 
     Term|[ Cons(lid, t){^pt} ]| -> <desugar>Term|[ <makeConc(|)>(lid, t){^pt} ]|
     where <not(is-nil-trm)> t
-
-  ConcInMatch =
-    ?Term|[ Conc(t1, t2){^pt} ]|
-    // ; err(|<concat-strings>["concatentation in match in definition ", <CurrentDef>])
-
-  ConcInBuild :
-    Term|[ Conc(t1, t2){^pt} ]| -> <desugar>Term|[ <makeConc(|)>(t1, t2){^pt} ]|

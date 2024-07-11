@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
-import javax.inject.Inject;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -30,7 +29,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
 
     public final Front front;
 
-    @Inject public FrontSplit(Front front) {
+    @jakarta.inject.Inject @javax.inject.Inject public FrontSplit(Front front) {
         this.front = front;
     }
 
@@ -42,11 +41,12 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
         throws Exception {
         if(input.frontInput.moduleIdentifier.isLibrary()) {
             return new CheckModuleOutput(new LinkedHashMap<>(0), new LinkedHashMap<>(0),
-                new ArrayList<>(0));
+                new LinkedHashSet<>(0), new ArrayList<>(0));
         }
 
         final LastModified<IStrategoTerm> astWLM =
-            PieUtils.requirePartial(context, front, input.frontInput, GetASTWithLastModified.INSTANCE);
+            PieUtils.requirePartial(context, front, input.frontInput,
+                GetASTWithLastModified.INSTANCE);
 
         LinkedHashMap<StrategySignature, LinkedHashSet<StrategySignature>> dynamicRules =
             new LinkedHashMap<>();
@@ -54,6 +54,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
             strategyDataWithCasts = CheckModule
             .extractStrategyDefs(input.frontInput.moduleIdentifier, astWLM.wrapped, dynamicRules);
 
-        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, new ArrayList<>(0));
+        return new CheckModuleOutput(strategyDataWithCasts, dynamicRules, new LinkedHashSet<>(0),
+            new ArrayList<>(0));
     }
 }

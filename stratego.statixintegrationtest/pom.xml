@@ -73,10 +73,31 @@
     </dependency>
     <dependency>
       <groupId>org.metaborg</groupId>
+      <artifactId>gpp</artifactId>
+      <version>${metaborg-version}</version>
+      <type>spoofax-language</type>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.meta.lang.stratego</artifactId>
       <version>${metaborg-version}</version>
       <type>spoofax-language</type>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- str2libs -->
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>strategolib</artifactId>
+      <version>${metaborg-version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>gpp</artifactId>
+      <version>${metaborg-version}</version>
+      <type>jar</type>
     </dependency>
   </dependencies>
 
@@ -95,6 +116,16 @@
         <artifactId>maven-deploy-plugin</artifactId>
         <configuration>
           <skip>true</skip>
+        </configuration>
+      </plugin>
+      <!-- Add str2lib class files to final jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>target/str2libs/*</include>
+          </includes>
         </configuration>
       </plugin>
     </plugins>

@@ -3,6 +3,8 @@
  */
 module system/io/term
 imports
+  system/posix/file
+
   system/io/char
   system/io/dir
   system/io/file
@@ -95,15 +97,22 @@ strategies
 
   write-in-baf-to-stream :: Stream * a -> Stream
   write-in-baf-to-stream =
-    ?(Stream(stream), term); prim("SSL_write_term_to_stream_baf", stream, term); !Stream(<id>)
+    ?(Stream(stream), <id>); internal-write-term-to-stream-baf(|stream); !Stream(<id>)
 
   write-in-taf-to-stream :: Stream * a -> Stream
   write-in-taf-to-stream =
-    ?(Stream(stream), term); prim("SSL_write_term_to_stream_taf", stream, term); !Stream(<id>)
+    ?(Stream(stream), <id>); internal-write-term-to-stream-taf(|stream); !Stream(<id>)
 
   write-in-text-to-stream :: Stream * a -> Stream
   write-in-text-to-stream =
-    ?(Stream(stream), term); prim("SSL_write_term_to_stream_text", stream, term); !Stream(<id>)
+    ?(Stream(stream), <id>); internal-write-term-to-stream-text(|stream); !Stream(<id>)
+
+  external internal-write-term-to-stream-baf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-saf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-taf  :: (|StreamImplBlob) ? -> StreamImplBlob
+  external internal-write-term-to-stream-text :: (|StreamImplBlob) ? -> StreamImplBlob
+
+  external internal-read-term-from-stream :: (|) StreamImplBlob -> ?
 
   /**
    * Reads an ATerm from a Stream
@@ -112,43 +121,35 @@ strategies
    */
   read-from-stream :: Stream -> ?
   read-from-stream =
-    ?Stream(stream); prim("SSL_read_term_from_stream", stream)
+    ?Stream(<id>); internal-read-term-from-stream
 
   /**
    * Reads an ATerm from a String
    *
    * @type String -> _
    */
-  read-from-string :: string -> ?
-  read-from-string =
-    ?s; prim("SSL_read_term_from_string", s)
+  external read-from-string :: (|) string -> ?
 
   /**
    * Writes an ATerm to a String
    *
    * @type a -> String
    */
-  write-to-string :: a -> string
-  write-to-string =
-    ?t; prim("SSL_write_term_to_string", t)
+  external write-to-string :: (|) a -> string
 
   /**
    * Writes an ATerm to a binary string represented as a list of chars.
    *
    * @type a -> List(Char)
    */
-  write-to-binary-string :: ? -> List(Char)
-  write-to-binary-string =
-    ?t; prim("SSL_write_term_to_binary_string", t)
+  external write-to-binary-string :: (|) ? -> List(Char)
 
   /**
    * Writes an ATerm to a shared string represented as a list of chars.
    *
    * @type a -> List(Char)
    */
-  write-to-shared-string :: ? -> List(Char)
-  write-to-shared-string =
-    ?t; prim("SSL_write_term_to_shared_string", t)
+  external write-to-shared-string :: (|) ? -> List(Char)
 
 strategies
 
@@ -160,7 +161,7 @@ strategies
    */
   fprint :: ? * List(?) -> Stream
   fprint =
-    (?Stream(_) <+ stdio-stream, id)
+    (?Stream(_) <+ is(FileLoc);stdio-stream, id)
     ; ?(stream :: Stream, <id>)
     ; map(
         where(
@@ -274,18 +275,19 @@ strategies
    *
    * @type List(a) -> List(a)
    */
-  fatal-error :: List(a) -> List(a)
+  fatal-error :: List(string) -> b
   fatal-error =
-    where(error; <exit> 1)
+      error
+    ; fatal-err(|<concat-strings>, ())
 
   /**
    * Prints giving-up to stderr and exits with code 1.
    *
    * @type _ -> _
    */
-  giving-up :: a -> List(string)
+  giving-up :: a -> b
   giving-up =
-    <fatal-error>["giving-up"]
+    <fatal-error> ["giving-up"]
 
   /**
    * Logs an obsolete strategy message with the given message.

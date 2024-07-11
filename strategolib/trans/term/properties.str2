@@ -36,7 +36,7 @@ strategies
    */
   is-proper-subterm :: a * b -> a * b
   is-proper-subterm =
-    ?(x, y); not(is(?);eq); is-subterm
+    ?(x, y); not(is(? * ?);eq); is-subterm
 
 strategies
 
@@ -56,7 +56,7 @@ strategies
    */
   is-proper-superterm :: a * b -> a * b
   is-proper-superterm =
-    ?(x, y); not(is(?);eq); is-superterm
+    ?(x, y); not(is(? * ?);eq); is-superterm
 
 strategies
 

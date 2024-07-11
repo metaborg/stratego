@@ -1,6 +1,8 @@
 module strc/model/model
 
-imports signatures/Stratego-Sugar
+imports
+  signatures/Stratego-Sugar
+  
 
 signature
   constructors
@@ -342,6 +344,7 @@ strategies
     <+ overlay-to-model
 
     <+ ignore-defhastype
+    <+ ignore-overlaydecl
 
     <+ fatal-err(|"*** to-model: don't know how to model this: ")
  
@@ -356,6 +359,9 @@ strategies
 
   ignore-defhastype =
     ?DefHasTypeNoArgs(_, _) <+ ?DefHasType(_, _, _) <+ ?DefHasTType(_, _, _, _)
+
+  ignore-overlaydecl =
+    ?OverlayDecl(_, _, _) <+ ?OverlayDeclNoArgs(_, _)
 
 strategies
 

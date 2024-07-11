@@ -79,7 +79,6 @@ rules
    */
 
   /* month */
-  date-pattern-to-string :: string * ComponentTime -> string
   date-pattern-to-string : ("MMM",  ComponentTime(Date(_, m, _), _, _)) -> <month2abbr> m
   date-pattern-to-string : ("MMMM", ComponentTime(Date(_, m, _), _, _)) -> <month2text> m
 

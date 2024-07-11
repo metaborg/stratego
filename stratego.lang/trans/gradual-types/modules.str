@@ -3,6 +3,7 @@ module gradual-types/modules
 imports
 
 signatures/sugar/modules-sig
+signatures/sugar/dynamic-rules-sig
 signatures/core/modules-sig
 signatures/core/signatures-sig
 signatures/sugar/overlays-sig

@@ -18,7 +18,7 @@ import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
@@ -43,14 +43,13 @@ public class StrcTests {
     public static final String packageName = "mb.stratego2integrationtest";
     public static final ResourceService resourceService =
         new DefaultResourceService(new FSResourceRegistry());
-    // TODO: turn shell scripts from test-strc into tests here
 
     @TestFactory Stream<DynamicTest> test1() throws URISyntaxException, IOException {
         // test113 tests that tabs are considered 4 spaces wide by string quotations.
         //   This is currently not easy to support with post-processing, and we don't want to add
         //   a hack specific to the Stratego grammar in there. The post-processing method therefore
         //   works best when using spaces as indentation in Stratego files.
-        // tests 92 and 105 test something with externals, while not compiling against a library
+        // tests 94 and 105 test something with externals, while not compiling against a library
         //   that contains that external.
         HashSet<String> disabledTestFiles =
             new HashSet<>(Arrays.asList("test113.str2", "test94.str2", "test105.str2"));
@@ -63,9 +62,8 @@ public class StrcTests {
     @TestFactory
     Stream<DynamicTest> test2() throws URISyntaxException, IOException {
         // list-cons is not a test file, it is imported by other test files.
-        // flatten-test shouldn't fail but currently does, so temporarily disabled to allow local spoofax build
         HashSet<String> disabledTestFiles =
-            new HashSet<>(Arrays.asList("list-cons.str2")); //, "flatten-test.str2"
+            new HashSet<>(Arrays.asList("list-cons.str2"));
         final Predicate<Path> disableFilter =
             p -> !disabledTestFiles.contains(p.getFileName().toString());
         return compileAndRun("test2", "*.str2", disableFilter, new ArrayList<>(0));
@@ -107,7 +105,7 @@ public class StrcTests {
                     Arrays.asList(outputDirFile, strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed (" + baseName + ")");
                 Assertions.assertTrue(
-                    Java.execute(outputDir + ":" + strategoxtJarPath, packageName + ".Main"),
+                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".stratego2integrationtest"),
                     "Running java expected to succeed (" + baseName + ")");
             });
         });

@@ -7,14 +7,13 @@ import java.util.LinkedHashSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.data.ConstructorData;
 import mb.stratego.build.strincr.data.ConstructorSignature;
-import mb.stratego.build.strincr.data.OverlayData;
 import mb.stratego.build.strincr.data.SortSignature;
 import mb.stratego.build.strincr.data.StrategySignature;
 import mb.stratego.build.strincr.data.StrategyType;
@@ -37,18 +36,21 @@ public class GlobalData implements Serializable {
     public final LinkedHashSet<ConstructorData> nonExternalConstructors;
     public final LinkedHashSet<ConstructorSignature> externalConstructors;
     public final LinkedHashSet<StrategySignature> internalStrategies;
-    public final LinkedHashSet<StrategySignature> externalStrategies;
+    public final LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes;
     public final TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules;
-    public final LinkedHashSet<OverlayData> overlayData;
+    public final LinkedHashSet<ConstructorData> overlayData;
+    public final LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts;
     public final ArrayList<Message> messages;
     public final long lastModified;
+    protected final int hashCode;
+
     private transient @Nullable CompileGlobalIndex compileGlobalIndex = null;
     private transient @Nullable CongruenceGlobalIndex congruenceGlobalIndex = null;
     private transient @Nullable GlobalConsInj globalConsInj = null;
 
     public GlobalData(LinkedHashSet<IModuleImportService.ModuleIdentifier> allModuleIdentifiers,
-        ArrayList<String> importedStr2LibPackageNames, LinkedHashMap<ConstructorSignature,
-        LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
+        ArrayList<String> importedStr2LibPackageNames,
+        LinkedHashMap<ConstructorSignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> overlayIndex,
         LinkedHashMap<IStrategoTerm, ArrayList<IStrategoTerm>> nonExternalInjections,
         LinkedHashMap<StrategySignature, LinkedHashSet<IModuleImportService.ModuleIdentifier>> strategyIndex,
         LinkedHashMap<StrategySignature, StrategyType> strategyTypes,
@@ -56,8 +58,10 @@ public class GlobalData implements Serializable {
         LinkedHashSet<ConstructorData> nonExternalConstructors,
         LinkedHashSet<ConstructorSignature> externalConstructors,
         LinkedHashSet<StrategySignature> internalStrategies,
-        LinkedHashSet<StrategySignature> externalStrategies,
-        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules, LinkedHashSet<OverlayData> overlayData,
+        LinkedHashMap<StrategySignature, StrategyType> externalStrategyTypes,
+        TreeMap<StrategySignature, TreeSet<StrategySignature>> dynamicRules,
+        LinkedHashSet<ConstructorData> overlayData,
+        LinkedHashMap<ConstructorSignature, ArrayList<IStrategoTerm>> overlayAsts,
         ArrayList<Message> messages, long lastModified) {
         this.allModuleIdentifiers = allModuleIdentifiers;
         this.importedStr2LibPackageNames = importedStr2LibPackageNames;
@@ -70,18 +74,20 @@ public class GlobalData implements Serializable {
         this.nonExternalConstructors = nonExternalConstructors;
         this.externalConstructors = externalConstructors;
         this.internalStrategies = internalStrategies;
-        this.externalStrategies = externalStrategies;
+        this.externalStrategyTypes = externalStrategyTypes;
         this.dynamicRules = dynamicRules;
         this.overlayData = overlayData;
+        this.overlayAsts = overlayAsts;
         this.messages = messages;
         this.lastModified = lastModified;
+        this.hashCode = hashFunction();
     }
 
     public CompileGlobalIndex getCompileGlobalIndex() {
         if(compileGlobalIndex == null) {
             final LinkedHashSet<StrategySignature> nonExternalStrategies =
                 new LinkedHashSet<>(strategyIndex.keySet());
-            nonExternalStrategies.removeAll(externalStrategies);
+            nonExternalStrategies.removeAll(externalStrategyTypes.keySet());
             nonExternalStrategies.addAll(internalStrategies);
             compileGlobalIndex = new CompileGlobalIndex(importedStr2LibPackageNames, nonExternalStrategies, dynamicRules);
         }
@@ -98,7 +104,7 @@ public class GlobalData implements Serializable {
             }
             congruenceGlobalIndex =
                 new CongruenceGlobalIndex(nonExtCons, externalConstructors,
-                    nonExternalStrategies, overlayData);
+                    nonExternalStrategies, overlayAsts);
         }
         return congruenceGlobalIndex;
     }
@@ -119,6 +125,8 @@ public class GlobalData implements Serializable {
 
         GlobalData that = (GlobalData) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(lastModified != that.lastModified)
             return false;
         if(!allModuleIdentifiers.equals(that.allModuleIdentifiers))
@@ -143,16 +151,22 @@ public class GlobalData implements Serializable {
             return false;
         if(!internalStrategies.equals(that.internalStrategies))
             return false;
-        if(!externalStrategies.equals(that.externalStrategies))
+        if(!externalStrategyTypes.equals(that.externalStrategyTypes))
             return false;
         if(!dynamicRules.equals(that.dynamicRules))
             return false;
         if(!overlayData.equals(that.overlayData))
             return false;
+        if(!overlayAsts.equals(that.overlayAsts))
+            return false;
         return messages.equals(that.messages);
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = allModuleIdentifiers.hashCode();
         result = 31 * result + importedStr2LibPackageNames.hashCode();
         result = 31 * result + nonExternalInjections.hashCode();
@@ -164,15 +178,39 @@ public class GlobalData implements Serializable {
         result = 31 * result + nonExternalConstructors.hashCode();
         result = 31 * result + externalConstructors.hashCode();
         result = 31 * result + internalStrategies.hashCode();
-        result = 31 * result + externalStrategies.hashCode();
+        result = 31 * result + externalStrategyTypes.hashCode();
         result = 31 * result + dynamicRules.hashCode();
         result = 31 * result + overlayData.hashCode();
+        result = 31 * result + overlayAsts.hashCode();
         result = 31 * result + messages.hashCode();
         result = 31 * result + (int) (lastModified ^ lastModified >>> 32);
         return result;
     }
 
     @Override public String toString() {
-        return "GlobalData(" + allModuleIdentifiers + ")";
+        //@formatter:off
+        return "GlobalData@" + System.identityHashCode(this) + '{'
+            + "allModuleIdentifiers=" + allModuleIdentifiers.size()
+            + ", importedStr2LibPackageNames=" + importedStr2LibPackageNames.size()
+            + ", nonExternalInjections=" + nonExternalInjections.size()
+            + ", strategyIndex=" + strategyIndex.size()
+            + ", overlayIndex=" + overlayIndex.size()
+            + ", strategyTypes=" + strategyTypes.size()
+            + ", nonExternalSorts=" + nonExternalSorts.size()
+            + ", externalSorts=" + externalSorts.size()
+            + ", nonExternalConstructors=" + nonExternalConstructors.size()
+            + ", externalConstructors=" + externalConstructors.size()
+            + ", internalStrategies=" + internalStrategies.size()
+            + ", externalStrategies=" + externalStrategyTypes.size()
+            + ", dynamicRules=" + dynamicRules.size()
+            + ", overlayData=" + overlayData.size()
+            + ", overlayData=" + overlayAsts.size()
+            + ", messages=" + messages.size()
+            + ", lastModified=" + lastModified
+            + (compileGlobalIndex == null ? "" : ", compileGlobalIndex=" + compileGlobalIndex)
+            + (congruenceGlobalIndex == null ? "" : ", congruenceGlobalIndex=" + congruenceGlobalIndex)
+            + (globalConsInj == null ? "" : ", globalConsInj=" + globalConsInj)
+            + '}';
+        //@formatter:on
     }
 }

@@ -15,11 +15,11 @@ strategies
     bottomup-term(s) = all-term(bottomup-term(s)) ; s
 
 signature
-   sorts Term Int
-   constructors
-     A : Term
-     B : Term
-     F : Term * Term -> Term
-     G : Term * Term -> Term
-     H : Term * Term -> Term
-     I : Int -> Term
+  sorts Term Int
+  constructors
+    A : Term
+    B : Term
+    F : Term * Term -> Term
+    G : Term * Term -> Term
+    H : Term * Term -> Term
+    I : Int -> Term

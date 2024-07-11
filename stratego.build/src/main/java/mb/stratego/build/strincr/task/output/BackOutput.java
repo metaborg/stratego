@@ -11,6 +11,7 @@ public class BackOutput implements Serializable {
     public final LinkedHashSet<ResourcePath> unreportedResultFiles;
     public final LinkedHashSet<? extends StrategySignature> compiledStrategies;
     public final boolean depTasksHaveErrorMessages;
+    protected final int hashCode;
 
     public static final BackOutput dependentTasksHaveErrorMessages =
         new BackOutput(new LinkedHashSet<>(0), new LinkedHashSet<>(0), new LinkedHashSet<>(0),
@@ -30,6 +31,7 @@ public class BackOutput implements Serializable {
         this.unreportedResultFiles = unreportedResultFiles;
         this.compiledStrategies = compiledStrategies;
         this.depTasksHaveErrorMessages = depTasksHaveErrorMessages;
+        this.hashCode = hashFunction();
     }
 
     @Override public boolean equals(Object o) {
@@ -40,6 +42,8 @@ public class BackOutput implements Serializable {
 
         BackOutput that = (BackOutput) o;
 
+        if(hashCode != that.hashCode)
+            return false;
         if(depTasksHaveErrorMessages != that.depTasksHaveErrorMessages)
             return false;
         if(!resultFiles.equals(that.resultFiles))
@@ -48,6 +52,10 @@ public class BackOutput implements Serializable {
     }
 
     @Override public int hashCode() {
+        return this.hashCode;
+    }
+
+    protected int hashFunction() {
         int result = resultFiles.hashCode();
         result = 31 * result + compiledStrategies.hashCode();
         result = 31 * result + (depTasksHaveErrorMessages ? 1 : 0);
@@ -55,6 +63,13 @@ public class BackOutput implements Serializable {
     }
 
     @Override public String toString() {
-        return "Back.Output(" + resultFiles + ")";
+        //@formatter:off
+        return "BackOutput@" + System.identityHashCode(this) + '{'
+            + "resultFiles=" + resultFiles.size()
+            + ", unreportedResultFiles=" + unreportedResultFiles.size()
+            + ", compiledStrategies=" + compiledStrategies.size()
+            + ", depTasksHaveErrorMessages=" + depTasksHaveErrorMessages
+            + '}';
+        //@formatter:on
     }
 }
