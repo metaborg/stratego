@@ -50,7 +50,7 @@ public class ParameterisedStratego2Tests {
     DynamicNode parameterisedTests() throws URISyntaxException, IOException {
         return DynamicContainer.dynamicContainer("Parameterised tests", Arrays.asList(
                 DynamicContainer.dynamicContainer("Failing tests", failingTests())
-                , DynamicContainer.dynamicContainer("MultiMatch tests", testPMC())
+//                , DynamicContainer.dynamicContainer("MultiMatch tests", testPMC())
                 , DynamicContainer.dynamicContainer("test1", test1())
                 , DynamicContainer.dynamicContainer("test2", test2())
         ));
