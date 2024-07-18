@@ -17,8 +17,8 @@ spoofaxLanguageSpecification {
     spoofaxBuildApproximateAdditionalInputExcludePatterns.add("**/stratego-box.tbl")
 }
 dependencies {
-    compileLanguage(compositeBuild("org.metaborg.meta.lang.esv"))
-    compileLanguage(compositeBuild("org.metaborg.meta.lang.template"))
+    compileLanguage(libs.spoofax2.esv.lang)     // Bootstrap using Spoofax 2 artifact
+    compileLanguage(libs.spoofax2.sdf3.lang)    // Bootstrap using Spoofax 2 artifact
     compileLanguage(project(":stratego.lang"))
 
     sourceLanguage(project(":strategolib"))
@@ -26,6 +26,7 @@ dependencies {
     sourceLanguage(project(":org.metaborg.meta.lang.stratego"))
 
     compileOnly(project(":strategolib"))
+    compileOnly(libs.spoofax2.core)
 }
 
 metaborg {

@@ -6,16 +6,15 @@ plugins {
     id("org.metaborg.devenv.spoofax.gradle.base")
 }
 
-fun compositeBuild(name: String) = "$group:$name:$version"
-val spoofax2Version: String by ext
 dependencies {
     api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 
-    api(compositeBuild("stratego.build.spoofax2"))
-    implementation("jakarta.annotation:jakarta.annotation-api")
+    api(libs.stratego.build.spoofax2)
+    implementation(libs.jakarta.annotation)
 
-    testImplementation("org.metaborg:pie.runtime")
-    testImplementation("org.metaborg:strategoxt-jar:$spoofax2Version")
+    testImplementation(libs.junit)
+    testImplementation(libs.metaborg.pie.runtime)
+    testImplementation(libs.strategoxt.jar)
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.
@@ -39,10 +38,10 @@ val oldStrategoLangInjection = configurations.create("oldStrategoLangInjection")
     attributes.attribute(Usage.USAGE_ATTRIBUTE, spoofaxLanguageUsage)
 }
 dependencies {
-    strategoxtjarInjection(platform("org.metaborg:parent:$spoofax2Version"))
-    strategoLangInjection(platform("org.metaborg:parent:$spoofax2Version"))
-    oldStrategoLangInjection(platform("org.metaborg:parent:$spoofax2Version"))
-    strategoxtjarInjection("org.metaborg:strategoxt-jar:$spoofax2Version")
+    strategoxtjarInjection(platform(libs.metaborg.platform))
+    strategoLangInjection(platform(libs.metaborg.platform))
+    oldStrategoLangInjection(platform(libs.metaborg.platform))
+    strategoxtjarInjection(libs.strategoxt.jar)
     strategoLangInjection(project(":stratego.lang"))
     oldStrategoLangInjection(project(":org.metaborg.meta.lang.stratego"))
 }
