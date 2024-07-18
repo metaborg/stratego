@@ -1,0 +1,94 @@
+module rules-to-multimatch
+
+strategies
+  /*
+   * Multiple definitions
+   * Cases:
+   * - Only rule definitions: group all into MM strategy
+   * - Mixed rule and strategy definitions:
+   *   + Group adjacent rules into MM strategy.
+   *   + Return strategies as-is.
+   *   + Repeat.
+   */
+  rules-to-multimatch =
+    ((split-defs(match-groupable, id, op-make-set)
+   <+ split-defs(not(match-groupable), id, op-make-set)
+     )
+    ; map(r2mm)
+    ; concat)
+  <+ r2mm_fallback
+
+  split-defs(s, cond) = split-defs(s, cond, id)
+  split-defs(s, cond, mod) = where(cond); mod; split-defs(s)
+
+  split-defs(s) = ?[]; ![]
+  split-defs(s) =
+    [s | id]
+  ; where(take-while(s); ?t)
+  ; where(drop-while(s); ?d)
+  ; ![[t], <split-defs(not(s))> d]
+  ; concat
+
+rules
+  // Empty def list
+  r2mm: [] -> []
+
+  // Single (rule/strategy) definition: skip
+  r2mm: rs@[_] -> rs
+
+  // One or more RDefT can be grouped into a MultiMatch
+  r2mm: rdefs@[RDefT(f, [], [], _) | _] -> [SDefT(f, [], [], MultiMatch(Sequential(), cases))]
+  where
+    <map(rule-to-case)> rdefs => cases
+
+  // SDefTs should be left alone
+  r2mm: odefs@[SDefT(_, _, _, _) | _] -> odefs
+
+  rule-to-case: RDefT(_, _, _, s) -> ScopedMatchCase([], pat, Build(body))
+  where
+    Rule(pat, body, conds) := s // TODO Handle conditions
+
+strategies
+  match-groupable = is-rdef-noargs
+
+  is-rdef-noargs = ?RDefT(_, [], [], _)
+
+  internal r2mm_fallback = debug(!"[r2mm] fallback "); id
+  /*
+   * Left-to-right order-preserving variant of `make-set`.
+   * TODO Implement using left fold.
+   */
+  internal op-make-set = reverse; make-set; reverse
+
+//  r2mm: rs@[RDefT(f, sargs, targs, _) | _] -> SDefT(f, sargs', targs', mm)
+//  where
+//  <debug(!"rs ")> rs;
+//    <map(VarDec(NewID, id))> sargs => sargs'
+//  ; <map(VarDec(NewID, id))> targs => targs'
+//  ; <map(\ VarDec(y, _) -> SVar(y) \ )> sargs' => svars
+//  ; <map(\ VarDec(y, _) -> Var(y) \ )> targs' => vars
+//  ; <debug(!"[i] RD "); map(RenameDefinition(|svars, vars)); debug(!"[o] RD ")> rs => rs'
+//  ; <debug(!"[i] R2C "); map(rule-to-case); debug(!"[o] R2C ")> rs' => cases
+//  ; mm := MultiMatch(Linear, cases)
+
+//  RenameDefinition(|ys1, ys2) :
+//    SDefT(_, xs1, xs2, s1) -> s3
+//    where <map(\ VarDec(x2,_) -> x2 \ )> xs2 => zs2
+//  ; <tsubs> (zs2, ys2, s1) => s2
+//  ; {| RenameSVar :
+//             <zip({?(VarDec(x1,_), y1)
+//                   ; rules( RenameSVar : SVar(x1) -> y1 ) }
+//              )> (xs1, ys1)
+//       ; <alltd(RenameSVar)> s2 => s3
+//          |}
+
+//  JoinDefs2:
+//    defs@[SDefT(f, sargs, targs, s) | _] -> SDefT(f, sargs', targs', mm)
+//    where
+//      <map(VarDec(NewID, id))> sargs => sargs'
+//    ; <map(VarDec(NewID, id))> targs => targs'
+//    ; <map(\ VarDec(y, t) -> SVar(y) \ )> sargs' => svars
+//    ; <map(\ VarDec(y, t) -> Var(y) \ )> targs' => vars
+//    ; <map(RenameDefinition(|svars, vars))> defs => ss
+//    ; <map(debug)> ss
+//    ; mm := MultiMatch(Linear, [])

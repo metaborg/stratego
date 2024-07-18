@@ -16,6 +16,7 @@ strategies
     <+ afo-sdef
     <+ afo-scope
     <+ afo-var
+    <+ afo-matchcase
     <+ afo-call; all(afo)
     <+ afo-proxy
     <+ all(afo)
@@ -56,6 +57,17 @@ strategies
            ; s2  := <afo> s1
            |}
 	//; debug(!"afo-scope out: ")
+
+  afo-matchcase :
+    ScopedGuardedMatchCase(x1*, t1, s1, s2) ->
+    ScopedGuardedMatchCase(x2*, t2, s3, s4)
+  where
+    {| OffSet
+           : x2* := <map(try(offset-local-var(|"var")))> x1*
+           ; t2 := <afo> t1
+           ; s3 := <afo> s1
+           ; s4 := <afo> s2
+           |}
 
   offset-sdef :
     |[ f1(a1* | a2*) = s ]| -> |[ f2(a1* | a2*) = s ]|

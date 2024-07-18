@@ -3,16 +3,14 @@ module Main
 imports
 
   Syntax
+  Desugar
+  Optimise
+  Codegen
   Analysis
+  Test
 
 language
 
   extensions : str2
 
-//  provider : target/metaborg/stratego.ctree
   provider : target/metaborg/stratego.jar
-
-menus
-
-  menu: "Codegen" (openeditor) (source)
-    action: "Show Java files" = debug-show-java

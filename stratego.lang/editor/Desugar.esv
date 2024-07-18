@@ -1,0 +1,7 @@
+module Desugar
+
+menus
+
+  menu: "Desugar" (openeditor) (source)
+    action: "Show desugared AST (CTree)" = debug-show-ctree
+    action: "Show desugared program (Core)" = debug-show-core

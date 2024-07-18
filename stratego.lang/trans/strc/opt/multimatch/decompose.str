@@ -1,0 +1,250 @@
+module multimatch/decompose
+
+imports
+  strc/c/escaping-variables // is-ListOp
+
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/utils
+
+  strc/front/desugar
+
+  strj/s2j                                // is-TupleOp
+
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+overlays
+//  ExplodeNoAnno(t, anno_cons) = Explode(NoAnno(t), anno_cons)
+//  NoAnno(t) = Anno(t, Wld())
+
+
+strategies
+  /*
+   * Determine default case for matrix.
+   *
+   * Maranget (2008), fig. 1.
+   */
+  default = Matrix(?[_ | <id>], remove-all(non-default-row); map(restore(default-row, fatal-err(|"ERROR - no default: "))))
+  default-row: Row([<is-wld> | ps], s_g, s_rhs) -> Row(ps, s_g, s_rhs)
+
+  non-default-row = ?Row([<non-default-head> | _], _, _) // by definition
+  non-default-head =
+    ?Op(_, _)
+  + ?Int(_)
+  + ?Str(_)
+  + ?Real(_)
+
+
+strategies
+  /*
+   * Get head constructors from list of (constructor) patterns.
+   *
+   * Maranget (2008), sec 4, step 3a.
+   */
+  col-head-constructors = ?Col(_, <head-constructors>, _, _)
+
+  head-constructors = id
+  ; remove-all(is-wld)
+  ; foldr(![], union, ![<constructor <+ fatal-err(|"unable to determine constructor: ")>])
+
+  tswitch-arms = id
+  ; ?p*
+  ; foldr(![], union, ![<Snd>]) // Set of types
+  ; let
+      collect_cons(|t) = split(id, <retain-all(where(Snd; ?t); Fst); make-set> p*)
+    in
+      map(collect_cons(|<id>))
+    end
+
+  /*
+   * Specialize the matrix to a certain constructor.
+   *
+   * Maranget (2008), fig. 1.
+   */
+  specialize(|c) =
+    Matrix(specialize-occs(|c), filter(specialize-row(|c)))
+
+  internal specialize-row(|c) =
+    Row(specialize-pats(|c), id, id)
+
+  internal specialize-occs(|c): occs@[o | os*] -> [o*, os*]
+    with o* := <specialize-occ(|c)> o
+
+strategies
+  constructor:
+    Anno(_, _) ->
+    (AnnoC(), ())
+
+  constructor:
+    c@Op(_, _) ->
+    (TupleC(<arity; int-to-string> c), TupleT())
+  where
+    <is-TupleOp> c
+
+  constructor:
+    c@Op(f, _) ->
+    (FunC(f, <arity; int-to-string> c), LisT())
+  where
+    <is-ListOp> c
+
+  constructor:
+    c@Op(f, _) ->
+    (FunC(f, <arity; int-to-string> c), ApplT())
+  where
+    <not(is-ListOp + is-TupleOp)> c
+
+//  constructor:
+//    c@ExplodeNoAnno(Str(""), _) ->
+//    (TupleC(<arity; int-to-string> c), TupleT())
+//
+//  constructor:
+//    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) ->
+//    (FunC("Nil", "0"), LisT())
+//
+//  constructor:
+//    ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) ->
+//    (FunC("Cons", "2"), LisT())
+//
+//  constructor:
+//    c@ExplodeNoAnno(s@Str(_), _) ->
+//    (StrC(x), StringT())
+//  where
+//    <arity> c => 0
+//  ; s'@Str(x) := <DesugarOnce> s
+//  ; <not(equal)> (s, s')
+//
+//  constructor:
+//    c@ExplodeNoAnno(Int(x), _) ->
+//    (IntC(x), IntT())
+//  where
+//    <arity> c => 0
+//
+//  constructor:
+//    c@ExplodeNoAnno(Real(x), _) ->
+//    (RealC(x), RealT())
+//  where
+//    <arity> c => 0
+//
+//  constructor:
+//    c@ExplodeNoAnno(Str(f), _) ->
+//    (FunC(f, <arity; int-to-string> c), ApplT())
+
+  constructor:
+    Str(s) ->
+    (StrC(s), StringT())
+
+  constructor:
+    Int(i) ->
+    (IntC(i), IntT())
+
+  constructor:
+    Real(r) ->
+    (RealC(r), RealT())
+
+  // Constructor var (multiple types) (not working)
+//  constructor:
+//    ExplodeNoAnno(Var(x), _) ->
+//    ([], [ApplT(), TupleT(), StringT(), IntT(), RealT()])
+
+
+  specialize-pats(|AnnoC()):
+    [Anno(c, ann) | ps*] -> 
+    [c, ann | ps*]
+
+  specialize-pats(|TupleC(x)):
+    [c@Op("", qs*) | ps*] ->
+    [qs*, ps*]
+  where
+    a := <string-to-int> x
+  ; <eq> (a, <arity> c)
+  
+  specialize-pats(|FunC(f, x)):
+    [c@Op(f, qs*) | ps*] ->
+    [qs*, ps*]
+  where
+    <not(is-TupleOp)> c
+  ; a := <string-to-int> x
+  ; <eq> (a, <arity> c)
+
+//  specialize-pats(|TupleC(x)):
+//    [c@ExplodeNoAnno(Str(""), qs*) | ps*] ->
+//    [qs'*, ps*]
+//  with
+//    a := <string-to-int> x
+//  ; qs'* := <implode-anno-list> qs*
+//  where
+//    <eq> (a, <length> qs'*)
+//  
+//  specialize-pats(|FunC(f, a)):
+//    [c@ExplodeNoAnno(Op("Nil", []), NoAnno(Op(f, qs*))) | ps*] ->
+//    [qs*, ps*]
+//  where
+//    <arity; int-to-string> c => a
+//
+//  specialize-pats(|c):
+//    [<?ExplodeNoAnno(l, _)> | ps*] ->
+//    ps*
+//  where
+//    c := <constructor; Fst; is-literal-cons> l
+//  
+//  specialize-pats(|FunC(f, x)):
+//    [c@ExplodeNoAnno(Str(f), anno_cons) | ps*] ->
+//    [qs*, ps*]
+//  with
+//    a := <string-to-int> x
+//  ; qs* := <implode-anno-list> anno_cons
+//  where
+//    <eq> (a, <length> qs*)
+
+  specialize-pats(|c):
+    [p | ps*] ->
+    ps*
+  where
+    c := <constructor; Fst; is-literal-cons> p
+
+  specialize-pats(|c):
+    [<is-wld> | ps*] ->
+    <prepend(|Wld(), a)> ps*
+  where
+    a := <cons-arity> c
+
+  specialize-pats(|<is-wld>) = fail // by definition
+
+
+  specialize-occ(|AnnoC()): p -> [p, AnnoP(p)]
+
+  specialize-occ(|TupleC(x)) = specialize-occ-by-arity(|<string-to-int> x)
+  
+  specialize-occ(|FunC("Nil", "0")) = ![]
+  specialize-occ(|FunC("Cons", "2")): p -> [ HeadP(p), TailP(p) ]
+
+  specialize-occ(|c@FunC(f, x)) =
+    if <not(?FunC("Nil", "0") + ?FunC("Cons", "2"))> c then
+      specialize-occ-by-arity(|<string-to-int> x)
+    end
+
+  specialize-occ(|<is-literal-cons>) = ![]
+
+  // Helper
+  specialize-occ-by-arity(|a):
+    p -> <range; map(\ i -> SubP(p, <int-to-string> i) \)> (0, a)
+
+
+strategies
+  // Helpers
+  internal arity = ?Op(_, <length>)
+//  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Nil", _))) -> 0
+//  internal arity: ExplodeNoAnno(Op("Nil", []), NoAnno(Op("Cons", _))) -> 2
+
+//  internal arity =
+//    ?ExplodeNoAnno(f, <implode-anno-list; length>)
+//  ; where(not(!f => Op(_, _)))
+
+//  internal implode-anno-list: NoAnno(Op("Cons", [e, tail])) -> [e | <implode-anno-list> tail]
+//  internal implode-anno-list: NoAnno(Op("Nil", [])) -> []
+
+  internal prepend(|t, n) = repeat(![t | <id>] | n)
+
+//  internal exploded-list-length = implode-anno-list; length
+
+//  internal ensure-list = is-list <+ MkSingleton

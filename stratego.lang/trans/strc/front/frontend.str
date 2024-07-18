@@ -7,6 +7,9 @@ module frontend
 imports
   strc/strc/format-check
 
+  signatures/sugar/main-sig
+  signatures/core/main-sig
+
 strategies
 
   frontend = 
@@ -94,7 +97,7 @@ strategies
         )
 
       ; m-transform-local-defs(id
-          ; ![<joindefs>] 
+          ; ![<joindefs>]
           ; [RenameSDef]
         )
 
@@ -129,13 +132,19 @@ strategies
     )
 
   check-match =
-    Match(oncetd(fail
-      <+ ?BuildDefault(_) 
-      <+ ?BuildDefaultPT(_)
-      <+ ?_{"quoted"}
-    ))
+    let
+      s = oncetd(fail
+              <+ ?BuildDefault(_) 
+              <+ ?BuildDefaultPT(_)
+              <+ ?_{"quoted"}
+          )
+    in
+      (Match(s) + ScopedGuardedMatchCase(id, s, id, id))
     ; err(|"build symbols in match pattern")
-  
+    
+    end
+    
+    
   check-build =
     Build(oncetd(fail
       <+ ?Wld() 

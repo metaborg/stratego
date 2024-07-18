@@ -49,7 +49,7 @@ rules
     ; (  \ (elems, NoAnnoList(Op("Nil",[]))) -> List(elems) \ 
       <+ \ (elems, Op("Nil",[])) -> List(elems) \ // XXX : Don't know for sure if this rule needs to stay, for now it stays..
       <+ \ (elems, last)         -> ListTail(elems, last) \
-      ) 
+      )
 
   implode-cons =
     \ Op("Cons",[e, tail]) -> [e | <implode-cons> tail] \
@@ -72,6 +72,14 @@ rules
 
   EnsugarOnce : 
     Str(x) -> Str(y)
+      where <string-as-chars(
+              not(is-double-quoted-chars)
+            ; escape-chars
+            ; double-quote-chars
+            )> x => y
+
+  EnsugarOnce :
+    StrC(x) -> StrC(y)
       where <string-as-chars(
               not(is-double-quoted-chars)
             ; escape-chars

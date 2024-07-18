@@ -89,3 +89,120 @@ context-free priorities
   }
 > Strategy.Seq
 > Strategy.GuardedLChoice
+
+// PMC
+context-free sorts MatchOrder MatchCase
+context-free syntax
+  Strategy.MultiMatch =
+<match <MatchOrder>
+  <{MatchCase "\n"}*>
+end>
+
+  MatchOrder.Sequential = <sequential>
+
+  MatchCase.ScopedGuardedMatchCase = <case <{ID ", "}*> | <Term> when <Strategy>: <Strategy>>
+
+context-free sorts DTree
+context-free syntax
+  Strategy = DTree // Can be factored out if only one DTree production exists.
+
+  DTree.SwitchT =
+<switch <PathTp> {
+  <{AltT "\n"}*>
+  <Default>
+}>
+
+  DTree.SwitchTNoDefault =
+<switch <PathTp> {
+  <{AltT "\n"}*>
+}>
+
+  // IR
+  DTree.GuardedLeafs = <<{Guard "\n"}+>>
+
+context-free sorts SwitchV
+context-free syntax
+  SwitchV.SwitchV =
+<switch <PathVF> {
+  <{AltV "\n"}*>
+  <Default>
+}>
+
+  SwitchV.SwitchVNoDefault =
+<switch <PathVF> {
+  <{AltV "\n"}*>
+}>
+
+context-free sorts AltT AltV Default
+context-free syntax
+  AltT.AltT =
+<alt <PatT>:
+  <SwitchV>>
+
+  AltV.AltV =
+<alt <PatV>:
+  <Strategy>>
+
+  AltV.GuardedAltV =
+<alt <PatV>
+  <{Guard "\n"}+>>
+
+  Default.Default =
+<default:
+  <Strategy>>
+
+  Default.GuardedDefault =
+<default
+  <{Guard "\n"}+>>
+
+context-free sorts Guard
+context-free syntax
+  Guard.Guard =
+<where <Strategy>:
+  <Strategy>>
+
+context-free sorts Path PathTrm PathTp PathFld PathVF
+context-free syntax
+  Path = PathTrm
+  Path = PathTp
+  Path = PathFld
+  
+  PathVF = PathTrm
+  PathVF = PathFld
+
+  PathTrm.CurP = <current>
+//  PathTrm.Var = ID
+  PathTrm.SubP = <<PathTrm>.<Int>>
+  PathTrm.AnnoP = <<PathTrm>.anno>
+  PathTrm.HeadP = <<PathTrm>.head>
+  PathTrm.TailP = <<PathTrm>.tail>
+
+  PathTp.TypeP = <<PathTrm>.type>
+
+  PathFld.SizeP = <<PathTrm>.size>
+  PathFld.ConP  = <<PathTrm>.con>
+  PathFld.IntP  = <<PathTrm>.int>
+  PathFld.RealP = <<PathTrm>.real>
+  PathFld.StrP  = <<PathTrm>.str>
+
+context-free sorts PatV
+context-free syntax
+  PatV.FunC = <(<Id>, <Int>)>
+  PatV.StrC = String
+  PatV.IntC = Int
+  PatV.RealC = Real
+  PatV.AnnoC = <{_}>
+  PatV.TupleC = <(<Int>)>
+
+context-free sorts PatT
+context-free syntax
+  PatT.ApplT = <APPL>
+  PatT.LisT = <LIST>
+  PatT.IntT = <INT>
+  PatT.RealT = <REAL>
+  PatT.StringT = <STRING>
+  PatT.CtorT = <CTOR>
+  PatT.TupleT = <TUPLE>
+  PatT.RefT = <REF>
+  PatT.BlobT = <BLOB>
+  PatT.PlaceT = <PLACEHOLDER>

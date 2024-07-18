@@ -1,0 +1,101 @@
+module mixed1
+imports strategolib
+
+signature
+  constructors
+    Con1 : int * int -> Term
+    Con2 :                Term
+
+strategies
+  s =
+    match sequential
+      case | Con1(_, _): !1
+      case | Con2(): !2
+      case | (): !3
+      case | (1, 2): !4
+      case | []: !5
+      case | [1, 2 | _]: !6
+      case | "abc": !7
+      case | 8: !8
+      case | 5.4: !9
+    end
+
+  main =
+    test-suite(
+      !"mixed types"
+    , cons-binary
+    ; cons-nullary
+    ; tuple-empty
+    ; tuple-pair
+    ; list-empty
+    ; list-non-empty
+    ; prim-string
+    ; prim-int
+    ; prim-real
+    )
+
+  cons-binary =
+    apply-test(s|
+      "cons-binary"
+    , Con1(1, 2)
+    , 1
+    )
+
+  cons-nullary =
+    apply-test(s|
+      "cons-nullary"
+    , Con2()
+    , 2
+    )
+  
+  tuple-empty =
+    apply-test(s|
+      "tuple-empty"
+    , ()
+    , 3
+    )
+  
+  tuple-pair =
+    apply-test(s|
+      "tuple-pair"
+    , (1, 2)
+    , 4
+    )
+  
+  list-empty =
+    apply-test(s|
+      "list-empty"
+    , []
+    , 5
+    )
+  
+  list-non-empty =
+    apply-test(s|
+      "list-non-empty"
+    , [1, 2, 3]
+    , 6
+    )
+
+  prim-string =
+    apply-test(s|
+      "string"
+    , "abc"
+    , 7
+    )
+  
+  prim-int =
+    apply-test(s|
+      "int"
+    , 8
+    , 8
+    )
+  
+  prim-real =
+    apply-test(s|
+      "real"
+    , 5.4
+    , 9
+    )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|t1, t2, t3)

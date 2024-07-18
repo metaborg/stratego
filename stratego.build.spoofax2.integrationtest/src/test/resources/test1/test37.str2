@@ -42,3 +42,18 @@ strategies
     <foo> 92
 
   foo = (id, ?0; ![] <+ !("aap","noot"))
+
+  external say(s|)
+  external map(s|)
+  external debug(|)
+  external geq(|)
+  external leq(|)
+  external implode-string(|)
+  external concat-strings(|)
+  external split(s1, s2|)
+  external mod(|)
+  external add(|)
+  external div(|)
+  external int(|)
+  external reverse(|)
+  external MkCons(|)

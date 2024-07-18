@@ -1,0 +1,88 @@
+module evaltree
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Pos Tree SNat
+
+constructors
+   true : Bool 
+   false : Bool 
+   d1 : Pos 
+   cDub : Bool * Pos -> Pos 
+   leaf : SNat -> Tree 
+   node : SNat * SNat * Tree * Tree -> Tree 
+   Z : SNat 
+   S : SNat -> SNat 
+   eqBool : Bool * Bool -> Bool 
+   and : Bool * Bool -> Bool 
+   eqPos : Pos * Pos -> Bool 
+   eq : SNat * SNat -> Bool 
+   f : SNat -> Bool
+   lambda6 : SNat -> Bool 
+   lambda5 : SNat * Tree -> Tree 
+   lambda4 : SNat * Tree * SNat * SNat -> Tree 
+   lambda3 : SNat * Tree * Tree -> Tree 
+   lambda2 : SNat * Tree * Tree * SNat * SNat -> Tree 
+   lambda1 : SNat * Tree * Tree * SNat -> Tree 
+   buildtree : SNat * SNat -> Tree 
+   lambda0 : SNat * SNat -> SNat 
+   succ17 : SNat -> SNat 
+   pred17 : SNat -> SNat 
+   plus17 : SNat * SNat -> SNat 
+   mult17 : SNat * SNat -> SNat 
+   exp17 : SNat * SNat -> SNat 
+   evaltree17 : SNat -> SNat 
+   getval : Tree -> SNat 
+   getmax : Tree -> SNat 
+   seventeen : SNat 
+
+rules
+   REC_E: eqBool (true(),b) -> b
+   REC_E: eqBool (false(),true()) -> false()
+   REC_E: eqBool (false(),false()) -> true()
+   REC_E: and (b,true()) -> b
+   REC_E: and (b,false()) -> false()
+   REC_E: eqPos (d1(),d1()) -> true()
+   REC_E: eqPos (d1(),cDub (b,p)) -> false()
+   REC_E: eqPos (cDub (b,p),d1()) -> false()
+   REC_E: eqPos (cDub (b,p),cDub (c,q)) -> and (eqBool (b,c), eqPos (p,q))
+   REC_E: lambda6 (n) -> eq (evaltree17 (n),getval (buildtree (n,Z())))
+   REC_E: lambda5 (n,left) -> lambda4 (n,left,getmax (left),getval (left))
+   REC_E: lambda4 (n,left,max,o) -> lambda3 (o,left,buildtree (n,succ17 (max)))
+   REC_E: lambda3 (n,left,right) -> lambda2 (n,left,right,getval (right),getmax (right))
+   REC_E: lambda2 (n,left,right,o,max) -> lambda1 (max,left,right,plus17 (n,o))
+   REC_E: lambda1 (max,left,right,n) -> node (n,max,left,right)
+   REC_E: lambda0 (n,o) -> mult17 (n,o)
+   REC_E: eq (Z(),Z()) -> true()
+   REC_E: eq (Z(),S (n)) -> false()
+   REC_E: eq (S (n),Z()) -> false()
+   REC_E: eq (S (n),S (o)) -> eq (n,o)
+   REC_E: succ17 (n) -> Z() where equal-after-eval (|eq (n,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), true())
+   REC_E: succ17 (n) -> S (n) where equal-after-eval (|eq (n,S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))), false())
+   REC_E: pred17 (Z()) -> S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (Z()))))))))))))))))
+   REC_E: pred17 (S (n)) -> n
+   REC_E: plus17 (n,Z()) -> n
+   REC_E: plus17 (n,S (o)) -> succ17 (plus17 (n,o))
+   REC_E: mult17 (n,Z()) -> Z()
+   REC_E: mult17 (n,S (o)) -> plus17 (n,mult17 (n,o))
+   REC_E: exp17 (n,Z()) -> succ17 (Z())
+   REC_E: exp17 (n,S (o)) -> mult17 (n,exp17 (n,o))
+   REC_E: evaltree17 (n) -> lambda0 (exp17 (S (S (Z())),pred17 (n)),pred17 (exp17 (S (S (Z())),n)))
+   REC_E: getval (leaf (n)) -> n
+   REC_E: getval (node (n,max,left,right)) -> n
+   REC_E: getmax (leaf (n)) -> n
+   REC_E: getmax (node (n,max,left,right)) -> max
+   REC_E: buildtree (Z(),n) -> leaf (n)
+   REC_E: buildtree (S (n),o) -> lambda5 (n,buildtree (n,o))
+   REC_E: seventeen() -> S (S (S (S (S ( S (S (S (S (S ( S (S (S (S (S ( S (S (S (S ( Z() )))) ))))) ))))) )))))
+   REC_E: f (n) -> lambda6 (seventeen())
+ strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> f (seventeen())) ;
+      <exit> 0

@@ -1,0 +1,148 @@
+module sieve
+
+imports libstratego-lib
+
+signature
+
+sorts
+   Bool List Nat Digit
+
+constructors
+   true : Bool 
+   false : Bool 
+   s : Nat -> Nat 
+   z : Nat 
+   d0 : Digit 
+   d1 : Digit 
+   d2 : Digit 
+   d3 : Digit 
+   d4 : Digit 
+   d5 : Digit 
+   d6 : Digit 
+   d7 : Digit 
+   d8 : Digit 
+   d9 : Digit 
+   nil : List 
+   d : Digit -> List 
+   dl : Digit * List -> List 
+   l : Nat * List -> List 
+   ll : List * List -> List 
+   lt : Nat * Nat -> Bool 
+   sub : Nat * Nat -> Nat 
+   div : Nat * Nat -> Nat 
+   rem : Nat * Nat -> Nat 
+   add : Nat * Nat -> Nat 
+   divides : Nat * Nat -> Bool 
+   mult : Nat * Nat -> Nat 
+   two : Nat 
+   ten : Nat 
+   find : List * Nat -> Digit 
+   digitList : List 
+   ap : List * List -> List 
+   conv : Nat -> List 
+   digit : Nat -> Digit 
+   fact : Nat -> Nat 
+   auxdiv : Nat * Nat * Nat -> Bool 
+   ifNat : Bool * Nat * Nat -> Nat 
+   intsBetween : Nat * Nat -> List 
+   sieve : List -> List 
+   filter : List * Nat -> List 
+   e : Nat * List -> List 
+
+rules
+   REC_E: two() -> s (s (z()))
+   REC_E: ten() -> s (s (s (s (s (s (s (s (s (s (z()))))))))))
+   REC_E: digitList() -> dl (d0(), dl (d1(), dl (d2(), dl (d3(), dl (d4(), dl (d5(), dl (d6(), dl (d7(), dl (d8(), dl (d9(), nil()))))))))))
+   REC_E: ifNat (true(), N, M) -> N
+   REC_E: ifNat (false(), N, M) -> M
+   REC_E: conv (X) -> dl (digit (X), nil()) where equal-after-eval (|lt (X, ten()), true())
+   REC_E: conv (X) -> ap (conv (div (X, ten())), conv (rem (X, ten()))) where equal-after-eval (|lt (X, ten()), false())
+   REC_E: rem (X, Y) -> ifNat (lt (X, Y), X, rem (sub (X, Y), Y)) where not (equal-after-eval (|Y, z()))
+   REC_E: div (X, Y) -> ifNat (lt (X, Y), z(), s (div (sub (X, Y), Y))) where not (equal-after-eval (|Y, z()))
+   REC_E: lt (z(), s (X)) -> true()
+   REC_E: lt (X, z()) -> false()
+   REC_E: lt (s (X), s (Y)) -> lt (X, Y)
+   REC_E: sub (z(), s (Y)) -> z()
+   REC_E: sub (X, z()) -> X
+   REC_E: sub (s (X), s (Y)) -> sub (X, Y)
+   REC_E: digit (X) -> find (digitList(), X)
+   REC_E: find (dl (Dig, L1), z()) -> Dig
+   REC_E: find (dl (Dig, L1), s (X)) -> find (L1, X)
+   REC_E: ap (nil(), L1) -> L1
+   REC_E: ap (dl (Dig, L1), L2) -> dl (Dig, ap (L1, L2))
+   REC_E: add (z(), Y) -> Y
+   REC_E: add (s (X), Y) -> s (add (X, Y))
+   REC_E: mult (z(), Y) -> z()
+   REC_E: mult (s (X), Y) -> add (Y, mult (X, Y))
+   REC_E: fact (z()) -> s (z())
+   REC_E: fact (s (X)) -> mult (s (X), fact (X))
+   REC_E: divides (N, M) -> auxdiv (N, M, M) where not (equal-after-eval (|M, z()))
+   REC_E: auxdiv (z(), z(), M) -> true()
+   REC_E: auxdiv (z(), s (X), M) -> false()
+   REC_E: auxdiv (s (X), s (Y), M) -> auxdiv (X, Y, M)
+   REC_E: auxdiv (s (X), z(), M) -> auxdiv (s (X), M, M)
+   REC_E: intsBetween (N, M) -> nil() where equal-after-eval (|N, M)
+   REC_E: intsBetween (N, M) -> l (N, intsBetween (s (N), M)) where not (equal-after-eval (|N, M))
+   REC_E: sieve (l (N, L1)) -> l (N, sieve (filter (L1, N)))
+   REC_E: sieve (nil()) -> nil()
+   REC_E: filter (l (N, L1), M) -> filter (L1, M) where equal-after-eval (|divides (N, M), true())
+   REC_E: filter (l (N, L1), M) -> l (N, filter (L1, M)) where equal-after-eval (|divides (N, M), false())
+   REC_E: filter (nil(), M) -> nil()
+   REC_E: e (N, L1) -> ll (conv (N), L1)
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+
+  main =
+    test-suite(
+      !"sieve"
+    , sieve20
+    ; sieve100
+    //; sieve1000
+    //; sieve2000
+    //; sieve10000
+    )
+
+    sieve20 =
+      apply-test(eval|
+        "sieve20"
+      , sieve (intsBetween (s (s (z())), s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (s (z()))))))))))))))))))))))
+      , l(s(s(z())),l(s(s(s(z()))),l(s(s(s(s(s(z()))))),l(s(s(s(s(s(s(s(z()))))))),l(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))),nil()))))))))
+      )
+
+    sieve100 =
+      apply-test(eval|
+        "sieve100"
+      , sieve (intsBetween (s (s (z())), mult (ten(), ten())))
+      , l(s(s(z())),l(s(s(s(z()))),l(s(s(s(s(s(z()))))),l(s(s(s(s(s(s(s(z()))))))),l(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),l(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(z()))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),nil())))))))))))))))))))))))))
+      )
+
+    sieve1000 =
+      apply-and-show(eval|
+        "sieve1000"
+      , sieve (intsBetween (s (s (z())), mult (ten(), mult (ten(), ten()))))
+      // , expected
+      )
+
+    sieve2000 =
+      apply-and-show(eval|
+        "sieve2000"
+      , sieve (intsBetween (s (s (z())), mult (two(), mult (ten(), mult (ten(), ten())))))
+      // , expected
+      )
+
+    sieve10000 =
+      apply-and-show(eval|
+        "sieve10000"
+      , sieve (intsBetween (s (s (z())), mult (ten(), mult (ten(), mult (ten(), ten())))))
+      // , expected
+      )
+
+  external test-suite(s1, s2|)
+  external apply-test(s|tn, ti, to)
+  external apply-and-show(s|tn, ti)
+
+  external memo(s|)
+  external innermost(s|)
+  external equal(|t1, t2)

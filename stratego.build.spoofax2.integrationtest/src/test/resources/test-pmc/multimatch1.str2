@@ -1,0 +1,18 @@
+module multimatch1
+imports strategolib
+
+signature
+  sorts Color
+  constructors
+    Red   : Color
+    Blue  : Color
+    Green : Color
+
+strategies
+  color = match sequential
+            case | Red():   !"red"
+            case | Blue():  !"blue"
+            case | Green(): !"green"
+          end
+
+  main = <color> Green()

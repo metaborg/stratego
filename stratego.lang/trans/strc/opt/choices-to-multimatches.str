@@ -1,0 +1,290 @@
+module choices-to-multimatches
+
+imports
+  strc/front/desugar
+  strc/lib/stratlib
+  strc/strc/strc // log-timed
+
+  strc/opt/bound-unbound-vars
+  strc/opt/stratego-laws
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/utils
+
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+  libstratego-lib
+
+overlays
+  MM(c) = MultiMatch(Sequential(), c)
+  NoAnnoMatch(t) = Anno(t, Wld())
+
+strategies
+  choices-to-multimatches = log-timed(id
+//  ; log-timed(desugar|"  0. Desugaring", 1) // everything should be desugared by now
+  ; log-timed(mark-bound-unbound-vars|"  1. Marking (un)bound vars", 10)
+  ; log-timed(
+    downup(
+    // Down
+      try(choice-to-multimatch)
+    ; let m = extract-matches <+ has-matches
+      in Let(id, m) + m
+      end
+    < try(extract-righthandsides)
+    + id
+    // Up
+    , try(lift-defaults))
+    | "  2. Translating choices & lifting defaults", 10)
+  ; log-timed(strip-annos|"  3. Stripping annos", 10)
+  ; log-timed(simplify0; simplify|"  4. Simplifying", 10)
+  | "Optimisation: choices to multimatches", 1)
+
+strategies
+
+  /* VERIFIED
+    foo = match sequential
+            case x* | p when s1: s2
+            case ..
+          end
+       < id + match sequential
+            case y* | q when s3: s4
+            case ... 
+          end
+
+    foo' = match sequential
+           case x* | p when s1: s2
+           case .. 
+           case y* | q when s3: s4
+           case ... 
+         end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(MM(c1*), Id(), MM(c2*)) ->
+    MM([c1*, c2*])
+
+  /* VERIFIED
+    bar = match sequential
+            case x* | p when sg: sr
+            case y* | q when sg': sr'
+          end < s2 + s3
+
+    bar' =
+      let
+        s = s2
+      in
+        match sequential
+          case x* | p when sg: sr; s
+          case y* | q when sg': sr'; s
+          case    | _ when s3: id
+        end
+      end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(MM(c1*), s2, s3) ->
+    |[
+      let x_rhs = s2
+      in ~MM([c1'*, c2'*])
+      end
+    ]|
+  where
+    GuardedLChoice(get-constructor, get-constructor, get-constructor)
+//  ; debug(|"Shallow 2: ")
+//  where
+//    debug(|" Full: ")
+  with
+    x_rhs := <snewvar> "s_rhs"
+  ; c2'* := <Strat2MatchCases> s3
+  ; x'* := <mapconcat(?ScopedGuardedMatchCase(<id>, _, _, _))> c1*
+  where
+    // TODO Isn't this condition always satisfied, because of how scoping constructs are handled?
+    <isect> (x'*, <tvars> s2) => []
+  with
+    let
+      make-tvars-unique(|x*) =
+        if <isect; not(?[])> (x*, <tvars> s2)
+        then trename
+        end
+    in
+      // TODO Make sure that the behaviour of s_rhs is not changed by the scope of the matchcases
+      c1'* := <map({x*: ScopedGuardedMatchCase(?x*, id, id, <sequence-strategies> (<id>, Strat|[ x_rhs ]|))})> c1*
+    end
+
+  internal Strat2MatchCases = ?MM(<id>)
+  internal Strat2MatchCases:
+    s -> [ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s, Id())]
+    where <not(?MM(_))> s
+
+  /* VERIFIED
+    foo0 = s1 < s2 + s3
+  
+    foo0' = match sequential
+              case | _ when s1: s2
+              case | _ when s3: id
+            end
+  */
+  choice-to-multimatch:
+    GuardedLChoice(s1, s2, s3) ->
+    MM([
+      ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s1, s2)
+    , ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s3, Id())
+    ])
+
+strategies
+
+  /* VERIFIED
+    baz = match sequential
+            case ...
+            case without pattern, with match in guard
+            case ...
+          end
+
+    baz' =  match sequential
+              case ...
+              case with pattern, without match in guard
+              case ...
+            end
+  */
+  extract-matches = MM(list-some(extract-match))
+
+  has-matches =
+    MM(where(remove-all(?ScopedGuardedMatchCase(_, NoAnnoMatch(Wld()), _, _)); not(?[])))
+
+  /*
+    case   | _ when {y*: ?q; s1}: s2
+    ->
+    case y* | q when s1: s2
+  */
+  extract-match:
+    ScopedGuardedMatchCase(x*, NoAnnoMatch(Wld()), Scope(y*, Seq(Match(q), s1)), s2) ->
+    ScopedGuardedMatchCase(z*, q, s1, s2)
+  where
+    <isect> (x*, y*) => []
+  with
+    z* := <union> (x*, y*)
+
+  /*
+    case   | _ when {y*: ?q}: s2
+    ->
+    case y* | q when id: s2
+  */
+  extract-match:
+    ScopedGuardedMatchCase(x*, NoAnnoMatch(Wld()), Scope(y*, Match(q)), s2) ->
+    ScopedGuardedMatchCase(z*, q, Id(), s2)
+  where
+    <isect> (x*, y*) => []
+  with
+    z* := <union> (x*, y*)
+
+  /*
+    case   | _ when ?q; s1: s2
+    ->
+    case y* | q when s1: s2
+  */
+  extract-match:
+    ScopedGuardedMatchCase(x*, NoAnnoMatch(Wld()), Seq(Match(q), s1), s2) ->
+    ScopedGuardedMatchCase(x*, q, s1, s2)
+
+  /*
+    case   | _ when ?q: s2
+    ->
+    case y* | q when id: s2
+  */
+  extract-match:
+    ScopedGuardedMatchCase(x*, NoAnnoMatch(Wld()), Match(q), s2) ->
+    ScopedGuardedMatchCase(x*, q, Id(), s2)
+
+strategies
+  extract-righthandsides = MM(list-some(extract-rhs))
+
+  /*
+    case x* | p when s1: s2
+    ->
+    case x* | p when id: s1; s2
+    
+    Note: only if s1 always succeeds.
+  */
+  extract-rhs:
+    ScopedGuardedMatchCase(x*, p, s1, s2) ->
+    ScopedGuardedMatchCase(x*, p, Id(), s3)
+  where
+    <not(?Id()); always-succeeds(|[1, 2, 3, 4, 5])> s1
+  with
+    s3 := <sequence-strategies> (s1, s2)
+
+strategies
+  lift-defaults = MM(at-last([lift-default]; flatten-list))
+
+  // This is only valid for the very last case.
+  // TODO Verify validity.
+  /*
+   case xs | _ when match sequential
+                    case ys | q when s1: s2
+                    case zs | r when s3: s4
+                  end: s
+  ->
+   case xs | q when s1; s2: s
+   case ys | r when s3; s4: s
+  */
+  lift-default:
+    ScopedGuardedMatchCase(xs, NoAnnoMatch(Wld()), MM(c*), s) ->
+    <map(ScopedGuardedMatchCase(<conc> (xs, <id>), id, <sequence-strategies> (<id>, s), id))> c*
+
+  // This is only valid for the very last case.
+  // TODO Verify validity.
+  /*
+   case | _ when s: match sequential
+                       case xs | q when s1: s2
+                       case ys | r when s3: s4
+                     end
+  ->
+   case xs | q when s; s1: s2
+   case ys | r when s; s3: s4
+  */
+  lift-default:
+    ScopedGuardedMatchCase([], NoAnnoMatch(Wld()), s, MM(c*)) ->
+    <map(ScopedGuardedMatchCase(id, id, <sequence-strategies> (s, <id>), id))> c*
+
+strategies
+
+  /**
+   * Determines whether a strategy always succeeds (without side effects).
+   */
+  always-succeeds(|[_ | depth]) =
+    ?Id()
+  + ?Build(_) < Build(
+      ?Path(CurP())
+    + not(oncebu(fail
+        // No (potentially) unbound vars in build
+        + ?Var(_){"unbound"}
+        + ?Var(_){"(un)bound"}
+        // No list builds
+        + ?Op("Cons", _)
+        // No list builds where the tail is not a list (TODO Fix)
+//        + ?Op("Cons", <not(?Op("Nil", _) + ?Op("Cons", _))>)
+        // No exploded builds where the constructor is a Var
+        + ?Explode(_, _)
+      ))
+    )
+  + ?Match(_) < Match(?Wld() + ?Var(_){"unbound"})
+  + ?Seq(_, _) < Seq(always-succeeds(|depth), always-succeeds(|depth))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(always-succeeds(|depth), always-succeeds(|depth), id)
+                              + GuardedLChoice(always-fails(|depth), id, always-succeeds(|depth))
+                              + GuardedLChoice(id, always-succeeds(|depth), always-succeeds(|depth)))
+  + Scope(id, always-succeeds(|depth))
+
+  /**
+   * Determines whether a strategy always fails (without side effects).
+   */
+  always-fails(|[_ | depth]) =
+    ?Fail()
+  + ?Build(_)
+    < where(oncebu(
+      ?Var(_){"unbound"}
+      // TODO Add list build with non-list tail
+    ))
+  + ?Seq(_, _) < or(Seq(always-fails(|depth), id), Seq(id, always-fails(|depth)))
+  + ?GuardedLChoice(_, _, _) < (GuardedLChoice(id, always-fails(|depth), always-fails(|depth))
+                              + GuardedLChoice(always-succeeds(|depth), always-fails(|depth), id)
+                              + GuardedLChoice(always-fails(|depth), id, always-fails(|depth)))
+  + Scope(id, always-fails(|depth))
