@@ -6,15 +6,16 @@ plugins {
     id("org.metaborg.devenv.spoofax.gradle.langspec")
 }
 
-// Replace language dependencies with overridden/local ones.
-fun compositeBuild(name: String) = "$group:$name:$version"
-val spoofax2BaselineVersion: String by ext
-val spoofax2Version: String by ext
 spoofaxLanguageSpecification {
     addCompileDependenciesFromMetaborgYaml.set(false)
     addSourceDependenciesFromMetaborgYaml.set(false)
     // Ignore trans/stratego-box.tbl, as an input, as it is created by the build.
     spoofaxBuildApproximateAdditionalInputExcludePatterns.add("**/stratego-box.tbl")
+
+    // We add the dependency manually and don't change the repositories
+    // Eventually, this functionality should be removed from spoofax.gradle
+    addSpoofaxCoreDependency.set(false)
+    addSpoofaxRepository.set(false)
 }
 dependencies {
     compileLanguage(libs.spoofax2.esv.lang)     // Bootstrap using Spoofax 2 artifact
@@ -29,9 +30,3 @@ dependencies {
     compileOnly(libs.spoofax2.core)
 }
 
-metaborg {
-    // Do not create Java publication; this project is already published as a Spoofax 2 language.
-    javaCreatePublication = false
-    javaCreateSourcesJar = false
-    javaCreateJavadocJar = false
-}
