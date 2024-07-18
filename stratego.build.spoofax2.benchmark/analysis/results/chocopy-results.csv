@@ -1,9 +1,0 @@
-"Benchmark","Mode","Threads","Samples","Score","Score Error (99.9%)","Unit","Param: metaborgVersion","Param: optimisationLevel","Param: problemSize","Param: sharedConstructors","Param: switchImplementation"
-"benchmark.chocopy.compilation.CallMutual.compileChocoPy","ss",1,4,0.223329,0.496630,"s/op",2.6.0-SNAPSHOT,2,-1,on,
-"benchmark.chocopy.compilation.CallMutual.compileChocoPy","ss",1,4,0.232617,0.302206,"s/op",2.6.0-SNAPSHOT,4,-1,on,hash-switch
-"benchmark.chocopy.compilation.GoingUpMultipleFrames.compileChocoPy","ss",1,4,0.245006,0.559671,"s/op",2.6.0-SNAPSHOT,2,-1,on,
-"benchmark.chocopy.compilation.GoingUpMultipleFrames.compileChocoPy","ss",1,4,0.238228,0.306103,"s/op",2.6.0-SNAPSHOT,4,-1,on,hash-switch
-"benchmark.chocopy.execution.CallMutual.runChocoPy","ss",1,4,1.439380,3.375161,"s/op",2.6.0-SNAPSHOT,2,-1,on,
-"benchmark.chocopy.execution.CallMutual.runChocoPy","ss",1,4,1.221667,2.389313,"s/op",2.6.0-SNAPSHOT,4,-1,on,hash-switch
-"benchmark.chocopy.execution.GoingUpMultipleFrames.runChocoPy","ss",1,4,1.320488,1.493205,"s/op",2.6.0-SNAPSHOT,2,-1,on,
-"benchmark.chocopy.execution.GoingUpMultipleFrames.runChocoPy","ss",1,4,1.826693,3.731616,"s/op",2.6.0-SNAPSHOT,4,-1,on,hash-switch
