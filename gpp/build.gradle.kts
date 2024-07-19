@@ -27,6 +27,6 @@ dependencies {
     sourceLanguage(project(":org.metaborg.meta.lang.stratego"))
 
     compileOnly(project(":strategolib"))
-    compileOnly(libs.spoofax2.core)
+    compileOnly(libs.spoofax.core)
 }
 

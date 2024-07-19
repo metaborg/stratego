@@ -8,6 +8,7 @@ plugins {
 
 spoofaxLanguageSpecification {
     addCompileDependenciesFromMetaborgYaml.set(false)
+    addSourceDependenciesFromMetaborgYaml.set(false)
 
     // We add the dependency manually and don't change the repositories
     // Eventually, this functionality should be removed from spoofax.gradle
@@ -18,5 +19,5 @@ dependencies {
     compileLanguage(libs.spoofax2.esv.lang)     // Bootstrap using Spoofax 2 artifact
     compileLanguage(project(":stratego.lang"))
 
-    compileOnly(libs.spoofax2.core)
+    compileOnly(libs.spoofax.core)
 }

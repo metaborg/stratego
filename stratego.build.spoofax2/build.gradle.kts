@@ -11,7 +11,7 @@ dependencies {
     api(project(":stratego.build"))
 
     api(libs.metaborg.core)
-    api(libs.spoofax2.core)
+    api(libs.spoofax.core)
 
     api(libs.metaborg.pie.taskdefs.guice)
 

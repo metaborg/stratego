@@ -14,7 +14,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.metaborg.pie.runtime)
-    testImplementation(libs.strategoxt.jar)
+    testImplementation(libs.spoofax2.strategoxt.jar)
 }
 
 // Copy test resources into classes directory, to make them accessible as classloader resources at runtime.
@@ -41,7 +41,7 @@ dependencies {
     strategoxtjarInjection(platform(libs.metaborg.platform))
     strategoLangInjection(platform(libs.metaborg.platform))
     oldStrategoLangInjection(platform(libs.metaborg.platform))
-    strategoxtjarInjection(libs.strategoxt.jar)
+    strategoxtjarInjection(libs.spoofax2.strategoxt.jar)
     strategoLangInjection(project(":stratego.lang"))
     oldStrategoLangInjection(project(":org.metaborg.meta.lang.stratego"))
 }
