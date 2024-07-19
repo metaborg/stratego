@@ -3,6 +3,7 @@ plugins {
     `maven-publish`
     id("org.metaborg.convention.java")
     id("org.metaborg.convention.maven-publish")
+    id("org.metaborg.convention.junit")
     id("org.metaborg.devenv.spoofax.gradle.base")
 }
 
@@ -12,7 +13,6 @@ dependencies {
     api(libs.stratego.build.spoofax2)
     implementation(libs.jakarta.annotation)
 
-    testImplementation(libs.junit)
     testImplementation(libs.metaborg.pie.runtime)
     testImplementation(libs.spoofax2.strategoxt.jar)
 }

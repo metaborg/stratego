@@ -3,6 +3,7 @@ plugins {
     `maven-publish`
     id("org.metaborg.convention.java")
     id("org.metaborg.convention.maven-publish")
+    id("org.metaborg.convention.junit")
 }
 
 val pieVersion = "0.19.7" // HACK: override PIE version to make it binary compatible with this version.
@@ -23,5 +24,4 @@ dependencies {
     implementation(libs.jakarta.annotation)
     implementation(libs.jakarta.inject)
     implementation(libs.jakarta.annotation)
-    testImplementation(libs.junit)
 }
