@@ -1,0 +1,54 @@
+specification
+
+signature
+constructors
+
+DR_UNDEFINE : ATerm( ) -> ATerm( )
+DR_DUMMY : ATerm( )
+
+strategies
+
+main_0_0( | ) =
+  id
+
+mapx_1_0(s13 : ATerm( ) -> ATerm( ) | ) =
+  let
+    x4( | ) =
+      ?Nil( ){^_} < id + {list_cong_head_m01, list_cong_tail_m01, list_cong_head_b01, list_cong_tail_b01, list_cong_annos01: ?Cons(list_cong_head_m01, list_cong_tail_m01){^list_cong_annos01}; !list_cong_head_m01; s13( | ); ?list_cong_head_b01; !list_cong_tail_m01; x4( | ); ?list_cong_tail_b01; !Cons(list_cong_head_b01, list_cong_tail_b01){^list_cong_annos01} }
+  in
+    x4( | )
+  end
+
+map1x_1_0(s17 : ATerm( ) -> ATerm( ) | ) =
+  {list_cong_head_m11, list_cong_tail_m11, list_cong_head_b11, list_cong_tail_b11, list_cong_annos11, list_cong_head_m21, list_cong_tail_m21, list_cong_head_b21, list_cong_tail_b21, list_cong_annos21: ?Cons(list_cong_head_m11, list_cong_tail_m11){^list_cong_annos11}; !list_cong_head_m11; s17( | ); ?list_cong_head_b11; !list_cong_tail_m11; ?list_cong_tail_b11; !list_cong_head_b11; ?list_cong_head_m21; !list_cong_tail_b11; ?list_cong_tail_m21; !list_cong_annos11{^Nil( )}; ?list_cong_annos21{^_}; !Cons(list_cong_head_b11, list_cong_tail_b11){^list_cong_annos11}; !list_cong_head_m21; ?list_cong_head_b21; !list_cong_tail_m21; tryx_1_0(map1x_1_0(s17( | )| )| ); ?list_cong_tail_b21; !Cons(list_cong_head_b21, list_cong_tail_b21){^list_cong_annos21} } < id + {list_cong_head_m30, list_cong_tail_m30, list_cong_head_b30, list_cong_tail_b30, list_cong_annos30: ?Cons(list_cong_head_m30, list_cong_tail_m30){^list_cong_annos30}; !list_cong_head_m30; ?list_cong_head_b30; !list_cong_tail_m30; map1x_1_0(s17( | )| ); ?list_cong_tail_b30; !Cons(list_cong_head_b30, list_cong_tail_b30){^list_cong_annos30} }
+
+tryx_1_0(s19 : ATerm( ) -> ATerm( ) | ) =
+  s19( | ) < id + id
+
+unionx_1_0(eq0 : ATerm( ) -> ATerm( ) | ) =
+  {l20, l10: let
+               x5( | ) =
+                 ?Nil( ){^_}; !l20 < id + HdMemberx_p__2_0(eq0( | ), !l20| ); x5( | ) < id + {list_cong_head_m40, list_cong_tail_m40, list_cong_head_b40, list_cong_tail_b40, list_cong_annos40: ?Cons(list_cong_head_m40, list_cong_tail_m40){^list_cong_annos40}; !list_cong_head_m40; ?list_cong_head_b40; !list_cong_tail_m40; x5( | ); ?list_cong_tail_b40; !Cons(list_cong_head_b40, list_cong_tail_b40){^list_cong_annos40} }
+             in
+               ?(l10, l20){^_}; !l10; x5( | )
+             end }
+
+HdMemberx_p__2_0(eq1 : ATerm( ) -> ATerm( ), mklst0 : ATerm( ) -> ATerm( ) | ) =
+  {xs0, x6, where12: ?Cons(x6, xs0){^_}; ?where12; mklst0( | ); fetchx_1_0({y3: ?y3; !(x6, y3){^Nil( )}; eq1( | ) }| ); !where12; !xs0 }
+
+fetchx_1_0(s23 : ATerm( ) -> ATerm( ) | ) =
+  let
+    x7( | ) =
+      {list_cong_head_m51, list_cong_tail_m51, list_cong_head_b51, list_cong_tail_b51, list_cong_annos51: ?Cons(list_cong_head_m51, list_cong_tail_m51){^list_cong_annos51}; !list_cong_head_m51; s23( | ); ?list_cong_head_b51; !list_cong_tail_m51; ?list_cong_tail_b51; !Cons(list_cong_head_b51, list_cong_tail_b51){^list_cong_annos51} } < id + {list_cong_head_m61, list_cong_tail_m61, list_cong_head_b61, list_cong_tail_b61, list_cong_annos61: ?Cons(list_cong_head_m61, list_cong_tail_m61){^list_cong_annos61}; !list_cong_head_m61; ?list_cong_head_b61; !list_cong_tail_m61; x7( | ); ?list_cong_tail_b61; !Cons(list_cong_head_b61, list_cong_tail_b61){^list_cong_annos61} }
+  in
+    x7( | )
+  end
+
+Anno__Cong_____2_0(anno_cong_str_arg14 : ATerm( ) -> ATerm( ), anno_cong_str_arg24 : ATerm( ) -> ATerm( ) | ) =
+  {anno_cong_term_m4, anno_cong_anno_m4, anno_cong_term_b4, anno_cong_anno_b4: ?anno_cong_term_m4{^anno_cong_anno_m4}; !anno_cong_term_m4; anno_cong_str_arg14( | ); ?anno_cong_term_b4; !anno_cong_anno_m4; anno_cong_str_arg24( | ); ?anno_cong_anno_b4; !anno_cong_term_b4{^anno_cong_anno_b4} }
+
+DR__UNDEFINE_1_0(cong_arg_120 : ATerm( ) -> ATerm( ) | ) =
+  {trans_cong93, trans_cong92, trans_cong94: ?DR_UNDEFINE(trans_cong92){^trans_cong93}; !trans_cong92; cong_arg_120( | ); ?trans_cong94; !DR_UNDEFINE(trans_cong94){^trans_cong93} }
+
+DR__DUMMY_0_0( | ) =
+  ?DR_DUMMY( ){^_}

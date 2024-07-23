@@ -62,6 +62,7 @@ strategies
     <+ ev-sdef 
     <+ ev-scope 
     <+ ev-let 
+    <+ ev-scopedmatchcase
     <+ try(CallIsClosure); all(ev); try(args-should-be-closures)
   //); debug(!"out: ")
 
@@ -93,6 +94,17 @@ strategies
 	   ; <ev> s1 => s2
 	   ; <map(try(Escapes))> x1* => x2*
            |}
+
+  ev-scopedmatchcase :
+    ScopedGuardedMatchCase(x1*, t1, s1, s2) -> ScopedGuardedMatchCase(x2*, t2, s3, s4)
+    where CurrentFrame => f
+  ; {| FrameOf, Escapes
+           : <map(declare-local-var(|f))> x1*
+     ; <ev> t1 => t2
+     ; <ev> s1 => s3
+     ; <ev> s2 => s4
+     ; <map(try(Escapes))> x1* => x2*
+    |}
 
   declare-arg(|f) =
     ?Typedid|[ x : tp ]|

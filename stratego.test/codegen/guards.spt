@@ -1,0 +1,135 @@
+module codegen/guards
+
+language StrategoLang
+
+test Drop unreachable guarded arms 1 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
+  match sequential
+    case | Nil( ){^_}: !0{^Nil( )}
+    case | Nil( ){^_} where all(s30( | )): !2{^Nil( )}
+    case | Nil( ){^_} where id: !3{^Nil( )}
+    case | Nil( ){^_} where fail: !3{^Nil( )}
+    case | Nil( ){^_} where some(s30( | )): !3{^Nil( )}
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
+  switch current.type {
+    alt LIST:
+      switch current {
+        alt (Nil, 0):
+          !0{^Nil( )}
+      }
+  }
+]]
+
+test Drop unreachable guarded arms 2 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
+  match sequential
+    case | Nil( ){^_} where all(s30( | )): !2{^Nil( )}
+    case | Nil( ){^_} where id: !3{^Nil( )}
+    case | Nil( ){^_} where fail: !3{^Nil( )}
+    case | Nil( ){^_} where some(s30( | )): !3{^Nil( )}
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s30 : ATerm( ) -> ATerm( ) | ) =
+  switch current.type {
+    alt LIST:
+      switch current {
+        alt (Nil, 0)
+          where all(s30( | )):
+            !2{^Nil( )}
+          where id:
+            !3{^Nil( )}
+      }
+  }
+]]
+
+test Drop unreachable guarded default arms 1 [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s31 : ATerm( ) -> ATerm( ) | ) =
+  match sequential
+    case | Nil( ){^_}: !0{^Nil( )}
+    case | _ where all(s31( | )): !2{^Nil( )}
+    case | _ where id: !3{^Nil( )}
+    case | _ where fail: !3{^Nil( )}
+    case | _ where some(s31( | )): !3{^Nil( )}
+  end
+]] transform "Test -> MultiMatch to DFA" to [[
+specification
+
+signature
+constructors
+
+Nil : List(a)
+Cons : a * List(a) -> List(a)
+
+strategies
+
+length_1_0(s31 : ATerm( ) -> ATerm( ) | ) =
+  switch current.type {
+    alt LIST:
+      switch current {
+        alt (Nil, 0):
+          !0{^Nil( )}
+        default
+          where all(s31( | )):
+            !2{^Nil( )}
+          where id:
+            !3{^Nil( )}
+      }
+    default
+      where all(s31( | )):
+        !2{^Nil( )}
+      where id:
+        !3{^Nil( )}
+  }
+]]

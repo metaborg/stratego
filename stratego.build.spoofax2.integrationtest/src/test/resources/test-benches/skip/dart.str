@@ -1,0 +1,73 @@
+module dart
+
+imports libstrategolib
+
+signature
+
+sorts
+   Nat Set
+
+constructors
+   d0 : Nat 
+   s : Nat -> Nat 
+   empty : Set 
+   singleton : Nat -> Set 
+   union : Set * Set -> Set 
+   plus : Nat * Nat -> Nat 
+   times : Nat * Nat -> Nat 
+   five : Nat 
+   ten : Nat 
+   fifteen : Nat 
+   twentyfive : Nat 
+   fifty : Nat 
+   u : Set * Set -> Set 
+   flat : Set * Set -> Set 
+   add : Set * Set -> Set 
+   mult : Set * Set -> Set 
+   singles : Set 
+   doubles : Set 
+   triples : Set 
+   allops : Set 
+   finish : Set 
+
+rules
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: times (d0(), N) -> d0()
+   REC_E: times (s (N), M) -> plus (M, times (N, M))
+   REC_E: u (empty(), S0) -> S0
+   REC_E: u (S0, empty()) -> S0
+   REC_E: u (S0, S1) -> S0 where equal-after-eval (|S0, S1)
+   REC_E: u (S0, S1) -> flat (S0, flat (S1, empty())) where not (equal-after-eval (|S0, S1))
+   REC_E: flat (empty(), S0) -> S0
+   REC_E: flat (singleton (I), S0) -> union (singleton (I), S0)
+   REC_E: flat (union (S1, S2), S0) -> flat (S1, flat (S2, S0))
+   REC_E: add (empty(), S0) -> S0
+   REC_E: add (S0, empty()) -> S0
+   REC_E: add (singleton (I), singleton (J)) -> singleton (plus (I, J))
+   REC_E: add (singleton (I), union (singleton (J), S0)) -> add (singleton (plus (I, J)), S0)
+   REC_E: add (union (singleton (I), S1), S2) -> u (add (singleton (I), S2), add (S1, S2))
+   REC_E: mult (empty(), S0) -> S0
+   REC_E: mult (S0, empty()) -> S0
+   REC_E: mult (singleton (I), singleton (J)) -> singleton (times (I, J))
+   REC_E: mult (union (singleton (I), S1), S2) -> u (mult (singleton (I), S2), mult (S1, S2))
+   REC_E: five() -> s (s (s (s (s (d0())))))
+   REC_E: ten() -> s (s (s (s (s (five())))))
+   REC_E: fifteen() -> s (s (s (s (s (ten())))))
+   REC_E: twentyfive() -> s (s (s (s (s (s (s (s (s (s (fifteen()))))))))))
+   REC_E: fifty() -> plus (twentyfive(), twentyfive())
+   REC_E: singles() -> add (singleton (s (d0())), add (singleton (s (s (d0()))), add (singleton (s (s (s (d0())))),add (singleton (s (s (s (s (d0()))))), add (singleton (five()),add (singleton (s (five())), add (singleton (s (s (five()))),add (singleton (s (s (s (five())))), add (singleton (s (s (s (s (five()))))), add (singleton (ten()), add (singleton (s (ten())), add (singleton (s (s (ten()))),add (singleton (s (s (s (ten())))), add (singleton (s (s (s (s (ten()))))), add (singleton (fifteen()),add (singleton (s (fifteen())), add (singleton (s (s (fifteen()))), add (singleton (s (s (s (fifteen())))), add (singleton (s (s (s (s (fifteen()))))), singleton (plus (five(), fifteen())))))))))))))))))))))
+   REC_E: doubles() -> mult (singles(), singleton (s (s (d0()))))
+   REC_E: triples() -> mult (singles(), singleton (s (s (s (d0())))))
+   REC_E: allops() -> u (u (u (u (u (singles(), doubles()), triples()), singleton (twentyfive())), singleton (fifty())), singleton (d0()))
+   REC_E: finish() -> add (u (doubles(), singleton (fifty())), add (allops(), allops()))
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+
+  main =
+    apply-and-show(eval|
+      "dart"
+    , finish()
+    )

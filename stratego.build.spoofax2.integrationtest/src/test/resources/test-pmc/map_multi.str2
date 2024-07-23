@@ -1,0 +1,27 @@
+module map_multi
+imports strategolib
+
+strategies
+  main = id
+
+  mapx(s) =
+    rec x([] + [s | x])
+
+  map1x(s) =
+    [s | id]; [id | tryx(map1x(s))] <+ [id | map1x(s)]
+
+  tryx(s) =
+    s <+ id
+
+  unionx(eq) :
+    (l1, l2) -> <rec x(
+                   ([]; !l2)
+                <+ (HdMemberx'(eq, !l2); x)
+                <+ [id | x]
+                )> l1
+  HdMemberx'(eq, mklst) :
+     [x | xs] -> xs
+     where mklst; fetchx(\y -> <eq> (x, y)\)
+
+  fetchx(s) =
+    rec x([s | id] <+ [id | x])

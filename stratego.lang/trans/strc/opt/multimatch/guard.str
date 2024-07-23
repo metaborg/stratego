@@ -1,0 +1,37 @@
+module multimatch/guard
+
+imports
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/utils
+
+  signatures/core/strategies-sig
+  signatures/sugar/strategies-sig
+  signatures/core/terms-sig
+
+  libstratego-lib
+
+strategies
+  aliases-to-guards:
+    Matrix(p*, row*) ->
+    Matrix(p*, row'*)
+  with
+    <map(alias-to-guard(|p*))> row* => row'*
+
+  internal alias-to-guard(|p*):
+    Row(t*, sg, sa) ->
+    Row(t'*, sg', sa)
+  with
+    <thread-map(repeat(AliasToGuard, \ ((p, t), s*) -> (t, s*) \))> (<zip> (p*, t*), []) => (t'*, s*)
+  ; s' := <sequence-list> s*
+  ; sg' := <sequence-strategies> (s', sg)
+
+  internal AliasToGuard:
+    ((p, As(t1, t2)), s*) ->
+    ((p, t2), [s | s*])
+  with
+    t3 := Path(p)
+  ; s := Where(|[ !t3; ?t1 ]|)
+
+  internal sequence-list =
+    ?[<id>]
+  + foldr(!Id(), sequence-strategies)

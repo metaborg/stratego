@@ -1,0 +1,31 @@
+module lists
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+signature
+  sorts
+    Bar
+    List(*)
+    Tuple(*, *)
+  constructors
+    Foo : Bar
+
+strategies
+  comp = match sequential
+           case | [1 | _]: !1
+           case | [_ | [2, 3]]: !2
+           case | [_, 1 | _]: !3
+         end
+
+  length :: List(a) -> int
+  length =
+    match sequential
+      case       | []: !0
+      case x, xs | [x | xs]: <addi> (1, <length> xs)
+    end
+  
+  addi(|) :: Tuple(int, int) -> int

@@ -41,6 +41,8 @@ strategies
     <+ mark-choice(mark-buv)
     <+ mark-lchoice(mark-buv)
     <+ mark-guardedlchoice(mark-buv)
+    <+ mark-multimatch
+    <+ mark-dfa
     <+ all(mark-buv)
   //); debug(!"mark-buv out: "); dr-print-rule-set(|"MarkVar")
 
@@ -85,6 +87,48 @@ strategies
 
   mark-scope =
     Scope(?xs, {| MarkVar : where(!xs; map(DeclareUnbound)); mark-buv|})
+
+  mark-matchcase: ScopedGuardedMatchCase(xs, p, s1, s2) -> ScopedGuardedMatchCase(xs, p', s1', s2')
+  where
+    {| MarkVar :
+      <map(DeclareUnbound)> xs
+    ; p' := <mark-match-vars> p
+    ; s1' := <mark-buv> s1
+    ; s2' := <mark-buv> s2
+    |}
+
+  mark-multimatch =
+    MultiMatch(id, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-matchcase)> c | acc] \))
+
+  // DFA IR
+  mark-dfa =
+    SwitchT(mark-buv, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-altt)> c | acc] \), fork-MarkVar(id, mark-default))
+  mark-dfa =
+    GuardedLeafs(id); fatal-err(|"No guarded leaves should be present")
+
+  mark-switchv =
+    SwitchV(mark-buv, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-altv)> c | acc] \), fork-MarkVar(id, mark-default))
+
+  mark-altt =
+    AltT(id, mark-switchv)
+
+  mark-altv =
+    AltV(id, mark-buv)
+  mark-altv =
+    GuardedAltV(id, foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-guard)> c | acc] \))
+
+  mark-default =
+    Default(mark-buv)
+  mark-default =
+    GuardedDefault(foldr(![], \ (c, acc) -> [<fork-MarkVar(id, mark-guard)> c | acc] \))
+
+  mark-guard:
+    Guard(s1, s2) -> Guard(s1', s2')
+  where
+    {| MarkVar :
+      s1' := <mark-buv> s1
+    ; s2' := <mark-buv> s2
+    |}
 
   mark-match =
     Match(mark-match-vars)

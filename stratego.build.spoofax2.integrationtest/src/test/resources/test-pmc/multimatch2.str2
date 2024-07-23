@@ -1,0 +1,24 @@
+module multimatch2
+imports strategolib
+
+strategies
+  fail1 =
+    match sequential
+      case | _ when fail: id
+      case | _: id
+    end
+
+  fail2: _ -> <fail>
+  fail2: _ -> <id>
+
+  main =
+    test-suite(!"MultiMatch equivalence",
+      apply-test(fail1
+      | "case doesn't fail"
+      , ()
+      );
+      apply-test(fail2
+      | "rule doesn't fail"
+      , ()
+      )
+    )

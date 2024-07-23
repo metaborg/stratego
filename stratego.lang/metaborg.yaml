@@ -1,8 +1,8 @@
 ---
 id: org.metaborg:stratego.lang:${metaborgVersion}
 name: StrategoLang
-metaborgVersion: 2.5.20
-metaborgBaselineVersion: 2.5.18
+metaborgVersion: 2.6.0-SNAPSHOT
+metaborgBaselineVersion: 2.5.20
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgBaselineVersion}

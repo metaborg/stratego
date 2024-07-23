@@ -86,6 +86,12 @@ rules
     , fail // undocumented
     )
   
+  + ArgOption("--pmc:switchv", where(<set-config> ("--pmc:switchv", <?"elseif" + ?"nested-switch" + ?"hash-switch" <+ fatal-err(|"Unknown value for '--pmc:switchv': ")>)),
+        !"--pmc:switchv x    Use method x ('elseif' for nested ifs, 'hash-switch' for a switch on constructor hash codes or 'nested-switch' for nested name/arity switches) for pattern matching DFA.")
+
+  + ArgOption("--pmc:switchv-order", where(<set-config> ("--pmc:switchv-order", <?"arity-name" + ?"name-arity" <+ fatal-err(|"Unknown value for '--pmc:switchv-order': ")>)),
+        !"--pmc:switchv-order x    Determine order of nested name/arity swithes in pattern matching DFAs (only relevant when '--pmc:switchv switch' is used).")
+
   // For compatibility, allow a number of built-in library names
   translate-default-library =
     switch id

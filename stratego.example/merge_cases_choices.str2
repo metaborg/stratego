@@ -1,0 +1,14 @@
+module merge_cases_choices
+
+
+signature
+  constructors
+    Nil : List(a)
+    Cons : a * List(a) -> List(a)
+
+strategies
+  uncar =
+    []; !0 < id + match sequential
+                    case a | [a | _]: !a
+                    case | _: ?[_ | [_ | []]]; !2 < id + ?[_ | [_ | [_ | []]]]; !3
+                  end

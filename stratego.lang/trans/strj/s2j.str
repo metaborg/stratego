@@ -10,11 +10,12 @@ module strj/s2j
 
 imports
   strj/shared-constructors
-  
+
 //  libstrc
   libstratego-xtc
   libstratego-lib
   libjava-front
+  libstratego-aterm
 
   strj/java-postprocess
   strj/java-optimize
@@ -27,15 +28,19 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/internal-sig
   signatures/gradual-types/strategies-sig
+  signatures/core/strategies-sig
+
+  strc/opt/multimatch/multimatch2dfa
+  strc/opt/multimatch/utils
 
 signature
-  constructors 
+  constructors
     Next  : Term
     Match : Term * Exp -> Exp
     Offset: Int -> Term
     Frames: List(Term) -> Term
     Escape: Stm -> Strategy
-    
+
     // stategoxt-annos extension:
     Override       : Strategy
     ProceedNoArgs  : Strategy
@@ -48,7 +53,7 @@ overlays
   // The number 5 was chosen mostly to support Aster-generated strategies.
   MAX_STATIC_TARGS = 5
   MAX_STATIC_SARGS = 5
-    
+
 strategies
 
   main-s2j =
@@ -57,10 +62,10 @@ strategies
     ,
       s2j
     )
- 
+
 rules
-    
-  s2j = 
+
+  s2j =
       with(
         s2j-init-options
       ; record-main-classname
@@ -122,20 +127,20 @@ rules
       ConstantContainerClass := app-name
       ApplicationName        := app-name
     )
-  
+
   jify =
     escape(Jify)
-  
+
   Jify(x) =
     \['_'  | cs] -> ['_' | <x> cs]\
   <+
     Cify(x)
-  
+
   java-compile-spec :
-    Specification([Signature([Constructors(ops)]), Strategies(defs)]) -> 
-    |[ 
+    Specification([Signature([Constructors(ops)]), Strategies(defs)]) ->
+    |[
      ~package-dec?: pkgname
-     
+
      ~import-dec*:imports
 
      import org.strategoxt.lang.*;
@@ -146,7 +151,7 @@ rules
      import java.util.ArrayList;
      import java.util.Arrays;
      import java.lang.ref.WeakReference;
-         
+
      @SuppressWarnings("all")
      public class x_name {
 
@@ -154,10 +159,10 @@ rules
        protected static ITermFactory constantFactory;
        private static WeakReference<Context> initedContext;
        private static boolean isIniting;
-  
+
        ~*cnst-decls
        ~*cnstr-decls
-       
+
        public static Context init(Context context) {
          synchronized (x_name.class) {
            if (isIniting) return null;
@@ -181,33 +186,33 @@ rules
            return context;
          }
        }
-       
+
        public static Context init() {
          return init(new Context());
        }
-  
+
        ~*main
-       
+
        ~*<java-split-method> |[
          public static void initConstructors(ITermFactory termFactory) {
            ~*cnstr-inits
          }
        ]|
-       
+
        ~*<java-split-method> |[
          public static void initConstants(ITermFactory termFactory) {
            ~*cnst-inits
          }
        ]|
-  
+
        ~*constant-defs
        ~*function-defs
        ~*lifted-defs
-  
+
        ~*register
      }
   ]|
-  with 
+  with
       <list-loop(try(JavaTranslate))> ops
     ; <list-loop(try(JavaTranslate))> defs
     ; imports       := <java-imports>
@@ -235,12 +240,12 @@ rules
   ; def-inits     := <bagof-DefInit>
   ; cnst-decls    := <bagof-ConstDecl>
   ; cnst-inits    := <bagof-ConstInit; concat; reverse>
-  
+
   java-compile-spec-single :
-    Specification([Signature([Constructors([])]), Strategies(defs)]) -> 
-    |[ 
+    Specification([Signature([Constructors([])]), Strategies(defs)]) ->
+    |[
      ~package-dec?: pkgname
-     
+
      ~import-dec*:imports
 
      import org.strategoxt.lang.*;
@@ -251,14 +256,14 @@ rules
      import java.util.ArrayList;
      import java.util.Arrays;
      import java.lang.ref.WeakReference;
-         
+
      @SuppressWarnings("all")
      public class x_name {
        ~*function-defs
        ~*lifted-defs
      }
   ]|
-  with 
+  with
       <list-loop(try(JavaTranslate))> defs
     ; imports       := <java-imports>
     ; pkgname       := <!package-dec? |[ package ~x:<get-config> "-p"; ]| <+ !None()>
@@ -275,12 +280,12 @@ rules
   ; function-defs := <map(translate-outer-definition-top)> defs
   ; add-default-constructors
   ; lifted-defs   := <bagof-LiftedDef>
-  
+
   java-compile-spec-boilerplate :
-    Specification([Signature([Constructors(ops)]), Strategies(defs)]) -> 
-    |[ 
+    Specification([Signature([Constructors(ops)]), Strategies(defs)]) ->
+    |[
      ~package-dec?: pkgname
-     
+
      ~import-dec*:imports
 
      import org.strategoxt.lang.*;
@@ -291,7 +296,7 @@ rules
      import java.util.ArrayList;
      import java.util.Arrays;
      import java.lang.ref.WeakReference;
-         
+
      @SuppressWarnings("all")
      public class x_name {
 
@@ -299,7 +304,7 @@ rules
        protected static ITermFactory constantFactory;
        private static WeakReference<Context> initedContext;
        private static boolean isIniting;
-       
+
        public static Context init(Context context) {
          synchronized (x_name.class) {
            initTypeInfo(context);
@@ -324,34 +329,34 @@ rules
            return context;
          }
        }
-       
+
        public static Context init() {
          return init(new Context());
        }
-  
+
        ~*main
-       
+
        ~*<java-split-method> |[
          public static void initConstructors(ITermFactory termFactory) {
            // ~*cnstr-inits
          }
        ]|
-       
+
        ~*<java-split-method> |[
          public static void initConstants(ITermFactory termFactory) {
            // ~*cnst-inits
          }
        ]|
-       
+
        ~*<java-split-method> |[
          public static void initTypeInfo(Context compiledContext) {
            bstm3*
            compiledContext.typeInfo.finishRegistration();
          }
        ]|
-  
+
        ~*constant-defs
-  
+
        ~*register
      }
   ]|
@@ -377,24 +382,24 @@ rules
     )
     ; constant-defs := <map(translate-constant-definition)> <get-config <+ ![]> "-D"
     ; def-inits := <filter(outer-definition-DefInit)> defs
-  
+
   java-imports =
     <get-config> "-la"
   ; map(java-import)
   <+
     ![]
-  
+
   java-init-imports =
     <get-config> "-la"
   ; map(java-init-import)
   <+
     ![]
-  
+
   java-import :
     x -> TypeImportOnDemandDec(TypeName(Id(x')))
     with
       x' := <jify> x
-  
+
   java-init-import :
     x -> |[ x'.Main.init(context); ]|
     with
@@ -428,7 +433,7 @@ rules
            System.err.println("~x_name" + (TRACES_ENABLED ? ": rewriting failed, trace:" : ": rewriting failed"));
            context.printStackTrace();
            context.setStandAlone(false);
-           System.exit(1); 
+           System.exit(1);
          } else {
            System.out.println(result);
            context.setStandAlone(false);
@@ -443,11 +448,11 @@ rules
          System.exit(exit.getValue());
        }
      }
-     
+
      public static IStrategoTerm mainNoExit(String... args) throws StrategoExit {
        return mainNoExit(new Context(), args);
      }
-     
+
      public static IStrategoTerm mainNoExit(Context context, String... args) throws StrategoExit {
        try {
          init(context);
@@ -456,7 +461,7 @@ rules
          context.getIOAgent().closeAllFiles();
        }
      }
-     
+
      public static Strategy getMainStrategy() { // used by SSL_EXT_java_call
        return x_main.instance;
      }
@@ -467,16 +472,16 @@ rules
       x_name := <MainClassName>
     ; main   := <get-config <+ !"main"> "-m"
     ; x_main := <conc-strings> (<cify; jify; dollars-for-capitals> main, "_0_0")
-  
+
   // TODO: do interop strategy additions in a fully on-demand fashion?
   //       (need to adapt VarScope class to do so)
-  java-interop-registerers : 
+  java-interop-registerers :
     (defs, sigs) ->
     class-body-dec* |[
       public static void registerInterop(org.spoofax.interpreter.core.IContext context, Context compiledContext) {
         new InteropRegisterer().registerLazy(context, compiledContext, InteropRegisterer.class.getClassLoader());
       }
-      
+
       // InteropRegisterer is used for dynamic loading and gets lifted to a separate class
       @SuppressWarnings("unused")
       public static class InteropRegisterer extends org.strategoxt.lang.InteropRegisterer {
@@ -484,12 +489,12 @@ rules
         public void register(org.spoofax.interpreter.core.IContext context, Context compiledContext) {
           register(context, compiledContext, context.getVarScope());
         }
-        
+
         @Override
         public void registerLazy(org.spoofax.interpreter.core.IContext context, Context compiledContext, ClassLoader classLoader) {
           registerLazy(context, compiledContext, classLoader, context.getVarScope());
         }
-        
+
         ~*<java-split-method>  |[
           private void register(org.spoofax.interpreter.core.IContext context, Context compiledContext, org.spoofax.interpreter.core.VarScope varScope) {
             compiledContext.registerComponent("~x_name");
@@ -497,7 +502,7 @@ rules
             bstm1*
           }
         ]|
-        
+
         ~*<java-split-method>  |[
           private void registerLazy(org.spoofax.interpreter.core.IContext context, Context compiledContext, ClassLoader classLoader, org.spoofax.interpreter.core.VarScope varScope) {
             compiledContext.registerComponent("~x_name");
@@ -543,7 +548,7 @@ rules
     e_from := <translate-ConstType> from
   ; e_to := <translate-ConstType> to
 
-  // TODO: write java-register-signature for other OpDeclInj which are injections from TupleType to a Sort? 
+  // TODO: write java-register-signature for other OpDeclInj which are injections from TupleType to a Sort?
 
   java-reg-optype =
     translate-ConstType; !(<id>, [])
@@ -565,7 +570,7 @@ rules
       name'  := <dollars-for-capitals> name
     ; def    := SDefT(name', [], [], Build(value))
     ; def'   := <translate-outer-definition> def
-  
+
   translate-outer-definition-top =
     if IsIncrementalCompilation then
       {| ConstDecl, ConstInit, java-Cache, ConstantContainerClass:
@@ -582,10 +587,10 @@ rules
     else
       translate-outer-definition
     end
-  
+
   add-local-constant-decls:
     Semicolon() -> Semicolon()
-  
+
   add-local-constant-decls:
     type-dec |[
       mod* class x extends y {
@@ -613,7 +618,7 @@ rules
   ; cnst-inits  := <bagof-ConstInit; concat; reverse>
   ; cnst-inits' := <alltd(add-constant-factory-container(|x_main))> cnst-inits
   ; members'    := <oncetd(add-local-constant-inits)> members
-    
+
   add-local-constant-inits:
     |[ mod* IStrategoTerm x_name(param*) {
          bstm*
@@ -624,25 +629,25 @@ rules
            init();
          bstm*
        }
-    ]| 
-  
+    ]|
+
   add-constant-factory-container(|x_main):
     AmbName(Id("termFactory")) -> expr |[ x_main.constantFactory ]|
-  
+
   translate-outer-definition =
      translate-outer-definition-plain
   <+ translate-outer-definition-override
   <+ translate-outer-definition-extend
   <+ translate-outer-definition-internal
   <+ translate-outer-definition-conflict
-  
+
   translate-outer-definition-plain :
-    SDefT(x, s*, t*, s){a*} -> 
+    SDefT(x, s*, t*, s){a*} ->
     type-dec |[
        @SuppressWarnings("all")
        public static class x extends Strategy {
          public static x instance = new x();
-         
+
          ~body
          ~invokedynamic*
        }
@@ -708,7 +713,7 @@ rules
        @SuppressWarnings("all")
        private static final class x extends Strategy {
          public static final x instance = new x();
-         
+
          ~body
          ~invokedynamic*
        }
@@ -740,7 +745,7 @@ rules
          ~instance-field*
          ~lifted-tfield*
          ~lifted-sfield*
-         
+
          ~body
          ~invokedynamic*
        }
@@ -764,7 +769,7 @@ rules
       ; body           := <java-eliminate-stacktrace> <translate-definition-body>
       ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
       |}
-  
+
   maybe-make-invoke-dynamic :
     (s*, t*) -> invokedynamic*
     with
@@ -773,7 +778,7 @@ rules
       else
         invokedynamic* := []
       end
-    
+
   make-invoke-dynamic :
     (s*, t*) ->
     |[ @Override
@@ -781,7 +786,7 @@ rules
                                           Strategy[] sargs, IStrategoTerm[] targs) {
          if (sargs == null || targs == null || sargs.length != i_slength || targs.length != i_tlength)
            throw new IllegalArgumentException("Illegal arguments for " + getName());
-         
+
          return invoke(context, term, e_s*, e_t*);
        }
     ]|
@@ -790,7 +795,7 @@ rules
     ; i_tlength := <write-to-string> <length> t*
     ; e_s*      := <number(\(_,n) -> |[ sargs[~i:<write-to-string> n] ]|\)> s*
     ; e_t*      := <number(\(_,n) -> |[ targs[~i:<write-to-string> n] ]|\)> t*
-  
+
   translate-definition-body :
     SDefT(x, s*, t*, s) ->
     |[ mod_override*
@@ -803,11 +808,11 @@ rules
            if (TRACES_ENABLED) context.push("~x'");
            Fail: {
              bstm
-             if (TRACES_ENABLED) context.popOnSuccess();
+             if (TRACES_ENABLED) context.popOnSuccess("~x'");
              if (TRUE) // (avoid unreachable stm error)
                return term;
            };
-           if (TRACES_ENABLED) context.popOnFailure();
+           if (TRACES_ENABLED) context.popOnFailure("~x'");
            return null;
        }
     ]|
@@ -817,15 +822,15 @@ rules
         (s'*, [])          := <translate-params> s*
       ; (t'*,  bstm_init*) := <translate-params> t*
       ; x'                 := <undo-dollars-for-capitals> x
-      ; param*             := <conc> (s'*, t'*)   
+      ; param*             := <conc> (s'*, t'*)
       ; if is-dynamic-signature(|s*, t*) then
           mod_override* := []
         else
           mod_override* := [ anno |[ @Override ]| ]
         end
-      ; bstm := <translate-strategy> s  
+      ; bstm := <translate-strategy> s
       |}
-    
+
   translate-outer-definition :
     ExtSDef(_, _, _) -> Semicolon()
 
@@ -845,8 +850,8 @@ rules
     , bstm* |[ TermReference x = new TermReference(x'); ]|)
     with
       x' := <conc-strings> ("ref_", x)
-  
-  translate-param : 
+
+  translate-param :
     VarDec(x, FunType(_, _)) -> (param |[ Strategy x ]|, [])
     with
       x'    := x{}
@@ -864,13 +869,13 @@ rules
 
   translate-arg :
     VarDec(x{Offset(_), Escapes()}, <?ConstType(_) <+ ?DynT(_)>) -> expr |[ x.value ]|
-  
-  translate-arg : 
+
+  translate-arg :
     VarDec(x, FunType(_, _)) -> expr |[ x ]|
-  
+
 strategies
-  
-  translate-Scope : 
+
+  translate-Scope :
     Scope(vars, body) -> bstm* |[
       // { // TODO: using an actual scope might reduce the # of local variable slots
         bstm_decl*
@@ -880,18 +885,18 @@ strategies
     with
       bstm_decl* := <map(to-java-vardecl)> vars
     ; bstm_body  := <translate-strategy> body
-    
+
   /** @type Id -> Stm */
   translate-Id :
     Id() -> Empty()
-    
+
   /** @type Id -> Stm */
   translate-Fail :
     Fail() -> |[ if (TRUE) break Fail; ]| // (avoid unreachable stm error)
-  
+
   translate-Platform :
     CallT(SVar("if_java_platform_1_0"), [s], []) -> <translate-strategy> s
-  
+
   translate-Platform :
     CallT(SVar("if_c_platform_1_0"), [s], []) ->  Empty()
 
@@ -915,13 +920,13 @@ strategies
 
   /** @type Seq -> Stm */
   translate-Seq :
-    Seq(s1, s2) -> 
+    Seq(s1, s2) ->
     bstm* |[
-        ~stm:<translate-strategy> s1 
-        ~stm:<translate-strategy> s2 
+        ~stm:<translate-strategy> s1
+        ~stm:<translate-strategy> s2
     ]|
 
-  /** @type GuardedLChoice -> Block */  
+  /** @type GuardedLChoice -> Block */
   translate-GuardedLChoice-no-left-branch :
     GuardedLChoice(s1, Id(), s2) ->
     bstm* |[
@@ -942,7 +947,7 @@ strategies
    ; stm_s1     := <translate-strategy> s1
    ; stm_s2     := <translate-strategy> s2
 
-  /** @type GuardedLChoice -> Block */  
+  /** @type GuardedLChoice -> Block */
   translate-GuardedLChoice :
     GuardedLChoice(s1, s2, s3) ->
     bstm* |[
@@ -966,8 +971,8 @@ strategies
    ; stm_s2     := <translate-strategy> s2
    ; stm_s3     := <translate-strategy> s3
 
-  translate-strategy = 
-       ( 
+  translate-strategy =
+       (
        translate-Platform
     <+ translate-Cast
     <+ translate-TypeTest
@@ -985,13 +990,15 @@ strategies
     <+ translate-GuardedLChoice
     <+ translate-Scope
     <+ translate-Match
+    <+ translate-MultiMatch
+    <+ translate-DFA
     <+ translate-Let
     <+ translate-ImportTerm
     <+ translate-Escape
     <+ fatal-err(|"translate-strategy failed ")
        )
 
-  translate-Let : 
+  translate-Let :
     Let(defs, body) -> body'
     with
       {| InnerDefinition :
@@ -1015,13 +1022,13 @@ strategies
       ; <collect-lifted-svars> def
       end
     })
-  
+
   translate-CallT-dynamic:
     CallT(SVar(x), s*, t*) ->
     bstm* |[
       bstm_init*
       term = e_instance.invokeDynamic(context, term, new Strategy[] { e_s* }, new IStrategoTerm[] { e_t* });
-      if (term == null) 
+      if (term == null)
         break Fail;
     ]|
     where
@@ -1044,7 +1051,7 @@ strategies
     bstm* |[
       bstm_init*
       term = e_instance.invoke(context, term, e_s*, e_t*);
-      if (term == null) 
+      if (term == null)
         break Fail;
     ]|
     with
@@ -1066,7 +1073,7 @@ strategies
       bstm_init*
       Proxy x_proxy = new Proxy(context, e_coercion, e_instance);
       term = x_proxy.invoke(context, term);
-      if (term == null) 
+      if (term == null)
         break Fail;
     ]|
     with
@@ -1181,8 +1188,8 @@ strategies
       term := <GetConstantDef> f
 
   translate-PrimT :
-    PrimT(f, s*, t*) -> 
-    <java-check-unbound-args(|t*)>  
+    PrimT(f, s*, t*) ->
+    <java-check-unbound-args(|t*)>
     bstm* |[
       bstm_init*
       term = context.invokePrimitive("~f", term, new Strategy[] { e_s* }, new IStrategoTerm[] { e_t* });
@@ -1195,7 +1202,7 @@ strategies
       ,
         ?bstm_init*
       )
-  
+
   lifted-decls-wrap(s, get-init-stms) =
     dr-ignore-states( // (hide and then scope these dyn. rules)
       s
@@ -1204,7 +1211,7 @@ strategies
       )
     | ["CallTDecl", "CallTDecls", "CallTAssigns"]
     )
-  
+
   lifted-strategy-to-instance =
     if ?CallT(_, _, _) + ?ProxyT(_, _, _, _, _) then
       // Pass (potentially parameterizable) svar calls as-is
@@ -1217,7 +1224,7 @@ strategies
       )
     ; <lifted-call-to-instance> CallT(SVar(x), [], [])
     end
-  
+
   lifted-call-to-instance =
     lifted-call-to-instance-proxy
   <+
@@ -1247,13 +1254,14 @@ strategies
     ; rules(
         CallTDecls :+= init
       )
+
     ; assigns := bstm* |[
         x_proxy = new Proxy(context, e_coercion, e_instance);
       ]|
     ; rules(
         CallTAssigns :+= assigns
       )
-  
+
   lifted-call-to-instance-self-call :
     CallT(SVar(x), _, _) -> expr |[ this ]|
     where
@@ -1266,7 +1274,7 @@ strategies
     ; !a*
     ; one(?Offset(_))
     ; one(Frames(one(?frame)))
-  
+
   lifted-call-to-instance-with-args :
     CallT(SVar(x), _, _) -> expr |[ x' ]|
     where
@@ -1290,7 +1298,7 @@ strategies
           CallTAssigns :+= assigns
         )
       end
-  
+
   lifted-call-to-instance-direct :
     CallT(SVar(x{a*}), _, _) -> expr |[ x ]|
     where
@@ -1298,18 +1306,18 @@ strategies
 
   lifted-call-to-instance-instance :
     CallT(SVar(x), _, _) -> expr |[ x.instance ]|
-  
+
   is-dynamic-signature(|s*, t*) =
     where(
       <gt> (<length> s*, MAX_STATIC_SARGS())
     + <gt> (<length> t*, MAX_STATIC_TARGS())
     )
-  
+
 /* ================================ Build  */
 
   translate-Build:
-    Build(t) -> 
-    <java-check-unbound-args(|t)> 
+    Build(t) ->
+    <java-check-unbound-args(|t)>
     bstm* |[
       ~*decs
       ~*stms
@@ -1320,12 +1328,12 @@ strategies
          <java-construct-term> t => e
        ; bagof-java-CheckBuild; unzip; (id, reverse; concat) => (decs, stms)
       |}
-  
+
   // these two strategies should be in libstratego-lib, but is not yet supported
-  // by the c compiler due to usage of an older aterm library 
-  WriteToStreamingFile = 
+  // by the c compiler due to usage of an older aterm library
+  WriteToStreamingFile =
     WriteToFile(write-in-saf-to-stream)
-  
+
   write-in-saf-to-stream =
     if-java-platform(
       ?(Stream(stream), term); prim("SSL_write_term_to_stream_saf", stream, term); !Stream(<id>)
@@ -1333,11 +1341,11 @@ strategies
     if-c-platform(
       fatal-err-msg(|["Trying to write SAF file on c platform, not supported"])
     )
-    
+
   write-imported-term =
     if-java-platform(WriteToStreamingFile);
     if-c-platform(WriteToBinaryFile)
-      
+
   /**
    * Translate 'import-term'
    * - uses LazyTerm to lazily load the term
@@ -1346,7 +1354,7 @@ strategies
    *  - inlining a string could be an easy solution to inline it
    *    (minding the 32767 length limit)
    */
-  translate-ImportTerm: 
+  translate-ImportTerm:
     ImportTerm(file) -> <translate-ImportTerm'> (inputfile, outputfile, pkgpath)
     with
       inputfile  := <find-import-term-file> file // (exits on error)
@@ -1398,7 +1406,7 @@ strategies
           x_constant = new ImportTerm(termFactory, x_constants.class, "~pkgpath", "~outputfile");
         ]|
       )
-  
+
   file-name-to-identifier =
     base-filename
   ; string-as-chars(
@@ -1406,7 +1414,7 @@ strategies
     ; filter(is-alphanum)
     ; [to-upper | id]
     )
-  
+
   find-import-term-file :
     file -> file'
     with
@@ -1422,7 +1430,7 @@ strategies
       file' := <file-exists> file
     <+
       fatal-err(|["file ", file, " for imported term not found"])
-      
+
   pack-stratego-options-wrap(s) =
     finally(
       with(
@@ -1438,7 +1446,7 @@ strategies
     try(java-CheckUnboundArgs(|t))
 
   java-CheckUnboundArgs(|t) :
-    stm -> 
+    stm ->
     bstm* |[
       if (e)
         break Fail;
@@ -1458,7 +1466,7 @@ rules
   /** @type Term -> Exp */
   java-construct-term =
     where(not(<get-config> "--single-strategy" + <get-config> "--boilerplate"));
-     ( java-Cache 
+     ( java-Cache
     <+ java-ConstructAnnoVar
     <+ java-ConstructVar
     <+ !(<id>, <java-ConstructTerm>)
@@ -1479,8 +1487,8 @@ rules
   java-CacheConstant :
     (t, e1) -> |[ x_constants.x ]|
   where
-      <(Op(id, map(java-Cache)); java-proper-list 
-            + Anno(java-Cache, java-Cache) 
+      <(Op(id, map(java-Cache)); java-proper-list
+            + Anno(java-Cache, java-Cache)
             + Int(id) + Str(id) + Real(id) )> t
   with
         x_constants := <ConstantContainerClass>
@@ -1505,12 +1513,12 @@ rules
     Op("Nil", [])
     + Op("Cons", [id, java-proper-list <+ IsProperList])
     // TODO: Fix constants being generated multiple times
-    //       e.g., <conc> ([], []) does this; it's got something to do with annos 
+    //       e.g., <conc> ([], []) does this; it's got something to do with annos
     + Op(id, id)
       ; not(is-ListOp)
 
 strategies
-    
+
   is-TupleOp = ?Op("", _)
 
   java-DeclareTermId :
@@ -1523,40 +1531,46 @@ strategies
   java-mk-int-const =
     !Lit(Deci(<try(int-to-string)>))
 
+  java-mk-string-const =
+    !Lit(String([Chars(<escape>)]))
+
+  java-mk-float-const =
+    !Lit(Float(<try(real-to-string)>))
+
 rules
 
   java-ConstructTerm :
-    Int(i) -> 
-    expr|[ 
+    Int(i) ->
+    expr|[
       termFactory.makeInt(~expr:<java-mk-int-const> i)
     ]|
 
   java-ConstructTerm :
-    Real(x) -> 
-    expr|[ 
+    Real(x) ->
+    expr|[
       termFactory.makeReal(~expr:Lit(Float(<try(real-to-string)> x)))
     ]|
 
   java-ConstructTerm :
-    Str(x) -> 
-    expr|[ 
+    Str(x) ->
+    expr|[
       termFactory.makeString(~expr:Lit(String([Chars(<escape> x)])))
     ]|
 
   java-ConstructTerm : // HACK: BAFReader work-around
-    Str([]) -> 
-    expr|[ 
+    Str([]) ->
+    expr|[
       termFactory.makeString("[]")
     ]|
 
   java-ConstructVar :
     x@Var(_) -> e
-  with 
+  with
       e := <java-VarToReadRef> x
 
   java-ConstructAnnoVar :
-    Anno(Var(x), pt2) -> 
-    expr|[ 
+    Anno(Var(x), pt2) ->
+    expr|[
       termFactory.annotateTerm(e, checkListAnnos(termFactory, ~expr:<java-construct-term> pt2))
     ]|
   where
@@ -1564,15 +1578,15 @@ rules
 
   java-ConstructTerm :
     Anno(pt1, Op("Nil", [])) -> <java-construct-term> pt1
-  where 
+  where
       <not(?Var(_))> pt1
 
   java-ConstructTerm :
-    Anno(pt1, pt2) -> 
-    expr|[ 
+    Anno(pt1, pt2) ->
+    expr|[
       termFactory.annotateTerm(~expr:<java-construct-term> pt1, checkListAnnos(termFactory, ~expr:<java-construct-term> pt2))
     ]|
-  where 
+  where
       <not(?Op("Nil", []))> pt2
     ; <not(?Var(_))> pt1
 
@@ -1583,7 +1597,7 @@ rules
   with
       e_cons := <java-ConstructorName-expr> (c, <length> t*)
     ; e_arg* := <map(java-construct-term)> t*
-    
+
   java-ConstructTerm :
     Explode(t1, t2) -> expr |[ x ]|
     with
@@ -1601,23 +1615,23 @@ rules
             ]|)
       )
 
-  java-ConstructTerm : 
+  java-ConstructTerm :
     Op("", args) -> expr|[ termFactory.makeTuple(~*args') ]|
     with
       args' := <map(java-construct-term)> args
-    
+
   java-ConstructTerm :
     Op("Nil", []) -> expr|[ (IStrategoTerm) termFactory.makeList(Term.NO_TERMS) ]|
 
   java-ConstructTerm :
-    Op("Cons", [t1, t2]) -> 
-    expr|[ 
+    Op("Cons", [t1, t2]) ->
+    expr|[
       (IStrategoTerm) termFactory.makeListCons(~expr:<java-construct-term> t1, e)
     ]|
     with
       <java-construct-term> t2
-        ; if <not(Anno(is-ListOp,id))> t2 then 
-            java-check-aterm-list 
+        ; if <not(Anno(is-ListOp,id))> t2 then
+            java-check-aterm-list
           else
               if ?|[ x_constants.x_constant ]| + ?expr |[ x ]| then
                 !|[ (IStrategoList) ~expr:<id> ]|
@@ -1627,9 +1641,11 @@ rules
               ; try(java-CastATermListSetAnnotations)
             end => e
 
+  java-ConstructTerm = ?Path(<translate-Path>)
+
   java-check-aterm-list :
     e -> expr |[ x ]|
-    with 
+    with
       x := <newname> "list"
     ; rules(
         java-CheckBuild :+=
@@ -1649,7 +1665,7 @@ rules
 
   java-UncastATerm :
     expr|[ (IStrategoTerm) e ]| -> e
-    
+
 /**
  * Signatures
  */
@@ -1666,7 +1682,7 @@ strategies
     OpDecl(c, t) -> class-body-dec|[ public static IStrategoConstructor x; ]|
   where
     not(OpDecl("", id) + OpDecl("Cons", [id, id]) + OpDecl("Nil", []))
-  with 
+  with
     n := <Arity <+ is-int> t
   ; x := <java-ConstructorName> (c, n)
   ; rules(IsLocalOpDecl: (c, n))
@@ -1676,11 +1692,11 @@ strategies
     with
       c' := <jify> c
     ; n' := <int-to-string> n
-  
+
   java-ConstructorName-expr =
     where(<get-config> "--single-strategy")
   ; JavaInitConstructorExpr
-  
+
   java-ConstructorName-expr =
     where(not(<get-config> "--single-strategy"))
   ; with(
@@ -1691,7 +1707,7 @@ strategies
       JavaCopyConstructor
     )
   ; !expr |[ ~x:<MainClassName>.~x:<java-ConstructorName> ]|
-  
+
   JavaCopyConstructor =
     ((c, n) -> OpDecl(c, n))
   ; rules(
@@ -1705,8 +1721,8 @@ strategies
     bstm |[
       x = ~expr:<JavaInitConstructorExpr> (<concat-strings> ["\\\"", c', "\\\""], ar);
     ]|
-  where 
-      <string-as-chars(unescape-chars; un-double-quote-chars)> c => c' 
+  where
+      <string-as-chars(unescape-chars; un-double-quote-chars)> c => c'
     ; ar := <Arity <+ is-int> t
     ; x  := <java-ConstructorName> (c, ar)
 
@@ -1715,7 +1731,7 @@ strategies
     bstm |[
       x = ~expr:<JavaInitConstructorExpr> (c, ar);
     ]|
-  where 
+  where
       ar := <Arity <+ is-int> t
     ; x  := <java-ConstructorName> (c, ar)
 
@@ -1758,7 +1774,7 @@ strategies
 
   translate-Match :
     Match(As(t1,t2), trm) ->
-    bstm* |[ 
+    bstm* |[
       stm_match1
       stm_match2
     ]|
@@ -1773,7 +1789,7 @@ strategies
   translate-Match :
     Match(Var(x){"bound"}, e) ->
     stm |[
-      if (e != e_var && !e_var.match(e)) 
+      if (e != e_var && !e_var.match(e))
         break Fail;
      ]|
     with
@@ -1787,7 +1803,7 @@ strategies
       else if (e_var != e && !e_var.match(e))
         break Fail;
     ]|
-    with 
+    with
       e_var      := <java-VarToReadRef> Var(x)
     ; stm_assign := <java-VarToWrite> (x, e)
 
@@ -1796,7 +1812,7 @@ strategies
 
   translate-Match :
     Match(Explode(t1, t2), e) ->
-    bstm* |[ 
+    bstm* |[
       IStrategoTerm x_cons = context.invokePrimitive("SSL_get_constructor", term,
                                                       new Strategy[] {},
                                                       new IStrategoTerm[] { e });
@@ -1820,13 +1836,13 @@ strategies
     with result := <translate-Match> Match(pt1, e)
 
   translate-MatchAnno :
-    Match(Anno(pt1, pt2), e) -> 
+    Match(Anno(pt1, pt2), e) ->
     bstm* |[
       stm0
       IStrategoList x = e.getAnnotations();
       stm1
     ]|
-  where 
+  where
       <not(Wld())> pt2
   with
       x    := <newname> "annos" // FIXME: this seems to not always return a truly unused name
@@ -1837,7 +1853,7 @@ strategies
   // String constants are not cached for comparison,
   // since we do comparison modulo annotations
   translate-Match :
-    Match(Str(str), e) -> 
+    Match(Str(str), e) ->
     stm|[
       if (e.getTermType() != IStrategoTerm.STRING
          || !e_str.equals(((IStrategoString) e).stringValue()))
@@ -1848,7 +1864,7 @@ strategies
     ; e_str := Lit(String([Chars(<escape> str)]))
 
   translate-Match :
-    Match(Int(i), e) -> 
+    Match(Int(i), e) ->
     stm|[
       if (e.getTermType() != IStrategoTerm.INT
          || e_int != ((IStrategoInt) e).intValue())
@@ -1859,9 +1875,9 @@ strategies
     ; e_int := <java-mk-int-const> i
 
   translate-Match :
-    Match(Real(r), e) -> 
+    Match(Real(r), e) ->
     stm|[
-      if (e.getTermType() != IStrategoTerm.REAL 
+      if (e.getTermType() != IStrategoTerm.REAL
           || e_real != ((IStrategoReal) e).realValue())
         break Fail;
     ]|
@@ -1905,25 +1921,25 @@ strategies
   with
     i:= <write-to-string> <length> ts
   ; match-args := <translate-Match-args> (e, ts)
-  
+
   translate-Match-args :
     (e, terms) -> bstm_matcharg*
     with
       (bstm_matcharg*, _) :=
         <thread-map(\ (t,i) -> (
-               <java-MatchArg1 <+ java-MatchArg2> 
+               <java-MatchArg1 <+ java-MatchArg2>
                   (t, expr|[ e.getSubterm(~expr:<java-mk-int-const> i) ]|)
              , <add>(i, 1)
              )
            \ )> (terms,0)
 
-  java-MatchArg1 : 
+  java-MatchArg1 :
     (Var(x){t*}, e) -> result
-  with 
+  with
       result := <translate-Match> Match(Var(x){t*}, e)
 
-  java-MatchArg2 : 
-    (t, e) -> 
+  java-MatchArg2 :
+    (t, e) ->
     bstm* |[
       stm1
       stm2
@@ -1933,7 +1949,7 @@ strategies
     ; stm2 := <translate-Match> Match(t, ExprName(Id(x)))
     ; if !stm2 => Empty() then
        stm1 := Empty()
-      else 
+      else
        stm1 := bstm |[ IStrategoTerm x = e; ]|
      end
 
@@ -1951,7 +1967,547 @@ strategies
           break Fail;
       ~bstm*:match-args
     ]|
-  with 
-    <map(java-MatchArg1 <+ java-MatchArg2)> 
+  with
+    <map(java-MatchArg1 <+ java-MatchArg2)>
        [ (hd, expr|[ ((IStrategoList) e).head() ]|)
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
+
+/* ================================ MultiMatch */
+  translate-MultiMatch =
+    ?MultiMatch(Sequential(), _) < multimatch2dfa; translate-strategy
+  + fail
+
+/*======== Generate Java code from DFA =================*/
+  translate-DFA = translate-SwitchT
+
+  translate-SwitchT:
+    SwitchT(TypeP(CurP()), [], default) ->
+    bstm* |[
+      ~<translate-Default> default
+    ]|
+
+  translate-SwitchT:
+    SwitchT(p, [], default) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-Default> default
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
+    SwitchT(p, alt*, default) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Default> default
+          break;
+        }
+      }
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
+
+  translate-SwitchT:
+    SwitchTNoDefault(p, []) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-strategy> Fail()
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
+    SwitchTNoDefault(p, alt*) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Fail> Fail()
+          break;
+        }
+      }
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
+
+  translate-Default:
+    Default(s) ->
+    <translate-strategy> s
+
+  translate-Default:
+    GuardedDefault(guards) ->
+    <translate-Guards> guards
+
+  translate-AltT(|e_trm):
+    AltT(tp, switchv) ->
+    switch-group |[
+      case x_type: {
+        bstm_asgn
+        bstm_switch*
+        break;
+      }
+    ]|
+  with
+    (x_type, bstm_asgn, bstm_switch*) := <translate-AltT-helper(|e_trm)>
+
+  translate-AltT-helper(|e_trm):
+    AltT(tp, switchv) ->
+    (x_type, bstm_asgn, bstm_switch*)
+  with
+    <pat-type-to-enum> tp => x_type
+  ; <?SwitchV(<id>, _, _) + ?SwitchVNoDefault(<id>, _)> switchv => t_path
+  ; <translate-PathVF> t_path => e_path
+  ; <cast-path(|tp)> e_trm => e_cast
+  ; <typed-assign(|tp)> e_cast => (bstm_asgn, x_asgn)
+  ; <alltd((e_cast -> e |[ x_asgn ]|))> e_path => e_path'
+  ; <translate-SwitchV(|tp, e_path')> switchv => bstm_switch*
+
+  pat-type-to-enum: ApplT()   -> "APPL"
+  pat-type-to-enum: LisT()    -> "LIST"
+  pat-type-to-enum: IntT()    -> "INT"
+  pat-type-to-enum: RealT()   -> "REAL"
+  pat-type-to-enum: StringT() -> "STRING"
+  pat-type-to-enum: CtorT()   -> "CTOR"
+  pat-type-to-enum: TupleT()  -> "TUPLE"
+  pat-type-to-enum: RefT()    -> "REF"
+  pat-type-to-enum: BlobT()   -> "BLOB"
+  pat-type-to-enum: PlaceT()  -> "PLACEHOLDER"
+
+  translate-SwitchV(|tp, e_path):
+    SwitchV(_, alt*, default) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
+  with
+    stm_def := <translate-Default> default
+
+  translate-SwitchV(|tp, e_path):
+    SwitchVNoDefault(_, alt*) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
+  with
+    stm_def := <translate-Fail> Fail()
+
+  translate-SwitchV-helper(|tp) =
+    if tp := ApplT() then // TODO This criterion could be less strict.
+      switch <get-config> "--pmc:switchv" <+ !"hash-switch"
+        case ?"elseif": AltVs-as-ifs
+        case ?"nested-switch": AltVs-as-nested-switches
+        case ?"hash-switch": AltV-as-hash-switch
+        otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv'", <id>]
+      end
+    else
+      AltVs-as-ifs
+    end
+
+  AltVs-as-ifs:
+    (e_path, alt*, stm_def) ->
+    <foldr(!stm_def, translate-AltV-if(|e_path))> alt*
+
+  translate-AltV-if(|e_occ):
+    (AltV(t, s), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        ~<translate-strategy> s
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
+
+  translate-AltV-if(|e_occ):
+    (GuardedAltV(t, guards), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        bstm_guards
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
+  ; bstm_guards := <translate-Guards> guards
+
+  AltV-as-hash-switch:
+    (e_path, alt*, stm_def) ->
+    bstm* |[
+      IStrategoConstructor x_cons = e_path;
+
+      switch (x_cons.hashCode()) {
+        ~switch-group*:cases
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    (x_cons, groups) := <AltV-as-hash-switch-helper>
+  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
+
+  AltV-as-hash-switch-helper:
+    (e_path, alt*, stm_def) ->
+    (x_cons, groups)
+  with
+    x_cons := <local-newname> "cons"
+  ; pairs := <map(split(AltHash, id))> alt*
+  ; hash_set := <map(Fst); make-set> pairs
+  ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
+
+  AltHash:
+    alt@(_#([FunC(x, a), _])) ->
+    <constructor-checksum> appl
+  where
+    <?AltV(_, _) + ?GuardedAltV(_, _)> alt
+  with
+    appl := x#(<range> (0, <string-to-int> a))
+
+  HashGroup(|e_occ, stm_def):
+    (hash, alt*) ->
+    switch-group |[
+      case e_hash: {
+        bstm_alts*
+        break;
+      }
+    ]|
+  with
+    (e_hash, bstm_alts*) := <HashGroup-helper(|e_occ, stm_def)>
+
+  HashGroup-helper(|e_occ, stm_def):
+    (hash, alt*) ->
+    (e_hash, bstm_alts*)
+  with
+    e_hash := <java-mk-int-const> hash
+  ; bstm_alts* := <foldr(!stm_def, translate-AltV-if(|e_occ))> alt*
+
+  constructor-checksum = prim("SSL_constructor_hash", <id>)
+
+  AltVs-as-nested-switches =
+    switch <get-config> "--pmc:switchv-order" <+ !"arity-name"
+      case ?"arity-name": ArityNameSwitch
+      case ?"name-arity": NameAritySwitch
+      otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv-order'", <id>]
+    end
+
+  ArityNameSwitch:
+    (e_path, alt*, stm_def) ->
+    bstm* |[
+      IStrategoConstructor x_cons = e_path;
+
+      switch (x_cons.getArity()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    x_cons := <local-newname> "cons"
+  ; pairs := <map(split(id, Alt2Arity; try(int-to-string)))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(ArityGroup(|e|[x_cons]|, stm_def))> grouped_by
+
+  Alt2Arity = ?AltV(<cons-arity>, _)
+  Alt2Arity = ?GuardedAltV(<cons-arity>, _)
+
+  ArityGroup(|e_path, stm_def):
+    (a, name_alt*) ->
+    switch-group |[
+      case e_arity: {
+        bstm_alt
+        break;
+      }
+    ]|
+  with
+    e_arity := <java-mk-int-const> a
+  ; bstm_alt := <NameSwitch(|e_path, stm_def)> name_alt*
+
+  NameSwitch(|e_path, stm_def):
+    alt* ->
+    bstm |[
+      switch (e_path.getName()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    pairs := <map(split(id, Alt2Name))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(NameGroup(|e_path, stm_def))> grouped_by
+
+  Alt2Name = ?AltV(<cons-name>, _)
+  Alt2Name = ?GuardedAltV(<cons-name>, _)
+
+  cons-name = ?FunC(<id>, _)
+
+  NameGroup(|_, _):
+    (name, [alt]) ->
+    switch-group |[
+      case e_name: {
+        stm_alt
+        break;
+      }
+    ]|
+  with
+    e_name := <java-mk-string-const> name
+  ; stm_alt := <translate-AltV-case> alt
+
+  translate-AltV-case = ?AltV(_, <translate-strategy>)
+  translate-AltV-case = ?GuardedAltV(_, <translate-Guards>)
+
+  NameAritySwitch = debug(|"NameAritySwitch "); fail
+
+  /** @type List(Guard) -> Block */
+  translate-Guards =
+    translate-Guards(|Fail())
+
+  translate-Guards(|failure) =
+    foldr(<translate-strategy> failure, translate-Guard)
+
+  translate-Guard:
+    (Guard(s1, Id()), stm_s2) ->
+    bstm* |[
+      // (this pattern is matched optimized in java-postprocess)
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           if (TRUE) // (avoid unreachable stm error)
+             break Success;
+        }
+        term = x_termcopy;
+        stm_s2
+      }
+    ]|
+   with
+     x_termcopy := <local-newname> "term"
+   ; stm_s1     := <translate-strategy> s1
+
+  /** @type Guard -> Block */  
+  translate-Guard:
+    (Guard(s1, s2), stm_s3) ->
+    bstm* |[
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           OuterFail: { // (redirects failure to outer Fail block)
+             stm_s2
+             if (TRUE) // (avoid unreachable stm error)
+               break Success;
+           }
+        }
+        term = x_termcopy;
+        stm_s3
+      }
+    ]|
+  where
+    <not(?Id())> s2
+  with
+    x_termcopy := <local-newname> "term"
+  ; stm_s1     := <translate-strategy> s1
+  ; stm_s2     := <translate-strategy> s2
+
+
+  typed-assign(|LisT()):
+    e_trm ->
+    (bstm |[ IStrategoList x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "list"
+
+  typed-assign(|ApplT()):
+    e_trm ->
+    (bstm |[ IStrategoAppl x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "appl"
+
+  typed-assign(|TupleT()):
+    e_trm ->
+    (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "tuple"
+
+  typed-assign(|StringT()):
+    e_trm ->
+    (bstm |[ IStrategoString x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "str"
+
+  typed-assign(|IntT()):
+    e_trm ->
+    (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "int"
+
+  typed-assign(|RealT()):
+    e_trm ->
+    (bstm |[ IStrategoReal x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "real"
+
+
+  java-Pat-to-Condition:
+    (FunC("Nil", "0"), e_occ) ->
+    e |[ ((IStrategoList) e_occ).isEmpty() ]|
+
+  java-Pat-to-Condition:
+    (FunC("Cons", "2"), e_occ) ->
+    e |[ !((IStrategoList) e_occ).isEmpty() ]|
+
+  java-Pat-to-Condition:
+    (op@FunC(c, x), e_occ) ->
+    e_cond
+  where
+    <not(?FunC("Nil", "0") + ?FunC("Cons", "2"))> op
+  with
+    e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
+  ; if not(<get-config> "-sc" => "off") then
+      !e |[ e_occ == e_cons ]|
+    else
+      !e |[ e_occ.equals(e_cons) ]|
+    end => e_cond
+
+  java-Pat-to-Condition:
+    (StrC(s), e_occ) ->
+    e |[ e_occ.equals(~<java-mk-string-const> s) ]|
+
+  java-Pat-to-Condition:
+    (IntC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-int-const> x ]|
+
+  java-Pat-to-Condition:
+    (RealC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-float-const> x ]|
+
+  java-Pat-to-Condition:
+    (AnnoC(), e_occ) ->
+    e |[ true ]|
+
+  java-Pat-to-Condition:
+    (TupleC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-int-const> x ]|
+
+
+  cast-path(|LisT()):
+    e_occ ->
+    e |[ (IStrategoList) e_occ ]|
+
+  cast-path(|ApplT()):
+    e_occ ->
+    e |[ (IStrategoAppl) e_occ ]|
+
+  cast-path(|IntT()):
+    e_occ ->
+    e |[ (IStrategoInt) e_occ ]|
+
+  cast-path(|RealT()):
+    e_occ ->
+    e |[ (IStrategoReal) e_occ ]|
+
+  cast-path(|StringT()):
+    e_occ ->
+    e |[ (IStrategoString) e_occ ]|
+
+  cast-path(|CtorT()):
+    e_occ ->
+    e |[ (IStrategoConstructor) e_occ ]|
+
+  cast-path(|TupleT()):
+    e_occ ->
+    e |[ (IStrategoTuple) e_occ ]|
+
+  cast-path(|RefT()):
+    e_occ ->
+    e |[ (IStrategoRef) e_occ ]|
+
+  cast-path(|PlaceT()):
+    e_occ ->
+    e |[ (IStrategoPlaceholder) e_occ ]|
+
+
+  // TODO Only cast when necessary...
+  translate-Path =
+    translate-PathTrm
+  + translate-PathTp
+  + translate-PathFld
+
+  translate-PathVF =
+    translate-PathTrm
+  + translate-PathFld
+
+  translate-PathTrm:
+    CurP() ->
+    e |[ term ]|
+
+//  translate-PathTrm =
+//    ?Var(_); java-ConstructVar
+
+  translate-PathTrm:
+    SubP(p, x) ->
+    e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    AnnoP(p) ->
+    e |[ e.getAnnotations() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    HeadP(p) ->
+    e |[ ((IStrategoList) e).head() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    TailP(p) ->
+    e |[ ((IStrategoList) e).tail() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTp:
+    TypeP(p) ->
+    e |[ e.getType() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    SizeP(p) ->
+    e |[ e.getSubtermCount() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    ConP(p) ->
+    e |[ ((IStrategoAppl) e).getConstructor() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    IntP(p) ->
+    e |[ ((IStrategoInt) e).intValue() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    RealP(p) ->
+    e |[ ((IStrategoReal) e).realValue() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    StrP(p) ->
+    e |[ ((IStrategoString) e).stringValue() ]|
+  with
+    e := <translate-PathTrm> p

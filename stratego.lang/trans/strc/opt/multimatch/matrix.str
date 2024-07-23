@@ -1,0 +1,75 @@
+module multimatch/matrix
+
+imports
+  signatures/core/terms-sig
+
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/utils
+
+signature
+  sorts Matrix Row Col
+  constructors
+    Matrix  : List(Path) * List(Row)                      -> Matrix
+           // Patterns   * Guard    * RHS
+    Row     : List(Term) * Strategy * Strategy -> Row
+
+    Col     : Path * List(Term) * List(Strategy) * List(Strategy) -> Col
+
+strategies // predicates
+  row-all-wildcards = Row(all-wildcards, id, id)
+
+  /*
+   * Succeeds on a list if at least one element is not a wildcard.
+   */
+  all-wildcards = where(retain-all(not(is-wld)); ?[])
+
+strategies // getters
+  cols: Matrix(path*, row*) -> col*
+  with
+    (ps*, sg*, sa*) := <unzipn(\ Row(p*, sg, sa) -> (p*, sg, sa) \| 3)> row*
+  ; ps'* := <matrix-transpose> ps*
+  ; col* := <map-with-index(\ (i, p*) -> Col(<index(|i)> path*, p*, sg*, sa*) \)> ps'*
+
+  /*
+   * Get the `i`th column from a Matrix.
+   */
+  col(|i): Matrix(path*, row*) -> Col(p, t*, s1*, s2*)
+  with
+    p := <index(|i)> path*
+  ; t* := <map(?Row(<index(|i)>, _, _))> row*
+  ; s1* := <map(?Row(_, <id>, _))> row*
+  ; s2* := <map(?Row(_, _ ,<id>))> row*
+
+strategies // stdlib variants for Matrix/Row/Col
+  find-first-row-index(s) = id
+  ; ?Matrix(_, <id>)
+  ; find-first-index(s)
+
+  find-first-col-index(s) = id
+  ; ?Matrix(_, <id>)
+  ; map(?Row(<id>, _, _))
+  ; matrix-transpose
+  ; find-first-index(s)
+
+  /*
+   * Map `s` over the patterns of matrix column `i`.
+   * Index starts at 1.
+   */
+  map-col(s|i) = Matrix(id, map(at-row-index(s|i)))
+
+  /*
+   * Apply `s` to the `i`-th subpattern of the row.
+   * Index starts at 1.
+   */
+  internal at-row-index(s|i) = Row(at-index(s|<dec> i), id, id)
+
+  make-head-col(|1) = Matrix(id, id)
+  make-head-col(|i) = Matrix(make-head(|i), map(make-row-head(|i)))
+
+  internal make-row-head(|i) = Row(make-head(|i), id, id)
+
+  internal make-head(|i) = {el, rest: at-index-tail(?[el | rest]; !rest|<dec> i); <MkCons> (el, <id>)}
+
+  swap-cols(|m, n) = Matrix(swap(|m, n), map(swap-row-el(|m, n)))
+
+  internal swap-row-el(|m, n) = Row(swap(|m, n), id, id)

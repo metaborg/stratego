@@ -127,3 +127,7 @@ strategies
               end
     in map(asd)
     end
+
+  external test-suite(s1, s2|)
+  external apply-test(s|t1, t2, t3)
+  external apply-and-fail(s|t1, t2)

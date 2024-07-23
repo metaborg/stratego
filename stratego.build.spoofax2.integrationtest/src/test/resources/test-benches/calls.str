@@ -1,0 +1,95 @@
+module calls
+
+imports libstratego-lib
+
+signature
+
+sorts
+   S
+
+constructors
+   nullary_constructor : S 
+   unary_constructor : S -> S 
+   nary_constructor : S * S * S -> S 
+   nullary_function : S 
+   unary_function : S -> S 
+   nary_function : S * S * S -> S 
+   a : S 
+   b : S 
+   c : S 
+   d : S 
+   e : S 
+   f : S 
+
+rules
+   REC_E: nullary_function() -> nullary_constructor()
+   REC_E: unary_function (x) -> unary_constructor (x)
+   REC_E: nary_function (x, y, z) -> nary_constructor (x, y, z)
+   REC_E: a() -> nullary_constructor()
+   REC_E: b() -> unary_constructor (nullary_constructor())
+   REC_E: c() -> nary_constructor (nullary_constructor(), nullary_constructor(), nullary_constructor())
+   REC_E: d() -> nullary_function()
+   REC_E: e() -> unary_function (nullary_function())
+   REC_E: f() -> nary_function (nullary_function(), nullary_function(), nullary_function())
+
+strategies
+   eval = memo (innermost (REC_E))
+
+   main =
+     test-suite(
+       !"calls"
+     , calls1
+     ; calls2
+     ; calls3
+     ; calls4
+     ; calls5
+     ; calls6
+     )
+
+   calls1 =
+     apply-test(eval|
+       "calls1"
+     , a()
+     , nullary_constructor()
+     )
+
+   calls2 =
+     apply-test(eval|
+       "calls2"
+     , b()
+     , unary_constructor (nullary_constructor())
+     )
+
+   calls3 =
+     apply-test(eval|
+       "calls3"
+     , c()
+     , nary_constructor (nullary_constructor(), nullary_constructor(), nullary_constructor())
+     )
+
+   calls4 =
+     apply-test(eval|
+       "calls4"
+     , d()
+     , nullary_constructor()
+     )
+
+   calls5 =
+     apply-test(eval|
+       "calls5"
+     , e()
+     , unary_constructor (nullary_constructor())
+     )
+
+   calls6 =
+     apply-test(eval|
+       "calls6"
+     , f()
+     , nary_constructor (nullary_constructor(), nullary_constructor(), nullary_constructor())
+     )
+
+  external test-suite(sn, st|)
+  external apply-and-show(s|tn, ti)
+  external apply-test(s|tn, ti, to)
+  external memo(s|)
+  external innermost(s|)

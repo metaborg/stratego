@@ -54,6 +54,26 @@ strategies // Strategy (core)
 
 insertCasts-Strategy(|e1, st1) = otf12(insertCasts-Strategy-(|e1, st1))
 
+insertCasts-Strategy-(|e1, st1):
+  s@MultiMatch(_, _) -> <id>
+  with
+    <report-Err> (s, InternalRepresentationUsed())
+
+insertCasts-Strategy-(|e1, st1):
+  s@SwitchT(_, _, _) -> <id>
+  with
+    <report-Err> (s, InternalRepresentationUsed())
+
+insertCasts-Strategy-(|e1, st1):
+  s@SwitchTNoDefault(_, _) -> <id>
+  with
+    <report-Err> (s, InternalRepresentationUsed())
+
+insertCasts-Strategy-(|e1, st1):
+  s@GuardedLeafs(_) -> <id>
+  with
+    <report-Err> (s, InternalRepresentationUsed())
+
 // insertCasts-Strategy-(|Environment, Store) :: Strategy -> (Strategy, Store)
 insertCasts-Strategy-(|e1, st1):
   Let(d1*, s1) -> (Let(d2*, s2), st3)
