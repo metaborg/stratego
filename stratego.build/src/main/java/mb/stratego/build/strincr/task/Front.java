@@ -75,7 +75,7 @@ public class Front implements TaskDef<FrontInput, ModuleData> {
     protected final StrategoLanguage strategoLanguage;
     protected final ResourcePathConverter resourcePathConverter;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
+    @jakarta.inject.Inject public Front(StrIncrContext strContext, IModuleImportService moduleImportService,
         GenerateStratego generateStratego, StrategoLanguage strategoLanguage,
         ResourcePathConverter resourcePathConverter) {
         this.tf = strContext.getFactory();

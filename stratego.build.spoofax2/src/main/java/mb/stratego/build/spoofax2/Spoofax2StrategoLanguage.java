@@ -52,7 +52,7 @@ public class Spoofax2StrategoLanguage implements StrategoLanguage {
     private final ISpoofaxSyntaxService syntaxService;
     private final StrIncrContext strContext;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
+    @jakarta.inject.Inject public Spoofax2StrategoLanguage(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageService languageService,
         ITermFactory termFactory, StrategoCommon strategoCommon,
         IStrategoRuntimeService strategoRuntimeService, ISpoofaxUnitService unitService,

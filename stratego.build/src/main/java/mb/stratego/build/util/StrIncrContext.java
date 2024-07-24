@@ -9,14 +9,14 @@ public class StrIncrContext extends Context {
     protected LocallyUniqueStringTermFactory factory;
 
     /**
-     * Hide zero-argument constructor from superclass so Guice understands to use the @jakarta.inject.Inject @javax.inject.Inject constructor
+     * Hide zero-argument constructor from superclass so Guice understands to use the @jakarta.inject.Inject constructor
      */
     @SuppressWarnings("unused")
     private StrIncrContext() {
         super();
     }
 
-    @jakarta.inject.Inject @javax.inject.Inject public StrIncrContext(ITermFactory termFactory) {
+    @jakarta.inject.Inject public StrIncrContext(ITermFactory termFactory) {
         super(new LocallyUniqueStringTermFactory(termFactory));
         factory = (LocallyUniqueStringTermFactory) super.getFactory();
         strj.init(this);
