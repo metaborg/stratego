@@ -1,0 +1,19 @@
+module guarded_alt
+
+signature
+  sorts List
+  constructors
+    Nil   :                List(a)
+    Cons  : a * List(a) -> List(a)
+
+strategies
+  foo(s) = match sequential
+             case | Nil(): !()
+             case x, xs | [x | xs]: !x
+             case | _ if not(is-list): fail
+           end
+
+  bar = match specificity
+          case | _: fail
+          case | (_, _): Fst
+        end

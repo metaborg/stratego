@@ -1,0 +1,36 @@
+module multimatch/multimatch2matrix
+
+imports
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/preprocess
+  strc/opt/multimatch/utils
+
+  signatures/core/strategies-sig
+  signatures/core/terms-sig
+
+strategies
+  /*======== Construct clause and action matrices ========*/
+  multimatch2matrix: MultiMatch(Sequential(), case*) -> Scope(x*, m)
+  with
+    <map(PreprocessCase)> case* => case_prep*
+  ; <map(MatchCase2Row)> case_prep* => row*
+  ; <mapconcat(MatchCase2Ids)> case_prep* => x*
+  ; m := Matrix([CurP()], row*)
+  // Vars should have unique names for each case
+  ; if <split(make-set, id); tmap(length); not(eq)> x* then
+      <fatal-error> ["Vars in MatchCases not unique!"]
+    end
+
+  multimatch2matrix = ?MultiMatch(<not(?Sequential())>, _)
+  ; <fatal-error> ["MultiMatch should be converted to a sequential set of patterns first."]
+
+  PreprocessCase:
+    ScopedGuardedMatchCase(x*, t1, sg1, sa) ->
+    ScopedGuardedMatchCase([x*, y*], t2, sg3, sa)
+  with
+    <preprocess> t1 => (t2, y*, sg2)
+  ; <sequence-strategies> (sg2, sg1) => sg3
+
+  MatchCase2Row: ScopedGuardedMatchCase(_, t, s1, s2) -> Row([t], s1, s2)
+  MatchCase2Ids = ?ScopedGuardedMatchCase(<id>, _, _, _)

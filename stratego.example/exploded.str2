@@ -1,0 +1,27 @@
+module exploded
+imports strategolib
+
+signature
+  sorts Foo Bar
+  constructors
+    Foo : Foo
+    Foo : int * int * int -> Foo
+    Bar : int -> Bar
+
+strategies
+  s =
+    match sequential
+      case | "Foo"#([]): !1 // Foo
+      case | "Bar"#([1{"anno"}, 2]): !2
+      case | "\"Foo\\_\""#([]): !3 // "Foo"
+      case | 1#([]): !4
+      case | 5.4#([]): !5
+      case foo | foo#([1, "x"]): !6
+      case x, xs | x#(xs): !7
+      case x, xs | [x#(xs), x#(xs) | _]: !8
+      case | []#([1, 2, 3]): !9
+      case | "Nil"#([]): !10
+      case | "Cons"#([1, 2, 3]): !11
+      case | "Nil"#(["not", "a", "list"]): !12
+      case foo | _ when ?foo#([1, "x"]): !13
+    end

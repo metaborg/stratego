@@ -94,7 +94,7 @@ public class CheckModule implements TaskDef<CheckModuleInput, CheckModuleOutput>
     private final ITermFactory tf;
     private final ResourcePathConverter resourcePathConverter;
 
-    @jakarta.inject.Inject @javax.inject.Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
+    @jakarta.inject.Inject public CheckModule(Resolve resolve, Front front, StrIncrContext strIncrContext,
         StrategoLanguage strategoLanguage, ResourcePathConverter resourcePathConverter) {
         this.resolve = resolve;
         this.front = front;

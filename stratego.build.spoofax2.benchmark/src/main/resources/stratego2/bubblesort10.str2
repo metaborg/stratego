@@ -1,0 +1,49 @@
+module bubblesort10
+
+imports libstrategolib
+
+signature
+
+sorts
+   Bool Nat NatList
+
+constructors
+   true : Bool 
+   false : Bool 
+   d0 : Nat 
+   s : Nat -> Nat 
+   nil : NatList 
+   cons : Nat * NatList -> NatList 
+   d10 : Nat 
+   lt : Nat * Nat -> Bool 
+   bubsort : Nat * NatList -> NatList 
+   plus : Nat * Nat -> Nat 
+   times : Nat * Nat -> Nat 
+   rev : Nat -> NatList 
+   fact : Nat -> Nat 
+
+rules
+   REC_E: d10() -> s (s (s (s (s (s (s (s (s (s (d0()))))))))))
+   REC_E: lt (d0(),d0()) -> false()
+   REC_E: lt (d0(), s (N)) -> true()
+   REC_E: lt (s (N), d0()) -> false()
+   REC_E: lt (s (N), s (M)) -> lt (N, M)
+   REC_E: plus (d0(), N) -> N
+   REC_E: plus (s (N), M) -> s (plus (N, M))
+   REC_E: times (d0(), N) -> d0()
+   REC_E: times (s (N), M) -> plus (M, times (N, M))
+   REC_E: fact (d0()) -> s (d0())
+   REC_E: fact (s (N)) -> times (s (N), fact (N))
+   REC_E: rev (s (N)) -> bubsort (s (N), rev (N))
+   REC_E: rev (d0()) -> cons (d0(), nil())
+   REC_E: bubsort (N, nil()) -> cons (N, nil())
+   REC_E: bubsort (N, cons (M, L)) -> cons (M, bubsort (N, L)) where equal-after-eval (|lt (M, N), true())
+   REC_E: bubsort (N, cons (M, L)) -> cons (N, bubsort (M, L)) where equal-after-eval (|lt (M, N), false())
+
+strategies
+   eval = memo (innermost (REC_E))
+   equal-after-eval (|m1, m2) = equal (|<eval> m1, <eval> m2)
+   eval-and-print = eval ; debug (!"result = ")
+   main = 
+      (<eval-and-print> rev (d10())) ;
+      <exit> 0

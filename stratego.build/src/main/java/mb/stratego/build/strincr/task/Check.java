@@ -29,7 +29,7 @@ public class Check implements TaskDef<CheckInput, CheckOutput> {
     public final Resolve resolve;
     public final CheckModule checkModule;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Check(Resolve resolve, CheckModule checkModule) {
+    @jakarta.inject.Inject public Check(Resolve resolve, CheckModule checkModule) {
         this.resolve = resolve;
         this.checkModule = checkModule;
     }

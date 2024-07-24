@@ -1,0 +1,31 @@
+module alias1
+imports strategolib
+
+strategies
+  s =
+    match sequential
+      case a1     | a1@(): !1
+      case a2, a3 | a2@a3: !2
+      case a4     | a4@_: !3
+    end
+
+  main =
+    test-suite(
+      !"alias1"
+    , alias1
+    ; alias2
+    )
+
+  alias1 =
+    apply-test(s|
+      "alias1"
+    , ()
+    , 1
+    )
+
+  alias2 =
+    apply-test(s|
+      "alias2"
+    , "not a tuple"
+    , 2
+    )

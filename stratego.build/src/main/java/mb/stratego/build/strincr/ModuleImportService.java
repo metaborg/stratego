@@ -43,7 +43,7 @@ public class ModuleImportService implements IModuleImportService {
     private final ResourcePathConverter resourcePathConverter;
     private final StrategoLanguage strategoLanguage;
 
-    @jakarta.inject.Inject @javax.inject.Inject public ModuleImportService(ResourcePathConverter resourcePathConverter,
+    @jakarta.inject.Inject public ModuleImportService(ResourcePathConverter resourcePathConverter,
         StrategoLanguage strategoLanguage) {
         this.resourcePathConverter = resourcePathConverter;
         this.strategoLanguage = strategoLanguage;

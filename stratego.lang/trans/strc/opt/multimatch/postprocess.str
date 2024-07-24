@@ -1,0 +1,119 @@
+module multimatch/postprocess
+
+imports
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/utils
+
+  strc/opt/stratego-laws
+
+  signatures/core/strategies-sig
+
+strategies
+  desugar-dfa = id
+  ; simplify0; simplify
+  ; repeat(
+      oncebu(
+        eliminate-guard
+      <+ simplify-switch
+      <+ lift-guard
+      )
+    )
+  ; topdown(try(wrap-guarded-leaves); try(eliminate-default))
+
+  optimise-dfa =
+    simplify0; simplify
+  ; bottomup(
+    try(drop-unreachable-guards; try(eliminate-guard))
+  ; try(eliminate-default)
+  )
+
+strategies
+  /*
+   * SwitchT with just a default arm.
+   *
+   * TODO Too aggressive? Only true if the path `p` is valid.
+   */
+  simplify-switch = ?SwitchT(p, [], Default(<id>))
+
+  simplify-switch: SwitchT(p, [], GuardedDefault(guard*)) ->
+                   GuardedLeafs(guard*)
+
+  eliminate-default:
+    SwitchT(p, alt*, Default(Fail())) ->
+    SwitchTNoDefault(p, alt*)
+
+  eliminate-default:
+    SwitchV(p, alt*, Default(Fail())) ->
+    SwitchVNoDefault(p, alt*)
+
+  eliminate-guard =
+    EliminateId
+  + EliminateFail
+  + EliminateEmpty
+
+  EliminateId:
+    GuardedAltV(t, [Guard(<is-id-guard>, a) | _]) ->
+    AltV(t, a)
+
+  EliminateId:
+    GuardedDefault([Guard(<is-id-guard>, a) | _]) ->
+    Default(a)
+
+  EliminateId =
+    GuardedAltV(id, at-last(\ [Guard(Id(), Fail())] -> [] \))
+
+  EliminateId =
+    GuardedDefault(at-last(\ [Guard(Id(), Fail())] -> [] \))
+
+  EliminateFail:
+    GuardedDefault(guard*) ->
+    Default(Fail())
+  where
+    <foldr(![], union, ![<?Guard(<id>, _)>])> guard* => [<is-fail-guard>]
+
+  EliminateEmpty:
+    GuardedAltV(t, []) ->
+    AltV(t, Fail())
+
+  EliminateEmpty:
+    GuardedDefault([]) ->
+    Default(Fail())
+
+  /*
+   * Lift guards from guarded leafs to enclosing switch arm.
+   *
+   * Desugar IR.
+   */
+  lift-guard: AltV(t, GuardedLeafs(g*)) ->
+              GuardedAltV(t, g*)
+  lift-guard: Default(GuardedLeafs(g*)) ->
+              GuardedDefault(g*)
+
+  /*
+   * Merge guard from guarded leaf with surrounding guard.
+   *
+   * Desugar IR.
+   */
+  lift-guard: Guard(s1, GuardedLeafs([Guard(s2, s)])) ->
+              Guard(s3, s)
+  with
+    <sequence-strategies> (s1, s2) => s3
+
+  wrap-guarded-leaves:
+    GuardedLeafs(guard*) ->
+    SwitchT(TypeP(CurP()), [], GuardedDefault(guard*))
+
+  /*
+   * Remove any guarded arms *after* an `id`-guarded arm.
+   *
+   * Reduce code size.
+   */
+  drop-unreachable-guards =
+    GuardedDefault(drop-after(?Guard(<is-id-guard>, _)))
+  drop-unreachable-guards =
+    GuardedAltV(id, drop-after(?Guard(<is-id-guard>, _)))
+
+strategies
+  is-id-guard = ?Id()
+  is-fail-guard = ?Fail()

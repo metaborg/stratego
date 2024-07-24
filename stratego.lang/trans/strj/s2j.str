@@ -15,6 +15,7 @@ imports
   libstratego-xtc
   libstratego-lib
   libjava-front
+  libstratego-aterm
 
   strj/java-postprocess
   strj/java-optimize
@@ -27,6 +28,10 @@ imports
   signatures/gradual-types/signatures-sig
   signatures/gradual-types/internal-sig
   signatures/gradual-types/strategies-sig
+  signatures/core/strategies-sig
+
+  strc/opt/multimatch/multimatch2dfa
+  strc/opt/multimatch/utils
 
 signature
   constructors
@@ -985,6 +990,8 @@ strategies
     <+ translate-GuardedLChoice
     <+ translate-Scope
     <+ translate-Match
+    <+ translate-MultiMatch
+    <+ translate-DFA
     <+ translate-Let
     <+ translate-ImportTerm
     <+ translate-Escape
@@ -1247,6 +1254,7 @@ strategies
     ; rules(
         CallTDecls :+= init
       )
+
     ; assigns := bstm* |[
         x_proxy = new Proxy(context, e_coercion, e_instance);
       ]|
@@ -1523,6 +1531,12 @@ strategies
   java-mk-int-const =
     !Lit(Deci(<try(int-to-string)>))
 
+  java-mk-string-const =
+    !Lit(String([Chars(<escape>)]))
+
+  java-mk-float-const =
+    !Lit(Float(<try(real-to-string)>))
+
 rules
 
   java-ConstructTerm :
@@ -1626,6 +1640,8 @@ rules
               end
               ; try(java-CastATermListSetAnnotations)
             end => e
+
+  java-ConstructTerm = ?Path(<translate-Path>)
 
   java-check-aterm-list :
     e -> expr |[ x ]|
@@ -1955,3 +1971,543 @@ strategies
     <map(java-MatchArg1 <+ java-MatchArg2)>
        [ (hd, expr|[ ((IStrategoList) e).head() ]|)
        , (tl, expr|[ ((IStrategoList) e).tail() ]|) ] => match-args
+
+/* ================================ MultiMatch */
+  translate-MultiMatch =
+    ?MultiMatch(Sequential(), _) < multimatch2dfa; translate-strategy
+  + fail
+
+/*======== Generate Java code from DFA =================*/
+  translate-DFA = translate-SwitchT
+
+  translate-SwitchT:
+    SwitchT(TypeP(CurP()), [], default) ->
+    bstm* |[
+      ~<translate-Default> default
+    ]|
+
+  translate-SwitchT:
+    SwitchT(p, [], default) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-Default> default
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
+    SwitchT(p, alt*, default) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Default> default
+          break;
+        }
+      }
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
+
+  translate-SwitchT:
+    SwitchTNoDefault(p, []) ->
+    bstm* |[
+      e_occ; // Necessary to ensure that failure in `p` is not lost.
+      ~<translate-strategy> Fail()
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+
+  translate-SwitchT:
+    SwitchTNoDefault(p, alt*) ->
+    bstm* |[
+      switch (e_occ) {
+        ~switch-group*:cases
+        default: {
+          ~<translate-Fail> Fail()
+          break;
+        }
+      }
+    ]|
+  with
+    e_occ := <translate-PathTp> p
+  ; e_trm := <?TypeP(<id>); translate-PathTrm> p
+  ; cases := <map(translate-AltT(|e_trm))> alt*
+
+  translate-Default:
+    Default(s) ->
+    <translate-strategy> s
+
+  translate-Default:
+    GuardedDefault(guards) ->
+    <translate-Guards> guards
+
+  translate-AltT(|e_trm):
+    AltT(tp, switchv) ->
+    switch-group |[
+      case x_type: {
+        bstm_asgn
+        bstm_switch*
+        break;
+      }
+    ]|
+  with
+    (x_type, bstm_asgn, bstm_switch*) := <translate-AltT-helper(|e_trm)>
+
+  translate-AltT-helper(|e_trm):
+    AltT(tp, switchv) ->
+    (x_type, bstm_asgn, bstm_switch*)
+  with
+    <pat-type-to-enum> tp => x_type
+  ; <?SwitchV(<id>, _, _) + ?SwitchVNoDefault(<id>, _)> switchv => t_path
+  ; <translate-PathVF> t_path => e_path
+  ; <cast-path(|tp)> e_trm => e_cast
+  ; <typed-assign(|tp)> e_cast => (bstm_asgn, x_asgn)
+  ; <alltd((e_cast -> e |[ x_asgn ]|))> e_path => e_path'
+  ; <translate-SwitchV(|tp, e_path')> switchv => bstm_switch*
+
+  pat-type-to-enum: ApplT()   -> "APPL"
+  pat-type-to-enum: LisT()    -> "LIST"
+  pat-type-to-enum: IntT()    -> "INT"
+  pat-type-to-enum: RealT()   -> "REAL"
+  pat-type-to-enum: StringT() -> "STRING"
+  pat-type-to-enum: CtorT()   -> "CTOR"
+  pat-type-to-enum: TupleT()  -> "TUPLE"
+  pat-type-to-enum: RefT()    -> "REF"
+  pat-type-to-enum: BlobT()   -> "BLOB"
+  pat-type-to-enum: PlaceT()  -> "PLACEHOLDER"
+
+  translate-SwitchV(|tp, e_path):
+    SwitchV(_, alt*, default) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
+  with
+    stm_def := <translate-Default> default
+
+  translate-SwitchV(|tp, e_path):
+    SwitchVNoDefault(_, alt*) ->
+    <translate-SwitchV-helper(|tp)> (e_path, alt*, stm_def)
+  with
+    stm_def := <translate-Fail> Fail()
+
+  translate-SwitchV-helper(|tp) =
+    if tp := ApplT() then // TODO This criterion could be less strict.
+      switch <get-config> "--pmc:switchv" <+ !"hash-switch"
+        case ?"elseif": AltVs-as-ifs
+        case ?"nested-switch": AltVs-as-nested-switches
+        case ?"hash-switch": AltV-as-hash-switch
+        otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv'", <id>]
+      end
+    else
+      AltVs-as-ifs
+    end
+
+  AltVs-as-ifs:
+    (e_path, alt*, stm_def) ->
+    <foldr(!stm_def, translate-AltV-if(|e_path))> alt*
+
+  translate-AltV-if(|e_occ):
+    (AltV(t, s), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        ~<translate-strategy> s
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
+
+  translate-AltV-if(|e_occ):
+    (GuardedAltV(t, guards), stm_else) ->
+    bstm* |[
+      if (e_match) {
+        bstm_guards
+      } else {
+        stm_else
+      }
+    ]|
+  with
+    e_match := <java-Pat-to-Condition> (t, e_occ)
+  ; bstm_guards := <translate-Guards> guards
+
+  AltV-as-hash-switch:
+    (e_path, alt*, stm_def) ->
+    bstm* |[
+      IStrategoConstructor x_cons = e_path;
+
+      switch (x_cons.hashCode()) {
+        ~switch-group*:cases
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    (x_cons, groups) := <AltV-as-hash-switch-helper>
+  ; cases := <map(HashGroup(|e|[x_cons]|, stm_def))> groups
+
+  AltV-as-hash-switch-helper:
+    (e_path, alt*, stm_def) ->
+    (x_cons, groups)
+  with
+    x_cons := <local-newname> "cons"
+  ; pairs := <map(split(AltHash, id))> alt*
+  ; hash_set := <map(Fst); make-set> pairs
+  ; groups := <map(split(id, \ h -> <collect-all(where(Fst; equal(|h)); Snd)> pairs \))> hash_set
+
+  AltHash:
+    alt@(_#([FunC(x, a), _])) ->
+    <constructor-checksum> appl
+  where
+    <?AltV(_, _) + ?GuardedAltV(_, _)> alt
+  with
+    appl := x#(<range> (0, <string-to-int> a))
+
+  HashGroup(|e_occ, stm_def):
+    (hash, alt*) ->
+    switch-group |[
+      case e_hash: {
+        bstm_alts*
+        break;
+      }
+    ]|
+  with
+    (e_hash, bstm_alts*) := <HashGroup-helper(|e_occ, stm_def)>
+
+  HashGroup-helper(|e_occ, stm_def):
+    (hash, alt*) ->
+    (e_hash, bstm_alts*)
+  with
+    e_hash := <java-mk-int-const> hash
+  ; bstm_alts* := <foldr(!stm_def, translate-AltV-if(|e_occ))> alt*
+
+  constructor-checksum = prim("SSL_constructor_hash", <id>)
+
+  AltVs-as-nested-switches =
+    switch <get-config> "--pmc:switchv-order" <+ !"arity-name"
+      case ?"arity-name": ArityNameSwitch
+      case ?"name-arity": NameAritySwitch
+      otherwise: <fatal-error> ["Not a valid value for '--pmc:switchv-order'", <id>]
+    end
+
+  ArityNameSwitch:
+    (e_path, alt*, stm_def) ->
+    bstm* |[
+      IStrategoConstructor x_cons = e_path;
+
+      switch (x_cons.getArity()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    x_cons := <local-newname> "cons"
+  ; pairs := <map(split(id, Alt2Arity; try(int-to-string)))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(ArityGroup(|e|[x_cons]|, stm_def))> grouped_by
+
+  Alt2Arity = ?AltV(<cons-arity>, _)
+  Alt2Arity = ?GuardedAltV(<cons-arity>, _)
+
+  ArityGroup(|e_path, stm_def):
+    (a, name_alt*) ->
+    switch-group |[
+      case e_arity: {
+        bstm_alt
+        break;
+      }
+    ]|
+  with
+    e_arity := <java-mk-int-const> a
+  ; bstm_alt := <NameSwitch(|e_path, stm_def)> name_alt*
+
+  NameSwitch(|e_path, stm_def):
+    alt* ->
+    bstm |[
+      switch (e_path.getName()) {
+        ~switch-group*:groups
+        default: {
+          stm_def
+          break;
+        }
+      }
+    ]|
+  with
+    pairs := <map(split(id, Alt2Name))> alt*
+  ; group_labels := <map(Snd); make-set> pairs
+  ; grouped_by := <map(\ a -> (a, <filter(where(Snd; ?a); Fst)> pairs) \)> group_labels
+  ; groups := <map(NameGroup(|e_path, stm_def))> grouped_by
+
+  Alt2Name = ?AltV(<cons-name>, _)
+  Alt2Name = ?GuardedAltV(<cons-name>, _)
+
+  cons-name = ?FunC(<id>, _)
+
+  NameGroup(|_, _):
+    (name, [alt]) ->
+    switch-group |[
+      case e_name: {
+        stm_alt
+        break;
+      }
+    ]|
+  with
+    e_name := <java-mk-string-const> name
+  ; stm_alt := <translate-AltV-case> alt
+
+  translate-AltV-case = ?AltV(_, <translate-strategy>)
+  translate-AltV-case = ?GuardedAltV(_, <translate-Guards>)
+
+  NameAritySwitch = debug(|"NameAritySwitch "); fail
+
+  /** @type List(Guard) -> Block */
+  translate-Guards =
+    translate-Guards(|Fail())
+
+  translate-Guards(|failure) =
+    foldr(<translate-strategy> failure, translate-Guard)
+
+  translate-Guard:
+    (Guard(s1, Id()), stm_s2) ->
+    bstm* |[
+      // (this pattern is matched optimized in java-postprocess)
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           if (TRUE) // (avoid unreachable stm error)
+             break Success;
+        }
+        term = x_termcopy;
+        stm_s2
+      }
+    ]|
+   with
+     x_termcopy := <local-newname> "term"
+   ; stm_s1     := <translate-strategy> s1
+
+  /** @type Guard -> Block */  
+  translate-Guard:
+    (Guard(s1, s2), stm_s3) ->
+    bstm* |[
+      IStrategoTerm x_termcopy = term;
+      Success: {
+        Fail: {
+           stm_s1
+           OuterFail: { // (redirects failure to outer Fail block)
+             stm_s2
+             if (TRUE) // (avoid unreachable stm error)
+               break Success;
+           }
+        }
+        term = x_termcopy;
+        stm_s3
+      }
+    ]|
+  where
+    <not(?Id())> s2
+  with
+    x_termcopy := <local-newname> "term"
+  ; stm_s1     := <translate-strategy> s1
+  ; stm_s2     := <translate-strategy> s2
+
+
+  typed-assign(|LisT()):
+    e_trm ->
+    (bstm |[ IStrategoList x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "list"
+
+  typed-assign(|ApplT()):
+    e_trm ->
+    (bstm |[ IStrategoAppl x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "appl"
+
+  typed-assign(|TupleT()):
+    e_trm ->
+    (bstm |[ IStrategoTuple x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "tuple"
+
+  typed-assign(|StringT()):
+    e_trm ->
+    (bstm |[ IStrategoString x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "str"
+
+  typed-assign(|IntT()):
+    e_trm ->
+    (bstm |[ IStrategoInt x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "int"
+
+  typed-assign(|RealT()):
+    e_trm ->
+    (bstm |[ IStrategoReal x_asgn = e_trm; ]|, x_asgn)
+  with
+    x_asgn := <local-newname> "real"
+
+
+  java-Pat-to-Condition:
+    (FunC("Nil", "0"), e_occ) ->
+    e |[ ((IStrategoList) e_occ).isEmpty() ]|
+
+  java-Pat-to-Condition:
+    (FunC("Cons", "2"), e_occ) ->
+    e |[ !((IStrategoList) e_occ).isEmpty() ]|
+
+  java-Pat-to-Condition:
+    (op@FunC(c, x), e_occ) ->
+    e_cond
+  where
+    <not(?FunC("Nil", "0") + ?FunC("Cons", "2"))> op
+  with
+    e_cons := <java-ConstructorName-expr> (c, <string-to-int> x)
+  ; if not(<get-config> "-sc" => "off") then
+      !e |[ e_occ == e_cons ]|
+    else
+      !e |[ e_occ.equals(e_cons) ]|
+    end => e_cond
+
+  java-Pat-to-Condition:
+    (StrC(s), e_occ) ->
+    e |[ e_occ.equals(~<java-mk-string-const> s) ]|
+
+  java-Pat-to-Condition:
+    (IntC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-int-const> x ]|
+
+  java-Pat-to-Condition:
+    (RealC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-float-const> x ]|
+
+  java-Pat-to-Condition:
+    (AnnoC(), e_occ) ->
+    e |[ true ]|
+
+  java-Pat-to-Condition:
+    (TupleC(x), e_occ) ->
+    e |[ e_occ == ~<java-mk-int-const> x ]|
+
+
+  cast-path(|LisT()):
+    e_occ ->
+    e |[ (IStrategoList) e_occ ]|
+
+  cast-path(|ApplT()):
+    e_occ ->
+    e |[ (IStrategoAppl) e_occ ]|
+
+  cast-path(|IntT()):
+    e_occ ->
+    e |[ (IStrategoInt) e_occ ]|
+
+  cast-path(|RealT()):
+    e_occ ->
+    e |[ (IStrategoReal) e_occ ]|
+
+  cast-path(|StringT()):
+    e_occ ->
+    e |[ (IStrategoString) e_occ ]|
+
+  cast-path(|CtorT()):
+    e_occ ->
+    e |[ (IStrategoConstructor) e_occ ]|
+
+  cast-path(|TupleT()):
+    e_occ ->
+    e |[ (IStrategoTuple) e_occ ]|
+
+  cast-path(|RefT()):
+    e_occ ->
+    e |[ (IStrategoRef) e_occ ]|
+
+  cast-path(|PlaceT()):
+    e_occ ->
+    e |[ (IStrategoPlaceholder) e_occ ]|
+
+
+  // TODO Only cast when necessary...
+  translate-Path =
+    translate-PathTrm
+  + translate-PathTp
+  + translate-PathFld
+
+  translate-PathVF =
+    translate-PathTrm
+  + translate-PathFld
+
+  translate-PathTrm:
+    CurP() ->
+    e |[ term ]|
+
+//  translate-PathTrm =
+//    ?Var(_); java-ConstructVar
+
+  translate-PathTrm:
+    SubP(p, x) ->
+    e |[ e.getSubterm(~e:<java-mk-int-const> x) ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    AnnoP(p) ->
+    e |[ e.getAnnotations() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    HeadP(p) ->
+    e |[ ((IStrategoList) e).head() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTrm:
+    TailP(p) ->
+    e |[ ((IStrategoList) e).tail() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathTp:
+    TypeP(p) ->
+    e |[ e.getType() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    SizeP(p) ->
+    e |[ e.getSubtermCount() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    ConP(p) ->
+    e |[ ((IStrategoAppl) e).getConstructor() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    IntP(p) ->
+    e |[ ((IStrategoInt) e).intValue() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    RealP(p) ->
+    e |[ ((IStrategoReal) e).realValue() ]|
+  with
+    e := <translate-PathTrm> p
+
+  translate-PathFld:
+    StrP(p) ->
+    e |[ ((IStrategoString) e).stringValue() ]|
+  with
+    e := <translate-PathTrm> p

@@ -7,6 +7,10 @@
 module optimizer
 imports signatures/Stratego strc/opt/stratego-laws libstratego-lib
 
+imports
+  strc/opt/choices-to-multimatches
+  strc/opt/multimatch/multimatch2dfa
+
 strategies
 
   olevel(n, s) =
@@ -34,8 +38,11 @@ strategies
     if-lib(where(<set-config>("--only-local", ())))
     ; dead-def-elim-spec
 
-  compile-match = 
+  compile-match-old = 
     apply-to-bodies(match-to-dfa)
+
+  compile-match =
+    choices-to-multimatches; bottomup(?MultiMatch(_, _) < multimatch2dfa + id)
 
   bound-unbound-var = 
     mark-bound-unbound-vars
@@ -73,7 +80,7 @@ strategies
     // PATTERN MATCH COMPILATION
     ; olevel4(
 	compile-match
-	; desugar-case
+//	; desugar-case
         //; save-as2(!".opt5")
       )
     // INLINING 

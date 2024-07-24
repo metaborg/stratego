@@ -109,3 +109,5 @@ context-free syntax
   ErrorDesc.AsInOverlay = [As pattern not allowed in overlay. ]
   ErrorDesc.StringQuotationInOverlay = [The string quotation pattern may not be used in overlay. ]
   ErrorDesc.MissingTypeDefinition = [Missing type definition. ]
+
+  ErrorDesc.InternalRepresentationUsed = [This is internal representation and may not be used in a user-written program.]

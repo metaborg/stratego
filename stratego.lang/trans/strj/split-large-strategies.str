@@ -1,5 +1,13 @@
 module strj/split-large-strategies
 
+imports
+  strc/lib/stratlib
+
+  signatures/core/modules-sig
+  signatures/sugar/modules-sig
+  signatures/core/signatures-sig
+  signatures/core/strategies-sig
+
 overlays
   /**
    * Minimum number of _terms_ in a strategy definition required to split it up.
@@ -25,8 +33,11 @@ strategies
   
   split-large-strategy(|x) =
     bottomup-at-large-terms(
-      (?Seq(_, _) + ?GuardedLChoice(_, _, _))
-    ; split-large-strategy-apply(|x)
+      (?Seq(_, _) + ?GuardedLChoice(_, _, _)) < split-large-strategy-apply(|x)
+    + AltV(id, split-large-strategy-apply(|x))
+    + Guard(id, split-large-strategy-apply(|x))
+    + Default(split-large-strategy-apply(|x))
+    + split-large-alt-list-apply(|x); bottomup-at-large-terms(split-large-alt-list-apply(|x)) // Recursively apply until all lists are small enough
     )
 
   bottomup-at-large-terms(s) =
@@ -35,11 +46,13 @@ strategies
   bottomup-at-large-terms'(s) :
     t -> (t'', size')
     with
-      t'-and-sizes := <all(bottomup-at-large-terms'(s))>
+    {| SwitchTPath, SwitchVPath, AltTPat, AltVPath :
+      try(DefineContext)
+    ; t'-and-sizes := <all(bottomup-at-large-terms'(s))>
     ; t'           := <all(Fst)> t'-and-sizes
     ; size         := <crush(!1, add, Snd)> t'-and-sizes
-    with
-      ?SDefT(_, _, _, _) // don't count definitions
+
+    ; (<?SDefT(_, _, _, _)> t // don't count definitions
     ; t''   := t'
     ; size' := 0
     <+
@@ -49,7 +62,17 @@ strategies
     <+
       t''   := t'
     ; size' := size
-  
+    )
+    |}
+
+  DefineContext = ?SwitchT(p, _, _); rules( SwitchTPath := p )
+  DefineContext = ?SwitchTNoDefault(p, _); rules( SwitchTPath := p )
+  DefineContext = ?SwitchV(p, _, _); rules( SwitchVPath := p )
+  DefineContext = ?SwitchVNoDefault(p, _); rules( SwitchVPath := p )
+  DefineContext = ?AltT(tp, _); rules( AltTPat := tp )
+  DefineContext = ?AltV(vp, _); rules ( AltVPath := vp )
+  DefineContext = ?GuardedAltV(vp, _); rules ( AltVPath := vp )
+
   split-large-strategy-apply(|x) :
     |[ s ]| ->
     |[ let
@@ -61,6 +84,66 @@ strategies
        end
     ]|
     with
-      x_split  := <newname> <conc-strings> (x, "_fragment_")
-    ; x_unused := <newname> "unused"
+      // TODO Preferably use snewvar here. But that doesn't accept '$' in the input.
+      x_split  := <conc-strings; local-newname> (x, "_fragment_")
+    ; x_unused := <tnewvar> "unused"
 
+internal halve-list =
+    where(i := <div> (<length>, 2))
+  ; split-at(|i)
+
+  split-large-alt-list-apply(|x):
+    SwitchTNoDefault(p, alt*) ->
+    SwitchT(p, alt1*, Default(s))
+  with
+    (alt1*, alt2*) := <halve-list> alt*
+  ; s := <split-large-strategy-apply(|x)> SwitchTNoDefault(p, alt2*)
+
+  split-large-alt-list-apply(|x):
+    SwitchT(p, alt*, d) ->
+    SwitchT(p, alt1*, Default(s))
+  with
+    (alt1*, alt2*) := <halve-list> alt*
+  ; s := <split-large-strategy-apply(|x)> SwitchT(p, alt2*, d)
+
+  split-large-alt-list-apply(|x):
+    SwitchVNoDefault(p, alt*) ->
+    SwitchV(p, alt1*, Default(s))
+  with
+    (alt1*, alt2*) := <halve-list> alt*
+  ; s' := <GenSwitchT> (p, alt2*)
+  ; s := <split-large-strategy-apply(|x)> s'
+
+  split-large-alt-list-apply(|x):
+    SwitchV(p, alt*, d) ->
+    SwitchV(p, alt1*, Default(s))
+  with
+    (alt1*, alt2*) := <halve-list> alt*
+  // No SwitchT default required; we are inside another identical SwitchT/AltT at this point
+  ; s' := <GenSwitchT> (p, alt2*, d)
+  ; s := <split-large-strategy-apply(|x)> s'
+
+  split-large-alt-list-apply(|x):
+    GuardedAltV(pat, guard*) ->
+    GuardedAltV(pat, guard'*)
+  with
+    (guard1*, guard2*) := <halve-list> guard*
+  ; ss := <GenSwitchT> (<SwitchVPath>, [GuardedAltV(pat, guard2*)])
+  ; s' := <split-large-strategy-apply(|x)> ss
+  ; guard'* := <at-end(![Guard(Id(), s')])> guard1*
+
+  split-large-alt-list-apply(|x):
+    GuardedDefault(guard*) ->
+    GuardedDefault(guard'*)
+  with
+    (guard1*, guard2*) := <halve-list> guard*
+  ; ss := <GenSwitchT> (<SwitchVPath>, [], GuardedDefault(guard2*))
+  ; s' := <split-large-strategy-apply(|x)> ss
+  ; guard'* := <at-end(![Guard(Id(), s')])> guard1*
+
+  // No SwitchT default required; we are inside another identical SwitchT/AltT at this point, so the type switch will succeed for exactly that type.
+  internal GenSwitchT: (p, alt*) -> SwitchTNoDefault(<SwitchTPath>, [AltT(<AltTPat>, <GenSwitchV> (p, alt*))])
+  internal GenSwitchT: (p, alt*, d) -> SwitchTNoDefault(<SwitchTPath>, [AltT(<AltTPat>, <GenSwitchV> (p, alt*, d))])
+
+  internal GenSwitchV: (p, alt*) -> SwitchVNoDefault(p, alt*)
+  internal GenSwitchV: (p, alt*, d) -> SwitchV(p, alt*, d)

@@ -1,0 +1,62 @@
+module heuristics
+
+imports
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/matrix
+  strc/opt/multimatch/utils
+
+  libstratego-lib
+
+strategies
+  SelectHeuristically(h1) =
+    WithSHeuristics(S(h1), Hd)
+
+  SelectHeuristically(h1, h2) =
+    WithSHeuristics(S(h1); S(h2), Hd)
+
+  SelectHeuristically(h1, h2, h3) =
+    WithSHeuristics(S(h1); S(h2); S(h3), Hd)
+
+  internal WithSHeuristics(h, ph) = id
+  ; Matrix2IdxColList
+  ; h // list(Col) -> list(Col)
+  ; ph // list(Col) -> Col
+
+  internal S(s) = SelectHeuristically'(s)
+
+  // TODO Identify columns by unique instead of integer
+  internal Matrix2IdxColList = cols; add-indices
+
+  internal select'(|score): ((idx, col), (max, col*)) -> (max, col*)                where <lt> (score, max)
+  internal select'(|score): ((idx, col), (max, col*)) -> (max, [(idx, col) | col*]) where <eq> (score, max)
+  internal select'(|score): ((idx, col), (max, col*)) -> (score, [(idx, col)])      where <gt> (score, max)
+
+  internal SelectHeuristically'(heuristic) =
+    let
+      select = {score: where(?((_, Col(_, <heuristic>, _, _)), _) => score); select'(|score)}
+    in
+      foldr1(Hd; \ (i, col@Col(_, p*, _, _)) -> (<heuristic> p*, [(i, col)]) \, select); Snd
+    end
+
+strategies // heuristics
+  /*
+    Favors columns where the first pattern is a constructor pattern.
+  */
+  FirstRow: [p | _] -> 0 where <is-wld> p
+  FirstRow: [p | _] -> 1 where <not(is-wld)> p
+
+  /*
+    Favors columns with less wildcards.
+  */
+  SmallDefault = retain-all(is-wld + ?Anno(<is-wld>, <is-wld>)); length; negate
+
+  SmallBranchingFactor = head-constructors; foldr(![], union, ![<Fst; is-literal-cons < get-constructor + id>]); length; inc; negate
+
+  Arity = head-constructors; foldr(!0, addi, (?(<cons-arity>, _))); negate
+
+  LeafEdge = fail
+
+  Rows = fail
+
+strategies
+  internal negate = <subt> (0, <id>)

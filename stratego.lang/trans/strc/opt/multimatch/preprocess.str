@@ -1,0 +1,72 @@
+module multimatch/preprocess
+
+imports
+  strc/opt/multimatch/decompose
+  strc/opt/multimatch/guard
+  strc/opt/multimatch/utils
+  strc/lib/stratlib
+
+  signatures/core/terms-sig
+  signatures/core/strategies-sig
+  signatures/sugar/strategies-sig
+
+  libstratego-lib
+
+strategies
+  preprocess =
+    Explode2Guard
+  ; (CheckNoExplode, id, id)
+  ; (Var2AsWld, id, sequence-list)
+
+strategies
+  /*
+   * Extract exploded terms from a pattern,
+   */
+  Explode2Guard:
+    t -> (t', x*, s*)
+  with
+    <thread-alltd(Explode2Guard')> (t, ([], [])) => (t', (x*, s*))
+
+  // TODO Can the exploded term be annotated? How to handle this?
+  internal Explode2Guard':
+    (t1@Anno(Explode(_, _), Wld()), (x*, s*)) ->
+    (t2, ([x | x*], [s | s*]))
+  with
+    x := <tnewvar> "expl"
+  ; t2 := Var(x) // TODO Needs (offset/frames/escapes) annotations?
+  ; s := Where(|[ !t2; ?t1 ]|)
+
+  internal Explode2Guard':
+    (t1@Explode(_, _), (x*, s*)) ->
+    (t2, ([x | x*], [s | s*]))
+  with
+    x := <tnewvar> "expl"
+  ; t2 := Var(x)
+  ; s := Where(|[ !t2; ?t1 ]|)
+
+  internal Explode2Guard' =
+    (is-primitive, id)
+
+  internal is-primitive =
+    ?Var(_)
+  + is-wld
+  + ?Str(_)
+  + ?Int(_)
+  + ?Real(_)
+  + is-leaf
+
+  internal CheckNoExplode =
+    collect-om(?Explode(_, _)); not(?[]) < fatal-err(|"Unprocessed exploded term!") + id
+
+strategies
+  Var2AsWld = rec s(
+    As(id, s)
+ <+ Explode(id, s)
+ <+ \ Var(x) -> As(Var(x), Wld()) \
+ <+ all(try(s))
+ )
+
+strategies
+  internal sequence-list =
+    ?[<id>]
+  + foldr(!Id(), sequence-strategies)

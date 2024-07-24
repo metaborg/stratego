@@ -49,7 +49,7 @@ public class GenerateStratego {
 
     public final IStrategoAppl anno_cong__ast;
 
-    @jakarta.inject.Inject @javax.inject.Inject public GenerateStratego(StrIncrContext context) {
+    @jakarta.inject.Inject public GenerateStratego(StrIncrContext context) {
         this.tf = context.getFactory();
         final IStrategoAppl aTerm = tf.makeAppl("Sort", B.string("ATerm"), B.list());
         IStrategoAppl constTypeATerm = tf.makeAppl("ConstType", aTerm);
