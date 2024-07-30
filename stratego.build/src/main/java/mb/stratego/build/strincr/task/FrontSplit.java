@@ -29,7 +29,7 @@ public class FrontSplit implements TaskDef<CheckModuleInput, CheckModuleOutput> 
 
     public final Front front;
 
-    @jakarta.inject.Inject @javax.inject.Inject public FrontSplit(Front front) {
+    @jakarta.inject.Inject public FrontSplit(Front front) {
         this.front = front;
     }
 

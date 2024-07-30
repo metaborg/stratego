@@ -24,7 +24,7 @@ public class CopyLibraryClassFiles implements TaskDef<CLCFInput, CLCFOutput> {
     public final ResourcePathConverter resourcePathConverter;
     public final UnarchiveFromJar unarchiveFromJar;
 
-    @jakarta.inject.Inject @javax.inject.Inject public CopyLibraryClassFiles(ResourcePathConverter resourcePathConverter,
+    @jakarta.inject.Inject public CopyLibraryClassFiles(ResourcePathConverter resourcePathConverter,
         UnarchiveFromJar unarchiveFromJar) {
         this.resourcePathConverter = resourcePathConverter;
         this.unarchiveFromJar = unarchiveFromJar;

@@ -55,7 +55,7 @@ public class Resolve implements TaskDef<ResolveInput, GlobalData> {
     public final IModuleImportService moduleImportService;
     protected final ITermFactory tf;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Resolve(StrIncrContext strContext, Front front, IModuleImportService moduleImportService) {
+    @jakarta.inject.Inject public Resolve(StrIncrContext strContext, Front front, IModuleImportService moduleImportService) {
         this.front = front;
         this.moduleImportService = moduleImportService;
         this.tf = strContext.getFactory();

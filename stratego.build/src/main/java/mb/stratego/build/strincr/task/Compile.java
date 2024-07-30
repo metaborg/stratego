@@ -44,7 +44,7 @@ public class Compile implements TaskDef<CompileInput, CompileOutput> {
     public final CompileDynamicRules compileDynamicRules;
     public final Back back;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
+    @jakarta.inject.Inject public Compile(Resolve resolve, CopyLibraryClassFiles copyLibraryClassFiles, Check check,
         CompileDynamicRules compileDynamicRules, Back back) {
         this.resolve = resolve;
         this.copyLibraryClassFiles = copyLibraryClassFiles;

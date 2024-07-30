@@ -81,7 +81,7 @@ public class Back implements TaskDef<BackInput, BackOutput> {
     public final Check check;
     public final Front front;
 
-    @jakarta.inject.Inject @javax.inject.Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
+    @jakarta.inject.Inject public Back(StrategoLanguage strategoLanguage, StrIncrContext strContext,
         GenerateStratego generateStratego, ResourcePathConverter resourcePathConverter,
         Resolve resolve, Check check, Front front) {
         this.strategoLanguage = strategoLanguage;

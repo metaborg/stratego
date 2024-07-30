@@ -28,7 +28,7 @@ public class CheckOpenModule implements TaskDef<CheckModuleInput, CheckOpenModul
     private final Resolve resolve;
     private final ResourcePathConverter resourcePathConverter;
 
-    @jakarta.inject.Inject @javax.inject.Inject public CheckOpenModule(CheckModule checkModule, Front front, Resolve resolve,
+    @jakarta.inject.Inject public CheckOpenModule(CheckModule checkModule, Front front, Resolve resolve,
         ResourcePathConverter resourcePathConverter) {
         this.checkModule = checkModule;
         this.front = front;

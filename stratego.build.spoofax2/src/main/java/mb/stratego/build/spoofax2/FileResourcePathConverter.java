@@ -10,7 +10,7 @@ import java.io.File;
 public class FileResourcePathConverter implements ResourcePathConverter {
     private final ResourceService resourceService;
 
-    @jakarta.inject.Inject @javax.inject.Inject public FileResourcePathConverter(ResourceService resourceService) {
+    @jakarta.inject.Inject public FileResourcePathConverter(ResourceService resourceService) {
         this.resourceService = resourceService;
     }
 

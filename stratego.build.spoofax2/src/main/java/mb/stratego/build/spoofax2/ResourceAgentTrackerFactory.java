@@ -13,7 +13,7 @@ public class ResourceAgentTrackerFactory implements IOAgentTrackerFactory {
     private final IResourceService resourceService;
 
 
-    @jakarta.inject.Inject @javax.inject.Inject public ResourceAgentTrackerFactory(IResourceService resourceService) {
+    @jakarta.inject.Inject public ResourceAgentTrackerFactory(IResourceService resourceService) {
         this.resourceService = resourceService;
     }
 
