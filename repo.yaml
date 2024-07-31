@@ -3,6 +3,7 @@ repoOwner: "metaborg"
 repoName: "stratego"
 mainBranch: "master"
 mavenGroup: "org.metaborg.devenv"
+releaseTagPrefix: "devenv-release/"
 
 title: "Stratego"
 description: |
@@ -57,6 +58,17 @@ files:
   githubWorkflows:
     publishRelease: true
     publishSnapshot: true
+  githubIssueTemplates:
+    generate: true
+    update: true
+    assignDevelopers: true
+    useDiscussions: true
+    bugTypeLabel: "Type-Bug"
+    featureRequestTypeLabel: "Type-Feature-Request"
+    questionTypeLabel: "Type-Question"
+    bugStateLabel: "State-Triage"
+    featureRequestStateLabel: "State-Triage"
+    questionStateLabel: null
   gradleRootProject:
     update: true
     createPublishTasks: true
