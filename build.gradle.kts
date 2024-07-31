@@ -1,0 +1,53 @@
+// !! THIS FILE WAS GENERATED USING repoman !!
+// Modify `repo.yaml` instead and use `repoman` to update this file
+// See: https://github.com/metaborg/metaborg-gradle/
+
+import org.metaborg.convention.Person
+import org.metaborg.convention.MavenPublishConventionExtension
+
+// Workaround for issue: https://youtrack.jetbrains.com/issue/KTIJ-19369
+@Suppress("DSL_SCOPE_VIOLATION")
+plugins {
+    id("org.metaborg.convention.root-project")
+    alias(libs.plugins.gitonium)
+    // Set versions for plugins to use, only applying them in subprojects (apply false here).
+    id("org.metaborg.devenv.spoofax.gradle.langspec") version "0.1.41" apply false
+}
+
+rootProjectConvention {
+    // Add `publishAll` and `publish` tasks that delegate to the subprojects and included builds.
+    registerPublishTasks.set(true)
+}
+allprojects {
+    apply(plugin = "org.metaborg.gitonium")
+
+    // Configure Gitonium before setting the version
+    gitonium {
+        mainBranch.set("master")
+    }
+    version = gitonium.version
+    group = "org.metaborg.devenv"
+
+    pluginManager.withPlugin("org.metaborg.convention.maven-publish") {
+        extensions.configure(MavenPublishConventionExtension::class.java) {
+            repoOwner.set("metaborg")
+            repoName.set("stratego")
+
+            metadata {
+                inceptionYear.set("2007")
+                developers.set(listOf(
+                    Person("Jeff Smits", email = null, id = "Apanatshka"),
+                ))
+                contributors.set(listOf(
+                    Person("Toine Hartman", email = null, id = "toinehartman"),
+                    Person("Gabriel Konat", email = null, id = "Gohla"),
+                    Person("Lennart Kats", email = null, id = "lennartcl"),
+                    Person("Maartje de Jonge", email = null, id = "maartje"),
+                    Person("Eelco Visser", email = null, id = "eelcovisser"),
+                    Person("Daniel A. A. Pelsmaeker", email = null, id = "Virtlink"),
+                    Person("Oskar van Rest", email = null, id = "oskar-van-rest"),
+                ))
+            }
+        }
+    }
+}
