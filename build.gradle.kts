@@ -10,8 +10,7 @@ import org.metaborg.convention.MavenPublishConventionExtension
 plugins {
     id("org.metaborg.convention.root-project")
     alias(libs.plugins.gitonium)
-    // Set versions for plugins to use, only applying them in subprojects (apply false here).
-    id("org.metaborg.devenv.spoofax.gradle.langspec") version "0.1.41" apply false
+    alias(libs.plugins.spoofax.gradle.langspec) apply false
 }
 
 rootProjectConvention {
@@ -24,6 +23,7 @@ allprojects {
     // Configure Gitonium before setting the version
     gitonium {
         mainBranch.set("master")
+        tagPrefix.set("devenv-release/")
     }
     version = gitonium.version
     group = "org.metaborg.devenv"

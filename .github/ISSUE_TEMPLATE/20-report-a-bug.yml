@@ -1,0 +1,65 @@
+---
+# !! THIS FILE WAS GENERATED USING repoman !!
+# Modify `repo.yaml` instead and use `repoman` to update this file
+# See: https://github.com/metaborg/metaborg-gradle/
+ 
+name: "🐞 Report a Bug"
+description: File a bug report or issue for any project in Stratego.
+title: "[Bug]: "
+labels:
+  - "Type-Bug"
+  - "State-Triage"
+assignees:
+  - Apanatshka
+body:
+  - type: dropdown
+    id: project
+    attributes:
+      label: For which project in this repository does the issue occur?
+      multiple: true
+      options:
+        - ":gpp"
+        - ":org.metaborg.meta.lang.stratego"
+        - ":stratego.build"
+        - ":stratego.build.spoofax2"
+        - ":stratego.lang"
+        - ":strategolib"
+  - type: textarea
+    attributes:
+      label: Version
+      description: The version of Spoofax or the commit of this project where the issue occurs.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Describe the issue
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+      description: A concise description of what happened instead.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Links? References? Anything that will give us more context about the issue you are encountering!
+        
+        Tip: You can attach images, log files, or an example project by clicking this area to highlight it and then dragging files in.
+    validations:
+      required: false

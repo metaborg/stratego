@@ -10,7 +10,7 @@ description: |
   The Spoofax implementations of the Stratego language.
 inceptionYear: "2007"
 
-languages:
+spoofax3Languages:
   - group: "org.metaborg.devenv"
     name: "gpp"
     description: "GPP language"
@@ -24,7 +24,7 @@ languages:
     name: "strategolib"
     description: "Stratego 2 library"
 
-libraries:
+spoofax3Libraries:
   - group: "org.metaborg.devenv"
     name: "stratego.build"
     description: "Stratego 2 incremental compiler"
@@ -53,14 +53,11 @@ developers:
     name: "Jeff Smits"
 
 files:
-  changelog:
-    generate: false
   githubWorkflows:
     publishRelease: true
     publishSnapshot: true
   githubIssueTemplates:
     generate: true
-    update: true
     assignDevelopers: true
     useDiscussions: true
     bugTypeLabel: "Type-Bug"
@@ -70,8 +67,7 @@ files:
     featureRequestStateLabel: "State-Triage"
     questionStateLabel: null
   gradleRootProject:
-    update: true
-    createPublishTasks: true
+    generate: true
     rootProjectName: "stratego-project"
     includedProjects:
       - name: ":gpp"

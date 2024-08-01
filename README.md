@@ -12,17 +12,21 @@ See: https://github.com/metaborg/metaborg-gradle/
 The Spoofax implementations of the Stratego language.
 
 
-| Language | Latest Release | Latest Snapshot |
+## Spoofax 3 Artifacts
+
+| Spoofax Language | Latest Release | Latest Snapshot |
 |----------|----------------|-----------------|
 | `org.metaborg.devenv:gpp` | [![Release][mvn-rel-badge:org.metaborg.devenv:gpp]][mvn:org.metaborg.devenv:gpp] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:gpp]][mvn:org.metaborg.devenv:gpp] |
 | `org.metaborg.devenv:org.metaborg.meta.lang.stratego` | [![Release][mvn-rel-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]][mvn:org.metaborg.devenv:org.metaborg.meta.lang.stratego] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]][mvn:org.metaborg.devenv:org.metaborg.meta.lang.stratego] |
 | `org.metaborg.devenv:stratego.lang` | [![Release][mvn-rel-badge:org.metaborg.devenv:stratego.lang]][mvn:org.metaborg.devenv:stratego.lang] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:stratego.lang]][mvn:org.metaborg.devenv:stratego.lang] |
 | `org.metaborg.devenv:strategolib` | [![Release][mvn-rel-badge:org.metaborg.devenv:strategolib]][mvn:org.metaborg.devenv:strategolib] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:strategolib]][mvn:org.metaborg.devenv:strategolib] |
 
-| Artifact | Latest Release | Latest Snapshot |
+| Maven Artifact | Latest Release | Latest Snapshot |
 |----------|----------------|-----------------|
 | `org.metaborg.devenv:stratego.build` | [![Release][mvn-rel-badge:org.metaborg.devenv:stratego.build]][mvn:org.metaborg.devenv:stratego.build] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:stratego.build]][mvn:org.metaborg.devenv:stratego.build] |
 | `org.metaborg.devenv:stratego.build.spoofax2` | [![Release][mvn-rel-badge:org.metaborg.devenv:stratego.build.spoofax2]][mvn:org.metaborg.devenv:stratego.build.spoofax2] | [![Snapshot][mvn-snap-badge:org.metaborg.devenv:stratego.build.spoofax2]][mvn:org.metaborg.devenv:stratego.build.spoofax2] |
+
+
 
 
 1. The `org.metaborg.meta.lang.stratego*` directories contain the old Stratego editor (_Stratego 1_ or _Stratego/XT 0.17_), which uses pre-compiled libraries from the _Stratego/XT_ project that can be found in the `strategoxt` repository of this organisation.
@@ -46,22 +50,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
 [license]: https://github.com/metaborg/stratego/blob/master/LICENSE.md
 [github-badge:release]: https://img.shields.io/github/v/release/metaborg/stratego?display_name=release
 [github:release]: https://github.com/metaborg/stratego/releases
-
 [mvn:org.metaborg.devenv:gpp]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~gpp~~~
-[mvn-rel-badge:org.metaborg.devenv:gpp]: https://img.shields.io/nexus/r/org.metaborg.devenv/gpp?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn-snap-badge:org.metaborg.devenv:gpp]: https://img.shields.io/nexus/s/org.metaborg.devenv/gpp?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
 [mvn:org.metaborg.devenv:org.metaborg.meta.lang.stratego]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~org.metaborg.meta.lang.stratego~~~
-[mvn-rel-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]: https://img.shields.io/nexus/r/org.metaborg.devenv/org.metaborg.meta.lang.stratego?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn-snap-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]: https://img.shields.io/nexus/s/org.metaborg.devenv/org.metaborg.meta.lang.stratego?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn:org.metaborg.devenv:stratego.lang]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~stratego.lang~~~
-[mvn-rel-badge:org.metaborg.devenv:stratego.lang]: https://img.shields.io/nexus/r/org.metaborg.devenv/stratego.lang?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn-snap-badge:org.metaborg.devenv:stratego.lang]: https://img.shields.io/nexus/s/org.metaborg.devenv/stratego.lang?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn:org.metaborg.devenv:strategolib]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~strategolib~~~
-[mvn-rel-badge:org.metaborg.devenv:strategolib]: https://img.shields.io/nexus/r/org.metaborg.devenv/strategolib?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn-snap-badge:org.metaborg.devenv:strategolib]: https://img.shields.io/nexus/s/org.metaborg.devenv/strategolib?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
 [mvn:org.metaborg.devenv:stratego.build]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~stratego.build~~~
-[mvn-rel-badge:org.metaborg.devenv:stratego.build]: https://img.shields.io/nexus/r/org.metaborg.devenv/stratego.build?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
-[mvn-snap-badge:org.metaborg.devenv:stratego.build]: https://img.shields.io/nexus/s/org.metaborg.devenv/stratego.build?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
 [mvn:org.metaborg.devenv:stratego.build.spoofax2]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~stratego.build.spoofax2~~~
+[mvn:org.metaborg.devenv:stratego.lang]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~stratego.lang~~~
+[mvn:org.metaborg.devenv:strategolib]: https://artifacts.metaborg.org/#nexus-search;gav~org.metaborg.devenv~strategolib~~~
+[mvn-rel-badge:org.metaborg.devenv:gpp]: https://img.shields.io/nexus/r/org.metaborg.devenv/gpp?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-rel-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]: https://img.shields.io/nexus/r/org.metaborg.devenv/org.metaborg.meta.lang.stratego?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-rel-badge:org.metaborg.devenv:stratego.build]: https://img.shields.io/nexus/r/org.metaborg.devenv/stratego.build?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
 [mvn-rel-badge:org.metaborg.devenv:stratego.build.spoofax2]: https://img.shields.io/nexus/r/org.metaborg.devenv/stratego.build.spoofax2?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-rel-badge:org.metaborg.devenv:stratego.lang]: https://img.shields.io/nexus/r/org.metaborg.devenv/stratego.lang?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-rel-badge:org.metaborg.devenv:strategolib]: https://img.shields.io/nexus/r/org.metaborg.devenv/strategolib?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-snap-badge:org.metaborg.devenv:gpp]: https://img.shields.io/nexus/s/org.metaborg.devenv/gpp?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-snap-badge:org.metaborg.devenv:org.metaborg.meta.lang.stratego]: https://img.shields.io/nexus/s/org.metaborg.devenv/org.metaborg.meta.lang.stratego?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-snap-badge:org.metaborg.devenv:stratego.build]: https://img.shields.io/nexus/s/org.metaborg.devenv/stratego.build?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
 [mvn-snap-badge:org.metaborg.devenv:stratego.build.spoofax2]: https://img.shields.io/nexus/s/org.metaborg.devenv/stratego.build.spoofax2?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-snap-badge:org.metaborg.devenv:stratego.lang]: https://img.shields.io/nexus/s/org.metaborg.devenv/stratego.lang?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
+[mvn-snap-badge:org.metaborg.devenv:strategolib]: https://img.shields.io/nexus/s/org.metaborg.devenv/strategolib?server=https%3A%2F%2Fartifacts.metaborg.org&label=%20
