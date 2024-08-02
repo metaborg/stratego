@@ -17,7 +17,7 @@ jobs:
     with:
       gradle-command: |
         gradle build
-      needs-docker: true
+#      needs-docker: true
     # Due to a bug, we cannot set the timeout here: https://github.com/orgs/community/discussions/50481
     # Timeout in 10 minutes, as Stratego initialization can sometimes deadlock
     # timeout-minutes: 10
