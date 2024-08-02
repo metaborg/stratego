@@ -59,7 +59,6 @@ files:
   githubIssueTemplates:
     generate: true
     assignDevelopers: true
-    useDiscussions: true
     bugTypeLabel: "Type-Bug"
     featureRequestTypeLabel: "Type-Feature-Request"
     questionTypeLabel: "Type-Question"
