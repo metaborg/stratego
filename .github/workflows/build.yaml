@@ -17,7 +17,7 @@ jobs:
     with:
       gradle-command: |
         gradle build
-#      needs-docker: true
+      needs-docker: true
     # Due to a bug, we cannot set the timeout here: https://github.com/orgs/community/discussions/50481
     # Timeout in 10 minutes, as Stratego initialization can sometimes deadlock
     # timeout-minutes: 10
@@ -29,7 +29,7 @@ jobs:
         gradle publish -Pgitonium.isSnapshot=true
       gradle-version-command: |
         gradle -q :printVersion -Pgitonium.isSnapshot=true
-#      needs-docker: true
+      needs-docker: true
     if: "github.event_name == 'push' && github.ref == 'refs/heads/master'"
     needs: [build]
     secrets:
@@ -43,7 +43,7 @@ jobs:
         gradle publish
       gradle-version-command: |
         gradle -q :printVersion
-#      needs-docker: true
+      needs-docker: true
     if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/devenv-release/')"
     needs: [build]
     secrets:
