@@ -13,13 +13,14 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   build:
-    # Timeout in 10 minutes, as Stratego initialization can sometimes deadlock
-    timeout-minutes: 10
     uses: metaborg/actions/.github/workflows/gradle-build-matrix.yaml@main
     with:
       gradle-command: |
         gradle build
       needs-docker: true
+    # Due to a bug, we cannot set the timeout here: https://github.com/orgs/community/discussions/50481
+    # Timeout in 10 minutes, as Stratego initialization can sometimes deadlock
+    # timeout-minutes: 10
   # Publish snapshots
   publish-snapshot:
     uses: metaborg/actions/.github/workflows/gradle-publish.yaml@main
