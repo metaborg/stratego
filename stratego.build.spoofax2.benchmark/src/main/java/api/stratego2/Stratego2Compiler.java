@@ -149,11 +149,11 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
     }
 
 //    @Override
-    public String run() throws IOException, InterruptedException {
+    public String run(String input) throws IOException, InterruptedException {
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
 
-        return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName)).lines().collect(Collectors.joining());
+        return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName), input).lines().collect(Collectors.joining());
     }
 
     @Override

@@ -94,8 +94,6 @@ final class SpaceBenchmarks {
             }
         }
 
-        }
-
         fileWriter.close();
     }
 

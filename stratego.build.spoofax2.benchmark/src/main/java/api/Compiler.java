@@ -52,7 +52,7 @@ public abstract class Compiler<R> {
 
 //    public abstract CharSequence run() throws IOException, InterruptedException, MetaborgException;
 
-    protected abstract void setupBuild() throws MetaborgException, IOException;
+    protected abstract void setupBuild() throws MetaborgException;
 
     public abstract void cleanup();
 }
