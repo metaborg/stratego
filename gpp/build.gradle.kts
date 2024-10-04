@@ -16,6 +16,7 @@ spoofaxLanguageSpecification {
     addSpoofaxCoreDependency.set(false)
     addSpoofaxRepository.set(false)
 }
+
 dependencies {
     api(platform(libs.metaborg.platform)) { version { require("latest.integration") } }
 

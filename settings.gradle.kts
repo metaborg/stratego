@@ -21,9 +21,10 @@ plugins {
 }
 
 rootProject.name = "stratego-project"
-include(":gpp")
-include(":org.metaborg.meta.lang.stratego")
+
 include(":stratego.build")
 include(":stratego.build.spoofax2")
+include(":org.metaborg.meta.lang.stratego")
 include(":stratego.lang")
 include(":strategolib")
+include(":gpp")
