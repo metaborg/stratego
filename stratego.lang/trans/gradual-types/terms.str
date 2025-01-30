@@ -330,7 +330,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
   trm1@Op(cnstr@"Cons", trm1*@[listVarTerm, nilTerm]) -> (trm2, st7)
   where
     <isListVarTerm> listVarTerm
-  ; <isNilTerm> nilTerm
+//  ; <isNilTerm> nilTerm
   with
     t1 := <expected-type> st1
   ; t* := <constr-lookup-to(|cnstr, <length> trm1*, t1, st1)> e1
