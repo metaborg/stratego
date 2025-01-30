@@ -3,19 +3,21 @@ package mb.stratego.build.strincr.message;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class UnresolvedConstructor extends Message {
+    private final String consName;
     public final int arity;
     public final String sort;
 
-    public UnresolvedConstructor(IStrategoTerm locationTerm, int arity, IStrategoTerm sort,
+    public UnresolvedConstructor(IStrategoTerm locationTerm, String consName, int arity, IStrategoTerm sort,
         MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
+        this.consName = consName;
         this.arity = arity;
         this.sort = sort.toString();
     }
 
     @Override
     public String getMessage() {
-        return "Undefined constructor with arity " + arity + " and type " + sort + ".";
+        return "Undefined constructor " + consName + " with arity " + arity + " and type " + sort + ".";
     }
 
     @Override public boolean equals(Object o) {

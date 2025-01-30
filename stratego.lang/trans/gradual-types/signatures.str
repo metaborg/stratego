@@ -72,7 +72,7 @@ strategies // core/signatures & sugar/signatures
     with
       arity := <length> sa*
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(n, arity))
       end
     ; gadt-check(s|s, sa*, e)
 
@@ -81,7 +81,7 @@ strategies // core/signatures & sugar/signatures
       <is-primitive-type> n
     <+
       if <not(sort-exists(|s, 0))> e
-        then <report-Err> (s, UnresolvedSortVar())
+        then <report-Err> (s, UnresolvedSortVar(n))
       end
 
   sort-check-Sort(s|e) = ?StringT()
@@ -98,14 +98,14 @@ strategies // core/signatures & sugar/signatures
     with
       arity := 0
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(n, arity))
       end
 
   sort-check-Sort(s|e): s@TupleT(s1, sa*) -> <id>
     with
       arity := <length> sa*
     ; if <not(sort-exists(|"Tuple", <int-inc> arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(s1, arity))
       end
     ; gadt-check(s|s, [s1, sa*], e)
 
@@ -122,7 +122,7 @@ strategies // core/signatures & sugar/signatures
     with
       arity := <length> sa*
     ; if <not(sort-exists(|"Tuple", arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(s, arity))
       end
     ; gadt-check(s|s, sa*, e)
 
@@ -190,7 +190,7 @@ strategies // gradual-types/signatures
     with
       arity := <length> sa*
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(n, arity))
       end
     ; <map(sort-check-Type(|e))> sa*
 
@@ -200,5 +200,5 @@ strategies // gradual-types/signatures
     with
       arity := 0
     ; if <not(sort-exists(|n, arity))> e
-        then <report-Warn> (s, UnresolvedSort(arity))
+        then <report-Warn> (s, UnresolvedSort(n, arity))
       end

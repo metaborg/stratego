@@ -90,7 +90,7 @@ insertCasts-Strategy(|e1, st1):
         (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, t1)
       ; result := (c2, <type-var-elim(|c1, freshvars)> st2)
       else
-        <report-Err> (x, UnresolvedStrategy(<length> s*, <length> t*))
+        <report-Err> (x, UnresolvedStrategy(x, <length> s*, <length> t*))
       ; (c2, st2) := <insertCasts-CallT(|e1, st1)> (c1, SDyn())
       ; result := (c2, <current-type(|EmptyT())> st2)
     end
@@ -325,7 +325,7 @@ insertCasts-Sarg(|e1, st1):
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
       ; st3 := <type-var-elim(|c, freshvars)> st2
       else
-        <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
+        <report-Err> (x, UnresolvedStrategy(x, <length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
       ; st3 := <current-type(|EmptyT())> st2
     end
@@ -338,7 +338,7 @@ insertCasts-Sarg(|e1, st1):
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
       ; st3 := <type-var-elim(|c, freshvars)> st2
       else
-        <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
+        <report-Err> (x, UnresolvedStrategy(x, <length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
       ; st3 := <current-type(|EmptyT())> st2
     end
@@ -351,7 +351,7 @@ insertCasts-Sarg(|e1, st1):
         (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, t2)
       ; st3 := <type-var-elim(|c, freshvars)> st2
       else
-        <report-Err> (x, UnresolvedStrategy(<length> st*, <length> tt*))
+        <report-Err> (x, UnresolvedStrategy(x, <length> st*, <length> tt*))
       ; (s, st2) := <insertCasts-Sarg-CallNoArgs(|st1)> (v, t1, SDyn())
       ; st3 := <current-type(|EmptyT())> st2
     end
@@ -390,7 +390,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy(0, 0))
+        <report-Err> (x, UnresolvedStrategy(x, 0, 0))
       ; st2 := <current-type(|EmptyT())> st1
       ; c2 := c1
       case ?st*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?_{LocalDef()})):
@@ -411,7 +411,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy(0, 0))
+        <report-Err> (x, UnresolvedStrategy(x, 0, 0))
       ; st2 := <current-type(|EmptyT())> st1
       ; c2 := c1
       case ?st*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?_{LocalDef()})):
@@ -432,7 +432,7 @@ insertCasts-Sarg(|e1, st1):
   with
     switch <strat-lookup-call(|x{})> e1
       case ?[]:
-        <report-Err> (x, UnresolvedStrategy(0, 0))
+        <report-Err> (x, UnresolvedStrategy(x, 0, 0))
       ; st2 := <current-type(|EmptyT())> st1
       ; c2 := c1
       case ?st1*@[_, _ | _]; not(getfirst(?FunTType([], [], _) <+ ?_{LocalDef()})):
@@ -705,7 +705,7 @@ insertCasts-Strategy(|e1, st1):
         end
     else
         if [] := t*
-          then <report-Err> (x, UnresolvedConstructor(<length> s1*, t1))
+          then <report-Err> (x, UnresolvedConstructor(x, <length> s1*, t1))
              ; (s2*, st2) := <thread-map-otf(insertCasts-Sarg-Type(|e1, EmptyT()))> (s1*, st1)
              ; st6 := <current-type(|EmptyT())> st1
           else <report-Warn> (x, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))

@@ -150,7 +150,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
         newvars := []
       ; unusedvars := []
       ; if [] := t*
-        then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        then <report-Err> (cnstr, UnresolvedConstructor(cnstr, <length> trm1*, t1))
            ; t4 := EmptyT() // workaround for backtracking issue in strj
            ; t3* := <map(!EmptyT())> trm1*
         else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
@@ -201,7 +201,7 @@ insertCasts-StMatchTerm-(overlayMode|e1, st1):
         newvars := []
       ; unusedvars := []
       ; if [] := t*
-        then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        then <report-Err> (cnstr, UnresolvedConstructor(cnstr, <length> trm1*, t1))
            ; t4 := EmptyT() // workaround for backtracking issue in strj
            ; t3* := <map(!EmptyT())> trm1*
         else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
@@ -261,7 +261,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
   ; if t2 := <term-lookup(|v{})> st1
       then st2 := st1
       else
-        <report-Err> (trm1, UnresolvedLocal())
+        <report-Err> (trm1, UnresolvedLocal(v))
       ; st2 := st1
       ; t2 := EmptyT()
 //           // We put the expected type here if the var is not found as this call may be in a
@@ -344,7 +344,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
       constrvars := []
     ; unusedvars := []
     ; if [] := t*
-        then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+        then <report-Err> (cnstr, UnresolvedConstructor(cnstr, <length> trm1*, t1))
            ; t3 := EmptyT() // workaround for backtracking issue in strj
            ; t3* := <map(!EmptyT())> trm1*
         else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
@@ -405,7 +405,7 @@ insertCasts-StBuildTerm-(overlayMode|e1, st1):
           constrvars := []
         ; unusedvars := []
         ; if [] := t*
-            then <report-Err> (cnstr, UnresolvedConstructor(<length> trm1*, t1))
+            then <report-Err> (cnstr, UnresolvedConstructor(cnstr, <length> trm1*, t1))
                ; t3 := EmptyT() // workaround for backtracking issue in strj
                ; t3* := <map(!EmptyT())> trm1*
             else id //<report-Warn> (cnstr, AmbiguousConstructorUse(<map(?ConstrType(_, <id>))> t*))
