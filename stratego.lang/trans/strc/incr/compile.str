@@ -7,8 +7,11 @@ imports
 
   strc/incr/split-large-term-builds
   strc/incr/fix-new-grammar
+  strc/parse/meta-explode
 
 strategies
+
+  stratego2-meta-explode = MetaExplode
 
   // The following are for compiling a single strategy + its overlays
   stratego2-compile-top-level-def: spec ->

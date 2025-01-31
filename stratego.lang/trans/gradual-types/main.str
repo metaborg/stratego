@@ -26,6 +26,7 @@ gradual-types/modules
 gradual-types/overlays
 
 strc/incr/fix-new-grammar
+strc/parse/meta-explode
 
 strategies // entry-points from Java
 
