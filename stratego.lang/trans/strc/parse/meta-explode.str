@@ -186,6 +186,12 @@ strategies
     [] -> Op("Nil", [])
 
   TrmCons :
+    [FromTerm(v@Var(ListVar(_)))] -> v
+
+  TrmCons :
+    [mv@meta-listvar(x)] -> <LstMetaVar> mv
+
+  TrmCons :
     [x | xs] -> 
     Op("Cons",[<trm-explode>x, <trm-explode> xs])
 
