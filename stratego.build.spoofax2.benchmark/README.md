@@ -1,0 +1,1 @@
+Use `make all` to clean, build, and run benchmarks. Use `make prepare-benchmark run-benchmark` for just re-building and running the benchmarks.
