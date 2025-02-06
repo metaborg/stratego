@@ -3,19 +3,21 @@ package mb.stratego.build.strincr.message;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class UnresolvedStrategy extends Message {
+    private final String strategyName;
     public final int strategyArity;
     public final int termArity;
 
-    public UnresolvedStrategy(IStrategoTerm locationTerm, int strategyArity, int termArity,
+    public UnresolvedStrategy(IStrategoTerm locationTerm, String strategyName, int strategyArity, int termArity,
         MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
+        this.strategyName = strategyName;
         this.strategyArity = strategyArity;
         this.termArity = termArity;
     }
 
     @Override
     public String getMessage() {
-        return "Unresolved strategy with arity " + strategyArity + "/" + termArity + ".";
+        return "Unresolved strategy " + strategyName + " with arity " + strategyArity + "/" + termArity + ".";
     }
 
     @Override public boolean equals(Object o) {

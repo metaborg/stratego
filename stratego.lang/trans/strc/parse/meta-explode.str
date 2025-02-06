@@ -62,7 +62,7 @@ strategies
     else
       MetaExplode
     end
-      
+
   MetaExplode =
     otf(
       alltd(
@@ -184,6 +184,12 @@ strategies
 
   TrmNil :
     [] -> Op("Nil", [])
+
+  TrmCons :
+    [FromTerm(v@Var(ListVar(_)))] -> v
+
+  TrmCons :
+    [mv@meta-listvar(x)] -> <LstMetaVar> mv
 
   TrmCons :
     [x | xs] -> 
