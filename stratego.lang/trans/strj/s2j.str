@@ -766,7 +766,7 @@ rules
     with
       {| CurrentLiftedFrame :
         rules(CurrentLiftedFrame := x{})
-      ; body*          := <java-eliminate-stacktrace> <translate-definition-body>
+      ; body*          := <java-eliminate-stacktrace> <translate-inner-definition-body>
       ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
       |}
 
@@ -816,7 +816,7 @@ rules
        }
        
        mod_override*
-       public IStrategoTerm invoke(Context context, IStrategoTerm term, param*) {
+       public IStrategoTerm invoke(Context context, IStrategoTerm term, param2*) {
            return callStatic(context, term, e_s*, e_t*);
        }
     ]|
@@ -830,7 +830,43 @@ rules
       ; e_s*               := <translate-args> s*
       ; e_t*               := <strip-annos; translate-args> t*
       ; x'                 := <undo-dollars-for-capitals> x
-      ; param*             := <conc> (s'*, t2*)
+      ; param*             := <conc> (s'*, t'*)
+      ; param2*            := <conc> (s'*, t2*)
+      ; if is-dynamic-signature(|s*, t*) then
+          mod_override* := []
+        else
+          mod_override* := [ anno |[ @Override ]| ]
+        end
+      ; bstm := <translate-strategy> s
+      |}
+
+  translate-inner-definition-body :
+    sdeft@SDefT(x, s*, t*, s) ->
+    |[ mod_override*
+       public IStrategoTerm invoke(Context context, IStrategoTerm term, param*) {
+           // As an ECJ 3.3 reachability detection bug workaround,
+           // we assign a non-final boolean TRUE to true
+           boolean TRUE = true;
+           ITermFactory termFactory = context.getFactory();
+           bstm_init*
+           if (TRACES_ENABLED) context.push("~x'");
+           Fail: {
+             bstm
+             if (TRACES_ENABLED) context.popOnSuccess("~x'");
+             if (TRUE) // (avoid unreachable stm error)
+               return term;
+           };
+           if (TRACES_ENABLED) context.popOnFailure("~x'");
+           return null;
+       }
+    ]|
+    with
+      {| IsStrategyArg, java-CheckBuild, CurrentLiftedFrame, java-CheckBuild,
+         IsLiftedTVar, IsLiftedSVar, LiftedTVars, LiftedSVars:
+        (s'*, [])          := <translate-params> s*
+      ; (t'*,  bstm_init*) := <translate-params> t*
+      ; x'                 := <undo-dollars-for-capitals> x
+      ; param*             := <conc> (s'*, t'*)
       ; if is-dynamic-signature(|s*, t*) then
           mod_override* := []
         else
