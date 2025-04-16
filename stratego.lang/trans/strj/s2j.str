@@ -825,10 +825,12 @@ rules
          IsLiftedTVar, IsLiftedSVar, LiftedTVars, LiftedSVars:
         (s'*, [])          := <translate-params> s*
       ; (t'*,  bstm_init*) := <translate-params> t*
+      // Ignore escaping variables for proxy to static call by stripping annos that mark those
+      ; (t2*,  [])         := <strip-annos; translate-params> t*
       ; e_s*               := <translate-args> s*
-      ; e_t*               := <translate-args> t*
+      ; e_t*               := <strip-annos; translate-args> t*
       ; x'                 := <undo-dollars-for-capitals> x
-      ; param*             := <conc> (s'*, t'*)
+      ; param*             := <conc> (s'*, t2*)
       ; if is-dynamic-signature(|s*, t*) then
           mod_override* := []
         else
@@ -1252,8 +1254,8 @@ strategies
 
   lifted-call-to-instance =
     lifted-call-to-instance-proxy
-  <+
-    lifted-call-to-instance-self-call
+//  <+
+//    lifted-call-to-instance-self-call
   <+
     lifted-call-to-instance-from-frame
   <+
@@ -1287,10 +1289,10 @@ strategies
         CallTAssigns :+= assigns
       )
 
-  lifted-call-to-instance-self-call :
-    CallT(SVar(x), _, _) -> expr |[ this ]|
-    where
-      <is-self-call> x
+//  lifted-call-to-instance-self-call :
+//    CallT(SVar(x), _, _) -> expr |[ this ]|
+//    where
+//      <is-self-call> x
 
   lifted-call-to-instance-from-frame :
     CallT(SVar(x{a*}), _, _) -> expr |[ x ]|
