@@ -19,7 +19,7 @@
 
         <metaborg.version>2.6.0-SNAPSHOT</metaborg.version>
         <pie.version>0.20.0</pie.version>
-        <skip.tests>true</skip.tests>
+<!--        <skip.tests>true</skip.tests> -->
     </properties>
 
     <!--
