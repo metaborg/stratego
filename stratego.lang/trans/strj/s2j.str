@@ -746,7 +746,7 @@ rules
          ~lifted-tfield*
          ~lifted-sfield*
 
-         ~body*
+         ~body
          ~invokedynamic*
        }
     ]|
@@ -766,7 +766,7 @@ rules
     with
       {| CurrentLiftedFrame :
         rules(CurrentLiftedFrame := x{})
-      ; body*          := <java-eliminate-stacktrace> <translate-inner-definition-body>
+      ; body           := <java-eliminate-stacktrace> <translate-inner-definition-body>
       ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
       |}
 
