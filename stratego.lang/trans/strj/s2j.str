@@ -646,14 +646,14 @@ rules
     type-dec |[
        @SuppressWarnings("all")
        public static class x extends Strategy {
-         public static x instance = new x();
+         public static final x instance = new x();
 
-         ~body
+         ~body*
          ~invokedynamic*
        }
     ]|
     with
-      body           := <translate-definition-body>
+      body*          := <translate-definition-body>
     ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
 
   translate-outer-definition-override :
@@ -664,7 +664,7 @@ rules
          // Initialize proceed with a new instance, to avoid stacking overrides due to repeated dynamic loads.
          // NOTE: this prevents multiple overrides of a strategy.
          private static final x proceed = new x();
-         ~(body)
+         ~(body*)
          @Override public String getName() { return "~x"; }
        }
     ]|
@@ -679,7 +679,7 @@ rules
       ; rules(
           ProceedInvoke := |[ proceed.invoke(context, term, e_s*, e_t*) ]|
         )
-      ; body := <translate-definition-body> def
+      ; body* := <translate-definition-body> def
       |}
 
   translate-outer-definition-extend :
@@ -688,7 +688,7 @@ rules
        @SuppressWarnings("all")
        private static final class x' extends x {
          private static final x proceed = x.instance;
-         ~(body)
+         ~(body*)
          @Override public String getName() { return "~x"; }
        }
     ]|
@@ -704,7 +704,7 @@ rules
       ; rules(
           ProceedInvoke := |[ proceed.invoke(context, term, e_s*, e_t*) ]|
         )
-      ; body := <translate-definition-body> def'
+      ; body* := <translate-definition-body> def'
       |}
 
   translate-outer-definition-internal :
@@ -714,12 +714,12 @@ rules
        private static final class x extends Strategy {
          public static final x instance = new x();
 
-         ~body
+         ~body*
          ~invokedynamic*
        }
     ]|
     with
-      body           := <translate-definition-body> def
+      body*          := <translate-definition-body> def
     ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
 
   translate-outer-definition-conflict :
@@ -746,7 +746,7 @@ rules
          ~lifted-tfield*
          ~lifted-sfield*
 
-         ~body
+         ~body*
          ~invokedynamic*
        }
     ]|
@@ -766,7 +766,7 @@ rules
     with
       {| CurrentLiftedFrame :
         rules(CurrentLiftedFrame := x{})
-      ; body           := <java-eliminate-stacktrace> <translate-definition-body>
+      ; body*          := <java-eliminate-stacktrace> <translate-definition-body>
       ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
       |}
 
@@ -797,9 +797,8 @@ rules
     ; e_t*      := <number(\(_,n) -> |[ targs[~i:<write-to-string> n] ]|\)> t*
 
   translate-definition-body :
-    SDefT(x, s*, t*, s) ->
-    |[ mod_override*
-       public IStrategoTerm invoke(Context context, IStrategoTerm term, param*) {
+    sdeft@SDefT(x, s*, t*, s) ->
+    |[ public static IStrategoTerm callStatic(Context context, IStrategoTerm term, param*) {
            // As an ECJ 3.3 reachability detection bug workaround,
            // we assign a non-final boolean TRUE to true
            boolean TRUE = true;
@@ -815,12 +814,19 @@ rules
            if (TRACES_ENABLED) context.popOnFailure("~x'");
            return null;
        }
+       
+       mod_override*
+       public IStrategoTerm invoke(Context context, IStrategoTerm term, param*) {
+           return callStatic(context, term, e_s*, e_t*);
+       }
     ]|
     with
       {| IsStrategyArg, java-CheckBuild, CurrentLiftedFrame, java-CheckBuild,
          IsLiftedTVar, IsLiftedSVar, LiftedTVars, LiftedSVars:
         (s'*, [])          := <translate-params> s*
       ; (t'*,  bstm_init*) := <translate-params> t*
+      ; e_s*               := <translate-args> s*
+      ; e_t*               := <translate-args> t*
       ; x'                 := <undo-dollars-for-capitals> x
       ; param*             := <conc> (s'*, t'*)
       ; if is-dynamic-signature(|s*, t*) then
@@ -995,7 +1001,7 @@ strategies
     <+ translate-Let
     <+ translate-ImportTerm
     <+ translate-Escape
-    <+ fatal-err(|"translate-strategy failed ")
+    <+ fatal-err(|"translate-strategy failed on ")
        )
 
   translate-Let :
@@ -1027,7 +1033,7 @@ strategies
     CallT(SVar(x), s*, t*) ->
     bstm* |[
       bstm_init*
-      term = e_instance.invokeDynamic(context, term, new Strategy[] { e_s* }, new IStrategoTerm[] { e_t* });
+      bstm_call
       if (term == null)
         break Fail;
     ]|
@@ -1035,13 +1041,17 @@ strategies
       is-dynamic-signature(|s*, t*)
     with
       lifted-decls-wrap(
-        if <is-self-call> x then
-          e_instance := |[ this ]|
-        else
+//        if <is-self-call> x then
+//          e_instance := |[ this ]|
+//        else
           e_instance := <lifted-call-to-instance>
-        end
+//        end
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
+      ; !e_instance
+      ; ( turn-call-static(|e_s*, e_t*)
+       <+ !bstm |[ term = e_instance.invokeDynamic(context, term, new Strategy[] { e_s* }, new IStrategoTerm[] { e_t* }); ]|)
+      ; ?bstm_call
       ,
         ?bstm_init*
       )
@@ -1050,22 +1060,37 @@ strategies
     CallT(SVar(x), s*, t*) ->
     bstm* |[
       bstm_init*
-      term = e_instance.invoke(context, term, e_s*, e_t*);
+      bstm_call
       if (term == null)
         break Fail;
     ]|
     with
       lifted-decls-wrap(
-        if <is-self-call> x then
-          e_instance := |[ this ]|
-        else
+//        if <is-self-call> x then
+//          e_instance := |[ this ]|
+//        else
           e_instance := <lifted-call-to-instance>
-        end
+//        end
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
+      ; !e_instance
+      ; ( turn-call-static(|e_s*, e_t*)
+       <+ !bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|)
+      ; ?bstm_call
       ,
         ?bstm_init*
       )
+      
+  turn-call-static(|e_s*, e_t*) = fail
+
+// TODO: activate once a new baseline including the generation of callStatic is released (probably 2.5.23)
+//  turn-call-static(|e_s*, e_t*):
+//    expr |[ this ]| ->
+//    bstm |[ term = callStatic(context, term, e_s*, e_t*); ]|
+//
+//  turn-call-static(|e_s*, e_t*):
+//    expr |[ x.instance ]| ->
+//    bstm |[ term = x.callStatic(context, term, e_s*, e_t*); ]|
 
   translate-ProxyT:
     ProxyT(s*, t*, i, o, SVar(x)) ->
