@@ -199,7 +199,8 @@ public interface StrategoLanguage {
      * @throws ExecException On failing to load the Stratego language, internal error inside the code
      */
     default IStrategoTerm metaExplode(IStrategoTerm ast) throws ExecException {
-        return callStrategy(ast, null, "stratego2-meta-explode");
+        // return callStrategy(ast, null, "stratego2-meta-explode"); // Use this after release of 2.5.23
+        return callStrategy(ast, null, "MetaExplode");
     }
 
     IStrategoTerm callStrategy(IStrategoTerm input, @Nullable String projectPath, String strategyName)

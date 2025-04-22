@@ -79,6 +79,7 @@ public class StrcTests {
         ArrayList<IModuleImportService.ModuleIdentifier> linkedLibraries)
         throws URISyntaxException, IOException {
         final Path strategoxtJarPath = Stratego.getStrategoxtJarPath();
+        final Path strategoLibJarPath = Stratego.getStrategLibJarPath();
         final Path dirWithTestFiles = getResourcePathRoot().resolve(subdir);
         System.setProperty("user.dir", dirWithTestFiles.toAbsolutePath().toString());
         return streamStrategoFiles(dirWithTestFiles, glob).sorted().filter(disabled).map(p -> {
@@ -102,10 +103,10 @@ public class StrcTests {
                 final Iterable<? extends File> sourceFiles =
                     javaFiles((CompileOutput.Success) str2CompileOutput);
                 Assertions.assertTrue(Java.compile(outputDir, sourceFiles,
-                    Arrays.asList(outputDirFile, strategoxtJarPath.toFile())),
+                    Arrays.asList(outputDirFile, strategoLibJarPath.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed (" + baseName + ")");
                 Assertions.assertTrue(
-                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".stratego2integrationtest"),
+                    Java.execute(Arrays.asList(outputDir, strategoLibJarPath, strategoxtJarPath), packageName + ".stratego2integrationtest"),
                     "Running java expected to succeed (" + baseName + ")");
             });
         });
