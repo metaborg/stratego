@@ -92,7 +92,7 @@ public abstract class Message implements WithLastModified, Serializable {
                     TermUtils.toJavaIntAt(messageTerm, 1), messageTerm.getSubterm(2), severity,
                     lastModified);
             case "UnresolvedSort": // Int -> ErrorDesc
-                return new UnresolvedSort(locationTerm, TermUtils.toJavaStringAt(messageTerm, 0), TermUtils.toJavaIntAt(messageTerm, 1),
+                return new UnresolvedSort(locationTerm, messageTerm.getSubterm(0).toString(), TermUtils.toJavaIntAt(messageTerm, 1),
                     severity, lastModified);
             case "UnresolvedSortVar":
                 return new UnresolvedSortVar(locationTerm, TermUtils.toJavaStringAt(messageTerm, 0), severity, lastModified);
