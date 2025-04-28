@@ -2,6 +2,7 @@
 id: org.metaborg:gpp:${metaborgVersion}
 name: gpp
 metaborgVersion: 2.6.0-SNAPSHOT
+metaborgBaselineVersion: 2.5.23
 dependencies:
   compile:
   - org.metaborg:org.metaborg.meta.lang.esv:${metaborgVersion}
