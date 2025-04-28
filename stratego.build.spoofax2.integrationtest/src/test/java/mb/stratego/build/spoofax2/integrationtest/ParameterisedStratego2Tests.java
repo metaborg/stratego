@@ -154,6 +154,7 @@ public class ParameterisedStratego2Tests {
                                         List<IModuleImportService.ModuleIdentifier> linkedLibraries,
                                         Arguments args) {
         final Path strategoxtJarPath = Stratego.getStrategoxtJarPath();
+        final Path strategoLibJarPath = Stratego.getStrategLibJarPath();
         final String fileName = filepath.getFileName().toString();
         final String baseName = FilenameUtils.removeExtension(fileName);
         final Path outputDir = filepath.resolveSibling(baseName + "/test-gen");
@@ -170,10 +171,10 @@ public class ParameterisedStratego2Tests {
                             + getErrorMessagesString(str2CompileOutput));
             Iterable<? extends File> sourceFiles = javaFiles((CompileOutput.Success) str2CompileOutput);
             Assumptions.assumeTrue(Java.compile(outputDir, sourceFiles,
-                    Arrays.asList(outputDir.toFile(), strategoxtJarPath.toFile())),
+                    Arrays.asList(outputDir.toFile(), strategoLibJarPath.toFile(), strategoxtJarPath.toFile())),
                     "Compilation with javac expected to succeed");
             Assertions.assertTrue(
-                    Java.execute(Arrays.asList(outputDir, strategoxtJarPath), packageName + ".Main"),
+                    Java.execute(Arrays.asList(outputDir, strategoLibJarPath, strategoxtJarPath), packageName + ".Main"),
                     "Running java expected to succeed (" + baseName + ")");
         });
     }

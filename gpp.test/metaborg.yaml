@@ -1,7 +1,7 @@
 ---
 id: org.metaborg:gpp.test:${metaborgVersion}
 name: gpp
-metaborgVersion: 2.5.22
+metaborgVersion: 2.6.0-SNAPSHOT
 dependencies:
   compile:
   - org.metaborg:gpp:${metaborgVersion}

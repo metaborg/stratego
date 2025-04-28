@@ -55,6 +55,10 @@ public class Stratego {
         return Paths.get(System.getProperty("strategoxt-jar"));
     }
 
+    public static Path getStrategLibJarPath() {
+        return Paths.get(System.getProperty("strategolib-jar"));
+    }
+
     public static Path getStrategoPath() {
         return Paths.get(System.getProperty("omml-stratego"));
     }
@@ -209,6 +213,9 @@ public class Stratego {
             } catch(InterruptedException e) {
                 throw new MetaborgException(
                     "Incremental Stratego build interrupted: " + e.getMessage(), e);
+            } catch(ClassCastException e) {
+                throw new MetaborgException(
+                        "Class cast exception in " + baseName + ": " + e.getMessage(), e);
             }
         }
     }

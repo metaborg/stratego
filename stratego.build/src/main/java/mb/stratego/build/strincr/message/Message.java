@@ -86,19 +86,19 @@ public abstract class Message implements WithLastModified, Serializable {
                 return new STypeMismatch(locationTerm, messageTerm.getSubterm(0),
                     messageTerm.getSubterm(1), severity, lastModified);
             case "UnresolvedLocal":
-                return new UnresolvedLocal(locationTerm, severity, lastModified);
+                return new UnresolvedLocal(locationTerm, messageTerm.getSubterm(0), severity, lastModified);
             case "UnresolvedConstructor": // Int * Type -> ErrorDesc
-                return new UnresolvedConstructor(locationTerm,
-                    TermUtils.toJavaIntAt(messageTerm, 0), messageTerm.getSubterm(1), severity,
+                return new UnresolvedConstructor(locationTerm, TermUtils.toJavaStringAt(messageTerm, 0),
+                    TermUtils.toJavaIntAt(messageTerm, 1), messageTerm.getSubterm(2), severity,
                     lastModified);
             case "UnresolvedSort": // Int -> ErrorDesc
-                return new UnresolvedSort(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
+                return new UnresolvedSort(locationTerm, messageTerm.getSubterm(0).toString(), TermUtils.toJavaIntAt(messageTerm, 1),
                     severity, lastModified);
             case "UnresolvedSortVar":
-                return new UnresolvedSortVar(locationTerm, severity, lastModified);
+                return new UnresolvedSortVar(locationTerm, TermUtils.toJavaStringAt(messageTerm, 0), severity, lastModified);
             case "UnresolvedStrategy":
-                return new UnresolvedStrategy(locationTerm, TermUtils.toJavaIntAt(messageTerm, 0),
-                    TermUtils.toJavaIntAt(messageTerm, 1), severity, lastModified);
+                return new UnresolvedStrategy(locationTerm, TermUtils.toJavaStringAt(messageTerm, 0), TermUtils.toJavaIntAt(messageTerm, 1),
+                    TermUtils.toJavaIntAt(messageTerm, 2), severity, lastModified);
             case "AmbiguousConstructorUse": // List(Type) -> ErrorDesc
                 return new AmbiguousConstructorUse(locationTerm,
                     TermUtils.toJavaListAt(messageTerm, 0), severity, lastModified);

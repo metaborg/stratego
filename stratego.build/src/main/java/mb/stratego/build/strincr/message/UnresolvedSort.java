@@ -3,16 +3,18 @@ package mb.stratego.build.strincr.message;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class UnresolvedSort extends Message {
+    private final String sortName;
     public final int arity;
 
-    public UnresolvedSort(IStrategoTerm locationTerm, int arity, MessageSeverity severity, long lastModified) {
+    public UnresolvedSort(IStrategoTerm locationTerm, String sortName, int arity, MessageSeverity severity, long lastModified) {
         super(locationTerm, severity, lastModified);
+        this.sortName = sortName;
         this.arity = arity;
     }
 
     @Override
     public String getMessage() {
-        return "Unresolved sort with arity " + arity + ".";
+        return "Unresolved sort " + sortName + " with arity " + arity + ".";
     }
 
     @Override public boolean equals(Object o) {

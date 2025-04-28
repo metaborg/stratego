@@ -62,8 +62,11 @@ strategies
     else
       MetaExplode
     end
-      
+
   MetaExplode =
+    (  \c#(c*) -> "ToMetaExpr"#(c*) where <string-starts-with(|"StrategoToMetaExpr")> c\
+    <+ \c#(c*) -> "ToTerm"#(c*) where <string-starts-with(|"StrategoToTerm")> c\
+    <+ id);
     otf(
       alltd(
           Anno(\o@ToTerm(t) -> <otf(<pretrm-explode> t)> o\, MetaExplode)
@@ -144,6 +147,10 @@ strategies
   TrmMetaVar :
     meta-var(x) -> Var(x)
 
+  TrmMetaVar :
+    c#([x]) -> Var(x)
+  where <string-starts-with(|"StrategoMetaVar")> c
+
   LstMetaVar :
     meta-listvar(x) -> Var(y)
     where if <explode-string; last> x => '*' then
@@ -184,6 +191,12 @@ strategies
 
   TrmNil :
     [] -> Op("Nil", [])
+
+  TrmCons :
+    [FromTerm(v@Var(ListVar(_)))] -> v
+
+  TrmCons :
+    [mv@meta-listvar(x)] -> <LstMetaVar> mv
 
   TrmCons :
     [x | xs] -> 
@@ -229,6 +242,7 @@ strategies
   str-explode =
     otf(
     \ meta-var(x) -> Match(Var(x)) \
+    <+ \c#([x]) -> Match(Var(x)) where <string-starts-with(|"StrategoMetaVar")> c\
     <+ TrmFromTerm
     <+ TrmFromStr
     <+ ?FromApp(<MetaExplode>)

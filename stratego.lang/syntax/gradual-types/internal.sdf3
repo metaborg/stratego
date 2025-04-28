@@ -2,6 +2,7 @@ module gradual-types/internal
 
 imports
   core/identifiers
+  core/terms
   core/constants
   core/modules
   core/strategies
@@ -74,11 +75,11 @@ context-free syntax
   ErrorDesc.VariableBoundToIncompatibleType = [This variable has type [Type], which cannot be converted to [Type] automatically.]
   ErrorDesc.NoLUBBetween = [Expected [Type] and [Type] to have a shared least upper bound but none was found.]
   ErrorDesc.STypeMismatch = [Expected [SType], but got [SType].]
-  ErrorDesc.UnresolvedLocal = [Undefined local variable.]
-  ErrorDesc.UnresolvedSort = [Undefined sort with arity [Int].]
-  ErrorDesc.UnresolvedSortVar = [Undefined sort variable.]
-  ErrorDesc.UnresolvedConstructor = [Undefined constructor with arity [Int] and type [Type].]
-  ErrorDesc.UnresolvedStrategy = [Undefined strategy with arity [Int]/[Int].]
+  ErrorDesc.UnresolvedLocal = [Undefined local variable [ID].]
+  ErrorDesc.UnresolvedSort = [Undefined sort [Id] with arity [Int].]
+  ErrorDesc.UnresolvedSortVar = [Undefined sort variable [SortVar].]
+  ErrorDesc.UnresolvedConstructor = [Undefined constructor [Id] with arity [Int] and type [Type].]
+  ErrorDesc.UnresolvedStrategy = [Undefined strategy [SId] with arity [Int]/[Int].]
   ErrorDesc.AmbiguousConstructorUse = [Ambiguous use of constructor, could be the following types: [{Type ", "}+]]
   ErrorDesc.UnboundTypeVar = [No instantiation found for type variable [String]]
   ErrorDesc.LiteralCastFail = [Cannot compile literal failing cast]

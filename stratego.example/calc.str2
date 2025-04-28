@@ -1,1 +1,9 @@
-/Users/toinehartman/Documents/Studie/Thesis/Report/thesis/src/lst/calc.str2
+Calc: Plus(S(m), n) -> S(Plus(m, n))   // (1 + m) + n => 1 + (m + n)
+
+Calc: Minus(n, O()) -> n               // n - 0 => n
+Calc: Minus(S(m), S(n)) -> Minus(m, n) // (1 + m) - (1 + n) => m - n
+Calc: Minus(O(), S(_)) ->
+  <fatal-err(|"Negative result!")>     // 0 - (1 + n) => not a nat
+
+strategies
+  calculate = innermost(Calc)
