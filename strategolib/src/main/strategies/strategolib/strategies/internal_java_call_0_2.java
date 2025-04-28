@@ -19,7 +19,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.compat.SSL_EXT_java_call;
 
 public class internal_java_call_0_2 extends Strategy {
-    public static internal_java_call_0_2 instance = new internal_java_call_0_2();
+    public static final internal_java_call_0_2 instance = new internal_java_call_0_2();
 
     private static Map<String, Strategy> invocationCache = new ConcurrentHashMap<String, Strategy>();
 

@@ -7,7 +7,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.Term;
 
 public class filter_1_0 extends Strategy {
-    public static filter_1_0 instance = new filter_1_0();
+    public static final filter_1_0 instance = new filter_1_0();
 
     private static final int LARGE_LIST_SIZE = 10;
 
@@ -15,6 +15,10 @@ public class filter_1_0 extends Strategy {
      * Stratego 2 type: {@code filter :: (a -> b|) List(a) -> List(b)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy s) {
+        return callStatic(context, current, s);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy s) {
         IStrategoList list = (IStrategoList) current;
         int size = list.size(); // (assumed to be O(1))
 
@@ -32,7 +36,7 @@ public class filter_1_0 extends Strategy {
         return filterMaintainAnnos(context, (IStrategoList) current, s);
     }
 
-    private IStrategoTerm filterMaintainTailAnnos(Context context, IStrategoTerm[] prefix, IStrategoList tail,
+    private static IStrategoTerm filterMaintainTailAnnos(Context context, IStrategoTerm[] prefix, IStrategoList tail,
         int tailStart, Strategy s) {
         // Filter prefix, disregarding annotations
         for(int j = 0; j < tailStart; j++) {
@@ -51,7 +55,7 @@ public class filter_1_0 extends Strategy {
         return result;
     }
 
-    private IStrategoList filterMaintainAnnos(Context context, IStrategoList list, Strategy s) {
+    private static IStrategoList filterMaintainAnnos(Context context, IStrategoList list, Strategy s) {
         if(list.isEmpty())
             return list;
 
@@ -72,7 +76,7 @@ public class filter_1_0 extends Strategy {
         }
     }
 
-    private IStrategoList filterIgnoreAnnos(Context context, IStrategoTerm[] list, Strategy s) {
+    private static IStrategoList filterIgnoreAnnos(Context context, IStrategoTerm[] list, Strategy s) {
         for(int i = 0; i < list.length; i++) {
             list[i] = s.invoke(context, list[i]);
         }

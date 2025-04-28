@@ -8,7 +8,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class crush_3_0 extends Strategy {
-    public static crush_3_0 instance = new crush_3_0();
+    public static final crush_3_0 instance = new crush_3_0();
 
     /**
      * Stratego 2 type: {@code crush :: (List(d) -> b, c * b -> b, ? -> c|) ? -> b}

@@ -9,7 +9,7 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_put_eq_1_2 extends Strategy {
-    public static internal_immutable_map_put_eq_1_2 instance = new internal_immutable_map_put_eq_1_2();
+    public static final internal_immutable_map_put_eq_1_2 instance = new internal_immutable_map_put_eq_1_2();
 
      /**
      * Stratego 2 type: {@code internal-immutable-map-put-eq :: (k * k -> ?|k, v) ImmutableMapImplBlob -> ImmutableMapImplBlob}
@@ -19,7 +19,7 @@ public class internal_immutable_map_put_eq_1_2 extends Strategy {
         return put(current, key, value, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm put(IStrategoTerm current, IStrategoTerm key, IStrategoTerm value, EqualityComparator<Object> cmp) {
+    protected static IStrategoTerm put(IStrategoTerm current, IStrategoTerm key, IStrategoTerm value, EqualityComparator<Object> cmp) {
         final StrategoImmutableMap map = (StrategoImmutableMap) current;
 
         return new StrategoImmutableMap(map.backingMap.__putEquivalent(key, value, cmp));

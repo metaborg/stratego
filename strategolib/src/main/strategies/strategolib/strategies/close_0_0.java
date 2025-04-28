@@ -8,12 +8,16 @@ import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.Strategy;
 
 public class close_0_0 extends Strategy {
-    public static close_0_0 instance = new close_0_0();
+    public static final close_0_0 instance = new close_0_0();
 
     /**
      * Stratego 2 type: {@code close :: (|) FileDescriptor -> FileDescriptor}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         int fd = TermUtils.toJavaInt(current);
         try {
             return context.getIOAgent().closeRandomAccessFile(fd) ? current : null;

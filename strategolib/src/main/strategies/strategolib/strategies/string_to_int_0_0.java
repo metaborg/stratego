@@ -7,12 +7,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class string_to_int_0_0 extends Strategy {
-    public static string_to_int_0_0 instance = new string_to_int_0_0();
+    public static final string_to_int_0_0 instance = new string_to_int_0_0();
 
     /**
      * Stratego 2 type: {@code string-to-int :: (|) string -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
 
         String s = TermUtils.toJavaString(current);

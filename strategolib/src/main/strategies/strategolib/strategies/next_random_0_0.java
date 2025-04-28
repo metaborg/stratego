@@ -5,7 +5,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class next_random_0_0 extends Strategy {
-    public static next_random_0_0 instance = new next_random_0_0();
+    public static final next_random_0_0 instance = new next_random_0_0();
 
     /**
      * SSL_rand
@@ -16,6 +16,10 @@ public class next_random_0_0 extends Strategy {
      * Stratego 2 type: {@code get-random-max :: (|) ? -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         return context.getFactory().makeInt(set_random_seed_0_0.instance.getNextRandomInt(context));
     }
 }

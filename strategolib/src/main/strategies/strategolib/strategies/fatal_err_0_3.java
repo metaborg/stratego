@@ -9,7 +9,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.concat_strings_0_0;
 
 public class fatal_err_0_3 extends Strategy {
-    public static fatal_err_0_3 instance = new fatal_err_0_3();
+    public static final fatal_err_0_3 instance = new fatal_err_0_3();
 
     /**
      * SRTS-EXT-fatal-err(|_, _, _)

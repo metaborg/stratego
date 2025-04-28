@@ -9,12 +9,16 @@ import io.usethesource.capsule.Map;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 
 public class internal_immutable_map_to_list_0_0 extends Strategy {
-    public static internal_immutable_map_to_list_0_0 instance = new internal_immutable_map_to_list_0_0();
+    public static final internal_immutable_map_to_list_0_0 instance = new internal_immutable_map_to_list_0_0();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-to-list :: (|) ImmutableMapImplBlob -> List(k * v)}
      */
      @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
 
         final Map.Immutable<IStrategoTerm, IStrategoTerm> map = ((StrategoImmutableMap) current).backingMap;

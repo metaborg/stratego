@@ -12,12 +12,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class flatten_list_0_0 extends Strategy {
-    public static flatten_list_0_0 instance = new flatten_list_0_0();
+    public static final flatten_list_0_0 instance = new flatten_list_0_0();
 
     /**
      * Stratego 2 type: {@code flatten-list :: (|) List(?) -> List(?)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         ArrayList<IStrategoTerm> newList = new ArrayList<IStrategoTerm>();
         ArrayList<IStrategoTerm> stack = new ArrayList<IStrategoTerm>();
 
@@ -44,20 +48,20 @@ public class flatten_list_0_0 extends Strategy {
         return current;
     }
 
-    private void reverse(ArrayList<IStrategoTerm> array, int start, int end) {
+    private static void reverse(ArrayList<IStrategoTerm> array, int start, int end) {
         final int length = (end - start) / 2;
         for (int i = 0; i < length; ++i) {
             swap(array, start + i, end - 1 - i);
         }
     }
 
-    private void swap(ArrayList<IStrategoTerm> array, int i, int j) {
+    private static void swap(ArrayList<IStrategoTerm> array, int i, int j) {
         final IStrategoTerm tmp = array.get(i);
         array.set(i, array.get(j));
         array.set(j, tmp);
     }
 
-    public IStrategoTerm alternative(Context context, IStrategoTerm current) {
+    public static IStrategoTerm alternative(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
         final IStrategoList.Builder newList = factory.arrayListBuilder();
         final Deque<IStrategoList> stack = new ArrayDeque<IStrategoList>();

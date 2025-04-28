@@ -6,12 +6,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class mkdir_0_1 extends Strategy {
-    public static mkdir_0_1 instance = new mkdir_0_1();
+    public static final mkdir_0_1 instance = new mkdir_0_1();
 
     /**
      * Stratego 2 type: {@code mkdir :: (|List(AccessPermission)) string -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm pathname, IStrategoTerm mode) {
+        return callStatic(context, pathname, mode);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm pathname, IStrategoTerm mode) {
         int result = context.getIOAgent().mkdir(TermUtils.toJavaString(pathname)) ? 0 : -1;
 
         /* access parameter is ignored in C version

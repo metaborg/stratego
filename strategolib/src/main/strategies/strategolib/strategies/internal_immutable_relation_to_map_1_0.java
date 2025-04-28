@@ -14,9 +14,13 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 public class internal_immutable_relation_to_map_1_0 extends Strategy {
-    public static internal_immutable_relation_to_map_1_0 instance = new internal_immutable_relation_to_map_1_0();
+    public static final internal_immutable_relation_to_map_1_0 instance = new internal_immutable_relation_to_map_1_0();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge) {
+        return callStatic(context, current, merge);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy merge) {
         final ITermFactory f = context.getFactory();
 
         final BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> relation =

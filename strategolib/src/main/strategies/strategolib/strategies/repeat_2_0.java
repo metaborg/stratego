@@ -11,7 +11,7 @@ import org.strategoxt.lang.Strategy;
 import strategolib.terms.StrategyRef;
 
 public class repeat_2_0 extends Strategy {
-    public static repeat_2_0 instance = new repeat_2_0();
+    public static final repeat_2_0 instance = new repeat_2_0();
 
     private static final int INSANE_LOOP_COUNT = 100000;
 
@@ -19,6 +19,10 @@ public class repeat_2_0 extends Strategy {
      * Stratego 2 type: {@code repeat :: (a -> a, a -> b|) a -> b}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy s1, Strategy s2) {
+        return callStatic(context, current, s1, s2);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy s1, Strategy s2) {
         IStrategoTerm result = current;
         IStrategoTerm next = s1.invoke(context, result);
 
@@ -34,7 +38,7 @@ public class repeat_2_0 extends Strategy {
         return s2.invoke(context, result);
     }
 
-    private IStrategoTerm invokeSuspiciously(Context context, IStrategoTerm next, Strategy s) {
+    private static IStrategoTerm invokeSuspiciously(Context context, IStrategoTerm next, Strategy s) {
         final Set<IStrategoTerm> valuesSeen = new HashSet<>();
         IStrategoTerm result;
         do {

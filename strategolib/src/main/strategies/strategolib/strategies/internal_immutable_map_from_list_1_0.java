@@ -12,12 +12,16 @@ import io.usethesource.capsule.Map;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 
 public class internal_immutable_map_from_list_1_0 extends Strategy {
-    public static internal_immutable_map_from_list_1_0 instance = new internal_immutable_map_from_list_1_0();
+    public static final internal_immutable_map_from_list_1_0 instance = new internal_immutable_map_from_list_1_0();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-from-list :: (k * k -> k|) List(k * v) -> ImmutableMapImplBlob}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge) {
+        return callStatic(context, current, merge);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy merge) {
         final ITermFactory f = context.getFactory();
 
         final IStrategoList list = (IStrategoList) current;

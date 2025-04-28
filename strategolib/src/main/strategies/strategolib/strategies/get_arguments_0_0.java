@@ -9,12 +9,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class get_arguments_0_0 extends Strategy {
-    public static get_arguments_0_0 instance = new get_arguments_0_0();
+    public static final get_arguments_0_0 instance = new get_arguments_0_0();
 
     /**
      * Stratego 2 type: {@code get-arguments :: (|) ? -> List(?)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
         switch(current.getType()) {
             case APPL:

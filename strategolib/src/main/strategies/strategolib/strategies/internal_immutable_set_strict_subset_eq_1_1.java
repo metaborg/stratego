@@ -10,7 +10,7 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_strict_subset_eq_1_1 extends Strategy {
-    public static internal_immutable_set_strict_subset_eq_1_1 instance =
+    public static final internal_immutable_set_strict_subset_eq_1_1 instance =
         new internal_immutable_set_strict_subset_eq_1_1();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare,
@@ -18,7 +18,7 @@ public class internal_immutable_set_strict_subset_eq_1_1 extends Strategy {
         return strictSubset(context, current, otherTerm, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm strictSubset(Context context, IStrategoTerm current, IStrategoTerm otherTerm,
+    protected static IStrategoTerm strictSubset(Context context, IStrategoTerm current, IStrategoTerm otherTerm,
         EqualityComparator<Object> cmp) {
         final Set.Immutable<IStrategoTerm> left = ((StrategoImmutableSet) current).backingSet;
         final Set.Immutable<IStrategoTerm> right = ((StrategoImmutableSet) otherTerm).backingSet;

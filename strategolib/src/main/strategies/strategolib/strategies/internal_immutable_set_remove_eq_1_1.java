@@ -9,13 +9,17 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_remove_eq_1_1 extends Strategy {
-    public static internal_immutable_set_remove_eq_1_1 instance = new internal_immutable_set_remove_eq_1_1();
+    public static final internal_immutable_set_remove_eq_1_1 instance = new internal_immutable_set_remove_eq_1_1();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key) {
+        return callStatic(context, current, compare, key);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key) {
         return remove(context, current, key, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm remove(Context context, IStrategoTerm current, IStrategoTerm key,
+    protected static IStrategoTerm remove(Context context, IStrategoTerm current, IStrategoTerm key,
         EqualityComparator<Object> cmp) {
         final StrategoImmutableSet set = (StrategoImmutableSet) current;
 

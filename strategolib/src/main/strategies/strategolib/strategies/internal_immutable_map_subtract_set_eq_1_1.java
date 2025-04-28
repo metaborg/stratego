@@ -11,7 +11,7 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_subtract_set_eq_1_1 extends Strategy {
-    public static internal_immutable_map_subtract_set_eq_1_1 instance = new internal_immutable_map_subtract_set_eq_1_1();
+    public static final internal_immutable_map_subtract_set_eq_1_1 instance = new internal_immutable_map_subtract_set_eq_1_1();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-subtract-set-eq :: (v * v -> ?|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
@@ -21,7 +21,7 @@ public class internal_immutable_map_subtract_set_eq_1_1 extends Strategy {
         return subtract(current, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm subtract(IStrategoTerm current, IStrategoTerm other, EqualityComparator<Object> cmp) {
+    protected static IStrategoTerm subtract(IStrategoTerm current, IStrategoTerm other, EqualityComparator<Object> cmp) {
         final Map.Transient<IStrategoTerm, IStrategoTerm> one =
             ((StrategoImmutableMap) current).backingMap.asTransient();
         for(IStrategoTerm key : ((StrategoImmutableSet) other).backingSet) {

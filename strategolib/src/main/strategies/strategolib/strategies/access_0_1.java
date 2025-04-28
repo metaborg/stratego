@@ -7,12 +7,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class access_0_1 extends Strategy {
-    public static access_0_1 instance = new access_0_1();
+    public static final access_0_1 instance = new access_0_1();
 
     /**
      * Stratego 2 type: {@code access :: (|List(AccessPermission)) string -> string}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm perms) {
+        return callStatic(context, current, perms);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, IStrategoTerm perms) {
         final IOAgent agent = context.getIOAgent();
 
         final String path = TermUtils.toJavaString(current);
@@ -39,7 +43,7 @@ public class access_0_1 extends Strategy {
         return current;
     }
 
-    private int permissions_from_term(IOAgent agent, IStrategoTerm perms) {
+    private static int permissions_from_term(IOAgent agent, IStrategoTerm perms) {
         int res = 0;
         for(IStrategoTerm t : perms) {
             if(TermUtils.isAppl(t, "W_OK"))

@@ -16,12 +16,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_copy_file_0_1 extends Strategy {
-    public static internal_copy_file_0_1 instance = new internal_copy_file_0_1();
+    public static final internal_copy_file_0_1 instance = new internal_copy_file_0_1();
 
     /**
      * Stratego 2 type: {@code copy-file :: (|C99FileLoc) C99FileLoc -> C99FileLoc}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm oldName, IStrategoTerm newName) {
+        return callStatic(context, oldName, newName);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm oldName, IStrategoTerm newName) {
         final SSLLibrary op = (SSLLibrary) context.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
         final IOAgent agent = op.getIOAgent();
 
@@ -87,7 +91,7 @@ public class internal_copy_file_0_1 extends Strategy {
         return oldName;
     }
 
-    private boolean isSameFile(IStrategoTerm oldName, IStrategoTerm newName, IOAgent agent) {
+    private static boolean isSameFile(IStrategoTerm oldName, IStrategoTerm newName, IOAgent agent) {
         if(TermUtils.isString(oldName) && TermUtils.isString(newName)) {
             File file1 = agent.openFile(TermUtils.toJavaString(oldName));
             File file2 = agent.openFile(TermUtils.toJavaString(newName));

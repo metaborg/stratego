@@ -6,12 +6,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_hashtable_keys_0_0 extends Strategy {
-    public static internal_hashtable_keys_0_0 instance = new internal_hashtable_keys_0_0();
+    public static final internal_hashtable_keys_0_0 instance = new internal_hashtable_keys_0_0();
 
     /**
      * Stratego 2 type: {@code internal-hashtable-keys :: (|) HashtableImplBlob -> List(?)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         return context.getFactory().makeList(((StrategoHashMap) current).keySet());
     }
 }

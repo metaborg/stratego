@@ -8,7 +8,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class newterm_0_0 extends Strategy {
-    public static newterm_0_0 instance = new newterm_0_0();
+    public static final newterm_0_0 instance = new newterm_0_0();
 
     private static final WeakHashMap<Context, Integer> counterPerContext = new WeakHashMap<>();
 
@@ -16,6 +16,10 @@ public class newterm_0_0 extends Strategy {
      * Stratego 2 type: {@code newterm :: (|) ? -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         synchronized(counterPerContext) {
             final Integer counter = counterPerContext.compute(context, (k, i) -> i == null ? 0 : i + 1);
 

@@ -12,12 +12,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_read_term_from_stream_0_0 extends Strategy {
-    public static internal_read_term_from_stream_0_0 instance = new internal_read_term_from_stream_0_0();
+    public static final internal_read_term_from_stream_0_0 instance = new internal_read_term_from_stream_0_0();
 
     /**
      * Stratego 2 type: {@code internal-write-term-to-stream-text :: (|StreamImplBlob) ? -> StreamImplBlob}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm term) {
+        return callStatic(context, term);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm term) {
         final int streamNo = TermUtils.toJavaInt(term);
 
         // TODO: optimize - use memory-mapped I/O for reading terms?

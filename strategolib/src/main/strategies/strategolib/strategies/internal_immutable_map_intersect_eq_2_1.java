@@ -12,7 +12,7 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
-    public static internal_immutable_map_intersect_eq_2_1 instance = new internal_immutable_map_intersect_eq_2_1();
+    public static final internal_immutable_map_intersect_eq_2_1 instance = new internal_immutable_map_intersect_eq_2_1();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-intersect-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
@@ -22,7 +22,7 @@ public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
         return intersect(context, current, merge, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm intersect(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm,
+    protected static IStrategoTerm intersect(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm,
         EqualityComparator<Object> cmp) {
         final ITermFactory factory = context.getFactory();
         final Map.Transient<IStrategoTerm, IStrategoTerm> intersection = CapsuleUtil.transientMap();

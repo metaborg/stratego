@@ -7,12 +7,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class isatty_0_0 extends Strategy {
-    public static isatty_0_0 instance = new isatty_0_0();
+    public static final isatty_0_0 instance = new isatty_0_0();
 
     /**
      * Stratego 2 type: {@code isatty :: (|) FileDescriptor -> int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         // Java does not directly have access to POSIX isatty. We might depend on a library like
         //  Jansi or jnr-posix, to call out to C for isatty.
 

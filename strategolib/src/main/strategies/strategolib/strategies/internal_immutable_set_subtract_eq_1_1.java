@@ -9,7 +9,7 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableSet;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_set_subtract_eq_1_1 extends Strategy {
-    public static internal_immutable_set_subtract_eq_1_1 instance = new internal_immutable_set_subtract_eq_1_1();
+    public static final internal_immutable_set_subtract_eq_1_1 instance = new internal_immutable_set_subtract_eq_1_1();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy comp,
         IStrategoTerm otherTerm) {

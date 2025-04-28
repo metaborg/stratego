@@ -9,12 +9,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_mkterm_0_1 extends Strategy {
-    public static internal_mkterm_0_1 instance = new internal_mkterm_0_1();
+    public static final internal_mkterm_0_1 instance = new internal_mkterm_0_1();
 
     /**
      * Stratego 2 type: {@code internal-mkterm :: (|List(?)) ? -> ?}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm cons, IStrategoTerm children) {
+        return callStatic(context, cons, children);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm cons, IStrategoTerm children) {
         switch(cons.getType()) {
             case STRING:
                 final ITermFactory factory = context.getFactory();
@@ -34,7 +38,7 @@ public class internal_mkterm_0_1 extends Strategy {
         }
     }
 
-    private IStrategoTerm makeAppl(ITermFactory factory, String name, IStrategoTerm argsTerm) {
+    private static IStrategoTerm makeAppl(ITermFactory factory, String name, IStrategoTerm argsTerm) {
         // Cut constructor short to valid name
         for(int i = 0; i < name.length(); i++) {
             char c = name.charAt(i);

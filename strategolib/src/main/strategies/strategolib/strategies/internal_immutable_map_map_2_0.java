@@ -11,12 +11,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_immutable_map_map_2_0 extends Strategy {
-    public static internal_immutable_map_map_2_0 instance = new internal_immutable_map_map_2_0();
+    public static final internal_immutable_map_map_2_0 instance = new internal_immutable_map_map_2_0();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-map :: (k1 * v1 -> k2 * v2, k2 * (v2 * v2) -> v2|) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy mapping, Strategy merge) {
+        return callStatic(context, current, mapping, merge);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy mapping, Strategy merge) {
         final ITermFactory f = context.getFactory();
 
         final Map.Immutable<IStrategoTerm, IStrategoTerm> map = ((StrategoImmutableMap) current).backingMap;

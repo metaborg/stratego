@@ -11,7 +11,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class newname_0_0 extends Strategy {
-    public static newname_0_0 instance = new newname_0_0();
+    public static final newname_0_0 instance = new newname_0_0();
 
     private static final WeakHashMap<Context, WeakHashMap<String, AtomicInteger>> countersPerContext =
         new WeakHashMap<>();
@@ -20,6 +20,10 @@ public class newname_0_0 extends Strategy {
      * Stratego 2 type: {@code newname :: (|) string -> string}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         String prefix = TermUtils.toJavaString(current);
 
         // Intern to ensure that we get the same hard-reference to the prefix string, which will be 
@@ -46,7 +50,7 @@ public class newname_0_0 extends Strategy {
         }
     }
 
-    private int getNextValue(IOAgent iOAgent, AtomicInteger counter) {
+    private static int getNextValue(IOAgent iOAgent, AtomicInteger counter) {
         int result;
         while(true) {
             result = counter.getAndIncrement();

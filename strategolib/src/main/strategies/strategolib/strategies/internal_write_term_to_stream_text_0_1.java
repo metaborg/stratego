@@ -10,12 +10,16 @@ import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.Strategy;
 
 public class internal_write_term_to_stream_text_0_1 extends Strategy {
-    public static internal_write_term_to_stream_text_0_1 instance = new internal_write_term_to_stream_text_0_1();
+    public static final internal_write_term_to_stream_text_0_1 instance = new internal_write_term_to_stream_text_0_1();
 
     /**
      * Stratego 2 type: {@code internal-write-term-to-stream-text :: (|StreamImplBlob) ? -> StreamImplBlob}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm term, IStrategoTerm streamInt) {
+        return callStatic(context, term, streamInt);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm term, IStrategoTerm streamInt) {
         final int streamNo = TermUtils.toJavaInt(streamInt);
 
         final Writer out = context.getIOAgent().getWriter(streamNo);

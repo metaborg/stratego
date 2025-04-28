@@ -1,7 +1,7 @@
 package strategolib.strategies;
 
 public class foldr_3_0 extends crush_3_0 {
-    public static foldr_3_0 instance = new foldr_3_0();
+    public static final foldr_3_0 instance = new foldr_3_0();
 
     /**
      * Copy of crush, with more accurate type for input and third strategy argument.

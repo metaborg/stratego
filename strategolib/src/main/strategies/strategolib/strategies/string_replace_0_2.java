@@ -6,7 +6,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class string_replace_0_2 extends Strategy {
-    public static string_replace_0_2 instance = new string_replace_0_2();
+    public static final string_replace_0_2 instance = new string_replace_0_2();
 
     /**
      * Stratego 2 type: {@code term-address-lt :: (|b) a -> a}

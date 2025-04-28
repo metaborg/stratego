@@ -8,12 +8,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class get_appl_arguments_1_0 extends Strategy {
-    public static get_appl_arguments_1_0 instance = new get_appl_arguments_1_0();
+    public static final get_appl_arguments_1_0 instance = new get_appl_arguments_1_0();
 
     /**
      * Stratego 2 type: {@code get-appl-arguments :: (? -> a|) ? -> List(a)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy s) {
+        return callStatic(context, current, s);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy s) {
         if(!TermUtils.isAppl(current) && !TermUtils.isTuple(current)) {
             return null;
         }

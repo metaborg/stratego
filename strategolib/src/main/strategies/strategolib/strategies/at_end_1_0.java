@@ -10,12 +10,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class at_end_1_0 extends Strategy {
-    public static at_end_1_0 instance = new at_end_1_0();
+    public static final at_end_1_0 instance = new at_end_1_0();
 
     /**
      * Stratego 2 type: {@code at-end :: (List(b) -> List(a)|) List(a) -> List(a)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy s) {
+        return callStatic(context, current, s);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy s) {
         IStrategoList list = TermUtils.toList(current);
         IStrategoTerm[] listItems = new IStrategoTerm[list.size()];
 

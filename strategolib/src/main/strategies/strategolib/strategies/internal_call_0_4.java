@@ -17,7 +17,7 @@ import org.strategoxt.lang.Strategy;
 import org.strategoxt.lang.compat.NativeCallHelper;
 
 public class internal_call_0_4 extends Strategy {
-    public static internal_call_0_4 instance = new internal_call_0_4();
+    public static final internal_call_0_4 instance = new internal_call_0_4();
 
     private final NativeCallHelper caller = new NativeCallHelper();
 

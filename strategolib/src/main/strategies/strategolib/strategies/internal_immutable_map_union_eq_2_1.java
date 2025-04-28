@@ -10,16 +10,20 @@ import org.spoofax.interpreter.library.ssl.StrategoImmutableMap;
 import strategolib.terms.CompiledStrategyEqualityComparator;
 
 public class internal_immutable_map_union_eq_2_1 extends Strategy {
-    public static internal_immutable_map_union_eq_2_1 instance = new internal_immutable_map_union_eq_2_1();
+    public static final internal_immutable_map_union_eq_2_1 instance = new internal_immutable_map_union_eq_2_1();
 
     /**
      * Stratego 2 type: {@code internal-immutable-map-union-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
      @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge, Strategy compare, IStrategoTerm other) {
+        return callStatic(context, current, merge, compare, other);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy merge, Strategy compare, IStrategoTerm other) {
         return union(context, current, merge, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
-    protected IStrategoTerm union(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm, EqualityComparator<Object> cmp) {
+    protected static IStrategoTerm union(Context context, IStrategoTerm current, Strategy merge, IStrategoTerm otherTerm, EqualityComparator<Object> cmp) {
         final Map.Transient<IStrategoTerm, IStrategoTerm> one =
             ((StrategoImmutableMap) current).backingMap.asTransient();
         final Map.Immutable<IStrategoTerm, IStrategoTerm> other = ((StrategoImmutableMap) otherTerm).backingMap;

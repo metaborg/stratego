@@ -746,7 +746,7 @@ rules
          ~lifted-tfield*
          ~lifted-sfield*
 
-         ~body*
+         ~body
          ~invokedynamic*
        }
     ]|
@@ -1121,16 +1121,13 @@ strategies
         ?bstm_init*
       )
       
-  turn-call-static(|e_s*, e_t*) = fail
+  turn-call-static(|e_s*, e_t*):
+    expr |[ this ]| ->
+    bstm |[ term = callStatic(context, term, e_s*, e_t*); ]|
 
-// TODO: activate once a new baseline including the generation of callStatic is released (probably 2.5.23)
-//  turn-call-static(|e_s*, e_t*):
-//    expr |[ this ]| ->
-//    bstm |[ term = callStatic(context, term, e_s*, e_t*); ]|
-//
-//  turn-call-static(|e_s*, e_t*):
-//    expr |[ x.instance ]| ->
-//    bstm |[ term = x.callStatic(context, term, e_s*, e_t*); ]|
+  turn-call-static(|e_s*, e_t*):
+    expr |[ x.instance ]| ->
+    bstm |[ term = x.callStatic(context, term, e_s*, e_t*); ]|
 
   translate-ProxyT:
     ProxyT(s*, t*, i, o, SVar(x)) ->

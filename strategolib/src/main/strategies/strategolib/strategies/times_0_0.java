@@ -10,7 +10,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class times_0_0 extends Strategy {
-    public static times_0_0 instance = new times_0_0();
+    public static final times_0_0 instance = new times_0_0();
 
     public static final int TICKS_PER_SECOND = 100;
 
@@ -18,6 +18,10 @@ public class times_0_0 extends Strategy {
      * Stratego 2 type: {@code times :: (|) ? -> int * int * int * int}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
 
         int utime = (int) (getUserTime().orElse(0L) * TICKS_PER_SECOND / 1_000_000_000);

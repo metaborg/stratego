@@ -7,12 +7,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class concat_0_0 extends Strategy {
-    public static concat_0_0 instance = new concat_0_0();
+    public static final concat_0_0 instance = new concat_0_0();
 
     /**
      * Stratego 2 type: {@code flatten-list :: (|) List(List(a)) -> List(a)}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+        return callStatic(context, current);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current) {
         final ITermFactory factory = context.getFactory();
         final IStrategoList list = (IStrategoList) current;
         final IStrategoList annos = list.getAnnotations();

@@ -10,9 +10,13 @@ import io.usethesource.capsule.BinaryRelation;
 import org.spoofax.interpreter.library.ssl.StrategoImmutableRelation;
 
 public class internal_immutable_relation_filter_1_0 extends Strategy {
-    public static internal_immutable_relation_filter_1_0 instance = new internal_immutable_relation_filter_1_0();
+    public static final internal_immutable_relation_filter_1_0 instance = new internal_immutable_relation_filter_1_0();
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy mapping) {
+        return callStatic(context, current, mapping);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy mapping) {
         final ITermFactory f = context.getFactory();
 
         final BinaryRelation.Immutable<IStrategoTerm, IStrategoTerm> relation =

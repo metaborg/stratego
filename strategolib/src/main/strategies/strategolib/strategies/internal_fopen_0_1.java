@@ -10,12 +10,16 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class internal_fopen_0_1 extends Strategy {
-    public static internal_fopen_0_1 instance = new internal_fopen_0_1();
+    public static final internal_fopen_0_1 instance = new internal_fopen_0_1();
 
     /**
      * Stratego 2 type: {@code internal-fopen :: (|string) string -> StreamImplBlob}
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm pathname, IStrategoTerm modeTerm) {
+        return callStatic(context, pathname, modeTerm);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm pathname, IStrategoTerm modeTerm) {
         final IOAgent ioAgent = context.getIOAgent();
         if(ioAgent == null) {
             return null;
