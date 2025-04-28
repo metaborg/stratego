@@ -213,9 +213,6 @@ public class Stratego {
             } catch(InterruptedException e) {
                 throw new MetaborgException(
                     "Incremental Stratego build interrupted: " + e.getMessage(), e);
-            } catch(ClassCastException e) {
-                throw new MetaborgException(
-                        "Class cast exception in " + baseName + ": " + e.getMessage(), e);
             }
         }
     }
