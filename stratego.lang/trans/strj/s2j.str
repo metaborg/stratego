@@ -738,7 +738,7 @@ rules
       x' := <conc-strings> (x, "_extension")
 
   translate-inner-definition :
-    SDefT(x, s*, t*, s) ->
+    sdeft@SDefT(x, s*, t*, s) ->
     type-dec |[
        @SuppressWarnings("all")
        private static final class x extends Strategy {
@@ -760,15 +760,19 @@ rules
     with
       if !lifted-tvar* => lifted-svar* => [] then
         instance-field* := class-body-dec* |[ public static final x instance = new x(); ]|
+      ; {| CurrentLiftedFrame :
+          rules(CurrentLiftedFrame := x{})
+        ; body           := <java-eliminate-stacktrace> <translate-definition-body> sdeft
+        ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
+        |}
       else
         instance-field* := []
+      ; {| CurrentLiftedFrame :
+          rules(CurrentLiftedFrame := x{})
+        ; body           := <java-eliminate-stacktrace> <translate-inner-definition-body> sdeft
+        ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
+        |}
       end
-    with
-      {| CurrentLiftedFrame :
-        rules(CurrentLiftedFrame := x{})
-      ; body           := <java-eliminate-stacktrace> <translate-inner-definition-body>
-      ; invokedynamic* := <maybe-make-invoke-dynamic> (s*, t*)
-      |}
 
   maybe-make-invoke-dynamic :
     (s*, t*) -> invokedynamic*
@@ -1089,7 +1093,7 @@ strategies
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
       ; !e_instance
-      ; ( turn-call-static(|e_s*, e_t*)
+      ; ( make-call-static(|x, e_s*, e_t*)
        <+ !bstm |[ term = e_instance.invokeDynamic(context, term, new Strategy[] { e_s* }, new IStrategoTerm[] { e_t* }); ]|)
       ; ?bstm_call
       ,
@@ -1113,21 +1117,29 @@ strategies
 //        end
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
-      ; !e_instance
-      ; ( turn-call-static(|e_s*, e_t*)
-       <+ !bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|)
-      ; ?bstm_call
+      ; bstm_call := <make-call-static(|x, e_s*, e_t*)> e_instance
       ,
         ?bstm_init*
       )
-      
-  turn-call-static(|e_s*, e_t*):
+
+  // `this` call in local def that isn't a closure
+  make-call-static(|x, e_s*, e_t*):
     expr |[ this ]| ->
     bstm |[ term = callStatic(context, term, e_s*, e_t*); ]|
+    where
+      sarg* := <LiftedSVars> x{}
+    ; targ* := <LiftedTVars> x{}
+    ; !sarg* => targ* => []
 
-  turn-call-static(|e_s*, e_t*):
+  // static call to top-level def
+  make-call-static(|f, e_s*, e_t*):
     expr |[ x.instance ]| ->
     bstm |[ term = x.callStatic(context, term, e_s*, e_t*); ]|
+
+  // otherwise
+  make-call-static(|f, e_s*, e_t*):
+    e_instance ->
+    bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|
 
   translate-ProxyT:
     ProxyT(s*, t*, i, o, SVar(x)) ->
