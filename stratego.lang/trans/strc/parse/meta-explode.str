@@ -8,6 +8,7 @@ signature
     cf           : Term                     -> Term
     opt          : Term                     -> Term
     layout       : Term
+    Foo : Term
 
     ConsAux      : a * List(a) -> List(a)
 
@@ -64,21 +65,24 @@ strategies
     end
 
   MetaExplode =
-    (  \c#(c*) -> "ToMetaExpr"#(c*) where <string-starts-with(|"StrategoToMetaExpr")> c\
-    <+ \c#(c*) -> "ToTerm"#(c*) where <string-starts-with(|"StrategoToTerm")> c\
-    <+ id);
-    otf(
-      alltd(
-          Anno(\o@ToTerm(t) -> <otf(<pretrm-explode> t)> o\, MetaExplode)
-        + AnnoList(\o@ToTerm(t) -> <otf(<pretrm-explode> t)> o\, MetaExplode)
-        + NoAnnoList(\o@ToTerm(t) -> <otf(<pretrm-explode> t)> o\)
-        + \o@ToTerm(t) -> <otf(<trm-explode> t)> o\
-        + \o@ToMetaExpr(e) -> <otf(<trm-explode> e)> o\
-        + \o@ToMetaListExpr(e) -> <otf(<trm-explode> e)> o\
-        + \o@ToBuild(t) -> <otf(!Build(<trm-explode> t))> o\
-        + \o@ToStrategy(s) -> <otf(<str-explode> s)> o\
-      )
-    )
+    otf(alltd(MetaExplode'))
+
+  MetaExplode' = Anno(ToTermPreTrmExplode, MetaExplode)
+  MetaExplode' = AnnoList(ToTermPreTrmExplode, MetaExplode)
+  MetaExplode' = NoAnnoList(ToTermPreTrmExplode)
+  MetaExplode' : o@ToTerm(t) -> <otf(<trm-explode> t)> o
+  MetaExplode' : o@c#([t]) -> <otf(<trm-explode> t)> o
+    where <string-starts-with(|"StrategoToTerm")> c
+  MetaExplode' : o@ToMetaExpr(e) -> <otf(<trm-explode> e)> o
+  MetaExplode' : o@c#([t]) -> <otf(<trm-explode> t)> o
+    where <string-starts-with(|"StrategoToMetaExpr")> c
+  MetaExplode' : o@ToMetaListExpr(e) -> <otf(<trm-explode> e)> o
+  MetaExplode' : o@ToBuild(t) -> <otf(!Build(<trm-explode> t))> o
+  MetaExplode' : o@ToStrategy(s) -> <otf(<str-explode> s)> o
+
+  ToTermPreTrmExplode : o@ToTerm(t) -> <otf(<pretrm-explode> t)> o
+  ToTermPreTrmExplode : o@c#([t]) -> <otf(<pretrm-explode> t)> o
+    where <string-starts-with(|"StrategoToTerm")> c
 
   trm-explode =
     otf(
