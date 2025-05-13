@@ -14,8 +14,11 @@ public class internal_immutable_map_put_eq_1_2 extends Strategy {
      /**
      * Stratego 2 type: {@code internal-immutable-map-put-eq :: (k * k -> ?|k, v) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key,
-        IStrategoTerm value) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key, IStrategoTerm value) {
+        return callStatic(context, current, compare, key, value);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm key, IStrategoTerm value) {
         return put(current, key, value, new CompiledStrategyEqualityComparator(context, compare));
     }
 

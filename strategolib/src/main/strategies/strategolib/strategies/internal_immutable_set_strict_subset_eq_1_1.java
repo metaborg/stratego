@@ -13,8 +13,11 @@ public class internal_immutable_set_strict_subset_eq_1_1 extends Strategy {
     public static final internal_immutable_set_strict_subset_eq_1_1 instance =
         new internal_immutable_set_strict_subset_eq_1_1();
 
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare,
-        IStrategoTerm otherTerm) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm otherTerm) {
+        return callStatic(context, current, compare, otherTerm);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm otherTerm) {
         return strictSubset(context, current, otherTerm, new CompiledStrategyEqualityComparator(context, compare));
     }
 

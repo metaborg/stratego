@@ -11,8 +11,11 @@ public class internal_hashtable_put_0_2 extends Strategy {
     /**
      * Stratego 2 type: {@code internal-hashtable-put :: (|?, ?) HashtableImplBlob -> HashtableImplBlob}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm key,
-        IStrategoTerm value) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm key, IStrategoTerm value) {
+        return callStatic(context, current, key, value);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, IStrategoTerm key, IStrategoTerm value) {
         ((StrategoHashMap) current).put(key, value);
         return current;
     }

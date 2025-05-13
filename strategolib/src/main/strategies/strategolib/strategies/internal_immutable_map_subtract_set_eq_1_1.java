@@ -16,8 +16,11 @@ public class internal_immutable_map_subtract_set_eq_1_1 extends Strategy {
     /**
      * Stratego 2 type: {@code internal-immutable-map-subtract-set-eq :: (v * v -> ?|ImmutableSetImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
-     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare,
-        IStrategoTerm other) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm other) {
+    return callStatic(context, current, compare, other);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm other) {
         return subtract(current, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 

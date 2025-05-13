@@ -18,6 +18,11 @@ public class fatal_err_0_3 extends Strategy {
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm message,
         IStrategoTerm term, IStrategoTerm trace) {
+        return callStatic(context, current, message, term, trace);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, IStrategoTerm message,
+        IStrategoTerm term, IStrategoTerm trace) {
         if(TermUtils.isList(message)) {
             message = concat_strings_0_0.instance.invoke(context, message);
         }

@@ -19,7 +19,7 @@ import org.strategoxt.lang.compat.NativeCallHelper;
 public class internal_call_0_4 extends Strategy {
     public static final internal_call_0_4 instance = new internal_call_0_4();
 
-    private final NativeCallHelper caller = new NativeCallHelper();
+    private static final NativeCallHelper caller = new NativeCallHelper();
 
     /**
      * SSL_EXT_call
@@ -28,6 +28,11 @@ public class internal_call_0_4 extends Strategy {
      */
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm programTerm, IStrategoTerm argsTerm,
         IStrategoTerm fdIn, IStrategoTerm fdOut, IStrategoTerm fdErr) {
+        return callStatic(context, programTerm, argsTerm, fdIn, fdOut, fdErr);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm programTerm, IStrategoTerm argsTerm,
+                                          IStrategoTerm fdIn, IStrategoTerm fdOut, IStrategoTerm fdErr) {
         try {
             final String program = TermUtils.toJavaString(programTerm);
             String[] environment = null;

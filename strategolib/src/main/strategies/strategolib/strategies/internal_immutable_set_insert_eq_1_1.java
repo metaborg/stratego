@@ -11,8 +11,11 @@ import strategolib.terms.CompiledStrategyEqualityComparator;
 public class internal_immutable_set_insert_eq_1_1 extends Strategy {
     public static final internal_immutable_set_insert_eq_1_1 instance = new internal_immutable_set_insert_eq_1_1();
 
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare,
-        IStrategoTerm value) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm value) {
+        return callStatic(context, current, compare, value);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy compare, IStrategoTerm value) {
         return insert(context, current, value, new CompiledStrategyEqualityComparator(context, compare));
     }
 

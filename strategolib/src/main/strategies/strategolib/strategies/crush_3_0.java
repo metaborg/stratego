@@ -13,8 +13,11 @@ public class crush_3_0 extends Strategy {
     /**
      * Stratego 2 type: {@code crush :: (List(d) -> b, c * b -> b, ? -> c|) ? -> b}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy nul, Strategy sum,
-        Strategy s) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy nul, Strategy sum, Strategy s) {
+        return callStatic(context, current, nul, sum, s);
+    }
+    
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy nul, Strategy sum, Strategy s) {
         final ITermFactory factory = context.getFactory();
 
         IStrategoTerm result = nul.invoke(context, factory.makeList());

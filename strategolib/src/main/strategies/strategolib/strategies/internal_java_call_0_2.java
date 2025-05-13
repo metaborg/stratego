@@ -32,8 +32,11 @@ public class internal_java_call_0_2 extends Strategy {
      *
      * Stratego 2 type: {@code internal-java-call :: (|List(string), int) string -> ?}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm classNameTerm, IStrategoTerm argsTerm,
-        IStrategoTerm sameContextTerm) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm classNameTerm, IStrategoTerm argsTerm, IStrategoTerm sameContextTerm) {
+        return callStatic(context, classNameTerm, argsTerm, sameContextTerm);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm classNameTerm, IStrategoTerm argsTerm, IStrategoTerm sameContextTerm) {
         final String className = TermUtils.toJavaString(classNameTerm);
         if(className.indexOf('/') != -1) {
             return null;
@@ -65,7 +68,7 @@ public class internal_java_call_0_2 extends Strategy {
         }
     }
 
-    public IStrategoTerm call(Context parentContext, String className, IStrategoTerm arg, boolean sameContext) {
+    public static IStrategoTerm call(Context parentContext, String className, IStrategoTerm arg, boolean sameContext) {
         Strategy strategy = getStrategy(className);
         if(strategy == null)
             return null;

@@ -11,8 +11,11 @@ public class string_replace_0_2 extends Strategy {
     /**
      * Stratego 2 type: {@code term-address-lt :: (|b) a -> a}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm beforeTerm,
-        IStrategoTerm afterTerm) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, IStrategoTerm beforeTerm, IStrategoTerm afterTerm) {
+        return callStatic(context, current, beforeTerm, afterTerm);
+    }
+
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, IStrategoTerm beforeTerm, IStrategoTerm afterTerm) {
         final String before = TermUtils.toJavaString(beforeTerm);
         if(before.isEmpty()) {
             return current;

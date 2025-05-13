@@ -17,8 +17,11 @@ public class internal_immutable_map_intersect_eq_2_1 extends Strategy {
     /**
      * Stratego 2 type: {@code internal-immutable-map-intersect-eq :: (v * v -> v, v * v -> ?|ImmutableMapImplBlob) ImmutableMapImplBlob -> ImmutableMapImplBlob}
      */
-    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge, Strategy compare,
-        IStrategoTerm other) {
+    @Override public IStrategoTerm invoke(Context context, IStrategoTerm current, Strategy merge, Strategy compare, IStrategoTerm other) {
+        return callStatic(context, current, merge, compare, other);
+    }
+    
+    public static IStrategoTerm callStatic(Context context, IStrategoTerm current, Strategy merge, Strategy compare, IStrategoTerm other) {
         return intersect(context, current, merge, other, new CompiledStrategyEqualityComparator(context, compare));
     }
 
