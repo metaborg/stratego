@@ -1,6 +1,6 @@
 module langton7
 
-imports libstrategolib
+imports strategolib
 
 signature
 

@@ -1,6 +1,6 @@
 module calls
 
-imports libstrategolib
+imports strategolib
 
 signature
 

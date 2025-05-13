@@ -1,6 +1,6 @@
 module hanoi
 
-imports libstrategolib
+imports strategolib
 
 signature
 

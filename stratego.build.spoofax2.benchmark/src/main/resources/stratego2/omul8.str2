@@ -1,6 +1,6 @@
 module omul8
 
-imports libstrategolib
+imports strategolib
 
 signature
 

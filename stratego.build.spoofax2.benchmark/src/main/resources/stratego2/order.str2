@@ -1,6 +1,6 @@
 module order
 
-imports libstrategolib
+imports strategolib
 
 signature
 

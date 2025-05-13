@@ -1,6 +1,6 @@
 module revelt
 
-imports libstrategolib
+imports strategolib
 
 signature
 

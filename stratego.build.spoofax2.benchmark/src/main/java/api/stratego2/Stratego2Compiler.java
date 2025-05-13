@@ -18,18 +18,28 @@ import mb.stratego.build.spoofax2.StrIncrModule;
 import mb.stratego.build.strincr.BuiltinLibraryIdentifier;
 import mb.stratego.build.strincr.IModuleImportService;
 import mb.stratego.build.strincr.ModuleIdentifier;
+import mb.stratego.build.strincr.Stratego2LibInfo;
 import mb.stratego.build.strincr.message.Message;
 import mb.stratego.build.strincr.message.MessageSeverity;
 import mb.stratego.build.strincr.task.Compile;
 import mb.stratego.build.strincr.task.input.CompileInput;
 import mb.stratego.build.strincr.task.output.CompileOutput;
 import org.apache.commons.io.file.PathUtils;
+import org.apache.commons.vfs2.FileObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
+import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.Spoofax;
+import org.metaborg.spoofax.core.dynamicclassloading.DynamicClassLoadingFacet;
 import org.metaborg.util.cmd.Arguments;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.lang.StrategoExit;
@@ -96,7 +106,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
     }
 
     @Override
-    public CompileOutput compileProgram() throws MetaborgException {
+    public CompileOutput compileProgram() throws MetaborgException, IOException {
         if (null != session) {
             debugPrintln("Dropping PIE store... ");
             session.dropStore();
@@ -130,7 +140,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
 
         debugPrintf("Compiling %d Java files...%n", javaFiles().size());
         timer = System.currentTimeMillis();
-        javaCompilationResult = Java.compile(classDir, javaFiles(), Collections.singletonList(getStrategoxtJarPath(metaborgVersion).toFile()), output);
+        javaCompilationResult = Java.compile(classDir, javaFiles(), Arrays.asList(getStrategoLibJarPath(metaborgVersion).toFile(), getStrategoxtJarPath(metaborgVersion).toFile()), output);
         debugPrintf("Done! (%d ms)%n", System.currentTimeMillis() - timer);
 
         if (!javaCompilationResult)
@@ -153,7 +163,7 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         if (!javaCompilationResult)
             throw new RuntimeException("Cannot run program: Java compilation did not succeed!");
 
-        return Java.execute(classDir + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName), input).lines().collect(Collectors.joining());
+        return Java.execute(classDir + ":" + getStrategoLibJarPath(metaborgVersion) + ":" + getStrategoxtJarPath(metaborgVersion), String.format("%s.Main", javaPackageName), input).lines().collect(Collectors.joining());
     }
 
     @Override
@@ -170,8 +180,12 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         // load Stratego language for later discovery during compilation (parsing in particular)
 //        spoofax.languageDiscoveryService
 //                .languageFromArchive(spoofax.resolve(getStrategoPath(metaborgVersion).toFile()));
+        // (stratego 2)
         spoofax.languageDiscoveryService
                 .languageFromArchive(spoofax.resolve(getStratego2Path(metaborgVersion).toFile()));
+        // (strategolib)
+        spoofax.languageDiscoveryService
+                .languageFromArchive(spoofax.resolve(getStrategoLibPath(metaborgVersion).toFile()));
 
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
@@ -189,19 +203,65 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
         pie = pieBuilder.build();
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
-        if (!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
-            linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
-        }
+//        if (!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
+//            linkedLibraries.add(BuiltinLibraryIdentifier.StrategoLib);
+//        }
     }
 
-    private void str2(Arguments args) throws MetaborgException {
+    private void str2(Arguments args) throws MetaborgException, IOException {
         debugPrint("Instantiating compile input...");
         timer = System.currentTimeMillis();
+        final LinkedHashSet<Supplier<Stratego2LibInfo>> str2libraries = new LinkedHashSet<>();
+        if(!linkedLibraries.contains(BuiltinLibraryIdentifier.StrategoLib)) {
+            final Path temporaryDirectoryPath =
+                    Files.createTempDirectory("mb.stratego.build.spoofax2.benchmark")
+                            .toAbsolutePath();
+            // load strategolib language (str2lib)
+            final ILanguageImpl sourceDepImpl = spoofax.languageDiscoveryService
+                .languageFromArchive(spoofax.resolve(getStrategoLibPath(metaborgVersion).toFile()));
+            for(ILanguageComponent sourceDepImplComp : sourceDepImpl.components()) {
+                final String[] str2libProject = { null };
+                for(IExportConfig export : sourceDepImplComp.config().exports()) {
+                    if(str2libProject[0] != null) {
+                        break;
+                    }
+                    export.accept(new IExportVisitor() {
+                        @Override public void visit(LangDirExport resource) {}
+
+                        @Override public void visit(LangFileExport resource) {
+                            if(resource.language.equals("StrategoLang") && resource.file.endsWith("str2lib")) {
+                                str2libProject[0] = resource.file;
+                            }
+                        }
+
+                        @Override public void visit(ResourceExport resource) {}
+                    });
+                }
+                if(str2libProject[0] != null) {
+                    final FileObject strjIncludes =
+                        spoofax.resourceService.resolve(temporaryDirectoryPath.resolve("strj-includes").toFile());
+                    final FileObject str2LibFileObject = sourceDepImplComp.location().resolveFile(str2libProject[0]);
+                    final ResourcePath str2LibFile =
+                        new FSPath(spoofax.resourceService.localFile(str2LibFileObject, strjIncludes));
+                    final @Nullable DynamicClassLoadingFacet facet =
+                        sourceDepImplComp.facet(DynamicClassLoadingFacet.class);
+                    if(facet == null) {
+                        continue;
+                    }
+                    final ArrayList<ResourcePath> jarFiles =
+                        new ArrayList<>(facet.jarFiles.size());
+                    for(FileObject file : facet.jarFiles) {
+                        jarFiles.add(new FSPath(spoofax.resourceService.localFile(file, strjIncludes)));
+                    }
+                    str2libraries.add(new ValueSupplier<>(new Stratego2LibInfo(str2LibFile, jarFiles)));
+                }
+            }
+        }
         CompileInput compileInput =
                 new CompileInput(mainModuleIdentifier, projectPath, new FSPath(packageDir),
                         new FSPath(classDir), javaPackageName, new FSPath(pieDir.resolve("cacheDir")),
                         new ArrayList<>(0), strjIncludeDirs, linkedLibraries, args,
-                        new ArrayList<>(0), library, autoImportStd, true, languageIdentifier.id, new LinkedHashSet<>(0), true, true, null);
+                        new ArrayList<>(0), library, autoImportStd, true, languageIdentifier.id, str2libraries, true, true, null);
         debugPrintf(" (%d ms)%n", System.currentTimeMillis() - timer);
 
         debugPrint("Creating compile task...");
@@ -306,6 +366,15 @@ public final class Stratego2Compiler extends Compiler<CompileOutput> {
     @NotNull
     private static Path getStratego2Path(String metaborgVersion) {
         return localRepository.resolve(Paths.get("org", "metaborg", "stratego.lang", metaborgVersion, String.format("stratego.lang-%s.spoofax-language", metaborgVersion)));
+    }
+
+    @NotNull
+    private static Path getStrategoLibJarPath(String metaborgVersion) {
+        return localRepository.resolve(Paths.get("org", "metaborg", "strategolib", metaborgVersion, String.format("strategolib-%s.jar", metaborgVersion)));
+    }
+
+    private static Path getStrategoLibPath(String metaborgVersion) {
+        return localRepository.resolve(Paths.get("org", "metaborg", "strategolib", metaborgVersion, String.format("strategolib-%s.spoofax-language", metaborgVersion)));
     }
 
     @NotNull

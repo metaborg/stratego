@@ -1,6 +1,6 @@
 module tautologyhard
 
-imports libstrategolib
+imports strategolib
 
 signature
 

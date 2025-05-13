@@ -1,6 +1,6 @@
 module binarysearch
 
-imports libstrategolib
+imports strategolib
 
 signature
 

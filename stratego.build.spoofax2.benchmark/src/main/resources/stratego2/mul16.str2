@@ -1,6 +1,6 @@
 module mul16
 
-imports libstrategolib
+imports strategolib
 
 signature
 

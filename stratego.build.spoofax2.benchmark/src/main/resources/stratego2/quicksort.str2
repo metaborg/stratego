@@ -1,6 +1,6 @@
 module quicksort
 
-imports libstrategolib
+imports strategolib
 
 signature
 

@@ -1,6 +1,6 @@
 module tak36
 
-imports libstrategolib
+imports strategolib
 
 signature
 

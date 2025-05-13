@@ -1,6 +1,6 @@
 module bubblesort10
 
-imports libstrategolib
+imports strategolib
 
 signature
 

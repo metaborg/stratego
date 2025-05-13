@@ -1,6 +1,6 @@
 module mergesort
 
-imports libstrategolib
+imports strategolib
 
 signature
 

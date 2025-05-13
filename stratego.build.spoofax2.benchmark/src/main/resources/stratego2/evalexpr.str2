@@ -1,6 +1,6 @@
 module evalexpr
 
-imports libstrategolib
+imports strategolib
 
 signature
 

@@ -1,6 +1,6 @@
 module benchexpr
 
-imports libstrategolib
+imports strategolib
 
 signature
 

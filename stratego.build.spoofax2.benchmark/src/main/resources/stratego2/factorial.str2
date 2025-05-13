@@ -1,6 +1,6 @@
 module factorial5
 
-imports libstrategolib
+imports strategolib
 
 signature
 

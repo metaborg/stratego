@@ -1,6 +1,6 @@
 module logic3
 
-imports libstrategolib
+imports strategolib
 
 signature
 

@@ -1,6 +1,6 @@
 module empty
 
-imports libstrategolib
+imports strategolib
 
 signature
 

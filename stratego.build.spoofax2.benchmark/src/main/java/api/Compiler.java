@@ -48,7 +48,7 @@ public abstract class Compiler<R> {
         compileDir = baseDir.resolve("compile").toFile();
     }
 
-    public abstract R compileProgram() throws MetaborgException;
+    public abstract R compileProgram() throws MetaborgException, IOException;
 
 //    public abstract CharSequence run() throws IOException, InterruptedException, MetaborgException;
 

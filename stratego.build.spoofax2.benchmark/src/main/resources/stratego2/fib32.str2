@@ -1,6 +1,6 @@
 module fib32
 
-imports libstrategolib
+imports strategolib
 
 signature
 

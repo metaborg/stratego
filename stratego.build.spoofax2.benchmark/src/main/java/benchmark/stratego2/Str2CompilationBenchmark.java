@@ -54,7 +54,7 @@ public class Str2CompilationBenchmark {
     }
 
     @Benchmark
-    public final CompileOutput compileStratego() throws MetaborgException {
+    public final CompileOutput compileStratego() throws MetaborgException, IOException {
         return program.compileStratego();
     }
 }

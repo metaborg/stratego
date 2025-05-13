@@ -39,7 +39,7 @@ public class Stratego2Program extends Program<Stratego2Compiler> {
                 args);
     }
 
-    public CompileOutput compileStratego() throws MetaborgException {
+    public CompileOutput compileStratego() throws MetaborgException, IOException {
         return compiler.compileProgram();
     }
 

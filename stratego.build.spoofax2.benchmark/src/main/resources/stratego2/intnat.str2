@@ -1,6 +1,6 @@
 module intnat
 
-imports libstrategolib
+imports strategolib
 
 signature
 

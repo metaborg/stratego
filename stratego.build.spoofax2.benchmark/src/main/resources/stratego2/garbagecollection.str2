@@ -1,6 +1,6 @@
 module garbagecollection
 
-imports libstrategolib
+imports strategolib
 
 signature
 

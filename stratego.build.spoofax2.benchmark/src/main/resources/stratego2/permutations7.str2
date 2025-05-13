@@ -1,6 +1,6 @@
 module permutations7
 
-imports libstrategolib
+imports strategolib
 
 signature
 

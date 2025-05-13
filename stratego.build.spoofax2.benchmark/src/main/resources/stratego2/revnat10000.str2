@@ -1,6 +1,6 @@
 module revnat10000
 
-imports libstrategolib
+imports strategolib
 
 signature
 

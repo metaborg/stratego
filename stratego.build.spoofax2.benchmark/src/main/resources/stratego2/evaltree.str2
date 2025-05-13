@@ -1,6 +1,6 @@
 module evaltree
 
-imports libstrategolib
+imports strategolib
 
 signature
 

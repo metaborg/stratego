@@ -1,6 +1,6 @@
 module sieve
 
-imports libstrategolib
+imports strategolib
 
 signature
 

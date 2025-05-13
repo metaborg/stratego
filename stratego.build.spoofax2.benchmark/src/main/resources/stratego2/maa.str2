@@ -1,6 +1,6 @@
 module maa
 
-imports libstrategolib
+imports strategolib
 
 signature
 

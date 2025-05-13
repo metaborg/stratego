@@ -1,6 +1,6 @@
 module benchsym
 
-imports libstrategolib
+imports strategolib
 
 signature
 

@@ -1,6 +1,6 @@
 module evalsym
 
-imports libstrategolib
+imports strategolib
 
 signature
 

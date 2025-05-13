@@ -1,6 +1,6 @@
 module dart
 
-imports libstrategolib
+imports strategolib
 
 signature
 

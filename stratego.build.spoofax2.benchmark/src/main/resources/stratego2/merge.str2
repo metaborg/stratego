@@ -1,6 +1,6 @@
 module merge
 
-imports libstrategolib
+imports strategolib
 
 signature
 

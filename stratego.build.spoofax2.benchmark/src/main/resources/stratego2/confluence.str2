@@ -1,6 +1,6 @@
 module confluence
 
-imports libstrategolib
+imports strategolib
 
 signature
 

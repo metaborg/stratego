@@ -1,6 +1,6 @@
 module missionaries3
 
-imports libstrategolib
+imports strategolib
 
 signature
 

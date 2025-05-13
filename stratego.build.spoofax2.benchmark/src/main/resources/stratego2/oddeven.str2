@@ -1,6 +1,6 @@
 module oddeven
 
-imports libstrategolib
+imports strategolib
 
 signature
 
