@@ -1117,7 +1117,9 @@ strategies
 //        end
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
-      ; bstm_call := <make-call-static(|x, e_s*, e_t*)> e_instance
+      ; ( make-call-static(|x, e_s*, e_t*)
+       <+ !bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|)
+      ; ?bstm_call
       ,
         ?bstm_init*
       )
@@ -1135,11 +1137,6 @@ strategies
   make-call-static(|f, e_s*, e_t*):
     expr |[ x.instance ]| ->
     bstm |[ term = x.callStatic(context, term, e_s*, e_t*); ]|
-
-  // otherwise
-  make-call-static(|f, e_s*, e_t*):
-    e_instance ->
-    bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|
 
   translate-ProxyT:
     ProxyT(s*, t*, i, o, SVar(x)) ->
@@ -1340,13 +1337,16 @@ strategies
     CallT(SVar(x), _, _) -> expr |[ this ]|
     where
       <is-self-call> x
-    // Only do self calls for inner definitions
-    ; <eq> (x{}, <CurrentLiftedFrame>)
+    // Only do self calls for inner definitions with lifted args
+    ; sarg* := <LiftedSVars> x{}
+    ; targ* := <LiftedTVars> x{}
+    ; (!sarg* => [_ | _] + !targ* => [_ | _])
 
   lifted-call-to-instance-from-frame :
     CallT(SVar(x{a*}), _, _) -> expr |[ x ]|
     where
-      frame := <CurrentLiftedFrame>
+      <not(is-self-call)> x
+    ; frame := <CurrentLiftedFrame>
     ; !a*
     ; one(?Offset(_))
     ; one(Frames(one(?frame)))
