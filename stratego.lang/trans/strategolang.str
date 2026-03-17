@@ -41,6 +41,7 @@ rules // Debugging
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend-sep-comp
+    ; Fst
     ; ?result
 
   debug-show-java:
@@ -51,6 +52,7 @@ rules // Debugging
     ; local-pre-desugar-all
     ; \Module(_, d*) -> Specification(<remove-all(?Imports(_))> d*)\
     ; frontend-sep-comp
+    ; Fst
     ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
     ; where(
         <set-config> ("-o", <guarantee-extension(|"java")> path) // required output file path
@@ -107,6 +109,7 @@ rules
       ; rules(OutputDirName := <id>)
       )
     ; frontend-sep-comp
+    ; Fst
     ; Specification(map(try(Strategies(remove-all(?ExtSDef(_, _, _))))))
     ; strc-optimize
     ; \Specification(d*) -> Module(x_mod, d*)\
