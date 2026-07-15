@@ -143,7 +143,7 @@ rules
   debug-show-java(|O) = debug-show-java(id|O)
   debug-show-java(s|O) =
     debug-show-java-ast(s|O)
-  ; (id, map(pp-java5-to-abox; box2text-string(|80) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail))
+  ; (id, map((parenthesize-Java5; java-to-string) <+ where(pp-aterm; debug(!"Pretty printing Java failed: ")); fail))
 
 strategies
 
