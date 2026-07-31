@@ -1117,6 +1117,7 @@ strategies
 //        end
       ; e_s* := <map(lifted-strategy-to-instance)> s*
       ; e_t* := <map(java-construct-term)> t*
+      ; !e_instance
       ; ( make-call-static(|x, e_s*, e_t*)
        <+ !bstm |[ term = e_instance.invoke(context, term, e_s*, e_t*); ]|)
       ; ?bstm_call
